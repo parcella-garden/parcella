@@ -80,7 +80,7 @@
     <!-- Teilnahmen -->
     <div class="col-lg-8">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <span><i class="bi bi-people me-2"></i>{{ t('work_hours.session_detail.participants_card_title') }}</span>
                 <span class="text-muted" style="font-size: 0.85rem;">
                     {{ session.participations | selectattr('status.value', 'eq', 'ATTENDED') | list | length }}
@@ -89,12 +89,20 @@
                     {{ t('work_hours.session_detail.registered_suffix') }}
                 </span>
             </div>
+            {% if session.participations %}
+            <div class="card-body border-bottom py-2">
+                <input type="search" id="participant-search" class="form-control form-control-sm"
+                       style="max-width: 280px;"
+                       placeholder="{{ t('work_hours.session_detail.search_placeholder') }}">
+            </div>
+            {% endif %}
             <div class="card-body p-0">
                 <div class="table-responsive">
-<table class="table table-hover mb-0">
+<table class="table table-hover mb-0" id="participants-table">
                         <thead>
                             <tr>
                                 <th>{{ t('work_hours.session_detail.col_member') }}</th>
+                                <th>{{ t('work_hours.session_detail.col_parcel') }}</th>
                                 <th>{{ t('work_hours.session_detail.col_status') }}</th>
                                 <th>{{ t('work_hours.session_detail.col_hours') }}</th>
                                 <th>{{ t('work_hours.session_detail.col_note') }}</th>
@@ -103,11 +111,14 @@
                         </thead>
                         <tbody>
                             {% for t_p in session.participations | sort(attribute='member.last_name') %}
-                            <tr>
+                            {% set current_parcels = t_p.member.parcel_assignments | selectattr('is_current') | map(attribute='parcel.plot_number') | list %}
+                            <tr class="participant-row"
+                                data-search-text="{{ (t_p.member.full_name ~ ' ' ~ (current_parcels | join(' '))) | lower }}">
                                 <td>
                                     <a href="/members/{{ t_p.member.id }}" class="text-decoration-none"
                                        style="color: var(--gv-gruen);">{{ t_p.member.full_name }}</a>
                                 </td>
+                                <td class="text-muted">{{ current_parcels | join(', ') or '–' }}</td>
                                 <td>
                                     {% if has_perm(request, 'work_hours', 'write') %}
                                     <form method="post"
@@ -159,11 +170,16 @@
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-3">
+                                <td colspan="6" class="text-center text-muted py-3">
                                     {{ t('work_hours.session_detail.no_participants') }}
                                 </td>
                             </tr>
                             {% endfor %}
+                            <tr id="participant-no-matches" style="display: none;">
+                                <td colspan="6" class="text-center text-muted py-3">
+                                    {{ t('work_hours.session_detail.no_search_matches') }}
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -280,4 +296,25 @@
     </div>
 
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var search = document.getElementById('participant-search');
+    if (!search) return;
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#participants-table .participant-row'));
+    var noMatches = document.getElementById('participant-no-matches');
+    search.addEventListener('input', function () {
+        var query = search.value.trim().toLowerCase();
+        var anyVisible = false;
+        rows.forEach(function (row) {
+            var match = !query || row.dataset.searchText.indexOf(query) !== -1;
+            row.style.display = match ? '' : 'none';
+            if (match) anyVisible = true;
+        });
+        if (noMatches) noMatches.style.display = anyVisible ? 'none' : '';
+    });
+});
+</script>
 {% endblock %}

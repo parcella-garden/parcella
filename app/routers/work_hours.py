@@ -356,7 +356,10 @@ async def session_detail(
     result = await db.execute(
         select(WorkSession)
         .options(
-            selectinload(WorkSession.participations).selectinload(SessionParticipation.member)
+            selectinload(WorkSession.participations)
+            .selectinload(SessionParticipation.member)
+            .selectinload(Member.parcel_assignments)
+            .selectinload(MemberParcel.parcel)
         )
         .where(WorkSession.id == session_id)
     )
