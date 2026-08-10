@@ -224,12 +224,8 @@
 <nav class="sidebar">
     <div class="sidebar-brand">
         <h1>
-            {% if request.state.logo_url %}
-            <img src="{{ request.state.logo_url }}" alt="{{ request.state.club_name }}"
+            <img src="{{ request.state.logo_url or '/static/favicon.png' }}" alt="{{ request.state.club_name }}"
                  style="height: 28px; width: auto; max-width: 100%; vertical-align: -6px;" class="me-1">
-            {% else %}
-            <i class="bi bi-tree me-1"></i>
-            {% endif %}
             {{ request.state.club_name }}
         </h1>
         <small>{{ t('nav.brand_subtitle') }}</small>

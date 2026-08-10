@@ -132,15 +132,8 @@
             <div class="card-body">
                 <label class="form-label fw-semibold">{{ t('admin.settings.logo_label') }}</label>
                 <div class="d-flex align-items-center gap-3 mb-2">
-                    {% if request.state.logo_url %}
-                    <img src="{{ request.state.logo_url }}" alt="{{ request.state.club_name }}"
+                    <img src="{{ request.state.logo_url or '/static/favicon.png' }}" alt="{{ request.state.club_name }}"
                          style="height: 48px; width: auto; max-width: 160px; border: 1px solid #dce8df; border-radius: 6px; padding: 4px;">
-                    {% else %}
-                    <div style="height: 48px; width: 48px; display: flex; align-items: center; justify-content: center;
-                                border: 1px solid #dce8df; border-radius: 6px; font-size: 1.5rem; color: var(--gv-gruen);">
-                        <i class="bi bi-tree"></i>
-                    </div>
-                    {% endif %}
                     <span class="text-muted" style="font-size: 0.82rem;">{{ t('admin.settings.logo_help') }}</span>
                 </div>
                 <input type="file" name="logo" class="form-control form-control-sm" accept="image/png,image/jpeg,image/webp,image/svg+xml">
