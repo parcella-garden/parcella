@@ -64,7 +64,7 @@
                     <dt class="col-sm-5 text-muted">{{ t('work_hours.session_detail.hours_per_person_label') }}</dt>
                     <dd class="col-sm-7">
                         {% if session.hours_per_participant %}
-                        {{ session.hours_per_participant | int }} h
+                        {{ session.hours_per_participant | number(1) }} h
                         {% else %}–{% endif %}
                     </dd>
                 </dl>

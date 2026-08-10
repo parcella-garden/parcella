@@ -66,7 +66,7 @@
                         <label class="form-label fw-semibold">{{ t('work_hours.session_form.hours_per_participant_label') }}</label>
                         <div class="input-group">
                             <input type="text" name="hours_per_participant" class="form-control"
-                                   value="{{ session.hours_per_participant|int if session and session.hours_per_participant else '' }}"
+                                   value="{{ session.hours_per_participant if session and session.hours_per_participant else '' }}"
                                    placeholder="{{ t('work_hours.session_form.hours_per_participant_placeholder') }}">
                             <span class="input-group-text">h</span>
                         </div>

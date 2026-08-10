@@ -3,6 +3,10 @@ Tests for the Work Hours module. Focus on the business logic with
 higher regression risk: group exemption under PER_PARCEL (any() instead
 of all() -- see Architecture Decisions) and the annual evaluation.
 """
+from datetime import date
+
+from app.database import AsyncSessionLocal
+from app.models import WorkSession, SessionType
 from tests.conftest import login, auth_header
 
 
@@ -309,3 +313,30 @@ async def test_task_assignment_validation_shares_i18n_text_via_api(client, admin
     assert response.status_code == 400
     expected = translate("work_hours.errors.participant_not_in_session", "en")
     assert response.json()["detail"] == expected
+
+
+async def test_session_detail_shows_fractional_hours_per_participant(client, admin_user):
+    """A session's hours_per_participant is Numeric(4,1) and can be
+    fractional (e.g. 2.5h). The detail page and edit form used to run
+    it through Jinja's |int filter, which truncates rather than rounds
+    -- 2.5 silently displayed and re-saved as 2."""
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+
+    async with AsyncSessionLocal() as db:
+        session = WorkSession(
+            title="Fractional hours session",
+            type=SessionType.STANDARD,
+            date=date(2026, 6, 1),
+            hours_per_participant=2.5,
+        )
+        db.add(session)
+        await db.commit()
+        session_id = session.id
+
+    detail = await client.get(f"/work-hours/sessions/{session_id}")
+    assert detail.status_code == 200
+    assert "2.5" in detail.text or "2,5" in detail.text
+
+    edit = await client.get(f"/work-hours/sessions/{session_id}/edit")
+    assert edit.status_code == 200
+    assert 'value="2.5"' in edit.text
