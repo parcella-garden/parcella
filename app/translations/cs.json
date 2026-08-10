@@ -141,6 +141,9 @@
       "label_message": "Zpráva",
       "button_create": "Vytvořit ticket"
     },
+    "attachments": {
+      "cloud_not_configured": "Složka příloh tiketů zatím není nastavena -- viz /admin/integrations."
+    },
     "detail": {
       "history_header": "Historie",
       "internal_note_prefix": "Interní poznámka – ",
@@ -439,7 +442,12 @@
       "incoming_invoices_folder_help": "Přílohy nahrané při zaznamenávání přijaté faktury (/finances/incoming-invoices) se ukládají do této jedné sdílené složky.",
       "incoming_invoices_folder_label": "Cesta ke složce",
       "incoming_invoices_folder_save_button": "Uložit",
-      "incoming_invoices_folder_saved": "Složka pro přijaté faktury byla uložena."
+      "incoming_invoices_folder_saved": "Složka pro přijaté faktury byla uložena.",
+      "ticket_attachments_folder_header": "Složka příloh tiketů",
+      "ticket_attachments_folder_help": "Přílohy příchozích e-mailů tiketů se ukládají do této jedné sdílené složky. Přílohy přijaté před nastavením této složky nelze obnovit.",
+      "ticket_attachments_folder_label": "Cesta ke složce",
+      "ticket_attachments_folder_save_button": "Uložit",
+      "ticket_attachments_folder_saved": "Složka příloh tiketů byla uložena."
     },
     "system": {
       "page_title": "Systém",

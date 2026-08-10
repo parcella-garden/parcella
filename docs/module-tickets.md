@@ -193,6 +193,57 @@ messages received before this feature only have `content` (plain text)
 -- there was no way to recover the original HTML after the fact, since
 it was never stored.
 
+**Incoming attachments are stored in Nextcloud, never locally --
+same pattern as `IncomingInvoice`.** Until this feature, any part of an
+incoming email with `Content-Disposition: attachment` was silently
+discarded during MIME parsing (`_extract_text`/`_extract_html` only
+ever read `text/plain`/`text/html` parts). `_extract_attachments()`
+(`app/ticket_mailer.py`) now also collects those parts, and
+`TicketAttachment` (child of `TicketMessage`, `ON DELETE CASCADE`)
+records one row per upload -- but, exactly like
+`IncomingInvoice.cloud_filename` (see `docs/module-finances.md`), the
+file bytes themselves never touch Parcella's own database or
+filesystem. `cloud_filename` just names a file inside **one shared**
+Nextcloud folder configured for all ticket attachments (`ClubSetting`
+key `ticket_attachments_cloud_folder`, set on `/admin/integrations`'
+Nextcloud card, next to the incoming-invoices folder setting), reusing
+the same `get_nextcloud_provider()` connection
+(`app/cloud_storage.py`). Inline signature images/logos (typically
+`Content-Disposition: inline`) are deliberately excluded -- only parts
+explicitly marked `attachment` are uploaded.
+
+If `cloud_storage` isn't enabled, or the folder isn't configured yet,
+incoming attachments are simply skipped (logged, not stored) --
+ticket/message creation must never fail because of it, same "must
+never block" philosophy as the stage-3 spam filter's external-API
+fallback. A single attachment over `MAX_TICKET_ATTACHMENT_SIZE_BYTES`
+(15 MB) or a failed upload is likewise skipped individually rather
+than aborting the whole incoming-mail batch.
+
+Attachments are downloaded through a permission-gated Parcella route
+(`GET /tickets/{id}/attachments/{attachment_id}`, `require_permission
+"tickets" "read"`) that proxies the file from Nextcloud -- never
+through the public `/static` mount, since ticket access is
+permission-gated (unlike the club logo/avatars, which are intentionally
+public).
+
+**Deliberately not built: attachments on outgoing replies.** Staff
+composing a reply can already paste any URL -- including a Nextcloud
+share link they copied themselves -- into the free-text reply body;
+it goes out as plain text in the email like any other link. Building
+a picker/upload UI for the outgoing side, or generating Nextcloud
+public share links automatically (which would need the separate OCS
+Sharing API, not just the WebDAV calls this connector already makes),
+was scoped out as more surface than the actual request needed.
+
+**Attachments on tickets received before this feature shipped are
+unrecoverable.** The bytes were never stored anywhere during ingestion
+of those older emails, so there's nothing in Parcella to retroactively
+attach. The original email (attachment included) is almost certainly
+still sitting in the mailbox itself, though, since Parcella never
+deletes/expunges after fetching -- recoverable by hand via a regular
+mail client, just not something Parcella can backfill automatically.
+
 ## Overview pagination
 
 The ticket list (`GET /tickets/`) renders the first `TICKETS_PAGE_SIZE`
@@ -213,6 +264,9 @@ tickets            – a request: subject, status, assignment, sender,
                       optional member link
 ticket_messages     – the conversation history of a ticket (incoming/
                       outgoing/internal)
+ticket_attachments  – files on an incoming message (stage 2 follow-up);
+                      only a Nextcloud filename, never the bytes -- see
+                      "Incoming attachments" above
 ```
 
 ## Key decisions

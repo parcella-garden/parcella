@@ -141,6 +141,9 @@
       "label_message": "Správa",
       "button_create": "Vytvoriť ticket"
     },
+    "attachments": {
+      "cloud_not_configured": "Priečinok príloh tiketov ešte nie je nastavený -- pozri /admin/integrations."
+    },
     "detail": {
       "history_header": "História",
       "internal_note_prefix": "Interná poznámka – ",
@@ -439,7 +442,12 @@
       "incoming_invoices_folder_help": "Prílohy nahrané pri zaznamenávaní prijatej faktúry (/finances/incoming-invoices) sa ukladajú do tohto jedného zdieľaného priečinka.",
       "incoming_invoices_folder_label": "Cesta k priečinku",
       "incoming_invoices_folder_save_button": "Uložiť",
-      "incoming_invoices_folder_saved": "Priečinok pre prijaté faktúry bol uložený."
+      "incoming_invoices_folder_saved": "Priečinok pre prijaté faktúry bol uložený.",
+      "ticket_attachments_folder_header": "Priečinok príloh tiketov",
+      "ticket_attachments_folder_help": "Prílohy prichádzajúcich e-mailov tiketov sa ukladajú do tohto jedného spoločného priečinka. Prílohy prijaté pred nastavením tohto priečinka nie je možné obnoviť.",
+      "ticket_attachments_folder_label": "Cesta k priečinku",
+      "ticket_attachments_folder_save_button": "Uložiť",
+      "ticket_attachments_folder_saved": "Priečinok príloh tiketov bol uložený."
     },
     "system": {
       "page_title": "Systém",

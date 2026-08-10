@@ -141,6 +141,9 @@
       "label_message": "Bericht",
       "button_create": "Ticket aanmaken"
     },
+    "attachments": {
+      "cloud_not_configured": "De map voor ticketbijlagen is nog niet ingesteld -- zie /admin/integrations."
+    },
     "detail": {
       "history_header": "Geschiedenis",
       "internal_note_prefix": "Interne notitie – ",
@@ -439,7 +442,12 @@
       "incoming_invoices_folder_help": "Bijlagen die worden geüpload bij het vastleggen van een inkomende factuur (/finances/incoming-invoices) worden opgeslagen in deze ene gedeelde map.",
       "incoming_invoices_folder_label": "Mappad",
       "incoming_invoices_folder_save_button": "Opslaan",
-      "incoming_invoices_folder_saved": "Map voor inkomende facturen opgeslagen."
+      "incoming_invoices_folder_saved": "Map voor inkomende facturen opgeslagen.",
+      "ticket_attachments_folder_header": "Map voor ticketbijlagen",
+      "ticket_attachments_folder_help": "Bijlagen van inkomende ticket-e-mails worden opgeslagen in deze ene gedeelde map. Bijlagen die zijn ontvangen voordat deze map is ingesteld, kunnen niet worden hersteld.",
+      "ticket_attachments_folder_label": "Mappad",
+      "ticket_attachments_folder_save_button": "Opslaan",
+      "ticket_attachments_folder_saved": "Map voor ticketbijlagen opgeslagen."
     },
     "system": {
       "page_title": "Systeem",

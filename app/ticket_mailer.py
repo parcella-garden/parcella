@@ -33,11 +33,13 @@ import aiosmtplib
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.models import ClubSetting, Ticket, TicketMessage, TicketStatus, MessageDirection
+from app.models import ClubSetting, Ticket, TicketMessage, TicketAttachment, TicketStatus, MessageDirection, new_uuid
 from app.email_service import load_smtp_configuration
 from app.ticket_utils import find_members_by_email
 from app.spam_filter import check_for_spam
 from app.html_sanitizer import sanitize_email_html
+from app.module_flags import load_module_flags
+from app.cloud_storage import get_nextcloud_provider, CloudStorageError
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +47,20 @@ logger = logging.getLogger(__name__)
 _KEY_LAST_UID = "ticket_imap_letzte_uid"
 _KEY_LAST_FETCH = "ticket_imap_letzter_abruf"
 _KEY_LAST_ERROR = "ticket_imap_letzter_fehler"
+
+# Shared Nextcloud folder for all ticket attachments, same "one shared
+# folder" pattern as IncomingInvoice (see docs/module-finances.md).
+# Must match app/routers/tickets.py and app/routers/admin.py.
+TICKET_ATTACHMENTS_FOLDER_SETTING = "ticket_attachments_cloud_folder"
+
+MAX_TICKET_ATTACHMENT_SIZE_BYTES = 15 * 1024 * 1024  # 15 MB -- scanned forms/photos, bounded
+MAX_TICKET_ATTACHMENTS_PER_MESSAGE = 10  # defensive cap, same spirit as RESCAN_SPAM_BATCH_LIMIT
+
+
+async def get_ticket_attachments_folder(db: AsyncSession) -> Optional[str]:
+    result = await db.execute(select(ClubSetting).where(ClubSetting.key == TICKET_ATTACHMENTS_FOLDER_SETTING))
+    entry = result.scalar_one_or_none()
+    return entry.value if entry and entry.value else None
 
 
 async def _read_setting(db: AsyncSession, key: str) -> Optional[str]:
@@ -187,6 +203,29 @@ def _extract_html(msg) -> Optional[str]:
         return None
 
 
+def _extract_attachments(msg) -> List[Dict[str, Any]]:
+    """Returns real attachments only -- parts with
+    Content-Disposition: attachment. Deliberately NOT "any part with a
+    filename": inline signature images/logos are typically marked
+    Content-Disposition: inline and have a filename too, but aren't
+    attachments a sender meant to send."""
+    attachments: List[Dict[str, Any]] = []
+    if not msg.is_multipart():
+        return attachments
+    for part in msg.walk():
+        if part.get_content_disposition() != "attachment":
+            continue
+        payload = part.get_payload(decode=True)
+        if not payload:
+            continue
+        attachments.append({
+            "filename": part.get_filename() or "attachment",
+            "content_type": part.get_content_type(),
+            "content": payload,
+        })
+    return attachments
+
+
 def _fetch_highest_uid_sync(config: Dict[str, Any]) -> int:
     """
     Determines only the highest currently existing UID, WITHOUT
@@ -267,6 +306,7 @@ def _fetch_new_mails_sync(config: Dict[str, Any], last_uid: Optional[int]) -> Li
                 "subject": subject.strip() or "(ohne Betreff)",
                 "text": _extract_text(msg).strip(),
                 "html": _extract_html(msg),
+                "attachments": _extract_attachments(msg),
             })
 
         return results
@@ -321,6 +361,41 @@ async def _find_matching_ticket(db: AsyncSession, mail: Dict[str, Any]) -> Optio
     return None
 
 
+async def _save_ticket_attachments(
+    db: AsyncSession, message: TicketMessage, attachments: List[Dict[str, Any]],
+    provider, folder_path: Optional[str],
+) -> None:
+    """Uploads an incoming message's attachments to the shared Nextcloud
+    folder and records one TicketAttachment row per successful upload.
+    Never raises -- a missing configuration or a failed upload just
+    means the attachment is skipped (logged), since a mailbox hiccup or
+    an unconfigured integration must never lose the ticket/message
+    itself (same "must never block" philosophy as the spam filter's
+    external-API fallback)."""
+    if not provider or not folder_path:
+        if attachments:
+            logger.info(f"Skipped {len(attachments)} ticket attachment(s): cloud storage not configured")
+        return
+
+    for att in attachments[:MAX_TICKET_ATTACHMENTS_PER_MESSAGE]:
+        content = att["content"]
+        if not content or len(content) > MAX_TICKET_ATTACHMENT_SIZE_BYTES:
+            logger.warning(f"Skipped ticket attachment '{att['filename']}': empty or over size limit")
+            continue
+        attachment_id = new_uuid()
+        stored_filename = f"{attachment_id}_{att['filename']}"
+        try:
+            await provider.upload_file(folder_path, stored_filename, content)
+        except CloudStorageError as e:
+            logger.warning(f"Failed to upload ticket attachment '{att['filename']}': {e}")
+            continue
+        db.add(TicketAttachment(
+            id=attachment_id, ticket_message_id=message.id,
+            original_filename=att["filename"], cloud_filename=stored_filename,
+            content_type=att["content_type"], size_bytes=len(content),
+        ))
+
+
 async def process_incoming_mails(db: AsyncSession) -> int:
     """
     Fetches new emails and processes them into tickets/messages.
@@ -370,51 +445,64 @@ async def process_incoming_mails(db: AsyncSession) -> int:
     processed = 0
     highest_uid = last_uid or 0
 
-    for mail in mails:
-        highest_uid = max(highest_uid, mail["uid"])
+    module_flags = await load_module_flags(db)
+    attachments_folder = await get_ticket_attachments_folder(db) if module_flags.get("cloud_storage") else None
+    provider = await get_nextcloud_provider(db) if attachments_folder else None
 
-        if not mail["from_email"]:
-            continue  # unusable message (no sender address parsed)
+    try:
+        for mail in mails:
+            highest_uid = max(highest_uid, mail["uid"])
 
-        ticket = await _find_matching_ticket(db, mail)
+            if not mail["from_email"]:
+                continue  # unusable message (no sender address parsed)
 
-        if ticket:
-            # Automatically reactivate a closed, postponed, or
-            # waiting-for-reply ticket on a new reply -- a reply from
-            # the sender ends any form of "we're waiting".
-            if ticket.status in (TicketStatus.CLOSED, TicketStatus.POSTPONED, TicketStatus.WAITING):
-                ticket.status = TicketStatus.ASSIGNED if ticket.assigned_to_id else TicketStatus.ACTIVE
-                ticket.closed_at = None
-                ticket.postponed_until = None
-        else:
-            # Spam check only for new tickets, not for replies to
-            # existing ones -- avoids unnecessary (possibly paid) external calls.
-            spam_result = await check_for_spam(mail["from_email"], mail["subject"], mail["text"], db)
+            ticket = await _find_matching_ticket(db, mail)
 
-            matches = await find_members_by_email(db, mail["from_email"])
-            member_id = matches[0].id if len(matches) == 1 else None
+            if ticket:
+                # Automatically reactivate a closed, postponed, or
+                # waiting-for-reply ticket on a new reply -- a reply from
+                # the sender ends any form of "we're waiting".
+                if ticket.status in (TicketStatus.CLOSED, TicketStatus.POSTPONED, TicketStatus.WAITING):
+                    ticket.status = TicketStatus.ASSIGNED if ticket.assigned_to_id else TicketStatus.ACTIVE
+                    ticket.closed_at = None
+                    ticket.postponed_until = None
+            else:
+                # Spam check only for new tickets, not for replies to
+                # existing ones -- avoids unnecessary (possibly paid) external calls.
+                spam_result = await check_for_spam(mail["from_email"], mail["subject"], mail["text"], db)
 
-            ticket = Ticket(
-                subject=mail["subject"],
-                sender_email=mail["from_email"],
-                sender_name=mail["from_name"] or None,
-                member_id=member_id,
-                spam_suspected=spam_result.is_spam_suspected,
-                spam_score=spam_result.score,
-                spam_reasoning=spam_result.reasoning,
+                matches = await find_members_by_email(db, mail["from_email"])
+                member_id = matches[0].id if len(matches) == 1 else None
+
+                ticket = Ticket(
+                    subject=mail["subject"],
+                    sender_email=mail["from_email"],
+                    sender_name=mail["from_name"] or None,
+                    member_id=member_id,
+                    spam_suspected=spam_result.is_spam_suspected,
+                    spam_score=spam_result.score,
+                    spam_reasoning=spam_result.reasoning,
+                )
+                db.add(ticket)
+                await db.flush()
+
+            message = TicketMessage(
+                ticket_id=ticket.id,
+                direction=MessageDirection.INCOMING,
+                content=mail["text"] or "(kein Textinhalt)",
+                content_html=sanitize_email_html(mail["html"]) if mail.get("html") else None,
+                message_id=mail["message_id"] or None,
+                in_reply_to=mail["in_reply_to"] or None,
             )
-            db.add(ticket)
-            await db.flush()
+            db.add(message)
+            processed += 1
 
-        db.add(TicketMessage(
-            ticket_id=ticket.id,
-            direction=MessageDirection.INCOMING,
-            content=mail["text"] or "(kein Textinhalt)",
-            content_html=sanitize_email_html(mail["html"]) if mail.get("html") else None,
-            message_id=mail["message_id"] or None,
-            in_reply_to=mail["in_reply_to"] or None,
-        ))
-        processed += 1
+            if mail.get("attachments"):
+                await db.flush()  # need message.id as the attachments' FK
+                await _save_ticket_attachments(db, message, mail["attachments"], provider, attachments_folder)
+    finally:
+        if provider:
+            await provider.aclose()
 
     await _write_setting(db, _KEY_LAST_UID, str(highest_uid) if highest_uid else None)
     await _write_setting(db, _KEY_LAST_FETCH, datetime.now(timezone.utc).isoformat())

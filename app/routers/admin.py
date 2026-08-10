@@ -60,6 +60,9 @@ INVITATION_DAYS = 7
 # (issue #191: folder configuration moved here, but the setting is
 # still read from app/routers/finances.py at upload/download time).
 INCOMING_INVOICES_FOLDER_SETTING = "incoming_invoices_cloud_folder"
+# Must match app/ticket_mailer.py's TICKET_ATTACHMENTS_FOLDER_SETTING --
+# same "configured here, read from the owning module" split as above.
+TICKET_ATTACHMENTS_FOLDER_SETTING = "ticket_attachments_cloud_folder"
 
 
 # Every FK-to-users.id in the schema (see ADR 0040/audit) -- a user can
@@ -1227,6 +1230,12 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
     incoming_invoices_folder_entry = incoming_invoices_folder_result.scalar_one_or_none()
     incoming_invoices_folder_path = incoming_invoices_folder_entry.value if incoming_invoices_folder_entry else None
 
+    ticket_attachments_folder_result = await db.execute(
+        select(ClubSetting).where(ClubSetting.key == TICKET_ATTACHMENTS_FOLDER_SETTING)
+    )
+    ticket_attachments_folder_entry = ticket_attachments_folder_result.scalar_one_or_none()
+    ticket_attachments_folder_path = ticket_attachments_folder_entry.value if ticket_attachments_folder_entry else None
+
     return templates.TemplateResponse("admin/integrations.html", {
         "request": request, "user": user,
         "api_token": token,
@@ -1248,6 +1257,9 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
         "incoming_invoices_folder_path": incoming_invoices_folder_path,
         "incoming_invoices_folder_saved": request.query_params.get("incoming_invoices_folder_saved"),
         "incoming_invoices_folder_error": request.query_params.get("incoming_invoices_folder_error"),
+        "ticket_attachments_folder_path": ticket_attachments_folder_path,
+        "ticket_attachments_folder_saved": request.query_params.get("ticket_attachments_folder_saved"),
+        "ticket_attachments_folder_error": request.query_params.get("ticket_attachments_folder_error"),
     })
 
 
@@ -1425,3 +1437,34 @@ async def integrations_incoming_invoices_folder_save(
         ))
     await db.commit()
     return RedirectResponse("/admin/integrations?incoming_invoices_folder_saved=1", status_code=303)
+
+
+@router.post("/integrations/nextcloud/ticket-attachments-folder")
+async def integrations_ticket_attachments_folder_save(
+    request: Request, relative_path: str = Form(...), db: AsyncSession = Depends(get_db),
+):
+    """Same shared-folder pattern as incoming invoices above (ClubSetting
+    TICKET_ATTACHMENTS_FOLDER_SETTING), one folder for all tickets --
+    read from app/ticket_mailer.py at ingestion time and
+    app/routers/tickets.py at download time."""
+    await require_system_admin(request, db)
+
+    try:
+        sanitized = sanitize_relative_path(relative_path)
+    except InvalidCloudPathError as e:
+        from urllib.parse import quote
+        return RedirectResponse(
+            f"/admin/integrations?ticket_attachments_folder_error={quote(str(e))}", status_code=303,
+        )
+
+    result = await db.execute(select(ClubSetting).where(ClubSetting.key == TICKET_ATTACHMENTS_FOLDER_SETTING))
+    entry = result.scalar_one_or_none()
+    if entry:
+        entry.value = sanitized
+    else:
+        db.add(ClubSetting(
+            key=TICKET_ATTACHMENTS_FOLDER_SETTING, value=sanitized,
+            description="Shared cloud folder for incoming ticket attachments",
+        ))
+    await db.commit()
+    return RedirectResponse("/admin/integrations?ticket_attachments_folder_saved=1", status_code=303)

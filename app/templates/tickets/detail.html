@@ -61,6 +61,15 @@
                     {% else %}
                     <div style="white-space: pre-wrap; font-size: 0.9rem;">{{ n.content }}</div>
                     {% endif %}
+                    {% if n.attachments %}
+                    <div class="mt-2 d-flex flex-wrap gap-2">
+                        {% for a in n.attachments %}
+                        <a href="/tickets/{{ ticket.id }}/attachments/{{ a.id }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-paperclip me-1"></i>{{ a.original_filename }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>

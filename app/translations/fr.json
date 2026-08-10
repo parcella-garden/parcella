@@ -141,6 +141,9 @@
       "label_message": "Message",
       "button_create": "Créer un ticket"
     },
+    "attachments": {
+      "cloud_not_configured": "Le dossier des pièces jointes des tickets n'est pas encore configuré -- voir /admin/integrations."
+    },
     "detail": {
       "history_header": "Historique",
       "internal_note_prefix": "Note interne – ",
@@ -439,7 +442,12 @@
       "incoming_invoices_folder_help": "Les pièces jointes téléversées lors de l'enregistrement d'une facture reçue (/finances/incoming-invoices) sont stockées dans ce dossier unique partagé.",
       "incoming_invoices_folder_label": "Chemin du dossier",
       "incoming_invoices_folder_save_button": "Enregistrer",
-      "incoming_invoices_folder_saved": "Dossier des factures reçues enregistré."
+      "incoming_invoices_folder_saved": "Dossier des factures reçues enregistré.",
+      "ticket_attachments_folder_header": "Dossier des pièces jointes des tickets",
+      "ticket_attachments_folder_help": "Les pièces jointes des e-mails de tickets entrants sont stockées dans ce dossier partagé unique. Les pièces jointes reçues avant la configuration de ce dossier ne peuvent pas être récupérées.",
+      "ticket_attachments_folder_label": "Chemin du dossier",
+      "ticket_attachments_folder_save_button": "Enregistrer",
+      "ticket_attachments_folder_saved": "Dossier des pièces jointes des tickets enregistré."
     },
     "system": {
       "page_title": "Système",

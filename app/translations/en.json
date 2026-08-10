@@ -141,6 +141,9 @@
       "label_message": "Message",
       "button_create": "Create ticket"
     },
+    "attachments": {
+      "cloud_not_configured": "The ticket attachments folder isn't configured yet -- see /admin/integrations."
+    },
     "detail": {
       "history_header": "History",
       "internal_note_prefix": "Internal note – ",
@@ -439,7 +442,12 @@
       "incoming_invoices_folder_help": "Attachments uploaded when recording an incoming invoice (/finances/incoming-invoices) are stored in this single shared folder.",
       "incoming_invoices_folder_label": "Folder path",
       "incoming_invoices_folder_save_button": "Save",
-      "incoming_invoices_folder_saved": "Incoming invoices folder saved."
+      "incoming_invoices_folder_saved": "Incoming invoices folder saved.",
+      "ticket_attachments_folder_header": "Ticket attachments folder",
+      "ticket_attachments_folder_help": "Attachments on incoming ticket emails are stored in this single shared folder. Attachments received before this folder is set cannot be recovered.",
+      "ticket_attachments_folder_label": "Folder path",
+      "ticket_attachments_folder_save_button": "Save",
+      "ticket_attachments_folder_saved": "Ticket attachments folder saved."
     },
     "system": {
       "page_title": "System",

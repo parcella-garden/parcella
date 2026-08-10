@@ -1348,6 +1348,34 @@ class TicketMessage(Base):
 
     ticket: Mapped["Ticket"] = relationship("Ticket", back_populates="messages")
     authored_by: Mapped[Optional["User"]] = relationship("User")
+    attachments: Mapped[List["TicketAttachment"]] = relationship(
+        "TicketAttachment", back_populates="ticket_message",
+        cascade="all, delete-orphan", order_by="TicketAttachment.created_at",
+    )
+
+
+class TicketAttachment(Base):
+    """A file attached to an incoming ticket message. Never stored in
+    Parcella's own database/filesystem -- cloud_filename just names a
+    file inside the single shared Nextcloud folder configured for
+    ticket attachments (ClubSetting "ticket_attachments_cloud_folder"),
+    same pattern and same Nextcloud connection as IncomingInvoice
+    (see docs/module-finances.md)."""
+    __tablename__ = "ticket_attachments"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    ticket_message_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("ticket_messages.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    original_filename: Mapped[str] = mapped_column(String(500), nullable=False)
+    cloud_filename: Mapped[str] = mapped_column(String(500), nullable=False)
+    content_type: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    size_bytes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    ticket_message: Mapped["TicketMessage"] = relationship("TicketMessage", back_populates="attachments")
 
     def __repr__(self) -> str:
         return f"<TicketMessage {self.direction.value} @ {self.ticket_id}>"

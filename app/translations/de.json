@@ -141,6 +141,9 @@
       "label_message": "Anliegen",
       "button_create": "Ticket anlegen"
     },
+    "attachments": {
+      "cloud_not_configured": "Der Ordner für Ticket-Anhänge ist noch nicht konfiguriert -- siehe /admin/integrations."
+    },
     "detail": {
       "history_header": "Verlauf",
       "internal_note_prefix": "Interne Notiz – ",
@@ -439,7 +442,12 @@
       "incoming_invoices_folder_help": "Anhänge, die beim Erfassen einer Eingangsrechnung (/finances/incoming-invoices) hochgeladen werden, landen in diesem einen gemeinsamen Ordner.",
       "incoming_invoices_folder_label": "Ordnerpfad",
       "incoming_invoices_folder_save_button": "Speichern",
-      "incoming_invoices_folder_saved": "Ordner für Eingangsrechnungen gespeichert."
+      "incoming_invoices_folder_saved": "Ordner für Eingangsrechnungen gespeichert.",
+      "ticket_attachments_folder_header": "Ordner für Ticket-Anhänge",
+      "ticket_attachments_folder_help": "Anhänge eingehender Ticket-E-Mails werden in diesem einen gemeinsamen Ordner gespeichert. Anhänge, die vor dem Festlegen dieses Ordners eingegangen sind, können nicht wiederhergestellt werden.",
+      "ticket_attachments_folder_label": "Ordnerpfad",
+      "ticket_attachments_folder_save_button": "Speichern",
+      "ticket_attachments_folder_saved": "Ordner für Ticket-Anhänge gespeichert."
     },
     "system": {
       "page_title": "System",

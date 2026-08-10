@@ -141,6 +141,9 @@
       "label_message": "Treść",
       "button_create": "Utwórz zgłoszenie"
     },
+    "attachments": {
+      "cloud_not_configured": "Folder załączników zgłoszeń nie jest jeszcze skonfigurowany -- zobacz /admin/integrations."
+    },
     "detail": {
       "history_header": "Historia",
       "internal_note_prefix": "Notatka wewnętrzna – ",
@@ -439,7 +442,12 @@
       "incoming_invoices_folder_help": "Załączniki przesyłane podczas rejestrowania faktury przychodzącej (/finances/incoming-invoices) są przechowywane w tym jednym wspólnym folderze.",
       "incoming_invoices_folder_label": "Ścieżka folderu",
       "incoming_invoices_folder_save_button": "Zapisz",
-      "incoming_invoices_folder_saved": "Folder faktur przychodzących zapisany."
+      "incoming_invoices_folder_saved": "Folder faktur przychodzących zapisany.",
+      "ticket_attachments_folder_header": "Folder załączników zgłoszeń",
+      "ticket_attachments_folder_help": "Załączniki z przychodzących wiadomości e-mail zgłoszeń są przechowywane w tym jednym wspólnym folderze. Załączników odebranych przed ustawieniem tego folderu nie można odzyskać.",
+      "ticket_attachments_folder_label": "Ścieżka folderu",
+      "ticket_attachments_folder_save_button": "Zapisz",
+      "ticket_attachments_folder_saved": "Folder załączników zgłoszeń zapisany."
     },
     "system": {
       "page_title": "System",

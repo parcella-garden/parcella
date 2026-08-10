@@ -15,14 +15,14 @@ from datetime import date
 from typing import Optional
 
 from fastapi import APIRouter, Request, Form, Depends, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.models import (
-    Ticket, TicketMessage, TicketStatus, MessageDirection, User,
+    Ticket, TicketMessage, TicketAttachment, TicketStatus, MessageDirection, User,
 )
 from app.permissions import require_permission
 from app.module_flags import require_module
@@ -33,9 +33,10 @@ from app.services.tickets import (
     bulk_set_spam_status, add_message,
 )
 from app.ticket_utils import find_members_by_email
-from app.ticket_mailer import process_incoming_mails
+from app.ticket_mailer import process_incoming_mails, get_ticket_attachments_folder
 from app.spam_filter import check_for_spam
 from app.avatars import avatar_url
+from app.cloud_storage import get_nextcloud_provider, CloudStorageError
 from app.i18n import t_for, DEFAULT_LANGUAGE
 
 router = APIRouter(
@@ -61,6 +62,7 @@ async def _load_ticket_with_details(db: AsyncSession, ticket_id: str) -> Optiona
             selectinload(Ticket.assigned_to),
             selectinload(Ticket.member),
             selectinload(Ticket.messages).selectinload(TicketMessage.authored_by),
+            selectinload(Ticket.messages).selectinload(TicketMessage.attachments),
         )
         .where(Ticket.id == ticket_id)
     )
@@ -325,6 +327,41 @@ async def ticket_detail(
         "TicketStatus": TicketStatus, "MessageDirection": MessageDirection,
         "today": date.today().isoformat(),
     })
+
+
+@router.get(
+    "/{ticket_id}/attachments/{attachment_id}",
+    dependencies=[Depends(require_module("cloud_storage"))],
+)
+async def ticket_attachment_download(
+    ticket_id: str, attachment_id: str, request: Request, db: AsyncSession = Depends(get_db),
+):
+    await require_permission(request, db, "tickets", "read")
+
+    result = await db.execute(
+        select(TicketAttachment).join(TicketMessage)
+        .where(TicketAttachment.id == attachment_id, TicketMessage.ticket_id == ticket_id)
+    )
+    attachment = result.scalar_one_or_none()
+    if not attachment:
+        raise HTTPException(status_code=404)
+
+    folder_path = await get_ticket_attachments_folder(db)
+    provider = await get_nextcloud_provider(db) if folder_path else None
+    if not folder_path or provider is None:
+        raise HTTPException(status_code=400, detail=t_for(request, "tickets.attachments.cloud_not_configured"))
+
+    try:
+        content = await provider.download_file(folder_path, attachment.cloud_filename)
+    except CloudStorageError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+    finally:
+        await provider.aclose()
+
+    return Response(
+        content=content, media_type=attachment.content_type or "application/octet-stream",
+        headers={"Content-Disposition": f'attachment; filename="{attachment.original_filename}"'},
+    )
 
 
 # ---------------------------------------------------------------------------
