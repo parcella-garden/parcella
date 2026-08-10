@@ -49,13 +49,13 @@
                         <label class="form-label fw-semibold">{{ t('work_hours.sponsorships.credited_hours_label') }} <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <input type="text" name="credited_hours" class="form-control"
-                                   value="{{ config.hours_required|int if config else '' }}"
+                                   value="{{ config.hours_required if config else '' }}"
                                    placeholder="{{ t('work_hours.sponsorships.credited_hours_placeholder') }}" required>
                             <span class="input-group-text">h</span>
                         </div>
                         <div class="form-text">
                             {% if config %}
-                            {{ t('work_hours.sponsorships.credited_hours_hint_prefilled', year=year, hours=config.hours_required|int) }}
+                            {{ t('work_hours.sponsorships.credited_hours_hint_prefilled', year=year, hours=config.hours_required|number(1)) }}
                             {% else %}
                             {{ t('work_hours.sponsorships.credited_hours_hint_missing', year=year) }}
                             {% endif %}
@@ -127,7 +127,7 @@
                                     <span class="text-muted fst-italic">{{ t('work_hours.sponsorships.not_yet_assigned_italic') }}</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ p.credited_hours | int }} h</td>
+                                <td>{{ p.credited_hours | number(1) }} h</td>
                                 <td class="text-muted" style="font-size: 0.85rem;">
                                     {{ p.valid_from.strftime('%d.%m.%Y') }} –
                                     {{ p.valid_until.strftime('%d.%m.%Y') if p.valid_until else t('work_hours.sponsorships.ongoing') }}

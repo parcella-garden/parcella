@@ -32,7 +32,7 @@
     <div class="col-sm-4">
         <div class="card text-center p-3">
             <div class="text-muted mb-1" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em;">{{ t('work_hours.overview.required_hours_label', year=year) }}</div>
-            <div style="font-size: 2rem; font-weight: 700; color: var(--gv-gruen);">{{ config.hours_required | int }}h</div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--gv-gruen);">{{ config.hours_required | number(1) }}h</div>
             <div class="text-muted" style="font-size: 0.82rem;">{{ t('work_hours.overview.rate_prefix') }} {{ config.rate_per_hour_eur|float|money }}</div>
         </div>
     </div>

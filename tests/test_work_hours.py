@@ -6,7 +6,7 @@ of all() -- see Architecture Decisions) and the annual evaluation.
 from datetime import date
 
 from app.database import AsyncSessionLocal
-from app.models import WorkSession, SessionType
+from app.models import WorkSession, SessionType, WorkHoursConfiguration, WorkHoursMode, Sponsorship
 from tests.conftest import login, auth_header
 
 
@@ -340,3 +340,61 @@ async def test_session_detail_shows_fractional_hours_per_participant(client, adm
     edit = await client.get(f"/work-hours/sessions/{session_id}/edit")
     assert edit.status_code == 200
     assert 'value="2.5"' in edit.text
+
+
+async def test_configuration_and_evaluation_pages_show_fractional_hours_required(client, admin_user):
+    """Same |int truncation bug as hours_per_participant (see
+    test_session_detail_shows_fractional_hours_per_participant), but for
+    WorkHoursConfiguration.hours_required -- also Numeric(*, 1) and thus
+    also fractional. Hit every page that displays or edits it."""
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+
+    async with AsyncSessionLocal() as db:
+        config = WorkHoursConfiguration(
+            year=2027, hours_required=4.5, rate_per_hour_eur=20.0, mode=WorkHoursMode.PER_PARCEL,
+        )
+        db.add(config)
+        await db.commit()
+        config_id = config.id
+
+    overview = await client.get("/work-hours/", params={"year": 2027})
+    assert overview.status_code == 200
+    assert "4.5" in overview.text or "4,5" in overview.text
+
+    configuration_list = await client.get("/work-hours/configuration")
+    assert configuration_list.status_code == 200
+    assert "4.5" in configuration_list.text or "4,5" in configuration_list.text
+
+    configuration_edit = await client.get(f"/work-hours/configuration/{config_id}/edit")
+    assert configuration_edit.status_code == 200
+    assert 'value="4.5"' in configuration_edit.text
+
+    evaluation = await client.get("/work-hours/evaluation", params={"year": 2027})
+    assert evaluation.status_code == 200
+    assert "4.5" in evaluation.text or "4,5" in evaluation.text
+
+
+async def test_sponsorship_page_and_edit_form_show_fractional_hours(client, admin_user):
+    """Same truncation bug for Sponsorship.credited_hours, plus the
+    create-form's prefilled-from-config hint text."""
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+
+    async with AsyncSessionLocal() as db:
+        config = WorkHoursConfiguration(
+            year=2027, hours_required=4.5, rate_per_hour_eur=20.0, mode=WorkHoursMode.PER_PARCEL,
+        )
+        sponsorship = Sponsorship(
+            area="Hedge north side", credited_hours=3.5, valid_from=date(2027, 1, 1),
+        )
+        db.add_all([config, sponsorship])
+        await db.commit()
+        sponsorship_id = sponsorship.id
+
+    sponsorships_page = await client.get("/work-hours/sponsorships", params={"year": 2027})
+    assert sponsorships_page.status_code == 200
+    assert "3.5" in sponsorships_page.text or "3,5" in sponsorships_page.text
+    assert "4.5" in sponsorships_page.text or "4,5" in sponsorships_page.text
+
+    sponsorship_edit = await client.get(f"/work-hours/sponsorships/{sponsorship_id}/edit")
+    assert sponsorship_edit.status_code == 200
+    assert 'value="3.5"' in sponsorship_edit.text

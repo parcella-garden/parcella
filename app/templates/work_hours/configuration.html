@@ -85,7 +85,7 @@
                             {% for k in configurations %}
                             <tr>
                                 <td class="fw-bold">{{ k.year }}</td>
-                                <td>{{ k.hours_required | int }} h</td>
+                                <td>{{ k.hours_required | number(1) }} h</td>
                                 <td>{{ k.rate_per_hour_eur|float|money }}</td>
                                 <td>{{ (k.hours_required|float * k.rate_per_hour_eur|float)|money }}</td>
                                 <td>

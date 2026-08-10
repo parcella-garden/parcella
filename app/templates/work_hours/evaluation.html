@@ -61,7 +61,7 @@
             <div style="font-size: 1rem; font-weight: 600; color: var(--gv-gruen);">
                 {% if config.mode.value == 'PER_PARCEL' %}{{ t('work_hours.evaluation.mode_per_parcel') }}{% else %}{{ t('work_hours.evaluation.mode_per_member') }}{% endif %}
             </div>
-            <div class="text-muted" style="font-size: 0.75rem;">{{ config.hours_required | int }}h {{ t('work_hours.overview.rate_prefix') }} {{ config.rate_per_hour_eur|float|money }}</div>
+            <div class="text-muted" style="font-size: 0.75rem;">{{ config.hours_required | number(1) }}h {{ t('work_hours.overview.rate_prefix') }} {{ config.rate_per_hour_eur|float|money }}</div>
         </div>
     </div>
 </div>
@@ -108,7 +108,7 @@
                             </div>
                             {% endfor %}
                         </td>
-                        <td>{{ z.required_hours | int }} h</td>
+                        <td>{{ z.required_hours | number(1) }} h</td>
                         <td>{{ z.tenant_details | sum(attribute='hours.session_hours')|number(1) }} h</td>
                         <td>{{ z.tenant_details | sum(attribute='hours.sponsorship_hours')|number(1) }} h</td>
                         <td class="fw-semibold">{{ z.total_hours|number(1) }} h</td>
@@ -120,7 +120,7 @@
                             <a href="/members/{{ z.member.id }}" class="text-decoration-none fw-semibold"
                                style="color: var(--gv-gruen);">{{ z.member.full_name }}</a>
                         </td>
-                        <td>{{ z.required_hours | int }} h</td>
+                        <td>{{ z.required_hours | number(1) }} h</td>
                         <td>{{ z.hours.session_hours|number(1) }} h</td>
                         <td>{{ z.hours.sponsorship_hours|number(1) }} h</td>
                         <td class="fw-semibold">{{ z.hours.total|number(1) }} h</td>
