@@ -203,6 +203,27 @@ def _extract_html(msg) -> Optional[str]:
         return None
 
 
+def sanitize_attachment_filename(name: str) -> str:
+    """Strips control characters (CR, LF, tab, etc.) and collapses the
+    resulting whitespace. A sender's mail client can fold/wrap a
+    filename across an unencoded header continuation line -- Python's
+    email.message.Message.get_filename() then returns the raw folded
+    text, literal '\\r\\n ' and all. That string later gets embedded
+    directly in an HTTP Content-Disposition response header (see
+    app/routers/tickets.py's download route) -- a raw CR/LF there isn't
+    just a display glitch, it's a header-injection vector, and even
+    without malicious intent it crashes the response outright
+    (uvicorn's RuntimeError: Invalid HTTP header value). Also escapes a
+    literal '"' (would otherwise prematurely close the header's quoted
+    filename value). Applied once at ingestion AND again defensively
+    where the header is built, same "sanitize at ingestion + a second
+    defensive pass at render time" pattern as sanitize_email_html."""
+    if not name:
+        return "attachment"
+    cleaned = re.sub(r"[\x00-\x1f\x7f\s]+", " ", name).replace('"', "'").strip()
+    return cleaned or "attachment"
+
+
 def _extract_attachments(msg) -> List[Dict[str, Any]]:
     """Returns real attachments only -- parts with
     Content-Disposition: attachment. Deliberately NOT "any part with a
@@ -219,7 +240,7 @@ def _extract_attachments(msg) -> List[Dict[str, Any]]:
         if not payload:
             continue
         attachments.append({
-            "filename": part.get_filename() or "attachment",
+            "filename": sanitize_attachment_filename(part.get_filename()),
             "content_type": part.get_content_type(),
             "content": payload,
         })

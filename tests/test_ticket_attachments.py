@@ -82,6 +82,97 @@ def test_extract_attachments_empty_for_plain_non_multipart_message():
 
 
 # ---------------------------------------------------------------------------
+# sanitize_attachment_filename() -- regression coverage for a real incident:
+# a sender's mail client folded a filename across an unencoded header
+# continuation line, so Message.get_filename() returned the raw
+# "Screenshot from 2026-08-10\r\n 20-18-40.png". That string, stored as
+# TicketAttachment.original_filename, then embedded raw in the download
+# route's Content-Disposition response header, crashed uvicorn outright
+# (RuntimeError: Invalid HTTP header value) -- a header-injection-shaped
+# bug, not just a display glitch.
+# ---------------------------------------------------------------------------
+
+def test_sanitize_attachment_filename_strips_folded_crlf():
+    from app.ticket_mailer import sanitize_attachment_filename
+
+    assert (
+        sanitize_attachment_filename("Screenshot from 2026-08-10\r\n 20-18-40.png")
+        == "Screenshot from 2026-08-10 20-18-40.png"
+    )
+
+
+def test_sanitize_attachment_filename_escapes_embedded_quote():
+    from app.ticket_mailer import sanitize_attachment_filename
+
+    assert '"' not in sanitize_attachment_filename('evil"; filename="other.exe')
+
+
+def test_sanitize_attachment_filename_falls_back_for_empty_input():
+    from app.ticket_mailer import sanitize_attachment_filename
+
+    assert sanitize_attachment_filename("") == "attachment"
+    assert sanitize_attachment_filename("\r\n\t") == "attachment"
+
+
+def test_extract_attachments_sanitizes_folded_filename():
+    from app.ticket_mailer import _extract_attachments
+
+    msg = MIMEMultipart()
+    msg.attach(MIMEText("Anbei ein Screenshot.", "plain"))
+    real_attachment = MIMEApplication(b"fake-png-bytes", _subtype="png")
+    # Simulates a mail client's unencoded header fold: get_filename()
+    # returns the raw continuation, literal CRLF included.
+    real_attachment.add_header("Content-Disposition", "attachment", filename="Screenshot from 2026-08-10\r\n 20-18-40.png")
+    msg.attach(real_attachment)
+
+    attachments = _extract_attachments(msg)
+    assert len(attachments) == 1
+    assert attachments[0]["filename"] == "Screenshot from 2026-08-10 20-18-40.png"
+
+
+async def test_download_ticket_attachment_survives_bad_stored_filename(client, admin_user, monkeypatch):
+    """Defense-in-depth regression: even if a bad (control-character-laden)
+    filename already made it into the database -- e.g. from before this
+    fix, or any other future insertion path -- the download route must
+    still sanitize at render time rather than crash building the
+    Content-Disposition header."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_cloud_storage_and_folder(client, headers)
+
+    ticket_id, message_id = await _create_ticket_and_message()
+    async with AsyncSessionLocal() as db:
+        attachment = TicketAttachment(
+            ticket_message_id=message_id,
+            original_filename="Screenshot from 2026-08-10\r\n 20-18-40.png",
+            cloud_filename="abc123_Screenshot from 2026-08-10\r\n 20-18-40.png",
+            content_type="image/png", size_bytes=9,
+        )
+        db.add(attachment)
+        await db.commit()
+        attachment_id = attachment.id
+
+    import httpx as httpx_module
+    from app.cloud_storage import NextcloudProvider as RealNextcloudProvider
+
+    mock_client = httpx_module.AsyncClient(transport=_nextcloud_mock_transport(get_body=b"png bytes"))
+
+    async def fake_get_nextcloud_provider(db, client=None):
+        return RealNextcloudProvider(
+            base_url="https://cloud.example.org", username="board", app_password="secret", client=mock_client,
+        )
+
+    monkeypatch.setattr("app.routers.tickets.get_nextcloud_provider", fake_get_nextcloud_provider)
+
+    response = await client.get(f"/tickets/{ticket_id}/attachments/{attachment_id}")
+    assert response.status_code == 200
+    assert response.content == b"png bytes"
+    assert "\r" not in response.headers["content-disposition"]
+    assert "\n" not in response.headers["content-disposition"]
+    assert 'filename="Screenshot from 2026-08-10 20-18-40.png"' in response.headers["content-disposition"]
+
+
+# ---------------------------------------------------------------------------
 # _save_ticket_attachments()
 # ---------------------------------------------------------------------------
 

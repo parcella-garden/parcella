@@ -33,7 +33,7 @@ from app.services.tickets import (
     bulk_set_spam_status, add_message,
 )
 from app.ticket_utils import find_members_by_email
-from app.ticket_mailer import process_incoming_mails, get_ticket_attachments_folder
+from app.ticket_mailer import process_incoming_mails, get_ticket_attachments_folder, sanitize_attachment_filename
 from app.spam_filter import check_for_spam
 from app.avatars import avatar_url
 from app.cloud_storage import get_nextcloud_provider, CloudStorageError
@@ -360,7 +360,7 @@ async def ticket_attachment_download(
 
     return Response(
         content=content, media_type=attachment.content_type or "application/octet-stream",
-        headers={"Content-Disposition": f'attachment; filename="{attachment.original_filename}"'},
+        headers={"Content-Disposition": f'attachment; filename="{sanitize_attachment_filename(attachment.original_filename)}"'},
     )
 
 
