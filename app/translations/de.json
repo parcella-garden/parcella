@@ -1361,6 +1361,8 @@
       "search_placeholder": "Nach Mitglied oder Parzellennummer suchen…",
       "no_search_matches": "Keine Teilnehmer entsprechen der Suche.",
       "select_member_placeholder": "Mitglied wählen…",
+      "no_member_matches": "Keine Treffer",
+      "select_member_from_list": "Bitte ein Mitglied aus der Liste auswählen",
       "add_button": "Hinzufügen",
       "tasks_card_title": "Aufgaben",
       "manage_tasks_link": "Aufgaben verwalten",

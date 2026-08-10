@@ -1361,6 +1361,8 @@
       "search_placeholder": "Rechercher par membre ou numéro de parcelle…",
       "no_search_matches": "Aucun participant ne correspond à la recherche.",
       "select_member_placeholder": "Sélectionner un membre…",
+      "no_member_matches": "Aucun résultat",
+      "select_member_from_list": "Veuillez sélectionner un membre dans la liste",
       "add_button": "Ajouter",
       "tasks_card_title": "Tâches",
       "manage_tasks_link": "Gérer les tâches",

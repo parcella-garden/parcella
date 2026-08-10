@@ -1361,6 +1361,8 @@
       "search_placeholder": "Search by member or plot number…",
       "no_search_matches": "No participants match your search.",
       "select_member_placeholder": "Select member…",
+      "no_member_matches": "No matches",
+      "select_member_from_list": "Please select a member from the list",
       "add_button": "Add",
       "tasks_card_title": "Tasks",
       "manage_tasks_link": "Manage Tasks",

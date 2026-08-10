@@ -190,16 +190,16 @@
             <div class="card-footer">
                 <form method="post"
                       action="/work-hours/sessions/{{ session.id }}/participants/add"
-                      class="d-flex gap-2 flex-wrap align-items-center">
+                      class="d-flex gap-2 flex-wrap align-items-center" id="form-add-participant">
                     {{ csrf_field() }}
-                    <select name="member_id" class="form-select form-select-sm" style="max-width: 220px;" required>
-                        <option value="">{{ t('work_hours.session_detail.select_member_placeholder') }}</option>
-                        {% for m in all_members %}
-                        {% if m.id not in already_registered %}
-                        <option value="{{ m.id }}">{{ m.full_name }}</option>
-                        {% endif %}
-                        {% endfor %}
-                    </select>
+                    <div class="position-relative" style="max-width: 220px;">
+                        <input type="text" id="add-participant-search" class="form-control form-control-sm"
+                               placeholder="{{ t('work_hours.session_detail.select_member_placeholder') }}"
+                               autocomplete="off" required>
+                        <input type="hidden" name="member_id" id="add-participant-member-id">
+                        <div id="add-participant-results" class="list-group position-absolute w-100"
+                             style="z-index: 1000; max-height: 220px; overflow-y: auto; display: none; top: 100%;"></div>
+                    </div>
                     <select name="status" class="form-select form-select-sm" style="width: auto;">
                         <option value="ATTENDED">{{ t('work_hours.session_detail.status_attended') }}</option>
                         <option value="REGISTERED">{{ t('work_hours.session_detail.status_registered') }}</option>
@@ -314,6 +314,78 @@ document.addEventListener('DOMContentLoaded', function () {
             if (match) anyVisible = true;
         });
         if (noMatches) noMatches.style.display = anyVisible ? 'none' : '';
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Searchable member picker for "add participant" -- same pattern as
+    // parcels/detail.html's tenant-assignment search, extended to also
+    // match on garden plot number, not just name.
+    var searchInput = document.getElementById('add-participant-search');
+    if (!searchInput) return;
+    var alleMitglieder = {{ signup_members_json | tojson }};
+    var hiddenId = document.getElementById('add-participant-member-id');
+    var resultsBox = document.getElementById('add-participant-results');
+    var form = document.getElementById('form-add-participant');
+
+    function renderResults(query) {
+        var q = query.trim().toLowerCase();
+        if (!q) {
+            resultsBox.style.display = 'none';
+            resultsBox.innerHTML = '';
+            return;
+        }
+        var matches = alleMitglieder.filter(function (m) {
+            return m.name.toLowerCase().indexOf(q) !== -1 || m.plots.toLowerCase().indexOf(q) !== -1;
+        }).slice(0, 8);
+
+        if (matches.length === 0) {
+            resultsBox.innerHTML = '<div class="list-group-item text-muted" style="font-size: 0.85rem;">{{ t("work_hours.session_detail.no_member_matches") }}</div>';
+            resultsBox.style.display = 'block';
+            return;
+        }
+
+        resultsBox.innerHTML = matches.map(function (m) {
+            var label = m.name + (m.plots ? ' — ' + m.plots : '');
+            return '<button type="button" class="list-group-item list-group-item-action" ' +
+                   'style="font-size: 0.88rem;" data-id="' + m.id + '" data-name="' +
+                   m.name.replace(/"/g, '&quot;') + '">' + label + '</button>';
+        }).join('');
+        resultsBox.style.display = 'block';
+    }
+
+    searchInput.addEventListener('input', function () {
+        hiddenId.value = '';
+        searchInput.setCustomValidity('');
+        renderResults(searchInput.value);
+    });
+
+    searchInput.addEventListener('focus', function () {
+        if (searchInput.value.trim()) renderResults(searchInput.value);
+    });
+
+    resultsBox.addEventListener('click', function (e) {
+        var btn = e.target.closest('button[data-id]');
+        if (!btn) return;
+        hiddenId.value = btn.getAttribute('data-id');
+        searchInput.value = btn.getAttribute('data-name');
+        resultsBox.style.display = 'none';
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('#add-participant-search') && !e.target.closest('#add-participant-results')) {
+            resultsBox.style.display = 'none';
+        }
+    });
+
+    form.addEventListener('submit', function (e) {
+        if (!hiddenId.value) {
+            e.preventDefault();
+            searchInput.setCustomValidity('{{ t("work_hours.session_detail.select_member_from_list") }}');
+            searchInput.reportValidity();
+        } else {
+            searchInput.setCustomValidity('');
+        }
     });
 });
 </script>

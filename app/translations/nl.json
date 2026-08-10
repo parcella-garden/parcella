@@ -1361,6 +1361,8 @@
       "search_placeholder": "Zoeken op lid of perceelnummer…",
       "no_search_matches": "Geen deelnemers komen overeen met de zoekopdracht.",
       "select_member_placeholder": "Kies lid…",
+      "no_member_matches": "Geen resultaten",
+      "select_member_from_list": "Selecteer een lid uit de lijst",
       "add_button": "Toevoegen",
       "tasks_card_title": "Taken",
       "manage_tasks_link": "Taken beheren",

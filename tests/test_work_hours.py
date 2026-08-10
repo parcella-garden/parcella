@@ -398,3 +398,38 @@ async def test_sponsorship_page_and_edit_form_show_fractional_hours(client, admi
     sponsorship_edit = await client.get(f"/work-hours/sponsorships/{sponsorship_id}/edit")
     assert sponsorship_edit.status_code == 200
     assert 'value="3.5"' in sponsorship_edit.text
+
+
+async def test_session_detail_signup_search_includes_name_and_plot_number(client, admin_user):
+    """The "add participant" control used to be a plain <select> of
+    member names only -- unusable for a large club and impossible to
+    search by garden plot number. It's now a JS-driven search box fed
+    by a JSON payload of {id, name, plots}; confirm that payload
+    actually carries the plot number, and that the old <select> is gone."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    member = (await client.post(
+        "/api/v1/members", json={"first_name": "Petra", "last_name": "Picker"}, headers=headers
+    )).json()
+    parcel = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "T001"}, headers=headers
+    )).json()
+    await client.post(
+        f"/api/v1/parcels/{parcel['id']}/assignments",
+        json={"member_id": member["id"], "parcel_id": parcel["id"]},
+        headers=headers,
+    )
+    session = (await client.post(
+        "/api/v1/work-hours/sessions",
+        json={"title": "Picker test session", "type": "STANDARD", "date": "2026-06-01"},
+        headers=headers,
+    )).json()
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    detail = await client.get(f"/work-hours/sessions/{session['id']}")
+    assert detail.status_code == 200
+    assert '"name": "Petra Picker"' in detail.text
+    assert '"plots": "T001"' in detail.text
+    assert 'id="add-participant-search"' in detail.text
+    assert '<select name="member_id"' not in detail.text

@@ -1361,6 +1361,8 @@
       "search_placeholder": "Hľadať podľa člena alebo čísla záhradky…",
       "no_search_matches": "Žiadny účastník nezodpovedá hľadaniu.",
       "select_member_placeholder": "Vyberte člena…",
+      "no_member_matches": "Žiadne výsledky",
+      "select_member_from_list": "Vyberte prosím člena zo zoznamu",
       "add_button": "Pridať",
       "tasks_card_title": "Úlohy",
       "manage_tasks_link": "Spravovať úlohy",

@@ -1361,6 +1361,8 @@
       "search_placeholder": "Szukaj po członku lub numerze działki…",
       "no_search_matches": "Żaden uczestnik nie pasuje do wyszukiwania.",
       "select_member_placeholder": "Wybierz członka…",
+      "no_member_matches": "Brak wyników",
+      "select_member_from_list": "Proszę wybrać członka z listy",
       "add_button": "Dodaj",
       "tasks_card_title": "Zadania",
       "manage_tasks_link": "Zarządzaj zadaniami",

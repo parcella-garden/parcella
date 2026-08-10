@@ -367,14 +367,26 @@ async def session_detail(
     if not session:
         raise HTTPException(status_code=404, detail=t_for(request, "work_hours.errors.session_not_found"))
 
-    # All active members, for the signup dropdown
+    # All active members, for the signup search box (name or plot number)
     members_result = await db.execute(
         select(Member)
+        .options(
+            selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel)
+        )
         .where(active_member_filter())
         .order_by(Member.last_name, Member.first_name)
     )
     all_members = members_result.scalars().all()
     already_registered = {t.member_id for t in session.participations}
+    signup_members_json = [
+        {
+            "id": m.id,
+            "name": m.full_name,
+            "plots": ", ".join(pa.parcel.plot_number for pa in m.parcel_assignments if pa.is_current),
+        }
+        for m in all_members
+        if m.id not in already_registered
+    ]
 
     tasks_result = await db.execute(
         select(WorkTask)
@@ -390,8 +402,7 @@ async def session_detail(
             "request": request,
             "user": user,
             "session": session,
-            "all_members": all_members,
-            "already_registered": already_registered,
+            "signup_members_json": signup_members_json,
             "ParticipationStatus": ParticipationStatus,
             "SessionType": SessionType,
             "session_tasks": session_tasks,
