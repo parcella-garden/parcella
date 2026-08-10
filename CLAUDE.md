@@ -140,6 +140,23 @@ You never ever expose your user name to Github. Use my handle instead!
   overwrite an already-loaded relationship on the same identity-mapped
   object). See `docs/testing.md` for three separate real occurrences of
   this exact shape of bug.
+- **Never put a raw email-header-derived string straight into an HTTP
+  response header.** `email.message.Message.get_filename()` returns
+  whatever the sender's mail client sent -- an unencoded header fold
+  can leave a literal `\r\n` in the decoded filename. Putting that
+  straight into a `Content-Disposition` header (ticket attachment
+  downloads, `app/routers/tickets.py`) isn't just a display glitch,
+  it's a header-injection shape and crashes the response outright
+  (uvicorn: `RuntimeError: Invalid HTTP header value`) -- hit for real
+  the first time a member's mail client folded a screenshot's filename.
+  Fixed via `sanitize_attachment_filename()` in `app/ticket_mailer.py`,
+  applied once at ingestion **and** again defensively where the header
+  is built (same "sanitize at ingestion + defensive pass at render
+  time" pattern `sanitize_email_html`/`sanitize_html` already use for
+  ticket HTML content) -- don't assume that pattern only applies to
+  HTML; any externally-sourced string heading for a header, path, or
+  shell argument needs the same treatment, not just the field that
+  happened to get sanitized first.
 
 ## Testing
 

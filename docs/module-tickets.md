@@ -227,6 +227,22 @@ through the public `/static` mount, since ticket access is
 permission-gated (unlike the club logo/avatars, which are intentionally
 public).
 
+**Filenames from the sender's mail client are never trusted raw.**
+`Message.get_filename()` can return a filename with a literal `\r\n`
+still embedded, if the sender's mail client folded it across an
+unencoded header continuation line -- hit for real with a screenshot
+attachment (issue: ticket attachment download crashed with uvicorn's
+`RuntimeError: Invalid HTTP header value` instead of downloading,
+since the raw string went straight into the `Content-Disposition`
+response header). `sanitize_attachment_filename()`
+(`app/ticket_mailer.py`) strips control characters and escapes
+embedded `"`, applied both at ingestion (`_extract_attachments()`) and
+again defensively where the header is built
+(`app/routers/tickets.py`'s download route) -- the same "sanitize at
+ingestion + a second defensive pass at render time" split already used
+for ticket HTML content (`sanitize_email_html`/the `sanitize_html`
+Jinja filter). See also CLAUDE.md's "Sharp edges" section.
+
 **Deliberately not built: attachments on outgoing replies.** Staff
 composing a reply can already paste any URL -- including a Nextcloud
 share link they copied themselves -- into the free-text reply body;
