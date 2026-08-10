@@ -384,7 +384,7 @@
       "currency_header": "Währung",
       "currency_help": "Bestimmt Symbol und Position bei Geldbeträgen (z.B. \"19,99 €\" vs. \"£19.99\"). Unabhängig von Sprache und Region wählbar.",
       "logo_label": "Vereinslogo",
-      "logo_help": "PNG, JPEG, WebP oder SVG, maximal 2 MB. Ersetzt das Baum-Symbol in der Seitenleiste.",
+      "logo_help": "PNG, JPEG, WebP oder SVG, maximal 2 MB. Ersetzt das Parcella-Logo auf der Anmeldeseite sowie in der Seitenleiste.",
       "logo_remove_label": "Logo entfernen (zurück zum Standard-Symbol)",
       "logo_error_type": "Ungültiger Dateityp. Bitte PNG, JPEG, WebP oder SVG hochladen.",
       "logo_error_size": "Die Datei ist zu groß (maximal 2 MB).",

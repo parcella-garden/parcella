@@ -384,7 +384,7 @@
       "currency_header": "Waluta",
       "currency_help": "Określa symbol i pozycję dla kwot pieniężnych (np. „19,99 €” vs. „£19.99”). Wybierana niezależnie od języka i regionu.",
       "logo_label": "Logo stowarzyszenia",
-      "logo_help": "PNG, JPEG, WebP lub SVG, maksymalnie 2 MB. Zastępuje ikonę drzewa w panelu bocznym.",
+      "logo_help": "PNG, JPEG, WebP lub SVG, maksymalnie 2 MB. Zastępuje logo Parcella na stronie logowania oraz w panelu bocznym.",
       "logo_remove_label": "Usuń logo (powrót do domyślnej ikony)",
       "logo_error_type": "Nieprawidłowy typ pliku. Proszę przesłać PNG, JPEG, WebP lub SVG.",
       "logo_error_size": "Plik jest za duży (maksymalnie 2 MB).",

@@ -384,7 +384,7 @@
       "currency_header": "Mena",
       "currency_help": "Určuje symbol a pozíciu pri peňažných sumách (napr. „19,99 €“ vs. „£19.99“). Voliteľná nezávisle od jazyka a regiónu.",
       "logo_label": "Logo klubu",
-      "logo_help": "PNG, JPEG, WebP alebo SVG, maximálne 2 MB. Nahradí ikonu stromu v bočnom paneli.",
+      "logo_help": "PNG, JPEG, WebP alebo SVG, maximálne 2 MB. Nahradí logo Parcella na prihlasovacej stránke aj v bočnom paneli.",
       "logo_remove_label": "Odstrániť logo (späť na predvolenú ikonu)",
       "logo_error_type": "Neplatný typ súboru. Nahrajte prosím PNG, JPEG, WebP alebo SVG.",
       "logo_error_size": "Súbor je príliš veľký (maximálne 2 MB).",

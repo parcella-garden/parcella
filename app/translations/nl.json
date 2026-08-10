@@ -384,7 +384,7 @@
       "currency_header": "Valuta",
       "currency_help": "Bepaalt het symbool en de positie voor geldbedragen (bijv. \"19,99 €\" vs. \"£19.99\"). Onafhankelijk van taal en regio instelbaar.",
       "logo_label": "Verenigingslogo",
-      "logo_help": "PNG, JPEG, WebP of SVG, maximaal 2 MB. Vervangt het boomicoon in de zijbalk.",
+      "logo_help": "PNG, JPEG, WebP of SVG, maximaal 2 MB. Vervangt het Parcella-logo op de inlogpagina en in de zijbalk.",
       "logo_remove_label": "Logo verwijderen (terug naar het standaardicoon)",
       "logo_error_type": "Ongeldig bestandstype. Upload een PNG-, JPEG-, WebP- of SVG-bestand.",
       "logo_error_size": "Het bestand is te groot (maximaal 2 MB).",

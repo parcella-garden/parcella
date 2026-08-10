@@ -384,7 +384,7 @@
       "currency_header": "Devise",
       "currency_help": "Détermine le symbole et sa position pour les montants (par ex. « 19,99 € » vs. « £19.99 »). Sélectionnable indépendamment de la langue et de la région.",
       "logo_label": "Logo du club",
-      "logo_help": "PNG, JPEG, WebP ou SVG, 2 Mo maximum. Remplace l'icône d'arbre dans la barre latérale.",
+      "logo_help": "PNG, JPEG, WebP ou SVG, 2 Mo maximum. Remplace le logo Parcella sur la page de connexion ainsi que dans la barre latérale.",
       "logo_remove_label": "Supprimer le logo (revenir à l'icône par défaut)",
       "logo_error_type": "Type de fichier invalide. Veuillez charger un fichier PNG, JPEG, WebP ou SVG.",
       "logo_error_size": "Le fichier est trop volumineux (2 Mo maximum).",

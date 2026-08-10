@@ -384,7 +384,7 @@
       "currency_header": "Currency",
       "currency_help": "Determines the symbol and position used for monetary amounts (e.g. \"19,99 €\" vs. \"£19.99\"). Selectable independently of language and region.",
       "logo_label": "Club Logo",
-      "logo_help": "PNG, JPEG, WebP, or SVG, maximum 2 MB. Replaces the tree icon in the sidebar.",
+      "logo_help": "PNG, JPEG, WebP, or SVG, maximum 2 MB. Replaces the Parcella logo on the login page as well as in the sidebar.",
       "logo_remove_label": "Remove logo (revert to the default icon)",
       "logo_error_type": "Invalid file type. Please upload PNG, JPEG, WebP, or SVG.",
       "logo_error_size": "The file is too large (maximum 2 MB).",
