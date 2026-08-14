@@ -78,7 +78,9 @@ A system admin can download a full backup on demand from `/admin/`
 [ADR 0053](./ADR/0053-admin-backup-download-only.md)). It's a zip
 containing a one-click `pg_dump` (plain SQL, readable text) plus
 everything under `app/static/uploads/` (the branding logo, announcement
-images, user avatars) -- nothing is ever written to server disk, so there's no backup
+images, user avatars) and `app/private_uploads/ticket_attachments/`
+(locally-stored ticket attachments -- see the ADR on the Nextcloud
+fallback) -- nothing is ever written to server disk, so there's no backup
 file to find or clean up on the server itself; the downloaded `.zip` is
 the only copy, and it's the admin's responsibility to store it
 somewhere safe.
@@ -113,6 +115,7 @@ won't start, admin panel broken) and the UI isn't an option:
 unzip parcella-backup-20260730-143000.zip -d restore/
 docker compose exec -T db psql -U parcella -d parcella < restore/parcella-backup-20260730-143000.sql
 cp -r restore/uploads/. app/static/uploads/
+cp -r restore/ticket_attachments/. app/private_uploads/ticket_attachments/
 ```
 
 **Warning:** the backup was generated with `--clean --if-exists`, so the

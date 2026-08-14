@@ -34,5 +34,9 @@ Thumbs.db
 app/static/uploads/announcements/
 app/static/uploads/avatars/
 
+# Locally-stored ticket attachments (Nextcloud fallback), same reasoning
+# as the uploads above -- user-uploaded content, never a repo asset.
+app/private_uploads/
+
 # Local DB backup dumps (real member data + encrypted secrets), never committed
 backups/

@@ -193,39 +193,49 @@ messages received before this feature only have `content` (plain text)
 -- there was no way to recover the original HTML after the fact, since
 it was never stored.
 
-**Incoming attachments are stored in Nextcloud, never locally --
-same pattern as `IncomingInvoice`.** Until this feature, any part of an
-incoming email with `Content-Disposition: attachment` was silently
-discarded during MIME parsing (`_extract_text`/`_extract_html` only
-ever read `text/plain`/`text/html` parts). `_extract_attachments()`
-(`app/ticket_mailer.py`) now also collects those parts, and
-`TicketAttachment` (child of `TicketMessage`, `ON DELETE CASCADE`)
-records one row per upload -- but, exactly like
-`IncomingInvoice.cloud_filename` (see `docs/module-finances.md`), the
-file bytes themselves never touch Parcella's own database or
-filesystem. `cloud_filename` just names a file inside **one shared**
-Nextcloud folder configured for all ticket attachments (`ClubSetting`
-key `ticket_attachments_cloud_folder`, set on `/admin/integrations`'
-Nextcloud card, next to the incoming-invoices folder setting), reusing
-the same `get_nextcloud_provider()` connection
-(`app/cloud_storage.py`). Inline signature images/logos (typically
-`Content-Disposition: inline`) are deliberately excluded -- only parts
-explicitly marked `attachment` are uploaded.
+**Incoming attachments are stored in Nextcloud when configured, with a
+local-disk fallback otherwise -- see [ADR
+0072](./ADR/0072-ticket-attachment-local-storage-fallback.md).** Until
+this feature, any part of an incoming email with `Content-Disposition:
+attachment` was silently discarded during MIME parsing
+(`_extract_text`/`_extract_html` only ever read `text/plain`/`text/html`
+parts). `_extract_attachments()` (`app/ticket_mailer.py`) now also
+collects those parts, and `TicketAttachment` (child of `TicketMessage`,
+`ON DELETE CASCADE`) records one row per upload. Inline signature
+images/logos (typically `Content-Disposition: inline`) are deliberately
+excluded -- only parts explicitly marked `attachment` are collected.
 
-If `cloud_storage` isn't enabled, or the folder isn't configured yet,
-incoming attachments are simply skipped (logged, not stored) --
-ticket/message creation must never fail because of it, same "must
-never block" philosophy as the stage-3 spam filter's external-API
-fallback. A single attachment over `MAX_TICKET_ATTACHMENT_SIZE_BYTES`
-(15 MB) or a failed upload is likewise skipped individually rather
-than aborting the whole incoming-mail batch.
+**Two backends, tracked per row via `storage_backend`
+(`CLOUD`/`LOCAL`).** Preferred: exactly like `IncomingInvoice.cloud_filename`
+(see `docs/module-finances.md`), the file bytes never touch Parcella's
+own database or filesystem -- `cloud_filename` just names a file inside
+**one shared** Nextcloud folder configured for all ticket attachments
+(`ClubSetting` key `ticket_attachments_cloud_folder`, set on
+`/admin/integrations`' Nextcloud card, next to the incoming-invoices
+folder setting), reusing the same `get_nextcloud_provider()` connection
+(`app/cloud_storage.py`). Fallback: if `cloud_storage` isn't enabled, or
+the folder/credentials aren't configured (or can't be decrypted -- e.g.
+after a `SECRET_KEY` rotation), the attachment is written to
+`app/private_uploads/ticket_attachments/`
+(`app/ticket_attachment_storage.py`) instead of being discarded. Either
+way, ticket/message creation itself must never fail because of an
+attachment problem, same "must never block" philosophy as the stage-3
+spam filter's external-API fallback -- a single attachment over
+`MAX_TICKET_ATTACHMENT_SIZE_BYTES` (15 MB), or a failed upload/write, is
+skipped individually rather than aborting the whole incoming-mail batch.
 
 Attachments are downloaded through a permission-gated Parcella route
 (`GET /tickets/{id}/attachments/{attachment_id}`, `require_permission
-"tickets" "read"`) that proxies the file from Nextcloud -- never
-through the public `/static` mount, since ticket access is
+"tickets" "read"`) that branches on `storage_backend` -- proxies the
+file from Nextcloud for `CLOUD` rows (module-flag-gated the same as
+before), reads it from local disk for `LOCAL` rows (not gated by the
+`cloud_storage` module, since it never touches Nextcloud). Neither path
+goes through the public `/static` mount, since ticket access is
 permission-gated (unlike the club logo/avatars, which are intentionally
-public).
+public) -- `app/private_uploads/` sits outside `app/static/` entirely
+for the same reason. Both directories lack a volume mount in
+`docker-compose.prod.yml`, so both are included in the admin backup zip
+(`app/backup.py`, `docs/operations.md`) to survive a redeploy.
 
 **Filenames from the sender's mail client are never trusted raw.**
 `Message.get_filename()` can return a filename with a literal `\r\n`

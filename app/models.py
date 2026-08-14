@@ -1354,13 +1354,21 @@ class TicketMessage(Base):
     )
 
 
+class AttachmentStorageBackend(str, enum.Enum):
+    CLOUD = "CLOUD"    # cloud_filename names a file in the shared Nextcloud folder
+    LOCAL = "LOCAL"     # local_filename names a file under the app's private local storage
+
+
 class TicketAttachment(Base):
-    """A file attached to an incoming ticket message. Never stored in
-    Parcella's own database/filesystem -- cloud_filename just names a
-    file inside the single shared Nextcloud folder configured for
-    ticket attachments (ClubSetting "ticket_attachments_cloud_folder"),
-    same pattern and same Nextcloud connection as IncomingInvoice
-    (see docs/module-finances.md)."""
+    """A file attached to an incoming ticket message. Preferably stored
+    in the shared Nextcloud folder configured for ticket attachments
+    (ClubSetting "ticket_attachments_cloud_folder"), same pattern and
+    same Nextcloud connection as IncomingInvoice (see
+    docs/module-finances.md) -- but if Nextcloud isn't configured,
+    falls back to local storage (app/ticket_attachment_storage.py)
+    rather than discarding the attachment. `storage_backend` says which
+    of `cloud_filename`/`local_filename` actually applies to a given
+    row; see docs/module-tickets.md and the ADR on this fallback."""
     __tablename__ = "ticket_attachments"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
@@ -1368,7 +1376,11 @@ class TicketAttachment(Base):
         String(36), ForeignKey("ticket_messages.id", ondelete="CASCADE"), nullable=False, index=True
     )
     original_filename: Mapped[str] = mapped_column(String(500), nullable=False)
-    cloud_filename: Mapped[str] = mapped_column(String(500), nullable=False)
+    storage_backend: Mapped[AttachmentStorageBackend] = mapped_column(
+        SAEnum(AttachmentStorageBackend), default=AttachmentStorageBackend.CLOUD, nullable=False
+    )
+    cloud_filename: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    local_filename: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     content_type: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     size_bytes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(

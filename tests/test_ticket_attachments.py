@@ -1,6 +1,7 @@
 """
-Tests for ticket attachments (Nextcloud-backed, see docs/module-tickets.md
-"Incoming attachments"). Real IMAP fetch is out of scope here (see
+Tests for ticket attachments (Nextcloud-backed by default, local-disk
+fallback per ADR 0072, see docs/module-tickets.md "Incoming
+attachments"). Real IMAP fetch is out of scope here (see
 tests/test_tickets.py's module docstring) -- _extract_attachments() and
 _save_ticket_attachments() are tested directly instead of via
 process_incoming_mails(), same boundary the rest of this module respects.
@@ -176,10 +177,14 @@ async def test_download_ticket_attachment_survives_bad_stored_filename(client, a
 # _save_ticket_attachments()
 # ---------------------------------------------------------------------------
 
-async def test_save_ticket_attachments_skipped_when_cloud_storage_not_configured():
+async def test_save_ticket_attachments_falls_back_to_local_storage():
     """Must never raise or block message creation -- same "must never
-    block" philosophy as the spam filter's external-API fallback."""
+    block" philosophy as the spam filter's external-API fallback -- but
+    unlike before ADR 0072, the attachment is now stored locally rather
+    than discarded."""
     from app.ticket_mailer import _save_ticket_attachments
+    from app.ticket_attachment_storage import TICKET_ATTACHMENT_STORAGE_DIR
+    from app.models import AttachmentStorageBackend
 
     ticket_id, message_id = await _create_ticket_and_message()
 
@@ -194,7 +199,14 @@ async def test_save_ticket_attachments_skipped_when_cloud_storage_not_configured
     async with AsyncSessionLocal() as db:
         from sqlalchemy import select
         result = await db.execute(select(TicketAttachment).where(TicketAttachment.ticket_message_id == message_id))
-        assert result.scalars().all() == []
+        attachments = result.scalars().all()
+
+    assert len(attachments) == 1
+    assert attachments[0].storage_backend == AttachmentStorageBackend.LOCAL
+    assert attachments[0].original_filename == "formular.pdf"
+    assert attachments[0].cloud_filename is None
+    stored_path = TICKET_ATTACHMENT_STORAGE_DIR / attachments[0].local_filename
+    assert stored_path.read_bytes() == b"data"
 
 
 async def test_save_ticket_attachments_uploads_and_records_row():
@@ -239,6 +251,28 @@ async def test_save_ticket_attachments_skips_oversized_file():
         await _save_ticket_attachments(
             db, message, [{"filename": "huge.zip", "content_type": "application/zip", "content": oversized}],
             provider="unused-should-never-be-called", folder_path="Tickets/Anhaenge",
+        )
+        await db.commit()
+
+    async with AsyncSessionLocal() as db:
+        from sqlalchemy import select
+        result = await db.execute(select(TicketAttachment).where(TicketAttachment.ticket_message_id == message_id))
+        assert result.scalars().all() == []
+
+
+async def test_save_ticket_attachments_skips_oversized_file_on_local_fallback():
+    """Same cap applies on the local-storage path -- a misconfigured
+    integration falling back to local disk must not be a way to fill
+    the container's disk with oversized attachments."""
+    from app.ticket_mailer import _save_ticket_attachments, MAX_TICKET_ATTACHMENT_SIZE_BYTES
+
+    ticket_id, message_id = await _create_ticket_and_message()
+    async with AsyncSessionLocal() as db:
+        message = await db.get(TicketMessage, message_id)
+        oversized = b"x" * (MAX_TICKET_ATTACHMENT_SIZE_BYTES + 1)
+        await _save_ticket_attachments(
+            db, message, [{"filename": "huge.zip", "content_type": "application/zip", "content": oversized}],
+            provider=None, folder_path=None,
         )
         await db.commit()
 
@@ -359,3 +393,30 @@ async def test_download_ticket_attachment_404_when_cloud_storage_module_disabled
     await web_login(client, "admin@example.com")
     response = await client.get(f"/tickets/{ticket_id}/attachments/{attachment_id}")
     assert response.status_code == 404
+
+
+async def test_download_local_ticket_attachment_works_with_cloud_storage_module_disabled(client, admin_user):
+    """LOCAL-backend attachments never touch Nextcloud, so they must
+    stay downloadable regardless of the cloud_storage module flag --
+    unlike CLOUD-backend attachments (see the test above)."""
+    from app.models import AttachmentStorageBackend
+    from app.ticket_attachment_storage import save_local
+
+    ticket_id, message_id = await _create_ticket_and_message()
+    async with AsyncSessionLocal() as db:
+        attachment = TicketAttachment(
+            ticket_message_id=message_id, original_filename="formular.pdf",
+            storage_backend=AttachmentStorageBackend.LOCAL,
+            local_filename=None, content_type="application/pdf", size_bytes=9,
+        )
+        db.add(attachment)
+        await db.flush()
+        attachment.local_filename = save_local(attachment.id, b"pdf bytes")
+        await db.commit()
+        attachment_id = attachment.id
+
+    await web_login(client, "admin@example.com")
+    response = await client.get(f"/tickets/{ticket_id}/attachments/{attachment_id}")
+    assert response.status_code == 200
+    assert response.content == b"pdf bytes"
+    assert 'filename="formular.pdf"' in response.headers["content-disposition"]

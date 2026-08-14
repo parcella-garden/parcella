@@ -23,9 +23,10 @@ from sqlalchemy.orm import selectinload
 from app.database import get_db
 from app.models import (
     Ticket, TicketMessage, TicketAttachment, TicketStatus, MessageDirection, User,
+    AttachmentStorageBackend,
 )
 from app.permissions import require_permission
-from app.module_flags import require_module
+from app.module_flags import require_module, MODULE_DEFAULTS
 from app.services.errors import ServiceError
 from app.services.tickets import (
     filtered_tickets_query, create_ticket, change_status, bulk_change_status,
@@ -34,6 +35,7 @@ from app.services.tickets import (
 )
 from app.ticket_utils import find_members_by_email
 from app.ticket_mailer import process_incoming_mails, get_ticket_attachments_folder, sanitize_attachment_filename
+from app.ticket_attachment_storage import read_local
 from app.spam_filter import check_for_spam
 from app.avatars import avatar_url
 from app.cloud_storage import get_nextcloud_provider, CloudStorageError
@@ -329,10 +331,7 @@ async def ticket_detail(
     })
 
 
-@router.get(
-    "/{ticket_id}/attachments/{attachment_id}",
-    dependencies=[Depends(require_module("cloud_storage"))],
-)
+@router.get("/{ticket_id}/attachments/{attachment_id}")
 async def ticket_attachment_download(
     ticket_id: str, attachment_id: str, request: Request, db: AsyncSession = Depends(get_db),
 ):
@@ -346,17 +345,27 @@ async def ticket_attachment_download(
     if not attachment:
         raise HTTPException(status_code=404)
 
-    folder_path = await get_ticket_attachments_folder(db)
-    provider = await get_nextcloud_provider(db) if folder_path else None
-    if not folder_path or provider is None:
-        raise HTTPException(status_code=400, detail=t_for(request, "tickets.attachments.cloud_not_configured"))
+    if attachment.storage_backend == AttachmentStorageBackend.LOCAL:
+        try:
+            content = read_local(attachment.local_filename)
+        except OSError:
+            raise HTTPException(status_code=404)
+    else:
+        flags = getattr(request.state, "module_flags", {})
+        if not flags.get("cloud_storage", MODULE_DEFAULTS.get("cloud_storage", True)):
+            raise HTTPException(status_code=404)
 
-    try:
-        content = await provider.download_file(folder_path, attachment.cloud_filename)
-    except CloudStorageError as e:
-        raise HTTPException(status_code=502, detail=str(e))
-    finally:
-        await provider.aclose()
+        folder_path = await get_ticket_attachments_folder(db)
+        provider = await get_nextcloud_provider(db) if folder_path else None
+        if not folder_path or provider is None:
+            raise HTTPException(status_code=400, detail=t_for(request, "tickets.attachments.cloud_not_configured"))
+
+        try:
+            content = await provider.download_file(folder_path, attachment.cloud_filename)
+        except CloudStorageError as e:
+            raise HTTPException(status_code=502, detail=str(e))
+        finally:
+            await provider.aclose()
 
     return Response(
         content=content, media_type=attachment.content_type or "application/octet-stream",

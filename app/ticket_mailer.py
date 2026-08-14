@@ -33,7 +33,11 @@ import aiosmtplib
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.models import ClubSetting, Ticket, TicketMessage, TicketAttachment, TicketStatus, MessageDirection, new_uuid
+from app.models import (
+    ClubSetting, Ticket, TicketMessage, TicketAttachment, TicketStatus, MessageDirection,
+    AttachmentStorageBackend, new_uuid,
+)
+from app.ticket_attachment_storage import save_local
 from app.email_service import load_smtp_configuration
 from app.ticket_utils import find_members_by_email
 from app.spam_filter import check_for_spam
@@ -387,16 +391,17 @@ async def _save_ticket_attachments(
     provider, folder_path: Optional[str],
 ) -> None:
     """Uploads an incoming message's attachments to the shared Nextcloud
-    folder and records one TicketAttachment row per successful upload.
-    Never raises -- a missing configuration or a failed upload just
-    means the attachment is skipped (logged), since a mailbox hiccup or
-    an unconfigured integration must never lose the ticket/message
-    itself (same "must never block" philosophy as the spam filter's
-    external-API fallback)."""
-    if not provider or not folder_path:
-        if attachments:
-            logger.info(f"Skipped {len(attachments)} ticket attachment(s): cloud storage not configured")
-        return
+    folder (preferred) and records one TicketAttachment row per
+    successful upload. If Nextcloud isn't configured, falls back to
+    local disk storage (app/ticket_attachment_storage.py) rather than
+    discarding the attachment -- see docs/module-tickets.md. Never
+    raises -- a failed upload just means that one attachment is skipped
+    (logged), since a mailbox hiccup or an unconfigured integration must
+    never lose the ticket/message itself (same "must never block"
+    philosophy as the spam filter's external-API fallback)."""
+    cloud_available = bool(provider and folder_path)
+    if not cloud_available and attachments:
+        logger.info(f"Cloud storage not configured, falling back to local storage for {len(attachments)} ticket attachment(s)")
 
     for att in attachments[:MAX_TICKET_ATTACHMENTS_PER_MESSAGE]:
         content = att["content"]
@@ -404,17 +409,32 @@ async def _save_ticket_attachments(
             logger.warning(f"Skipped ticket attachment '{att['filename']}': empty or over size limit")
             continue
         attachment_id = new_uuid()
-        stored_filename = f"{attachment_id}_{att['filename']}"
-        try:
-            await provider.upload_file(folder_path, stored_filename, content)
-        except CloudStorageError as e:
-            logger.warning(f"Failed to upload ticket attachment '{att['filename']}': {e}")
-            continue
-        db.add(TicketAttachment(
-            id=attachment_id, ticket_message_id=message.id,
-            original_filename=att["filename"], cloud_filename=stored_filename,
-            content_type=att["content_type"], size_bytes=len(content),
-        ))
+
+        if cloud_available:
+            stored_filename = f"{attachment_id}_{att['filename']}"
+            try:
+                await provider.upload_file(folder_path, stored_filename, content)
+            except CloudStorageError as e:
+                logger.warning(f"Failed to upload ticket attachment '{att['filename']}': {e}")
+                continue
+            db.add(TicketAttachment(
+                id=attachment_id, ticket_message_id=message.id,
+                original_filename=att["filename"], storage_backend=AttachmentStorageBackend.CLOUD,
+                cloud_filename=stored_filename,
+                content_type=att["content_type"], size_bytes=len(content),
+            ))
+        else:
+            try:
+                local_filename = save_local(attachment_id, content)
+            except OSError as e:
+                logger.warning(f"Failed to save ticket attachment '{att['filename']}' locally: {e}")
+                continue
+            db.add(TicketAttachment(
+                id=attachment_id, ticket_message_id=message.id,
+                original_filename=att["filename"], storage_backend=AttachmentStorageBackend.LOCAL,
+                local_filename=local_filename,
+                content_type=att["content_type"], size_bytes=len(content),
+            ))
 
 
 async def process_incoming_mails(db: AsyncSession) -> int:

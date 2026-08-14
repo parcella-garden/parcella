@@ -75,3 +75,4 @@ in chronological order.
 69. [Repo transferred from kermie/parcella to parcella-garden/parcella](./0069-repo-transfer-to-parcella-garden-org.md)
 70. [Shared service layer for HTML/API duplication, and unified tickets authorization](./0070-shared-service-layer-and-unified-api-html-authorization.md)
 71. [TREASURER role's privilege retired: Groups are the only way to grant more than baseline now](./0071-treasurer-role-privilege-retired-groups-only.md)
+72. [Ticket attachments: local-storage fallback when Nextcloud isn't configured](./0072-ticket-attachment-local-storage-fallback.md)
