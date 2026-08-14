@@ -266,7 +266,11 @@ def _fetch_highest_uid_sync(config: Dict[str, Any]) -> int:
 
     try:
         connection.login(config["imap_user"], config["imap_password"])
-        connection.select("INBOX")
+        # readonly=True: this only ever SEARCHes, never FETCHes a body, so
+        # nothing here could mark a message \Seen either way -- but opening
+        # read-only keeps the invariant obvious and matches
+        # _fetch_new_mails_sync below.
+        connection.select("INBOX", readonly=True)
         status, data = connection.uid("search", None, "ALL")
         if status != "OK" or not data or not data[0]:
             return 0
@@ -298,7 +302,13 @@ def _fetch_new_mails_sync(config: Dict[str, Any], last_uid: Optional[int]) -> Li
 
     try:
         connection.login(config["imap_user"], config["imap_password"])
-        connection.select("INBOX")
+        # readonly=True + BODY.PEEK[] below (instead of RFC822, which is a
+        # deprecated alias for BODY[]): a plain BODY[]/RFC822 fetch marks
+        # the message \Seen as a side effect on most IMAP servers -- the
+        # association wants fetched mail to stay showing as unread in
+        # their own mail client, on top of Parcella already never
+        # expunging/deleting after fetching (see docs/module-tickets.md).
+        connection.select("INBOX", readonly=True)
 
         status, data = connection.uid("search", None, "ALL")
         if status != "OK" or not data or not data[0]:
@@ -308,7 +318,7 @@ def _fetch_new_mails_sync(config: Dict[str, Any], last_uid: Optional[int]) -> Li
         new_uids = [u for u in all_uids if last_uid is None or u > last_uid]
 
         for uid in new_uids:
-            status, msg_data = connection.uid("fetch", str(uid), "(RFC822)")
+            status, msg_data = connection.uid("fetch", str(uid), "(BODY.PEEK[])")
             if status != "OK" or not msg_data or not msg_data[0]:
                 continue
 

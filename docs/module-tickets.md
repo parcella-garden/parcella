@@ -142,6 +142,15 @@ new one, `app/ticket_mailer.py` uses Python's built-in tools (`imaplib`,
 `email`) synchronously, executed via `asyncio.to_thread(...)` so the
 event loop isn't blocked in the meantime.
 
+**Fetching never mutates the mailbox.** The inbox is opened
+`readonly=True`, and messages are retrieved via `BODY.PEEK[]` rather
+than the deprecated `RFC822`/`BODY[]` alias -- a plain (non-peek) body
+fetch marks a message `\Seen` on most IMAP servers as a side effect,
+which would make mail fetched by Parcella show as already-read in the
+association's own mail client. Combined with never issuing
+`STORE \Deleted`/`EXPUNGE` (see below), a fetch has zero observable
+effect on the mailbox itself.
+
 **Operational data lives in the existing club-settings table.** The most
 recently processed IMAP UID and the last error end up as
 `ticket_imap_letzte_uid` / `ticket_imap_letzter_fehler` in the same
