@@ -1663,7 +1663,11 @@
       "send_blog_button": "Entwurf erstellen",
       "print_generated": "PDF erstellt",
       "print_too_long_status": "Zu lang für eine Seite",
-      "print_generate_button": "PDF erstellen"
+      "print_generate_button": "PDF erstellen",
+      "delete_title": "Ankündigung löschen",
+      "delete_hint": "Entfernt diese Ankündigung dauerhaft. Löschbar unabhängig von Status (Entwurf, veröffentlicht oder archiviert) oder Versandverlauf.",
+      "delete_confirm": "Diese Ankündigung wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
+      "button_delete": "Ankündigung löschen"
     }
   },
   "inventory": {

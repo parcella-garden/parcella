@@ -1663,7 +1663,11 @@
       "send_blog_button": "Create draft",
       "print_generated": "PDF generated",
       "print_too_long_status": "Too long for one page",
-      "print_generate_button": "Generate PDF"
+      "print_generate_button": "Generate PDF",
+      "delete_title": "Delete announcement",
+      "delete_hint": "Permanently removes this announcement. It stays deletable regardless of status (draft, published, or archived) or delivery history.",
+      "delete_confirm": "Really delete this announcement? This cannot be undone.",
+      "button_delete": "Delete announcement"
     }
   },
   "inventory": {

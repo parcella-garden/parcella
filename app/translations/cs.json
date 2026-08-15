@@ -1663,7 +1663,11 @@
       "send_blog_button": "Vytvořit koncept",
       "print_generated": "PDF vytvořeno",
       "print_too_long_status": "Příliš dlouhé na jednu stránku",
-      "print_generate_button": "Vytvořit PDF"
+      "print_generate_button": "Vytvořit PDF",
+      "delete_title": "Smazat oznámení",
+      "delete_hint": "Trvale odstraní toto oznámení. Lze smazat bez ohledu na stav (koncept, publikováno nebo archivováno) či historii odeslání.",
+      "delete_confirm": "Opravdu smazat toto oznámení? Tuto akci nelze vrátit zpět.",
+      "button_delete": "Smazat oznámení"
     }
   },
   "inventory": {

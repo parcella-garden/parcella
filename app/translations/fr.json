@@ -1663,7 +1663,11 @@
       "send_blog_button": "Créer le brouillon",
       "print_generated": "PDF généré",
       "print_too_long_status": "Trop long pour une page",
-      "print_generate_button": "Générer le PDF"
+      "print_generate_button": "Générer le PDF",
+      "delete_title": "Supprimer l'annonce",
+      "delete_hint": "Supprime définitivement cette annonce. Elle reste supprimable quel que soit son statut (brouillon, publiée ou archivée) ou son historique d'envoi.",
+      "delete_confirm": "Vraiment supprimer cette annonce ? Cette action est irréversible.",
+      "button_delete": "Supprimer l'annonce"
     }
   },
   "inventory": {

@@ -1663,7 +1663,11 @@
       "send_blog_button": "Concept aanmaken",
       "print_generated": "PDF gegenereerd",
       "print_too_long_status": "Te lang voor één pagina",
-      "print_generate_button": "PDF genereren"
+      "print_generate_button": "PDF genereren",
+      "delete_title": "Mededeling verwijderen",
+      "delete_hint": "Verwijdert deze mededeling permanent. Kan verwijderd worden ongeacht status (concept, gepubliceerd of gearchiveerd) of verzendgeschiedenis.",
+      "delete_confirm": "Deze mededeling echt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+      "button_delete": "Mededeling verwijderen"
     }
   },
   "inventory": {

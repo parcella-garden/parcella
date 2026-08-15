@@ -1663,7 +1663,11 @@
       "send_blog_button": "Utwórz szkic",
       "print_generated": "PDF wygenerowany",
       "print_too_long_status": "Za długie na jedną stronę",
-      "print_generate_button": "Generuj PDF"
+      "print_generate_button": "Generuj PDF",
+      "delete_title": "Usuń ogłoszenie",
+      "delete_hint": "Trwale usuwa to ogłoszenie. Można je usunąć niezależnie od statusu (szkic, opublikowane lub zarchiwizowane) czy historii wysyłki.",
+      "delete_confirm": "Czy na pewno usunąć to ogłoszenie? Tej operacji nie można cofnąć.",
+      "button_delete": "Usuń ogłoszenie"
     }
   },
   "inventory": {

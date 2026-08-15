@@ -1663,7 +1663,11 @@
       "send_blog_button": "Vytvoriť koncept",
       "print_generated": "PDF vytvorené",
       "print_too_long_status": "Príliš dlhé na jednu stranu",
-      "print_generate_button": "Vytvoriť PDF"
+      "print_generate_button": "Vytvoriť PDF",
+      "delete_title": "Odstrániť oznámenie",
+      "delete_hint": "Trvalo odstráni toto oznámenie. Dá sa odstrániť bez ohľadu na stav (koncept, zverejnené alebo archivované) či históriu odoslania.",
+      "delete_confirm": "Naozaj odstrániť toto oznámenie? Túto akciu nemožno vrátiť späť.",
+      "button_delete": "Odstrániť oznámenie"
     }
   },
   "inventory": {
