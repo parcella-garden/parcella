@@ -52,9 +52,11 @@ and shows a "Modules" table for whatever's active.
   shared API token -- never exposed to visitors.
 - A hidden honeypot field is included and forwarded to Parcella as-is;
   Parcella decides what to do with it.
-- Styling is deliberately minimal (a few inline rules for the honeypot
-  and feedback messages) so it inherits your theme's form styling.
-  Override `.parcella-work-signup` in your theme's CSS as needed.
+- Styling is deliberately minimal (a few inline rules for the honeypot,
+  feedback messages, and the submit button) so it inherits your theme's
+  form styling. Override `.parcella-work-signup` (or
+  `.parcella-signup-submit` for just the button) in your theme's CSS as
+  needed.
 - The form only collects a parcel number, an optional name, and
   optional remarks -- no phone or email field, since a matched
   member's contact details already live on their Parcella Member

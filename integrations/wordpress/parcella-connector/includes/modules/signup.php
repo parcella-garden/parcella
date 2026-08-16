@@ -252,7 +252,7 @@ function parcella_connector_signup_render_shortcode($atts) {
                 </p>
 
                 <p>
-                    <button type="submit"><?php esc_html_e('Sign up', 'parcella-connector'); ?></button>
+                    <button type="submit" class="parcella-signup-submit"><?php esc_html_e('Sign up', 'parcella-connector'); ?></button>
                 </p>
             </form>
             <?php endif; ?>
@@ -262,6 +262,11 @@ function parcella_connector_signup_render_shortcode($atts) {
         .parcella-signup-hp { position: absolute; left: -9999px; }
         .parcella-signup-message { padding: 0.75em 1em; margin-bottom: 1em; border-radius: 4px; }
         .parcella-signup-success { background: #e6f4ea; color: #1e4620; }
+        .parcella-signup-submit {
+            font-size: 1.15em;
+            font-weight: 600;
+            padding: 0.6em 1.6em;
+        }
         .parcella-signup-error { background: #fdecea; color: #611a15; }
     </style>
     <?php
