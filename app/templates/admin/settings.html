@@ -203,7 +203,7 @@
                     {{ t('admin.settings.module_help') }}
                 </p>
                 <div class="row g-3">
-                    {% for key, name, hint in module_fields %}
+                    {% for key, name, hint, default in module_fields %}
                     <div class="col-md-6">
                         <div class="d-flex justify-content-between align-items-start gap-3 p-3"
                              style="background: #f8faf9; border-radius: 8px;">
@@ -214,7 +214,7 @@
                             <div class="form-check form-switch mb-0 flex-shrink-0">
                                 <input class="form-check-input" type="checkbox" role="switch"
                                        name="{{ key }}" id="{{ key }}"
-                                       {% if settings_map.get(key, 'true') in ('true', '1', 'ja', 'an') %}checked{% endif %}>
+                                       {% if settings_map.get(key, default) in ('true', '1', 'ja', 'an') %}checked{% endif %}>
                             </div>
                         </div>
                     </div>

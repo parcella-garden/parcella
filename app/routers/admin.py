@@ -36,6 +36,7 @@ from app.invoice_generation import (
     INVOICE_NUMBER_FORMAT_EXAMPLES, DEFAULT_INVOICE_NUMBER_FORMAT, is_valid_invoice_number_format,
 )
 from app.config import settings
+from app.module_flags import MODULE_DEFAULTS
 from app.public_api_auth import get_or_create_public_api_token, regenerate_public_api_token
 from app.update_check import get_update_status, refresh_update_check_cache
 from app.sample_data import (
@@ -927,7 +928,15 @@ async def settings_page(request: Request, db: AsyncSession = Depends(get_db)):
     resolved_fields = [(key, t_for(request, label_key)) for key, label_key in SETTINGS_FIELDS]
     resolved_finance_fields = [(key, t_for(request, label_key)) for key, label_key in FINANCE_SETTINGS_FIELDS]
     resolved_module_fields = [
-        (key, t_for(request, name_key), t_for(request, desc_key))
+        (
+            key, t_for(request, name_key), t_for(request, desc_key),
+            # Fallback for a module never explicitly saved yet -- must
+            # match app/module_flags.py's actual MODULE_DEFAULTS, not a
+            # hardcoded assumption, or a module defaulting to False
+            # (e.g. one that opens a public endpoint) would render its
+            # toggle as already ON before ever being saved.
+            "true" if MODULE_DEFAULTS.get(key[len("modul_"):], True) else "false",
+        )
         for key, name_key, desc_key in MODULE_FIELDS
     ]
     resolved_nav_order_fields = [
