@@ -131,14 +131,20 @@ and shows a "Modules" table for whatever's active.
 
 ## Translations
 
-The plugin text is translated to German out of the box
-(`languages/parcella-connector-de_DE.mo`) and follows the WordPress
-site's configured language automatically -- no settings needed. For any
-other language, copy `languages/parcella-connector.pot` to
-`parcella-connector-{locale}.po` (e.g. `parcella-connector-fr_FR.po` for
-French), translate the strings, and compile it:
+The plugin text is translated out of the box into every language the
+main Parcella application supports -- German, Polish, Czech, Slovak,
+French, and Dutch (`languages/parcella-connector-{de_DE,pl_PL,cs_CZ,
+sk_SK,fr_FR,nl_NL}.mo`), alongside the English source strings. It
+follows the WordPress site's configured language automatically -- no
+settings needed. For any other language, copy
+`languages/parcella-connector.pot` to `parcella-connector-{locale}.po`
+(e.g. `parcella-connector-it_IT.po` for Italian), translate the
+strings, and compile it:
 
     msgfmt -o parcella-connector-{locale}.mo parcella-connector-{locale}.po
 
 Drop both files into the `languages/` folder and WordPress picks them
-up automatically based on the site's language setting.
+up automatically based on the site's language setting. Keep this file
+set in sync with `app/translations/*.json` on the Parcella side when
+adding a new shortcode module or changing user-facing text -- the
+`.pot` lists every current source string as a starting point.
