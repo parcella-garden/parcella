@@ -266,6 +266,14 @@ function parcella_connector_signup_render_shortcode($atts) {
             font-size: 1.15em;
             font-weight: 600;
             padding: 0.6em 1.6em;
+            background: #2d6a4f;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .parcella-signup-submit:hover {
+            background: #40916c;
         }
         .parcella-signup-error { background: #fdecea; color: #611a15; }
     </style>
