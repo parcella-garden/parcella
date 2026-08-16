@@ -42,6 +42,11 @@ MODULE_DEFAULTS: Dict[str, bool] = {
     # which is a deliberate security-relevant choice a club must opt into,
     # not something that should silently turn on for existing installs.
     "public_signup_api": False,
+    # Same reasoning, kept as its own separate flag rather than folded into
+    # public_signup_api above: it opens a second, independent public write
+    # endpoint (a contact-form-to-ticket bridge), and a club should be able
+    # to enable one bridge without the other.
+    "public_contact_api": False,
     # Also defaults to False: it stores outbound credentials (a
     # Nextcloud/cloud storage app password) and, once configured, lets
     # board members upload and download real member paperwork. A club

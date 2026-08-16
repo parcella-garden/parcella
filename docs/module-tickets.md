@@ -18,6 +18,14 @@ Module flag: `tickets`
 3. **Spam interface** (done) -- built-in heuristics plus an optional
    external API, configurable under `/admin/settings`.
 
+Tickets can also originate from a fourth source beyond manual creation,
+email, and the REST API: a public contact-form bridge
+(`POST /api/v1/public/contact`, its own `public_contact_api` module
+flag) that creates a ticket directly from an external site's contact
+form instead of that form sending an email. See
+[docs/module-public-api.md](./module-public-api.md#public-contact-form-api-module)
+and [ADR 0074](./ADR/0074-public-contact-form-to-ticket-bridge.md).
+
 ## Stage 3: spam filter
 
 **Two combined layers.** Built-in heuristics run immediately, with no

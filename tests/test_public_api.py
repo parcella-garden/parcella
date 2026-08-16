@@ -26,6 +26,15 @@ async def _enable_module(client, headers):
     assert response.status_code == 200, response.text
 
 
+async def _enable_contact_module(client, headers):
+    response = await client.put(
+        "/api/v1/club-settings/modul_public_contact_api",
+        json={"value": "true"},
+        headers=headers,
+    )
+    assert response.status_code == 200, response.text
+
+
 async def _set_api_token(client, headers) -> str:
     response = await client.put(
         "/api/v1/club-settings/public_signup_api_token",
@@ -353,3 +362,119 @@ async def test_signup_honeypot_field_silently_ignored(client, admin_user):
     # Honeypot submissions must not actually create anything.
     participations = await _get_session_participations(client, headers, session["id"])
     assert participations == []
+
+
+# ---------------------------------------------------------------------------
+# Public contact-form API (POST /api/v1/public/contact) -- creates a
+# Parcella ticket directly, replacing a plain-email contact form. Its own
+# module flag (public_contact_api), independent of public_signup_api;
+# see ADR 0074.
+# ---------------------------------------------------------------------------
+
+_CONTACT_PAYLOAD = {
+    "name": "Gerd Mustergärtner",
+    "email": "gerd@example.com",
+    "message": "Could you please check the water tap near G042?",
+    "consent": True,
+}
+
+
+async def test_contact_endpoint_requires_module_flag_enabled(client, admin_user):
+    response = await client.post(
+        "/api/v1/public/contact", json=_CONTACT_PAYLOAD,
+        headers={"X-Parcella-API-Token": "irrelevant"},
+    )
+    assert response.status_code == 404
+
+
+async def test_contact_requires_valid_api_token(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_contact_module(client, headers)
+    await _set_api_token(client, headers)
+
+    no_token_response = await client.post("/api/v1/public/contact", json=_CONTACT_PAYLOAD)
+    assert no_token_response.status_code == 401
+
+    wrong_token_response = await client.post(
+        "/api/v1/public/contact", json=_CONTACT_PAYLOAD,
+        headers={"X-Parcella-API-Token": "not-the-real-token"},
+    )
+    assert wrong_token_response.status_code == 401
+
+
+async def test_contact_creates_a_ticket(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_contact_module(client, headers)
+    await _set_api_token(client, headers)
+
+    response = await client.post(
+        "/api/v1/public/contact", json=_CONTACT_PAYLOAD,
+        headers={"X-Parcella-API-Token": "test-public-api-token"},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json() == {"accepted": True, "reason": None}
+
+    from app.database import AsyncSessionLocal
+    from sqlalchemy import select
+    from app.models import Ticket, TicketMessage
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(Ticket).where(Ticket.sender_email == "gerd@example.com"))
+        ticket = result.scalar_one()
+        assert ticket.sender_name == "Gerd Mustergärtner"
+        assert ticket.spam_score is not None
+
+        message_result = await db.execute(select(TicketMessage).where(TicketMessage.ticket_id == ticket.id))
+        message = message_result.scalar_one()
+        assert "Could you please check the water tap near G042?" in message.content
+        assert "consent" in message.content.lower()
+
+
+async def test_contact_without_consent_is_rejected(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_contact_module(client, headers)
+    await _set_api_token(client, headers)
+
+    payload = {**_CONTACT_PAYLOAD, "consent": False}
+    response = await client.post(
+        "/api/v1/public/contact", json=payload,
+        headers={"X-Parcella-API-Token": "test-public-api-token"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["accepted"] is False
+    assert body["reason"]
+
+    from app.database import AsyncSessionLocal
+    from sqlalchemy import select
+    from app.models import Ticket
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(Ticket).where(Ticket.sender_email == "gerd@example.com"))
+        assert result.scalar_one_or_none() is None
+
+
+async def test_contact_honeypot_field_silently_ignored(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_contact_module(client, headers)
+    await _set_api_token(client, headers)
+
+    payload = {**_CONTACT_PAYLOAD, "website": "http://spam.example"}
+    response = await client.post(
+        "/api/v1/public/contact", json=payload,
+        headers={"X-Parcella-API-Token": "test-public-api-token"},
+    )
+    assert response.status_code == 200
+    assert response.json() == {"accepted": True, "reason": None}
+
+    from app.database import AsyncSessionLocal
+    from sqlalchemy import select
+    from app.models import Ticket
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(Ticket).where(Ticket.sender_email == "gerd@example.com"))
+        assert result.scalar_one_or_none() is None

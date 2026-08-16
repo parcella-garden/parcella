@@ -6,8 +6,9 @@ A consolidated WordPress plugin for every integration between this site and a Pa
 
 - **Work session signup** (`includes/modules/signup.php`) -- a public work-session signup form via the `[parcella_work_signup]` shortcode,   backed by Parcella's public signup API.
 - **Community calendar** (`includes/modules/calendar.php`) -- upcoming meetings, parcel inspections, and work sessions via the `[parcella_calendar limit="5"]` shortcode, backed by Parcella's public `/calendar/community.json` feed. Read-only, no API token needed -- just the base URL.
+- **Contact form** (`includes/modules/contact.php`) -- a public contact form via the `[parcella_contact_form]` shortcode that creates a Parcella ticket directly, instead of sending a plain email.
 
-More modules (tickets, applicant management) are planned and will be added the same way: a new file under `includes/modules/`, required from the main plugin file, using the same shared base URL/token rather than asking for its own credentials.
+More modules (applicant management) are planned and will be added the same way: a new file under `includes/modules/`, required from the main plugin file, using the same shared base URL/token rather than asking for its own credentials.
 
 This plugin is intentionally a thin client for every module it
 contains: no business logic (capacity checks, matching, validation, ticket routing, etc.) lives here -- all of that lives in Parcella itself, behind the same kind of API contract any other CMS connector would use. See the relevant `docs/module-*.md` file in the Parcella repository for each module's contract.
@@ -21,7 +22,7 @@ contains: no business logic (capacity checks, matching, validation, ticket routi
    - **Parcella base URL** -- e.g. `https://parcella.your-club.org`
    - **API token** -- from Parcella's admin area under
      Administration -> Integrations
-4. In Parcella, make sure the modules you want to use are enabled (Administration -> Settings -> optional modules) - e.g. "Public signup API" is off by default.
+4. In Parcella, make sure the modules you want to use are enabled (Administration -> Settings -> optional modules) - e.g. "Public signup API" and "Public contact-form API" are both off by default and enabled independently.
 5. Use whichever module-specific shortcodes/features you need (see below).
 
 ## Upgrading from "Parcella Work Session Signup" (the old plugin name)
@@ -91,6 +92,27 @@ and shows a "Modules" table for whatever's active.
   that actually inherits the site's own styling -- drop the shortcode
   into a Text/HTML/Shortcode widget wherever the calendar should
   appear.
+
+## Module: Contact form
+
+- Renders a form (name, email, message, and a required data-protection
+  consent checkbox) via the `[parcella_contact_form]` shortcode.
+- Submits directly to Parcella's public contact API, server-side, using
+  the shared API token -- creates a real Parcella ticket, not an email.
+  Needs its own module enabled in Parcella (**Public contact-form API**,
+  separate from the signup module's flag) in addition to the base
+  URL/token.
+- Consent is required both client-side (`required` on the checkbox) and
+  server-side (Parcella rejects a submission with `consent: false`) --
+  the wording is hard-coded in `contact.php`'s
+  `parcella_connector_contact_render_shortcode()`; edit it there
+  directly if your privacy policy text or link needs to change.
+- A hidden honeypot field is included and forwarded to Parcella as-is,
+  same as the signup module.
+- Styling is deliberately minimal and self-contained (its own
+  `.parcella-contact-*` classes, not shared with the signup module's
+  `.parcella-signup-*` ones, since a page may only include one of the
+  two shortcodes). Override in your theme's CSS as needed.
 
 ## Adding a new module
 

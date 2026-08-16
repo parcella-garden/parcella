@@ -63,8 +63,20 @@
                     <td><code>{{ base_url }}/api/v1/public/work-sessions/signup</code></td>
                     <td><code>X-Parcella-API-Token</code></td>
                 </tr>
+                <tr>
+                    <td><span class="badge bg-primary">POST</span></td>
+                    <td><code>{{ base_url }}/api/v1/public/contact</code></td>
+                    <td><code>X-Parcella-API-Token</code></td>
+                </tr>
             </tbody>
         </table>
+
+        {% if not contact_module_active %}
+        <div class="alert alert-warning" style="font-size: 0.85rem;">
+            {{ t('admin.integrations.contact_module_disabled_notice') }}
+            <a href="/admin/settings">{{ t('admin.integrations.module_disabled_link') }}</a>
+        </div>
+        {% endif %}
 
         <p class="text-muted" style="font-size: 0.85rem;">
             {{ t('admin.integrations.wordpress_hint') }}

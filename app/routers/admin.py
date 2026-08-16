@@ -871,6 +871,7 @@ MODULE_FIELDS = [
     ("modul_inventory", "admin.settings.modules.inventory_name", "admin.settings.modules.inventory_desc"),
     ("modul_tasks", "admin.settings.modules.tasks_name", "admin.settings.modules.tasks_desc"),
     ("modul_public_signup_api", "admin.settings.modules.public_signup_api_name", "admin.settings.modules.public_signup_api_desc"),
+    ("modul_public_contact_api", "admin.settings.modules.public_contact_api_name", "admin.settings.modules.public_contact_api_desc"),
     ("modul_announcements", "admin.settings.modules.announcements_name", "admin.settings.modules.announcements_desc"),
     ("modul_cloud_storage", "admin.settings.modules.cloud_storage_name", "admin.settings.modules.cloud_storage_desc"),
     ("modul_finances", "admin.settings.modules.finances_name", "admin.settings.modules.finances_desc"),
@@ -1208,6 +1209,10 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
     entry = result.scalar_one_or_none()
     module_active = (entry.value.strip().lower() in ("true", "1", "ja", "an")) if entry else False
 
+    contact_result = await db.execute(select(ClubSetting).where(ClubSetting.key == "modul_public_contact_api"))
+    contact_entry = contact_result.scalar_one_or_none()
+    contact_module_active = (contact_entry.value.strip().lower() in ("true", "1", "ja", "an")) if contact_entry else False
+
     wordpress_result = await db.execute(
         select(ClubSetting).where(ClubSetting.key.in_(["wordpress_site_url", "wordpress_username", "wordpress_app_password"]))
     )
@@ -1240,6 +1245,7 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
         "request": request, "user": user,
         "api_token": token,
         "module_active": module_active,
+        "contact_module_active": contact_module_active,
         "base_url": str(request.base_url).rstrip("/"),
         "wordpress_site_url": wordpress_stored.get("wordpress_site_url", ""),
         "wordpress_username": wordpress_stored.get("wordpress_username", ""),

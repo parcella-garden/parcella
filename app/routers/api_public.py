@@ -47,14 +47,16 @@ from app.rate_limit import check_and_record, client_ip_key
 from app.schemas import (
     PublicWorkSessionOut, PublicParcelOut, PublicSignupCreate,
     PublicSignupResult, PublicSignupSessionResult,
+    PublicContactCreate, PublicContactResult,
 )
+from app.spam_filter import check_for_spam
+from app.services.tickets import create_ticket
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/api/v1/public",
     tags=["Public Signup API"],
-    dependencies=[Depends(require_module("public_signup_api"))],
 )
 
 # ---------------------------------------------------------------------------
@@ -65,6 +67,12 @@ router = APIRouter(
 _RATE_LIMIT_WINDOW_SECONDS = 3600
 _RATE_LIMIT_MAX_REQUESTS = 20
 
+# Separate window/key namespace for the contact-form endpoint below --
+# same shape as the signup limiter, kept independent so a burst on one
+# endpoint doesn't consume the other's budget for the same visitor.
+_CONTACT_RATE_LIMIT_WINDOW_SECONDS = 3600
+_CONTACT_RATE_LIMIT_MAX_REQUESTS = 10
+
 
 def _check_rate_limit(request: Request) -> None:
     key = client_ip_key(request, "public_signup")
@@ -72,6 +80,15 @@ def _check_rate_limit(request: Request) -> None:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Too many signup requests from this address, please try again later",
+        )
+
+
+def _check_contact_rate_limit(request: Request) -> None:
+    key = client_ip_key(request, "public_contact")
+    if not check_and_record(key, _CONTACT_RATE_LIMIT_MAX_REQUESTS, _CONTACT_RATE_LIMIT_WINDOW_SECONDS):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many contact requests from this address, please try again later",
         )
 
 
@@ -122,7 +139,10 @@ def _build_note(parcel_number: str, payload: PublicSignupCreate, was_matched: bo
     return " | ".join(parts)
 
 
-@router.get("/work-sessions/upcoming", response_model=list[PublicWorkSessionOut])
+@router.get(
+    "/work-sessions/upcoming", response_model=list[PublicWorkSessionOut],
+    dependencies=[Depends(require_module("public_signup_api"))],
+)
 async def list_upcoming_sessions(db: AsyncSession = Depends(get_db)):
     from datetime import date as date_cls
 
@@ -146,7 +166,10 @@ async def list_upcoming_sessions(db: AsyncSession = Depends(get_db)):
     ]
 
 
-@router.get("/parcels", response_model=list[PublicParcelOut])
+@router.get(
+    "/parcels", response_model=list[PublicParcelOut],
+    dependencies=[Depends(require_module("public_signup_api"))],
+)
 async def list_parcels(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Parcel).where(Parcel.status == ParcelStatus.ACTIVE).order_by(Parcel.plot_number)
@@ -157,7 +180,7 @@ async def list_parcels(db: AsyncSession = Depends(get_db)):
 @router.post(
     "/work-sessions/signup",
     response_model=PublicSignupResult,
-    dependencies=[Depends(require_public_api_token)],
+    dependencies=[Depends(require_module("public_signup_api")), Depends(require_public_api_token)],
 )
 async def submit_signup(
     payload: PublicSignupCreate,
@@ -244,3 +267,50 @@ async def submit_signup(
         await db.rollback()
 
     return PublicSignupResult(results=results)
+
+
+_CONTACT_TICKET_SUBJECT = "Contact form inquiry"
+
+
+@router.post(
+    "/contact",
+    response_model=PublicContactResult,
+    dependencies=[Depends(require_module("public_contact_api")), Depends(require_public_api_token)],
+)
+async def submit_contact(
+    payload: PublicContactCreate,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Creates a Parcella ticket directly from an external contact form
+    (e.g. the parcella-connector WordPress plugin's [parcella_contact_form]
+    shortcode) instead of that form sending a plain email that then has
+    to be re-ingested via the ticket mailbox. Gated by its own module
+    flag (public_contact_api), independent of public_signup_api -- a
+    club should be able to enable one bridge without the other."""
+    # Honeypot: a real visitor never fills this field. Return a
+    # believable-looking success without creating anything, same as the
+    # signup endpoint's honeypot handling above.
+    if payload.website:
+        logger.info("Public contact-form honeypot triggered, silently ignoring submission")
+        return PublicContactResult(accepted=True)
+
+    _check_contact_rate_limit(request)
+
+    if not payload.consent:
+        return PublicContactResult(
+            accepted=False, reason="Data-protection consent is required to submit this form",
+        )
+
+    spam_result = await check_for_spam(payload.email, _CONTACT_TICKET_SUBJECT, payload.message, db)
+
+    ticket = await create_ticket(
+        db, subject=_CONTACT_TICKET_SUBJECT, sender_email=payload.email, sender_name=payload.name,
+        message=f"{payload.message}\n\n[Data protection consent given at submission]",
+    )
+    ticket.spam_suspected = spam_result.is_spam_suspected
+    ticket.spam_score = spam_result.score
+    ticket.spam_reasoning = spam_result.reasoning
+    await db.commit()
+
+    return PublicContactResult(accepted=True)

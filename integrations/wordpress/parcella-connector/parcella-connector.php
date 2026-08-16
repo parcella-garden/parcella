@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Parcella Connector
- * Description: Consolidated connector for every integration between this WordPress site and a Parcella installation. Each capability lives in its own module under includes/modules/ (work-session signup and community calendar today; tickets, applicant management, and others are planned), sharing one Parcella base URL and API token configured here.
- * Version: 2.1.0
+ * Description: Consolidated connector for every integration between this WordPress site and a Parcella installation. Each capability lives in its own module under includes/modules/ (work-session signup, community calendar, and a contact-form-to-ticket bridge today; applicant management and others are planned), sharing one Parcella base URL and API token configured here.
+ * Version: 2.2.0
  * License: AGPL-3.0-or-later
  * Text Domain: parcella-connector
  *
@@ -141,10 +141,15 @@ function parcella_connector_render_settings_page() {
                     <td><span style="color: #1e4620;">&#9679; <?php esc_html_e('Active', 'parcella-connector'); ?></span></td>
                     <td><code>[parcella_calendar]</code></td>
                 </tr>
+                <tr>
+                    <td><?php esc_html_e('Contact form', 'parcella-connector'); ?></td>
+                    <td><span style="color: #1e4620;">&#9679; <?php esc_html_e('Active', 'parcella-connector'); ?></span></td>
+                    <td><code>[parcella_contact_form]</code></td>
+                </tr>
             </tbody>
         </table>
         <p class="description">
-            <?php esc_html_e('More modules (tickets, applicant management) are planned. Each will appear in this table once added, sharing the connection settings above -- no separate credentials to configure per module.', 'parcella-connector'); ?>
+            <?php esc_html_e('More modules (applicant management) are planned. Each will appear in this table once added, sharing the connection settings above -- no separate credentials to configure per module.', 'parcella-connector'); ?>
         </p>
     </div>
     <?php
@@ -162,3 +167,4 @@ function parcella_connector_render_settings_page() {
 
 require_once PARCELLA_CONNECTOR_PATH . 'includes/modules/signup.php';
 require_once PARCELLA_CONNECTOR_PATH . 'includes/modules/calendar.php';
+require_once PARCELLA_CONNECTOR_PATH . 'includes/modules/contact.php';

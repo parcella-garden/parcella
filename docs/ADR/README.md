@@ -77,3 +77,4 @@ in chronological order.
 71. [TREASURER role's privilege retired: Groups are the only way to grant more than baseline now](./0071-treasurer-role-privilege-retired-groups-only.md)
 72. [Ticket attachments: local-storage fallback when Nextcloud isn't configured](./0072-ticket-attachment-local-storage-fallback.md)
 73. [Community calendar: JSON endpoint for widget rendering, not just ICS](./0073-community-calendar-json-endpoint-for-widget-rendering.md)
+74. [Public contact form → ticket bridge](./0074-public-contact-form-to-ticket-bridge.md)

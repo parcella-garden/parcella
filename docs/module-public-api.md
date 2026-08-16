@@ -166,6 +166,54 @@ infrastructure for this felt disproportionate. Resets on deploy and
 doesn't share state across multiple workers if the app is ever run with
 more than one; acceptable for now, revisit if that changes.
 
+## Public contact-form API module
+
+A second, independent public-write capability living in the same
+router (`app/routers/api_public.py`) and reference plugin
+(`integrations/wordpress/parcella-connector/includes/modules/contact.php`,
+`[parcella_contact_form]`): `POST /api/v1/public/contact` lets an
+external site's contact form create a Parcella **ticket** directly,
+instead of sending a plain email that then has to round-trip through
+the ticket mailbox's IMAP polling. Built for a concrete case: the
+association's own `/kontakt` page previously emailed the ticket inbox
+(confirmed live -- an existing ticket titled "Kontaktanfrage von
+Website" was ingested that way, matching no Parcella translation key,
+i.e. a literal string from whatever WordPress contact-form plugin sent
+it). See [ADR 0074](./ADR/0074-public-contact-form-to-ticket-bridge.md).
+
+**Its own module flag, `public_contact_api`, off by default** -- same
+reasoning as `public_signup_api` above (opens a public write endpoint),
+but deliberately a *separate* flag rather than reusing
+`public_signup_api`: a club should be able to enable one bridge without
+the other. Toggle at Administration -> Settings; the endpoint URL and
+shared API token are shown on the same Administration -> Integrations
+page as the signup endpoints (same token, since the plugin uses one
+shared credential for every module).
+
+**Fields: name, email, message, and a required consent flag.** No
+parcel number here (unlike signup) -- a contact-form message isn't tied
+to a parcel. `consent` must be `true` or the submission is rejected
+(`accepted: false`, with a `reason`) -- same HTTP-200-with-a-rejection-flag
+convention the signup endpoint already uses for per-session
+acceptance, not an HTTP error status, since "consent missing" is a
+normal, expected outcome for a real visitor who hasn't ticked the box
+yet, not a server error.
+
+**Runs through the same spam check as incoming ticket emails.**
+`check_for_spam()` (`app/spam_filter.py`), the same function
+`app/ticket_mailer.py` applies to every incoming email -- this endpoint
+is exactly as public-facing as the ticket inbox itself, so it gets the
+same heuristics-plus-optional-external-API treatment, setting
+`spam_suspected`/`spam_score`/`spam_reasoning` on the created ticket.
+Reuses `create_ticket()` (`app/services/tickets.py`, already shared
+between the HTML and JWT-authenticated API surfaces per ADR 0070)
+rather than duplicating ticket/message creation.
+
+**No dedicated consent-tracking column.** Whether consent was given is
+a submission-time gate (rejected outright if false), not something the
+board needs to query later -- the created ticket's own message body
+records that consent was given, for anyone reviewing it by hand.
+
 ## Extending to another CMS
 
 Any connector needs to, in order:

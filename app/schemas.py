@@ -754,6 +754,27 @@ class PublicSignupResult(BaseModel):
     results: List[PublicSignupSessionResult]
 
 
+class PublicContactCreate(BaseModel):
+    name: str = Field(..., min_length=1)
+    email: EmailStr
+    message: str = Field(..., min_length=1)
+    consent: bool = Field(..., description="Must be true -- data-protection consent given at submission")
+    # Honeypot, same convention as PublicSignupCreate.website above.
+    website: Optional[str] = Field(None, description="Leave empty")
+
+    @field_validator("website", mode="before")
+    @classmethod
+    def blank_to_none(cls, value):
+        if isinstance(value, str) and value.strip() == "":
+            return None
+        return value
+
+
+class PublicContactResult(BaseModel):
+    accepted: bool
+    reason: Optional[str] = Field(None, description="Set when accepted=false, e.g. missing consent")
+
+
 # ---------------------------------------------------------------------------
 # Inventory
 # ---------------------------------------------------------------------------
