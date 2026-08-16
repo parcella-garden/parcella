@@ -1,8 +1,9 @@
 """
 Tests for the calendar module: community calendar entries (merged with
-work sessions), the public ICS feed, token protection on the private
-feeds, and the council-absence self-service permission rule (anyone can
-log their own absence, nobody can delete someone else's).
+work sessions), the public ICS feed and its JSON twin, token protection
+on the private feeds, and the council-absence self-service permission
+rule (anyone can log their own absence, nobody can delete someone
+else's).
 
 Uses the web UI's cookie-based session login (not the JWT API), since
 the calendar module is web-UI-only -- httpx's AsyncClient keeps cookies
@@ -51,6 +52,14 @@ async def test_community_calendar_and_public_ics(client, admin_user):
         assert "Annual General Meeting" in ics_response.text
         assert "BEGIN:VCALENDAR" in ics_response.text
 
+        # JSON twin of the same feed (ADR 0073) -- same data, same
+        # unauthenticated posture, used by the WordPress connector's
+        # [parcella_calendar] shortcode instead of an ICS subscription.
+        json_response = await anon_client.get("/calendar/community.json")
+        assert json_response.status_code == 200
+        items = json_response.json()
+        assert any(item["kind"] == "event" and item["title"] == "Annual General Meeting" for item in items)
+
 
 async def test_community_calendar_excludes_special_sessions(client, admin_user):
     """Only STANDARD work sessions belong on the community calendar --
@@ -86,6 +95,12 @@ async def test_community_calendar_excludes_special_sessions(client, admin_user):
         assert ics_response.status_code == 200
         assert "Planned Leaf Raking" in ics_response.text
         assert "Spontaneous Bench Painting" not in ics_response.text
+
+        json_response = await anon_client.get("/calendar/community.json")
+        assert json_response.status_code == 200
+        titles = [item["title"] for item in json_response.json()]
+        assert any("Planned Leaf Raking" in t for t in titles)
+        assert not any("Spontaneous Bench Painting" in t for t in titles)
 
 
 async def test_private_ics_feeds_require_correct_token(client, admin_user):

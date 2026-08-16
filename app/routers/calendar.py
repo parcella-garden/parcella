@@ -164,6 +164,55 @@ async def community_ics(request: Request, db: AsyncSession = Depends(get_db)):
     return _ics_response(cal.to_ical(), "community.ics")
 
 
+@router.get("/community.json")
+async def community_json(db: AsyncSession = Depends(get_db)):
+    """JSON twin of community.ics above, for driving a styled widget
+    (e.g. the parcella-connector WordPress plugin's [parcella_calendar]
+    shortcode) instead of a calendar-app subscription. Same public,
+    unauthenticated posture and same underlying data -- CalendarEvent
+    rows plus STANDARD work sessions, SPECIAL sessions excluded -- kept
+    in sync with community_overview() and build_community_calendar()
+    above; update all three together if this merge logic ever changes."""
+    events_result = await db.execute(
+        select(CalendarEvent).where(CalendarEvent.start_date >= date.today()).order_by(CalendarEvent.start_date)
+    )
+    items = [
+        {
+            "kind": "event",
+            "title": e.title,
+            "date": e.start_date.isoformat(),
+            "end_date": e.end_date.isoformat() if e.end_date else None,
+            "time_from": e.start_time,
+            "time_until": e.end_time,
+            "location": e.location,
+            "description": e.description,
+        }
+        for e in events_result.scalars().all()
+    ]
+
+    sessions_result = await db.execute(
+        select(WorkSession)
+        .where(WorkSession.date >= date.today(), WorkSession.type == SessionType.STANDARD)
+        .order_by(WorkSession.date)
+    )
+    items += [
+        {
+            "kind": "session",
+            "title": f"Work session: {s.title}",
+            "date": s.date.isoformat(),
+            "end_date": None,
+            "time_from": s.time_from,
+            "time_until": s.time_until,
+            "location": None,
+            "description": s.description,
+        }
+        for s in sessions_result.scalars().all()
+    ]
+
+    items.sort(key=lambda item: item["date"])
+    return items
+
+
 # ---------------------------------------------------------------------------
 # Birthdays
 # ---------------------------------------------------------------------------

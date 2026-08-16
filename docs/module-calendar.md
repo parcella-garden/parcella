@@ -8,7 +8,10 @@ export:
 1. **Community calendar** -- member meetings, parcel inspections
    (entered directly), merged with STANDARD-type work sessions (read
    from the existing `work_sessions` table, not duplicated; SPECIAL
-   sessions are excluded, see "Key decisions" below).
+   sessions are excluded, see "Key decisions" below). Also has a JSON
+   twin of its ICS feed (`/calendar/community.json`) for driving a
+   styled widget rather than a calendar-app subscription -- see "REST
+   API" below.
 2. **Birthdays** -- derived entirely from `Member.date_of_birth`, no
    table of its own.
 3. **Council presence** -- scheduled on-site slots for board/council
@@ -169,16 +172,26 @@ docstring too.
 
 ## REST API
 
-**Deliberately not built for this module**, unlike every other module in
-this project (see the API-first ADR entry). The reasoning: this
-module's actual "integration surface" already exists in the form of the
-ICS feeds themselves -- that's how a calendar module talks to the
-outside world (WordPress, personal calendar apps), not a JSON API. A
-conventional CRUD API for creating meetings or presence slots is a
-reasonable follow-up if a real integration need shows up (e.g. an
-external tool that wants to programmatically create meetings), but
-wasn't built speculatively. Flagging this explicitly rather than
-silently deviating from the project's stated convention.
+**No conventional CRUD API for this module**, unlike every other module
+in this project (see the API-first ADR entry). A full API for creating
+meetings or presence slots is a reasonable follow-up if a real
+integration need shows up, but wasn't built speculatively.
+
+**One narrow exception (see [ADR
+0073](./ADR/0073-community-calendar-json-endpoint-for-widget-rendering.md)):**
+`GET /calendar/community.json`, a read-only JSON twin of
+`/calendar/community.ics` -- same data (CalendarEvent rows plus
+STANDARD work sessions), same public/unauthenticated posture, just JSON
+instead of iCalendar. This exists specifically to drive the
+`parcella-connector` WordPress plugin's `[parcella_calendar]` shortcode
+(`integrations/wordpress/parcella-connector/includes/modules/calendar.php`),
+which renders a styled HTML list matching the surrounding page/widget --
+something a generic ICS-consuming calendar widget can't do. This is
+*not* a reversal of the "ICS is the integration surface" reasoning
+above for the module as a whole: it's one additional read-only endpoint
+for one specific rendering need, not a general JSON API for the
+calendar module. Write operations (creating meetings, presence slots,
+etc.) still have no API and still aren't planned speculatively.
 
 ## Known pitfalls
 
