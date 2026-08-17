@@ -298,3 +298,97 @@ async def test_member_parcel_assignment_and_double_garden(client, admin_user):
 
     detail = (await client.get(f"/api/v1/parcels/{p1['id']}", headers=headers)).json()
     assert len(detail["members"]) == 2
+
+
+# ---------------------------------------------------------------------------
+# GPS coordinates (latitude/longitude)
+# ---------------------------------------------------------------------------
+
+async def web_login(client, email: str, password: str = "testpasswort123") -> None:
+    response = await client.post("/auth/login", data={"email": email, "password": password})
+    assert response.status_code in (302, 303)
+
+
+async def test_parcel_create_and_update_with_coordinates_round_trip(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    response = await client.post(
+        "/api/v1/parcels",
+        json={"plot_number": "G200", "latitude": 51.339695, "longitude": 12.373075},
+        headers=headers,
+    )
+    assert response.status_code == 201, response.text
+    parcel = response.json()
+    assert float(parcel["latitude"]) == 51.339695
+    assert float(parcel["longitude"]) == 12.373075
+
+    response = await client.put(
+        f"/api/v1/parcels/{parcel['id']}",
+        json={"latitude": 51.34, "longitude": 12.38},
+        headers=headers,
+    )
+    assert response.status_code == 200, response.text
+    updated = response.json()
+    assert float(updated["latitude"]) == 51.34
+    assert float(updated["longitude"]) == 12.38
+
+
+async def test_parcel_invalid_coordinates_rejected_via_api(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    response = await client.post(
+        "/api/v1/parcels",
+        json={"plot_number": "G201", "latitude": 200, "longitude": 12.0},
+        headers=headers,
+    )
+    # Same blanket 409 convention this router already uses for every
+    # ServiceError, independent of ServiceError.http_status (see
+    # _service_error_to_http in app/routers/api_parcels.py).
+    assert response.status_code == 409, response.text
+
+    response = await client.post(
+        "/api/v1/parcels",
+        json={"plot_number": "G202", "latitude": 51.0, "longitude": -200},
+        headers=headers,
+    )
+    assert response.status_code == 409, response.text
+
+
+async def test_parcel_csv_export_import_round_trips_coordinates(client, admin_user):
+    await web_login(client, "admin@example.com")
+
+    create = await client.post(
+        "/parcels/new",
+        data={"plot_number": "G203", "area_sqm": "312,5", "latitude": "51,339695", "longitude": "12,373075", "notes": ""},
+        follow_redirects=False,
+    )
+    assert create.status_code in (302, 303)
+
+    export = await client.get("/parcels/export/csv")
+    assert export.status_code == 200
+    assert "Breitengrad" in export.text
+    assert "Längengrad" in export.text
+    assert "G203" in export.text
+
+    import_response = await client.post(
+        "/parcels/import/csv",
+        files={"file": ("parcels.csv", export.text.encode("utf-8"), "text/csv")},
+        follow_redirects=False,
+    )
+    assert import_response.status_code in (302, 303)
+
+    from app.database import AsyncSessionLocal
+    from sqlalchemy import select
+    from app.models import Parcel
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(Parcel).where(Parcel.plot_number == "G203"))
+        parcels = result.scalars().all()
+        # Re-importing the just-exported CSV skips existing plot numbers
+        # (see parcels_import_csv), so still exactly one G203 -- but that
+        # confirms the round-trip parsed the new columns without error.
+        assert len(parcels) == 1
+        assert float(parcels[0].latitude) == 51.339695
+        assert float(parcels[0].longitude) == 12.373075

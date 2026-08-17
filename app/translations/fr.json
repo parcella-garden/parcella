@@ -745,6 +745,8 @@
       "plot_number_placeholder": "ex. G093 ou G26/27",
       "plot_number_help": "Mis automatiquement en majuscules",
       "label_area": "Superficie (m²)",
+      "label_latitude": "Latitude",
+      "label_longitude": "Longitude",
       "label_status": "Statut",
       "status_help": "Le moment d'un changement de statut est automatiquement enregistré dans l'historique des modifications — une date de résiliation distincte n'est pas nécessaire.",
       "label_termination_note": "Note de résiliation",
@@ -757,7 +759,8 @@
       "danger_zone_text": "Supprime définitivement la parcelle {plot_number} de la base de données — contrairement au statut \"Supprimé\", qui conserve l'historique. Toutes les attributions de membres pour cette parcelle sont également supprimées ; les connexions d'eau sont conservées mais sans référence à la parcelle. Cette action ne peut pas être annulée.",
       "delete_confirm": "Voulez-vous vraiment supprimer DÉFINITIVEMENT la parcelle {plot_number} ? Cette action est irréversible.",
       "button_delete_permanently": "Supprimer définitivement la parcelle",
-      "duplicate_plot_number_error": "Le numéro de parcelle '{plot_number}' existe déjà."
+      "duplicate_plot_number_error": "Le numéro de parcelle '{plot_number}' existe déjà.",
+      "invalid_coordinates_error": "La latitude doit être comprise entre -90 et 90, la longitude entre -180 et 180."
     },
     "detail": {
       "button_edit": "Modifier",
@@ -765,6 +768,8 @@
       "details_header": "Détails de la parcelle",
       "label_plot_number": "Numéro de parcelle",
       "label_area": "Superficie",
+      "label_coordinates": "Coordonnées",
+      "view_on_map_link": "Voir sur la carte",
       "label_status": "Statut",
       "label_terminated_on": "Résilié le",
       "label_termination_note": "Note de résiliation",

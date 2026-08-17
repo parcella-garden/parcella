@@ -34,6 +34,17 @@
                         {% else %}–{% endif %}
                     </dd>
 
+                    {% if parcel.latitude and parcel.longitude %}
+                    <dt class="col-sm-5 text-muted">{{ t('parcels.detail.label_coordinates') }}</dt>
+                    <dd class="col-sm-7">
+                        <span class="fw-semibold">{{ parcel.latitude }}, {{ parcel.longitude }}</span>
+                        <a href="https://www.openstreetmap.org/?mlat={{ parcel.latitude }}&mlon={{ parcel.longitude }}#map=18/{{ parcel.latitude }}/{{ parcel.longitude }}"
+                           target="_blank" rel="noopener noreferrer" class="ms-2">
+                            <i class="bi bi-geo-alt"></i> {{ t('parcels.detail.view_on_map_link') }}
+                        </a>
+                    </dd>
+                    {% endif %}
+
                     <dt class="col-sm-5 text-muted">{{ t('parcels.detail.label_status') }}</dt>
                     <dd class="col-sm-7">
                         {% if parcel.status.value == 'ACTIVE' %}

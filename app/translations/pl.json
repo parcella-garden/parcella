@@ -745,6 +745,8 @@
       "plot_number_placeholder": "np. G093 lub G26/27",
       "plot_number_help": "Automatycznie zapisywane wielkimi literami",
       "label_area": "Powierzchnia (m²)",
+      "label_latitude": "Szerokość geograficzna",
+      "label_longitude": "Długość geograficzna",
       "label_status": "Status",
       "status_help": "Moment zmiany statusu jest automatycznie zapisywany w historii zmian – osobna data wypowiedzenia nie jest potrzebna.",
       "label_termination_note": "Notatka o wypowiedzeniu",
@@ -757,7 +759,8 @@
       "danger_zone_text": "Nieodwracalnie usuwa działkę {plot_number} z bazy danych – w przeciwieństwie do statusu „Usunięta”, który zachowuje historię. Wszystkie przypisania członków do tej działki zostaną również usunięte, przyłącza wodne pozostają zachowane, ale bez powiązania z działką. Tej czynności nie można cofnąć.",
       "delete_confirm": "Czy na pewno TRWALE usunąć działkę {plot_number}? Tego nie można cofnąć.",
       "button_delete_permanently": "Usuń działkę trwale",
-      "duplicate_plot_number_error": "Numer działki „{plot_number}” już istnieje."
+      "duplicate_plot_number_error": "Numer działki „{plot_number}” już istnieje.",
+      "invalid_coordinates_error": "Szerokość geograficzna musi mieścić się w zakresie od -90 do 90, długość geograficzna od -180 do 180."
     },
     "detail": {
       "button_edit": "Edytuj",
@@ -765,6 +768,8 @@
       "details_header": "Szczegóły działki",
       "label_plot_number": "Numer działki",
       "label_area": "Powierzchnia",
+      "label_coordinates": "Współrzędne",
+      "view_on_map_link": "Pokaż na mapie",
       "label_status": "Status",
       "label_terminated_on": "Wypowiedziana dnia",
       "label_termination_note": "Notatka o wypowiedzeniu",

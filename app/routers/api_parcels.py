@@ -115,7 +115,10 @@ async def parcel_create(
     user: User = Depends(require_api_permission("members_parcels", "write")),
 ):
     try:
-        parcel = await create_parcel(db, plot_number=data.plot_number, area_sqm=data.area_sqm, notes=data.notes)
+        parcel = await create_parcel(
+            db, plot_number=data.plot_number, area_sqm=data.area_sqm,
+            latitude=data.latitude, longitude=data.longitude, notes=data.notes,
+        )
     except ServiceError as e:
         raise _service_error_to_http(request, e)
     await db.commit()

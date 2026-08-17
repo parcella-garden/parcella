@@ -745,6 +745,8 @@
       "plot_number_placeholder": "bijv. G093 of G26/27",
       "plot_number_help": "Wordt automatisch met hoofdletters geschreven",
       "label_area": "Oppervlakte (m²)",
+      "label_latitude": "Breedtegraad",
+      "label_longitude": "Lengtegraad",
       "label_status": "Status",
       "status_help": "Het tijdstip van een statuswijziging wordt automatisch vastgelegd in de wijzigingsgeschiedenis — een aparte beëindigingsdatum is niet nodig.",
       "label_termination_note": "Beëindigingsnotitie",
@@ -757,7 +759,8 @@
       "danger_zone_text": "Verwijdert perceel {plot_number} permanent uit de database — in tegenstelling tot de status \"Verwijderd\", die de geschiedenis bewaart. Alle lidkoppelingen voor dit perceel worden ook verwijderd; wateraansluitingen blijven behouden maar zonder perceelreferentie. Deze actie kan niet ongedaan worden gemaakt.",
       "delete_confirm": "Weet u zeker dat u perceel {plot_number} PERMANENT wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
       "button_delete_permanently": "Perceel permanent verwijderen",
-      "duplicate_plot_number_error": "Perceelnummer '{plot_number}' bestaat al."
+      "duplicate_plot_number_error": "Perceelnummer '{plot_number}' bestaat al.",
+      "invalid_coordinates_error": "Breedtegraad moet tussen -90 en 90 liggen, lengtegraad tussen -180 en 180."
     },
     "detail": {
       "button_edit": "Bewerken",
@@ -765,6 +768,8 @@
       "details_header": "Perceeldetails",
       "label_plot_number": "Perceelnummer",
       "label_area": "Oppervlakte",
+      "label_coordinates": "Coördinaten",
+      "view_on_map_link": "Op kaart bekijken",
       "label_status": "Status",
       "label_terminated_on": "Beëindigd op",
       "label_termination_note": "Beëindigingsnotitie",

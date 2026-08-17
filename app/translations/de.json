@@ -745,6 +745,8 @@
       "plot_number_placeholder": "z.B. G093 oder G26/27",
       "plot_number_help": "Wird automatisch großgeschrieben",
       "label_area": "Fläche (qm)",
+      "label_latitude": "Breitengrad",
+      "label_longitude": "Längengrad",
       "label_status": "Status",
       "status_help": "Der Zeitpunkt einer Statusänderung wird automatisch in der Änderungshistorie protokolliert – ein separates Kündigungsdatum ist nicht nötig.",
       "label_termination_note": "Kündigungsnotiz",
@@ -757,7 +759,8 @@
       "danger_zone_text": "Löscht die Parzelle {plot_number} unwiderruflich aus der Datenbank – anders als der Status „Gelöscht\", der die Historie erhält. Alle Mitgliederzuordnungen zu dieser Parzelle werden mit entfernt, Wasseranschlüsse bleiben erhalten aber ohne Parzellenbezug. Diese Aktion kann nicht rückgängig gemacht werden.",
       "delete_confirm": "Parzelle {plot_number} wirklich UNWIDERRUFLICH löschen? Dies kann nicht rückgängig gemacht werden.",
       "button_delete_permanently": "Parzelle endgültig löschen",
-      "duplicate_plot_number_error": "Gartennummer '{plot_number}' existiert bereits."
+      "duplicate_plot_number_error": "Gartennummer '{plot_number}' existiert bereits.",
+      "invalid_coordinates_error": "Breitengrad muss zwischen -90 und 90 liegen, Längengrad zwischen -180 und 180."
     },
     "detail": {
       "button_edit": "Bearbeiten",
@@ -765,6 +768,8 @@
       "details_header": "Parzellendetails",
       "label_plot_number": "Gartennummer",
       "label_area": "Fläche",
+      "label_coordinates": "Koordinaten",
+      "view_on_map_link": "Auf Karte anzeigen",
       "label_status": "Status",
       "label_terminated_on": "Gekündigt am",
       "label_termination_note": "Kündigungsnotiz",

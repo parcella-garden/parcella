@@ -745,6 +745,8 @@
       "plot_number_placeholder": "napr. G093 alebo G26/27",
       "plot_number_help": "Automaticky veľkými písmenami",
       "label_area": "Rozloha (m²)",
+      "label_latitude": "Zemepisná šírka",
+      "label_longitude": "Zemepisná dĺžka",
       "label_status": "Stav",
       "status_help": "Čas zmeny stavu sa automaticky zaznamenáva do histórie zmien -- nie je potrebný samostatný dátum ukončenia.",
       "label_termination_note": "Poznámka k ukončeniu",
@@ -757,7 +759,8 @@
       "danger_zone_text": "Natrvalo vymaže parcelu {plot_number} z databázy -- na rozdiel od stavu \"Vymazaná\", ktorý zachováva históriu. Všetky priradenia členov k tejto parcele sa tiež odstránia; vodovodné prípojky zostávajú zachované, ale bez odkazu na parcelu. Túto akciu nemožno vrátiť späť.",
       "delete_confirm": "Naozaj chcete NATRVALO vymazať parcelu {plot_number}? Toto sa nedá vrátiť späť.",
       "button_delete_permanently": "Natrvalo vymazať parcelu",
-      "duplicate_plot_number_error": "Číslo parcely '{plot_number}' už existuje."
+      "duplicate_plot_number_error": "Číslo parcely '{plot_number}' už existuje.",
+      "invalid_coordinates_error": "Zemepisná šírka musí byť medzi -90 a 90, zemepisná dĺžka medzi -180 a 180."
     },
     "detail": {
       "button_edit": "Upraviť",
@@ -765,6 +768,8 @@
       "details_header": "Podrobnosti parcely",
       "label_plot_number": "Číslo parcely",
       "label_area": "Rozloha",
+      "label_coordinates": "Súradnice",
+      "view_on_map_link": "Zobraziť na mape",
       "label_status": "Stav",
       "label_terminated_on": "Ukončená dňa",
       "label_termination_note": "Poznámka k ukončeniu",

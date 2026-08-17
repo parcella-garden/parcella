@@ -38,6 +38,18 @@
                                placeholder="z.B. 312.5"
                                value="{{ parcel.area_sqm if parcel and parcel.area_sqm else '' }}">
                     </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold">{{ t('parcels.form.label_latitude') }}</label>
+                        <input type="text" name="latitude" class="form-control" step="0.000001"
+                               placeholder="z.B. 51.339695"
+                               value="{{ parcel.latitude if parcel and parcel.latitude else '' }}">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold">{{ t('parcels.form.label_longitude') }}</label>
+                        <input type="text" name="longitude" class="form-control" step="0.000001"
+                               placeholder="z.B. 12.373075"
+                               value="{{ parcel.longitude if parcel and parcel.longitude else '' }}">
+                    </div>
 
                     {% if parcel %}
                     <div class="col-sm-6">

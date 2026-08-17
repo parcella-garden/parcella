@@ -361,6 +361,12 @@ class Parcel(Base):
     # Area
     area_sqm: Mapped[Optional[float]] = mapped_column(Numeric(10, 2), nullable=True)
 
+    # GPS coordinates (optional, filled in by hand) -- Numeric(9,6): 3
+    # integer digits + 6 decimals covers longitude's full -180..180
+    # range at ~11cm precision, standard GPS storage convention.
+    latitude: Mapped[Optional[float]] = mapped_column(Numeric(9, 6), nullable=True)
+    longitude: Mapped[Optional[float]] = mapped_column(Numeric(9, 6), nullable=True)
+
     # Status
     status: Mapped[ParcelStatus] = mapped_column(
         SAEnum(ParcelStatus), default=ParcelStatus.ACTIVE, nullable=False

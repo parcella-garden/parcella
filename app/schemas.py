@@ -147,6 +147,8 @@ class MemberDetailOut(MemberOut):
 class ParcelBase(BaseModel):
     plot_number: str = Field(..., max_length=20)
     area_sqm: Optional[Decimal] = None
+    latitude: Optional[Decimal] = None
+    longitude: Optional[Decimal] = None
     notes: Optional[str] = None
 
 
@@ -157,6 +159,8 @@ class ParcelCreate(ParcelBase):
 class ParcelUpdate(BaseModel):
     plot_number: Optional[str] = Field(None, max_length=20)
     area_sqm: Optional[Decimal] = None
+    latitude: Optional[Decimal] = None
+    longitude: Optional[Decimal] = None
     status: Optional[ParcelStatus] = None
     termination_note: Optional[str] = None
     notes: Optional[str] = None

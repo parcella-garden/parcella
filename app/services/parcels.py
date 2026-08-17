@@ -45,7 +45,7 @@ from app.change_tracker import ChangeTracker
 from app.models import MemberParcel, Parcel, ParcelStatus, User
 from app.services.errors import ServiceError
 
-_TRACKED_FIELDS = ["plot_number", "area_sqm", "status", "termination_note", "notes"]
+_TRACKED_FIELDS = ["plot_number", "area_sqm", "latitude", "longitude", "status", "termination_note", "notes"]
 
 
 async def _plot_number_taken(db: AsyncSession, plot_number: str, *, exclude_parcel_id: Optional[str] = None) -> bool:
@@ -56,14 +56,27 @@ async def _plot_number_taken(db: AsyncSession, plot_number: str, *, exclude_parc
     return result.scalar_one_or_none() is not None
 
 
+def _validate_coordinates(latitude: Optional[float], longitude: Optional[float]) -> None:
+    if latitude is not None and not (-90 <= latitude <= 90):
+        raise ServiceError("parcels.form.invalid_coordinates_error", http_status=400)
+    if longitude is not None and not (-180 <= longitude <= 180):
+        raise ServiceError("parcels.form.invalid_coordinates_error", http_status=400)
+
+
 async def create_parcel(
-    db: AsyncSession, *, plot_number: str, area_sqm: Optional[float] = None, notes: Optional[str] = None,
+    db: AsyncSession, *, plot_number: str, area_sqm: Optional[float] = None,
+    latitude: Optional[float] = None, longitude: Optional[float] = None,
+    notes: Optional[str] = None,
 ) -> Parcel:
     plot_number = plot_number.strip().upper()
     if await _plot_number_taken(db, plot_number):
         raise ServiceError("parcels.form.duplicate_plot_number_error", http_status=400, plot_number=plot_number)
+    _validate_coordinates(latitude, longitude)
 
-    parcel = Parcel(plot_number=plot_number, area_sqm=area_sqm, notes=(notes or "").strip() or None)
+    parcel = Parcel(
+        plot_number=plot_number, area_sqm=area_sqm, latitude=latitude, longitude=longitude,
+        notes=(notes or "").strip() or None,
+    )
     db.add(parcel)
     await db.flush()
     return parcel
@@ -83,6 +96,10 @@ async def update_parcel(db: AsyncSession, parcel: Parcel, *, acting_user: User, 
         fields["notes"] = (fields["notes"] or "").strip() or None
     if "termination_note" in fields:
         fields["termination_note"] = (fields["termination_note"] or "").strip() or None
+    if "latitude" in fields or "longitude" in fields:
+        _validate_coordinates(
+            fields.get("latitude", parcel.latitude), fields.get("longitude", parcel.longitude),
+        )
 
     tracker = ChangeTracker(parcel, "Parcel", _TRACKED_FIELDS)
     for key, value in fields.items():

@@ -112,6 +112,32 @@ async def test_upcoming_sessions_and_parcels_are_unauthenticated(client, admin_u
     assert "id" not in parcels_response.json()[0]
 
 
+async def test_public_parcels_never_expose_coordinates(client, admin_user):
+    """Regression guard: /api/v1/public/parcels deliberately omits even
+    the parcel's own id (IDOR reconnaissance concern, see
+    docs/module-public-api.md) -- precise GPS coordinates would be a
+    real privacy regression there, not just unrelated data, so they
+    must never appear in this response either."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+
+    create = await client.post(
+        "/api/v1/parcels",
+        json={"plot_number": "G043", "latitude": 51.339695, "longitude": 12.373075},
+        headers=headers,
+    )
+    assert create.status_code == 201, create.text
+
+    response = await client.get("/api/v1/public/parcels")
+    assert response.status_code == 200
+    entries = [p for p in response.json() if p["plot_number"] == "G043"]
+    assert len(entries) == 1
+    assert "latitude" not in entries[0]
+    assert "longitude" not in entries[0]
+    assert "id" not in entries[0]
+
+
 async def test_signup_requires_valid_api_token(client, admin_user):
     token = await login(client, "admin@example.com")
     headers = auth_header(token)

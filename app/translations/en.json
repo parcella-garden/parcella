@@ -745,6 +745,8 @@
       "plot_number_placeholder": "e.g. G093 or G26/27",
       "plot_number_help": "Automatically capitalized",
       "label_area": "Area (sqm)",
+      "label_latitude": "Latitude",
+      "label_longitude": "Longitude",
       "label_status": "Status",
       "status_help": "The time of a status change is automatically logged in the change history -- a separate termination date isn't needed.",
       "label_termination_note": "Termination note",
@@ -757,7 +759,8 @@
       "danger_zone_text": "Permanently deletes parcel {plot_number} from the database -- unlike the \"Deleted\" status, which preserves history. All member assignments for this parcel are removed as well; water connections are kept but without a parcel reference. This action cannot be undone.",
       "delete_confirm": "Really PERMANENTLY delete parcel {plot_number}? This cannot be undone.",
       "button_delete_permanently": "Permanently delete parcel",
-      "duplicate_plot_number_error": "Plot number '{plot_number}' already exists."
+      "duplicate_plot_number_error": "Plot number '{plot_number}' already exists.",
+      "invalid_coordinates_error": "Latitude must be between -90 and 90, longitude between -180 and 180."
     },
     "detail": {
       "button_edit": "Edit",
@@ -765,6 +768,8 @@
       "details_header": "Parcel details",
       "label_plot_number": "Plot number",
       "label_area": "Area",
+      "label_coordinates": "Coordinates",
+      "view_on_map_link": "View on map",
       "label_status": "Status",
       "label_terminated_on": "Terminated on",
       "label_termination_note": "Termination note",

@@ -16,6 +16,25 @@ change_history          – generic audit log (see below)
 
 ## Key decisions
 
+**Optional GPS coordinates (`Parcel.latitude`/`longitude`).** Both
+nullable `Numeric(9, 6)` (3 integer digits + 6 decimals, covering
+longitude's full -180..180 range at ~11cm precision -- standard GPS
+storage convention), filled in by hand like `area_sqm`. Validated in
+`app/services/parcels.py` (`_validate_coordinates()`) to stay within
+real latitude/longitude bounds, same `ServiceError` pattern as the
+plot-number-uniqueness check. When both are set, the parcel detail page
+links out to `https://www.openstreetmap.org/?mlat=...&mlon=...` --
+OpenStreetMap rather than a hardcoded Google Maps embed, since it needs
+no API key/account and matches the project's general preference for
+configurable/generic over vendor-specific (see CLAUDE.md). Deliberately
+**not** exposed on `PublicParcelOut` (`/api/v1/public/parcels`, see
+`docs/module-public-api.md`) -- that endpoint already omits the
+parcel's own id specifically to avoid handing unauthenticated callers
+anything beyond the bare plot number (an external pentest flagged even
+the id as IDOR reconnaissance value); a member's plot's precise GPS
+location would be a real privacy regression there, not just unrelated
+data.
+
 **m:n assignment from the start.** A member can have multiple parcels
 (multiple gardens), and a parcel can have multiple members (couples,
 families). The assignment table `member_parcels` carries

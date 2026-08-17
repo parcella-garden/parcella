@@ -100,6 +100,8 @@ async def parcel_create(
     request: Request,
     plot_number: str = Form(...),
     area_sqm: str = Form(""),
+    latitude: str = Form(""),
+    longitude: str = Form(""),
     notes: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
@@ -112,8 +114,24 @@ async def parcel_create(
         except ValueError:
             pass
 
+    lat = None
+    if latitude.strip():
+        try:
+            lat = float(latitude.replace(",", "."))
+        except ValueError:
+            pass
+
+    lng = None
+    if longitude.strip():
+        try:
+            lng = float(longitude.replace(",", "."))
+        except ValueError:
+            pass
+
     try:
-        parcel = await create_parcel(db, plot_number=plot_number, area_sqm=area, notes=notes)
+        parcel = await create_parcel(
+            db, plot_number=plot_number, area_sqm=area, latitude=lat, longitude=lng, notes=notes,
+        )
     except ServiceError as e:
         return templates.TemplateResponse(
             "parcels/form.html",
@@ -221,6 +239,8 @@ async def parcel_update(
     request: Request,
     plot_number: str = Form(...),
     area_sqm: str = Form(""),
+    latitude: str = Form(""),
+    longitude: str = Form(""),
     status: str = Form("ACTIVE"),
     termination_note: str = Form(""),
     notes: str = Form(""),
@@ -239,12 +259,26 @@ async def parcel_update(
         except ValueError:
             pass
 
+    lat = None
+    if latitude.strip():
+        try:
+            lat = float(latitude.replace(",", "."))
+        except ValueError:
+            pass
+
+    lng = None
+    if longitude.strip():
+        try:
+            lng = float(longitude.replace(",", "."))
+        except ValueError:
+            pass
+
     new_status = ParcelStatus(status) if status in [s.value for s in ParcelStatus] else parcel.status
 
     try:
         await update_parcel(
             db, parcel, acting_user=user,
-            plot_number=plot_number, area_sqm=area, status=new_status,
+            plot_number=plot_number, area_sqm=area, latitude=lat, longitude=lng, status=new_status,
             termination_note=termination_note, notes=notes,
         )
     except ServiceError as e:
@@ -538,7 +572,7 @@ async def parcels_export_csv(request: Request, db: AsyncSession = Depends(get_db
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")
     writer.writerow([
-        "Gartennummer", "Fläche (qm)", "Status",
+        "Gartennummer", "Fläche (qm)", "Breitengrad", "Längengrad", "Status",
         "Kündigungsnotiz",
         "Mitglieder (Rechnungsadresse zuerst)", "Notizen"
     ])
@@ -551,6 +585,8 @@ async def parcels_export_csv(request: Request, db: AsyncSession = Depends(get_db
         writer.writerow([
             p.plot_number,
             str(p.area_sqm).replace(".", ",") if p.area_sqm else "",
+            str(p.latitude).replace(".", ",") if p.latitude else "",
+            str(p.longitude).replace(".", ",") if p.longitude else "",
             p.status.value,
             csv_safe(p.termination_note or ""),
             csv_safe(members_str),
@@ -617,6 +653,22 @@ async def parcels_import_csv(
             except ValueError:
                 pass
 
+        lat = None
+        lat_str = (row.get("Breitengrad") or "").replace(",", ".").strip()
+        if lat_str:
+            try:
+                lat = float(lat_str)
+            except ValueError:
+                pass
+
+        lng = None
+        lng_str = (row.get("Längengrad") or "").replace(",", ".").strip()
+        if lng_str:
+            try:
+                lng = float(lng_str)
+            except ValueError:
+                pass
+
         status_str = (row.get("Status") or "ACTIVE").strip().upper()
         status = ParcelStatus.ACTIVE
         if status_str in [s.value for s in ParcelStatus]:
@@ -625,6 +677,8 @@ async def parcels_import_csv(
         parcel = Parcel(
             plot_number=plot_number,
             area_sqm=area,
+            latitude=lat,
+            longitude=lng,
             status=status,
             notes=(row.get("Notizen") or "").strip() or None,
         )
