@@ -1580,7 +1580,8 @@
     "council_presence": {
       "title": "Přítomnost výboru",
       "new_card_title": "Nový termín přítomnosti",
-      "member_label": "Člen výboru",
+      "member_label": "Člen(ové) výboru",
+      "member_hint": "Vyberte více osob, pokud se o tento termín dělí více členů.",
       "date_label": "Datum",
       "time_from_label": "Od",
       "time_until_label": "Do",
@@ -1615,7 +1616,8 @@
       "event_not_found": "Záznam nenalezen",
       "entry_not_found": "Záznam nenalezen",
       "invalid_token": "Neplatný nebo chybějící přístupový token",
-      "not_your_entry": "Můžete mazat pouze vlastní záznamy"
+      "not_your_entry": "Můžete mazat pouze vlastní záznamy",
+      "no_member_selected": "Vyberte alespoň jednoho člena výboru"
     },
     "ics_subscribe_button": "Odebírat (ICS)"
   },

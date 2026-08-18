@@ -156,6 +156,41 @@ async def test_each_calendar_page_shows_its_own_ics_link(client, admin_user):
     assert "calendar/council-absence.ics?token=" in absence.text
 
 
+async def test_council_presence_multiple_members_one_slot(client, admin_user, board_user):
+    """Issue #197: selecting more than one board member for the same
+    slot must create one CouncilPresence row per person (the model is
+    already "one row per person per slot", see docs/module-calendar.md)
+    rather than requiring a separate form submission per person."""
+    await web_login(client, "admin@example.com")
+
+    slot_date = (date.today() + timedelta(days=5)).isoformat()
+    create = await client.post(
+        "/calendar/council-presence/new",
+        data={
+            "user_ids": [admin_user.id, board_user.id],
+            "presence_date": slot_date,
+            "time_from": "09:00",
+            "time_until": "11:00",
+            "note": "Joint office hours",
+        },
+    )
+    assert create.status_code in (302, 303)
+
+    overview = await client.get("/calendar/council-presence")
+    assert overview.status_code == 200
+    assert overview.text.count("Joint office hours") == 2
+    assert "Test-Admin" in overview.text
+    assert "Test-Vorstand" in overview.text
+
+    # Submitting with no member selected at all must be rejected rather
+    # than silently creating nothing.
+    rejected = await client.post(
+        "/calendar/council-presence/new",
+        data={"presence_date": slot_date},
+    )
+    assert rejected.status_code == 400
+
+
 async def test_council_absence_self_service_permissions(client, admin_user):
     await web_login(client, "admin@example.com")
 

@@ -1580,7 +1580,8 @@
     "council_presence": {
       "title": "Aanwezigheid bestuur",
       "new_card_title": "Nieuw aanwezigheidsmoment",
-      "member_label": "Bestuurslid",
+      "member_label": "Bestuurslid(en)",
+      "member_hint": "Selecteer meerdere leden als zij dit moment samen invullen.",
       "date_label": "Datum",
       "time_from_label": "Van",
       "time_until_label": "Tot",
@@ -1615,7 +1616,8 @@
       "event_not_found": "Item niet gevonden",
       "entry_not_found": "Item niet gevonden",
       "invalid_token": "Ongeldig of ontbrekend toegangstoken",
-      "not_your_entry": "Je kunt alleen je eigen items verwijderen"
+      "not_your_entry": "Je kunt alleen je eigen items verwijderen",
+      "no_member_selected": "Selecteer minstens één bestuurslid"
     },
     "ics_subscribe_button": "Abonneren (ICS)"
   },

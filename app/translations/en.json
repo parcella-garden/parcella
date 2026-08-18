@@ -1580,7 +1580,8 @@
     "council_presence": {
       "title": "Council Presence",
       "new_card_title": "New Presence Slot",
-      "member_label": "Council Member",
+      "member_label": "Council Member(s)",
+      "member_hint": "Select more than one if several members cover this slot together.",
       "date_label": "Date",
       "time_from_label": "From",
       "time_until_label": "Until",
@@ -1615,7 +1616,8 @@
       "event_not_found": "Entry not found",
       "entry_not_found": "Entry not found",
       "invalid_token": "Invalid or missing access token",
-      "not_your_entry": "You can only delete your own entries"
+      "not_your_entry": "You can only delete your own entries",
+      "no_member_selected": "Select at least one council member"
     },
     "ics_subscribe_button": "Subscribe (ICS)"
   },

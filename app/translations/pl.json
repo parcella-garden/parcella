@@ -1580,7 +1580,8 @@
     "council_presence": {
       "title": "Obecność zarządu",
       "new_card_title": "Nowy termin obecności",
-      "member_label": "Członek zarządu",
+      "member_label": "Członek(owie) zarządu",
+      "member_hint": "Wybierz więcej niż jedną osobę, jeśli kilku członków dzieli ten sam termin.",
       "date_label": "Data",
       "time_from_label": "Od",
       "time_until_label": "Do",
@@ -1615,7 +1616,8 @@
       "event_not_found": "Nie znaleziono wpisu",
       "entry_not_found": "Nie znaleziono wpisu",
       "invalid_token": "Nieprawidłowy lub brakujący token dostępu",
-      "not_your_entry": "Możesz usuwać tylko własne wpisy"
+      "not_your_entry": "Możesz usuwać tylko własne wpisy",
+      "no_member_selected": "Wybierz co najmniej jednego członka zarządu"
     },
     "ics_subscribe_button": "Subskrybuj (ICS)"
   },

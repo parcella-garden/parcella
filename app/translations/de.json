@@ -1580,7 +1580,8 @@
     "council_presence": {
       "title": "Vorstandspräsenz",
       "new_card_title": "Neue Präsenzzeit",
-      "member_label": "Vorstandsmitglied",
+      "member_label": "Vorstandsmitglied(er)",
+      "member_hint": "Mehrere auswählen, wenn sich mehrere Mitglieder diesen Termin teilen.",
       "date_label": "Datum",
       "time_from_label": "Von",
       "time_until_label": "Bis",
@@ -1615,7 +1616,8 @@
       "event_not_found": "Eintrag nicht gefunden",
       "entry_not_found": "Eintrag nicht gefunden",
       "invalid_token": "Ungültiges oder fehlendes Zugriffstoken",
-      "not_your_entry": "Sie können nur eigene Einträge löschen"
+      "not_your_entry": "Sie können nur eigene Einträge löschen",
+      "no_member_selected": "Bitte mindestens ein Vorstandsmitglied auswählen"
     },
     "ics_subscribe_button": "Abonnieren (ICS)"
   },

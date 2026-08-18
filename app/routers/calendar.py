@@ -295,7 +295,7 @@ async def council_presence_overview(request: Request, db: AsyncSession = Depends
 @router.post("/council-presence/new")
 async def council_presence_create(
     request: Request,
-    user_id: str = Form(...),
+    user_ids: list[str] = Form([]),
     presence_date: str = Form(...),
     time_from: str = Form(""),
     time_until: str = Form(""),
@@ -303,14 +303,22 @@ async def council_presence_create(
     db: AsyncSession = Depends(get_db),
 ):
     await require_permission(request, db, "calendar", "write")
-    entry = CouncilPresence(
-        user_id=user_id,
-        date=date.fromisoformat(presence_date),
-        time_from=time_from or None,
-        time_until=time_until or None,
-        note=note.strip() or None,
-    )
-    db.add(entry)
+    if not user_ids:
+        raise HTTPException(status_code=400, detail=t_for(request, "calendar.errors.no_member_selected"))
+    # One CouncilPresence row per selected person, all sharing the same
+    # slot (date/time/note) -- matches the model's "one row per person
+    # per slot" shape (docs/module-calendar.md), so two board members
+    # covering the same slot together is just two rows, not a new
+    # many-to-many table.
+    parsed_date = date.fromisoformat(presence_date)
+    for user_id in dict.fromkeys(user_ids):
+        db.add(CouncilPresence(
+            user_id=user_id,
+            date=parsed_date,
+            time_from=time_from or None,
+            time_until=time_until or None,
+            note=note.strip() or None,
+        ))
     await db.commit()
     return RedirectResponse("/calendar/council-presence", status_code=302)
 

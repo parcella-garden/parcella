@@ -24,15 +24,21 @@
         <div class="card">
             <div class="card-header"><i class="bi bi-plus-lg me-2"></i>{{ t('calendar.council_presence.new_card_title') }}</div>
             <div class="card-body">
-                <form method="post" action="/calendar/council-presence/new">
+                <form method="post" action="/calendar/council-presence/new" id="council-presence-form">
                     {{ csrf_field() }}
                     <div class="mb-3">
                         <label class="form-label fw-semibold">{{ t('calendar.council_presence.member_label') }} <span class="text-danger">*</span></label>
-                        <select name="user_id" class="form-select" required>
+                        <div class="row" style="max-height: 200px; overflow-y: auto; border: 1px solid #dce8df; border-radius: 6px; padding: 0.5rem; margin: 0;">
                             {% for u in all_users %}
-                            <option value="{{ u.id }}">{{ u.name }}</option>
+                            <div class="col-sm-6 form-check">
+                                <input type="checkbox" name="user_ids" value="{{ u.id }}"
+                                       class="form-check-input" id="presence-member-{{ u.id }}">
+                                <label class="form-check-label d-inline-flex align-items-center gap-1" for="presence-member-{{ u.id }}">{{ user_avatar(u, size=18) }}{{ u.name }}</label>
+                            </div>
                             {% endfor %}
-                        </select>
+                        </div>
+                        <div class="form-text">{{ t('calendar.council_presence.member_hint') }}</div>
+                        <div id="presence-member-error" class="text-danger small mt-1" style="display: none;">{{ t('calendar.errors.no_member_selected') }}</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">{{ t('calendar.council_presence.date_label') }} <span class="text-danger">*</span></label>
@@ -60,6 +66,18 @@
             </div>
         </div>
     </div>
+    <script>
+        document.getElementById('council-presence-form').addEventListener('submit', function (e) {
+            var checked = this.querySelectorAll('input[name="user_ids"]:checked');
+            var errorEl = document.getElementById('presence-member-error');
+            if (checked.length === 0) {
+                e.preventDefault();
+                errorEl.style.display = 'block';
+            } else {
+                errorEl.style.display = 'none';
+            }
+        });
+    </script>
     {% endif %}
 
     <div class="{% if has_perm(request, 'calendar', 'write') %}col-lg-8{% else %}col-12{% endif %}">

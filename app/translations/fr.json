@@ -1580,7 +1580,8 @@
     "council_presence": {
       "title": "Présence du conseil",
       "new_card_title": "Nouveau créneau de présence",
-      "member_label": "Membre du conseil",
+      "member_label": "Membre(s) du conseil",
+      "member_hint": "Sélectionnez plusieurs membres s'ils partagent ce créneau ensemble.",
       "date_label": "Date",
       "time_from_label": "De",
       "time_until_label": "À",
@@ -1615,7 +1616,8 @@
       "event_not_found": "Entrée introuvable",
       "entry_not_found": "Entrée introuvable",
       "invalid_token": "Jeton d'accès invalide ou manquant",
-      "not_your_entry": "Vous ne pouvez supprimer que vos propres entrées"
+      "not_your_entry": "Vous ne pouvez supprimer que vos propres entrées",
+      "no_member_selected": "Sélectionnez au moins un membre du conseil"
     },
     "ics_subscribe_button": "S'abonner (ICS)"
   },

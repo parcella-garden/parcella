@@ -15,7 +15,13 @@ export:
 2. **Birthdays** -- derived entirely from `Member.date_of_birth`, no
    table of its own.
 3. **Council presence** -- scheduled on-site slots for board/council
-   members.
+   members. More than one person can be added for the same slot in one
+   go (issue #197): the "new presence slot" form is a checkbox list,
+   not a single-select, and `POST /calendar/council-presence/new`
+   accepts `user_ids` (one or more) and inserts one `CouncilPresence`
+   row per selected person, all sharing the same date/time/note -- no
+   model change needed, since the table was already "one row per
+   person per slot" by design.
 4. **Council absence** -- self-reported absence periods for any user
    account, not just the council.
 
