@@ -121,6 +121,19 @@ the export file in Excel and saved it again (Excel switches to a comma
 depending on locale settings). It now uses `csv.Sniffer()` to detect the
 delimiter, with semicolon as the fallback.
 
+**CSV export respects the list page's current filter (issue #198).**
+`_filtered_members_query()` in `app/routers/members.py` holds the
+`search`/`include_inactive`/`pending_only` WHERE/ORDER BY logic once;
+both `members_list` and `members_export_csv` build their query from it
+(with their own `.options(...)` eager-loads on top), and the export
+button on `/members/` carries the page's current query params through
+to `/members/export/csv`. Before this, the export always ran
+`active_member_filter()` unconditionally, regardless of what was
+actually on screen. The CSV import modal's "here's the expected format"
+template link is intentionally left pointing at the plain unfiltered
+export -- a full example is more useful as an import template than
+whatever subset happens to be filtered at the time.
+
 ## General-meeting sign-in sheet
 
 `/members/signin-sheet` generates a PDF (`app/meeting_signin_sheet.py`,

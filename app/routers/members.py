@@ -44,23 +44,13 @@ async def _get_member_with_details(db: AsyncSession, member_id: str) -> Optional
     return result.scalar_one_or_none()
 
 
-@router.get("/", response_class=HTMLResponse)
-async def members_list(
-    request: Request,
-    search: str = "",
-    include_inactive: bool = False,
-    pending_only: bool = False,
-    db: AsyncSession = Depends(get_db),
-):
-    user = await require_permission(request, db, "members_parcels", "read")
-
-    query = (
-        select(Member)
-        .options(
-            selectinload(Member.email_addresses),
-            selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel),
-        )
-    )
+def _filtered_members_query(search: str, include_inactive: bool, pending_only: bool):
+    """WHERE/ORDER BY for the member list, shared with its CSV export
+    (issue #198) so an export always matches what's currently on screen
+    instead of drifting into its own copy of this filtering logic.
+    Callers still add their own `.options(...)` eager-loads, since the
+    list and the export don't need exactly the same relationships."""
+    query = select(Member)
 
     if pending_only:
         # Issue #167 follow-up: a dedicated view for pending
@@ -140,6 +130,24 @@ async def members_list(
                 Member.id.in_(parcel_matches),
             )
         )
+
+    return query
+
+
+@router.get("/", response_class=HTMLResponse)
+async def members_list(
+    request: Request,
+    search: str = "",
+    include_inactive: bool = False,
+    pending_only: bool = False,
+    db: AsyncSession = Depends(get_db),
+):
+    user = await require_permission(request, db, "members_parcels", "read")
+
+    query = _filtered_members_query(search, include_inactive, pending_only).options(
+        selectinload(Member.email_addresses),
+        selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel),
+    )
 
     result = await db.execute(query)
     members = result.scalars().all()
@@ -443,19 +451,24 @@ async def email_delete(
 # ---------------------------------------------------------------------------
 
 @router.get("/export/csv")
-async def members_export_csv(request: Request, db: AsyncSession = Depends(get_db)):
+async def members_export_csv(
+    request: Request,
+    search: str = "",
+    include_inactive: bool = False,
+    pending_only: bool = False,
+    db: AsyncSession = Depends(get_db),
+):
     await require_permission(request, db, "members_parcels", "read")
 
-    result = await db.execute(
-        select(Member)
-        .options(
-            selectinload(Member.email_addresses),
-            selectinload(Member.phone_numbers),
-            selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel),
-        )
-        .where(active_member_filter())
-        .order_by(Member.last_name, Member.first_name)
+    # Issue #198: exports whatever the list page is currently showing,
+    # not always every active member -- same filters, same query, via
+    # _filtered_members_query() so the two can't drift apart.
+    query = _filtered_members_query(search, include_inactive, pending_only).options(
+        selectinload(Member.email_addresses),
+        selectinload(Member.phone_numbers),
+        selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel),
     )
+    result = await db.execute(query)
     members = result.scalars().all()
 
     output = io.StringIO()

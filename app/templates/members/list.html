@@ -9,7 +9,8 @@
         <i class="bi bi-upload me-1"></i>{{ t('members.list.csv_import') }}
     </button>
     {% endif %}
-    <a href="/members/export/csv" class="btn btn-sm btn-outline-secondary">
+    <a href="/members/export/csv?search={{ search|urlencode }}&include_inactive={{ 'true' if include_inactive else 'false' }}&pending_only={{ 'true' if pending_only else 'false' }}"
+       class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-download me-1"></i>{{ t('members.list.csv_export') }}
     </a>
     <a href="/members/signin-sheet" class="btn btn-sm btn-outline-secondary">

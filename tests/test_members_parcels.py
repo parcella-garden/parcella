@@ -132,6 +132,31 @@ async def test_member_create_and_retrieve(client, admin_user):
     assert response.json()["last_name"] == "Musterfrau"
 
 
+async def test_members_csv_export_respects_active_search_filter(client, admin_user):
+    """Issue #198: the export must match whatever the list page is
+    currently filtered to, not always every active member -- e.g.
+    searching for one member and exporting must not also include an
+    unrelated member who'd appear in the unfiltered list."""
+    await web_login(client, "admin@example.com")
+
+    from app.database import AsyncSessionLocal
+    from app.models import Member
+
+    async with AsyncSessionLocal() as session:
+        session.add(Member(first_name="Erika", last_name="Filterfrau"))
+        session.add(Member(first_name="Otto", last_name="Anderer"))
+        await session.commit()
+
+    unfiltered = await client.get("/members/export/csv")
+    assert "Filterfrau" in unfiltered.text
+    assert "Anderer" in unfiltered.text
+
+    filtered = await client.get("/members/export/csv?search=Filterfrau")
+    assert filtered.status_code == 200
+    assert "Filterfrau" in filtered.text
+    assert "Anderer" not in filtered.text
+
+
 async def test_parcel_create_duplicate_plot_number_rejected(client, admin_user):
     token = await login(client, "admin@example.com")
 
