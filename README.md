@@ -7,7 +7,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)](https://fastapi.tiangolo.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)](https://postgresql.org)
 
-Parcella is an open-source web application for managing allotment garden associations AKA ("Kleingartenverein" / "Schrebergarten" associations): members, parcels,
+Parcella is an open-source web [application for managing allotment garden associations](https://parcella.org) AKA ("Kleingartenverein" / "Schrebergarten" associations): members, parcels,
 lease administration, mandatory work hours and much more.
 
 Started as a vibe-coding project for we became sick of these ill-architectured proprietary software - hopefully generic enough for any allotment garden association, in any country. If you miss anything, feel free to drop a line at https://forum.parcella.org - or just fix it yourself here on Github.
