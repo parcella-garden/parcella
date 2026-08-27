@@ -309,7 +309,7 @@
          already folds in that check, see app/routers/parcels.py) -->
     {% if cloud_storage_enabled %}
     <div class="col-12">
-        <div class="card">
+        <div class="card" id="cloud-documents">
             <div class="card-header"><i class="bi bi-cloud me-2"></i>{{ t('parcels.detail.cloud_documents_header') }}</div>
             <div class="card-body">
 
@@ -343,6 +343,19 @@
                 </form>
 
                 {% if cloud_folder and cloud_files is not none %}
+                {% if cloud_breadcrumbs|length > 1 %}
+                <nav class="mb-2" style="font-size: 0.9rem;">
+                    {% for crumb in cloud_breadcrumbs %}
+                    {% if not loop.last %}
+                    <a href="/parcels/{{ parcel.id }}?cloud_path={{ crumb.cloud_path | urlencode }}#cloud-documents"
+                       class="text-decoration-none">{{ crumb.name }}</a>
+                    <span class="text-muted mx-1">/</span>
+                    {% else %}
+                    <span class="text-muted">{{ crumb.name }}</span>
+                    {% endif %}
+                    {% endfor %}
+                </nav>
+                {% endif %}
                 <div class="table-responsive mb-3">
                     <table class="table table-sm">
                         <thead>
@@ -354,15 +367,22 @@
                         </thead>
                         <tbody>
                             {% for entry in cloud_files %}
+                            {% set entry_path = (cloud_browse_path ~ '/' ~ entry.name) if cloud_browse_path else entry.name %}
                             <tr>
                                 <td>
-                                    <i class="bi {{ 'bi-folder-fill' if entry.is_directory else 'bi-file-earmark' }} me-2"></i>
-                                    {{ entry.name }}
+                                    {% if entry.is_directory %}
+                                    <a href="/parcels/{{ parcel.id }}?cloud_path={{ entry_path | urlencode }}#cloud-documents"
+                                       class="text-decoration-none">
+                                        <i class="bi bi-folder-fill me-2"></i>{{ entry.name }}
+                                    </a>
+                                    {% else %}
+                                    <i class="bi bi-file-earmark me-2"></i>{{ entry.name }}
+                                    {% endif %}
                                 </td>
                                 <td class="text-muted">{{ entry.last_modified or '–' }}</td>
                                 <td class="text-end">
                                     {% if not entry.is_directory %}
-                                    <a href="/parcels/{{ parcel.id }}/cloud-folder/download?filename={{ entry.name | urlencode }}"
+                                    <a href="/parcels/{{ parcel.id }}/cloud-folder/download?filename={{ entry.name | urlencode }}&cloud_path={{ cloud_browse_path | urlencode }}"
                                        class="btn btn-sm btn-outline-secondary border-0">
                                         <i class="bi bi-download"></i>
                                     </a>
@@ -378,6 +398,7 @@
 
                 <form method="post" action="/parcels/{{ parcel.id }}/cloud-folder/upload" enctype="multipart/form-data">
                     {{ csrf_field() }}
+                    <input type="hidden" name="cloud_path" value="{{ cloud_browse_path }}">
                     <div class="input-group">
                         <input type="file" name="file" class="form-control" required>
                         <button type="submit" class="btn btn-primary">

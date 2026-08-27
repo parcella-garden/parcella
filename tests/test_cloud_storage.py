@@ -465,3 +465,130 @@ async def test_parcel_detail_page_renders_without_cloud_folder_configured(client
     await web_login(client, "admin@example.com")
     response = await client.get(f"/parcels/{parcel['id']}")
     assert response.status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# Browsing into subfolders (issue #201) -- folders in the listing were
+# rendered but had no link, so a board member could see "photos" exists
+# but never actually open it. A _RecordingProvider (rather than the
+# httpx mock transport used above) is used here so tests can assert on
+# exactly which path each route asked the connector for, without needing
+# the mock transport to parse and branch on the WebDAV request path.
+# ---------------------------------------------------------------------------
+
+class _RecordingProvider:
+    def __init__(self, files_by_path=None):
+        self.list_files_calls = []
+        self.download_calls = []
+        self.upload_calls = []
+        self._files_by_path = files_by_path or {}
+
+    async def list_files(self, path):
+        self.list_files_calls.append(path)
+        return self._files_by_path.get(path, [])
+
+    async def upload_file(self, path, filename, content):
+        self.upload_calls.append((path, filename, content))
+
+    async def download_file(self, path, filename):
+        self.download_calls.append((path, filename))
+        return b"file bytes"
+
+    async def aclose(self):
+        pass
+
+
+async def _setup_folder_with_recording_provider(client, admin_user, monkeypatch, files_by_path=None):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_cloud_storage(client, headers)
+    _, parcel, _ = await _create_member_and_parcel(client, headers)
+
+    await web_login(client, "admin@example.com")
+    await client.post(
+        f"/parcels/{parcel['id']}/cloud-folder",
+        data={"relative_path": "kgv_dokumente/parzellen/G016/2026-01_G016_Gaertnerin"},
+    )
+
+    provider = _RecordingProvider(files_by_path)
+
+    async def fake_get_nextcloud_provider(db, client=None):
+        return provider
+
+    monkeypatch.setattr("app.routers.parcels.get_nextcloud_provider", fake_get_nextcloud_provider)
+    return parcel, provider
+
+
+async def test_folder_entry_links_into_subfolder(client, admin_user, monkeypatch):
+    from app.cloud_storage import CloudFileEntry
+
+    root = "kgv_dokumente/parzellen/G016/2026-01_G016_Gaertnerin"
+    parcel, provider = await _setup_folder_with_recording_provider(
+        client, admin_user, monkeypatch,
+        files_by_path={root: [CloudFileEntry(name="photos", is_directory=True)]},
+    )
+
+    response = await client.get(f"/parcels/{parcel['id']}")
+    assert response.status_code == 200
+    assert provider.list_files_calls == [root]
+    assert f"/parcels/{parcel['id']}?cloud_path=photos#cloud-documents" in response.text
+
+
+async def test_navigating_into_subfolder_lists_the_right_path(client, admin_user, monkeypatch):
+    from app.cloud_storage import CloudFileEntry
+
+    root = "kgv_dokumente/parzellen/G016/2026-01_G016_Gaertnerin"
+    parcel, provider = await _setup_folder_with_recording_provider(
+        client, admin_user, monkeypatch,
+        files_by_path={f"{root}/photos": [CloudFileEntry(name="2026.jpg", is_directory=False)]},
+    )
+
+    response = await client.get(f"/parcels/{parcel['id']}", params={"cloud_path": "photos"})
+    assert response.status_code == 200
+    assert provider.list_files_calls == [f"{root}/photos"]
+    assert "2026.jpg" in response.text
+    # Breadcrumb: root folder name is a link back to cloud_path="", "photos" is the current (non-link) crumb.
+    assert f"/parcels/{parcel['id']}?cloud_path=#cloud-documents" in response.text
+
+
+async def test_download_link_carries_current_browse_path(client, admin_user, monkeypatch):
+    from app.cloud_storage import CloudFileEntry
+
+    root = "kgv_dokumente/parzellen/G016/2026-01_G016_Gaertnerin"
+    parcel, provider = await _setup_folder_with_recording_provider(
+        client, admin_user, monkeypatch,
+        files_by_path={f"{root}/photos": [CloudFileEntry(name="2026.jpg", is_directory=False)]},
+    )
+
+    response = await client.get(f"/parcels/{parcel['id']}", params={"cloud_path": "photos"})
+    assert "filename=2026.jpg&cloud_path=photos" in response.text
+
+    download_response = await client.get(
+        f"/parcels/{parcel['id']}/cloud-folder/download",
+        params={"filename": "2026.jpg", "cloud_path": "photos"},
+    )
+    assert download_response.status_code == 200
+    assert provider.download_calls == [(f"{root}/photos", "2026.jpg")]
+
+
+async def test_upload_lands_in_currently_browsed_subfolder(client, admin_user, monkeypatch):
+    root = "kgv_dokumente/parzellen/G016/2026-01_G016_Gaertnerin"
+    parcel, provider = await _setup_folder_with_recording_provider(client, admin_user, monkeypatch)
+
+    response = await client.post(
+        f"/parcels/{parcel['id']}/cloud-folder/upload",
+        data={"cloud_path": "photos"},
+        files={"file": ("2026.jpg", b"jpeg bytes", "image/jpeg")},
+    )
+    assert response.status_code in (302, 303)
+    assert "cloud_path=photos" in response.headers["location"]
+    assert provider.upload_calls == [(f"{root}/photos", "2026.jpg", b"jpeg bytes")]
+
+
+async def test_cloud_path_traversal_attempt_falls_back_to_root(client, admin_user, monkeypatch):
+    root = "kgv_dokumente/parzellen/G016/2026-01_G016_Gaertnerin"
+    parcel, provider = await _setup_folder_with_recording_provider(client, admin_user, monkeypatch)
+
+    response = await client.get(f"/parcels/{parcel['id']}", params={"cloud_path": "../../etc"})
+    assert response.status_code == 200
+    assert provider.list_files_calls == [root]

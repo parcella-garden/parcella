@@ -25,6 +25,7 @@ from app.module_flags import require_module
 from app.cloud_storage import get_nextcloud_provider, CloudStorageError
 from app.parcel_cloud_folders import (
     get_active_folder, set_active_folder, deactivate_if_vacant, InvalidCloudPathError,
+    sanitize_browse_subpath,
 )
 from app.services.errors import ServiceError
 from app.services.parcels import (
@@ -147,6 +148,7 @@ async def parcel_create(
 async def parcel_detail(
     parcel_id: str,
     request: Request,
+    cloud_path: str = "",
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "read")
@@ -183,15 +185,32 @@ async def parcel_detail(
     cloud_folder = None
     cloud_files = None
     cloud_error = None
+    # Issue #201: cloud_path is the subpath, relative to the parcel's
+    # configured folder root, the board member has browsed into -- "" is
+    # that root itself. Threaded through folder links, the download
+    # route, and the upload form so browsing into a subfolder actually
+    # works instead of always just re-listing the root.
+    cloud_browse_path = sanitize_browse_subpath(cloud_path)
+    cloud_breadcrumbs = []
     if cloud_storage_enabled:
         cloud_folder = await get_active_folder(db, parcel_id)
         if cloud_folder:
+            cloud_breadcrumbs = [{"name": cloud_folder.relative_path.rsplit("/", 1)[-1], "cloud_path": ""}]
+            accumulated = []
+            for segment in cloud_browse_path.split("/") if cloud_browse_path else []:
+                accumulated.append(segment)
+                cloud_breadcrumbs.append({"name": segment, "cloud_path": "/".join(accumulated)})
+
+            full_path = cloud_folder.relative_path
+            if cloud_browse_path:
+                full_path = f"{full_path}/{cloud_browse_path}"
+
             provider = await get_nextcloud_provider(db)
             if provider is None:
                 cloud_error = t_for(request, "parcels.cloud_storage.not_configured")
             else:
                 try:
-                    cloud_files = await provider.list_files(cloud_folder.relative_path)
+                    cloud_files = await provider.list_files(full_path)
                 except CloudStorageError as e:
                     cloud_error = str(e)
                 finally:
@@ -211,6 +230,8 @@ async def parcel_detail(
             "cloud_folder": cloud_folder,
             "cloud_files": cloud_files,
             "cloud_error": cloud_error,
+            "cloud_browse_path": cloud_browse_path,
+            "cloud_breadcrumbs": cloud_breadcrumbs,
         },
     )
 
@@ -498,6 +519,7 @@ async def parcel_cloud_file_upload(
     parcel_id: str,
     request: Request,
     file: UploadFile = File(...),
+    cloud_path: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
     await require_admin(request, db)
@@ -510,16 +532,22 @@ async def parcel_cloud_file_upload(
     if provider is None:
         raise HTTPException(status_code=400, detail=t_for(request, "parcels.detail.cloud_not_configured"))
 
+    # Issue #201: upload into the subfolder currently being browsed, not
+    # always the configured folder's own root.
+    browse_path = sanitize_browse_subpath(cloud_path)
+    upload_folder = f"{folder.relative_path}/{browse_path}" if browse_path else folder.relative_path
+    redirect_suffix = f"&cloud_path={urlquote(browse_path)}" if browse_path else ""
+
     try:
         content = await file.read()
-        await provider.upload_file(folder.relative_path, file.filename, content)
+        await provider.upload_file(upload_folder, file.filename, content)
     except CloudStorageError as e:
         message = urlquote(str(e))
-        return RedirectResponse(f"/parcels/{parcel_id}?cloud_error={message}", status_code=303)
+        return RedirectResponse(f"/parcels/{parcel_id}?cloud_error={message}{redirect_suffix}", status_code=303)
     finally:
         await provider.aclose()
 
-    return RedirectResponse(f"/parcels/{parcel_id}?cloud_upload_ok=1", status_code=303)
+    return RedirectResponse(f"/parcels/{parcel_id}?cloud_upload_ok=1{redirect_suffix}", status_code=303)
 
 
 @router.get("/{parcel_id}/cloud-folder/download", dependencies=[Depends(require_module("cloud_storage"))])
@@ -527,6 +555,7 @@ async def parcel_cloud_file_download(
     parcel_id: str,
     request: Request,
     filename: str,
+    cloud_path: str = "",
     db: AsyncSession = Depends(get_db),
 ):
     await require_admin(request, db)
@@ -539,8 +568,13 @@ async def parcel_cloud_file_download(
     if provider is None:
         raise HTTPException(status_code=400, detail=t_for(request, "parcels.detail.cloud_not_configured"))
 
+    # Issue #201: filename alone is only unique within the currently
+    # browsed subfolder, not the whole configured folder tree.
+    browse_path = sanitize_browse_subpath(cloud_path)
+    download_folder = f"{folder.relative_path}/{browse_path}" if browse_path else folder.relative_path
+
     try:
-        content = await provider.download_file(folder.relative_path, filename)
+        content = await provider.download_file(download_folder, filename)
     except CloudStorageError as e:
         raise HTTPException(status_code=502, detail=str(e))
     finally:

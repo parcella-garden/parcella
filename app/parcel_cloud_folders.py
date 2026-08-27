@@ -44,6 +44,26 @@ def sanitize_relative_path(raw_path: str) -> str:
     return "/".join(segments)
 
 
+def sanitize_browse_subpath(raw_path: str) -> str:
+    """Normalizes the `cloud_path` query param used to browse into a
+    subfolder of the parcel's configured cloud folder (issue #201).
+    Unlike sanitize_relative_path() above, an empty result is valid
+    here -- it means "the configured folder's own root", not an error.
+    A '..' segment (or anything else that doesn't survive normalization)
+    is silently dropped back to the root rather than raising, since this
+    only ever reaches here from a link Parcella itself generated or a
+    hand-edited URL -- _join_dav_path() (app/cloud_storage.py) still
+    rejects '..' defensively when the resulting path is actually used
+    for a WebDAV request."""
+    path = (raw_path or "").strip().strip("/")
+    if not path:
+        return ""
+    segments = [seg for seg in path.split("/") if seg not in ("", ".")]
+    if any(seg == ".." for seg in segments):
+        return ""
+    return "/".join(segments)
+
+
 async def get_active_folder(db: AsyncSession, parcel_id: str) -> Optional[ParcelCloudFolder]:
     result = await db.execute(
         select(ParcelCloudFolder).where(

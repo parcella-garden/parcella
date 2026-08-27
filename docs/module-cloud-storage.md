@@ -106,6 +106,30 @@ WordPress blog connection -- same page, same "test connection before
 saving" pattern, same "leave the app password field blank to keep the
 existing one" convention.
 
+**Folder browsing (issue #201):** the file listing originally rendered
+a folder icon for subfolders but no link -- a board member could see
+that "photos" existed but had no way to open it. `?cloud_path=<subpath>`
+on `GET /parcels/{id}` now carries the subpath (relative to the
+parcel's configured folder root) currently being browsed; folder rows
+link into it, and a breadcrumb trail (built server-side as a list of
+`{name, cloud_path}` dicts, not string-spliced in the template) lets a
+board member jump back to any ancestor level or the root. Download and
+upload both take the same `cloud_path` (query param and hidden form
+field respectively) so a file picked up two folders deep actually comes
+from/goes to that folder, not always the configured root.
+
+`sanitize_browse_subpath()` (`app/parcel_cloud_folders.py`) validates
+this query param. It deliberately differs from `sanitize_relative_path()`
+above it in one way: an empty result is valid here (it means "the
+folder's own root"), where the admin-entered folder path treats empty
+as a required-field error. A `..` segment is silently dropped back to
+the root rather than raising -- this value only ever originates from a
+link Parcella itself generated or a hand-edited URL, and
+`_join_dav_path()` (`app/cloud_storage.py`) still rejects `..`
+defensively at the point the path actually reaches a WebDAV request,
+same "sanitize at ingestion + defensive pass at use" pattern this
+module already followed for the configured folder path itself.
+
 ## Scheduled cloud backups (`app/cloud_backup.py`, issue #141)
 
 A second, independent consumer of this connector: `Admin -> System ->
@@ -139,10 +163,27 @@ would be the system assuming intent it doesn't actually have. A board
 member sets the new path once the new tenancy is confirmed.
 
 **Quantity of implementation surface matches the actual request:**
-list/upload/download covers "browse and get documents in and out";
-nothing about in-app previewing, versioning, or comment threads was
-asked for, and Nextcloud already does all of that natively for anyone
-with a direct share.
+list/upload/download/**browse-into-subfolders** covers "browse and get
+documents in and out"; nothing about in-app previewing, versioning, or
+comment threads was asked for. When issue #201 asked for in-browser PDF
+previewing as a follow-up, the answer was still no, deliberately: the
+free win (browsers already render PDFs/images natively; the download
+route would just need `Content-Disposition: inline` with the real
+mimetype instead of forcing an attachment download) is a real future
+option, but embedding Nextcloud's own viewer via its Share API was
+rejected -- see "Deliberately backend-agnostic" below.
+
+**Deliberately backend-agnostic, even where a Nextcloud-specific
+shortcut exists.** Nextcloud has its own web viewer and a Share API
+that could produce an embeddable preview link with very little code --
+but reaching for it would quietly re-couple this module to Nextcloud
+past the `CloudStorageProvider` interface boundary ADR 0033 set up on
+purpose. The club explicitly wants Seafile, Google Drive, and
+S3-compatible backends to stay realistic future options, not just
+theoretically possible. Any new feature here should keep working
+through `list_files`/`upload_file`/`download_file`/etc., or through
+browser-native capability (like inline PDF rendering), not through a
+capability only Nextcloud happens to expose.
 
 ## A WebDAV path-encoding bug found while building this
 
@@ -182,3 +223,12 @@ reminding the board member to go do this by hand in Nextcloud, without
 Parcella attempting to manage Nextcloud shares directly (which would
 need Nextcloud's separate Sharing API and credentials/permissions
 scoped beyond WebDAV file access).
+
+**No in-browser preview for PDFs/images.** Raised as a follow-up to
+issue #201; deferred, not rejected. `download_file` currently responds
+with `Content-Disposition: attachment`, forcing a download instead of
+letting the browser render a PDF or image inline -- switching that to
+`inline` with the file's real mimetype (instead of the current
+`application/octet-stream`) for previewable types would be a small,
+backend-agnostic change (no new dependency, works through the existing
+interface) whenever this is actually requested again.

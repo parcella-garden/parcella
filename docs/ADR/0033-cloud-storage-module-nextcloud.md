@@ -50,6 +50,19 @@ cloud backups) -- scoped narrowly to that feature's own retention sweep
 and destination-folder setup, not a general reversal of the reasoning
 above.
 
+**Update (issue #201):** the file listing rendered folders but had no
+way to open them -- fixed by adding a browse subpath (`cloud_path`)
+threaded through the list/download/upload routes, still going through
+`list_files`/`download_file`/`upload_file` on the existing interface.
+When richer in-browser previewing (PDFs, images) came up as a natural
+next ask, it was deliberately deferred rather than solved via
+Nextcloud's own viewer/Share API: the club wants Seafile, Google
+Drive, and S3-compatible backends to remain realistic future options,
+so anything built here should keep working through the
+`CloudStorageProvider` interface (or plain browser capability, like
+inline PDF rendering) rather than a capability only Nextcloud happens
+to expose. See docs/module-cloud-storage.md for detail.
+
 **A WebDAV path-encoding bug was found and fixed while building
 this.** `_join_dav_path` originally quoted each function argument as
 one opaque unit (`quote(segment, safe="")`), which is correct for a
