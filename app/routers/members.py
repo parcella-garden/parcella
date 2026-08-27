@@ -7,6 +7,7 @@ import itertools
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Request, Form, Depends, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, Response
@@ -145,6 +146,25 @@ def _filtered_members_query(search: str, include_inactive: bool, pending_only: b
     return query
 
 
+def _members_list_query_string(search: str, include_inactive: bool, pending_only: bool, active_only: bool) -> str:
+    """The current /members/ list filter as a query string (no leading
+    '?', empty if nothing is set). Issue #202: carried from each list
+    row onto its detail page, and back out again via the detail page's
+    Previous/Next buttons, so paging through a filtered view (e.g.
+    pending applications) doesn't silently fall back to the full,
+    unfiltered member list."""
+    params = {}
+    if search:
+        params["search"] = search
+    if include_inactive:
+        params["include_inactive"] = "true"
+    if pending_only:
+        params["pending_only"] = "true"
+    if active_only:
+        params["active_only"] = "true"
+    return urlencode(params)
+
+
 @router.get("/", response_class=HTMLResponse)
 async def members_list(
     request: Request,
@@ -174,6 +194,7 @@ async def members_list(
             "include_inactive": include_inactive,
             "pending_only": pending_only,
             "active_only": active_only,
+            "list_query_string": _members_list_query_string(search, include_inactive, pending_only, active_only),
         },
     )
 
@@ -287,6 +308,10 @@ async def member_create(
 async def member_detail(
     member_id: str,
     request: Request,
+    search: str = "",
+    include_inactive: bool = False,
+    pending_only: bool = False,
+    active_only: bool = False,
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "read")
@@ -301,6 +326,29 @@ async def member_detail(
     )
     all_parcels = parcels_result.scalars().all()
 
+    # Previous/Next buttons (issue #202): walk the same filtered, ordered
+    # ID list the list page itself would show, so paging through e.g.
+    # /members/?pending_only=true stays within that same set instead of
+    # falling back to every member. If the current member isn't in that
+    # set at all (filter changed since the list was loaded, or the
+    # member was edited out of it), no prev/next is shown rather than
+    # guessing.
+    ordered_ids = (
+        await db.scalars(
+            _filtered_members_query(search, include_inactive, pending_only, active_only)
+            .with_only_columns(Member.id)
+        )
+    ).all()
+    prev_member_id = None
+    next_member_id = None
+    if member_id in ordered_ids:
+        idx = ordered_ids.index(member_id)
+        if idx > 0:
+            prev_member_id = ordered_ids[idx - 1]
+        if idx < len(ordered_ids) - 1:
+            next_member_id = ordered_ids[idx + 1]
+    list_query_string = _members_list_query_string(search, include_inactive, pending_only, active_only)
+
     return templates.TemplateResponse(
         "members/detail.html",
         {
@@ -308,6 +356,9 @@ async def member_detail(
             "user": user,
             "member": member,
             "all_parcels": all_parcels,
+            "prev_member_id": prev_member_id,
+            "next_member_id": next_member_id,
+            "nav_query_suffix": f"?{list_query_string}" if list_query_string else "",
         },
     )
 

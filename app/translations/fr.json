@@ -655,6 +655,8 @@
     },
     "detail": {
       "button_edit": "Modifier",
+      "button_previous": "Précédent",
+      "button_next": "Suivant",
       "button_back": "Retour",
       "master_data_header": "Données principales",
       "label_name": "Nom",
@@ -766,6 +768,8 @@
     },
     "detail": {
       "button_edit": "Modifier",
+      "button_previous": "Précédent",
+      "button_next": "Suivant",
       "button_back": "Retour",
       "details_header": "Détails de la parcelle",
       "label_plot_number": "Numéro de parcelle",

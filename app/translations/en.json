@@ -655,6 +655,8 @@
     },
     "detail": {
       "button_edit": "Edit",
+      "button_previous": "Previous",
+      "button_next": "Next",
       "button_back": "Back",
       "master_data_header": "Master data",
       "label_name": "Name",
@@ -766,6 +768,8 @@
     },
     "detail": {
       "button_edit": "Edit",
+      "button_previous": "Previous",
+      "button_next": "Next",
       "button_back": "Back",
       "details_header": "Parcel details",
       "label_plot_number": "Plot number",

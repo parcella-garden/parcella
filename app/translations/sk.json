@@ -655,6 +655,8 @@
     },
     "detail": {
       "button_edit": "Upraviť",
+      "button_previous": "Predchádzajúci",
+      "button_next": "Ďalší",
       "button_back": "Späť",
       "master_data_header": "Hlavné údaje",
       "label_name": "Meno",
@@ -766,6 +768,8 @@
     },
     "detail": {
       "button_edit": "Upraviť",
+      "button_previous": "Predchádzajúci",
+      "button_next": "Ďalší",
       "button_back": "Späť",
       "details_header": "Podrobnosti parcely",
       "label_plot_number": "Číslo parcely",

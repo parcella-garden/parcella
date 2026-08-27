@@ -5,7 +5,7 @@ import csv
 import io
 from datetime import date, datetime, timezone
 from typing import Optional
-from urllib.parse import quote as urlquote
+from urllib.parse import quote as urlquote, urlencode
 
 from fastapi import APIRouter, Request, Form, Depends, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, Response
@@ -48,6 +48,35 @@ async def _get_parcel_with_details(db: AsyncSession, parcel_id: str) -> Optional
     return result.scalar_one_or_none()
 
 
+def _filtered_parcels_query(search: str, status_filter: str):
+    """WHERE/ORDER BY for the parcel list, shared with the detail page's
+    Previous/Next lookup (issue #202) so the two can't drift apart --
+    same reasoning as _filtered_members_query in app/routers/members.py."""
+    query = select(Parcel).order_by(Parcel.plot_number)
+
+    if search:
+        query = query.where(Parcel.plot_number.ilike(f"%{search}%"))
+
+    if status_filter and status_filter in [s.value for s in ParcelStatus]:
+        query = query.where(Parcel.status == status_filter)
+
+    return query
+
+
+def _parcels_list_query_string(search: str, status_filter: str) -> str:
+    """The current /parcels/ list filter as a query string (no leading
+    '?', empty if nothing is set). Issue #202: carried from each list
+    row onto its detail page, and back out again via the detail page's
+    Previous/Next buttons, so paging through a filtered view (e.g. only
+    terminated parcels) doesn't silently fall back to the full list."""
+    params = {}
+    if search:
+        params["search"] = search
+    if status_filter:
+        params["status_filter"] = status_filter
+    return urlencode(params)
+
+
 @router.get("/", response_class=HTMLResponse)
 async def parcels_list(
     request: Request,
@@ -57,19 +86,9 @@ async def parcels_list(
 ):
     user = await require_permission(request, db, "members_parcels", "read")
 
-    query = (
-        select(Parcel)
-        .options(
-            selectinload(Parcel.member_assignments).selectinload(MemberParcel.member)
-        )
-        .order_by(Parcel.plot_number)
+    query = _filtered_parcels_query(search, status_filter).options(
+        selectinload(Parcel.member_assignments).selectinload(MemberParcel.member)
     )
-
-    if search:
-        query = query.where(Parcel.plot_number.ilike(f"%{search}%"))
-
-    if status_filter and status_filter in [s.value for s in ParcelStatus]:
-        query = query.where(Parcel.status == status_filter)
 
     result = await db.execute(query)
     parcels = result.scalars().all()
@@ -83,6 +102,7 @@ async def parcels_list(
             "search": search,
             "status_filter": status_filter,
             "ParcelStatus": ParcelStatus,
+            "list_query_string": _parcels_list_query_string(search, status_filter),
         },
     )
 
@@ -149,6 +169,8 @@ async def parcel_detail(
     parcel_id: str,
     request: Request,
     cloud_path: str = "",
+    search: str = "",
+    status_filter: str = "",
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "read")
@@ -156,6 +178,21 @@ async def parcel_detail(
 
     if not parcel:
         raise HTTPException(status_code=404, detail=t_for(request, "parcels.errors.parcel_not_found"))
+
+    # Previous/Next buttons (issue #202): see the identical comment in
+    # app/routers/members.py's member_detail for the reasoning.
+    ordered_ids = (
+        await db.scalars(_filtered_parcels_query(search, status_filter).with_only_columns(Parcel.id))
+    ).all()
+    prev_parcel_id = None
+    next_parcel_id = None
+    if parcel_id in ordered_ids:
+        idx = ordered_ids.index(parcel_id)
+        if idx > 0:
+            prev_parcel_id = ordered_ids[idx - 1]
+        if idx < len(ordered_ids) - 1:
+            next_parcel_id = ordered_ids[idx + 1]
+    list_query_string = _parcels_list_query_string(search, status_filter)
 
     # All members, for assignment
     members_result = await db.execute(
@@ -232,6 +269,9 @@ async def parcel_detail(
             "cloud_error": cloud_error,
             "cloud_browse_path": cloud_browse_path,
             "cloud_breadcrumbs": cloud_breadcrumbs,
+            "prev_parcel_id": prev_parcel_id,
+            "next_parcel_id": next_parcel_id,
+            "nav_query_suffix": f"?{list_query_string}" if list_query_string else "",
         },
     )
 

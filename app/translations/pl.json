@@ -655,6 +655,8 @@
     },
     "detail": {
       "button_edit": "Edytuj",
+      "button_previous": "Poprzedni",
+      "button_next": "Następny",
       "button_back": "Wstecz",
       "master_data_header": "Dane podstawowe",
       "label_name": "Imię i nazwisko",
@@ -766,6 +768,8 @@
     },
     "detail": {
       "button_edit": "Edytuj",
+      "button_previous": "Poprzedni",
+      "button_next": "Następny",
       "button_back": "Wstecz",
       "details_header": "Szczegóły działki",
       "label_plot_number": "Numer działki",

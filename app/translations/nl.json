@@ -655,6 +655,8 @@
     },
     "detail": {
       "button_edit": "Bewerken",
+      "button_previous": "Vorige",
+      "button_next": "Volgende",
       "button_back": "Terug",
       "master_data_header": "Hoofdgegevens",
       "label_name": "Naam",
@@ -766,6 +768,8 @@
     },
     "detail": {
       "button_edit": "Bewerken",
+      "button_previous": "Vorige",
+      "button_next": "Volgende",
       "button_back": "Terug",
       "details_header": "Perceeldetails",
       "label_plot_number": "Perceelnummer",

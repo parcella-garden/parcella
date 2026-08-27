@@ -69,7 +69,8 @@
                     {% for p in parcels %}
                     <tr>
                         <td>
-                            <a href="/parcels/{{ p.id }}" class="fw-semibold text-decoration-none"
+                            <a href="/parcels/{{ p.id }}{% if list_query_string %}?{{ list_query_string }}{% endif %}"
+                               class="fw-semibold text-decoration-none"
                                style="color: var(--gv-gruen);">{{ p.plot_number }}</a>
                         </td>
                         <td class="text-muted">
@@ -98,7 +99,8 @@
                             {% endfor %}
                         </td>
                         <td class="text-end">
-                            <a href="/parcels/{{ p.id }}" class="btn btn-sm btn-outline-secondary">
+                            <a href="/parcels/{{ p.id }}{% if list_query_string %}?{{ list_query_string }}{% endif %}"
+                               class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-eye"></i>
                             </a>
                         </td>

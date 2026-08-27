@@ -607,6 +607,35 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     })();
+
+    // Detail-page Previous/Next keyboard shortcut (issue #202):
+    // Ctrl+Left/Ctrl+Right. Alt+Left/Alt+Right was tried first (to
+    // mirror the browser's own back/forward) but turned out to be a
+    // browser-chrome-level shortcut in Firefox (and some Chrome
+    // setups), intercepted before it ever reaches page JS, so it
+    // silently never fired -- see ADR 0075 for the full story,
+    // including the platform caveat this has too (Ctrl+Left/Right is
+    // macOS's default Mission Control "switch Space" shortcut, an
+    // OS-level binding neither the browser nor this page can override).
+    // A no-op on any page without #nav-prev-link/#nav-next-link (i.e.
+    // everywhere except members/parcels detail pages). Bare arrow keys
+    // were deliberately avoided too -- they're relied on by screen
+    // readers and by cursor movement/text selection in form fields, so
+    // hijacking them globally would be an accessibility regression on a
+    // feature whose own issue was tagged a11y, not an improvement.
+    document.addEventListener('keydown', function (e) {
+        if (!e.ctrlKey || e.altKey || e.metaKey || e.shiftKey ||
+            (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
+        var target = e.target;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' ||
+                        target.tagName === 'SELECT' || target.isContentEditable)) {
+            return;
+        }
+        var link = document.getElementById(e.key === 'ArrowLeft' ? 'nav-prev-link' : 'nav-next-link');
+        if (!link || link.classList.contains('disabled')) return;
+        e.preventDefault();
+        window.location.href = link.href;
+    });
 });
 </script>
 {% block extra_scripts %}{% endblock %}

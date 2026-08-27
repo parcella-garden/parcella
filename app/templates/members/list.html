@@ -110,7 +110,8 @@
                     {% for m in members %}
                     <tr>
                         <td>
-                            <a href="/members/{{ m.id }}" class="text-decoration-none fw-semibold"
+                            <a href="/members/{{ m.id }}{% if list_query_string %}?{{ list_query_string }}{% endif %}"
+                               class="text-decoration-none fw-semibold"
                                style="color: var(--gv-gruen);">
                                 {{ m.last_name }}, {{ m.first_name }}
                             </a>
@@ -150,7 +151,8 @@
                             {% endif %}
                         </td>
                         <td class="text-end">
-                            <a href="/members/{{ m.id }}" class="btn btn-sm btn-outline-secondary">
+                            <a href="/members/{{ m.id }}{% if list_query_string %}?{{ list_query_string }}{% endif %}"
+                               class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-eye"></i>
                             </a>
                         </td>

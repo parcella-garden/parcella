@@ -655,6 +655,8 @@
     },
     "detail": {
       "button_edit": "Bearbeiten",
+      "button_previous": "Vorherige",
+      "button_next": "Nächste",
       "button_back": "Zurück",
       "master_data_header": "Stammdaten",
       "label_name": "Name",
@@ -766,6 +768,8 @@
     },
     "detail": {
       "button_edit": "Bearbeiten",
+      "button_previous": "Vorherige",
+      "button_next": "Nächste",
       "button_back": "Zurück",
       "details_header": "Parzellendetails",
       "label_plot_number": "Gartennummer",
