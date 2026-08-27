@@ -229,6 +229,7 @@
       "update_available_heading": "Dostępna aktualizacja: v{version}",
       "update_available_text": "Obecnie używasz wersji v{current}; wydano wersję v{latest}. Aby zaktualizować:",
       "update_docker_folder_placeholder": "/ścieżka/do/folderu/docker",
+      "update_customization_warning": "Jeśli edytowałeś/aś plik docker-compose.prod.yml bezpośrednio (np. dodałeś/aś --proxy-headers dla reverse proxy, zmieniłeś/aś port lub ścieżki woluminów), same \"pull\" i \"up\" nie uwzględnią żadnej przyszłej zmiany w tym pliku -- może to wyglądać na sukces, mimo że nic się nie dzieje. Umieść własne zmiany w pliku docker-compose.override.yml (Compose dołącza go automatycznie), aby sam plik docker-compose.prod.yml nigdy nie wymagał lokalnych zmian i zawsze mógł być bezpiecznie pobrany ponownie. Zobacz sekcję „Production\" w README.",
       "update_check_now_button": "Sprawdź teraz",
       "update_up_to_date": "Wersja v{version} -- aktualna (ostatnio sprawdzono: {checked_at})",
       "update_not_checked_yet": "Wersja v{version} -- jeszcze nie sprawdzono aktualizacji",

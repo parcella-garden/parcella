@@ -27,6 +27,9 @@
                 <pre class="mb-2 p-2" style="background: rgba(0,0,0,0.05); border-radius: 6px; font-size: 0.85rem;">cd {{ t('admin.dashboard.update_docker_folder_placeholder') }}
 docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d</pre>
+                <p class="mb-2" style="font-size: 0.85rem;">
+                    <i class="bi bi-exclamation-triangle me-1"></i>{{ t('admin.dashboard.update_customization_warning') }}
+                </p>
                 <form method="post" action="/admin/updates/check-now" class="d-inline">
                     {{ csrf_field() }}
                     <button type="submit" class="btn btn-sm btn-outline-secondary">

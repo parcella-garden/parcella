@@ -79,3 +79,4 @@ in chronological order.
 73. [Community calendar: JSON endpoint for widget rendering, not just ICS](./0073-community-calendar-json-endpoint-for-widget-rendering.md)
 74. [Public contact form → ticket bridge](./0074-public-contact-form-to-ticket-bridge.md)
 75. [Detail page Previous/Next buttons walk the filtered list, not the whole table](./0075-detail-page-previous-next-preserves-list-filter.md)
+76. [Production customizations belong in docker-compose.override.yml, not in docker-compose.prod.yml itself](./0076-docker-compose-override-file-for-prod-customization.md)

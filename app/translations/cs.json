@@ -229,6 +229,7 @@
       "update_available_heading": "Je k dispozici aktualizace: v{version}",
       "update_available_text": "Aktuálně používáte v{current}; byla vydána verze v{latest}. Postup aktualizace:",
       "update_docker_folder_placeholder": "/cesta/k/vaší/docker/složce",
+      "update_customization_warning": "Pokud jste soubor docker-compose.prod.yml upravili přímo (např. přidali --proxy-headers pro reverzní proxy, změnili port nebo cesty svazků), samotné \"pull\" a \"up\" žádnou budoucí změnu tohoto souboru nezohlední -- může to vypadat úspěšně, i když se nic nestane. Vlastní úpravy vložte místo toho do souboru docker-compose.override.yml (Compose ho automaticky zahrne), aby samotný docker-compose.prod.yml nikdy nepotřeboval lokální úpravy a mohl být kdykoli bezpečně stažen znovu. Viz část „Production\" v READMU.",
       "update_check_now_button": "Zkontrolovat nyní",
       "update_up_to_date": "Verze v{version} -- aktuální (naposledy zkontrolováno: {checked_at})",
       "update_not_checked_yet": "Verze v{version} -- aktualizace zatím nebyly zkontrolovány",

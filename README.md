@@ -289,6 +289,40 @@ same `docker-compose.prod.yml` for its `pull`/`up` instructions. Pin
 `PARCELLA_VERSION` in `.env` to a specific release for a reproducible
 deploy instead of always tracking `latest`.
 
+### Customizing your deployment: use an override file, not local edits
+
+If your setup needs anything `docker-compose.prod.yml` doesn't already
+cover -- most commonly running behind a reverse proxy (add
+`--proxy-headers` to uvicorn's command so it trusts `X-Forwarded-*`
+and reports the right client IP/scheme), a different port, or a
+bind-mounted volume path instead of a named one -- put that in a
+**`docker-compose.override.yml`** next to `docker-compose.prod.yml`,
+not by editing `docker-compose.prod.yml` itself. Compose merges an
+override file in automatically with no extra flag:
+
+```yaml
+# docker-compose.override.yml
+services:
+  web:
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers
+    ports:
+      - "127.0.0.1:8082:8000"
+```
+
+**Why this matters for updates:** `docker compose -f docker-compose.prod.yml pull`
+only refreshes the image `web:` points at -- it does nothing for the
+compose *file's own content*, since that isn't something Docker pulls
+at all. If you hand-edit `docker-compose.prod.yml` directly (e.g.
+change `image:` to `build:`, or just add flags inline) instead of using
+an override file, that edit is permanent: nothing in the documented
+update flow, or in `/admin/system`'s notice, will ever touch it again.
+Worse, `pull`/`up` will keep running without any error either way, so
+a stale or locally-diverged `docker-compose.prod.yml` fails **silently**
+-- it looks like the update succeeded while nothing actually changed.
+Keeping customizations in a separate override file means
+`docker-compose.prod.yml` itself never needs local changes, and a
+future `curl -O` re-fetch of it (if you ever need one) is always safe.
+
 ### Environment
 
 For production, set `ENVIRONMENT=production`:

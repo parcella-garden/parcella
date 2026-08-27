@@ -214,10 +214,9 @@ the account in that state as well -- see
 
 ## Common failure patterns
 
-## Common failure patterns
-
 | Symptom | Likely cause |
 |---|---|
+| Prod: `docker compose -f docker-compose.prod.yml pull` says nothing to pull, `up -d` doesn't actually update | `docker-compose.prod.yml` was hand-edited (e.g. `web:` switched to `build:` for a reverse-proxy tweak) instead of putting customizations in a `docker-compose.override.yml` -- see ADR 0076 and the README's Production section. This fails **silently**: no error, just no update. |
 | `invalid input value for enum` | Enum value in Python != enum value in DB (case mismatch) |
 | `MultipleResultsFound` | `scalar_one_or_none()` used on a query that can return multiple hits |
 | `MissingGreenlet` on start/restart | `scalar_one_or_none()` on a table with multiple rows (e.g. a user-count check) |
