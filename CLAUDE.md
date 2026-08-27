@@ -51,6 +51,27 @@ Always trigger a database backup before changing anything.
 
 You never ever expose your user name to Github. Use my handle instead!
 
+## Releases
+
+Bump `app_version` in `app/config.py`, commit ("Bump app_version to
+X.Y.Z"), push, then `git tag vX.Y.Z` and push the tag -- this triggers
+`.github/workflows/release.yml` (runs the test suite, then builds and
+pushes `ghcr.io/parcella-garden/parcella:X.Y.Z` and `:latest`). Follow
+with `gh release create vX.Y.Z` and real release notes; the admin
+"update available" notice (`app/update_check.py`, ADR 0036) polls
+GitHub's `/releases/latest`, not just tags, so a pushed tag alone won't
+surface there.
+
+**The version bump must actually follow semantic versioning** --
+before picking the next number, look at what's actually shipping since
+the last tag: MAJOR for a breaking change, MINOR for new
+backward-compatible functionality, PATCH for backward-compatible bug
+fixes only. Don't default to a patch bump out of habit or because
+that's what the last few releases did -- this project's own history
+(1.0.0 through 1.0.6) bumped patch-only even when a release added real
+features, which is itself a discrepancy worth flagging rather than
+silently continuing.
+
 ## Architectural conventions (the load-bearing ones)
 
 - **Module flags** (`app/module_flags.py`): every optional feature area is
