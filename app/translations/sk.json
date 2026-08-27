@@ -229,7 +229,7 @@
       "update_available_heading": "K dispozícii je aktualizácia: v{version}",
       "update_available_text": "Aktuálne používate v{current}; bola vydaná verzia v{latest}. Postup aktualizácie:",
       "update_docker_folder_placeholder": "/cesta/k/vášmu/docker/priečinku",
-      "update_customization_warning": "Ak ste súbor docker-compose.prod.yml upravili priamo (napr. pridali --proxy-headers pre reverznú proxy, zmenili port alebo cesty zväzkov), samotné \"pull\" a \"up\" nezohľadnia žiadnu budúcu zmenu tohto súboru -- môže to vyzerať úspešne, hoci sa nič nestane. Vlastné úpravy vložte namiesto toho do súboru docker-compose.override.yml (Compose ho automaticky zahrnie), aby samotný docker-compose.prod.yml nikdy nepotreboval lokálne úpravy a dal sa kedykoľvek bezpečne stiahnuť znova. Pozrite si časť „Production\" v README.",
+      "update_customization_warning": "Ak ste súbor docker-compose.prod.yml upravili priamo (napr. pridali --proxy-headers pre reverznú proxy, zmenili port alebo cesty zväzkov), samotné \"pull\" a \"up\" nezohľadnia žiadnu budúcu zmenu tohto súboru -- môže to vyzerať úspešne, hoci sa nič nestane. Vlastné úpravy vložte namiesto toho do súboru docker-compose.override.yml a doplňte ho do oboch vyššie uvedených príkazov vlastným parametrom -f (Compose ho automaticky nezahrnie, ak už uvádzate -f docker-compose.prod.yml). Presnú syntax nájdete v časti „Production\" v README.",
       "update_check_now_button": "Skontrolovať teraz",
       "update_up_to_date": "Verzia v{version} -- aktuálna (naposledy skontrolované: {checked_at})",
       "update_not_checked_yet": "Verzia v{version} -- aktualizácie zatiaľ neboli skontrolované",

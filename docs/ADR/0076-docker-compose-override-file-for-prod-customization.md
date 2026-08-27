@@ -34,8 +34,41 @@ directly in `/admin/system`'s update notice -- that any deployment
 customization (reverse-proxy headers, port, volume paths, anything)
 belongs in a `docker-compose.override.yml` next to
 `docker-compose.prod.yml`, never as a direct edit to the tracked file.
-Compose merges an override file in automatically, with no extra flag
-needed on any command already in use.
+
+**Two mechanical gotchas caught while writing this up, both wrong in
+the first draft of this fix:**
+
+1. **The override file is not auto-merged here.** Compose only
+   auto-loads `docker-compose.override.yml` for the bare `docker
+   compose up` invocation (default filenames, no `-f`). Every command
+   this project documents explicitly passes `-f docker-compose.prod.yml`,
+   which disables that default entirely -- the override file must be
+   added with its own `-f` flag on every command:
+   `docker compose -f docker-compose.prod.yml -f docker-compose.override.yml pull`
+   (and the same for `up -d`). Said otherwise the first time this was
+   written down; corrected before anyone acted on it.
+2. **List-valued fields (`ports`, `expose`, etc.) merge by
+   concatenation, not replacement.** Restating `ports:` in the override
+   doesn't swap the base file's mapping, it adds to it -- e.g. `web`
+   would end up published on *both* the base's `8000:8000` and the
+   override's `127.0.0.1:8082:8000` at once. The Compose Specification's
+   `!override` tag replaces instead of merging
+   (`ports: !override [...]`) and is what the README's example uses.
+   `volumes:` is the one list-valued exception: entries are matched and
+   replaced by mount *destination*, so restating the same container
+   path there works without `!override`.
+
+**Why this fixes the actual failure mode, not just this one symptom:**
+`docker compose pull` only ever refreshes what an `image:` key points
+at. It has no concept of "the compose file's own content is stale" --
+that's not something Docker pulls, regardless of whether the local
+copy was hand-edited or just never re-fetched after a template change.
+Splitting customizations into their own file means
+`docker-compose.prod.yml` itself never has local changes to protect,
+so re-fetching it (via `curl -O`, the documented install method) stays
+always safe, and the ordinary two-command update flow (now with both
+`-f` flags, for anyone using an override) keeps working for however a
+person's reverse proxy, ports, or volumes are set up.
 
 **Why this fixes the actual failure mode, not just this one symptom:**
 `docker compose pull` only ever refreshes what an `image:` key points

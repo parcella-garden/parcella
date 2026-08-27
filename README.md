@@ -297,16 +297,40 @@ cover -- most commonly running behind a reverse proxy (add
 and reports the right client IP/scheme), a different port, or a
 bind-mounted volume path instead of a named one -- put that in a
 **`docker-compose.override.yml`** next to `docker-compose.prod.yml`,
-not by editing `docker-compose.prod.yml` itself. Compose merges an
-override file in automatically with no extra flag:
+not by editing `docker-compose.prod.yml` itself.
+
+**This file is not picked up automatically here.** Compose only
+auto-merges a file literally named `docker-compose.override.yml` when
+you run the bare `docker compose up` (default filenames, no `-f`).
+Since every command in this guide and in `/admin/system`'s update
+notice explicitly passes `-f docker-compose.prod.yml`, you need to add
+the override file with its own `-f` too, on every command:
+
+```bash
+docker compose -f docker-compose.prod.yml -f docker-compose.override.yml pull
+docker compose -f docker-compose.prod.yml -f docker-compose.override.yml up -d
+```
+
+**List-valued settings (`ports`, `volumes`) merge by combining, not
+replacing** -- if you just restate `ports:` in the override, you get
+*both* the base file's port mapping *and* yours, not a swap. Use the
+`!override` tag to fully replace one instead:
 
 ```yaml
 # docker-compose.override.yml
 services:
   web:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers
-    ports:
+    ports: !override
       - "127.0.0.1:8082:8000"
+  db:
+    # A destination path that also exists in the base file's volumes:
+    # replaces that entry directly -- no !override needed for this one.
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    # ports: is list-combined like above, so drop the base file's
+    # published 5432 entirely rather than end up with both:
+    ports: !override []
 ```
 
 **Why this matters for updates:** `docker compose -f docker-compose.prod.yml pull`
