@@ -9,7 +9,7 @@
         <i class="bi bi-upload me-1"></i>{{ t('members.list.csv_import') }}
     </button>
     {% endif %}
-    <a href="/members/export/csv?search={{ search|urlencode }}&include_inactive={{ 'true' if include_inactive else 'false' }}&pending_only={{ 'true' if pending_only else 'false' }}"
+    <a href="/members/export/csv?search={{ search|urlencode }}&include_inactive={{ 'true' if include_inactive else 'false' }}&pending_only={{ 'true' if pending_only else 'false' }}&active_only={{ 'true' if active_only else 'false' }}"
        class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-download me-1"></i>{{ t('members.list.csv_export') }}
     </a>
@@ -55,8 +55,16 @@
                     {{ t('members.list.show_pending_only') }}
                 </label>
             </div>
+            <div class="form-check form-check-inline my-auto">
+                <input class="form-check-input" type="checkbox" name="active_only" id="active-only"
+                       value="true" {% if active_only %}checked{% endif %}
+                       onchange="this.form.submit()">
+                <label class="form-check-label text-muted" for="active-only" style="font-size: 0.85rem;">
+                    {{ t('members.list.show_active_only') }}
+                </label>
+            </div>
             <button type="submit" class="btn btn-sm btn-primary">{{ t('members.list.search_button') }}</button>
-            {% if search or include_inactive or pending_only %}
+            {% if search or include_inactive or pending_only or active_only %}
             <a href="/members/" class="btn btn-sm btn-outline-secondary">{{ t('members.list.reset_button') }}</a>
             {% endif %}
         </form>
@@ -72,6 +80,12 @@
 <div class="alert alert-info d-flex gap-2 align-items-center mb-3" style="font-size: 0.875rem;">
     <i class="bi bi-info-circle-fill"></i>
     {{ t('members.list.pending_notice') }}
+</div>
+{% endif %}
+{% if active_only %}
+<div class="alert alert-info d-flex gap-2 align-items-center mb-3" style="font-size: 0.875rem;">
+    <i class="bi bi-info-circle-fill"></i>
+    {{ t('members.list.active_only_notice') }}
 </div>
 {% endif %}
 

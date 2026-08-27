@@ -44,7 +44,7 @@ async def _get_member_with_details(db: AsyncSession, member_id: str) -> Optional
     return result.scalar_one_or_none()
 
 
-def _filtered_members_query(search: str, include_inactive: bool, pending_only: bool):
+def _filtered_members_query(search: str, include_inactive: bool, pending_only: bool, active_only: bool = False):
     """WHERE/ORDER BY for the member list, shared with its CSV export
     (issue #198) so an export always matches what's currently on screen
     instead of drifting into its own copy of this filtering logic.
@@ -102,6 +102,17 @@ def _filtered_members_query(search: str, include_inactive: bool, pending_only: b
                     and_(Member.member_until.is_not(None), Member.member_until < date.today()),
                 ),
             )
+        elif active_only:
+            # Issue #200: active_member_filter() alone still counts a
+            # blank member_since as active (deliberate, issue #167 --
+            # keeps invoices/sign-in/dashboard totals unaffected for
+            # pre-existing members without the field set). The list's
+            # own status badge already treats that same blank case as
+            # "pending" for display (issue #170). This filter makes the
+            # two agree: a member only counts as active_only if they
+            # also have a confirmed member_since, i.e. exactly the rows
+            # that render the "active" (not "pending") badge.
+            query = query.where(active_member_filter(), Member.member_since.is_not(None))
         else:
             query = query.where(active_member_filter())
 
@@ -140,11 +151,12 @@ async def members_list(
     search: str = "",
     include_inactive: bool = False,
     pending_only: bool = False,
+    active_only: bool = False,
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "read")
 
-    query = _filtered_members_query(search, include_inactive, pending_only).options(
+    query = _filtered_members_query(search, include_inactive, pending_only, active_only).options(
         selectinload(Member.email_addresses),
         selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel),
     )
@@ -161,6 +173,7 @@ async def members_list(
             "search": search,
             "include_inactive": include_inactive,
             "pending_only": pending_only,
+            "active_only": active_only,
         },
     )
 
@@ -456,6 +469,7 @@ async def members_export_csv(
     search: str = "",
     include_inactive: bool = False,
     pending_only: bool = False,
+    active_only: bool = False,
     db: AsyncSession = Depends(get_db),
 ):
     await require_permission(request, db, "members_parcels", "read")
@@ -463,7 +477,7 @@ async def members_export_csv(
     # Issue #198: exports whatever the list page is currently showing,
     # not always every active member -- same filters, same query, via
     # _filtered_members_query() so the two can't drift apart.
-    query = _filtered_members_query(search, include_inactive, pending_only).options(
+    query = _filtered_members_query(search, include_inactive, pending_only, active_only).options(
         selectinload(Member.email_addresses),
         selectinload(Member.phone_numbers),
         selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel),

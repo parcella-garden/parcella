@@ -444,7 +444,17 @@ async def startseite(request: Request):
         members_total = await db.scalar(
             select(func.count()).where(active_member_filter())
         )
-        members_active = members_total  # total already counts only active members
+        # Issue #200: members_total (above) still counts a blank
+        # member_since as active, same as active_member_filter() itself
+        # (deliberate, issue #167). members_active is the stricter set
+        # that also backs the dashboard card's "Show" link -- only
+        # members with a confirmed member_since, i.e. exactly the rows
+        # /members/?active_only=true returns and the "active" (not
+        # "pending") badge shows. Keep this in sync with the
+        # active_only branch of _filtered_members_query().
+        members_active = await db.scalar(
+            select(func.count()).where(active_member_filter(), Member.member_since.is_not(None))
+        )
         parcels_active = await db.scalar(
             select(func.count()).select_from(Parcel).where(
                 Parcel.status == ParcelStatus.ACTIVE
