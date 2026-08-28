@@ -80,3 +80,4 @@ in chronological order.
 74. [Public contact form → ticket bridge](./0074-public-contact-form-to-ticket-bridge.md)
 75. [Detail page Previous/Next buttons walk the filtered list, not the whole table](./0075-detail-page-previous-next-preserves-list-filter.md)
 76. [Production customizations belong in docker-compose.override.yml, not in docker-compose.prod.yml itself](./0076-docker-compose-override-file-for-prod-customization.md)
+77. [Rename docker-compose.prod.yml to docker-compose.yml; bind-mount all runtime data under ./data/](./0077-docker-compose-rename-and-tidy-data-layout.md)

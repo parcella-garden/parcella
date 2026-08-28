@@ -250,9 +250,11 @@ before), reads it from local disk for `LOCAL` rows (not gated by the
 goes through the public `/static` mount, since ticket access is
 permission-gated (unlike the club logo/avatars, which are intentionally
 public) -- `app/private_uploads/` sits outside `app/static/` entirely
-for the same reason. Both directories lack a volume mount in
-`docker-compose.prod.yml`, so both are included in the admin backup zip
-(`app/backup.py`, `docs/operations.md`) to survive a redeploy.
+for the same reason. Both directories are bind-mounted under `./data/`
+in `docker-compose.yml` (see ADR 0077), and both are also included in
+the admin backup zip (`app/backup.py`, `docs/operations.md`) as an
+out-of-band copy -- useful when moving to a new host, or for anyone
+still on an older, unmounted layout.
 
 **Filenames from the sender's mail client are never trusted raw.**
 `Message.get_filename()` can return a filename with a literal `\r\n`

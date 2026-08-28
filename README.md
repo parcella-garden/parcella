@@ -151,9 +151,9 @@ echo "GID=$(id -g)" >> .env
 ### 3. Build the Docker container, migrate the database, and start
 
 ```bash
-docker compose build web
-docker compose run --rm --entrypoint alembic web upgrade head
-docker compose up -d
+docker compose -f docker-compose.dev.yml build web
+docker compose -f docker-compose.dev.yml run --rm --entrypoint alembic web upgrade head
+docker compose -f docker-compose.dev.yml up -d
 ```
 
 The application is now available at **http://localhost:8000**; documentation: **https://github.com/parcella-garden/parcella/tree/main/docs**
@@ -255,10 +255,10 @@ Schema changes go through Alembic rather than automatic `create_all()`.
 
 ```bash
 # Apply migrations (also runs automatically on container startup)
-docker compose run --rm --entrypoint alembic web upgrade head
+docker compose -f docker-compose.dev.yml run --rm --entrypoint alembic web upgrade head
 
 # Generate a new migration after a model change
-docker compose run --rm web alembic revision --autogenerate -m "Short description"
+docker compose -f docker-compose.dev.yml run --rm web alembic revision --autogenerate -m "Short description"
 ```
 
 For an existing installation predating Alembic: see
@@ -277,41 +277,53 @@ release. Grab just the two files you need:
 
 ```bash
 mkdir parcella && cd parcella
-curl -O https://raw.githubusercontent.com/parcella-garden/parcella/main/docker-compose.prod.yml
+curl -O https://raw.githubusercontent.com/parcella-garden/parcella/main/docker-compose.yml
 curl -o .env https://raw.githubusercontent.com/parcella-garden/parcella/main/.env.example
 # edit .env: passwords, SECRET_KEY, ENVIRONMENT=production, SMTP, etc.
-docker compose -f docker-compose.prod.yml run --rm --entrypoint alembic web upgrade head
-docker compose -f docker-compose.prod.yml up -d
+
+# Postgres self-heals ownership on its data dir, but the app image runs as
+# a fixed non-root user (uid/gid 1000) and does not -- pre-create and own
+# these two so the app can write to them on first start:
+mkdir -p data/postgres data/uploads data/ticket_attachments
+sudo chown -R 1000:1000 data/uploads data/ticket_attachments
+
+docker compose run --rm --entrypoint alembic web upgrade head
+docker compose up -d
 ```
 
-The admin panel's "update available" notice (`/admin/system`) uses this
-same `docker-compose.prod.yml` for its `pull`/`up` instructions. Pin
-`PARCELLA_VERSION` in `.env` to a specific release for a reproducible
-deploy instead of always tracking `latest`.
+Everything the running instance writes to disk -- Postgres data, uploaded
+logos/avatars/announcement images, ticket attachments -- lives under this
+one `data/` folder next to the compose file. No named Docker volumes, no
+`-f` flags: `docker-compose.yml` is Compose's own default-discovered
+filename, so every command in this guide, and `/admin/system`'s
+"update available" notice, works with bare `docker compose pull` / `up
+-d`. Pin `PARCELLA_VERSION` in `.env` to a specific release for a
+reproducible deploy instead of always tracking `latest`.
+
+**Upgrading from an older install** (named `postgres_data` volume, or no
+`data/uploads`/`data/ticket_attachments` mounts yet)? See
+[MIGRATION-NOTE-DATA-LAYOUT.md](https://github.com/parcella-garden/parcella/blob/main/MIGRATION-NOTE-DATA-LAYOUT.md)
+for the one-time manual migration -- back up first.
 
 ### Customizing your deployment: use an override file, not local edits
 
-If your setup needs anything `docker-compose.prod.yml` doesn't already
-cover -- most commonly running behind a reverse proxy (add
-`--proxy-headers` to uvicorn's command so it trusts `X-Forwarded-*`
-and reports the right client IP/scheme), a different port, or a
-bind-mounted volume path instead of a named one -- put that in a
-**`docker-compose.override.yml`** next to `docker-compose.prod.yml`,
-not by editing `docker-compose.prod.yml` itself.
+If your setup needs anything `docker-compose.yml` doesn't already cover
+-- most commonly running behind a reverse proxy (add `--proxy-headers`
+to uvicorn's command so it trusts `X-Forwarded-*` and reports the right
+client IP/scheme) or a different port -- put that in a
+**`docker-compose.override.yml`** next to `docker-compose.yml`, not by
+editing `docker-compose.yml` itself.
 
-**This file is not picked up automatically here.** Compose only
-auto-merges a file literally named `docker-compose.override.yml` when
-you run the bare `docker compose up` (default filenames, no `-f`).
-Since every command in this guide and in `/admin/system`'s update
-notice explicitly passes `-f docker-compose.prod.yml`, you need to add
-the override file with its own `-f` too, on every command:
+Because the base file is named `docker-compose.yml`, Compose auto-merges
+a `docker-compose.override.yml` sitting next to it automatically -- no
+`-f` flag needed for either file, on any command:
 
 ```bash
-docker compose -f docker-compose.prod.yml -f docker-compose.override.yml pull
-docker compose -f docker-compose.prod.yml -f docker-compose.override.yml up -d
+docker compose pull
+docker compose up -d
 ```
 
-**List-valued settings (`ports`, `volumes`) merge by combining, not
+**List-valued settings (e.g. `ports`) merge by combining, not
 replacing** -- if you just restate `ports:` in the override, you get
 *both* the base file's port mapping *and* yours, not a swap. Use the
 `!override` tag to fully replace one instead:
@@ -323,29 +335,26 @@ services:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers
     ports: !override
       - "127.0.0.1:8082:8000"
-  db:
-    # A destination path that also exists in the base file's volumes:
-    # replaces that entry directly -- no !override needed for this one.
-    volumes:
-      - ./postgres_data:/var/lib/postgresql/data
-    # ports: is list-combined like above, so drop the base file's
-    # published 5432 entirely rather than end up with both:
-    ports: !override []
 ```
 
-**Why this matters for updates:** `docker compose -f docker-compose.prod.yml pull`
-only refreshes the image `web:` points at -- it does nothing for the
-compose *file's own content*, since that isn't something Docker pulls
-at all. If you hand-edit `docker-compose.prod.yml` directly (e.g.
-change `image:` to `build:`, or just add flags inline) instead of using
-an override file, that edit is permanent: nothing in the documented
-update flow, or in `/admin/system`'s notice, will ever touch it again.
-Worse, `pull`/`up` will keep running without any error either way, so
-a stale or locally-diverged `docker-compose.prod.yml` fails **silently**
--- it looks like the update succeeded while nothing actually changed.
-Keeping customizations in a separate override file means
-`docker-compose.prod.yml` itself never needs local changes, and a
-future `curl -O` re-fetch of it (if you ever need one) is always safe.
+(A custom Postgres data path is no longer a common reason to need an
+override -- the base file already bind-mounts it under `./data/postgres`
+by default. Only add a `db:` block here if you need a *different* host
+path than that.)
+
+**Why this matters for updates:** `docker compose pull` only refreshes
+the image `web:` points at -- it does nothing for the compose *file's
+own content*, since that isn't something Docker pulls at all. If you
+hand-edit `docker-compose.yml` directly (e.g. change `image:` to
+`build:`, or just add flags inline) instead of using an override file,
+that edit is permanent: nothing in the documented update flow, or in
+`/admin/system`'s notice, will ever touch it again. Worse, `pull`/`up`
+will keep running without any error either way, so a stale or
+locally-diverged `docker-compose.yml` fails **silently** -- it looks
+like the update succeeded while nothing actually changed. Keeping
+customizations in a separate override file means `docker-compose.yml`
+itself never needs local changes, and a future `curl -O` re-fetch of it
+(if you ever need one) is always safe.
 
 ### Environment
 

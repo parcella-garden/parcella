@@ -40,3 +40,8 @@ app/private_uploads/
 
 # Local DB backup dumps (real member data + encrypted secrets), never committed
 backups/
+
+# Bind-mounted runtime data for the published-image (docker-compose.yml)
+# flow -- Postgres data, uploads, ticket attachments. Real instance data,
+# never a repo asset.
+data/

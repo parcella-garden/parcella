@@ -25,8 +25,8 @@
                 <h5 class="mb-2"><i class="bi bi-cloud-arrow-down-fill me-2"></i>{{ t('admin.dashboard.update_available_heading', version=update_status.latest_version) }}</h5>
                 <p class="mb-2">{{ t('admin.dashboard.update_available_text', current=update_status.current_version, latest=update_status.latest_version) }}</p>
                 <pre class="mb-2 p-2" style="background: rgba(0,0,0,0.05); border-radius: 6px; font-size: 0.85rem;">cd {{ t('admin.dashboard.update_docker_folder_placeholder') }}
-docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml up -d</pre>
+docker compose pull
+docker compose up -d</pre>
                 <p class="mb-2" style="font-size: 0.85rem;">
                     <i class="bi bi-exclamation-triangle me-1"></i>{{ t('admin.dashboard.update_customization_warning') }}
                 </p>

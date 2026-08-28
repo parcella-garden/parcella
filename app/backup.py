@@ -49,9 +49,10 @@ async def build_backup_zip() -> Tuple[str, bytes]:
     (locally-stored ticket attachments -- see
     app/ticket_attachment_storage.py) -- files referenced by filename
     from DB rows but not themselves part of the dump -- into a single
-    in-memory zip. Neither directory has a volume mount in
-    docker-compose.prod.yml, so this backup is the only thing standing
-    between a redeploy and silently losing them. Returns (filename,
+    in-memory zip. Both directories are also bind-mounted under
+    ./data/ in docker-compose.yml (see ADR 0077), but this backup
+    remains useful as an out-of-band copy, e.g. when moving to a new
+    host. Returns (filename,
     zip_bytes). Raises BackupError on any pg_dump failure/timeout --
     never returns partial/corrupt bytes."""
     db_url = urllib.parse.urlsplit(settings.database_url)

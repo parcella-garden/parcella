@@ -63,10 +63,10 @@ async def test_backup_download_bundles_uploaded_files(client, admin_user, monkey
 
 
 async def test_backup_download_bundles_local_ticket_attachments(client, admin_user, monkeypatch, tmp_path):
-    """ADR 0072: locally-stored ticket attachments (Nextcloud fallback)
-    have no volume mount in docker-compose.prod.yml, same as
-    app/static/uploads/ -- this backup zip is what makes them survive a
-    redeploy, so it must bundle them too."""
+    """ADR 0072: locally-stored ticket attachments (Nextcloud fallback),
+    same as app/static/uploads/, are bind-mounted under ./data/ in
+    docker-compose.yml (ADR 0077) but this backup zip is still an
+    out-of-band copy that should bundle them too."""
     attachments_dir = tmp_path / "ticket_attachments"
     attachments_dir.mkdir(parents=True)
     (attachments_dir / "abc123").write_bytes(b"fake-attachment-bytes")

@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-parcella}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
@@ -18,31 +18,8 @@ services:
       timeout: 5s
       retries: 5
 
-  # Wegwerf-Datenbank für automatisierte Tests. Läuft nur, wenn explizit mit
-  # --profile test gestartet (nicht bei normalem "docker compose up").
-  # tmpfs statt Volume: Daten verschwinden beim Stoppen, jeder Testlauf
-  # startet garantiert mit einer leeren Datenbank.
-  db_test:
-    image: postgres:16-alpine
-    profiles: ["test"]
-    environment:
-      POSTGRES_DB: parcella_test
-      POSTGRES_USER: parcella
-      POSTGRES_PASSWORD: test
-    tmpfs:
-      - /var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U parcella"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
   web:
-    build:
-      context: .
-      args:
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
+    image: ghcr.io/parcella-garden/parcella:${PARCELLA_VERSION:-latest}
     restart: unless-stopped
     depends_on:
       db:
@@ -60,13 +37,5 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./app:/app/app
-      - ./migrations:/app/migrations
-      - ./tests:/app/tests
-      - ./pytest.ini:/app/pytest.ini
-      - ./requirements-dev.txt:/app/requirements-dev.txt
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-
-volumes:
-  postgres_data:
-    name: gartenverein_postgres_data
+      - ./data/uploads:/app/app/static/uploads
+      - ./data/ticket_attachments:/app/app/private_uploads/ticket_attachments

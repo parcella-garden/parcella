@@ -5,13 +5,9 @@ themselves.
 
 Only checks GitHub releases (a metadata-only public API call, no
 credentials needed) -- it does NOT verify that a pullable Docker image
-actually exists for that release yet. As of this writing, docker-compose.yml's
-`web` service builds from the local Dockerfile rather than referencing
-a published image, so `docker compose pull` currently only refreshes
-`db`. Once a versioned image is published and `web:` is switched to
-reference it, the "how to update" instructions below become accurate
-for the app itself too; until then, this feature only ever informs,
-it never changes what `docker compose pull` actually does.
+actually exists for that release yet (release.yml's `test` job runs
+before `publish`, but there's still a window between the tag existing
+and the image landing on GHCR).
 
 Result is cached in ClubSettings (update_check_latest_version,
 update_check_checked_at) via refresh_update_check_cache(), run

@@ -16,6 +16,13 @@ jobs:
           echo "UID=$(id -u)" >> .env
           echo "GID=$(id -g)" >> .env
 
+      - name: Guard against a committed backup dump
+        run: |
+          if git ls-files | grep -qE '(^|/)backups/.*\.(sql|dump)$'; then
+            echo "::error::A backup file is tracked under backups/ -- this must never be committed."
+            exit 1
+          fi
+
       - name: Run test suite
         run: ./run_tests.sh
 

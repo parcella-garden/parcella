@@ -229,7 +229,7 @@
       "update_available_heading": "Update beschikbaar: v{version}",
       "update_available_text": "U gebruikt momenteel v{current}; v{latest} is uitgebracht. Zo werkt u bij:",
       "update_docker_folder_placeholder": "/pad/naar/uw/docker-map",
-      "update_customization_warning": "Als u docker-compose.prod.yml rechtstreeks hebt aangepast (bijv. --proxy-headers toegevoegd voor een reverse proxy, de poort of volume-paden gewijzigd), houden \"pull\" en \"up\" alleen geen rekening met toekomstige wijzigingen aan dat bestand -- het kan geslaagd lijken terwijl er niets gebeurt. Zet uw aanpassingen in plaats daarvan in een docker-compose.override.yml en voeg dit bestand met een eigen -f-optie toe aan beide bovenstaande commando's (Compose neemt het niet automatisch mee zodra u al -f docker-compose.prod.yml gebruikt). Zie het gedeelte \"Production\" in de README voor de exacte syntax.",
+      "update_customization_warning": "Als u docker-compose.yml rechtstreeks hebt aangepast (bijv. --proxy-headers toegevoegd voor een reverse proxy of de poort gewijzigd), houden \"pull\" en \"up\" alleen geen rekening met toekomstige wijzigingen aan dat bestand -- het kan geslaagd lijken terwijl er niets gebeurt. Zet uw aanpassingen in plaats daarvan in een docker-compose.override.yml -- Compose neemt dit automatisch mee, zonder extra optie. Zie het gedeelte \"Production\" in de README voor de exacte syntax.",
       "update_check_now_button": "Nu controleren",
       "update_up_to_date": "Versie v{version} -- up-to-date (laatst gecontroleerd: {checked_at})",
       "update_not_checked_yet": "Versie v{version} -- nog niet op updates gecontroleerd",

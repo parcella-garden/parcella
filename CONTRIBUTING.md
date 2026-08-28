@@ -32,9 +32,9 @@ under the same terms (AGPL-3.0).
 git clone <your-fork-url>
 cd parcella
 cp .env.example .env
-docker compose build web
-docker compose run --rm --entrypoint alembic web upgrade head
-docker compose up -d
+docker compose -f docker-compose.dev.yml build web
+docker compose -f docker-compose.dev.yml run --rm --entrypoint alembic web upgrade head
+docker compose -f docker-compose.dev.yml up -d
 ```
 
 The app then runs at http://localhost:8000, API docs at
@@ -68,7 +68,7 @@ http://localhost:8000/api/docs.
 - **Migrations**: every model change in `app/models.py` needs an
   accompanying Alembic migration:
   ```bash
-  docker compose run --rm web alembic revision --autogenerate -m "Short description"
+  docker compose -f docker-compose.dev.yml run --rm web alembic revision --autogenerate -m "Short description"
   ```
   Always review a migration manually before committing it --
   autogenerate occasionally misses things (e.g. renames are detected as

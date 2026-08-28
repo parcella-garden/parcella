@@ -5,10 +5,10 @@ this fallback. Deliberately outside app/static/: ticket access is
 permission-gated (GET /tickets/{id}/attachments/{attachment_id}), unlike
 the club logo/avatars/announcement images under app/static/uploads/,
 which are intentionally public (app/main.py mounts app/static/ at
-/static). Also covered by app/backup.py's backup/restore zip, under its
-own ticket_attachments/ prefix, since there's no volume mount for this
-directory in docker-compose.prod.yml -- without that, a redeploy would
-silently lose every locally-stored attachment.
+/static). Bind-mounted under ./data/ticket_attachments in docker-compose.yml
+(see ADR 0077) so a redeploy doesn't lose attachments. Also covered by
+app/backup.py's backup/restore zip, under its own ticket_attachments/
+prefix, as an out-of-band copy (e.g. when moving to a new host).
 
 Filenames on disk are the attachment's own id (a UUID, generated
 server-side) -- the sender-supplied original filename never touches a

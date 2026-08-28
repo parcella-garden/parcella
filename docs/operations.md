@@ -114,9 +114,19 @@ won't start, admin panel broken) and the UI isn't an option:
 ```bash
 unzip parcella-backup-20260730-143000.zip -d restore/
 docker compose exec -T db psql -U parcella -d parcella < restore/parcella-backup-20260730-143000.sql
-cp -r restore/uploads/. app/static/uploads/
-cp -r restore/ticket_attachments/. app/private_uploads/ticket_attachments/
 ```
+
+Uploads and ticket attachments are plain host directories now (bind-mounted
+under `./data/`, no `docker cp` needed) -- for a published-image deploy:
+
+```bash
+cp -r restore/uploads/. data/uploads/
+cp -r restore/ticket_attachments/. data/ticket_attachments/
+```
+
+For a dev/source checkout, the equivalent paths are `app/static/uploads/`
+and `app/private_uploads/ticket_attachments/` (already live-mounted via
+`docker-compose.dev.yml`'s `./app` bind mount).
 
 **Warning:** the backup was generated with `--clean --if-exists`, so the
 SQL script itself contains `DROP ... IF EXISTS` statements ahead of each
@@ -216,13 +226,13 @@ the account in that state as well -- see
 
 | Symptom | Likely cause |
 |---|---|
-| Prod: `docker compose -f docker-compose.prod.yml pull` says nothing to pull, `up -d` doesn't actually update | `docker-compose.prod.yml` was hand-edited (e.g. `web:` switched to `build:` for a reverse-proxy tweak) instead of putting customizations in a `docker-compose.override.yml` -- see ADR 0076 and the README's Production section. This fails **silently**: no error, just no update. |
+| Prod: `docker compose pull` says nothing to pull, `up -d` doesn't actually update | `docker-compose.yml` was hand-edited (e.g. `web:` switched to `build:` for a reverse-proxy tweak) instead of putting customizations in a `docker-compose.override.yml` -- see ADR 0076, ADR 0077, and the README's Production section. This fails **silently**: no error, just no update. |
 | `invalid input value for enum` | Enum value in Python != enum value in DB (case mismatch) |
 | `MultipleResultsFound` | `scalar_one_or_none()` used on a query that can return multiple hits |
 | `MissingGreenlet` on start/restart | `scalar_one_or_none()` on a table with multiple rows (e.g. a user-count check) |
 | `MissingGreenlet` on a single page | Lazy-load on a freshly created object without eagerly loaded relationships |
 | CSV import: every row shows "error" | Delimiter mismatch (Excel may save with comma instead of semicolon) |
-| Docker: root-owned files in the project folder | Container ran as root; set `UID`/`GID` in `.env` (see `docker-compose.yml`) |
+| Dev build: root-owned files in the project folder | Container ran as root; set `UID`/`GID` in `.env` before `docker compose -f docker-compose.dev.yml build` (only affects a locally-built image -- the published image always runs as uid/gid 1000, see ADR 0077) |
 | Every form POST answers 403 "Security check failed" | CSRF cookie missing or stale -- reload the page; if it persists on a fresh page, check that the reverse proxy isn't stripping cookies |
 | A new form works locally but 403s for everyone else | The form is missing `{{ csrf_field() }}` (see ADR 0064) |
 | Login answers 429 | Too many failed attempts from this address; wait 15 minutes (see ADR 0065) |

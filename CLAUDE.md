@@ -27,11 +27,15 @@ Stack: Python 3.12 + FastAPI, Jinja2 (server-rendered, Bootstrap 5), PostgreSQL 
 ## Dev loop
 
 ```bash
-docker compose build web
-docker compose run --rm --entrypoint alembic web upgrade head
-docker compose up -d db web          # app at http://localhost:8000
+docker compose -f docker-compose.dev.yml build web
+docker compose -f docker-compose.dev.yml run --rm --entrypoint alembic web upgrade head
+docker compose -f docker-compose.dev.yml up -d db web   # app at http://localhost:8000
 ./run_tests.sh                       # full suite against real Postgres
 ```
+
+`docker-compose.yml` is the published-image production flow (self-hosters
+run it with zero `-f` flags, by design); `docker-compose.dev.yml` is the
+contributor/build-from-source flow used above -- see ADR 0077.
 
 `run_tests.sh` starts a disposable `db_test` container (`--profile test`,
 tmpfs, never touches the real `db` volume), installs test deps, runs

@@ -10,22 +10,22 @@
 set -e
 
 echo "Starte Test-Datenbank..."
-docker compose --profile test up -d db_test
+docker compose -f docker-compose.dev.yml --profile test up -d db_test
 
 echo "Warte, bis die Test-Datenbank bereit ist..."
-until docker compose exec -T db_test pg_isready -U parcella > /dev/null 2>&1; do
+until docker compose -f docker-compose.dev.yml exec -T db_test pg_isready -U parcella > /dev/null 2>&1; do
     sleep 1
 done
 
 echo "Führe Tests aus..."
 set +e  # ab hier: Fehler selbst behandeln, nicht das Skript abbrechen lassen
-docker compose run --rm \
+docker compose -f docker-compose.dev.yml run --rm \
     -e DATABASE_URL=postgresql+asyncpg://parcella:test@db_test:5432/parcella_test \
     web sh -c "pip install -r requirements-dev.txt --break-system-packages --quiet && python -m pytest -v"
 TEST_EXIT_CODE=$?
 set -e
 
 echo "Räume Test-Datenbank auf..."
-docker compose --profile test down
+docker compose -f docker-compose.dev.yml --profile test down
 
 exit $TEST_EXIT_CODE
