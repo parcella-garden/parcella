@@ -1,0 +1,55 @@
+# Version control
+.git/
+.github/
+
+# Local AI-assistant tooling config, not part of the application
+.claude/
+
+# Documentation, not needed at runtime
+docs/
+README.md
+CONTRIBUTING.md
+SECURITY.md
+CLAUDE.md
+LICENSE
+DELIVERY-NOTES.txt
+dashboard_screenshot.png
+MIGRATION-NOTE.md
+MIGRATION-NOTE-DATA-LAYOUT.md
+
+# Tests, not needed at runtime
+tests/
+pytest.ini
+tests.yml
+run_tests.sh
+requirements-dev.txt
+
+# Reference/example integrations -- documentation for external systems,
+# never imported by app/ itself
+integrations/
+
+# Compose files describe how to run the container from the outside;
+# never read by the container itself
+docker-compose.yml
+docker-compose.dev.yml
+docker-compose.prod.yml
+docker-compose.override.yml
+
+# Secrets and local env -- never bake these into an image. Real risk, not
+# just tidiness: without this, a contributor building locally with a real
+# .env sitting in the working directory would leak it into image layers.
+.env
+.env.example
+.gitignore
+
+# Build meta-files, not needed inside the resulting image
+Dockerfile
+.dockerignore
+
+# Local runtime data that might be sitting in a dev checkout
+backups/
+data/
+postgres_data/
+app/static/uploads/avatars/
+app/static/uploads/announcements/
+app/private_uploads/
