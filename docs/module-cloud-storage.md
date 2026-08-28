@@ -130,6 +130,24 @@ defensively at the point the path actually reaches a WebDAV request,
 same "sanitize at ingestion + defensive pass at use" pattern this
 module already followed for the configured folder path itself.
 
+**Picking the initial folder path:** the browsing above only ever works
+*within* an already-saved `relative_path` -- it never helped choose that
+value in the first place, which still had to be hand-typed. `?cloud_pick=1`
+(with `?pick_path=<subpath>`, both on `GET /parcels/{id}`) adds a second,
+parallel browse mode that lists the Nextcloud account tree from its own
+root instead of the parcel's configured folder, **filtered to
+directories only** (there's nothing to "pick" about a file). It reuses
+`sanitize_browse_subpath()` for `pick_path` (root-relative here, not
+folder-relative) and the same breadcrumb-building shape, kept in
+entirely separate template context variables (`cloud_picker_*`) so it
+never collides with the `cloud_path` state above. A "Use this folder"
+button at any level posts straight to the existing, unmodified
+`POST /parcels/{id}/cloud-folder` save route -- no new backend route,
+no new validation, just a different value arriving at the same door.
+Deliberately still server-rendered (full page reload), not a JSON/AJAX
+modal, to stay consistent with the browsing pattern above and match
+implementation surface to what was actually asked for.
+
 ## Scheduled cloud backups (`app/cloud_backup.py`, issue #141)
 
 A second, independent consumer of this connector: `Admin -> System ->

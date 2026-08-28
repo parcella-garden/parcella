@@ -592,3 +592,108 @@ async def test_cloud_path_traversal_attempt_falls_back_to_root(client, admin_use
     response = await client.get(f"/parcels/{parcel['id']}", params={"cloud_path": "../../etc"})
     assert response.status_code == 200
     assert provider.list_files_calls == [root]
+
+
+# ---------------------------------------------------------------------------
+# Folder picker: browsing the Nextcloud account tree from its root to pick
+# a parcel's *initial* relative_path, instead of hand-typing it. Kept fully
+# separate from the cloud_path browsing above (which only ever browses
+# *within* an already-saved folder) -- see docs/module-cloud-storage.md.
+# ---------------------------------------------------------------------------
+
+async def test_picker_mode_lists_directories_only_at_root(client, admin_user, monkeypatch):
+    from app.cloud_storage import CloudFileEntry
+
+    parcel, provider = await _setup_folder_with_recording_provider(
+        client, admin_user, monkeypatch,
+        files_by_path={"": [
+            CloudFileEntry(name="kgv_dokumente", is_directory=True),
+            CloudFileEntry(name="notes.txt", is_directory=False),
+        ]},
+    )
+
+    response = await client.get(f"/parcels/{parcel['id']}", params={"cloud_pick": "1"})
+    assert response.status_code == 200
+    assert provider.list_files_calls[-1] == ""
+    assert "kgv_dokumente" in response.text
+    assert "notes.txt" not in response.text
+
+
+async def test_picker_mode_navigates_into_subfolder(client, admin_user, monkeypatch):
+    parcel, provider = await _setup_folder_with_recording_provider(client, admin_user, monkeypatch)
+
+    response = await client.get(
+        f"/parcels/{parcel['id']}", params={"cloud_pick": "1", "pick_path": "kgv_dokumente"},
+    )
+    assert response.status_code == 200
+    assert provider.list_files_calls[-1] == "kgv_dokumente"
+
+
+async def test_picker_mode_available_without_existing_cloud_folder(client, admin_user, monkeypatch):
+    from app.cloud_storage import CloudFileEntry
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_cloud_storage(client, headers)
+    _, parcel, _ = await _create_member_and_parcel(client, headers)
+
+    provider = _RecordingProvider({"": [CloudFileEntry(name="kgv_dokumente", is_directory=True)]})
+
+    async def fake_get_nextcloud_provider(db, client=None):
+        return provider
+
+    monkeypatch.setattr("app.routers.parcels.get_nextcloud_provider", fake_get_nextcloud_provider)
+
+    await web_login(client, "admin@example.com")
+    response = await client.get(f"/parcels/{parcel['id']}", params={"cloud_pick": "1"})
+    assert response.status_code == 200
+    assert "kgv_dokumente" in response.text
+
+
+async def test_picker_mode_use_this_folder_saves_current_path(client, admin_user, monkeypatch):
+    parcel, provider = await _setup_folder_with_recording_provider(client, admin_user, monkeypatch)
+
+    response = await client.get(
+        f"/parcels/{parcel['id']}", params={"cloud_pick": "1", "pick_path": "kgv_dokumente/neu"},
+    )
+    assert 'value="kgv_dokumente/neu"' in response.text
+
+    save_response = await client.post(
+        f"/parcels/{parcel['id']}/cloud-folder",
+        data={"relative_path": "kgv_dokumente/neu"},
+    )
+    assert save_response.status_code in (302, 303)
+    assert "cloud_folder_saved=1" in save_response.headers["location"]
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(ParcelCloudFolder).where(
+                ParcelCloudFolder.parcel_id == parcel["id"], ParcelCloudFolder.is_active.is_(True),
+            )
+        )
+        assert result.scalar_one().relative_path == "kgv_dokumente/neu"
+
+
+async def test_picker_mode_cloud_storage_error_shows_alert(client, admin_user, monkeypatch):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_cloud_storage(client, headers)
+    _, parcel, _ = await _create_member_and_parcel(client, headers)
+
+    class _FailingProvider:
+        async def list_files(self, path):
+            from app.cloud_storage import CloudStorageError
+            raise CloudStorageError("Nextcloud is temporarily unreachable.")
+
+        async def aclose(self):
+            pass
+
+    async def fake_get_nextcloud_provider(db, client=None):
+        return _FailingProvider()
+
+    monkeypatch.setattr("app.routers.parcels.get_nextcloud_provider", fake_get_nextcloud_provider)
+
+    await web_login(client, "admin@example.com")
+    response = await client.get(f"/parcels/{parcel['id']}", params={"cloud_pick": "1"})
+    assert response.status_code == 200
+    assert "Nextcloud is temporarily unreachable." in response.text

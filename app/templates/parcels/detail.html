@@ -356,6 +356,70 @@
                     {% endif %}
                 </form>
 
+                {% if not cloud_picking %}
+                <a href="/parcels/{{ parcel.id }}?cloud_pick=1&pick_path=#cloud-documents"
+                   class="btn btn-sm btn-outline-secondary mb-3">
+                    <i class="bi bi-folder2-open me-1"></i>{{ t('parcels.detail.cloud_browse_folder_button') }}
+                </a>
+                {% endif %}
+
+                {% if cloud_picking %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        {% if cloud_picker_error %}
+                        <div class="alert alert-danger">{{ cloud_picker_error }}</div>
+                        {% endif %}
+                        <nav class="mb-2" style="font-size: 0.9rem;">
+                            {% for crumb in cloud_picker_breadcrumbs %}
+                            {% if not loop.last %}
+                            <a href="/parcels/{{ parcel.id }}?cloud_pick=1&pick_path={{ crumb.pick_path | urlencode }}#cloud-documents"
+                               class="text-decoration-none">{{ crumb.name }}</a>
+                            <span class="text-muted mx-1">/</span>
+                            {% else %}
+                            <span class="text-muted">{{ crumb.name }}</span>
+                            {% endif %}
+                            {% endfor %}
+                        </nav>
+                        {% if cloud_picker_entries is not none %}
+                        <div class="table-responsive mb-3">
+                            <table class="table table-sm">
+                                <tbody>
+                                    {% for entry in cloud_picker_entries %}
+                                    {% set entry_path = (cloud_picker_path ~ '/' ~ entry.name) if cloud_picker_path else entry.name %}
+                                    <tr>
+                                        <td>
+                                            <a href="/parcels/{{ parcel.id }}?cloud_pick=1&pick_path={{ entry_path | urlencode }}#cloud-documents"
+                                               class="text-decoration-none">
+                                                <i class="bi bi-folder-fill me-2"></i>{{ entry.name }}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr><td class="text-muted">{{ t('parcels.detail.cloud_picker_empty') }}</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                        <div class="d-flex align-items-center gap-2">
+                            <form method="post" action="/parcels/{{ parcel.id }}/cloud-folder">
+                                {{ csrf_field() }}
+                                <input type="hidden" name="relative_path" value="{{ cloud_picker_path }}">
+                                <button type="submit" class="btn btn-sm btn-primary" {% if not cloud_picker_path %}disabled{% endif %}>
+                                    {{ t('parcels.detail.cloud_picker_use_folder_button') }}
+                                </button>
+                            </form>
+                            {% if not cloud_picker_path %}
+                            <span class="form-text mb-0">{{ t('parcels.detail.cloud_picker_root_hint') }}</span>
+                            {% endif %}
+                            <a href="/parcels/{{ parcel.id }}#cloud-documents" class="btn btn-sm btn-link">
+                                {{ t('parcels.detail.cloud_picker_cancel_button') }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
                 {% if cloud_folder and cloud_files is not none %}
                 {% if cloud_breadcrumbs|length > 1 %}
                 <nav class="mb-2" style="font-size: 0.9rem;">

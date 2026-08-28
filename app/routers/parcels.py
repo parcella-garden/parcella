@@ -169,6 +169,8 @@ async def parcel_detail(
     parcel_id: str,
     request: Request,
     cloud_path: str = "",
+    cloud_pick: str = "",
+    pick_path: str = "",
     search: str = "",
     status_filter: str = "",
     db: AsyncSession = Depends(get_db),
@@ -229,29 +231,57 @@ async def parcel_detail(
     # works instead of always just re-listing the root.
     cloud_browse_path = sanitize_browse_subpath(cloud_path)
     cloud_breadcrumbs = []
+    # Folder picker: browsing the Nextcloud account tree from its root to
+    # pick the parcel's *initial* relative_path, kept fully separate from
+    # cloud_path/cloud_files above (which browse *within* an already-saved
+    # folder) -- see docs/module-cloud-storage.md.
+    cloud_picker_path = sanitize_browse_subpath(pick_path)
+    cloud_picker_entries = None
+    cloud_picker_breadcrumbs = []
+    cloud_picker_error = None
+    picking = cloud_pick == "1"
     if cloud_storage_enabled:
         cloud_folder = await get_active_folder(db, parcel_id)
-        if cloud_folder:
-            cloud_breadcrumbs = [{"name": cloud_folder.relative_path.rsplit("/", 1)[-1], "cloud_path": ""}]
-            accumulated = []
-            for segment in cloud_browse_path.split("/") if cloud_browse_path else []:
-                accumulated.append(segment)
-                cloud_breadcrumbs.append({"name": segment, "cloud_path": "/".join(accumulated)})
+        provider = await get_nextcloud_provider(db)
+        try:
+            if picking:
+                cloud_picker_breadcrumbs = [
+                    {"name": t_for(request, "parcels.detail.cloud_picker_root_label"), "pick_path": ""}
+                ]
+                accumulated = []
+                for segment in cloud_picker_path.split("/") if cloud_picker_path else []:
+                    accumulated.append(segment)
+                    cloud_picker_breadcrumbs.append({"name": segment, "pick_path": "/".join(accumulated)})
 
-            full_path = cloud_folder.relative_path
-            if cloud_browse_path:
-                full_path = f"{full_path}/{cloud_browse_path}"
+                if provider is None:
+                    cloud_picker_error = t_for(request, "parcels.cloud_storage.not_configured")
+                else:
+                    try:
+                        entries = await provider.list_files(cloud_picker_path)
+                        cloud_picker_entries = [e for e in entries if e.is_directory]
+                    except CloudStorageError as e:
+                        cloud_picker_error = str(e)
+            elif cloud_folder:
+                cloud_breadcrumbs = [{"name": cloud_folder.relative_path.rsplit("/", 1)[-1], "cloud_path": ""}]
+                accumulated = []
+                for segment in cloud_browse_path.split("/") if cloud_browse_path else []:
+                    accumulated.append(segment)
+                    cloud_breadcrumbs.append({"name": segment, "cloud_path": "/".join(accumulated)})
 
-            provider = await get_nextcloud_provider(db)
-            if provider is None:
-                cloud_error = t_for(request, "parcels.cloud_storage.not_configured")
-            else:
-                try:
-                    cloud_files = await provider.list_files(full_path)
-                except CloudStorageError as e:
-                    cloud_error = str(e)
-                finally:
-                    await provider.aclose()
+                full_path = cloud_folder.relative_path
+                if cloud_browse_path:
+                    full_path = f"{full_path}/{cloud_browse_path}"
+
+                if provider is None:
+                    cloud_error = t_for(request, "parcels.cloud_storage.not_configured")
+                else:
+                    try:
+                        cloud_files = await provider.list_files(full_path)
+                    except CloudStorageError as e:
+                        cloud_error = str(e)
+        finally:
+            if provider is not None:
+                await provider.aclose()
 
     return templates.TemplateResponse(
         "parcels/detail.html",
@@ -269,6 +299,11 @@ async def parcel_detail(
             "cloud_error": cloud_error,
             "cloud_browse_path": cloud_browse_path,
             "cloud_breadcrumbs": cloud_breadcrumbs,
+            "cloud_picking": picking,
+            "cloud_picker_path": cloud_picker_path,
+            "cloud_picker_entries": cloud_picker_entries,
+            "cloud_picker_breadcrumbs": cloud_picker_breadcrumbs,
+            "cloud_picker_error": cloud_picker_error,
             "prev_parcel_id": prev_parcel_id,
             "next_parcel_id": next_parcel_id,
             "nav_query_suffix": f"?{list_query_string}" if list_query_string else "",
