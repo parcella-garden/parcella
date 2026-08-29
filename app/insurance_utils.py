@@ -88,7 +88,7 @@ def calculate_insurance_cost(
 
     accident_cost = Decimal("0")
     if pi.has_accident_insurance and configuration:
-        base = Decimal(str(configuration.accident_base_amount_eur))
+        base = Decimal(str(configuration.accident_base_amount_eur)) if pi.covers_household else Decimal("0")
         additional = Decimal(str(configuration.accident_additional_amount_eur))
         additional_count = len(pi.additional_persons)
         accident_cost = base + (additional * additional_count)
@@ -118,10 +118,11 @@ def insurance_cost_line_items(
             Decimal(str(pi.property_package.amount_eur)),
         ))
     if pi.has_accident_insurance and configuration:
-        items.append((
-            translate("finances.pdf.insurance_line_accident_household", language),
-            Decimal(str(configuration.accident_base_amount_eur)),
-        ))
+        if pi.covers_household:
+            items.append((
+                translate("finances.pdf.insurance_line_accident_household", language),
+                Decimal(str(configuration.accident_base_amount_eur)),
+            ))
         additional_count = len(pi.additional_persons)
         if additional_count:
             items.append((

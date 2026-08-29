@@ -554,6 +554,7 @@ class ParcelInsuranceUpdate(BaseModel):
     has_property_insurance: bool = False
     property_package_id: Optional[str] = None
     has_accident_insurance: bool = False
+    covers_household: bool = True
     additional_person_member_ids: List[str] = []
 
 
@@ -565,6 +566,7 @@ class ParcelInsuranceOut(BaseModel):
     has_property_insurance: bool
     property_package_id: Optional[str] = None
     has_accident_insurance: bool
+    covers_household: bool
 
 
 class ParcelInsuranceCostOut(ParcelInsuranceOut):

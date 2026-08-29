@@ -202,6 +202,7 @@ async def insurance_set(
         has_property_insurance=daten.has_property_insurance,
         property_package_id=(daten.property_package_id if daten.has_property_insurance else None),
         has_accident_insurance=daten.has_accident_insurance,
+        covers_household=daten.covers_household,
         additional_person_member_ids=daten.additional_person_member_ids,
     )
     await db.commit()

@@ -7,6 +7,57 @@ async def web_login(client, email: str, password: str = "testpasswort123") -> No
     assert response.status_code in (302, 303)
 
 
+async def test_covers_household_toggle_round_trips_and_leaves_additional_person_billable(client, admin_user):
+    """Issue #204: a household can decline accident-insurance coverage
+    for themselves while a named additional person (e.g. an outside
+    relative) stays insured -- previously impossible since the
+    household's flat fee and the additional-person slot were both
+    gated behind the single has_accident_insurance switch."""
+    from app.database import AsyncSessionLocal
+    from app.models import Member, MemberParcel, Parcel, InsuranceConfiguration
+
+    async with AsyncSessionLocal() as session:
+        session.add(InsuranceConfiguration(
+            year=2026, accident_base_amount_eur=20, accident_additional_amount_eur=10,
+        ))
+        parcel = Parcel(plot_number="204-1")
+        leaser = Member(
+            first_name="Leaser", last_name="204", street="Main St 1", postal_code="12345", city="Testort",
+        )
+        mate = Member(
+            first_name="Mate", last_name="204", street="Elsewhere 1", postal_code="54321", city="Otherville",
+        )
+        session.add_all([parcel, leaser, mate])
+        await session.flush()
+        session.add(MemberParcel(member_id=leaser.id, parcel_id=parcel.id, is_invoice_address=True))
+        session.add(MemberParcel(member_id=mate.id, parcel_id=parcel.id, is_invoice_address=False))
+        await session.commit()
+        parcel_id, mate_id = parcel.id, mate.id
+
+    await web_login(client, "admin@example.com")
+
+    response = await client.post(f"/insurance/parcels/{parcel_id}/save", data={
+        "year": "2026",
+        "has_accident_insurance": "true",
+        # covers_household deliberately omitted -- unchecked checkboxes
+        # don't submit at all, same as the household opting out.
+        "additional_persons": [mate_id],
+    })
+    assert response.status_code in (302, 303)
+
+    response = await client.get(f"/insurance/parcels/{parcel_id}?year=2026")
+    assert response.status_code == 200
+    body = response.text
+
+    checkbox_start = body.index('id="covers-household"')
+    checkbox_end = body.index(">", checkbox_start)
+    assert "checked" not in body[checkbox_start:checkbox_end]
+
+    # accident_cost = additional (10) only, household base (20) excluded.
+    assert "10,00" in body or "10.00" in body
+
+
+
 async def test_insurance_detail_page_shows_previous_and_next_navigation(client, admin_user):
     """Issue #203: Previous/Next buttons on /insurance/parcels/{UUID},
     analogous to the ones on /parcels/{id} (issue #202)."""

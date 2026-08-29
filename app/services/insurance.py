@@ -118,7 +118,7 @@ async def get_or_create_parcel_insurance(db: AsyncSession, parcel_id: str, year:
 async def save_parcel_insurance(
     db: AsyncSession, pi: ParcelInsurance, *,
     has_property_insurance: bool, property_package_id: Optional[str],
-    has_accident_insurance: bool, additional_person_member_ids: List[str],
+    has_accident_insurance: bool, covers_household: bool, additional_person_member_ids: List[str],
 ) -> ParcelInsurance:
     """Upserts a parcel's insurance status for one year. Fully replaces
     the additional-persons list (simpler than diffing, data volume is
@@ -126,6 +126,7 @@ async def save_parcel_insurance(
     pi.has_property_insurance = has_property_insurance
     pi.property_package_id = property_package_id if has_property_insurance else None
     pi.has_accident_insurance = has_accident_insurance
+    pi.covers_household = covers_household
 
     for ap in list(pi.additional_persons):
         await db.delete(ap)

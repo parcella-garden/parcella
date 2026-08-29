@@ -125,6 +125,57 @@ async def test_insurance_cost_ignores_parcel_scope_and_skips_uninsured_parcels(c
     }
 
 
+async def test_insurance_cost_household_declined_bills_only_additional_person(client, admin_user):
+    """Issue #204: the household can decline accident-insurance coverage
+    for themselves (covers_household=False) while a named additional
+    person stays insured -- only the additional-person line should be
+    billed, the household base fee must be entirely absent."""
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    await _enable_modules()
+
+    year = 2026
+    async with AsyncSessionLocal() as session:
+        config = InsuranceConfiguration(year=year, accident_base_amount_eur=20, accident_additional_amount_eur=10)
+        session.add(config)
+        await session.flush()
+
+        parcel, tenant, additional_person = await _occupied_parcel(session, "INSCOST-HHDECLINED")
+        await session.flush()
+
+        pi = ParcelInsurance(
+            parcel_id=parcel.id, year=year,
+            has_accident_insurance=True, covers_household=False,
+        )
+        session.add(pi)
+        await session.flush()
+        session.add(AccidentInsuranceAdditionalPerson(parcel_insurance_id=pi.id, member_id=additional_person.id))
+        await session.commit()
+
+    run_id = await _make_run(client, str(year))
+    r_item = await client.post(f"/finances/runs/{run_id}/items", data={
+        "order_number": "10", "name": "Insurance cost", "description": "",
+        "pricing_mode": "insurance_cost",
+    })
+    assert r_item.status_code in (302, 303)
+
+    r_finalize = await client.post(f"/finances/runs/{run_id}/finalize")
+    assert r_finalize.status_code in (302, 303), r_finalize.headers.get("location")
+
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(Invoice)
+            .options(selectinload(Invoice.line_items))
+            .where(Invoice.invoice_run_id == run_id)
+        )
+        invoice = result.scalars().unique().one()
+
+    assert len(invoice.line_items) == 1, "household declined -> only the additional-person line, no household line"
+    line = invoice.line_items[0]
+    assert line.name == "Accident insurance (+1 additional person(s))"
+    assert float(line.line_total) == 10.0
+    assert float(invoice.subtotal) == 10.0
+
+
 async def test_insurance_cost_splits_into_labeled_line_items_per_component(client, admin_user):
     """Issue #93: the invoice recipient sees the insurance type and fee
     for each component (property, accident household, accident +N

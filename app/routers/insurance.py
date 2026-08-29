@@ -308,6 +308,7 @@ async def insurance_save(
     has_property_insurance: bool = Form(False),
     property_package_id: str = Form(""),
     has_accident_insurance: bool = Form(False),
+    covers_household: bool = Form(False),
     additional_persons: list[str] = Form([]),
     db: AsyncSession = Depends(get_db),
 ):
@@ -319,6 +320,7 @@ async def insurance_save(
         has_property_insurance=has_property_insurance,
         property_package_id=(property_package_id.strip() or None),
         has_accident_insurance=has_accident_insurance,
+        covers_household=covers_household,
         additional_person_member_ids=additional_persons,
     )
     await db.commit()

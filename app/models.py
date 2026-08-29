@@ -1158,6 +1158,13 @@ class ParcelInsurance(Base):
     (optional, with a chosen package) and accident insurance (optional,
     the base amount covers the automatically detected household --
     see household_grouping() in app/insurance_utils.py).
+
+    has_accident_insurance is the master switch for accident insurance
+    being active on this parcel at all; covers_household independently
+    controls whether the household's flat base fee is actually part of
+    the covered/billed group (issue #204: a household can decline
+    coverage for themselves while a named additional person, e.g. an
+    outside relative, stays insured).
     """
     __tablename__ = "parcel_insurance"
 
@@ -1173,6 +1180,7 @@ class ParcelInsurance(Base):
     )
 
     has_accident_insurance: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    covers_household: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
