@@ -14,9 +14,23 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.insurance_utils import household_grouping
 from app.models import (
-    AccidentInsuranceAdditionalPerson, InsuranceConfiguration, ParcelInsurance,
-    PropertyInsurancePackage,
+    AccidentInsuranceAdditionalPerson, AccidentInsuranceHouseholdMember, InsuranceConfiguration,
+    MemberParcel, ParcelInsurance, PropertyInsurancePackage,
+)
+
+# Shared eager-load options for ParcelInsurance, used everywhere a
+# calculate_insurance_cost()/insurance_cost_line_items() call needs
+# household_members/additional_persons already loaded (both feed the
+# accident-insurance cost calc). One place to extend if a relationship
+# is ever added, instead of the same tuple duplicated at every call
+# site -- missing one is a MissingGreenlet crash under the async
+# driver, this module's own recurring pitfall (see docs/module-insurance.md).
+PARCEL_INSURANCE_LOAD_OPTIONS = (
+    selectinload(ParcelInsurance.property_package),
+    selectinload(ParcelInsurance.household_members),
+    selectinload(ParcelInsurance.additional_persons),
 )
 
 
@@ -92,10 +106,7 @@ async def delete_package(db: AsyncSession, package_id: str) -> Optional[Property
 async def get_parcel_insurance(db: AsyncSession, parcel_id: str, year: int) -> Optional[ParcelInsurance]:
     result = await db.execute(
         select(ParcelInsurance)
-        .options(
-            selectinload(ParcelInsurance.property_package),
-            selectinload(ParcelInsurance.additional_persons),
-        )
+        .options(*PARCEL_INSURANCE_LOAD_OPTIONS)
         .where(ParcelInsurance.parcel_id == parcel_id, ParcelInsurance.year == year)
     )
     return result.scalar_one_or_none()
@@ -108,31 +119,47 @@ async def get_or_create_parcel_insurance(db: AsyncSession, parcel_id: str, year:
     pi = ParcelInsurance(parcel_id=parcel_id, year=year)
     db.add(pi)
     await db.flush()
+
+    # Seed household_members with the parcel's currently-detected
+    # household (issue #204): new records default to "whole household
+    # covered", individually uncheckable from there instead of the
+    # removed all-or-nothing covers_household toggle.
+    assignments_result = await db.execute(
+        select(MemberParcel).options(selectinload(MemberParcel.member)).where(MemberParcel.parcel_id == parcel_id)
+    )
+    grouping = household_grouping(assignments_result.scalars().all())
+    for member in grouping["household"]:
+        db.add(AccidentInsuranceHouseholdMember(parcel_insurance_id=pi.id, member_id=member.id))
+    await db.flush()
+
     # Reload with eagerly-loaded relationships -- without this, a later
-    # access to pi.property_package/pi.additional_persons triggers a
-    # synchronous lazy load, which raises "MissingGreenlet" with the
-    # async database driver.
+    # access to pi.property_package/pi.household_members/pi.additional_persons
+    # triggers a synchronous lazy load, which raises "MissingGreenlet"
+    # with the async database driver.
     return await get_parcel_insurance(db, parcel_id, year)
 
 
 async def save_parcel_insurance(
     db: AsyncSession, pi: ParcelInsurance, *,
     has_property_insurance: bool, property_package_id: Optional[str],
-    has_accident_insurance: bool, covers_household: bool, additional_person_member_ids: List[str],
+    has_accident_insurance: bool, household_member_ids: List[str], additional_person_member_ids: List[str],
 ) -> ParcelInsurance:
     """Upserts a parcel's insurance status for one year. Fully replaces
-    the additional-persons list (simpler than diffing, data volume is
-    small) -- same rule on both sides."""
+    both the household-members and additional-persons lists (simpler
+    than diffing, data volume is small) -- same rule for both."""
     pi.has_property_insurance = has_property_insurance
     pi.property_package_id = property_package_id if has_property_insurance else None
     pi.has_accident_insurance = has_accident_insurance
-    pi.covers_household = covers_household
 
+    for hm in list(pi.household_members):
+        await db.delete(hm)
     for ap in list(pi.additional_persons):
         await db.delete(ap)
     await db.flush()
 
     if has_accident_insurance:
+        for member_id in household_member_ids:
+            db.add(AccidentInsuranceHouseholdMember(parcel_insurance_id=pi.id, member_id=member_id))
         for member_id in additional_person_member_ids:
             db.add(AccidentInsuranceAdditionalPerson(parcel_insurance_id=pi.id, member_id=member_id))
 

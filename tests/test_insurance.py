@@ -7,12 +7,44 @@ async def web_login(client, email: str, password: str = "testpasswort123") -> No
     assert response.status_code in (302, 303)
 
 
-async def test_covers_household_toggle_round_trips_and_leaves_additional_person_billable(client, admin_user):
-    """Issue #204: a household can decline accident-insurance coverage
-    for themselves while a named additional person (e.g. an outside
-    relative) stays insured -- previously impossible since the
-    household's flat fee and the additional-person slot were both
-    gated behind the single has_accident_insurance switch."""
+async def test_new_parcel_insurance_seeds_household_members_by_default(client, admin_user):
+    """Issue #204: a freshly created ParcelInsurance (first visit to a
+    parcel's insurance detail page for a year) must default to the
+    whole currently-detected household checked/covered -- otherwise
+    saving without touching anything would silently drop the household
+    base fee for every parcel that never had this page opened before."""
+    from app.database import AsyncSessionLocal
+    from app.models import Member, MemberParcel, Parcel
+
+    async with AsyncSessionLocal() as session:
+        parcel = Parcel(plot_number="204-2")
+        tenant = Member(
+            first_name="Tenant", last_name="204b", street="Only St 1", postal_code="11111", city="Testort",
+        )
+        session.add_all([parcel, tenant])
+        await session.flush()
+        session.add(MemberParcel(member_id=tenant.id, parcel_id=parcel.id, is_invoice_address=True))
+        await session.commit()
+        parcel_id, tenant_id = parcel.id, tenant.id
+
+    await web_login(client, "admin@example.com")
+
+    response = await client.get(f"/insurance/parcels/{parcel_id}?year=2026")
+    assert response.status_code == 200
+    body = response.text
+
+    checkbox_start = body.index(f'id="hm-{tenant_id}"')
+    checkbox_end = body.index(">", checkbox_start)
+    assert "checked" in body[checkbox_start:checkbox_end]
+
+
+async def test_leaser_can_opt_out_while_additional_person_stays_insured(client, admin_user):
+    """Issue #204: the leaser's own household checkbox can be
+    individually unchecked while a named additional person (e.g. an
+    outside relative) stays insured -- previously impossible since the
+    household's flat fee was all-or-nothing (first as an implicit part
+    of has_accident_insurance, then briefly as an atomic covers_household
+    toggle that was itself the wrong shape)."""
     from app.database import AsyncSessionLocal
     from app.models import Member, MemberParcel, Parcel, InsuranceConfiguration
 
@@ -39,8 +71,10 @@ async def test_covers_household_toggle_round_trips_and_leaves_additional_person_
     response = await client.post(f"/insurance/parcels/{parcel_id}/save", data={
         "year": "2026",
         "has_accident_insurance": "true",
-        # covers_household deliberately omitted -- unchecked checkboxes
-        # don't submit at all, same as the household opting out.
+        # household_members deliberately omitted -- the leaser is the
+        # only household member here, so leaving it out means he's
+        # unchecked/opted out, same as an unchecked checkbox not
+        # submitting at all.
         "additional_persons": [mate_id],
     })
     assert response.status_code in (302, 303)
@@ -49,7 +83,7 @@ async def test_covers_household_toggle_round_trips_and_leaves_additional_person_
     assert response.status_code == 200
     body = response.text
 
-    checkbox_start = body.index('id="covers-household"')
+    checkbox_start = body.index(f'id="hm-{leaser.id}"')
     checkbox_end = body.index(">", checkbox_start)
     assert "checked" not in body[checkbox_start:checkbox_end]
 
@@ -170,12 +204,16 @@ async def test_package_create_and_cost_calculation(client, admin_user):
     parcel = (await client.post(
         "/api/v1/parcels", json={"plot_number": "G300"}, headers=headers
     )).json()
+    tenant = (await client.post(
+        "/api/v1/members", json={"first_name": "Haupt", "last_name": "Paechter"}, headers=headers
+    )).json()
 
     status_response = await client.put(
         f"/api/v1/insurance/parcels/{parcel['id']}/2026",
         json={
             "has_property_insurance": True, "property_package_id": package["id"],
-            "has_accident_insurance": True, "additional_person_member_ids": [],
+            "has_accident_insurance": True, "household_member_ids": [tenant["id"]],
+            "additional_person_member_ids": [],
         },
         headers=headers,
     )
@@ -197,6 +235,9 @@ async def test_additional_person_increases_accident_cost(client, admin_user):
     )
 
     parcel = (await client.post("/api/v1/parcels", json={"plot_number": "G301"}, headers=headers)).json()
+    tenant = (await client.post(
+        "/api/v1/members", json={"first_name": "Haupt", "last_name": "Paechter"}, headers=headers
+    )).json()
     additional_person = (await client.post(
         "/api/v1/members", json={"first_name": "Weiterer", "last_name": "Paechter"}, headers=headers
     )).json()
@@ -205,6 +246,7 @@ async def test_additional_person_increases_accident_cost(client, admin_user):
         f"/api/v1/insurance/parcels/{parcel['id']}/2026",
         json={
             "has_property_insurance": False, "has_accident_insurance": True,
+            "household_member_ids": [tenant["id"]],
             "additional_person_member_ids": [additional_person["id"]],
         },
         headers=headers,

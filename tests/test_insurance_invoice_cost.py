@@ -23,7 +23,7 @@ from app.database import AsyncSessionLocal
 from app.models import (
     Member, MemberParcel, Parcel, Invoice, ClubSetting,
     PropertyInsurancePackage, InsuranceConfiguration, ParcelInsurance,
-    AccidentInsuranceAdditionalPerson,
+    AccidentInsuranceAdditionalPerson, AccidentInsuranceHouseholdMember,
 )
 
 
@@ -81,6 +81,7 @@ async def test_insurance_cost_ignores_parcel_scope_and_skips_uninsured_parcels(c
         )
         session.add(pi)
         await session.flush()
+        session.add(AccidentInsuranceHouseholdMember(parcel_insurance_id=pi.id, member_id=insured_tenant.id))
         session.add(AccidentInsuranceAdditionalPerson(parcel_insurance_id=pi.id, member_id=additional_person.id))
         await session.commit()
 
@@ -126,9 +127,10 @@ async def test_insurance_cost_ignores_parcel_scope_and_skips_uninsured_parcels(c
 
 
 async def test_insurance_cost_household_declined_bills_only_additional_person(client, admin_user):
-    """Issue #204: the household can decline accident-insurance coverage
-    for themselves (covers_household=False) while a named additional
-    person stays insured -- only the additional-person line should be
+    """Issue #204: household members are individually uncheckable from
+    accident-insurance coverage while a named additional person stays
+    insured -- with no household_members row at all (nobody in the
+    household checked), only the additional-person line should be
     billed, the household base fee must be entirely absent."""
     await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
     await _enable_modules()
@@ -142,10 +144,7 @@ async def test_insurance_cost_household_declined_bills_only_additional_person(cl
         parcel, tenant, additional_person = await _occupied_parcel(session, "INSCOST-HHDECLINED")
         await session.flush()
 
-        pi = ParcelInsurance(
-            parcel_id=parcel.id, year=year,
-            has_accident_insurance=True, covers_household=False,
-        )
+        pi = ParcelInsurance(parcel_id=parcel.id, year=year, has_accident_insurance=True)
         session.add(pi)
         await session.flush()
         session.add(AccidentInsuranceAdditionalPerson(parcel_insurance_id=pi.id, member_id=additional_person.id))
@@ -200,6 +199,8 @@ async def test_insurance_cost_splits_into_labeled_line_items_per_component(clien
             has_property_insurance=False, has_accident_insurance=True,
         )
         session.add(pi)
+        await session.flush()
+        session.add(AccidentInsuranceHouseholdMember(parcel_insurance_id=pi.id, member_id=tenant.id))
         await session.commit()
 
     run_id = await _make_run(client, str(year))

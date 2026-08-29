@@ -29,6 +29,7 @@ from app.models import (
 from app.database import active_member_filter
 from app.i18n import load_current_language
 from app.insurance_utils import insurance_cost_line_items, _normalized_address
+from app.services.insurance import PARCEL_INSURANCE_LOAD_OPTIONS
 from app.meter_utils import calculate_consumption
 from app.l10n import load_current_region, format_address
 from app.area_utils import compute_area_b_sqm
@@ -122,7 +123,7 @@ async def _load_metering_points_by_parcel(db: AsyncSession, medium: MeteringMedi
 async def _load_parcel_insurance_by_parcel(db: AsyncSession, year: int) -> Dict[str, ParcelInsurance]:
     result = await db.execute(
         select(ParcelInsurance)
-        .options(selectinload(ParcelInsurance.property_package), selectinload(ParcelInsurance.additional_persons))
+        .options(*PARCEL_INSURANCE_LOAD_OPTIONS)
         .where(ParcelInsurance.year == year)
     )
     return {pi.parcel_id: pi for pi in result.scalars().all()}

@@ -27,6 +27,7 @@ from app.services.insurance import (
     get_configuration, save_configuration, get_packages_for_year,
     create_package, update_package, delete_package,
     get_or_create_parcel_insurance, save_parcel_insurance,
+    PARCEL_INSURANCE_LOAD_OPTIONS,
 )
 
 router = APIRouter(
@@ -66,7 +67,7 @@ async def insurance_overview(
 
     pi_result = await db.execute(
         select(ParcelInsurance)
-        .options(selectinload(ParcelInsurance.property_package), selectinload(ParcelInsurance.additional_persons))
+        .options(*PARCEL_INSURANCE_LOAD_OPTIONS)
         .where(ParcelInsurance.year == year)
     )
     all_pi = pi_result.scalars().all()
@@ -231,7 +232,7 @@ async def insurance_parcels_list(
 
     pi_result = await db.execute(
         select(ParcelInsurance)
-        .options(selectinload(ParcelInsurance.property_package), selectinload(ParcelInsurance.additional_persons))
+        .options(*PARCEL_INSURANCE_LOAD_OPTIONS)
         .where(ParcelInsurance.year == year)
     )
     pi_by_parcel = {pi.parcel_id: pi for pi in pi_result.scalars().all()}
@@ -275,6 +276,7 @@ async def insurance_detail(
     pi = await get_or_create_parcel_insurance(db, parcel_id, year)
 
     grouping = household_grouping(parcel.member_assignments)
+    household_ids = {h.member_id for h in pi.household_members}
     additional_ids = {a.member_id for a in pi.additional_persons}
     cost = calculate_insurance_cost(pi, configuration)
 
@@ -294,7 +296,7 @@ async def insurance_detail(
         "request": request, "user": user, "year": year,
         "parcel": parcel, "pi": pi, "configuration": configuration, "packages": packages,
         "household": grouping["household"], "external": grouping["external"],
-        "additional_ids": additional_ids, "cost": cost,
+        "household_ids": household_ids, "additional_ids": additional_ids, "cost": cost,
         "prev_parcel_id": prev_parcel_id,
         "next_parcel_id": next_parcel_id,
     })
@@ -308,7 +310,7 @@ async def insurance_save(
     has_property_insurance: bool = Form(False),
     property_package_id: str = Form(""),
     has_accident_insurance: bool = Form(False),
-    covers_household: bool = Form(False),
+    household_members: list[str] = Form([]),
     additional_persons: list[str] = Form([]),
     db: AsyncSession = Depends(get_db),
 ):
@@ -320,7 +322,7 @@ async def insurance_save(
         has_property_insurance=has_property_insurance,
         property_package_id=(property_package_id.strip() or None),
         has_accident_insurance=has_accident_insurance,
-        covers_household=covers_household,
+        household_member_ids=household_members,
         additional_person_member_ids=additional_persons,
     )
     await db.commit()
@@ -347,8 +349,7 @@ async def insurance_evaluation(
         select(ParcelInsurance)
         .options(
             selectinload(ParcelInsurance.parcel),
-            selectinload(ParcelInsurance.property_package),
-            selectinload(ParcelInsurance.additional_persons),
+            *PARCEL_INSURANCE_LOAD_OPTIONS,
         )
         .where(
             ParcelInsurance.year == year,
@@ -396,8 +397,7 @@ async def insurance_evaluation_csv(
         select(ParcelInsurance)
         .options(
             selectinload(ParcelInsurance.parcel),
-            selectinload(ParcelInsurance.property_package),
-            selectinload(ParcelInsurance.additional_persons),
+            *PARCEL_INSURANCE_LOAD_OPTIONS,
         )
         .where(
             ParcelInsurance.year == year,

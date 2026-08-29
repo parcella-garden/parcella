@@ -911,7 +911,6 @@
       "no_packages_warning": "Pre {year} nie sú nakonfigurované žiadne balíky.",
       "accident_header": "Úrazové poistenie",
       "label_has_accident": "Úrazové poistenie uzatvorené",
-      "label_covers_household": "Domácnosť spolupoistená",
       "auto_covered_intro": "Domácnosť (zdieľajú adresu s ostatnými obyvateľmi):",
       "external_intro": "Ostatní členovia parcely (iná adresa) -- môžu byť voliteľne spolupoistení za príplatok:",
       "costs_header": "Náklady {year}",

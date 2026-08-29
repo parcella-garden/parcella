@@ -911,7 +911,6 @@
       "no_packages_warning": "No packages configured for {year}.",
       "accident_header": "Accident insurance",
       "label_has_accident": "Accident insurance taken out",
-      "label_covers_household": "Household co-insured",
       "auto_covered_intro": "Household (share an address with other residents):",
       "external_intro": "Other parcel members (different address) -- can optionally be co-insured for an extra charge:",
       "costs_header": "Costs {year}",

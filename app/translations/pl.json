@@ -911,7 +911,6 @@
       "no_packages_warning": "Brak skonfigurowanych pakietów dla {year}.",
       "accident_header": "Ubezpieczenie NNW",
       "label_has_accident": "Zawarto ubezpieczenie NNW",
-      "label_covers_household": "Gospodarstwo domowe współubezpieczone",
       "auto_covered_intro": "Gospodarstwo domowe (dzielą adres z innymi mieszkańcami):",
       "external_intro": "Pozostali członkowie działki (inny adres) – opcjonalnie ubezpieczalni za dopłatą:",
       "costs_header": "Koszty {year}",

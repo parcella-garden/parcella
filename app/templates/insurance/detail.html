@@ -89,20 +89,17 @@
                 </div>
 
                 <div id="accident-details" style="{% if not pi.has_accident_insurance %}display: none;{% endif %}">
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" role="switch"
-                               name="covers_household" id="covers-household"
-                               {% if pi.covers_household %}checked{% endif %}
-                               {% if not has_perm(request, 'insurance', 'write') %}disabled{% endif %}>
-                        <label class="form-check-label" for="covers-household">{{ t('insurance.detail.label_covers_household') }}</label>
-                    </div>
                     <p class="text-muted mb-2" style="font-size: 0.85rem;">
                         {{ t('insurance.detail.auto_covered_intro') }}
                     </p>
                     <ul class="list-group list-group-flush mb-3">
                         {% for m in household %}
-                        <li class="list-group-item py-1 px-2" style="font-size: 0.88rem;">
-                            <i class="bi bi-check-circle-fill text-success me-1"></i>{{ m.full_name }}
+                        <li class="list-group-item py-1 px-2 d-flex align-items-center gap-2" style="font-size: 0.88rem;">
+                            <input class="form-check-input mt-0" type="checkbox" name="household_members"
+                                   value="{{ m.id }}" id="hm-{{ m.id }}"
+                                   {% if m.id in household_ids %}checked{% endif %}
+                                   {% if not has_perm(request, 'insurance', 'write') %}disabled{% endif %}>
+                            <label class="form-check-label" for="hm-{{ m.id }}">{{ m.full_name }}</label>
                         </li>
                         {% endfor %}
                     </ul>

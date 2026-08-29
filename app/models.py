@@ -1160,11 +1160,14 @@ class ParcelInsurance(Base):
     see household_grouping() in app/insurance_utils.py).
 
     has_accident_insurance is the master switch for accident insurance
-    being active on this parcel at all; covers_household independently
-    controls whether the household's flat base fee is actually part of
-    the covered/billed group (issue #204: a household can decline
-    coverage for themselves while a named additional person, e.g. an
-    outside relative, stays insured).
+    being active on this parcel at all. Within that, household_members
+    and additional_persons independently control who's actually covered
+    (issue #204): household_members is opt-OUT (seeded with the whole
+    detected household by default, e.g. so the leaser specifically can
+    be removed while staying billed for a named additional person, e.g.
+    an outside relative); additional_persons is opt-IN as before. The
+    base fee applies once if household_members is non-empty, same as
+    additional_persons already governs the per-head extra fee.
     """
     __tablename__ = "parcel_insurance"
 
@@ -1180,7 +1183,6 @@ class ParcelInsurance(Base):
     )
 
     has_accident_insurance: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    covers_household: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -1191,6 +1193,9 @@ class ParcelInsurance(Base):
 
     parcel: Mapped["Parcel"] = relationship("Parcel")
     property_package: Mapped[Optional["PropertyInsurancePackage"]] = relationship("PropertyInsurancePackage")
+    household_members: Mapped[List["AccidentInsuranceHouseholdMember"]] = relationship(
+        "AccidentInsuranceHouseholdMember", back_populates="parcel_insurance", cascade="all, delete-orphan"
+    )
     additional_persons: Mapped[List["AccidentInsuranceAdditionalPerson"]] = relationship(
         "AccidentInsuranceAdditionalPerson", back_populates="parcel_insurance", cascade="all, delete-orphan"
     )
@@ -1201,6 +1206,44 @@ class ParcelInsurance(Base):
 
     def __repr__(self) -> str:
         return f"<ParcelInsurance {self.parcel_id} {self.year}>"
+
+
+class AccidentInsuranceHouseholdMember(Base):
+    """
+    A household member explicitly covered by a parcel's accident
+    insurance for a year. Seeded with the whole auto-detected household
+    (household_grouping() in app/insurance_utils.py) when a
+    ParcelInsurance row is first created, so it defaults to "everyone
+    covered" -- but each member can be individually removed, e.g. the
+    leaser opts out for themselves while a named additional person
+    stays insured (issue #204). Opt-OUT, symmetric to
+    AccidentInsuranceAdditionalPerson's opt-IN for people outside the
+    household.
+    """
+    __tablename__ = "accident_insurance_household_members"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    parcel_insurance_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("parcel_insurance.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    member_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("members.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    parcel_insurance: Mapped["ParcelInsurance"] = relationship(
+        "ParcelInsurance", back_populates="household_members"
+    )
+    member: Mapped["Member"] = relationship("Member")
+
+    __table_args__ = (
+        UniqueConstraint("parcel_insurance_id", "member_id", name="uq_accident_household_member"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<AccidentInsuranceHouseholdMember {self.parcel_insurance_id} {self.member_id}>"
 
 
 class AccidentInsuranceAdditionalPerson(Base):

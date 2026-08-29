@@ -2,6 +2,7 @@
 Helper functions for the insurance module: cost calculation and
 household detection (same address = automatically co-insured).
 """
+from datetime import date
 from decimal import Decimal
 from typing import List, Optional, Tuple
 
@@ -38,8 +39,23 @@ def household_grouping(assignments: List[MemberParcel]) -> dict:
     avoid false groupings from missing address data -- even if several
     residents happen to all have an empty address, they therefore do
     NOT form a shared household group.
+
+    Filters on Member.deleted_at/member_until in addition to
+    MemberParcel.is_current, same as evaluate_parcel() in
+    app/services/work_hours.py -- this used to only feed an
+    informational display list, where a stale soft-deleted/departed
+    member showing up was cosmetic; now get_or_create_parcel_insurance()
+    (app/services/insurance.py) also uses this to seed real
+    AccidentInsuranceHouseholdMember billing rows, so the same
+    "still actually around" check other evaluators already apply here
+    matters for real money, not just display.
     """
-    current = [a.member for a in assignments if a.is_current]
+    current = [
+        a.member for a in assignments
+        if a.is_current
+        and a.member.deleted_at is None
+        and (a.member.member_until is None or a.member.member_until >= date.today())
+    ]
     if not current:
         return {"household": [], "external": []}
 
@@ -88,7 +104,7 @@ def calculate_insurance_cost(
 
     accident_cost = Decimal("0")
     if pi.has_accident_insurance and configuration:
-        base = Decimal(str(configuration.accident_base_amount_eur)) if pi.covers_household else Decimal("0")
+        base = Decimal(str(configuration.accident_base_amount_eur)) if pi.household_members else Decimal("0")
         additional = Decimal(str(configuration.accident_additional_amount_eur))
         additional_count = len(pi.additional_persons)
         accident_cost = base + (additional * additional_count)
@@ -118,7 +134,7 @@ def insurance_cost_line_items(
             Decimal(str(pi.property_package.amount_eur)),
         ))
     if pi.has_accident_insurance and configuration:
-        if pi.covers_household:
+        if pi.household_members:
             items.append((
                 translate("finances.pdf.insurance_line_accident_household", language),
                 Decimal(str(configuration.accident_base_amount_eur)),

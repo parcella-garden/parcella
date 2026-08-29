@@ -13,7 +13,6 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.models import PropertyInsurancePackage, InsuranceConfiguration, ParcelInsurance, Parcel, User
@@ -23,6 +22,7 @@ from app.insurance_utils import calculate_insurance_cost
 from app.services.insurance import (
     get_configuration, save_configuration, create_package, update_package, delete_package,
     get_parcel_insurance, get_or_create_parcel_insurance, save_parcel_insurance,
+    PARCEL_INSURANCE_LOAD_OPTIONS,
 )
 from app.schemas import (
     PropertyInsurancePackageOut, PropertyInsurancePackageCreate,
@@ -153,6 +153,7 @@ def _to_cost_schema(pi: ParcelInsurance, config: Optional[InsuranceConfiguration
     base = ParcelInsuranceOut.model_validate(pi)
     return ParcelInsuranceCostOut(
         **base.model_dump(),
+        household_member_ids=[h.member_id for h in pi.household_members],
         additional_person_member_ids=[a.member_id for a in pi.additional_persons],
         property_cost_eur=cost["property_cost"],
         accident_cost_eur=cost["accident_cost"],
@@ -202,7 +203,7 @@ async def insurance_set(
         has_property_insurance=daten.has_property_insurance,
         property_package_id=(daten.property_package_id if daten.has_property_insurance else None),
         has_accident_insurance=daten.has_accident_insurance,
-        covers_household=daten.covers_household,
+        household_member_ids=daten.household_member_ids,
         additional_person_member_ids=daten.additional_person_member_ids,
     )
     await db.commit()
@@ -215,7 +216,7 @@ async def insurance_set(
     # re-fetching the relationship -- since expire_on_commit=False is
     # set. db.refresh() forces exactly these relationships to be
     # reloaded.
-    await db.refresh(pi, attribute_names=["property_package", "additional_persons"])
+    await db.refresh(pi, attribute_names=["property_package", "household_members", "additional_persons"])
 
     config = await get_configuration(db, year)
     return _to_cost_schema(pi, config)
@@ -238,7 +239,7 @@ async def evaluation(
 
     result = await db.execute(
         select(ParcelInsurance)
-        .options(selectinload(ParcelInsurance.property_package), selectinload(ParcelInsurance.additional_persons))
+        .options(*PARCEL_INSURANCE_LOAD_OPTIONS)
         .where(
             ParcelInsurance.year == year,
             (ParcelInsurance.has_property_insurance == True) | (ParcelInsurance.has_accident_insurance == True)

@@ -911,7 +911,6 @@
       "no_packages_warning": "Keine Pakete für {year} konfiguriert.",
       "accident_header": "Unfallversicherung",
       "label_has_accident": "Unfallversicherung abgeschlossen",
-      "label_covers_household": "Haushalt mitversichert",
       "auto_covered_intro": "Haushalt (teilen sich eine Adresse mit anderen Bewohnern):",
       "external_intro": "Weitere Parzellenmitglieder (andere Adresse) – optional gegen Aufpreis mitversicherbar:",
       "costs_header": "Kosten {year}",

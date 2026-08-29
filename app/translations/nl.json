@@ -911,7 +911,6 @@
       "no_packages_warning": "Geen pakketten geconfigureerd voor {year}.",
       "accident_header": "Ongevallenverzekering",
       "label_has_accident": "Ongevallenverzekering afgesloten",
-      "label_covers_household": "Huishouden meeverzekerd",
       "auto_covered_intro": "Huishouden (delen een adres met andere bewoners):",
       "external_intro": "Andere perceelleden (ander adres) -- kunnen tegen meerprijs optioneel worden mee-verzekerd:",
       "costs_header": "Kosten {year}",
