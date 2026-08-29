@@ -191,6 +191,61 @@ async def test_exemption_applies_to_whole_parcel_under_per_parcel(client, admin_
     assert "G100" in html_response.text
 
 
+async def test_former_leaser_excluded_from_annual_evaluation(client, admin_user):
+    """Issue #206: evaluate_parcel() only filtered tenants by whether the
+    MEMBER is still active, never whether this specific tenancy
+    (MemberParcel.is_current) is still current -- so a member whose
+    lease on a parcel already ended (assigned_until in the past) kept
+    being counted as a tenant of that parcel. Two cases: a parcel with
+    only a terminated tenant must vanish entirely (vacant of current
+    tenants); a parcel with one current + one terminated tenant must
+    still appear, reflecting only the current tenant."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    await _erstelle_configuration(client, headers, year=2026, mode="PER_PARCEL")
+
+    former = (await client.post(
+        "/api/v1/members", json={"first_name": "Peter", "last_name": "Ausgezogen"}, headers=headers
+    )).json()
+    current = (await client.post(
+        "/api/v1/members", json={"first_name": "Sabine", "last_name": "Geblieben"}, headers=headers
+    )).json()
+    vacated_parcel = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "G206A"}, headers=headers
+    )).json()
+    mixed_parcel = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "G206B"}, headers=headers
+    )).json()
+
+    await client.post(
+        f"/api/v1/parcels/{vacated_parcel['id']}/assignments",
+        json={"member_id": former["id"], "parcel_id": vacated_parcel["id"], "assigned_until": "2025-12-31"},
+        headers=headers,
+    )
+    await client.post(
+        f"/api/v1/parcels/{mixed_parcel['id']}/assignments",
+        json={"member_id": former["id"], "parcel_id": mixed_parcel["id"], "assigned_until": "2025-12-31"},
+        headers=headers,
+    )
+    await client.post(
+        f"/api/v1/parcels/{mixed_parcel['id']}/assignments",
+        json={"member_id": current["id"], "parcel_id": mixed_parcel["id"]},
+        headers=headers,
+    )
+
+    evaluation = (await client.get("/api/v1/work-hours/evaluation/2026", headers=headers)).json()
+    labels = {row["label"] for row in evaluation}
+    assert "G206A" not in labels, "parcel with only a terminated tenant must not appear at all"
+    assert "G206B" in labels, "parcel with a current tenant must still appear"
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    html_response = await client.get("/work-hours/evaluation", params={"year": 2026})
+    assert html_response.status_code == 200
+    assert "G206A" not in html_response.text
+    assert "G206B" in html_response.text
+
+
 async def test_attended_participant_without_hours_override_counts_session_default(client, admin_user):
     """Issue #205: a participant marked ATTENDED without a manually
     entered hours_completed override was credited 0 hours in the annual

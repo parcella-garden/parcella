@@ -25,6 +25,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.database import current_tenant_filter
 from app.models import (
     ClubRole, ExemptionReason, Member, MemberClubRole, MemberParcel, Parcel, ParcelStatus,
     ParticipationStatus, SessionParticipation, SessionType, Sponsorship, TaskWorkload,
@@ -92,7 +93,8 @@ async def evaluate_parcel(db: AsyncSession, parcel: Parcel, year: int, *, config
     inactive) -- skip it, same as every caller always did."""
     tenants = [
         z.member for z in parcel.member_assignments
-        if z.member.deleted_at is None
+        if z.is_current
+        and z.member.deleted_at is None
         and (z.member.member_until is None or z.member.member_until >= date.today())
     ]
     if not tenants:
@@ -172,7 +174,7 @@ async def evaluate_year(db: AsyncSession, year: int) -> tuple:
         result = await db.execute(
             select(Member)
             .options(selectinload(Member.parcel_assignments))
-            .where(Member.deleted_at.is_(None), Member.parcel_assignments.any())
+            .where(Member.deleted_at.is_(None), Member.parcel_assignments.any(current_tenant_filter()))
             .order_by(Member.last_name, Member.first_name)
         )
         for m in result.scalars().all():
