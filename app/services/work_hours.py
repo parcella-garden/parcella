@@ -45,7 +45,9 @@ async def get_config_for_year(db: AsyncSession, year: int) -> Optional[WorkHours
 async def calculate_hours_for_member(db: AsyncSession, member_id: str, year: int) -> dict:
     """Calculates a member's required-work-hours standing for a year."""
     session_hours = await db.scalar(
-        select(func.coalesce(func.sum(SessionParticipation.hours_completed), 0))
+        select(func.coalesce(func.sum(
+            func.coalesce(SessionParticipation.hours_completed, WorkSession.hours_per_participant, 0)
+        ), 0))
         .join(WorkSession)
         .where(
             SessionParticipation.member_id == member_id,

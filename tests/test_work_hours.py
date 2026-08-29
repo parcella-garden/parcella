@@ -191,6 +191,55 @@ async def test_exemption_applies_to_whole_parcel_under_per_parcel(client, admin_
     assert "G100" in html_response.text
 
 
+async def test_attended_participant_without_hours_override_counts_session_default(client, admin_user):
+    """Issue #205: a participant marked ATTENDED without a manually
+    entered hours_completed override was credited 0 hours in the annual
+    evaluation instead of falling back to the session's
+    hours_per_participant default -- the same fallback already used for
+    the attendee-sheet PDF (app/routers/work_hours.py). Since attendees
+    are typically added straight to ATTENDED with no hours typed in
+    (participant_add's default), this meant most attendance simply
+    didn't count."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    await _erstelle_configuration(client, headers, year=2026, mode="PER_PARCEL")
+
+    member = (await client.post(
+        "/api/v1/members", json={"first_name": "Anna", "last_name": "Fleissig"}, headers=headers
+    )).json()
+    parcel = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "G205"}, headers=headers
+    )).json()
+    await client.post(
+        f"/api/v1/parcels/{parcel['id']}/assignments",
+        json={"member_id": member["id"], "parcel_id": parcel["id"]},
+        headers=headers,
+    )
+
+    session = (await client.post(
+        "/api/v1/work-hours/sessions",
+        json={"title": "Fruehjahrsputz", "type": "STANDARD", "date": "2026-04-01", "hours_per_participant": "4.0"},
+        headers=headers,
+    )).json()
+    participation = await client.post(
+        f"/api/v1/work-hours/sessions/{session['id']}/participations",
+        json={"member_id": member["id"], "status": "ATTENDED"},
+        headers=headers,
+    )
+    assert participation.status_code == 201
+
+    evaluation = (await client.get("/api/v1/work-hours/evaluation/2026", headers=headers)).json()
+    row = next(z for z in evaluation if z["label"] == "G205")
+    assert float(row["hours_completed"]) == 4.0
+    assert float(row["hours_open"]) == 1.0
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    html_response = await client.get("/work-hours/evaluation", params={"year": 2026})
+    assert html_response.status_code == 200
+    assert "G205" in html_response.text
+
+
 # ---------------------------------------------------------------------------
 # ADR 0070: shared service layer + unified (Group-based, not role-only)
 # authorization for the API.
