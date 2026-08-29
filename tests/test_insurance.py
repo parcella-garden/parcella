@@ -2,6 +2,46 @@
 from tests.conftest import login, auth_header
 
 
+async def web_login(client, email: str, password: str = "testpasswort123") -> None:
+    response = await client.post("/auth/login", data={"email": email, "password": password})
+    assert response.status_code in (302, 303)
+
+
+async def test_insurance_detail_page_shows_previous_and_next_navigation(client, admin_user):
+    """Issue #203: Previous/Next buttons on /insurance/parcels/{UUID},
+    analogous to the ones on /parcels/{id} (issue #202)."""
+    from app.database import AsyncSessionLocal
+    from app.models import Parcel, ParcelStatus
+
+    async with AsyncSessionLocal() as session:
+        parcels = [
+            Parcel(plot_number=f"203-{i}", status=ParcelStatus.ACTIVE)
+            for i in range(1, 4)
+        ]
+        session.add_all(parcels)
+        await session.commit()
+        for p in parcels:
+            await session.refresh(p)
+        first_id, middle_id, last_id = [p.id for p in parcels]
+
+    await web_login(client, "admin@example.com")
+
+    response = await client.get(f"/insurance/parcels/{middle_id}?year=2026")
+    assert response.status_code == 200
+    body = response.text
+    assert f"/insurance/parcels/{first_id}?year=2026" in body
+    assert f"/insurance/parcels/{last_id}?year=2026" in body
+
+    response = await client.get(f"/insurance/parcels/{first_id}?year=2026")
+    assert response.status_code == 200
+    body = response.text
+    assert f"/insurance/parcels/{middle_id}?year=2026" in body
+    assert 'id="nav-prev-link"' in body
+    prev_link_start = body.index('id="nav-prev-link"')
+    prev_link_end = body.index("</a>", prev_link_start)
+    assert 'aria-disabled="true"' in body[prev_link_start:prev_link_end]
+
+
 async def test_treasurer_without_group_grant_is_blocked_from_insurance_write_via_api(client):
     """ADR 0070: api_insurance.py used require_write_access (role-only)
     -- ANY TREASURER could write insurance data via the API regardless

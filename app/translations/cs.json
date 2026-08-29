@@ -900,6 +900,8 @@
       "title": "Pojištění {plot_number}",
       "heading": "Pojištění pro parcelu {plot_number}",
       "back": "Zpět",
+      "button_previous": "Předchozí",
+      "button_next": "Další",
       "no_configuration_warning": "Pro {year} neexistuje žádná konfigurace pojištění.",
       "create_now_link": "Vytvořit nyní →",
       "property_header": "Pojištění majetku",

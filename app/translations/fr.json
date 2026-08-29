@@ -900,6 +900,8 @@
       "title": "Assurance {plot_number}",
       "heading": "Assurance pour la parcelle {plot_number}",
       "back": "Retour",
+      "button_previous": "Précédent",
+      "button_next": "Suivant",
       "no_configuration_warning": "Aucune configuration d'assurance n'existe pour {year}.",
       "create_now_link": "Créer maintenant →",
       "property_header": "Assurance habitation",

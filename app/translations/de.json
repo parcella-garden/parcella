@@ -900,6 +900,8 @@
       "title": "Versicherung {plot_number}",
       "heading": "Versicherung Parzelle {plot_number}",
       "back": "Zurück",
+      "button_previous": "Vorherige",
+      "button_next": "Nächste",
       "no_configuration_warning": "Keine Versicherungs-Konfiguration für {year} vorhanden.",
       "create_now_link": "Jetzt anlegen →",
       "property_header": "Sachversicherung",

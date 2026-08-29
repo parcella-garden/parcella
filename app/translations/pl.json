@@ -900,6 +900,8 @@
       "title": "Ubezpieczenie {plot_number}",
       "heading": "Ubezpieczenie działki {plot_number}",
       "back": "Wstecz",
+      "button_previous": "Poprzedni",
+      "button_next": "Następny",
       "no_configuration_warning": "Brak konfiguracji ubezpieczeń dla {year}.",
       "create_now_link": "Utwórz teraz →",
       "property_header": "Ubezpieczenie mienia",

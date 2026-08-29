@@ -900,6 +900,8 @@
       "title": "Verzekering {plot_number}",
       "heading": "Verzekering voor perceel {plot_number}",
       "back": "Terug",
+      "button_previous": "Vorige",
+      "button_next": "Volgende",
       "no_configuration_warning": "Er bestaat geen verzekeringsconfiguratie voor {year}.",
       "create_now_link": "Nu aanmaken →",
       "property_header": "Opstalverzekering",

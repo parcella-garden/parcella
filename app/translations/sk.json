@@ -900,6 +900,8 @@
       "title": "Poistenie {plot_number}",
       "heading": "Poistenie pre parcelu {plot_number}",
       "back": "Späť",
+      "button_previous": "Predchádzajúci",
+      "button_next": "Ďalší",
       "no_configuration_warning": "Pre {year} neexistuje žiadna konfigurácia poistenia.",
       "create_now_link": "Vytvoriť teraz →",
       "property_header": "Poistenie majetku",

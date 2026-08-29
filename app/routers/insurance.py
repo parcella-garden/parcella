@@ -206,6 +206,14 @@ async def package_delete(
 # Parcels: list, detail/edit
 # ---------------------------------------------------------------------------
 
+def _insurance_parcels_query():
+    """WHERE/ORDER BY for the insurance parcels list, shared with the
+    detail page's Previous/Next lookup (issue #203) so the two can't
+    drift apart -- same reasoning as _filtered_parcels_query in
+    app/routers/parcels.py."""
+    return select(Parcel).where(Parcel.status == ParcelStatus.ACTIVE).order_by(Parcel.plot_number)
+
+
 @router.get("/parcels", response_class=HTMLResponse)
 async def insurance_parcels_list(
     request: Request,
@@ -218,11 +226,7 @@ async def insurance_parcels_list(
 
     configuration = await get_configuration(db, year)
 
-    parcels_result = await db.execute(
-        select(Parcel)
-        .where(Parcel.status == ParcelStatus.ACTIVE)
-        .order_by(Parcel.plot_number)
-    )
+    parcels_result = await db.execute(_insurance_parcels_query())
     parcels = parcels_result.scalars().all()
 
     pi_result = await db.execute(
@@ -274,11 +278,25 @@ async def insurance_detail(
     additional_ids = {a.member_id for a in pi.additional_persons}
     cost = calculate_insurance_cost(pi, configuration)
 
+    # Previous/Next buttons (issue #203): see the identical comment in
+    # app/routers/parcels.py's parcel_detail for the reasoning.
+    ordered_ids = (await db.scalars(_insurance_parcels_query().with_only_columns(Parcel.id))).all()
+    prev_parcel_id = None
+    next_parcel_id = None
+    if parcel_id in ordered_ids:
+        idx = ordered_ids.index(parcel_id)
+        if idx > 0:
+            prev_parcel_id = ordered_ids[idx - 1]
+        if idx < len(ordered_ids) - 1:
+            next_parcel_id = ordered_ids[idx + 1]
+
     return templates.TemplateResponse("insurance/detail.html", {
         "request": request, "user": user, "year": year,
         "parcel": parcel, "pi": pi, "configuration": configuration, "packages": packages,
         "household": grouping["household"], "external": grouping["external"],
         "additional_ids": additional_ids, "cost": cost,
+        "prev_parcel_id": prev_parcel_id,
+        "next_parcel_id": next_parcel_id,
     })
 
 

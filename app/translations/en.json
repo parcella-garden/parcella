@@ -900,6 +900,8 @@
       "title": "Insurance {plot_number}",
       "heading": "Insurance for parcel {plot_number}",
       "back": "Back",
+      "button_previous": "Previous",
+      "button_next": "Next",
       "no_configuration_warning": "No insurance configuration exists for {year}.",
       "create_now_link": "Create now →",
       "property_header": "Property insurance",
