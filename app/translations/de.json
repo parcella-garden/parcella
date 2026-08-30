@@ -894,7 +894,11 @@
       "col_total_cost": "Kosten gesamt",
       "yes": "Ja",
       "empty": "Keine aktiven Parzellen vorhanden.",
-      "count_suffix": "Parzelle(n)"
+      "count_suffix": "Parzelle(n)",
+      "filter_any": "Alle",
+      "filter_none": "Keine",
+      "filter_reset": "Zurücksetzen",
+      "sum_label": "Summe"
     },
     "detail": {
       "title": "Versicherung {plot_number}",

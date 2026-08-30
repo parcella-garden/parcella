@@ -62,6 +62,31 @@ explicit selection, not a live recalculation of addresses -- so a
 member's address changing later doesn't retroactively affect past
 years' billing, same reasoning as the additional-persons side always had.
 
+## "Insured parcels" counts only count real leaser coverage
+
+`has_accident_insurance` on `ParcelInsurance` can be `True` while
+`household_members` is empty -- that's exactly the state a leaser
+reaches by opting out of their own coverage while a named additional
+person (outside the household) stays opted in (see above). In that
+state `calculate_insurance_cost()` already charges no household base
+fee. Any "how many parcels are accident-insured" aggregate (the
+`/insurance/` overview stat, the `/insurance/parcels` footer sum) must
+apply the same rule -- `has_accident_insurance and household_members`,
+not the flag alone -- otherwise a parcel where only a non-leaser is
+covered gets counted as an insured parcel it isn't (issue #208).
+
+## `/insurance/parcels` also lists insured-but-terminated parcels
+
+A lease termination (`Parcel.status` -> `TERMINATED`) does not
+automatically cancel the actual, external insurance contract -- so
+`/insurance/parcels` includes a `TERMINATED` parcel for a given year if
+it still has a `ParcelInsurance` row with either flag set for that
+year, alongside all `ACTIVE` parcels (`_insurance_parcels_query()` in
+`app/routers/insurance.py`, issue #207). A `TERMINATED` parcel with no
+insurance for that year stays excluded -- there's nothing left to
+track. This is why the query now takes `year` as a parameter instead of
+being a static filter.
+
 ## Configurable packages instead of fixed values
 
 The property insurance packages (currently 40/60/80/100 EUR) are their

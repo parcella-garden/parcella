@@ -9,23 +9,68 @@
 {% endblock %}
 
 {% block content %}
+
+{% macro sort_link(col, label) %}
+{% set next_sort = '-' ~ col if sort == col else col %}
+<a href="?year={{ year }}&property_filter={{ property_filter }}&accident_filter={{ accident_filter }}&sort={{ next_sort }}"
+   class="text-decoration-none text-reset d-inline-flex align-items-center gap-1">
+    {{ label }}
+    {% if sort == col %}<i class="bi bi-caret-up-fill" style="font-size: 0.7rem;"></i>
+    {% elif sort == '-' ~ col %}<i class="bi bi-caret-down-fill" style="font-size: 0.7rem;"></i>
+    {% endif %}
+</a>
+{% endmacro %}
+
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+            <input type="hidden" name="year" value="{{ year }}">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <label class="text-muted" style="font-size: 0.82rem;">{{ t('insurance.parcels_list.col_property') }}</label>
+            <select name="property_filter" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                <option value="">{{ t('insurance.parcels_list.filter_any') }}</option>
+                <option value="none" {% if property_filter == 'none' %}selected{% endif %}>{{ t('insurance.parcels_list.filter_none') }}</option>
+                {% for pkg in packages %}
+                <option value="{{ pkg.id }}" {% if property_filter == pkg.id %}selected{% endif %}>{{ pkg.name }}</option>
+                {% endfor %}
+            </select>
+            <label class="text-muted" style="font-size: 0.82rem;">{{ t('insurance.parcels_list.col_accident') }}</label>
+            <select name="accident_filter" class="form-select form-select-sm" style="max-width: 160px;" onchange="this.form.submit()">
+                <option value="">{{ t('insurance.parcels_list.filter_any') }}</option>
+                <option value="yes" {% if accident_filter == 'yes' %}selected{% endif %}>{{ t('insurance.parcels_list.yes') }}</option>
+                <option value="no" {% if accident_filter == 'no' %}selected{% endif %}>{{ t('insurance.parcels_list.filter_none') }}</option>
+            </select>
+            {% if property_filter or accident_filter %}
+            <a href="?year={{ year }}&sort={{ sort }}" class="btn btn-sm btn-outline-secondary">{{ t('insurance.parcels_list.filter_reset') }}</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-body p-0">
         <div class="table-responsive">
 <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th>{{ t('insurance.parcels_list.col_parcel') }}</th>
+                        <th>{{ sort_link('parcel', t('insurance.parcels_list.col_parcel')) }}</th>
                         <th>{{ t('insurance.parcels_list.col_property') }}</th>
                         <th>{{ t('insurance.parcels_list.col_accident') }}</th>
-                        <th>{{ t('insurance.parcels_list.col_total_cost') }}</th>
+                        <th>{{ sort_link('total_cost', t('insurance.parcels_list.col_total_cost')) }}</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for r in rows %}
                     <tr>
-                        <td class="fw-semibold">{{ r.parcel.plot_number }}</td>
+                        <td class="fw-semibold">
+                            <a href="/parcels/{{ r.parcel.id }}" class="text-decoration-none" style="color: var(--gv-gruen);">
+                                {{ r.parcel.plot_number }}
+                            </a>
+                            {% if r.parcel.status.value == 'TERMINATED' %}
+                            <span class="badge badge-gekuendigt ms-1">{{ t('parcels.status.terminated') }}</span>
+                            {% endif %}
+                        </td>
                         <td>
                             {% if r.pi and r.pi.has_property_insurance %}
                             <span class="badge badge-aktiv">{{ r.pi.property_package.name if r.pi.property_package else t('insurance.parcels_list.yes') }}</span>
@@ -56,6 +101,17 @@
                     </tr>
                     {% endfor %}
                 </tbody>
+                {% if rows %}
+                <tfoot>
+                    <tr class="fw-semibold" style="border-top: 2px solid var(--bs-border-color);">
+                        <td>{{ t('insurance.parcels_list.sum_label') }}</td>
+                        <td>{{ totals.count_property }}</td>
+                        <td>{{ totals.count_accident }}</td>
+                        <td>{{ totals.total_cost|money }}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+                {% endif %}
             </table>
         </div>
     </div>

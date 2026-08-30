@@ -894,7 +894,11 @@
       "col_total_cost": "Koszt całkowity",
       "yes": "Tak",
       "empty": "Brak aktywnych działek.",
-      "count_suffix": "działka/-i"
+      "count_suffix": "działka/-i",
+      "filter_any": "Wszystkie",
+      "filter_none": "Brak",
+      "filter_reset": "Wyczyść",
+      "sum_label": "Suma"
     },
     "detail": {
       "title": "Ubezpieczenie {plot_number}",

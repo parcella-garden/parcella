@@ -73,7 +73,13 @@ async def insurance_overview(
     all_pi = pi_result.scalars().all()
 
     count_property = sum(1 for pi in all_pi if pi.has_property_insurance)
-    count_accident = sum(1 for pi in all_pi if pi.has_accident_insurance)
+    # issue #208: has_accident_insurance can be true purely because a
+    # non-leaser "additional person" opted in while every actual leaser
+    # (household member) opted out -- calculate_insurance_cost() already
+    # treats that case as "no base fee" (see app/insurance_utils.py), so
+    # the "insured parcels" stat here shouldn't count it as an insured
+    # parcel either; require at least one covered household member.
+    count_accident = sum(1 for pi in all_pi if pi.has_accident_insurance and pi.household_members)
 
     total_property = Decimal("0")
     total_accident = Decimal("0")
@@ -207,18 +213,36 @@ async def package_delete(
 # Parcels: list, detail/edit
 # ---------------------------------------------------------------------------
 
-def _insurance_parcels_query():
+def _insurance_parcels_query(year: int):
     """WHERE/ORDER BY for the insurance parcels list, shared with the
     detail page's Previous/Next lookup (issue #203) so the two can't
     drift apart -- same reasoning as _filtered_parcels_query in
-    app/routers/parcels.py."""
-    return select(Parcel).where(Parcel.status == ParcelStatus.ACTIVE).order_by(Parcel.plot_number)
+    app/routers/parcels.py.
+
+    Also includes TERMINATED parcels that still carry an active
+    insurance entry for `year` (issue #207): a lease termination doesn't
+    automatically cancel the actual (external) insurance contract, so
+    the association still needs to see it here as a reminder to cancel
+    it by hand. A terminated parcel with no insurance for `year` stays
+    excluded -- nothing to track there."""
+    insured_terminated = select(ParcelInsurance.parcel_id).where(
+        ParcelInsurance.year == year,
+        (ParcelInsurance.has_property_insurance == True) |
+        (ParcelInsurance.has_accident_insurance == True),
+    )
+    return select(Parcel).where(
+        (Parcel.status == ParcelStatus.ACTIVE) |
+        ((Parcel.status == ParcelStatus.TERMINATED) & Parcel.id.in_(insured_terminated))
+    ).order_by(Parcel.plot_number)
 
 
 @router.get("/parcels", response_class=HTMLResponse)
 async def insurance_parcels_list(
     request: Request,
     year: Optional[int] = None,
+    property_filter: str = "",
+    accident_filter: str = "",
+    sort: str = "",
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "insurance", "read")
@@ -226,8 +250,9 @@ async def insurance_parcels_list(
         year = date.today().year
 
     configuration = await get_configuration(db, year)
+    packages = await get_packages_for_year(db, year)
 
-    parcels_result = await db.execute(_insurance_parcels_query())
+    parcels_result = await db.execute(_insurance_parcels_query(year))
     parcels = parcels_result.scalars().all()
 
     pi_result = await db.execute(
@@ -245,9 +270,44 @@ async def insurance_parcels_list(
         }
         rows.append({"parcel": p, "pi": pi, "cost": cost})
 
+    # Filtering (issue #209): property_filter is "", "none", or a
+    # package id; accident_filter is "", "yes", "no".
+    if property_filter == "none":
+        rows = [r for r in rows if not (r["pi"] and r["pi"].has_property_insurance)]
+    elif property_filter:
+        rows = [
+            r for r in rows
+            if r["pi"] and r["pi"].has_property_insurance and r["pi"].property_package_id == property_filter
+        ]
+
+    if accident_filter == "yes":
+        rows = [r for r in rows if r["pi"] and r["pi"].has_accident_insurance]
+    elif accident_filter == "no":
+        rows = [r for r in rows if not (r["pi"] and r["pi"].has_accident_insurance)]
+
+    # Sorting (issue #209): "col" for ascending, "-col" for descending.
+    sort_columns = {
+        "parcel": lambda r: r["parcel"].plot_number,
+        "total_cost": lambda r: r["cost"]["total"],
+    }
+    sort_key = sort[1:] if sort.startswith("-") else sort
+    if sort_key in sort_columns:
+        rows.sort(key=sort_columns[sort_key], reverse=sort.startswith("-"))
+
+    # Sums shown in the table footer (issue #209). The accident count
+    # applies the same "real household coverage" rule as the /insurance/
+    # overview stat (issue #208) -- a parcel insured only via a
+    # non-leaser additional person isn't counted as accident-insured.
+    totals = {
+        "count_property": sum(1 for r in rows if r["pi"] and r["pi"].has_property_insurance),
+        "count_accident": sum(1 for r in rows if r["pi"] and r["pi"].has_accident_insurance and r["pi"].household_members),
+        "total_cost": sum((r["cost"]["total"] for r in rows), Decimal("0")),
+    }
+
     return templates.TemplateResponse("insurance/parcels_list.html", {
         "request": request, "user": user, "year": year,
-        "rows": rows,
+        "rows": rows, "totals": totals, "packages": packages,
+        "property_filter": property_filter, "accident_filter": accident_filter, "sort": sort,
     })
 
 
@@ -282,7 +342,7 @@ async def insurance_detail(
 
     # Previous/Next buttons (issue #203): see the identical comment in
     # app/routers/parcels.py's parcel_detail for the reasoning.
-    ordered_ids = (await db.scalars(_insurance_parcels_query().with_only_columns(Parcel.id))).all()
+    ordered_ids = (await db.scalars(_insurance_parcels_query(year).with_only_columns(Parcel.id))).all()
     prev_parcel_id = None
     next_parcel_id = None
     if parcel_id in ordered_ids:

@@ -894,7 +894,11 @@
       "col_total_cost": "Celkové náklady",
       "yes": "Ano",
       "empty": "Žádné aktivní parcely.",
-      "count_suffix": "parcela(y)"
+      "count_suffix": "parcela(y)",
+      "filter_any": "Všechny",
+      "filter_none": "Žádné",
+      "filter_reset": "Resetovat",
+      "sum_label": "Součet"
     },
     "detail": {
       "title": "Pojištění {plot_number}",

@@ -1,4 +1,6 @@
 """Tests for the insurance module."""
+import re
+
 from tests.conftest import login, auth_header
 
 
@@ -253,3 +255,137 @@ async def test_additional_person_increases_accident_cost(client, admin_user):
     )).json()
 
     assert float(daten["accident_cost_eur"]) == 6.0  # 3 Grund + 3 Zusatzperson
+
+
+async def test_terminated_parcel_with_active_insurance_still_shown_in_list(client, admin_user):
+    """Issue #207: a lease termination doesn't automatically cancel the
+    actual (external) insurance contract, so a TERMINATED parcel that
+    still has an active insurance entry for the year must keep showing
+    up in /insurance/parcels as a reminder to cancel it by hand. A
+    TERMINATED parcel with no insurance for that year stays excluded."""
+    from app.database import AsyncSessionLocal
+    from app.models import Parcel, ParcelStatus, PropertyInsurancePackage, ParcelInsurance
+
+    async with AsyncSessionLocal() as session:
+        package = PropertyInsurancePackage(year=2026, name="Paket 207", amount_eur=40)
+        insured_parcel = Parcel(plot_number="207-insured", status=ParcelStatus.TERMINATED)
+        bare_parcel = Parcel(plot_number="207-bare", status=ParcelStatus.TERMINATED)
+        session.add_all([package, insured_parcel, bare_parcel])
+        await session.flush()
+        session.add(ParcelInsurance(
+            parcel_id=insured_parcel.id, year=2026,
+            has_property_insurance=True, property_package_id=package.id,
+        ))
+        await session.commit()
+        insured_id, bare_id = insured_parcel.id, bare_parcel.id
+
+    await web_login(client, "admin@example.com")
+
+    response = await client.get("/insurance/parcels?year=2026")
+    assert response.status_code == 200
+    body = response.text
+    assert "207-insured" in body
+    assert "207-bare" not in body
+
+
+async def test_accident_overview_stat_excludes_non_leaser_only_coverage(client, admin_user):
+    """Issue #208: has_accident_insurance can be true purely because a
+    non-leaser 'additional person' opted in while the actual leaser
+    (household member) opted out -- calculate_insurance_cost() already
+    charges no base fee for that case, so the /insurance/ 'insured
+    parcels' stat must not count it as an insured parcel either."""
+    from app.database import AsyncSessionLocal
+    from app.models import (
+        Member, MemberParcel, Parcel, InsuranceConfiguration, ParcelInsurance,
+        AccidentInsuranceAdditionalPerson,
+    )
+
+    async with AsyncSessionLocal() as session:
+        session.add(InsuranceConfiguration(
+            year=2026, accident_base_amount_eur=20, accident_additional_amount_eur=10,
+        ))
+        parcel = Parcel(plot_number="208-1")
+        leaser = Member(first_name="Leaser", last_name="208", street="Main St 1", postal_code="12345", city="Testort")
+        relative = Member(first_name="Relative", last_name="208", street="Elsewhere 1", postal_code="54321", city="Otherville")
+        session.add_all([parcel, leaser, relative])
+        await session.flush()
+        session.add(MemberParcel(member_id=leaser.id, parcel_id=parcel.id, is_invoice_address=True))
+        await session.flush()
+        pi = ParcelInsurance(parcel_id=parcel.id, year=2026, has_accident_insurance=True)
+        session.add(pi)
+        await session.flush()
+        # Leaser (household) deliberately left unchecked -- only the
+        # non-leaser additional person is covered.
+        session.add(AccidentInsuranceAdditionalPerson(parcel_insurance_id=pi.id, member_id=relative.id))
+        await session.commit()
+
+    await web_login(client, "admin@example.com")
+
+    response = await client.get("/insurance/?year=2026")
+    assert response.status_code == 200
+    body = response.text
+
+    label = "Accident insurance"
+    label_index = body.index(label)
+    window = body[label_index:label_index + 400]
+    match = re.search(r">(\d+)<", window)
+    assert match is not None
+    assert match.group(1) == "0"
+
+
+async def test_insurance_parcels_list_filters_and_sums(client, admin_user):
+    """Issue #209: /insurance/parcels can be filtered by property
+    package/accident status and shows a footer row summing the
+    displayed rows' costs."""
+    from app.database import AsyncSessionLocal
+    from app.models import Parcel, PropertyInsurancePackage, InsuranceConfiguration, ParcelInsurance
+
+    async with AsyncSessionLocal() as session:
+        package = PropertyInsurancePackage(year=2026, name="Paket 209", amount_eur=50)
+        session.add(package)
+        session.add(InsuranceConfiguration(year=2026, accident_base_amount_eur=0, accident_additional_amount_eur=0))
+        insured_parcel = Parcel(plot_number="209-insured")
+        bare_parcel = Parcel(plot_number="209-bare")
+        session.add_all([insured_parcel, bare_parcel])
+        await session.flush()
+        session.add(ParcelInsurance(
+            parcel_id=insured_parcel.id, year=2026,
+            has_property_insurance=True, property_package_id=package.id,
+        ))
+        await session.commit()
+        package_id = package.id
+
+    await web_login(client, "admin@example.com")
+
+    response = await client.get(f"/insurance/parcels?year=2026&property_filter={package_id}")
+    assert response.status_code == 200
+    body = response.text
+    assert "209-insured" in body
+    assert "209-bare" not in body
+    assert "50,00" in body or "50.00" in body  # footer sum
+
+    response = await client.get("/insurance/parcels?year=2026&property_filter=none")
+    assert response.status_code == 200
+    body = response.text
+    assert "209-bare" in body
+    assert "209-insured" not in body
+
+
+async def test_insurance_parcels_list_links_to_parcel_detail_page(client, admin_user):
+    """Issue #210: the plot number in /insurance/parcels links to the
+    parcel's actual detail page (/parcels/{id}), not just the
+    insurance-edit pencil icon."""
+    from app.database import AsyncSessionLocal
+    from app.models import Parcel
+
+    async with AsyncSessionLocal() as session:
+        parcel = Parcel(plot_number="210-1")
+        session.add(parcel)
+        await session.commit()
+        parcel_id = parcel.id
+
+    await web_login(client, "admin@example.com")
+
+    response = await client.get("/insurance/parcels?year=2026")
+    assert response.status_code == 200
+    assert f'href="/parcels/{parcel_id}"' in response.text

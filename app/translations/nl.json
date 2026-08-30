@@ -894,7 +894,11 @@
       "col_total_cost": "Totale kosten",
       "yes": "Ja",
       "empty": "Geen actieve percelen.",
-      "count_suffix": "perceel/percelen"
+      "count_suffix": "perceel/percelen",
+      "filter_any": "Alle",
+      "filter_none": "Geen",
+      "filter_reset": "Reset",
+      "sum_label": "Som"
     },
     "detail": {
       "title": "Verzekering {plot_number}",

@@ -894,7 +894,11 @@
       "col_total_cost": "Coût total",
       "yes": "Oui",
       "empty": "Aucune parcelle active.",
-      "count_suffix": "parcelle(s)"
+      "count_suffix": "parcelle(s)",
+      "filter_any": "Tous",
+      "filter_none": "Aucune",
+      "filter_reset": "Réinitialiser",
+      "sum_label": "Somme"
     },
     "detail": {
       "title": "Assurance {plot_number}",

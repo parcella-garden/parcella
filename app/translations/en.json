@@ -894,7 +894,11 @@
       "col_total_cost": "Total cost",
       "yes": "Yes",
       "empty": "No active parcels.",
-      "count_suffix": "parcel(s)"
+      "count_suffix": "parcel(s)",
+      "filter_any": "All",
+      "filter_none": "None",
+      "filter_reset": "Reset",
+      "sum_label": "Sum"
     },
     "detail": {
       "title": "Insurance {plot_number}",
