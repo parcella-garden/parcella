@@ -75,17 +75,27 @@ apply the same rule -- `has_accident_insurance and household_members`,
 not the flag alone -- otherwise a parcel where only a non-leaser is
 covered gets counted as an insured parcel it isn't (issue #208).
 
-## `/insurance/parcels` also lists insured-but-terminated parcels
+## `/insurance/parcels` also lists terminated parcels, by default
 
 A lease termination (`Parcel.status` -> `TERMINATED`) does not
 automatically cancel the actual, external insurance contract -- so
-`/insurance/parcels` includes a `TERMINATED` parcel for a given year if
-it still has a `ParcelInsurance` row with either flag set for that
-year, alongside all `ACTIVE` parcels (`_insurance_parcels_query()` in
-`app/routers/insurance.py`, issue #207). A `TERMINATED` parcel with no
-insurance for that year stays excluded -- there's nothing left to
-track. This is why the query now takes `year` as a parameter instead of
-being a static filter.
+`/insurance/parcels` includes `TERMINATED` parcels for a given year
+alongside all `ACTIVE` ones (`_insurance_parcels_query()` in
+`app/routers/insurance.py`, issue #207). This is why the query now
+takes `year` as a parameter instead of being a static filter.
+
+**Visibility defaults to shown, not hidden.** The first cut of #207
+gated a `TERMINATED` parcel's visibility on already having a
+`ParcelInsurance` row with either flag set for that year -- which is
+backwards in practice: a parcel that was terminated before anyone
+touched this year's insurance data has *no* row yet, so it was
+invisible in the exact case the issue was about (confirmed against
+real production data: three terminated parcels with zero insurance
+history anywhere in the table). Corrected same-day: a `TERMINATED`
+parcel is now excluded only once someone has explicitly reviewed it and
+recorded a row for that year with **both** flags `False` -- i.e.
+"checked, nothing to track." No row at all, or a row with either flag
+set, both keep it visible.
 
 ## Configurable packages instead of fixed values
 

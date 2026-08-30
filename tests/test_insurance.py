@@ -261,31 +261,76 @@ async def test_terminated_parcel_with_active_insurance_still_shown_in_list(clien
     """Issue #207: a lease termination doesn't automatically cancel the
     actual (external) insurance contract, so a TERMINATED parcel that
     still has an active insurance entry for the year must keep showing
-    up in /insurance/parcels as a reminder to cancel it by hand. A
-    TERMINATED parcel with no insurance for that year stays excluded."""
+    up in /insurance/parcels as a reminder to cancel it by hand."""
     from app.database import AsyncSessionLocal
     from app.models import Parcel, ParcelStatus, PropertyInsurancePackage, ParcelInsurance
 
     async with AsyncSessionLocal() as session:
         package = PropertyInsurancePackage(year=2026, name="Paket 207", amount_eur=40)
         insured_parcel = Parcel(plot_number="207-insured", status=ParcelStatus.TERMINATED)
-        bare_parcel = Parcel(plot_number="207-bare", status=ParcelStatus.TERMINATED)
-        session.add_all([package, insured_parcel, bare_parcel])
+        session.add_all([package, insured_parcel])
         await session.flush()
         session.add(ParcelInsurance(
             parcel_id=insured_parcel.id, year=2026,
             has_property_insurance=True, property_package_id=package.id,
         ))
         await session.commit()
-        insured_id, bare_id = insured_parcel.id, bare_parcel.id
 
     await web_login(client, "admin@example.com")
 
     response = await client.get("/insurance/parcels?year=2026")
     assert response.status_code == 200
-    body = response.text
-    assert "207-insured" in body
-    assert "207-bare" not in body
+    assert "207-insured" in response.text
+
+
+async def test_terminated_parcel_with_no_insurance_row_still_shown_for_review(client, admin_user):
+    """Follow-up correction to issue #207 (2026-08-30): a parcel that was
+    terminated before anyone entered this year's insurance data has *no*
+    ParcelInsurance row at all yet -- the original fix gated visibility
+    on an existing True-flagged row, which hid exactly the parcels that
+    most need reviewing (confirmed against real prod data: terminated
+    parcels with zero insurance history were invisible in the list).
+    A TERMINATED parcel with no row for the year must stay visible by
+    default, same as an ACTIVE parcel with no insurance yet."""
+    from app.database import AsyncSessionLocal
+    from app.models import Parcel, ParcelStatus
+
+    async with AsyncSessionLocal() as session:
+        bare_parcel = Parcel(plot_number="207-bare", status=ParcelStatus.TERMINATED)
+        session.add(bare_parcel)
+        await session.commit()
+
+    await web_login(client, "admin@example.com")
+
+    response = await client.get("/insurance/parcels?year=2026")
+    assert response.status_code == 200
+    assert "207-bare" in response.text
+
+
+async def test_terminated_parcel_with_confirmed_no_insurance_excluded(client, admin_user):
+    """Follow-up correction to issue #207 (2026-08-30): once someone has
+    actually reviewed a terminated parcel and recorded that there's no
+    insurance left to track (both flags explicitly False for the year),
+    it should drop off the list -- that's the one case that should stay
+    excluded, not "no row exists yet"."""
+    from app.database import AsyncSessionLocal
+    from app.models import Parcel, ParcelStatus, ParcelInsurance
+
+    async with AsyncSessionLocal() as session:
+        cancelled_parcel = Parcel(plot_number="207-cancelled", status=ParcelStatus.TERMINATED)
+        session.add(cancelled_parcel)
+        await session.flush()
+        session.add(ParcelInsurance(
+            parcel_id=cancelled_parcel.id, year=2026,
+            has_property_insurance=False, has_accident_insurance=False,
+        ))
+        await session.commit()
+
+    await web_login(client, "admin@example.com")
+
+    response = await client.get("/insurance/parcels?year=2026")
+    assert response.status_code == 200
+    assert "207-cancelled" not in response.text
 
 
 async def test_accident_overview_stat_excludes_non_leaser_only_coverage(client, admin_user):
@@ -372,9 +417,12 @@ async def test_insurance_parcels_list_filters_and_sums(client, admin_user):
 
 
 async def test_insurance_parcels_list_links_to_parcel_detail_page(client, admin_user):
-    """Issue #210: the plot number in /insurance/parcels links to the
-    parcel's actual detail page (/parcels/{id}), not just the
-    insurance-edit pencil icon."""
+    """Issue #210: "In the list view /insurance/parcels/, link directly
+    to their detail page /insurance/parcels/{UUID}" -- the plot number
+    links straight to that parcel's insurance detail page. Corrected
+    2026-08-30: the first cut of this fix linked the plot number to the
+    general parcel record (/parcels/{id}) instead, which kermie flagged
+    as not what the issue asked for."""
     from app.database import AsyncSessionLocal
     from app.models import Parcel
 
@@ -388,4 +436,4 @@ async def test_insurance_parcels_list_links_to_parcel_detail_page(client, admin_
 
     response = await client.get("/insurance/parcels?year=2026")
     assert response.status_code == 200
-    assert f'href="/parcels/{parcel_id}"' in response.text
+    assert f'href="/insurance/parcels/{parcel_id}?year=2026"' in response.text

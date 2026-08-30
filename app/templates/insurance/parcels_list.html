@@ -64,7 +64,7 @@
                     {% for r in rows %}
                     <tr>
                         <td class="fw-semibold">
-                            <a href="/parcels/{{ r.parcel.id }}" class="text-decoration-none" style="color: var(--gv-gruen);">
+                            <a href="/insurance/parcels/{{ r.parcel.id }}?year={{ year }}" class="text-decoration-none" style="color: var(--gv-gruen);">
                                 {{ r.parcel.plot_number }}
                             </a>
                             {% if r.parcel.status.value == 'TERMINATED' %}

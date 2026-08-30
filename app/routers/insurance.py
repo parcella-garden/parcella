@@ -219,20 +219,25 @@ def _insurance_parcels_query(year: int):
     drift apart -- same reasoning as _filtered_parcels_query in
     app/routers/parcels.py.
 
-    Also includes TERMINATED parcels that still carry an active
-    insurance entry for `year` (issue #207): a lease termination doesn't
-    automatically cancel the actual (external) insurance contract, so
-    the association still needs to see it here as a reminder to cancel
-    it by hand. A terminated parcel with no insurance for `year` stays
-    excluded -- nothing to track there."""
-    insured_terminated = select(ParcelInsurance.parcel_id).where(
+    Also includes TERMINATED parcels for `year` (issue #207 -- and its
+    2026-08-30 follow-up correction): a lease termination doesn't
+    automatically cancel the actual (external) insurance contract, so a
+    just-terminated parcel usually has *no* ParcelInsurance row yet for
+    the current year at all -- it dropped out of the list before anyone
+    got a chance to review it. Gating visibility on an existing
+    True-flagged row (the original fix) is exactly backwards: it hides
+    the parcels that most need reviewing. Instead, a TERMINATED parcel
+    stays visible by default and is excluded only once someone has
+    explicitly recorded that there's nothing left to track -- a row for
+    `year` with both flags False."""
+    confirmed_no_insurance = select(ParcelInsurance.parcel_id).where(
         ParcelInsurance.year == year,
-        (ParcelInsurance.has_property_insurance == True) |
-        (ParcelInsurance.has_accident_insurance == True),
+        ParcelInsurance.has_property_insurance == False,
+        ParcelInsurance.has_accident_insurance == False,
     )
     return select(Parcel).where(
         (Parcel.status == ParcelStatus.ACTIVE) |
-        ((Parcel.status == ParcelStatus.TERMINATED) & Parcel.id.in_(insured_terminated))
+        ((Parcel.status == ParcelStatus.TERMINATED) & ~Parcel.id.in_(confirmed_no_insurance))
     ).order_by(Parcel.plot_number)
 
 
