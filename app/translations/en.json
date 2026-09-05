@@ -1064,7 +1064,8 @@
       "calibration_expired_tooltip": "Calibration expired",
       "empty": "No {medium} metering points created yet.",
       "create_first": "Create first metering point",
-      "count_suffix": "metering point(s)"
+      "count_suffix": "metering point(s)",
+      "delete_confirm": "Really delete this metering point? All its meters and readings will be deleted too."
     },
     "point_form": {
       "title_new": "New {medium} metering point",
@@ -1090,6 +1091,8 @@
     },
     "point_detail": {
       "back": "Back",
+      "button_previous": "Previous",
+      "button_next": "Next",
       "point_header": "Metering point",
       "label_type": "Type",
       "type_main_meter": "Main meter",

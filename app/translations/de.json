@@ -1064,7 +1064,8 @@
       "calibration_expired_tooltip": "Eichung abgelaufen",
       "empty": "Noch keine {medium}-Zählpunkte angelegt.",
       "create_first": "Ersten Zählpunkt anlegen",
-      "count_suffix": "Zählpunkt(e)"
+      "count_suffix": "Zählpunkt(e)",
+      "delete_confirm": "Zählpunkt wirklich löschen? Alle zugehörigen Zähler und Zählerstände werden ebenfalls gelöscht."
     },
     "point_form": {
       "title_new": "Neuer {medium}-Zählpunkt",
@@ -1090,6 +1091,8 @@
     },
     "point_detail": {
       "back": "Zurück",
+      "button_previous": "Vorherige",
+      "button_next": "Nächste",
       "point_header": "Zählpunkt",
       "label_type": "Typ",
       "type_main_meter": "Hauptzähler",

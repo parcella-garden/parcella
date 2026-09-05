@@ -1064,7 +1064,8 @@
       "calibration_expired_tooltip": "Kalibrace vypršela",
       "empty": "Zatím nebyly vytvořeny žádné měrné body pro {medium}.",
       "create_first": "Vytvořit první měrné místo",
-      "count_suffix": "měrné(ých) míst(a)"
+      "count_suffix": "měrné(ých) míst(a)",
+      "delete_confirm": "Opravdu smazat toto měrné místo? Všechny přidružené měřiče a odečty budou také smazány."
     },
     "point_form": {
       "title_new": "Nové měrné místo pro {medium}",
@@ -1090,6 +1091,8 @@
     },
     "point_detail": {
       "back": "Zpět",
+      "button_previous": "Předchozí",
+      "button_next": "Další",
       "point_header": "Měrné místo",
       "label_type": "Typ",
       "type_main_meter": "Hlavní měřidlo",

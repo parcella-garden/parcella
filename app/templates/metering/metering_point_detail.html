@@ -3,9 +3,25 @@
 {% block page_title %}{{ metering_point.display_name }}{% endblock %}
 
 {% block topbar_actions %}
-<a href="{{ url_prefix }}/metering-points" class="btn btn-sm btn-outline-secondary">
-    <i class="bi bi-arrow-left me-1"></i>{{ t('metering.point_detail.back') }}
-</a>
+<div class="d-flex gap-2">
+    <a id="nav-prev-link"
+       href="{{ url_prefix ~ '/metering-points/' ~ prev_metering_point_id if prev_metering_point_id else '#' }}"
+       class="btn btn-sm btn-outline-secondary{% if not prev_metering_point_id %} disabled{% endif %}"
+       {% if not prev_metering_point_id %}aria-disabled="true" tabindex="-1"{% endif %}
+       title="{{ t('metering.point_detail.button_previous') }} (Ctrl+←)">
+        <i class="bi bi-chevron-left me-1"></i>{{ t('metering.point_detail.button_previous') }}
+    </a>
+    <a id="nav-next-link"
+       href="{{ url_prefix ~ '/metering-points/' ~ next_metering_point_id if next_metering_point_id else '#' }}"
+       class="btn btn-sm btn-outline-secondary{% if not next_metering_point_id %} disabled{% endif %}"
+       {% if not next_metering_point_id %}aria-disabled="true" tabindex="-1"{% endif %}
+       title="{{ t('metering.point_detail.button_next') }} (Ctrl+→)">
+        {{ t('metering.point_detail.button_next') }}<i class="bi bi-chevron-right ms-1"></i>
+    </a>
+    <a href="{{ url_prefix }}/metering-points" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>{{ t('metering.point_detail.back') }}
+    </a>
+</div>
 {% endblock %}
 
 {% block content %}

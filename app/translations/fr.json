@@ -1064,7 +1064,8 @@
       "calibration_expired_tooltip": "Étalonnage expiré",
       "empty": "Aucun point de mesure {medium} créé.",
       "create_first": "Créer un premier point de mesure",
-      "count_suffix": "point(s) de mesure"
+      "count_suffix": "point(s) de mesure",
+      "delete_confirm": "Voulez-vous vraiment supprimer ce point de mesure ? Tous les compteurs et relevés associés seront également supprimés."
     },
     "point_form": {
       "title_new": "Nouveau point de mesure {medium}",
@@ -1090,6 +1091,8 @@
     },
     "point_detail": {
       "back": "Retour",
+      "button_previous": "Précédent",
+      "button_next": "Suivant",
       "point_header": "Point de mesure",
       "label_type": "Type",
       "type_main_meter": "Compteur principal",

@@ -1064,7 +1064,8 @@
       "calibration_expired_tooltip": "Legalizacja wygasła",
       "empty": "Nie utworzono jeszcze punktów pomiarowych ({medium}).",
       "create_first": "Utwórz pierwszy punkt pomiarowy",
-      "count_suffix": "punkt(y) pomiarowe"
+      "count_suffix": "punkt(y) pomiarowe",
+      "delete_confirm": "Czy na pewno usunąć ten punkt pomiarowy? Wszystkie powiązane liczniki i odczyty zostaną również usunięte."
     },
     "point_form": {
       "title_new": "Nowy punkt pomiarowy ({medium})",
@@ -1090,6 +1091,8 @@
     },
     "point_detail": {
       "back": "Wstecz",
+      "button_previous": "Poprzedni",
+      "button_next": "Następny",
       "point_header": "Punkt pomiarowy",
       "label_type": "Typ",
       "type_main_meter": "Licznik główny",

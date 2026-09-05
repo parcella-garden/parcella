@@ -1064,7 +1064,8 @@
       "calibration_expired_tooltip": "Kalibratie verlopen",
       "empty": "Nog geen {medium} meetpunten aangemaakt.",
       "create_first": "Eerste meetpunt aanmaken",
-      "count_suffix": "meetpunt(en)"
+      "count_suffix": "meetpunt(en)",
+      "delete_confirm": "Dit meetpunt echt verwijderen? Alle bijbehorende meters en meterstanden worden ook verwijderd."
     },
     "point_form": {
       "title_new": "Nieuw {medium} meetpunt",
@@ -1090,6 +1091,8 @@
     },
     "point_detail": {
       "back": "Terug",
+      "button_previous": "Vorige",
+      "button_next": "Volgende",
       "point_header": "Meetpunt",
       "label_type": "Type",
       "type_main_meter": "Hoofdmeter",

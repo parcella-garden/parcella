@@ -130,6 +130,16 @@ def create_metering_router(
         )
         return result.scalars().all()
 
+    def _metering_point_sort_key(a: MeteringPoint):
+        # Same ordering as the metering-points list page (issue #212's
+        # Previous/Next walks that same order, mirroring the
+        # members/parcels detail pages -- ADR 0075).
+        if a.type == MeteringPointType.MAIN_METER:
+            return (0, "")
+        if a.type == MeteringPointType.PARCEL:
+            return (1, a.parcel.plot_number if a.parcel else "")
+        return (2, a.label or "")
+
     # -----------------------------------------------------------------
     # Overview
     # -----------------------------------------------------------------
@@ -194,15 +204,7 @@ def create_metering_router(
     async def metering_points_list(request: Request, db: AsyncSession = Depends(get_db)):
         user = await require_permission(request, db, modul_name, "read")
         all_points = await _load_all_metering_points(db)
-
-        def sortkey(a):
-            if a.type == MeteringPointType.MAIN_METER:
-                return (0, "")
-            if a.type == MeteringPointType.PARCEL:
-                return (1, a.parcel.plot_number if a.parcel else "")
-            return (2, a.label or "")
-
-        all_points.sort(key=sortkey)
+        all_points.sort(key=_metering_point_sort_key)
 
         return templates.TemplateResponse("metering/metering_points_list.html", {
             **base_context(request),
@@ -277,6 +279,21 @@ def create_metering_router(
                     "consumption": calculate_consumption(current_meter, z.year),
                 })
 
+        # Previous/Next buttons (issue #212): walk the same order the
+        # metering-points list page shows, mirroring members/parcels
+        # detail pages (ADR 0075). The list has no search/filter, so
+        # unlike members/parcels there's no query string to preserve.
+        all_points = await _load_all_metering_points(db)
+        ordered_ids = [a.id for a in sorted(all_points, key=_metering_point_sort_key)]
+        prev_metering_point_id = None
+        next_metering_point_id = None
+        if metering_point_id in ordered_ids:
+            idx = ordered_ids.index(metering_point_id)
+            if idx > 0:
+                prev_metering_point_id = ordered_ids[idx - 1]
+            if idx < len(ordered_ids) - 1:
+                next_metering_point_id = ordered_ids[idx + 1]
+
         return templates.TemplateResponse("metering/metering_point_detail.html", {
             **base_context(request),
             "request": request, "user": user,
@@ -287,6 +304,8 @@ def create_metering_router(
             "today": date.today().isoformat(),
             "current_year": date.today().year,
             "MeteringPointType": MeteringPointType,
+            "prev_metering_point_id": prev_metering_point_id,
+            "next_metering_point_id": next_metering_point_id,
         })
 
     @router.post("/metering-points/{metering_point_id}/edit")

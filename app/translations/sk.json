@@ -1064,7 +1064,8 @@
       "calibration_expired_tooltip": "Kalibrácia vypršala",
       "empty": "Zatiaľ neboli vytvorené žiadne meracie body pre {medium}.",
       "create_first": "Vytvoriť prvý merací bod",
-      "count_suffix": "merací(é) bod(y)"
+      "count_suffix": "merací(é) bod(y)",
+      "delete_confirm": "Naozaj vymazať tento merací bod? Všetky súvisiace merače a odpočty budú tiež vymazané."
     },
     "point_form": {
       "title_new": "Nový merací bod pre {medium}",
@@ -1090,6 +1091,8 @@
     },
     "point_detail": {
       "back": "Späť",
+      "button_previous": "Predchádzajúci",
+      "button_next": "Ďalší",
       "point_header": "Merací bod",
       "label_type": "Typ",
       "type_main_meter": "Hlavný merač",

@@ -2,6 +2,10 @@
 Tests for metering (water & electricity). Focus: the monotonicity
 check (a reading may not decrease) and consumption calculation.
 """
+from datetime import date
+
+from app.database import AsyncSessionLocal
+from app.models import Meter, MeterReading, MeteringMedium, MeteringPoint, MeteringPointType
 from tests.conftest import login, auth_header
 
 
@@ -153,6 +157,41 @@ async def test_monotonicity_error_uses_shared_i18n_text_not_hardcoded_german(cli
     # on DB numeric precision.
     assert "must not be smaller than the previous reading" in detail
     assert "Zählerstand" not in detail  # not the old hard-coded-German text
+
+
+async def test_metering_point_delete_button_present_and_deletes_cascade(client, admin_user):
+    """Issue #211: the HTML POST delete route (and its API equivalent)
+    already existed and cascade-deletes meters/readings -- the
+    metering-points list page just never had a delete button wired up
+    to it. Pure UI-wiring gap, not a missing capability."""
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"}
+    )
+    assert login_response.status_code in (302, 303)
+
+    async with AsyncSessionLocal() as session:
+        point = MeteringPoint(medium=MeteringMedium.WATER, type=MeteringPointType.CLUB, label="ToDelete")
+        session.add(point)
+        await session.flush()
+        meter = Meter(metering_point_id=point.id, number="W-DEL-1", is_active=True, initial_reading=0)
+        session.add(meter)
+        await session.flush()
+        reading = MeterReading(meter_id=meter.id, year=2026, date=date(2026, 1, 1), reading=10)
+        session.add(reading)
+        await session.commit()
+        point_id, meter_id, reading_id = point.id, meter.id, reading.id
+
+    list_response = await client.get("/water/metering-points")
+    assert list_response.status_code == 200
+    assert f'action="/water/metering-points/{point_id}/delete"' in list_response.text
+
+    delete_response = await client.post(f"/water/metering-points/{point_id}/delete")
+    assert delete_response.status_code == 302
+
+    async with AsyncSessionLocal() as session:
+        assert await session.get(MeteringPoint, point_id) is None
+        assert await session.get(Meter, meter_id) is None
+        assert await session.get(MeterReading, reading_id) is None
 
 
 async def test_treasurer_without_group_grant_is_blocked_from_water_write_via_api(client):

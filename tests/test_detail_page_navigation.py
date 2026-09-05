@@ -15,7 +15,7 @@ the detail page pass it along again.
 from datetime import date, timedelta
 
 from app.database import AsyncSessionLocal
-from app.models import Member, Parcel
+from app.models import Member, MeteringMedium, MeteringPoint, MeteringPointType, Parcel
 
 
 async def web_login(client, email: str, password: str = "testpasswort123") -> None:
@@ -199,5 +199,63 @@ async def test_parcel_detail_exposes_keyboard_nav_link_ids(client, admin_user):
         parcel_id = parcel.id
 
     response = await client.get(f"/parcels/{parcel_id}")
+    assert 'id="nav-prev-link"' in response.text
+    assert 'id="nav-next-link"' in response.text
+
+
+# ---------------------------------------------------------------------------
+# Metering points (issue #212): same Previous/Next pattern as
+# members/parcels above, walking the metering-points list page's own
+# order (MAIN_METER, then PARCEL by plot number, then CLUB by label --
+# see _metering_point_sort_key() in app/routers/metering.py). No
+# search/filter exists on that list, so there's no query string to
+# carry along, unlike members/parcels.
+# ---------------------------------------------------------------------------
+
+async def test_metering_point_detail_prev_next_follow_list_order(client, admin_user):
+    await web_login(client, "admin@example.com")
+
+    async with AsyncSessionLocal() as session:
+        a = MeteringPoint(medium=MeteringMedium.WATER, type=MeteringPointType.CLUB, label="Alpha")
+        b = MeteringPoint(medium=MeteringMedium.WATER, type=MeteringPointType.CLUB, label="Bravo")
+        c = MeteringPoint(medium=MeteringMedium.WATER, type=MeteringPointType.CLUB, label="Charlie")
+        session.add_all([a, b, c])
+        await session.commit()
+        a_id, b_id, c_id = a.id, b.id, c.id
+
+    response = await client.get(f"/water/metering-points/{b_id}")
+    assert response.status_code == 200
+    assert f"/water/metering-points/{a_id}" in response.text
+    assert f"/water/metering-points/{c_id}" in response.text
+
+
+async def test_metering_point_detail_first_and_last_have_no_prev_or_next(client, admin_user):
+    await web_login(client, "admin@example.com")
+
+    async with AsyncSessionLocal() as session:
+        a = MeteringPoint(medium=MeteringMedium.WATER, type=MeteringPointType.CLUB, label="Alpha")
+        b = MeteringPoint(medium=MeteringMedium.WATER, type=MeteringPointType.CLUB, label="Bravo")
+        session.add_all([a, b])
+        await session.commit()
+        a_id, b_id = a.id, b.id
+
+    first_response = await client.get(f"/water/metering-points/{a_id}")
+    assert 'aria-disabled="true"' in first_response.text
+    assert f"/water/metering-points/{b_id}" in first_response.text  # next still works
+
+    last_response = await client.get(f"/water/metering-points/{b_id}")
+    assert f"/water/metering-points/{a_id}" in last_response.text  # previous still works
+
+
+async def test_metering_point_detail_exposes_keyboard_nav_link_ids(client, admin_user):
+    await web_login(client, "admin@example.com")
+
+    async with AsyncSessionLocal() as session:
+        point = MeteringPoint(medium=MeteringMedium.WATER, type=MeteringPointType.CLUB, label="Alpha")
+        session.add(point)
+        await session.commit()
+        point_id = point.id
+
+    response = await client.get(f"/water/metering-points/{point_id}")
     assert 'id="nav-prev-link"' in response.text
     assert 'id="nav-next-link"' in response.text

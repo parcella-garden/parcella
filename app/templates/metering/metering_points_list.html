@@ -69,9 +69,18 @@
                             {% else %}–{% endif %}
                         </td>
                         <td class="text-end">
-                            <a href="{{ url_prefix }}/metering-points/{{ a.id }}" class="btn btn-sm btn-outline-secondary">
+                            <a href="{{ url_prefix }}/metering-points/{{ a.id }}" class="btn btn-sm btn-outline-secondary border-0">
                                 <i class="bi bi-eye"></i>
                             </a>
+                            {% if has_perm(request, modul_name, 'delete') %}
+                            <form method="post" action="{{ url_prefix }}/metering-points/{{ a.id }}/delete" class="d-inline">
+                                {{ csrf_field() }}
+                                <button type="submit" class="btn btn-sm btn-outline-danger border-0"
+                                        onclick="return confirm('{{ t('metering.points_list.delete_confirm') }}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
                         </td>
                     </tr>
                     {% else %}
