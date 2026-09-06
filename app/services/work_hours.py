@@ -74,15 +74,21 @@ async def calculate_hours_for_member(db: AsyncSession, member_id: str, year: int
 
 
 async def is_exempt(db: AsyncSession, member_id: str, year: int) -> bool:
-    """Checks whether a member is exempt from required work hours for a year."""
+    """Checks whether a member is exempt from required work hours for a
+    year. A member can hold more than one ClubRole in the same year
+    (e.g. chair + treasurer) -- .limit(1) makes this a pure existence
+    check regardless of how many exempt roles match, rather than
+    assuming at most one row (MultipleResultsFound in production on a
+    member holding two exempt roles in the same year)."""
     result = await db.execute(
-        select(MemberClubRole)
+        select(MemberClubRole.id)
         .join(ClubRole, MemberClubRole.club_role_id == ClubRole.id)
         .where(
             MemberClubRole.member_id == member_id,
             MemberClubRole.year == year,
             ClubRole.hours_exempt == True,
         )
+        .limit(1)
     )
     return result.scalar_one_or_none() is not None
 

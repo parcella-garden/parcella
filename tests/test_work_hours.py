@@ -191,6 +191,63 @@ async def test_exemption_applies_to_whole_parcel_under_per_parcel(client, admin_
     assert "G100" in html_response.text
 
 
+async def test_member_with_two_exempt_roles_in_same_year_does_not_crash_evaluation(client, admin_user):
+    """A member can hold more than one ClubRole in the same year (e.g.
+    chair + treasurer). is_exempt() used scalar_one_or_none() on a
+    query that can legitimately match more than one MemberClubRole row
+    in that case, raising MultipleResultsFound and 500ing the whole
+    evaluation page/API -- reproduced for real in production once real
+    membership data had a double-role board member (this exact
+    scenario never occurred in the smaller local/test data). The fix
+    (.limit(1), since this is a pure existence check) makes the row
+    count irrelevant."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    await _erstelle_configuration(client, headers, year=2026, mode="PER_PARCEL")
+
+    doppelrolle = (await client.post(
+        "/api/v1/members", json={"first_name": "Doppel", "last_name": "Rolle"}, headers=headers
+    )).json()
+    parcel = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "G101"}, headers=headers
+    )).json()
+    await client.post(
+        f"/api/v1/parcels/{parcel['id']}/assignments",
+        json={"member_id": doppelrolle["id"], "parcel_id": parcel["id"]},
+        headers=headers,
+    )
+
+    chair_role = (await client.post(
+        "/api/v1/work-hours/club-roles",
+        json={"name": "Vorsitzender", "hours_exempt": True, "exemption_reason": "BOARD"},
+        headers=headers,
+    )).json()
+    treasurer_role = (await client.post(
+        "/api/v1/work-hours/club-roles",
+        json={"name": "Kassenwart", "hours_exempt": True, "exemption_reason": "BOARD"},
+        headers=headers,
+    )).json()
+
+    for role in (chair_role, treasurer_role):
+        assignment = await client.post(
+            "/api/v1/work-hours/club-roles/assignments",
+            json={"member_id": doppelrolle["id"], "club_role_id": role["id"], "year": 2026},
+            headers=headers,
+        )
+        assert assignment.status_code == 201
+
+    evaluation_response = await client.get("/api/v1/work-hours/evaluation/2026", headers=headers)
+    assert evaluation_response.status_code == 200
+    row = next(z for z in evaluation_response.json() if z["label"] == "G101")
+    assert row["exempt"] is True
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    html_response = await client.get("/work-hours/evaluation", params={"year": 2026})
+    assert html_response.status_code == 200
+    assert "G101" in html_response.text
+
+
 async def test_former_leaser_excluded_from_annual_evaluation(client, admin_user):
     """Issue #206: evaluate_parcel() only filtered tenants by whether the
     MEMBER is still active, never whether this specific tenancy
