@@ -79,7 +79,6 @@
                             <tr>
                                 <th>{{ t('work_hours.club_roles.col_name') }}</th>
                                 <th>{{ t('work_hours.club_roles.col_exempt') }}</th>
-                                <th>{{ t('work_hours.club_roles.col_reason') }}</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -98,9 +97,6 @@
                                     {% else %}
                                     <span class="text-muted">{{ t('work_hours.club_roles.no') }}</span>
                                     {% endif %}
-                                </td>
-                                <td class="text-muted" style="font-size: 0.85rem;">
-                                    {{ r.exemption_reason.value if r.exemption_reason else '–' }}
                                 </td>
                                 <td class="text-end">
                                     {% if has_perm(request, 'work_hours', 'write') %}
@@ -124,7 +120,7 @@
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="4" class="text-center text-muted py-3">
+                                <td colspan="3" class="text-center text-muted py-3">
                                     {{ t('work_hours.club_roles.no_roles') }}
                                 </td>
                             </tr>
