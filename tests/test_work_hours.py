@@ -561,6 +561,72 @@ async def test_sponsorship_page_and_edit_form_show_fractional_hours(client, admi
     assert 'value="3.5"' in sponsorship_edit.text
 
 
+async def test_sponsorship_can_be_created_unclaimed_and_shows_regardless_of_year(client, admin_user):
+    """Issue #213: a sponsorship area can be advertised before anyone
+    has committed to it -- no member and no valid_from. Such a row has
+    no year of its own, so it must show up in the active table no
+    matter which year is selected."""
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+
+    create = await client.post(
+        "/work-hours/sponsorships/new",
+        data={"area": "Compost area", "credited_hours": "4.0"},
+    )
+    assert create.status_code == 302
+
+    for year in (2020, 2099):
+        page = await client.get("/work-hours/sponsorships", params={"year": year})
+        assert page.status_code == 200
+        assert "Compost area" in page.text
+
+
+async def test_former_sponsorship_listed_in_history_table(client, admin_user):
+    """A sponsorship whose valid_until has already passed used to
+    simply disappear once its year fell out of view. It must now show
+    up permanently in the 'Former Sponsorships' table (issue #213)."""
+    async with AsyncSessionLocal() as db:
+        db.add(Sponsorship(
+            area="Old playground fence", credited_hours=2.0,
+            valid_from=date(2020, 1, 1), valid_until=date(2020, 12, 31),
+        ))
+        await db.commit()
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    page = await client.get("/work-hours/sponsorships", params={"year": 2026})
+    assert page.status_code == 200
+    # The area name also legitimately appears in the create card's
+    # autocomplete <datalist> (all known areas, any year) -- only check
+    # that it shows up in the dedicated former-sponsorships section.
+    former_section = page.text.split("Former Sponsorships", 1)[1]
+    assert "Old playground fence" in former_section
+
+
+async def test_sponsorship_member_select_shows_plot_number(client, admin_user):
+    """The member picker for sponsorships used to list names only,
+    unusable for a large club. Both the create card and the edit form
+    now append the member's current plot number to the option label
+    (issue #213)."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    member = (await client.post(
+        "/api/v1/members", json={"first_name": "Petra", "last_name": "Picker"}, headers=headers
+    )).json()
+    parcel = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "T042"}, headers=headers
+    )).json()
+    await client.post(
+        f"/api/v1/parcels/{parcel['id']}/assignments",
+        json={"member_id": member["id"], "parcel_id": parcel["id"]},
+        headers=headers,
+    )
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    page = await client.get("/work-hours/sponsorships")
+    assert page.status_code == 200
+    assert "Petra Picker — T042" in page.text
+
+
 async def test_session_detail_signup_search_includes_name_and_plot_number(client, admin_user):
     """The "add participant" control used to be a plain <select> of
     member names only -- unusable for a large club and impossible to

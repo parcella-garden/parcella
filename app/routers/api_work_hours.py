@@ -14,7 +14,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, or_, and_
 
 from app.database import get_db
 from app.models import (
@@ -413,8 +413,13 @@ async def sponsorships_list(
     query = select(Sponsorship).order_by(Sponsorship.area)
     if year:
         query = query.where(
-            Sponsorship.valid_from <= date(year, 12, 31),
-            (Sponsorship.valid_until.is_(None)) | (Sponsorship.valid_until >= date(year, 1, 1)),
+            or_(
+                Sponsorship.valid_from.is_(None),
+                and_(
+                    Sponsorship.valid_from <= date(year, 12, 31),
+                    or_(Sponsorship.valid_until.is_(None), Sponsorship.valid_until >= date(year, 1, 1)),
+                ),
+            )
         )
     result = await db.execute(query)
     return result.scalars().all()

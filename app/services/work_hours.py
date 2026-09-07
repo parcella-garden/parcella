@@ -354,7 +354,7 @@ async def update_participation(db: AsyncSession, participation: SessionParticipa
 
 async def create_sponsorship(
     db: AsyncSession, *, member_id: Optional[str], area: str, description: Optional[str],
-    credited_hours: float, valid_from: date, valid_until: Optional[date] = None,
+    credited_hours: float, valid_from: Optional[date] = None, valid_until: Optional[date] = None,
 ) -> Sponsorship:
     sponsorship = Sponsorship(
         member_id=member_id or None, area=area.strip(), description=(description or "").strip() or None,

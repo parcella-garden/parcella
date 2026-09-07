@@ -583,7 +583,8 @@
         "purchase_requests": "Wnioski zakupowe",
         "calendar": "Kalendarz",
         "inventory": "Inwentarz",
-        "finances": "Finanse"
+        "finances": "Finanse",
+        "freescout_bridge": "Integracja FreeScout"
       }
     }
   },
@@ -1448,6 +1449,7 @@
       "valid_from_label": "Obowiązuje od",
       "valid_until_label": "Obowiązuje do",
       "empty_means_ongoing": "Puste = nadal trwa",
+      "empty_means_not_yet_claimed": "Puste = jeszcze nikt się nie zgłosił",
       "save_button": "Zapisz zmiany"
     },
     "sponsorships": {
@@ -1469,6 +1471,7 @@
       "valid_from_label": "Obowiązuje od",
       "valid_until_label": "Obowiązuje do",
       "empty_means_ongoing": "Puste = nadal trwa",
+      "empty_means_not_yet_claimed": "Puste = jeszcze nikt się nie zgłosił",
       "save_button": "Zapisz",
       "active_card_title": "Aktywne patronaty",
       "in_year": "w roku {year}",
@@ -1478,9 +1481,12 @@
       "col_period": "Okres",
       "people_count": "{count} osób",
       "not_yet_assigned_italic": "jeszcze nie przydzielono",
+      "not_yet_claimed": "jeszcze nie przejęto",
       "ongoing": "trwa",
       "delete_confirm": "Czy na pewno usunąć wpis?",
-      "no_active": "Brak aktywnych patronatów w roku {year}."
+      "no_active": "Brak aktywnych patronatów w roku {year}.",
+      "former_card_title": "Dawne patronaty",
+      "no_former": "Brak zapisanych dawnych patronatów."
     },
     "errors": {
       "configuration_not_found": "Nie znaleziono konfiguracji",

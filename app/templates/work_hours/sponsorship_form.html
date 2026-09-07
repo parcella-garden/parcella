@@ -31,9 +31,10 @@
                         <select name="member_id" class="form-select">
                             <option value="">{{ t('work_hours.sponsorship_form.not_yet_assigned') }}</option>
                             {% for m in all_members %}
+                            {% set m_plots = m.parcel_assignments | selectattr('is_current') | map(attribute='parcel.plot_number') | join(', ') %}
                             <option value="{{ m.id }}"
                                 {% if sponsorship.member and sponsorship.member.id == m.id %}selected{% endif %}>
-                                {{ m.full_name }}
+                                {{ m.full_name }}{% if m_plots %} — {{ m_plots }}{% endif %}
                             </option>
                             {% endfor %}
                         </select>
@@ -52,9 +53,10 @@
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-sm-6">
-                            <label class="form-label fw-semibold">{{ t('work_hours.sponsorship_form.valid_from_label') }} <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">{{ t('work_hours.sponsorship_form.valid_from_label') }}</label>
                             <input type="date" name="valid_from" class="form-control"
-                                   value="{{ sponsorship.valid_from.isoformat() }}" required>
+                                   value="{{ sponsorship.valid_from.isoformat() if sponsorship.valid_from else '' }}">
+                            <div class="form-text">{{ t('work_hours.sponsorship_form.empty_means_not_yet_claimed') }}</div>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold">{{ t('work_hours.sponsorship_form.valid_until_label') }}</label>

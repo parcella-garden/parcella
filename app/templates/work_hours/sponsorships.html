@@ -35,7 +35,8 @@
                         <select name="member_id" class="form-select">
                             <option value="">{{ t('work_hours.sponsorships.not_yet_assigned') }}</option>
                             {% for m in all_members %}
-                            <option value="{{ m.id }}">{{ m.full_name }}</option>
+                            {% set m_plots = m.parcel_assignments | selectattr('is_current') | map(attribute='parcel.plot_number') | join(', ') %}
+                            <option value="{{ m.id }}">{{ m.full_name }}{% if m_plots %} — {{ m_plots }}{% endif %}</option>
                             {% endfor %}
                         </select>
                         <div class="form-text">{{ t('work_hours.sponsorships.member_hint') }}</div>
@@ -63,9 +64,9 @@
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-sm-6">
-                            <label class="form-label fw-semibold">{{ t('work_hours.sponsorships.valid_from_label') }} <span class="text-danger">*</span></label>
-                            <input type="date" name="valid_from" class="form-control" required
-                                   value="{{ year }}-01-01">
+                            <label class="form-label fw-semibold">{{ t('work_hours.sponsorships.valid_from_label') }}</label>
+                            <input type="date" name="valid_from" class="form-control">
+                            <div class="form-text">{{ t('work_hours.sponsorships.empty_means_not_yet_claimed') }}</div>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold">{{ t('work_hours.sponsorships.valid_until_label') }}</label>
@@ -129,8 +130,12 @@
                                 </td>
                                 <td>{{ p.credited_hours | number(1) }} h</td>
                                 <td class="text-muted" style="font-size: 0.85rem;">
+                                    {% if p.valid_from %}
                                     {{ p.valid_from.strftime('%d.%m.%Y') }} –
                                     {{ p.valid_until.strftime('%d.%m.%Y') if p.valid_until else t('work_hours.sponsorships.ongoing') }}
+                                    {% else %}
+                                    <span class="fst-italic">{{ t('work_hours.sponsorships.not_yet_claimed') }}</span>
+                                    {% endif %}
                                 </td>
                                 <td class="text-end">
                                     {% if has_perm(request, 'work_hours', 'write') %}
@@ -160,6 +165,77 @@
                 {% else %}
                 <div class="text-center text-muted py-4">
                     {{ t('work_hours.sponsorships.no_active', year=year) }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2"></i>{{ t('work_hours.sponsorships.former_card_title') }}
+            </div>
+            <div class="card-body p-0">
+                {% if former_sponsorships %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ t('work_hours.sponsorships.col_area') }}</th>
+                                <th>{{ t('work_hours.sponsorships.col_members') }}</th>
+                                <th>{{ t('work_hours.sponsorships.col_hours_per_year') }}</th>
+                                <th>{{ t('work_hours.sponsorships.col_period') }}</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in former_sponsorships %}
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">{{ p.area }}</div>
+                                    {% if p.description %}
+                                    <div class="text-muted" style="font-size: 0.8rem;">{{ p.description }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if p.member %}
+                                    <a href="/members/{{ p.member.id }}" class="text-decoration-none"
+                                       style="color: var(--gv-gruen);">{{ p.member.full_name }}</a>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">{{ t('work_hours.sponsorships.not_yet_assigned_italic') }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ p.credited_hours | number(1) }} h</td>
+                                <td class="text-muted" style="font-size: 0.85rem;">
+                                    {{ p.valid_from.strftime('%d.%m.%Y') if p.valid_from else '–' }} –
+                                    {{ p.valid_until.strftime('%d.%m.%Y') }}
+                                </td>
+                                <td class="text-end">
+                                    {% if has_perm(request, 'work_hours', 'write') %}
+                                    <a href="/work-hours/sponsorships/{{ p.id }}/edit"
+                                       class="btn btn-sm btn-outline-secondary border-0">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if has_perm(request, 'work_hours', 'delete') %}
+                                    <form method="post"
+                                          action="/work-hours/sponsorships/{{ p.id }}/delete"
+                                          class="d-inline">
+                                        {{ csrf_field() }}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger border-0"
+                                                onclick="return confirm('{{ t('work_hours.sponsorships.delete_confirm') }}')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    {{ t('work_hours.sponsorships.no_former') }}
                 </div>
                 {% endif %}
             </div>

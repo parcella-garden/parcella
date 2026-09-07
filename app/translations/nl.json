@@ -583,7 +583,8 @@
         "purchase_requests": "Aankoopaanvragen",
         "calendar": "Kalender",
         "inventory": "Inventaris",
-        "finances": "Financiën"
+        "finances": "Financiën",
+        "freescout_bridge": "FreeScout-koppeling"
       }
     }
   },
@@ -1448,6 +1449,7 @@
       "valid_from_label": "Geldig vanaf",
       "valid_until_label": "Geldig tot",
       "empty_means_ongoing": "Leeg = nog actief",
+      "empty_means_not_yet_claimed": "Leeg = nog door niemand overgenomen",
       "save_button": "Wijzigingen opslaan"
     },
     "sponsorships": {
@@ -1469,6 +1471,7 @@
       "valid_from_label": "Geldig vanaf",
       "valid_until_label": "Geldig tot",
       "empty_means_ongoing": "Leeg = nog actief",
+      "empty_means_not_yet_claimed": "Leeg = nog door niemand overgenomen",
       "save_button": "Opslaan",
       "active_card_title": "Actieve sponsorschappen",
       "in_year": "in {year}",
@@ -1478,9 +1481,12 @@
       "col_period": "Periode",
       "people_count": "{count} personen",
       "not_yet_assigned_italic": "nog niet toegewezen",
+      "not_yet_claimed": "nog niet overgenomen",
       "ongoing": "actief",
       "delete_confirm": "Deze invoer echt verwijderen?",
-      "no_active": "Geen actieve sponsorschappen in {year}."
+      "no_active": "Geen actieve sponsorschappen in {year}.",
+      "former_card_title": "Voormalige sponsorschappen",
+      "no_former": "Geen voormalige sponsorschappen bekend."
     },
     "errors": {
       "configuration_not_found": "Configuratie niet gevonden",

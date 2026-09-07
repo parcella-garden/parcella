@@ -583,7 +583,8 @@
         "purchase_requests": "Žádosti o nákup",
         "calendar": "Kalendář",
         "inventory": "Inventář",
-        "finances": "Finance"
+        "finances": "Finance",
+        "freescout_bridge": "Napojení na FreeScout"
       }
     }
   },
@@ -1448,6 +1449,7 @@
       "valid_from_label": "Platné od",
       "valid_until_label": "Platné do",
       "empty_means_ongoing": "Prázdné = stále probíhá",
+      "empty_means_not_yet_claimed": "Prázdné = zatím nikým nepřevzato",
       "save_button": "Uložit změny"
     },
     "sponsorships": {
@@ -1469,6 +1471,7 @@
       "valid_from_label": "Platné od",
       "valid_until_label": "Platné do",
       "empty_means_ongoing": "Prázdné = stále probíhá",
+      "empty_means_not_yet_claimed": "Prázdné = zatím nikým nepřevzato",
       "save_button": "Uložit",
       "active_card_title": "Aktivní sponzoringy",
       "in_year": "v {year}",
@@ -1478,9 +1481,12 @@
       "col_period": "Období",
       "people_count": "{count} osob",
       "not_yet_assigned_italic": "zatím nepřiděleno",
+      "not_yet_claimed": "zatím nepřevzato",
       "ongoing": "probíhá",
       "delete_confirm": "Opravdu chcete smazat tento záznam?",
-      "no_active": "V {year} nejsou žádné aktivní sponzoringy."
+      "no_active": "V {year} nejsou žádné aktivní sponzoringy.",
+      "former_card_title": "Dřívější sponzoringy",
+      "no_former": "Nejsou evidovány žádné dřívější sponzoringy."
     },
     "errors": {
       "configuration_not_found": "Konfigurace nebyla nalezena",

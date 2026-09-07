@@ -583,7 +583,8 @@
         "purchase_requests": "Purchase Requests",
         "calendar": "Calendar",
         "inventory": "Inventory",
-        "finances": "Finances"
+        "finances": "Finances",
+        "freescout_bridge": "FreeScout Bridge"
       }
     }
   },
@@ -1448,6 +1449,7 @@
       "valid_from_label": "Valid From",
       "valid_until_label": "Valid Until",
       "empty_means_ongoing": "Empty = still ongoing",
+      "empty_means_not_yet_claimed": "Empty = not yet claimed by anyone",
       "save_button": "Save Changes"
     },
     "sponsorships": {
@@ -1469,6 +1471,7 @@
       "valid_from_label": "Valid From",
       "valid_until_label": "Valid Until",
       "empty_means_ongoing": "Empty = still ongoing",
+      "empty_means_not_yet_claimed": "Empty = not yet claimed by anyone",
       "save_button": "Save",
       "active_card_title": "Active Sponsorships",
       "in_year": "in {year}",
@@ -1478,9 +1481,12 @@
       "col_period": "Period",
       "people_count": "{count} people",
       "not_yet_assigned_italic": "not yet assigned",
+      "not_yet_claimed": "not yet claimed",
       "ongoing": "ongoing",
       "delete_confirm": "Really delete this entry?",
-      "no_active": "No active sponsorships in {year}."
+      "no_active": "No active sponsorships in {year}.",
+      "former_card_title": "Former Sponsorships",
+      "no_former": "No former sponsorships on file."
     },
     "errors": {
       "configuration_not_found": "Configuration not found",

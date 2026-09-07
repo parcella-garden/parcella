@@ -725,7 +725,9 @@ class Sponsorship(Base):
         Numeric(5, 1), nullable=False,
         comment="Flat hours credited per year"
     )
-    valid_from: Mapped[date] = mapped_column(Date, nullable=False)
+    valid_from: Mapped[Optional[date]] = mapped_column(
+        Date, nullable=True, comment="NULL = not yet claimed/scheduled"
+    )
     valid_until: Mapped[Optional[date]] = mapped_column(Date, nullable=True, comment="NULL = still ongoing")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

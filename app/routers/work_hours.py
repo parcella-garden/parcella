@@ -10,7 +10,7 @@ from typing import Optional, List
 from fastapi import APIRouter, Request, Form, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_, and_
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db, active_member_filter
@@ -835,8 +835,15 @@ async def sponsorships_page(
         select(Sponsorship)
         .options(selectinload(Sponsorship.member))
         .where(
-            Sponsorship.valid_from <= date(year, 12, 31),
-            (Sponsorship.valid_until.is_(None)) | (Sponsorship.valid_until >= date(year, 1, 1)),
+            or_(
+                # Not yet claimed (no start date set) -- a standing offer,
+                # shown regardless of which year is selected.
+                Sponsorship.valid_from.is_(None),
+                and_(
+                    Sponsorship.valid_from <= date(year, 12, 31),
+                    or_(Sponsorship.valid_until.is_(None), Sponsorship.valid_until >= date(year, 1, 1)),
+                ),
+            )
         )
         .order_by(Sponsorship.area)
     )
@@ -847,6 +854,16 @@ async def sponsorships_page(
     grouped_areas = {}
     for p in sponsorships:
         grouped_areas.setdefault(p.area, []).append(p)
+
+    # Former sponsorships: a permanent record of anything that has
+    # actually ended, independent of the year selected above.
+    former_result = await db.execute(
+        select(Sponsorship)
+        .options(selectinload(Sponsorship.member))
+        .where(Sponsorship.valid_until.is_not(None), Sponsorship.valid_until < date.today())
+        .order_by(Sponsorship.valid_until.desc(), Sponsorship.area)
+    )
+    former_sponsorships = former_result.scalars().all()
 
     # All known area names (for autocomplete, including past years, to
     # avoid typos when reusing one)
@@ -860,6 +877,7 @@ async def sponsorships_page(
 
     members_result = await db.execute(
         select(Member)
+        .options(selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel))
         .where(active_member_filter())
         .order_by(Member.last_name, Member.first_name)
     )
@@ -872,6 +890,7 @@ async def sponsorships_page(
             "user": user,
             "sponsorships": sponsorships,
             "grouped_areas": grouped_areas,
+            "former_sponsorships": former_sponsorships,
             "all_areas": all_areas,
             "config": config,
             "all_members": all_members,
@@ -887,7 +906,7 @@ async def sponsorship_create(
     area: str = Form(...),
     description: str = Form(""),
     credited_hours: str = Form(...),
-    valid_from: str = Form(...),
+    valid_from: str = Form(""),
     valid_until: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
@@ -896,7 +915,7 @@ async def sponsorship_create(
     await create_sponsorship(
         db, member_id=member_id, area=area, description=description,
         credited_hours=float(credited_hours.replace(",", ".")),
-        valid_from=date.fromisoformat(valid_from),
+        valid_from=(date.fromisoformat(valid_from) if valid_from.strip() else None),
         valid_until=(date.fromisoformat(valid_until) if valid_until.strip() else None),
     )
     await db.commit()
@@ -922,6 +941,7 @@ async def sponsorship_edit_page(
 
     members_result = await db.execute(
         select(Member)
+        .options(selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel))
         .where(active_member_filter())
         .order_by(Member.last_name, Member.first_name)
     )
@@ -952,7 +972,7 @@ async def sponsorship_update(
     area: str = Form(...),
     description: str = Form(""),
     credited_hours: str = Form(...),
-    valid_from: str = Form(...),
+    valid_from: str = Form(""),
     valid_until: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
@@ -967,13 +987,18 @@ async def sponsorship_update(
         db, sponsorship,
         member_id=member_id, area=area, description=description,
         credited_hours=float(credited_hours.replace(",", ".")),
-        valid_from=date.fromisoformat(valid_from),
+        valid_from=(date.fromisoformat(valid_from) if valid_from.strip() else None),
         valid_until=(date.fromisoformat(valid_until) if valid_until.strip() else None),
     )
 
     await db.commit()
 
-    year = sponsorship.valid_from.year
+    if sponsorship.valid_from:
+        year = sponsorship.valid_from.year
+    elif sponsorship.valid_until:
+        year = sponsorship.valid_until.year
+    else:
+        year = date.today().year
     return RedirectResponse(f"/work-hours/sponsorships?year={year}", status_code=302)
 
 

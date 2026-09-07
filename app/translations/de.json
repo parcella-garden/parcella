@@ -583,7 +583,8 @@
         "purchase_requests": "Einkaufswünsche",
         "calendar": "Kalender",
         "inventory": "Inventar",
-        "finances": "Finanzen"
+        "finances": "Finanzen",
+        "freescout_bridge": "FreeScout-Anbindung"
       }
     }
   },
@@ -1448,6 +1449,7 @@
       "valid_from_label": "Gültig ab",
       "valid_until_label": "Gültig bis",
       "empty_means_ongoing": "Leer = läuft noch",
+      "empty_means_not_yet_claimed": "Leer = noch von niemandem übernommen",
       "save_button": "Änderungen speichern"
     },
     "sponsorships": {
@@ -1469,6 +1471,7 @@
       "valid_from_label": "Gültig ab",
       "valid_until_label": "Gültig bis",
       "empty_means_ongoing": "Leer = läuft noch",
+      "empty_means_not_yet_claimed": "Leer = noch von niemandem übernommen",
       "save_button": "Speichern",
       "active_card_title": "Aktive Patenschaften",
       "in_year": "im Jahr {year}",
@@ -1478,9 +1481,12 @@
       "col_period": "Zeitraum",
       "people_count": "{count} Personen",
       "not_yet_assigned_italic": "noch nicht vergeben",
+      "not_yet_claimed": "noch nicht übernommen",
       "ongoing": "laufend",
       "delete_confirm": "Eintrag wirklich löschen?",
-      "no_active": "Keine aktiven Patenschaften im Jahr {year}."
+      "no_active": "Keine aktiven Patenschaften im Jahr {year}.",
+      "former_card_title": "Frühere Patenschaften",
+      "no_former": "Keine früheren Patenschaften hinterlegt."
     },
     "errors": {
       "configuration_not_found": "Konfiguration nicht gefunden",

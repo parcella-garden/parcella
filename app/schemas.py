@@ -359,7 +359,7 @@ class SponsorshipBase(BaseModel):
     area: str
     description: Optional[str] = None
     credited_hours: Decimal
-    valid_from: date
+    valid_from: Optional[date] = None
     valid_until: Optional[date] = None
 
 

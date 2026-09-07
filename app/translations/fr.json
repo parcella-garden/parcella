@@ -583,7 +583,8 @@
         "purchase_requests": "Demandes d'achat",
         "calendar": "Calendrier",
         "inventory": "Inventaire",
-        "finances": "Finances"
+        "finances": "Finances",
+        "freescout_bridge": "Connexion FreeScout"
       }
     }
   },
@@ -1448,6 +1449,7 @@
       "valid_from_label": "Valable du",
       "valid_until_label": "Valable jusqu'au",
       "empty_means_ongoing": "Vide = toujours en cours",
+      "empty_means_not_yet_claimed": "Vide = pas encore repris par quelqu'un",
       "save_button": "Enregistrer les modifications"
     },
     "sponsorships": {
@@ -1469,6 +1471,7 @@
       "valid_from_label": "Valable du",
       "valid_until_label": "Valable jusqu'au",
       "empty_means_ongoing": "Vide = toujours en cours",
+      "empty_means_not_yet_claimed": "Vide = pas encore repris par quelqu'un",
       "save_button": "Enregistrer",
       "active_card_title": "Parrainages actifs",
       "in_year": "en {year}",
@@ -1478,9 +1481,12 @@
       "col_period": "Période",
       "people_count": "{count} personne(s)",
       "not_yet_assigned_italic": "pas encore attribué",
+      "not_yet_claimed": "pas encore repris",
       "ongoing": "en cours",
       "delete_confirm": "Voulez-vous vraiment supprimer cette entrée ?",
-      "no_active": "Aucun parrainage actif en {year}."
+      "no_active": "Aucun parrainage actif en {year}.",
+      "former_card_title": "Anciens parrainages",
+      "no_former": "Aucun ancien parrainage enregistré."
     },
     "errors": {
       "configuration_not_found": "Configuration non trouvée",

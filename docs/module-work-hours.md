@@ -71,6 +71,24 @@ can share an area by creating multiple sponsorship rows with the same
 area name (autocomplete via `<datalist>`) -- each gets the full hour
 credit.
 
+**`valid_from` is optional too, for the same "advertise before it's
+claimed" reason (issue #213).** A sponsorship can be entered with no
+member *and* no start date -- just an area name waiting for someone to
+adopt it. `/work-hours/sponsorships` always shows these unclaimed rows
+in the active table regardless of which year is selected (they don't
+belong to a year yet), and a separate "Former Sponsorships" card below
+lists everything whose `valid_until` has already passed, as a permanent
+record independent of the year filter -- previously an ended sponsorship
+simply vanished once its year fell out of view. One consequence: if a
+member is attached to a sponsorship that still has no `valid_from`,
+`calculate_hours_for_member` won't credit it for any year (the
+`valid_from <= ...` comparison is NULL, hence excluded) until a start
+date is actually set -- expected, not a bug: an unscheduled sponsorship
+hasn't started yet. The member-select dropdowns (create card and edit
+form) show each member's current plot number(s) alongside their name
+(`Name — plot number`), like the issue asked for, to make it easier to
+find someone in a large club.
+
 **Creditable hours are pre-filled from the current configuration**, but
 remain freely editable (e.g. in case a sponsorship takes more effort than
 the standard requirement).
