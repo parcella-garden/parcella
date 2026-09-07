@@ -36,7 +36,7 @@
                             <option value="">{{ t('work_hours.sponsorships.not_yet_assigned') }}</option>
                             {% for m in all_members %}
                             {% set m_plots = m.parcel_assignments | selectattr('is_current') | map(attribute='parcel.plot_number') | join(', ') %}
-                            <option value="{{ m.id }}">{{ m.full_name }}{% if m_plots %} — {{ m_plots }}{% endif %}</option>
+                            <option value="{{ m.id }}">{% if m_plots %}{{ m_plots }} - {% endif %}{{ m.full_name }}</option>
                             {% endfor %}
                         </select>
                         <div class="form-text">{{ t('work_hours.sponsorships.member_hint') }}</div>

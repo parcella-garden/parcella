@@ -79,15 +79,32 @@ in the active table regardless of which year is selected (they don't
 belong to a year yet), and a separate "Former Sponsorships" card below
 lists everything whose `valid_until` has already passed, as a permanent
 record independent of the year filter -- previously an ended sponsorship
-simply vanished once its year fell out of view. One consequence: if a
+simply vanished once its year fell out of view.
+
+**The active table additionally requires "not yet ended as of today", on
+top of the year-overlap check.** Without that, a sponsorship that ended
+earlier in the *current* calendar year (e.g. `valid_until` in June, viewed
+in September) would satisfy the existing-year window and show as
+"active" while simultaneously appearing in the Former table below --
+confusing and reported as a bug the same day this feature shipped. The
+REST API's `GET /api/v1/work-hours/sponsorships?year=` deliberately does
+*not* carry this extra restriction: it's a flat "what was active during
+year X" historical query with no separate former/active split to be
+confused by, so a past year correctly still returns sponsorships that
+have since ended. One consequence: if a
 member is attached to a sponsorship that still has no `valid_from`,
 `calculate_hours_for_member` won't credit it for any year (the
 `valid_from <= ...` comparison is NULL, hence excluded) until a start
 date is actually set -- expected, not a bug: an unscheduled sponsorship
 hasn't started yet. The member-select dropdowns (create card and edit
-form) show each member's current plot number(s) alongside their name
-(`Name — plot number`), like the issue asked for, to make it easier to
-find someone in a large club.
+form) are labeled and sorted plot-number-first (`G001 - Peter Ahnert`),
+not alphabetically by name -- kermie's follow-up request, since a large
+club gets scanned by garden plot far more often than by surname. Members
+with no current plot assignment sort last, after every plot-holder
+(`_sort_members_by_plot` in `app/routers/work_hours.py`; the plot number
+comes from `Member.parcel_assignments`, a Python-side sort since the
+member list also needs to include people without any current parcel, which
+a plain SQL join would drop or duplicate).
 
 **Creditable hours are pre-filled from the current configuration**, but
 remain freely editable (e.g. in case a sponsorship takes more effort than

@@ -820,6 +820,19 @@ async def club_role_delete(
 # Sponsorships
 # ---------------------------------------------------------------------------
 
+def _sort_members_by_plot(members: List[Member]) -> List[Member]:
+    """Member picker order for sponsorships: by current plot number
+    first (e.g. G043 before G100), members without one last, name as
+    the tie-breaker -- requested so a large club can be scanned by
+    garden plot the same way the signup-search box already can be
+    searched by it (issue #213 follow-up)."""
+    def key(m: Member):
+        plots = sorted(pa.parcel.plot_number for pa in m.parcel_assignments if pa.is_current)
+        return (not plots, plots[0] if plots else "", m.last_name, m.first_name)
+
+    return sorted(members, key=key)
+
+
 @router.get("/sponsorships", response_class=HTMLResponse)
 async def sponsorships_page(
     request: Request,
@@ -843,7 +856,12 @@ async def sponsorships_page(
                     Sponsorship.valid_from <= date(year, 12, 31),
                     or_(Sponsorship.valid_until.is_(None), Sponsorship.valid_until >= date(year, 1, 1)),
                 ),
-            )
+            ),
+            # Anything that has already ended as of today belongs in the
+            # "Former Sponsorships" table below, not here -- otherwise a
+            # sponsorship that ended earlier this calendar year would show
+            # in both tables at once when viewing the current year.
+            or_(Sponsorship.valid_until.is_(None), Sponsorship.valid_until >= date.today()),
         )
         .order_by(Sponsorship.area)
     )
@@ -881,7 +899,7 @@ async def sponsorships_page(
         .where(active_member_filter())
         .order_by(Member.last_name, Member.first_name)
     )
-    all_members = members_result.scalars().all()
+    all_members = _sort_members_by_plot(members_result.scalars().all())
 
     return templates.TemplateResponse(
         "work_hours/sponsorships.html",
@@ -945,7 +963,7 @@ async def sponsorship_edit_page(
         .where(active_member_filter())
         .order_by(Member.last_name, Member.first_name)
     )
-    all_members = members_result.scalars().all()
+    all_members = _sort_members_by_plot(members_result.scalars().all())
 
     alle_bereiche_result = await db.execute(
         select(Sponsorship.area).distinct().order_by(Sponsorship.area)

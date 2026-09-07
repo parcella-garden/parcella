@@ -34,7 +34,7 @@
                             {% set m_plots = m.parcel_assignments | selectattr('is_current') | map(attribute='parcel.plot_number') | join(', ') %}
                             <option value="{{ m.id }}"
                                 {% if sponsorship.member and sponsorship.member.id == m.id %}selected{% endif %}>
-                                {{ m.full_name }}{% if m_plots %} — {{ m_plots }}{% endif %}
+                                {% if m_plots %}{{ m_plots }} - {% endif %}{{ m.full_name }}
                             </option>
                             {% endfor %}
                         </select>

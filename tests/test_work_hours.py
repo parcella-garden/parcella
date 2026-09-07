@@ -3,7 +3,7 @@ Tests for the Work Hours module. Focus on the business logic with
 higher regression risk: group exemption under PER_PARCEL (any() instead
 of all() -- see Architecture Decisions) and the annual evaluation.
 """
-from datetime import date
+from datetime import date, timedelta
 
 from app.database import AsyncSessionLocal
 from app.models import WorkSession, SessionType, WorkHoursConfiguration, WorkHoursMode, Sponsorship
@@ -601,30 +601,75 @@ async def test_former_sponsorship_listed_in_history_table(client, admin_user):
     assert "Old playground fence" in former_section
 
 
-async def test_sponsorship_member_select_shows_plot_number(client, admin_user):
-    """The member picker for sponsorships used to list names only,
-    unusable for a large club. Both the create card and the edit form
-    now append the member's current plot number to the option label
-    (issue #213)."""
+async def test_sponsorship_ended_this_year_only_shows_as_former_not_active(client, admin_user):
+    """A sponsorship that ended earlier in the *current* calendar year
+    used to satisfy the active table's year-overlap check and so showed
+    up there too, at the same time as in the Former table below -- filed
+    the same day issue #213 shipped. Ended-as-of-today must exclude a
+    row from the active table regardless of the selected year."""
+    today = date.today()
+    async with AsyncSessionLocal() as db:
+        db.add(Sponsorship(
+            area="Already ended this year", credited_hours=2.0,
+            valid_from=date(today.year, 1, 1), valid_until=today - timedelta(days=1),
+        ))
+        await db.commit()
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    page = await client.get("/work-hours/sponsorships", params={"year": today.year})
+    assert page.status_code == 200
+
+    # Isolate the active table's own body -- the create card's area
+    # <datalist> (all areas ever used, for autocomplete) sits above the
+    # "Active Sponsorships" heading and legitimately contains every area
+    # name, ended ones included.
+    active_table_section, former_section = page.text.split("Active Sponsorships", 1)[1].split(
+        "Former Sponsorships", 1
+    )
+    assert "Already ended this year" not in active_table_section
+    assert "Already ended this year" in former_section
+
+
+async def test_sponsorship_member_select_sorted_by_plot_number(client, admin_user):
+    """Kermie asked for the sponsorship member picker to be labeled and
+    sorted by plot number first (e.g. "G001 - Peter Ahnert"), not
+    alphabetically by name -- a large club gets scanned by garden plot
+    far more often than by surname. Members without any current plot
+    sort last, after every plot-holder (issue #213 follow-up)."""
     token = await login(client, "admin@example.com")
     headers = auth_header(token)
 
-    member = (await client.post(
-        "/api/v1/members", json={"first_name": "Petra", "last_name": "Picker"}, headers=headers
-    )).json()
-    parcel = (await client.post(
-        "/api/v1/parcels", json={"plot_number": "T042"}, headers=headers
-    )).json()
+    async def _member_with_plot(first, last, plot_number):
+        member = (await client.post(
+            "/api/v1/members", json={"first_name": first, "last_name": last}, headers=headers
+        )).json()
+        parcel = (await client.post(
+            "/api/v1/parcels", json={"plot_number": plot_number}, headers=headers
+        )).json()
+        await client.post(
+            f"/api/v1/parcels/{parcel['id']}/assignments",
+            json={"member_id": member["id"], "parcel_id": parcel["id"]},
+            headers=headers,
+        )
+
+    await _member_with_plot("Petra", "Picker", "T042")
+    await _member_with_plot("Peter", "Ahnert", "G001")
     await client.post(
-        f"/api/v1/parcels/{parcel['id']}/assignments",
-        json={"member_id": member["id"], "parcel_id": parcel["id"]},
-        headers=headers,
+        "/api/v1/members", json={"first_name": "Aaron", "last_name": "Aaronson"}, headers=headers
     )
 
     await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
     page = await client.get("/work-hours/sponsorships")
     assert page.status_code == 200
-    assert "Petra Picker — T042" in page.text
+
+    assert "G001 - Peter Ahnert" in page.text
+    assert "T042 - Petra Picker" in page.text
+    assert "Aaron Aaronson" in page.text
+    assert (
+        page.text.index("G001 - Peter Ahnert")
+        < page.text.index("T042 - Petra Picker")
+        < page.text.index("Aaron Aaronson")
+    )
 
 
 async def test_session_detail_signup_search_includes_name_and_plot_number(client, admin_user):
