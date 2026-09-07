@@ -10,10 +10,12 @@
 
 {% block content %}
 <div class="row g-3">
+    <div class="col-12">
     {% if has_perm(request, 'work_hours', 'write') %}
-    <div class="col-lg-5">
-        <div class="card">
-            <div class="card-header"><i class="bi bi-plus-lg me-2"></i>{{ t('work_hours.sponsorships.create_card_title') }}</div>
+        <div class="card shadow-sm">
+            <div class="card-header" style="background: var(--gv-gruen-blass); color: var(--gv-gruen); font-size: 1.05rem;">
+                <i class="bi bi-plus-lg me-2"></i>{{ t('work_hours.sponsorships.create_card_title') }}
+            </div>
             <div class="card-body">
                 <form method="post" action="/work-hours/sponsorships/new">
                     {{ csrf_field() }}
@@ -80,14 +82,12 @@
                 </form>
             </div>
         </div>
-    </div>
     {% endif %}
 
-    <div class="col-lg-7">
-        <div class="card">
-            <div class="card-header">
+        <div class="card shadow-sm mt-4">
+            <div class="card-header" style="background: #dbeafe; color: #1e40af; font-size: 1.05rem;">
                 <i class="bi bi-heart me-2"></i>{{ t('work_hours.sponsorships.active_card_title') }}
-                <span class="text-muted ms-1" style="font-size: 0.85rem;">{{ t('work_hours.sponsorships.in_year', year=year) }}</span>
+                <span class="ms-1" style="font-size: 0.85rem; opacity: 0.75;">{{ t('work_hours.sponsorships.in_year', year=year) }}</span>
             </div>
             <div class="card-body p-0">
                 {% if grouped_areas %}
@@ -170,8 +170,8 @@
             </div>
         </div>
 
-        <div class="card mt-3">
-            <div class="card-header">
+        <div class="card shadow-sm mt-4">
+            <div class="card-header" style="background: #f1f3f5; color: #6c757d; font-size: 1.05rem;">
                 <i class="bi bi-clock-history me-2"></i>{{ t('work_hours.sponsorships.former_card_title') }}
             </div>
             <div class="card-body p-0">
