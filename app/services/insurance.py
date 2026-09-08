@@ -34,6 +34,81 @@ PARCEL_INSURANCE_LOAD_OPTIONS = (
 )
 
 
+def normalize_insurance_type(insurance_type: Optional[str]) -> str:
+    """"property"/"accident" (any case) pass through; anything else --
+    None, "", a typo, a hand-edited querystring -- normalizes to "" (both
+    types), so the filter condition and the report's <select> always
+    agree on what's active instead of silently drifting apart."""
+    value = (insurance_type or "").strip().lower()
+    return value if value in ("property", "accident") else ""
+
+
+def insurance_type_condition(insurance_type: Optional[str]):
+    """Row filter shared by the evaluation report's HTML view, CSV export,
+    and REST endpoint (issue #215). See `normalize_insurance_type`."""
+    value = normalize_insurance_type(insurance_type)
+    if value == "property":
+        return ParcelInsurance.has_property_insurance == True
+    if value == "accident":
+        return ParcelInsurance.has_accident_insurance == True
+    return (
+        (ParcelInsurance.has_property_insurance == True) |
+        (ParcelInsurance.has_accident_insurance == True)
+    )
+
+
+def normalize_accident_additional_persons_filter(value: Optional[str]) -> str:
+    """"with"/"without" (any case) pass through; anything else normalizes
+    to "" (no filter) -- same drift-proofing as `normalize_insurance_type`."""
+    value = (value or "").strip().lower()
+    return value if value in ("with", "without") else ""
+
+
+async def get_evaluation_parcel_insurances(
+    db: AsyncSession, year: int, insurance_type: Optional[str] = None,
+    property_package_id: Optional[str] = None, accident_additional_persons: Optional[str] = None,
+    *, with_parcel: bool = False,
+) -> List[ParcelInsurance]:
+    """ParcelInsurance rows for the evaluation report, for a year and
+    optional filters:
+    - `insurance_type`: "property" or "accident", see `insurance_type_condition`.
+    - `property_package_id`: only rows on that exact property package --
+      implies property insurance, since `save_parcel_insurance` always
+      clears `property_package_id` when property insurance is off.
+    - `accident_additional_persons`: "with"/"without" a named additional
+      person beyond the household. Applied in Python, not SQL, after the
+      fetch -- same "load then filter in memory" precedent as
+      `/insurance/parcels`' property_filter/accident_filter, since a
+      year's insured-parcel count is small and additional_persons is
+      already eager-loaded for cost calculation regardless.
+
+    With `with_parcel` (the HTML view and CSV export, which display/link
+    the plot number), also eager-loads `parcel` and sorts by its plot
+    number -- the API's plain cost list doesn't need the relationship at
+    all, so it's skipped there rather than loaded just to sort.
+    """
+    options = list(PARCEL_INSURANCE_LOAD_OPTIONS)
+    if with_parcel:
+        options.append(selectinload(ParcelInsurance.parcel))
+    conditions = [ParcelInsurance.year == year, insurance_type_condition(insurance_type)]
+    if property_package_id:
+        conditions.append(ParcelInsurance.property_package_id == property_package_id)
+    result = await db.execute(
+        select(ParcelInsurance).options(*options).where(*conditions)
+    )
+    rows = result.scalars().all()
+
+    additional_persons_filter = normalize_accident_additional_persons_filter(accident_additional_persons)
+    if additional_persons_filter == "with":
+        rows = [pi for pi in rows if pi.additional_persons]
+    elif additional_persons_filter == "without":
+        rows = [pi for pi in rows if pi.has_accident_insurance and not pi.additional_persons]
+
+    if with_parcel:
+        rows = sorted(rows, key=lambda pi: pi.parcel.plot_number if pi.parcel else "")
+    return rows
+
+
 async def get_configuration(db: AsyncSession, year: int) -> Optional[InsuranceConfiguration]:
     result = await db.execute(
         select(InsuranceConfiguration).where(InsuranceConfiguration.year == year)

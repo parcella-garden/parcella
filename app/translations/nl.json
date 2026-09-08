@@ -927,6 +927,10 @@
     "evaluation": {
       "title": "Verzekeringsrapport {year}",
       "filter_all_types": "Alle types",
+      "filter_all_packages": "Alle pakketten",
+      "filter_any": "Alle",
+      "filter_with_additional_persons": "Met extra personen",
+      "filter_without_additional_persons": "Zonder extra personen",
       "csv_export": "CSV-export",
       "back": "Terug",
       "stat_insured_parcels": "Verzekerde percelen",

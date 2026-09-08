@@ -927,6 +927,10 @@
     "evaluation": {
       "title": "Insurance report {year}",
       "filter_all_types": "All types",
+      "filter_all_packages": "All packages",
+      "filter_any": "All",
+      "filter_with_additional_persons": "With additional persons",
+      "filter_without_additional_persons": "Without additional persons",
       "csv_export": "CSV Export",
       "back": "Back",
       "stat_insured_parcels": "Insured parcels",

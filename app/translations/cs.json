@@ -927,6 +927,10 @@
     "evaluation": {
       "title": "Zpráva o pojištění {year}",
       "filter_all_types": "Všechny typy",
+      "filter_all_packages": "Všechny balíčky",
+      "filter_any": "Všechny",
+      "filter_with_additional_persons": "S dalšími osobami",
+      "filter_without_additional_persons": "Bez dalších osob",
       "csv_export": "CSV export",
       "back": "Zpět",
       "stat_insured_parcels": "Pojištěné parcely",

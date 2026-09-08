@@ -483,3 +483,148 @@ async def test_evaluation_filters_by_insurance_type(client, admin_user):
     body = response.text
     assert "215-property" in body
     assert "215-accident" in body
+
+    # Case-insensitive and unrecognized values normalize instead of
+    # silently drifting from what the <select> shows as active.
+    response = await client.get("/insurance/evaluation?year=2026&insurance_type=Property")
+    body = response.text
+    assert "215-property" in body
+    assert "215-accident" not in body
+
+    response = await client.get("/insurance/evaluation?year=2026&insurance_type=bogus")
+    body = response.text
+    assert "215-property" in body
+    assert "215-accident" in body
+
+
+async def test_api_evaluation_filters_by_insurance_type(client, admin_user):
+    """Issue #215: the REST equivalent (/api/v1/insurance/evaluation/{year})
+    gets the same insurance_type filter as the web report and CSV export."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    package = (await client.post(
+        "/api/v1/insurance/packages",
+        json={"year": 2026, "name": "Paket 215-api", "amount_eur": "40.00"},
+        headers=headers,
+    )).json()
+    await client.put(
+        "/api/v1/insurance/configuration/2026",
+        json={"year": 2026, "accident_base_amount_eur": "3.00", "accident_additional_amount_eur": "3.00"},
+        headers=headers,
+    )
+
+    property_parcel = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "215-api-property"}, headers=headers
+    )).json()
+    accident_parcel = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "215-api-accident"}, headers=headers
+    )).json()
+    tenant = (await client.post(
+        "/api/v1/members", json={"first_name": "Haupt", "last_name": "Paechter"}, headers=headers
+    )).json()
+
+    await client.put(
+        f"/api/v1/insurance/parcels/{property_parcel['id']}/2026",
+        json={"has_property_insurance": True, "property_package_id": package["id"], "has_accident_insurance": False},
+        headers=headers,
+    )
+    await client.put(
+        f"/api/v1/insurance/parcels/{accident_parcel['id']}/2026",
+        json={"has_property_insurance": False, "has_accident_insurance": True, "household_member_ids": [tenant["id"]]},
+        headers=headers,
+    )
+
+    response = await client.get("/api/v1/insurance/evaluation/2026?insurance_type=property", headers=headers)
+    assert response.status_code == 200
+    ids = {row["parcel_id"] for row in response.json()}
+    assert property_parcel["id"] in ids
+    assert accident_parcel["id"] not in ids
+
+    response = await client.get("/api/v1/insurance/evaluation/2026?insurance_type=accident", headers=headers)
+    assert response.status_code == 200
+    ids = {row["parcel_id"] for row in response.json()}
+    assert accident_parcel["id"] in ids
+    assert property_parcel["id"] not in ids
+
+
+async def test_evaluation_filters_by_property_package_variant(client, admin_user):
+    """/insurance/evaluation can be narrowed to one property insurance
+    package variant, not just "has property insurance" -- two parcels on
+    different packages should only show the one matching the filter."""
+    from app.database import AsyncSessionLocal
+    from app.models import Parcel, PropertyInsurancePackage, InsuranceConfiguration, ParcelInsurance
+
+    async with AsyncSessionLocal() as session:
+        package_a = PropertyInsurancePackage(year=2026, name="Paket A", amount_eur=40)
+        package_b = PropertyInsurancePackage(year=2026, name="Paket B", amount_eur=80)
+        session.add_all([package_a, package_b])
+        session.add(InsuranceConfiguration(year=2026, accident_base_amount_eur=0, accident_additional_amount_eur=0))
+        parcel_a = Parcel(plot_number="215v-a")
+        parcel_b = Parcel(plot_number="215v-b")
+        session.add_all([parcel_a, parcel_b])
+        await session.flush()
+        session.add(ParcelInsurance(
+            parcel_id=parcel_a.id, year=2026, has_property_insurance=True, property_package_id=package_a.id,
+        ))
+        session.add(ParcelInsurance(
+            parcel_id=parcel_b.id, year=2026, has_property_insurance=True, property_package_id=package_b.id,
+        ))
+        await session.commit()
+        package_a_id = package_a.id
+
+    await web_login(client, "admin@example.com")
+
+    response = await client.get(f"/insurance/evaluation?year=2026&property_package_id={package_a_id}")
+    assert response.status_code == 200
+    body = response.text
+    assert "215v-a" in body
+    assert "215v-b" not in body
+
+    response = await client.get("/insurance/evaluation?year=2026")
+    assert response.status_code == 200
+    body = response.text
+    assert "215v-a" in body
+    assert "215v-b" in body
+
+
+async def test_evaluation_filters_by_accident_additional_persons(client, admin_user):
+    """/insurance/evaluation can be narrowed to accident-insured parcels
+    with or without a named additional person beyond the household."""
+    from app.database import AsyncSessionLocal
+    from app.models import Parcel, InsuranceConfiguration, ParcelInsurance, Member, AccidentInsuranceAdditionalPerson
+
+    async with AsyncSessionLocal() as session:
+        session.add(InsuranceConfiguration(year=2026, accident_base_amount_eur=3, accident_additional_amount_eur=3))
+        with_extra = Parcel(plot_number="215w-extra")
+        without_extra = Parcel(plot_number="215w-noextra")
+        session.add_all([with_extra, without_extra])
+        member = Member(first_name="Zusatz", last_name="Person")
+        session.add(member)
+        await session.flush()
+        pi_with = ParcelInsurance(parcel_id=with_extra.id, year=2026, has_accident_insurance=True)
+        pi_without = ParcelInsurance(parcel_id=without_extra.id, year=2026, has_accident_insurance=True)
+        session.add_all([pi_with, pi_without])
+        await session.flush()
+        session.add(AccidentInsuranceAdditionalPerson(parcel_insurance_id=pi_with.id, member_id=member.id))
+        await session.commit()
+
+    await web_login(client, "admin@example.com")
+
+    response = await client.get("/insurance/evaluation?year=2026&accident_additional_persons=with")
+    assert response.status_code == 200
+    body = response.text
+    assert "215w-extra" in body
+    assert "215w-noextra" not in body
+
+    response = await client.get("/insurance/evaluation?year=2026&accident_additional_persons=without")
+    assert response.status_code == 200
+    body = response.text
+    assert "215w-noextra" in body
+    assert "215w-extra" not in body
+
+    response = await client.get("/insurance/evaluation?year=2026")
+    assert response.status_code == 200
+    body = response.text
+    assert "215w-extra" in body
+    assert "215w-noextra" in body

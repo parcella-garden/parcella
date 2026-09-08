@@ -22,7 +22,7 @@ from app.insurance_utils import calculate_insurance_cost
 from app.services.insurance import (
     get_configuration, save_configuration, create_package, update_package, delete_package,
     get_parcel_insurance, get_or_create_parcel_insurance, save_parcel_insurance,
-    PARCEL_INSURANCE_LOAD_OPTIONS,
+    get_evaluation_parcel_insurances,
 )
 from app.schemas import (
     PropertyInsurancePackageOut, PropertyInsurancePackageCreate,
@@ -232,17 +232,14 @@ async def insurance_set(
 )
 async def evaluation(
     year: int,
+    insurance_type: Optional[str] = Query(None, description="Narrow to 'property' or 'accident'; omit for either type"),
+    property_package_id: Optional[str] = Query(None, description="Narrow to one property insurance package variant"),
+    accident_additional_persons: Optional[str] = Query(None, description="'with' or 'without' a named additional person beyond the household"),
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission("insurance", "read")),
 ):
     config = await get_configuration(db, year)
-
-    result = await db.execute(
-        select(ParcelInsurance)
-        .options(*PARCEL_INSURANCE_LOAD_OPTIONS)
-        .where(
-            ParcelInsurance.year == year,
-            (ParcelInsurance.has_property_insurance == True) | (ParcelInsurance.has_accident_insurance == True)
-        )
+    rows = await get_evaluation_parcel_insurances(
+        db, year, insurance_type, property_package_id, accident_additional_persons,
     )
-    return [_to_cost_schema(pi, config) for pi in result.scalars().all()]
+    return [_to_cost_schema(pi, config) for pi in rows]

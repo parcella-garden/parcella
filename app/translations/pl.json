@@ -927,6 +927,10 @@
     "evaluation": {
       "title": "Rozliczenie ubezpieczeń {year}",
       "filter_all_types": "Wszystkie typy",
+      "filter_all_packages": "Wszystkie pakiety",
+      "filter_any": "Wszystkie",
+      "filter_with_additional_persons": "Z osobami dodatkowymi",
+      "filter_without_additional_persons": "Bez osób dodatkowych",
       "csv_export": "Eksport CSV",
       "back": "Wstecz",
       "stat_insured_parcels": "Ubezpieczone działki",

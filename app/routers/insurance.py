@@ -27,6 +27,8 @@ from app.services.insurance import (
     get_configuration, save_configuration, get_packages_for_year,
     create_package, update_package, delete_package,
     get_or_create_parcel_insurance, save_parcel_insurance,
+    get_evaluation_parcel_insurances, normalize_insurance_type,
+    normalize_accident_additional_persons_filter,
     PARCEL_INSURANCE_LOAD_OPTIONS,
 )
 
@@ -398,49 +400,28 @@ async def insurance_save(
 # Evaluation
 # ---------------------------------------------------------------------------
 
-def _insurance_type_condition(insurance_type: Optional[str]):
-    """Row filter for /evaluation and its CSV export.
-
-    `insurance_type` is "property" or "accident" to narrow to parcels
-    carrying that one type; any other value (including None/"") keeps the
-    original "either type" behavior.
-    """
-    if insurance_type == "property":
-        return ParcelInsurance.has_property_insurance == True
-    if insurance_type == "accident":
-        return ParcelInsurance.has_accident_insurance == True
-    return (
-        (ParcelInsurance.has_property_insurance == True) |
-        (ParcelInsurance.has_accident_insurance == True)
-    )
-
-
 @router.get("/evaluation", response_class=HTMLResponse)
 async def insurance_evaluation(
     request: Request,
     year: Optional[int] = None,
     insurance_type: Optional[str] = None,
+    property_package_id: str = "",
+    accident_additional_persons: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "insurance", "read")
     if not year:
         year = date.today().year
+    insurance_type = normalize_insurance_type(insurance_type)
+    accident_additional_persons = normalize_accident_additional_persons_filter(accident_additional_persons)
 
     configuration = await get_configuration(db, year)
+    packages = await get_packages_for_year(db, year)
 
-    pi_result = await db.execute(
-        select(ParcelInsurance)
-        .options(
-            selectinload(ParcelInsurance.parcel),
-            *PARCEL_INSURANCE_LOAD_OPTIONS,
-        )
-        .where(
-            ParcelInsurance.year == year,
-            _insurance_type_condition(insurance_type),
-        )
+    all_pi = await get_evaluation_parcel_insurances(
+        db, year, insurance_type, property_package_id or None, accident_additional_persons,
+        with_parcel=True,
     )
-    all_pi = pi_result.scalars().all()
-    all_pi.sort(key=lambda pi: pi.parcel.plot_number if pi.parcel else "")
 
     rows = []
     total_overall = Decimal("0")
@@ -459,7 +440,9 @@ async def insurance_evaluation(
     return templates.TemplateResponse("insurance/evaluation.html", {
         "request": request, "user": user, "year": year,
         "available_years": available_years,
-        "insurance_type": insurance_type or "",
+        "insurance_type": insurance_type,
+        "packages": packages, "property_package_id": property_package_id,
+        "accident_additional_persons": accident_additional_persons,
         "rows": rows, "total_overall": total_overall,
     })
 
@@ -469,6 +452,8 @@ async def insurance_evaluation_csv(
     request: Request,
     year: Optional[int] = None,
     insurance_type: Optional[str] = None,
+    property_package_id: str = "",
+    accident_additional_persons: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
 ):
     await require_permission(request, db, "insurance", "read")
@@ -477,19 +462,10 @@ async def insurance_evaluation_csv(
 
     configuration = await get_configuration(db, year)
 
-    pi_result = await db.execute(
-        select(ParcelInsurance)
-        .options(
-            selectinload(ParcelInsurance.parcel),
-            *PARCEL_INSURANCE_LOAD_OPTIONS,
-        )
-        .where(
-            ParcelInsurance.year == year,
-            _insurance_type_condition(insurance_type),
-        )
+    all_pi = await get_evaluation_parcel_insurances(
+        db, year, insurance_type, property_package_id or None, accident_additional_persons,
+        with_parcel=True,
     )
-    all_pi = pi_result.scalars().all()
-    all_pi.sort(key=lambda pi: pi.parcel.plot_number if pi.parcel else "")
 
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")

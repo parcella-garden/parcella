@@ -4,19 +4,7 @@
 
 {% block topbar_actions %}
 <div class="d-flex gap-2 align-items-center">
-    <form method="get" class="d-flex gap-2">
-        <select name="year" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
-            {% for j in available_years %}
-            <option value="{{ j }}" {% if j == year %}selected{% endif %}>{{ j }}</option>
-            {% endfor %}
-        </select>
-        <select name="insurance_type" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
-            <option value="" {% if not insurance_type %}selected{% endif %}>{{ t('insurance.evaluation.filter_all_types') }}</option>
-            <option value="property" {% if insurance_type == 'property' %}selected{% endif %}>{{ t('insurance.evaluation.col_property') }}</option>
-            <option value="accident" {% if insurance_type == 'accident' %}selected{% endif %}>{{ t('insurance.evaluation.col_accident') }}</option>
-        </select>
-    </form>
-    <a href="/insurance/evaluation/csv?year={{ year }}{% if insurance_type %}&insurance_type={{ insurance_type }}{% endif %}" class="btn btn-sm btn-outline-secondary">
+    <a href="/insurance/evaluation/csv?year={{ year }}{% if insurance_type %}&insurance_type={{ insurance_type|urlencode }}{% endif %}{% if property_package_id %}&property_package_id={{ property_package_id|urlencode }}{% endif %}{% if accident_additional_persons %}&accident_additional_persons={{ accident_additional_persons|urlencode }}{% endif %}" class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-download me-1"></i>{{ t('insurance.evaluation.csv_export') }}
     </a>
     <a href="/insurance/" class="btn btn-sm btn-outline-secondary">
@@ -26,6 +14,34 @@
 {% endblock %}
 
 {% block content %}
+
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+            <select name="year" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+                {% for j in available_years %}
+                <option value="{{ j }}" {% if j == year %}selected{% endif %}>{{ j }}</option>
+                {% endfor %}
+            </select>
+            <select name="insurance_type" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+                <option value="" {% if not insurance_type %}selected{% endif %}>{{ t('insurance.evaluation.filter_all_types') }}</option>
+                <option value="property" {% if insurance_type == 'property' %}selected{% endif %}>{{ t('insurance.evaluation.col_property') }}</option>
+                <option value="accident" {% if insurance_type == 'accident' %}selected{% endif %}>{{ t('insurance.evaluation.col_accident') }}</option>
+            </select>
+            <select name="property_package_id" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+                <option value="">{{ t('insurance.evaluation.filter_all_packages') }}</option>
+                {% for pkg in packages %}
+                <option value="{{ pkg.id }}" {% if property_package_id == pkg.id %}selected{% endif %}>{{ pkg.name }}</option>
+                {% endfor %}
+            </select>
+            <select name="accident_additional_persons" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+                <option value="" {% if not accident_additional_persons %}selected{% endif %}>{{ t('insurance.evaluation.filter_any') }}</option>
+                <option value="with" {% if accident_additional_persons == 'with' %}selected{% endif %}>{{ t('insurance.evaluation.filter_with_additional_persons') }}</option>
+                <option value="without" {% if accident_additional_persons == 'without' %}selected{% endif %}>{{ t('insurance.evaluation.filter_without_additional_persons') }}</option>
+            </select>
+        </form>
+    </div>
+</div>
 
 <div class="row g-3 mb-4">
     <div class="col-sm-4">

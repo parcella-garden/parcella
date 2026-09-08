@@ -927,6 +927,10 @@
     "evaluation": {
       "title": "Rapport d'assurance {year}",
       "filter_all_types": "Tous les types",
+      "filter_all_packages": "Tous les forfaits",
+      "filter_any": "Tous",
+      "filter_with_additional_persons": "Avec personnes supplémentaires",
+      "filter_without_additional_persons": "Sans personnes supplémentaires",
       "csv_export": "Export CSV",
       "back": "Retour",
       "stat_insured_parcels": "Parcelles assurées",

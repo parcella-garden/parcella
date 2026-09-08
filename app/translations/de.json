@@ -927,6 +927,10 @@
     "evaluation": {
       "title": "Versicherungsauswertung {year}",
       "filter_all_types": "Alle Typen",
+      "filter_all_packages": "Alle Pakete",
+      "filter_any": "Alle",
+      "filter_with_additional_persons": "Mit Zusatzpersonen",
+      "filter_without_additional_persons": "Ohne Zusatzpersonen",
       "csv_export": "CSV Export",
       "back": "Zurück",
       "stat_insured_parcels": "Versicherte Parzellen",
