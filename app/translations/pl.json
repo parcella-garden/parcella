@@ -926,6 +926,7 @@
     },
     "evaluation": {
       "title": "Rozliczenie ubezpieczeń {year}",
+      "filter_all_types": "Wszystkie typy",
       "csv_export": "Eksport CSV",
       "back": "Wstecz",
       "stat_insured_parcels": "Ubezpieczone działki",

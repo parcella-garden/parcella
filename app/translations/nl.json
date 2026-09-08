@@ -926,6 +926,7 @@
     },
     "evaluation": {
       "title": "Verzekeringsrapport {year}",
+      "filter_all_types": "Alle types",
       "csv_export": "CSV-export",
       "back": "Terug",
       "stat_insured_parcels": "Verzekerde percelen",

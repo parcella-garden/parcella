@@ -926,6 +926,7 @@
     },
     "evaluation": {
       "title": "Rapport d'assurance {year}",
+      "filter_all_types": "Tous les types",
       "csv_export": "Export CSV",
       "back": "Retour",
       "stat_insured_parcels": "Parcelles assurées",

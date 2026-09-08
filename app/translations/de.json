@@ -926,6 +926,7 @@
     },
     "evaluation": {
       "title": "Versicherungsauswertung {year}",
+      "filter_all_types": "Alle Typen",
       "csv_export": "CSV Export",
       "back": "Zurück",
       "stat_insured_parcels": "Versicherte Parzellen",

@@ -926,6 +926,7 @@
     },
     "evaluation": {
       "title": "Zpráva o pojištění {year}",
+      "filter_all_types": "Všechny typy",
       "csv_export": "CSV export",
       "back": "Zpět",
       "stat_insured_parcels": "Pojištěné parcely",

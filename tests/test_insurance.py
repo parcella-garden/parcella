@@ -437,3 +437,49 @@ async def test_insurance_parcels_list_links_to_parcel_detail_page(client, admin_
     response = await client.get("/insurance/parcels?year=2026")
     assert response.status_code == 200
     assert f'href="/insurance/parcels/{parcel_id}?year=2026"' in response.text
+
+
+async def test_evaluation_filters_by_insurance_type(client, admin_user):
+    """Issue #215: /insurance/evaluation can be filtered to only property-
+    or only accident-insured parcels; with no filter, both keep showing
+    (the original "either type" behavior)."""
+    from app.database import AsyncSessionLocal
+    from app.models import Parcel, PropertyInsurancePackage, InsuranceConfiguration, ParcelInsurance
+
+    async with AsyncSessionLocal() as session:
+        package = PropertyInsurancePackage(year=2026, name="Paket 215", amount_eur=40)
+        session.add(package)
+        session.add(InsuranceConfiguration(year=2026, accident_base_amount_eur=3, accident_additional_amount_eur=3))
+        property_only = Parcel(plot_number="215-property")
+        accident_only = Parcel(plot_number="215-accident")
+        session.add_all([property_only, accident_only])
+        await session.flush()
+        session.add(ParcelInsurance(
+            parcel_id=property_only.id, year=2026,
+            has_property_insurance=True, property_package_id=package.id,
+        ))
+        session.add(ParcelInsurance(
+            parcel_id=accident_only.id, year=2026,
+            has_accident_insurance=True,
+        ))
+        await session.commit()
+
+    await web_login(client, "admin@example.com")
+
+    response = await client.get("/insurance/evaluation?year=2026&insurance_type=property")
+    assert response.status_code == 200
+    body = response.text
+    assert "215-property" in body
+    assert "215-accident" not in body
+
+    response = await client.get("/insurance/evaluation?year=2026&insurance_type=accident")
+    assert response.status_code == 200
+    body = response.text
+    assert "215-accident" in body
+    assert "215-property" not in body
+
+    response = await client.get("/insurance/evaluation?year=2026")
+    assert response.status_code == 200
+    body = response.text
+    assert "215-property" in body
+    assert "215-accident" in body

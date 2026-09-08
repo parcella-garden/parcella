@@ -926,6 +926,7 @@
     },
     "evaluation": {
       "title": "Insurance report {year}",
+      "filter_all_types": "All types",
       "csv_export": "CSV Export",
       "back": "Back",
       "stat_insured_parcels": "Insured parcels",

@@ -398,10 +398,28 @@ async def insurance_save(
 # Evaluation
 # ---------------------------------------------------------------------------
 
+def _insurance_type_condition(insurance_type: Optional[str]):
+    """Row filter for /evaluation and its CSV export.
+
+    `insurance_type` is "property" or "accident" to narrow to parcels
+    carrying that one type; any other value (including None/"") keeps the
+    original "either type" behavior.
+    """
+    if insurance_type == "property":
+        return ParcelInsurance.has_property_insurance == True
+    if insurance_type == "accident":
+        return ParcelInsurance.has_accident_insurance == True
+    return (
+        (ParcelInsurance.has_property_insurance == True) |
+        (ParcelInsurance.has_accident_insurance == True)
+    )
+
+
 @router.get("/evaluation", response_class=HTMLResponse)
 async def insurance_evaluation(
     request: Request,
     year: Optional[int] = None,
+    insurance_type: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "insurance", "read")
@@ -418,8 +436,7 @@ async def insurance_evaluation(
         )
         .where(
             ParcelInsurance.year == year,
-            (ParcelInsurance.has_property_insurance == True) |
-            (ParcelInsurance.has_accident_insurance == True)
+            _insurance_type_condition(insurance_type),
         )
     )
     all_pi = pi_result.scalars().all()
@@ -442,6 +459,7 @@ async def insurance_evaluation(
     return templates.TemplateResponse("insurance/evaluation.html", {
         "request": request, "user": user, "year": year,
         "available_years": available_years,
+        "insurance_type": insurance_type or "",
         "rows": rows, "total_overall": total_overall,
     })
 
@@ -450,6 +468,7 @@ async def insurance_evaluation(
 async def insurance_evaluation_csv(
     request: Request,
     year: Optional[int] = None,
+    insurance_type: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
 ):
     await require_permission(request, db, "insurance", "read")
@@ -466,8 +485,7 @@ async def insurance_evaluation_csv(
         )
         .where(
             ParcelInsurance.year == year,
-            (ParcelInsurance.has_property_insurance == True) |
-            (ParcelInsurance.has_accident_insurance == True)
+            _insurance_type_condition(insurance_type),
         )
     )
     all_pi = pi_result.scalars().all()

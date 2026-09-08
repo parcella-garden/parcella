@@ -10,8 +10,13 @@
             <option value="{{ j }}" {% if j == year %}selected{% endif %}>{{ j }}</option>
             {% endfor %}
         </select>
+        <select name="insurance_type" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+            <option value="" {% if not insurance_type %}selected{% endif %}>{{ t('insurance.evaluation.filter_all_types') }}</option>
+            <option value="property" {% if insurance_type == 'property' %}selected{% endif %}>{{ t('insurance.evaluation.col_property') }}</option>
+            <option value="accident" {% if insurance_type == 'accident' %}selected{% endif %}>{{ t('insurance.evaluation.col_accident') }}</option>
+        </select>
     </form>
-    <a href="/insurance/evaluation/csv?year={{ year }}" class="btn btn-sm btn-outline-secondary">
+    <a href="/insurance/evaluation/csv?year={{ year }}{% if insurance_type %}&insurance_type={{ insurance_type }}{% endif %}" class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-download me-1"></i>{{ t('insurance.evaluation.csv_export') }}
     </a>
     <a href="/insurance/" class="btn btn-sm btn-outline-secondary">
