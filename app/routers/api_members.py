@@ -10,16 +10,17 @@ response serialization.
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
+from app.i18n import DEFAULT_LANGUAGE
 from app.models import Member, MemberParcel, User
 from app.api_auth import require_api_permission
 from app.services.members import (
-    active_members_query, create_member, update_member,
+    active_members_query, create_member, notify_new_member, update_member,
     add_phone, remove_phone, add_email, remove_email,
 )
 from app.schemas import (
@@ -29,6 +30,10 @@ from app.schemas import (
 )
 
 router = APIRouter(prefix="/api/v1/members", tags=["API: Members"])
+
+
+def _lang(request: Request) -> str:
+    return getattr(request.state, "language", DEFAULT_LANGUAGE)
 
 
 async def _get_member_or_404(db: AsyncSession, member_id: str, with_details: bool = False) -> Member:
@@ -126,6 +131,7 @@ async def member_get(
     summary="Create new member",
 )
 async def member_create(
+    request: Request,
     data: MemberCreate,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission("members_parcels", "write")),
@@ -133,6 +139,9 @@ async def member_create(
     member = await create_member(db, **data.model_dump())
     await db.commit()
     await db.refresh(member, attribute_names=["phone_numbers", "email_addresses"])
+    # Issue #217: fire only after a successful commit, so a failed write
+    # never sends a stray "new member" email.
+    await notify_new_member(db, member, actor=user, lang=_lang(request))
     return member
 
 

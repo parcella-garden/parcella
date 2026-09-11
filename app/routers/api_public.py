@@ -51,6 +51,12 @@ from app.schemas import (
 )
 from app.spam_filter import check_for_spam
 from app.services.tickets import create_ticket
+from app.services.work_hours import notify_new_participations_digest
+from app.i18n import DEFAULT_LANGUAGE
+
+
+def _lang(request: Request) -> str:
+    return getattr(request.state, "language", DEFAULT_LANGUAGE)
 
 logger = logging.getLogger(__name__)
 
@@ -227,7 +233,7 @@ async def submit_signup(
     sessions_by_id = {s.id: s for s in sessions_result.scalars().all()}
 
     results: list[PublicSignupSessionResult] = []
-    any_created = False
+    created_count = 0
 
     if not members_to_register:
         for session_id in payload.session_ids:
@@ -257,12 +263,17 @@ async def submit_signup(
                 session_id=session.id, member_id=member.id,
                 status=ParticipationStatus.REGISTERED, note=note,
             ))
-            any_created = True
+            created_count += 1
 
         results.append(PublicSignupSessionResult(session_id=session_id, accepted=True))
 
-    if any_created:
+    if created_count > 0:
         await db.commit()
+        # Issue #217: one digest email for the whole call rather than
+        # one per row -- this path is actorless and can create several
+        # rows in one request (multiple sessions x a whole household on
+        # an ambiguous name match), see docs/ADR/0079.
+        await notify_new_participations_digest(db, created_count, _lang(request))
     else:
         await db.rollback()
 

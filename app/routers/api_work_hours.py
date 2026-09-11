@@ -21,11 +21,11 @@ from app.models import (
     WorkHoursConfiguration, WorkHoursMode,
     ClubRole, MemberClubRole,
     WorkSession, SessionParticipation, SessionType, ParticipationStatus,
-    Sponsorship, User,
+    Sponsorship, User, Member,
     WorkTask, TaskWorkload,
 )
 from app.api_auth import require_api_permission
-from app.i18n import t_for
+from app.i18n import t_for, DEFAULT_LANGUAGE
 from app.module_flags import require_module
 from app.services.errors import ServiceError
 from app.services.work_hours import (
@@ -34,7 +34,12 @@ from app.services.work_hours import (
     create_session, update_session, add_participation, update_participation,
     create_sponsorship, update_sponsorship,
     create_task, schedule_task, assign_task_to_participant,
+    notify_new_participation,
 )
+
+
+def _lang(request: Request) -> str:
+    return getattr(request.state, "language", DEFAULT_LANGUAGE)
 from app.schemas import (
     WorkHoursConfigurationOut, WorkHoursConfigurationCreate,
     ClubRoleOut, ClubRoleCreate,
@@ -337,6 +342,7 @@ async def participations_list(
     status_code=status.HTTP_201_CREATED, summary="Register participation",
 )
 async def participation_create(
+    request: Request,
     session_id: str,
     data: SessionParticipationCreate,
     db: AsyncSession = Depends(get_db),
@@ -350,6 +356,12 @@ async def participation_create(
         raise HTTPException(status_code=409, detail="Member is already registered")
     await db.commit()
     await db.refresh(participation)
+    # Issue #217: fire only after a successful commit.
+    member = await db.get(Member, data.member_id)
+    session = await db.get(WorkSession, session_id)
+    await notify_new_participation(
+        db, participation, member=member, session=session, actor=user, lang=_lang(request),
+    )
     return participation
 
 

@@ -16,6 +16,12 @@
                     <div class="text-muted" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em;">{{ t('dashboard.members_label') }}</div>
                     <div style="font-size: 1.8rem; font-weight: 700; color: var(--gv-gruen);">{{ stats.members_total }}</div>
                     <div class="text-muted" style="font-size: 0.75rem;">{{ stats.members_active }} {{ t('dashboard.active_suffix') }}</div>
+                    {% if stats.new_members > 0 %}
+                    <div style="font-size: 0.75rem; color: #92400e;">
+                        <i class="bi bi-exclamation-circle-fill"></i>
+                        {{ stats.new_members }} {{ t('dashboard.new_members_suffix') }}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             <div class="card-footer bg-transparent border-top-0 pt-0">
@@ -155,6 +161,28 @@
         </div>
     </div>
     {% endif %}
+
+    {% if request.state.module_flags.work_hours %}
+    <div class="col-sm-6 col-xl-3">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div style="font-size: 2rem; color: #1d4ed8; background: #dbeafe;
+                            width: 56px; height: 56px; border-radius: 12px;
+                            display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-clipboard-check"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em;">{{ t('dashboard.new_participations_label') }}</div>
+                    <div style="font-size: 1.8rem; font-weight: 700; color: #1d4ed8;">{{ stats.new_participations }}</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">{{ t('dashboard.new_participations_suffix') }}</div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-top-0 pt-0">
+                <a href="/work-hours/" class="btn btn-sm btn-outline-primary w-100">{{ t('dashboard.show_all') }}</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 {% if birthdays_this_week %}
@@ -204,6 +232,9 @@
                         <a href="/members/{{ m.id }}" class="text-decoration-none fw-semibold"
                            style="color: var(--gv-gruen);">
                             {{ m.full_name }}
+                            {% if m.created_at >= new_member_cutoff %}
+                            <span class="badge bg-warning text-dark ms-1">{{ t('dashboard.new_member_badge') }}</span>
+                            {% endif %}
                         </a>
                         <span class="text-muted" style="font-size: 0.82rem;">
                             {{ m.member_since.strftime('%d.%m.%Y') if m.member_since else '–' }}

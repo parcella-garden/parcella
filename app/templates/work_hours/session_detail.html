@@ -117,6 +117,9 @@
                                 <td>
                                     <a href="/members/{{ t_p.member.id }}" class="text-decoration-none"
                                        style="color: var(--gv-gruen);">{{ t_p.member.full_name }}</a>
+                                    {% if t_p.created_at >= new_participation_cutoff %}
+                                    <span class="badge bg-info text-dark ms-1">{{ t('work_hours.session_detail.new_participant_badge') }}</span>
+                                    {% endif %}
                                 </td>
                                 <td class="text-muted">{{ current_parcels | join(', ') or '–' }}</td>
                                 <td>

@@ -23,7 +23,7 @@ from app.models import (
     WorkTask, TaskWorkload,
 )
 from app.permissions import require_permission
-from app.i18n import t_for, load_current_language
+from app.i18n import t_for, load_current_language, DEFAULT_LANGUAGE
 from app.branding import load_branding
 from app.pdf_chrome import load_org_footer_context
 from app.l10n import load_current_region, format_number
@@ -37,6 +37,7 @@ from app.services.work_hours import (
     create_session, update_session, add_participation, update_participation,
     create_sponsorship, update_sponsorship,
     create_task, schedule_task, assign_task_to_participant, toggle_task_done,
+    new_participation_cutoff, notify_new_participation,
 )
 
 router = APIRouter(
@@ -45,6 +46,10 @@ router = APIRouter(
     dependencies=[Depends(require_module("work_hours"))],
 )
 from app.templating import templates
+
+
+def _lang(request: Request) -> str:
+    return getattr(request.state, "language", DEFAULT_LANGUAGE)
 
 
 # ---------------------------------------------------------------------------
@@ -407,6 +412,7 @@ async def session_detail(
             "SessionType": SessionType,
             "session_tasks": session_tasks,
             "TaskWorkload": TaskWorkload,
+            "new_participation_cutoff": new_participation_cutoff(),
         },
     )
 
@@ -506,7 +512,7 @@ async def participant_add(
     note: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
-    await require_permission(request, db, "work_hours", "write")
+    actor = await require_permission(request, db, "work_hours", "write")
 
     participation = await add_participation(
         db, session_id, member_id=member_id, status=status,
@@ -515,6 +521,14 @@ async def participant_add(
     )
     if participation is not None:
         await db.commit()
+        # Issue #217: fire only after a successful commit and only for a
+        # genuinely new row -- add_participation() returns None (no-op)
+        # if the member was already registered, and that must not notify.
+        member = await db.get(Member, member_id)
+        session = await db.get(WorkSession, session_id)
+        await notify_new_participation(
+            db, participation, member=member, session=session, actor=actor, lang=_lang(request),
+        )
     return RedirectResponse(f"/work-hours/sessions/{session_id}", status_code=302)
 
 

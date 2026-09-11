@@ -165,6 +165,22 @@ silently continuing.
   overwrite an already-loaded relationship on the same identity-mapped
   object). See `docs/testing.md` for three separate real occurrences of
   this exact shape of bug.
+- **`app/i18n.py`'s `translate()` silently swallows a missing
+  `str.format()` kwarg.** If a translation template has `{count}` and
+  `{app_name}` placeholders but the caller only passes `app_name=...`,
+  `value.format(**kwargs)` raises `KeyError`, which `translate()`
+  catches and returns the **raw, unformatted template string** instead
+  -- no exception, no log line, just `"{count} new thing(s) in
+  {app_name}"` showing up verbatim wherever that string is used (an
+  email subject, a rendered page). Hit for real building issue #217's
+  digest-email notification (`notify_new_participations_digest` in
+  `app/services/work_hours.py` forgot `count=count`) -- a real
+  `AssertionError` in a test caught it, but it's an easy miss to skip
+  in manual testing since the string still *looks* like a sentence,
+  just an obviously-wrong one. When adding a new interpolated
+  translation key, double-check every placeholder in the template
+  string has a matching kwarg at every call site, not just the ones
+  that happen to render during a quick manual check.
 - **Never put a raw email-header-derived string straight into an HTTP
   response header.** `email.message.Message.get_filename()` returns
   whatever the sender's mail client sent -- an unencoded header fold

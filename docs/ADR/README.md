@@ -82,3 +82,4 @@ in chronological order.
 76. [Production customizations belong in docker-compose.override.yml, not in docker-compose.prod.yml itself](./0076-docker-compose-override-file-for-prod-customization.md)
 77. [Rename docker-compose.prod.yml to docker-compose.yml; bind-mount all runtime data under ./data/](./0077-docker-compose-rename-and-tidy-data-layout.md)
 78. [Accident insurance: per-household-member opt-out, not an atomic household toggle](./0078-accident-insurance-per-household-member-opt-out.md)
+79. [New-registration notifications (members and work-session sign-ups): a stateless rolling window, not a notification center](./0079-new-member-notifications-stateless-not-a-notification-center.md)

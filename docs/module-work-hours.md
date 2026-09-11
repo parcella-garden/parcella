@@ -127,6 +127,26 @@ up for -- enforced identically in the web UI and the REST API, with the
 API additionally rejecting outright any attempt to assign a task to a
 participant of a session other than the one it's currently scheduled to.
 
+**The `/work-hours/` nav link carries two separate badges (issue
+#217).** The first (amber, exclamation icon) is a "new members" badge,
+unrelated to work-hours eligibility -- a general new-member visibility
+feature (not tied into exemption/eligibility logic) that happens to
+live on this nav entry because members newly showing up are relevant
+context for whoever's organizing sessions. The count itself
+(`count_new_members()`, `app/services/members.py`) and its
+dashboard-tile and email counterparts are members-module concerns.
+
+The second badge (blue, clipboard icon) IS work-hours-owned: a "new
+work-session sign-ups" count (`count_new_participations()`,
+`app/services/work_hours.py`) tracking recently-created
+`SessionParticipation` rows, with the same dashboard tile / email
+pattern, plus a "New" badge per row on the session detail page's
+participant table (`session_detail.html`). Both badges share the same
+stateless-rolling-window design; see
+[ADR 0079](./ADR/0079-new-member-notifications-stateless-not-a-notification-center.md)
+for the full design, including why the public self-service signup path
+gets one digest email per call instead of one per row.
+
 ## Known pitfalls
 
 - `SessionType` and `ParticipationStatus` had to be corrected to uppercase

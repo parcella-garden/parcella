@@ -15,23 +15,34 @@ see docs/ADR/README.md). All three call sites now compute a row's
 standing through the one path here, so that mistake is now structurally
 impossible to reintroduce independently in a fourth place.
 
-No audit trail or notifications anywhere in this module, either side,
-before or after this extraction.
+Issue #217 added one notification concern: emailing active Admin/Board
+about newly created SessionParticipation rows (see
+notify_new_participation/notify_new_participations_digest below) --
+otherwise still no audit trail here.
 """
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.config import settings
 from app.database import current_tenant_filter
+from app.email_service import send_email
+from app.i18n import translate
 from app.models import (
     ClubRole, ExemptionReason, Member, MemberClubRole, MemberParcel, Parcel, ParcelStatus,
     ParticipationStatus, SessionParticipation, SessionType, Sponsorship, TaskWorkload,
-    WorkHoursConfiguration, WorkHoursMode, WorkSession, WorkTask,
+    User, UserRole, WorkHoursConfiguration, WorkHoursMode, WorkSession, WorkTask,
 )
 from app.services.errors import ServiceError
+
+# Issue #217: how many days a SessionParticipation counts as "new" for
+# the dashboard tile / nav badge / session-detail "New" badge -- same
+# stateless-constant convention as app/services/members.py's
+# NEW_MEMBER_WINDOW_DAYS. See docs/ADR/0079.
+NEW_PARTICIPATION_WINDOW_DAYS = 14
 
 # ---------------------------------------------------------------------------
 # Evaluation / exemption engine
@@ -333,6 +344,99 @@ async def add_participation(
     db.add(participation)
     await db.flush()
     return participation
+
+
+def new_participation_cutoff(within_days: int = NEW_PARTICIPATION_WINDOW_DAYS) -> datetime:
+    """Shared cutoff for "counts as a new sign-up" -- used by
+    count_new_participations() below and by the session-detail template
+    to mark individual rows (app/routers/work_hours.py)."""
+    return datetime.now(timezone.utc) - timedelta(days=within_days)
+
+
+async def count_new_participations(db: AsyncSession, within_days: int = NEW_PARTICIPATION_WINDOW_DAYS) -> int:
+    """Issue #217: how many SessionParticipation rows were created in
+    the last `within_days` days -- status-agnostic (a row counts
+    regardless of REGISTERED/ATTENDED/NO_SHOW, since "newly registered"
+    is about when the row was created, not its current state). Same
+    stateless rolling-window shape as count_new_members()
+    (app/services/members.py). See docs/ADR/0079."""
+    result = await db.execute(
+        select(func.count()).select_from(SessionParticipation)
+        .where(SessionParticipation.created_at >= new_participation_cutoff(within_days))
+    )
+    return result.scalar_one()
+
+
+def jinja_new_participations_count(request) -> int:
+    """Jinja global for base.html's second nav badge -- reads the count
+    new_participations_count_middleware (app/main.py) already computed
+    once per request."""
+    return getattr(request.state, "new_participations_count", 0)
+
+
+async def _active_admin_board_recipients(db: AsyncSession, *, exclude_user_id: Optional[str] = None) -> List[User]:
+    conditions = [User.role.in_([UserRole.ADMIN, UserRole.BOARD]), User.is_active == True]  # noqa: E712
+    if exclude_user_id is not None:
+        conditions.append(User.id != exclude_user_id)
+    result = await db.execute(select(User).where(*conditions))
+    return list(result.scalars().all())
+
+
+async def notify_new_participation(
+    db: AsyncSession, participation: SessionParticipation, *, member: Member, session: WorkSession,
+    actor: User, lang: str,
+) -> None:
+    """Issue #217: emails active Admin/Board users (excluding `actor`)
+    when a member is newly added as a participant on a work session
+    through the single-row staff form/API. Deliberately NOT called for
+    the already-registered no-op (add_participation() returns None
+    there -- callers only reach this when a row was actually created).
+    Not used by the public self-service signup path either -- see
+    notify_new_participations_digest below. Caller is responsible for
+    having already committed the row."""
+    recipients = await _active_admin_board_recipients(db, exclude_user_id=actor.id)
+    if not recipients:
+        return
+
+    subject = translate("email.new_participation_notification.subject", lang, app_name=settings.app_name)
+    session_label = f"{session.title} ({session.date.strftime('%d.%m.%Y')})"
+    for recipient in recipients:
+        html = f"""
+        <html><body>
+        <p>{translate("email.new_participation_notification.greeting", lang, name=recipient.name)}</p>
+        <p>{translate("email.new_participation_notification.body", lang, app_name=settings.app_name)}</p>
+        <p><strong>{member.full_name}</strong> &mdash; {session_label}</p>
+        <p>{translate("email.new_participation_notification.instruction", lang, app_name=settings.app_name)}</p>
+        </body></html>
+        """
+        await send_email(recipient.email, subject, html, db=db)
+
+
+async def notify_new_participations_digest(db: AsyncSession, count: int, lang: str) -> None:
+    """Issue #217: one digest email for the public self-service signup
+    path (app/routers/api_public.py::submit_signup) -- that endpoint is
+    actorless (token-authenticated, not a logged-in user) and can create
+    several SessionParticipation rows in one call (multiple sessions x
+    an ambiguous-name match registering a whole household), so a
+    per-row email would spam Admin/Board the same way one email per CSV-
+    imported member would (see docs/ADR/0079) -- one summary email per
+    call instead, to every active Admin/Board user, no exclusion since
+    there's no actor to exclude."""
+    if count <= 0:
+        return
+    recipients = await _active_admin_board_recipients(db)
+    if not recipients:
+        return
+
+    subject = translate("email.new_participation_digest.subject", lang, count=count, app_name=settings.app_name)
+    for recipient in recipients:
+        html = f"""
+        <html><body>
+        <p>{translate("email.new_participation_notification.greeting", lang, name=recipient.name)}</p>
+        <p>{translate("email.new_participation_digest.body", lang, count=count, app_name=settings.app_name)}</p>
+        </body></html>
+        """
+        await send_email(recipient.email, subject, html, db=db)
 
 
 async def update_participation(db: AsyncSession, participation: SessionParticipation, **fields) -> SessionParticipation:
