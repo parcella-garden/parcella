@@ -1631,8 +1631,10 @@
     },
     "council_absence": {
       "title": "Neprítomnosť výboru",
-      "new_card_title": "Zadať vlastnú neprítomnosť",
-      "new_card_help": "Ktokoľvek so systémovým účtom tu môže zadať vlastnú neprítomnosť.",
+      "new_card_title": "Zadať neprítomnosť",
+      "new_card_help": "Zadajte obdobie neprítomnosti pre seba alebo v mene iného registrovaného používateľa.",
+      "member_label": "Člen(ovia)",
+      "member_hint": "Predvolene si ty; vyber aj ďalšie osoby, ak to zadávaš v ich mene.",
       "start_date_label": "Od",
       "end_date_label": "Do",
       "note_label": "Poznámka",

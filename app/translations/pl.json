@@ -1631,8 +1631,10 @@
     },
     "council_absence": {
       "title": "Nieobecność zarządu",
-      "new_card_title": "Wpisz swoją nieobecność",
-      "new_card_help": "Każdy posiadacz konta systemowego może tutaj wpisać własną nieobecność.",
+      "new_card_title": "Wpisz nieobecność",
+      "new_card_help": "Wpisz okres nieobecności dla siebie lub w imieniu innego zarejestrowanego użytkownika.",
+      "member_label": "Członek(owie)",
+      "member_hint": "Domyślnie Ty; wybierz też inne osoby, jeśli wpisujesz to w ich imieniu.",
       "start_date_label": "Od",
       "end_date_label": "Do",
       "note_label": "Notatka",

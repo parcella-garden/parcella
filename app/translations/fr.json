@@ -1631,8 +1631,10 @@
     },
     "council_absence": {
       "title": "Absence du conseil",
-      "new_card_title": "Enregistrer votre absence",
-      "new_card_help": "Toute personne disposant d'un compte système peut enregistrer sa propre absence ici.",
+      "new_card_title": "Enregistrer une absence",
+      "new_card_help": "Enregistrez une période d'absence pour vous-même ou pour le compte d'un autre utilisateur enregistré.",
+      "member_label": "Membre(s)",
+      "member_hint": "Vous par défaut ; sélectionnez d'autres personnes si vous le faites en leur nom.",
       "start_date_label": "Du",
       "end_date_label": "Au",
       "note_label": "Note",

@@ -1631,8 +1631,10 @@
     },
     "council_absence": {
       "title": "Council Absence",
-      "new_card_title": "Log Your Absence",
-      "new_card_help": "Anyone with a system account can log their own absence here.",
+      "new_card_title": "Log Absence",
+      "new_card_help": "Log an absence period for yourself, or on behalf of another registered user.",
+      "member_label": "Member(s)",
+      "member_hint": "Defaults to you; select others too if you're logging this on their behalf.",
       "start_date_label": "From",
       "end_date_label": "Until",
       "note_label": "Note",

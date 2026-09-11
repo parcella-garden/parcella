@@ -26,6 +26,20 @@
                 <p class="text-muted" style="font-size: 0.82rem;">{{ t('calendar.council_absence.new_card_help') }}</p>
                 <form method="post" action="/calendar/council-absence/new">
                     {{ csrf_field() }}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ t('calendar.council_absence.member_label') }}</label>
+                        <div class="row" style="max-height: 200px; overflow-y: auto; border: 1px solid #dce8df; border-radius: 6px; padding: 0.5rem; margin: 0;">
+                            {% for u in all_users %}
+                            <div class="col-sm-6 form-check">
+                                <input type="checkbox" name="user_ids" value="{{ u.id }}"
+                                       class="form-check-input" id="absence-member-{{ u.id }}"
+                                       {% if u.id == user.id %}checked{% endif %}>
+                                <label class="form-check-label d-inline-flex align-items-center gap-1" for="absence-member-{{ u.id }}">{{ user_avatar(u, size=18) }}{{ u.name }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="form-text">{{ t('calendar.council_absence.member_hint') }}</div>
+                    </div>
                     <div class="row g-2 mb-3">
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold">{{ t('calendar.council_absence.start_date_label') }} <span class="text-danger">*</span></label>

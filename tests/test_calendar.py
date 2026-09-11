@@ -1,9 +1,9 @@
 """
 Tests for the calendar module: community calendar entries (merged with
 work sessions), the public ICS feed and its JSON twin, token protection
-on the private feeds, and the council-absence self-service permission
-rule (anyone can log their own absence, nobody can delete someone
-else's).
+on the private feeds, and council-absence permissions (anyone can log
+absence for themselves or another registered user, but deleting someone
+else's entry still requires Admin/Board).
 
 Uses the web UI's cookie-based session login (not the JWT API), since
 the calendar module is web-UI-only -- httpx's AsyncClient keeps cookies
@@ -248,3 +248,42 @@ async def test_council_absence_self_service_permissions(client, admin_user):
     # The original user deleting their own entry must succeed.
     own_delete = await client.post(f"/calendar/council-absence/{entry_id}/delete")
     assert own_delete.status_code in (302, 303)
+
+
+async def test_council_absence_for_another_user(client, admin_user, board_user):
+    """Issue #216: logging absence isn't self-only anymore -- any
+    logged-in user can also log it on behalf of another registered user
+    via the user_ids checkbox list (same shape as council-presence's
+    multi-select, see docs/module-calendar.md)."""
+    await web_login(client, "admin@example.com")
+
+    create = await client.post(
+        "/calendar/council-absence/new",
+        data={
+            "user_ids": [board_user.id],
+            "start_date": (date.today() + timedelta(days=20)).isoformat(),
+            "end_date": (date.today() + timedelta(days=25)).isoformat(),
+            "note": "Conference",
+        },
+    )
+    assert create.status_code in (302, 303)
+
+    overview = await client.get("/calendar/council-absence")
+    assert overview.status_code == 200
+    assert "Conference" in overview.text
+    assert "Test-Vorstand" in overview.text
+
+    # Selecting both self and another user in one submission creates one
+    # row per person, same as council-presence.
+    both = await client.post(
+        "/calendar/council-absence/new",
+        data={
+            "user_ids": [admin_user.id, board_user.id],
+            "start_date": (date.today() + timedelta(days=30)).isoformat(),
+            "end_date": (date.today() + timedelta(days=31)).isoformat(),
+            "note": "Joint trip",
+        },
+    )
+    assert both.status_code in (302, 303)
+    overview2 = await client.get("/calendar/council-absence")
+    assert overview2.text.count("Joint trip") == 2

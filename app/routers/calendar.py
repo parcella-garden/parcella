@@ -360,9 +360,12 @@ async def council_absence_overview(request: Request, db: AsyncSession = Depends(
     )
     entries = result.scalars().all()
 
+    users_result = await db.execute(select(User).where(User.is_active == True).order_by(User.name))
+    all_users = users_result.scalars().all()
+
     ics_token = await get_or_create_ics_token(db)
     return templates.TemplateResponse("calendar/council_absence.html", {
-        "request": request, "user": user, "entries": entries,
+        "request": request, "user": user, "entries": entries, "all_users": all_users,
         "ics_token": ics_token,
     })
 
@@ -370,22 +373,34 @@ async def council_absence_overview(request: Request, db: AsyncSession = Depends(
 @router.post("/council-absence/new")
 async def council_absence_create(
     request: Request,
+    user_ids: list[str] = Form([]),
     start_date: str = Form(...),
     end_date: str = Form(...),
     note: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
-    """Anyone with a system account can log their OWN absence -- there's
-    no user_id form field; it's always the logged-in user, so nobody can
-    log an absence on someone else's behalf."""
+    """Anyone with a system account can log absence -- originally
+    self-only (see git history), reopened by issue #216 to also allow
+    logging it for other registered users, still gated only on being
+    logged in at all (no elevated permission, matching the module's
+    existing "everybody can do this" posture for self-logging). Callers
+    pick one or more people via `user_ids`, one CouncilAbsence row per
+    person, same shape as council-presence's multi-select. An empty/
+    missing `user_ids` (the original single-user form shape, still used
+    by the "just me" default in the template) falls back to the
+    logged-in user themselves, so the original one-click self-log flow
+    keeps working unchanged."""
     user = await require_user(request, db)
-    entry = CouncilAbsence(
-        user_id=user.id,
-        start_date=date.fromisoformat(start_date),
-        end_date=date.fromisoformat(end_date),
-        note=note.strip() or None,
-    )
-    db.add(entry)
+    parsed_start = date.fromisoformat(start_date)
+    parsed_end = date.fromisoformat(end_date)
+    target_ids = list(dict.fromkeys(user_ids)) or [user.id]
+    for target_id in target_ids:
+        db.add(CouncilAbsence(
+            user_id=target_id,
+            start_date=parsed_start,
+            end_date=parsed_end,
+            note=note.strip() or None,
+        ))
     await db.commit()
     return RedirectResponse("/calendar/council-absence", status_code=302)
 

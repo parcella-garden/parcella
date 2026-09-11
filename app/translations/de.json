@@ -1631,8 +1631,10 @@
     },
     "council_absence": {
       "title": "Vorstandsabwesenheit",
-      "new_card_title": "Eigene Abwesenheit eintragen",
-      "new_card_help": "Jeder mit einem Systemzugang kann hier seine eigene Abwesenheit eintragen.",
+      "new_card_title": "Abwesenheit eintragen",
+      "new_card_help": "Trage einen Abwesenheitszeitraum für dich selbst oder im Namen eines anderen registrierten Nutzers ein.",
+      "member_label": "Mitglied(er)",
+      "member_hint": "Standardmäßig du selbst; wähle weitere Personen aus, wenn du dies in deren Namen einträgst.",
       "start_date_label": "Von",
       "end_date_label": "Bis",
       "note_label": "Notiz",

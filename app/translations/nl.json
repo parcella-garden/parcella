@@ -1631,8 +1631,10 @@
     },
     "council_absence": {
       "title": "Afwezigheid bestuur",
-      "new_card_title": "Eigen afwezigheid registreren",
-      "new_card_help": "Iedereen met een systeemaccount kan hier zijn eigen afwezigheid registreren.",
+      "new_card_title": "Afwezigheid registreren",
+      "new_card_help": "Registreer een afwezigheidsperiode voor jezelf of namens een andere geregistreerde gebruiker.",
+      "member_label": "Lid/leden",
+      "member_hint": "Standaard ben jij geselecteerd; selecteer ook anderen als je dit namens hen registreert.",
       "start_date_label": "Van",
       "end_date_label": "Tot",
       "note_label": "Notitie",

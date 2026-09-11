@@ -158,11 +158,29 @@ somewhere useful instead of 404ing.
 
 **Permission split:** creating/deleting community calendar entries and
 council presence slots requires Admin/Board (these are "official"
-announcements and internal coordination). Logging your OWN council
-absence requires only being logged in at all, matching the explicit
-request that "everybody with access to the system" can do this --
-and deleting an absence entry is allowed for the entry's own owner or
-for Admin/Board (for cleanup), never for anyone else.
+announcements and internal coordination). Logging council absence
+requires only being logged in at all, matching the explicit request
+that "everybody with access to the system" can do this -- and deleting
+an absence entry is allowed for the entry's own owner or for Admin/Board
+(for cleanup), never for anyone else.
+
+**Logging absence for someone else (issue #216).** Originally
+self-only -- the create form had no `user_id` field at all, always the
+logged-in user, specifically so "nobody can log an absence on someone
+else's behalf." Reopened by #216: the form is now a `user_ids`
+checkbox list (same one-row-per-person-per-entry shape council presence
+already uses for its multi-select, no model change needed), pre-checked
+to just the logged-in user so the original one-click self-log flow is
+unchanged by default. Deliberately kept at the *same* permission level
+as before (any logged-in user, no Admin/Board gate) rather than
+restricting the "for someone else" case to Admin/Board like presence/
+community entries -- a small, trusted club doesn't need to gatekeep one
+member logging "I'll be away, and so will my co-plot-holder" on a
+neighbor's behalf. If that turns out to need tightening later (e.g. one
+member logging bogus absence for another), that's a contained change to
+`council_absence_create()` in `app/routers/calendar.py`, not a data
+model change. Deletion permission is unchanged by this: still owner-or-
+Admin/Board, even for an entry someone logged on another user's behalf.
 
 ## RFC 5545 detail worth knowing if you touch `app/ics_utils.py`
 
