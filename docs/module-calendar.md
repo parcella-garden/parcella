@@ -21,7 +21,11 @@ export:
    accepts `user_ids` (one or more) and inserts one `CouncilPresence`
    row per selected person, all sharing the same date/time/note -- no
    model change needed, since the table was already "one row per
-   person per slot" by design.
+   person per slot" by design. The overview list groups entries under
+   one date heading per day (issue #218, Jinja's `groupby` filter over
+   the already date-sorted query) instead of repeating the date on
+   every row -- purely a template change (`council_presence.html`), no
+   query or model change.
 4. **Council absence** -- self-reported absence periods for any user
    account, not just the council.
 

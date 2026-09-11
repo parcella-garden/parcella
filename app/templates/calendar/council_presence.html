@@ -88,7 +88,6 @@
 <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>{{ t('calendar.council_presence.col_date') }}</th>
                                 <th>{{ t('calendar.council_presence.col_member') }}</th>
                                 <th>{{ t('calendar.council_presence.col_time') }}</th>
                                 <th>{{ t('calendar.council_presence.col_note') }}</th>
@@ -96,9 +95,14 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for e in entries %}
+                            {% for group_date, group_entries in entries|groupby('date') %}
+                            <tr class="table-light">
+                                <th colspan="4" style="color: var(--gv-gruen);">
+                                    <i class="bi bi-calendar-event me-1"></i>{{ group_date.strftime('%d.%m.%Y') }}
+                                </th>
+                            </tr>
+                            {% for e in group_entries %}
                             <tr>
-                                <td class="fw-semibold">{{ e.date.strftime('%d.%m.%Y') }}</td>
                                 <td>
                                     {% if e.user %}
                                     <span class="d-inline-flex align-items-center gap-1">{{ user_avatar(e.user, size=20) }}{{ e.user.name }}</span>
@@ -120,9 +124,10 @@
                                     {% endif %}
                                 </td>
                             </tr>
+                            {% endfor %}
                             {% else %}
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-3">{{ t('calendar.council_presence.empty') }}</td>
+                                <td colspan="4" class="text-center text-muted py-3">{{ t('calendar.council_presence.empty') }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

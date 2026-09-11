@@ -191,6 +191,40 @@ async def test_council_presence_multiple_members_one_slot(client, admin_user, bo
     assert rejected.status_code == 400
 
 
+async def test_council_presence_grouped_by_date(client, admin_user, board_user):
+    """Issue #218: entries are grouped under one date heading per day
+    rather than repeating the date on every row -- two people on the
+    same slot (issue #197's multi-select) share one heading, a second
+    date gets its own."""
+    await web_login(client, "admin@example.com")
+
+    first_date = (date.today() + timedelta(days=5)).isoformat()
+    second_date = (date.today() + timedelta(days=6)).isoformat()
+
+    await client.post(
+        "/calendar/council-presence/new",
+        data={
+            "user_ids": [admin_user.id, board_user.id],
+            "presence_date": first_date,
+            "note": "Joint office hours",
+        },
+    )
+    await client.post(
+        "/calendar/council-presence/new",
+        data={"user_ids": [admin_user.id], "presence_date": second_date, "note": "Solo shift"},
+    )
+
+    overview = await client.get("/calendar/council-presence")
+    assert overview.status_code == 200
+    # The first date appears exactly once as a group heading, even
+    # though two people are listed under it.
+    first_date_formatted = date.fromisoformat(first_date).strftime("%d.%m.%Y")
+    second_date_formatted = date.fromisoformat(second_date).strftime("%d.%m.%Y")
+    assert overview.text.count(first_date_formatted) == 1
+    assert overview.text.count(second_date_formatted) == 1
+    assert overview.text.count("Joint office hours") == 2
+
+
 async def test_council_absence_self_service_permissions(client, admin_user):
     await web_login(client, "admin@example.com")
 
