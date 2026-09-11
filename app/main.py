@@ -32,8 +32,7 @@ from app.update_check import refresh_update_check_cache
 from app.cloud_backup import get_cloud_backup_settings, is_backup_due, run_cloud_backup_now
 from app.area_utils import compute_area_a_sqm
 from app.permissions import get_user_permissions, is_full_access_user, is_system_admin_user
-from app.services.members import count_new_members, new_member_cutoff
-from app.services.work_hours import count_new_participations, new_participation_cutoff
+from app.services.work_hours import count_new_participations
 
 # Loaded at module import time (not only in the lifespan startup
 # event), since ASGI test clients (e.g. httpx with ASGITransport) don't
@@ -262,33 +261,15 @@ async def permissions_middleware(request: Request, call_next):
 
 
 @app.middleware("http")
-async def new_members_count_middleware(request: Request, call_next):
-    """
-    Issue #217: loads the "N members registered in the last
-    NEW_MEMBER_WINDOW_DAYS days" count once per request and stores it
-    under request.state.new_members_count, driving the /work-hours/ nav
-    badge (base.html) and the dashboard tile. Only queried for a logged-in
-    user -- anonymous requests (public ICS feeds, login page) get 0
-    without a DB round-trip, since nothing anonymous-facing reads this.
-    """
-    request.state.new_members_count = 0
-    async with AsyncSessionLocal() as db:
-        user = await get_current_user(request, db)
-        if user is not None:
-            request.state.new_members_count = await count_new_members(db)
-    response = await call_next(request)
-    return response
-
-
-@app.middleware("http")
 async def new_participations_count_middleware(request: Request, call_next):
     """
     Issue #217: loads the "N work-session sign-ups in the last
-    NEW_PARTICIPATION_WINDOW_DAYS days" count once per request, same
-    shape as new_members_count_middleware above -- a second, separate
-    badge on the /work-hours/ nav entry (base.html), not merged into
-    the members count, since they're different concepts. See
-    docs/ADR/0079.
+    NEW_PARTICIPATION_WINDOW_DAYS days" count once per request and
+    stores it under request.state.new_participations_count, driving the
+    /work-hours/ nav badge (base.html) and the dashboard tile. Only
+    queried for a logged-in user -- anonymous requests (public ICS
+    feeds, login page) get 0 without a DB round-trip, since nothing
+    anonymous-facing reads this. See docs/ADR/0079.
     """
     request.state.new_participations_count = 0
     async with AsyncSessionLocal() as db:
@@ -577,10 +558,8 @@ async def startseite(request: Request):
         "tickets_open": tickets_open_count or 0,
         "tickets_spam": tickets_spam_count or 0,
         "tasks_overdue": tasks_overdue_count or 0,
-        # Reuses the counts new_members_count_middleware /
-        # new_participations_count_middleware already computed for this
-        # request (nav badges) instead of querying again.
-        "new_members": getattr(request.state, "new_members_count", 0),
+        # Reuses the count new_participations_count_middleware already
+        # computed for this request (nav badge) instead of querying again.
         "new_participations": getattr(request.state, "new_participations_count", 0),
     }
 
@@ -591,7 +570,6 @@ async def startseite(request: Request):
             "user": user,
             "stats": stats,
             "recent_members": recent_members,
-            "new_member_cutoff": new_member_cutoff(),
             "birthdays_this_week": birthdays_this_week,
             "today_date": date.today(),
         },

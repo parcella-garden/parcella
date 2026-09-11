@@ -19,21 +19,17 @@ from app.database import get_db, active_member_filter, current_tenant_filter
 from app.csv_utils import csv_safe
 from app.models import Member, MemberPhone, MemberEmail, MemberParcel, Parcel
 from app.permissions import require_permission
-from app.i18n import t_for, load_current_language, DEFAULT_LANGUAGE
+from app.i18n import t_for, load_current_language
 from app.branding import load_branding
 from app.pdf_chrome import load_org_footer_context
 from app.meeting_signin_sheet import render_meeting_signin_sheet_pdf
 from app.services.members import (
-    create_member, update_member, soft_delete_member, notify_new_member,
+    create_member, update_member, soft_delete_member,
     add_phone, remove_phone, add_email, remove_email,
 )
 
 router = APIRouter(prefix="/members", tags=["members"])
 from app.templating import templates
-
-
-def _lang(request: Request) -> str:
-    return getattr(request.state, "language", DEFAULT_LANGUAGE)
 
 
 async def _get_member_with_details(db: AsyncSession, member_id: str) -> Optional[Member]:
@@ -286,7 +282,7 @@ async def member_create(
     notes: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
-    actor = await require_permission(request, db, "members_parcels", "write")
+    await require_permission(request, db, "members_parcels", "write")
 
     def parse_date(s: str) -> Optional[date]:
         if s:
@@ -304,9 +300,6 @@ async def member_create(
         email_notifications=email_notifications, notes=notes,
     )
     await db.commit()
-    # Issue #217: fire only after a successful commit, so a failed write
-    # never sends a stray "new member" email.
-    await notify_new_member(db, member, actor=actor, lang=_lang(request))
 
     return RedirectResponse(f"/members/{member.id}", status_code=302)
 

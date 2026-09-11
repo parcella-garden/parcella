@@ -31,7 +31,6 @@
     "change_password": "Change password",
     "menu_open_aria": "Open Menu",
     "work_hours_tasks": "Tasks",
-    "new_members_badge_title": "{count} new member(s) registered recently",
     "new_participations_badge_title": "{count} new work-session sign-up(s) recently",
     "calendar_group": "Calendar",
     "calendar_community": "Community Calendar",
@@ -1540,8 +1539,6 @@
     "title": "Dashboard",
     "members_label": "Members",
     "active_suffix": "active",
-    "new_members_suffix": "new",
-    "new_member_badge": "New",
     "new_participations_label": "New Sign-ups",
     "new_participations_suffix": "in work sessions",
     "show_all": "Show All",
@@ -1948,12 +1945,6 @@
       "greeting": "Hello {name},",
       "body": "{count} ticket(s) have been assigned to you in {app_name}:",
       "instruction": "Please log in to {app_name} to process them."
-    },
-    "new_member_notification": {
-      "subject": "New member registered in {app_name}",
-      "greeting": "Hello {name},",
-      "body": "A new member has been registered in {app_name}:",
-      "instruction": "Log in to {app_name} to see the details."
     },
     "new_participation_notification": {
       "subject": "New work-session sign-up in {app_name}",

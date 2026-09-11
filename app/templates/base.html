@@ -282,11 +282,6 @@
                     data-bs-target="#nav-group-work_hours">
                 <i class="bi bi-hammer"></i>
                 <span>{{ t('nav.work_hours_group') }}</span>
-                {% if new_members_count(request) > 0 %}
-                <span class="badge bg-warning text-dark ms-1" title="{{ t('nav.new_members_badge_title', count=new_members_count(request)) }}">
-                    <i class="bi bi-exclamation-lg"></i>
-                </span>
-                {% endif %}
                 {% if new_participations_count(request) > 0 %}
                 <span class="badge bg-info text-dark ms-1" title="{{ t('nav.new_participations_badge_title', count=new_participations_count(request)) }}">
                     <i class="bi bi-clipboard-check"></i>
@@ -297,11 +292,6 @@
             <div class="collapse nav-group-body" id="nav-group-work_hours" data-bs-parent="#nav-accordion">
                 <a href="/work-hours/" class="{% if '/work-hours' in request.url.path and '/evaluation' not in request.url.path %}aktiv{% endif %}">
                     {{ t('nav.work_hours_overview') }}
-                    {% if new_members_count(request) > 0 %}
-                    <span class="badge bg-warning text-dark ms-1" title="{{ t('nav.new_members_badge_title', count=new_members_count(request)) }}">
-                        <i class="bi bi-exclamation-lg"></i>
-                    </span>
-                    {% endif %}
                     {% if new_participations_count(request) > 0 %}
                     <span class="badge bg-info text-dark ms-1" title="{{ t('nav.new_participations_badge_title', count=new_participations_count(request)) }}">
                         <i class="bi bi-clipboard-check"></i>

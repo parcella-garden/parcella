@@ -31,7 +31,6 @@
     "change_password": "Changer le mot de passe",
     "menu_open_aria": "Ouvrir le menu",
     "work_hours_tasks": "Tâches",
-    "new_members_badge_title": "{count} nouveau(x) membre(s) enregistré(s) récemment",
     "new_participations_badge_title": "{count} nouvelle(s) inscription(s) à une session de travail récemment",
     "calendar_group": "Calendrier",
     "calendar_community": "Calendrier communautaire",
@@ -1540,8 +1539,6 @@
     "title": "Tableau de bord",
     "members_label": "Membres",
     "active_suffix": "actifs",
-    "new_members_suffix": "nouveaux",
-    "new_member_badge": "Nouveau",
     "new_participations_label": "Nouvelles inscriptions",
     "new_participations_suffix": "aux sessions de travail",
     "show_all": "Afficher tout",
@@ -1948,12 +1945,6 @@
       "greeting": "Bonjour {name},",
       "body": "{count} ticket(s) vous ont été assignés dans {app_name} :",
       "instruction": "Merci de vous connecter à {app_name} pour les traiter."
-    },
-    "new_member_notification": {
-      "subject": "Nouveau membre enregistré dans {app_name}",
-      "greeting": "Bonjour {name},",
-      "body": "Un nouveau membre a été enregistré dans {app_name} :",
-      "instruction": "Connectez-vous à {app_name} pour voir les détails."
     },
     "new_participation_notification": {
       "subject": "Nouvelle inscription à une session de travail dans {app_name}",

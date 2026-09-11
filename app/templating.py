@@ -16,7 +16,6 @@ from app.l10n import (
 )
 from app.html_sanitizer import sanitize_email_html
 from app.permissions import jinja_has_perm, jinja_is_full_access, jinja_is_system_admin
-from app.services.members import jinja_new_members_count
 from app.services.work_hours import jinja_new_participations_count
 from app.avatars import avatar_url
 from app.csrf import jinja_csrf_field, jinja_csrf_token
@@ -30,7 +29,6 @@ templates.env.globals["currency_symbol"] = jinja_currency_symbol
 templates.env.globals["has_perm"] = jinja_has_perm
 templates.env.globals["is_full_access"] = jinja_is_full_access
 templates.env.globals["is_system_admin"] = jinja_is_system_admin
-templates.env.globals["new_members_count"] = jinja_new_members_count
 templates.env.globals["new_participations_count"] = jinja_new_participations_count
 templates.env.globals["avatar_url"] = avatar_url
 # Every state-changing <form> needs {{ csrf_field() }}; the fetch()-based

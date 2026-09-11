@@ -31,7 +31,6 @@
     "change_password": "Změnit heslo",
     "menu_open_aria": "Otevřít menu",
     "work_hours_tasks": "Úkoly",
-    "new_members_badge_title": "{count} nový(ch) člen(ů) nedávno zaregistrováno",
     "new_participations_badge_title": "{count} nová(ých) přihlášení k pracovní směně nedávno",
     "calendar_group": "Kalendář",
     "calendar_community": "Kalendář spolku",
@@ -1540,8 +1539,6 @@
     "title": "Dashboard",
     "members_label": "Členové",
     "active_suffix": "aktivní",
-    "new_members_suffix": "nových",
-    "new_member_badge": "Nový",
     "new_participations_label": "Nová přihlášení",
     "new_participations_suffix": "k pracovním směnám",
     "show_all": "Zobrazit vše",
@@ -1948,12 +1945,6 @@
       "greeting": "Dobrý den, {name},",
       "body": "Bylo vám přiřazeno {count} tiket(ů) v {app_name}:",
       "instruction": "Přihlaste se prosím do {app_name}, abyste je mohli zpracovat."
-    },
-    "new_member_notification": {
-      "subject": "Nový člen zaregistrován v {app_name}",
-      "greeting": "Ahoj {name},",
-      "body": "V {app_name} byl zaregistrován nový člen:",
-      "instruction": "Přihlas se do {app_name}, abys viděl podrobnosti."
     },
     "new_participation_notification": {
       "subject": "Nové přihlášení k pracovní směně v {app_name}",

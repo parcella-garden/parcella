@@ -31,7 +31,6 @@
     "change_password": "Wachtwoord wijzigen",
     "menu_open_aria": "Open menu",
     "work_hours_tasks": "Taken",
-    "new_members_badge_title": "{count} nieuw(e) lid/leden onlangs geregistreerd",
     "new_participations_badge_title": "{count} nieuwe aanmelding(en) voor werksessies onlangs",
     "calendar_group": "Kalender",
     "calendar_community": "Verenigingskalender",
@@ -1540,8 +1539,6 @@
     "title": "Dashboard",
     "members_label": "Leden",
     "active_suffix": "actief",
-    "new_members_suffix": "nieuw",
-    "new_member_badge": "Nieuw",
     "new_participations_label": "Nieuwe aanmeldingen",
     "new_participations_suffix": "voor werksessies",
     "show_all": "Toon alles",
@@ -1948,12 +1945,6 @@
       "greeting": "Hallo {name},",
       "body": "Er zijn {count} ticket(s) aan u toegewezen in {app_name}:",
       "instruction": "Log in op {app_name} om ze te verwerken."
-    },
-    "new_member_notification": {
-      "subject": "Nieuw lid geregistreerd in {app_name}",
-      "greeting": "Hallo {name},",
-      "body": "Er is een nieuw lid geregistreerd in {app_name}:",
-      "instruction": "Log in bij {app_name} om de details te bekijken."
     },
     "new_participation_notification": {
       "subject": "Nieuwe aanmelding voor een werksessie in {app_name}",

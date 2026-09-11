@@ -39,9 +39,10 @@ from app.models import (
 from app.services.errors import ServiceError
 
 # Issue #217: how many days a SessionParticipation counts as "new" for
-# the dashboard tile / nav badge / session-detail "New" badge -- same
-# stateless-constant convention as app/services/members.py's
-# NEW_MEMBER_WINDOW_DAYS. See docs/ADR/0079.
+# the dashboard tile / nav badge / session-detail "New" badge -- a
+# plain constant, not a ClubSetting, matching the convention of every
+# other day-count threshold in this codebase (e.g.
+# app/birthdays.py's ROUND_BIRTHDAY_INTERVAL). See docs/ADR/0079.
 NEW_PARTICIPATION_WINDOW_DAYS = 14
 
 # ---------------------------------------------------------------------------
@@ -357,9 +358,8 @@ async def count_new_participations(db: AsyncSession, within_days: int = NEW_PART
     """Issue #217: how many SessionParticipation rows were created in
     the last `within_days` days -- status-agnostic (a row counts
     regardless of REGISTERED/ATTENDED/NO_SHOW, since "newly registered"
-    is about when the row was created, not its current state). Same
-    stateless rolling-window shape as count_new_members()
-    (app/services/members.py). See docs/ADR/0079."""
+    is about when the row was created, not its current state). See
+    docs/ADR/0079."""
     result = await db.execute(
         select(func.count()).select_from(SessionParticipation)
         .where(SessionParticipation.created_at >= new_participation_cutoff(within_days))

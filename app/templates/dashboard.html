@@ -16,12 +16,6 @@
                     <div class="text-muted" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em;">{{ t('dashboard.members_label') }}</div>
                     <div style="font-size: 1.8rem; font-weight: 700; color: var(--gv-gruen);">{{ stats.members_total }}</div>
                     <div class="text-muted" style="font-size: 0.75rem;">{{ stats.members_active }} {{ t('dashboard.active_suffix') }}</div>
-                    {% if stats.new_members > 0 %}
-                    <div style="font-size: 0.75rem; color: #92400e;">
-                        <i class="bi bi-exclamation-circle-fill"></i>
-                        {{ stats.new_members }} {{ t('dashboard.new_members_suffix') }}
-                    </div>
-                    {% endif %}
                 </div>
             </div>
             <div class="card-footer bg-transparent border-top-0 pt-0">
@@ -232,9 +226,6 @@
                         <a href="/members/{{ m.id }}" class="text-decoration-none fw-semibold"
                            style="color: var(--gv-gruen);">
                             {{ m.full_name }}
-                            {% if m.created_at >= new_member_cutoff %}
-                            <span class="badge bg-warning text-dark ms-1">{{ t('dashboard.new_member_badge') }}</span>
-                            {% endif %}
                         </a>
                         <span class="text-muted" style="font-size: 0.82rem;">
                             {{ m.member_since.strftime('%d.%m.%Y') if m.member_since else '–' }}

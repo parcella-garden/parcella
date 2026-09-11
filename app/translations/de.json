@@ -31,7 +31,6 @@
     "change_password": "Passwort ändern",
     "menu_open_aria": "Menü öffnen",
     "work_hours_tasks": "Aufgaben",
-    "new_members_badge_title": "{count} neue(s) Mitglied(er) kürzlich registriert",
     "new_participations_badge_title": "{count} neue Anmeldung(en) zu Arbeitseinsätzen kürzlich",
     "calendar_group": "Kalender",
     "calendar_community": "Vereinskalender",
@@ -1540,8 +1539,6 @@
     "title": "Dashboard",
     "members_label": "Mitglieder",
     "active_suffix": "aktiv",
-    "new_members_suffix": "neu",
-    "new_member_badge": "Neu",
     "new_participations_label": "Neue Anmeldungen",
     "new_participations_suffix": "zu Arbeitseinsätzen",
     "show_all": "Alle anzeigen",
@@ -1948,12 +1945,6 @@
       "greeting": "Hallo {name},",
       "body": "Ihnen wurden {count} Ticket(s) im {app_name} zugewiesen:",
       "instruction": "Bitte melden Sie sich im {app_name} an, um sie zu bearbeiten."
-    },
-    "new_member_notification": {
-      "subject": "Neues Mitglied in {app_name} registriert",
-      "greeting": "Hallo {name},",
-      "body": "Ein neues Mitglied wurde in {app_name} registriert:",
-      "instruction": "Melde dich in {app_name} an, um die Details zu sehen."
     },
     "new_participation_notification": {
       "subject": "Neue Anmeldung zu einem Arbeitseinsatz in {app_name}",

@@ -31,7 +31,6 @@
     "change_password": "Zmień hasło",
     "menu_open_aria": "Otwórz menu",
     "work_hours_tasks": "Zadania",
-    "new_members_badge_title": "{count} nowy(ch) członek/członków zarejestrowano niedawno",
     "new_participations_badge_title": "{count} nowe(-ych) zgłoszenie(a) do prac ostatnio",
     "calendar_group": "Kalendarz",
     "calendar_community": "Kalendarz stowarzyszenia",
@@ -1540,8 +1539,6 @@
     "title": "Panel główny",
     "members_label": "Członkowie",
     "active_suffix": "aktywnych",
-    "new_members_suffix": "nowych",
-    "new_member_badge": "Nowy",
     "new_participations_label": "Nowe zgłoszenia",
     "new_participations_suffix": "do prac społecznych",
     "show_all": "Pokaż wszystkie",
@@ -1948,12 +1945,6 @@
       "greeting": "Witaj {name},",
       "body": "Przypisano Ci {count} zgłoszenie(a) w {app_name}:",
       "instruction": "Zaloguj się do {app_name}, aby je obsłużyć."
-    },
-    "new_member_notification": {
-      "subject": "Nowy członek zarejestrowany w {app_name}",
-      "greeting": "Cześć {name},",
-      "body": "Nowy członek został zarejestrowany w {app_name}:",
-      "instruction": "Zaloguj się do {app_name}, aby zobaczyć szczegóły."
     },
     "new_participation_notification": {
       "subject": "Nowe zgłoszenie do prac społecznych w {app_name}",
