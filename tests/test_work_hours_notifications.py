@@ -187,3 +187,12 @@ async def test_dashboard_tile_nav_badge_and_session_new_badge(client, admin_user
     # Exactly one "New" badge on the participant table -- the 100-day-old
     # backdated row must not be flagged.
     assert detail.text.count('badge bg-info text-dark ms-1">New</span>') == 1
+
+    # The /work-hours/ overview list also flags the session itself with
+    # its count of new sign-ups (issue #217 follow-up) -- distinct from
+    # the two nav badges (group toggle + /work-hours/ link) that also
+    # render on this same page.
+    overview = await client.get(f"/work-hours/?year={date.today().year}")
+    assert overview.status_code == 200
+    assert overview.text.count("rounded-pill bg-info text-dark ms-1") == 3
+    assert "1 new sign-up(s) for this session" in overview.text

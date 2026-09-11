@@ -1231,6 +1231,8 @@
       "badge_standard": "Standaard",
       "badge_special": "Speciaal",
       "attended_suffix": "aanwezig",
+      "new_suffix": "nieuw",
+      "new_signups_badge_title": "{count} nieuwe aanmelding(en) voor deze werksessie",
       "no_sessions": "Nog geen werksessies voor {year}.",
       "first_session_button": "Eerste sessie aanmaken",
       "quick_access_hours_config": "Urenconfiguratie",

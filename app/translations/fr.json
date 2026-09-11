@@ -1231,6 +1231,8 @@
       "badge_standard": "Standard",
       "badge_special": "Spécial",
       "attended_suffix": "présents",
+      "new_suffix": "nouveaux",
+      "new_signups_badge_title": "{count} nouvelle(s) inscription(s) pour cette session",
       "no_sessions": "Pas encore de sessions de travail pour {year}.",
       "first_session_button": "Créer une première session",
       "quick_access_hours_config": "Configuration des heures",

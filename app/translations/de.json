@@ -1231,6 +1231,8 @@
       "badge_standard": "Standard",
       "badge_special": "Besonders",
       "attended_suffix": "erschienen",
+      "new_suffix": "neu",
+      "new_signups_badge_title": "{count} neue Anmeldung(en) für diesen Einsatz",
       "no_sessions": "Noch keine Arbeitseinsätze für {year}.",
       "first_session_button": "Ersten Einsatz anlegen",
       "quick_access_hours_config": "Stunden-Konfiguration",

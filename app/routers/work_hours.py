@@ -95,6 +95,7 @@ async def work_hours_overview(
             "available_years": available_years,
             "SessionType": SessionType,
             "ParticipationStatus": ParticipationStatus,
+            "new_participation_cutoff": new_participation_cutoff(),
         },
     )
 

@@ -1231,6 +1231,8 @@
       "badge_standard": "Standard",
       "badge_special": "Special",
       "attended_suffix": "attended",
+      "new_suffix": "new",
+      "new_signups_badge_title": "{count} new sign-up(s) for this session",
       "no_sessions": "No work sessions for {year} yet.",
       "first_session_button": "Create First Session",
       "quick_access_hours_config": "Hours Configuration",

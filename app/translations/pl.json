@@ -1231,6 +1231,8 @@
       "badge_standard": "Standardowy",
       "badge_special": "Specjalny",
       "attended_suffix": "obecnych",
+      "new_suffix": "nowych",
+      "new_signups_badge_title": "{count} nowe(-ych) zgłoszenie(a) na ten termin",
       "no_sessions": "Nie utworzono jeszcze wpisów prac za {year}.",
       "first_session_button": "Utwórz pierwszy wpis",
       "quick_access_hours_config": "Konfiguracja godzin",

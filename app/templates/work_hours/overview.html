@@ -85,11 +85,17 @@
                 </thead>
                 <tbody>
                     {% for e in sessions %}
+                    {% set new_count = e.participations | selectattr('created_at', 'ge', new_participation_cutoff) | list | length %}
                     <tr>
                         <td class="fw-semibold">{{ e.date.strftime('%d.%m.%Y') }}</td>
                         <td>
                             <a href="/work-hours/sessions/{{ e.id }}" class="text-decoration-none"
                                style="color: var(--gv-gruen);">{{ e.title }}</a>
+                            {% if new_count > 0 %}
+                            <span class="badge rounded-pill bg-info text-dark ms-1" title="{{ t('work_hours.overview.new_signups_badge_title', count=new_count) }}">
+                                {{ new_count }}
+                            </span>
+                            {% endif %}
                         </td>
                         <td>
                             {% if e.type.value == 'STANDARD' %}
@@ -105,7 +111,7 @@
                             {{ e.participations | length }}
                             {% if e.max_participants %}/ {{ e.max_participants }}{% endif %}
                             <small class="text-muted ms-1">
-                                ({{ e.participations | selectattr('status.value', 'eq', 'ATTENDED') | list | length }} {{ t('work_hours.overview.attended_suffix') }})
+                                ({{ e.participations | selectattr('status.value', 'eq', 'ATTENDED') | list | length }} {{ t('work_hours.overview.attended_suffix') }}{% if new_count > 0 %}, {{ new_count }} {{ t('work_hours.overview.new_suffix') }}{% endif %})
                             </small>
                         </td>
                         <td class="text-end">

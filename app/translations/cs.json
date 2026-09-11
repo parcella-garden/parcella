@@ -1231,6 +1231,8 @@
       "badge_standard": "Standard",
       "badge_special": "Speciál",
       "attended_suffix": "zúčastnili",
+      "new_suffix": "nových",
+      "new_signups_badge_title": "{count} nové(-á) přihlášení k této směně",
       "no_sessions": "Zatím žádná pracovní sezení pro {year}.",
       "first_session_button": "Vytvořit první sezení",
       "quick_access_hours_config": "Konfigurace hodin",
