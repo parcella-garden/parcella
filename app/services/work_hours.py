@@ -357,13 +357,27 @@ def new_participation_cutoff(within_days: int = NEW_PARTICIPATION_WINDOW_DAYS) -
 
 async def count_new_participations(db: AsyncSession, within_days: int = NEW_PARTICIPATION_WINDOW_DAYS) -> int:
     """Issue #217: how many SessionParticipation rows were created in
-    the last `within_days` days -- status-agnostic (a row counts
-    regardless of REGISTERED/ATTENDED/NO_SHOW, since "newly registered"
-    is about when the row was created, not its current state). See
-    docs/ADR/0079."""
+    the last `within_days` days, for a session that is both STANDARD
+    (never SPECIAL -- same distinction the public site/community
+    calendar already draw) and still upcoming (`date >= today`) --
+    status-agnostic otherwise (a row counts regardless of
+    REGISTERED/ATTENDED/NO_SHOW, since "newly registered" is about when
+    the row was created, not its current state).
+
+    Originally counted every new participation regardless of the
+    session's own type or date -- in practice that surfaced staff
+    retroactively recording attendance on long-past sessions and
+    SPECIAL (spontaneous/unplanned) sessions as "new," swamping the
+    count with noise nobody needed to act on. See docs/ADR/0079.
+    """
     result = await db.execute(
         select(func.count()).select_from(SessionParticipation)
-        .where(SessionParticipation.created_at >= new_participation_cutoff(within_days))
+        .join(WorkSession, WorkSession.id == SessionParticipation.session_id)
+        .where(
+            SessionParticipation.created_at >= new_participation_cutoff(within_days),
+            WorkSession.type == SessionType.STANDARD,
+            WorkSession.date >= date.today(),
+        )
     )
     return result.scalar_one()
 

@@ -85,7 +85,11 @@
                 </thead>
                 <tbody>
                     {% for e in sessions %}
+                    {% if e.type.value == 'STANDARD' and e.date >= today %}
                     {% set new_count = e.participations | selectattr('created_at', 'ge', new_participation_cutoff) | list | length %}
+                    {% else %}
+                    {% set new_count = 0 %}
+                    {% endif %}
                     <tr>
                         <td class="fw-semibold">{{ e.date.strftime('%d.%m.%Y') }}</td>
                         <td>

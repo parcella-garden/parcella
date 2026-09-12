@@ -50,7 +50,7 @@ No topbar icon -- there's currently no shared global content in
 `.topbar` at all (only a per-page `topbar_actions` block), and nothing
 in the original ask called for one.
 
-## Count is status-agnostic
+## Count is status-agnostic, but not session-agnostic
 
 Any `SessionParticipation` created in the window counts, regardless of
 its current `REGISTERED`/`ATTENDED`/`NO_SHOW` status. The staff
@@ -59,6 +59,21 @@ normally used to retroactively record who showed up, not to
 pre-register someone) -- still counts, since it's still a new
 participation record either way, and "newly registered" is about when
 the row was created, not what it currently says.
+
+**Correction, found in real use:** the first version counted a new
+participation regardless of its *session's* own type or date, which in
+practice surfaced 83 "new" sign-ups spanning SPECIAL (spontaneous)
+sessions and long-past STANDARD sessions where staff were simply
+recording historical attendance -- noise nobody needed to act on, since
+"here's who newly signed up" only makes sense for a session someone
+could still plan around. `count_new_participations()` now also requires
+`WorkSession.type == SessionType.STANDARD` and `WorkSession.date >=
+today` (`app/services/work_hours.py`) -- same STANDARD-only distinction
+the community calendar and the public signup API both already draw,
+applied here too. The session-detail "New" badge and the overview
+list's per-session pill (`session_detail.html`, `overview.html`) follow
+the same rule: a participation on a SPECIAL or already-past session
+never shows a "New" badge, however recently it was actually created.
 
 ## Two structurally different creation paths needed two different email shapes
 

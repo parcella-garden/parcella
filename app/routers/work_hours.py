@@ -96,6 +96,7 @@ async def work_hours_overview(
             "SessionType": SessionType,
             "ParticipationStatus": ParticipationStatus,
             "new_participation_cutoff": new_participation_cutoff(),
+            "today": date.today(),
         },
     )
 
@@ -418,6 +419,7 @@ async def session_detail(
             "session_tasks": session_tasks,
             "TaskWorkload": TaskWorkload,
             "new_participation_cutoff": new_participation_cutoff(),
+            "today": date.today(),
         },
     )
 

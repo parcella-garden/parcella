@@ -196,3 +196,38 @@ async def test_dashboard_tile_nav_badge_and_session_new_badge(client, admin_user
     assert overview.status_code == 200
     assert overview.text.count("rounded-pill bg-info text-dark ms-1") == 3
     assert "1 new sign-up(s) for this session" in overview.text
+
+
+async def test_new_participation_count_excludes_special_and_past_sessions(client, admin_user):
+    """A freshly-created participation only counts toward the
+    dashboard tile / nav badge when its session is both STANDARD and
+    still upcoming -- a participation on a SPECIAL session, or on a
+    STANDARD session whose date has already passed (e.g. staff
+    retroactively recording attendance weeks later), must not inflate
+    the count. Reported after the count showed 83 "new" sign-ups
+    spanning long-processed and SPECIAL sessions."""
+    async with AsyncSessionLocal() as db:
+        special_session = WorkSession(title="Special", type=SessionType.SPECIAL, date=date.today() + timedelta(days=5))
+        past_session = WorkSession(title="Past", type=SessionType.STANDARD, date=date.today() - timedelta(days=5))
+        member_a = Member(first_name="Special", last_name="Attendee")
+        member_b = Member(first_name="Past", last_name="Attendee")
+        db.add_all([special_session, past_session, member_a, member_b])
+        await db.flush()
+        db.add(SessionParticipation(session_id=special_session.id, member_id=member_a.id, status=ParticipationStatus.REGISTERED))
+        db.add(SessionParticipation(session_id=past_session.id, member_id=member_b.id, status=ParticipationStatus.ATTENDED))
+        await db.commit()
+        special_id, past_id = special_session.id, past_session.id
+
+    await web_login(client, "admin@example.com")
+
+    dashboard = await client.get("/")
+    assert dashboard.status_code == 200
+    # Neither nav badge (group toggle nor /work-hours/ link) should
+    # render at all -- both are conditional on count > 0.
+    assert "rounded-pill bg-info text-dark" not in dashboard.text
+
+    special_detail = await client.get(f"/work-hours/sessions/{special_id}")
+    assert 'badge bg-info text-dark ms-1">New</span>' not in special_detail.text
+
+    past_detail = await client.get(f"/work-hours/sessions/{past_id}")
+    assert 'badge bg-info text-dark ms-1">New</span>' not in past_detail.text
