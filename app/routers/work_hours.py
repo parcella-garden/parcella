@@ -37,7 +37,7 @@ from app.services.work_hours import (
     create_session, update_session, add_participation, update_participation,
     create_sponsorship, update_sponsorship,
     create_task, schedule_task, assign_task_to_participant, toggle_task_done,
-    new_participation_cutoff, notify_new_participation,
+    new_participation_cutoff, notify_new_participation, mark_signups_reviewed,
 )
 
 router = APIRouter(
@@ -96,6 +96,7 @@ async def work_hours_overview(
             "SessionType": SessionType,
             "ParticipationStatus": ParticipationStatus,
             "new_participation_cutoff": new_participation_cutoff(),
+            "epoch_datetime": datetime.min.replace(tzinfo=timezone.utc),
             "today": date.today(),
         },
     )
@@ -419,9 +420,29 @@ async def session_detail(
             "session_tasks": session_tasks,
             "TaskWorkload": TaskWorkload,
             "new_participation_cutoff": new_participation_cutoff(),
+            "epoch_datetime": datetime.min.replace(tzinfo=timezone.utc),
             "today": date.today(),
         },
     )
+
+
+@router.post("/sessions/{session_id}/mark-signups-reviewed")
+async def session_mark_signups_reviewed(
+    session_id: str, request: Request, db: AsyncSession = Depends(get_db),
+):
+    """Clears the "New" badges/count for this session's current
+    participants (a fresh sign-up afterward still shows as new again --
+    see mark_signups_reviewed() in app/services/work_hours.py)."""
+    await require_permission(request, db, "work_hours", "write")
+
+    result = await db.execute(select(WorkSession).where(WorkSession.id == session_id))
+    session = result.scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail=t_for(request, "work_hours.errors.session_not_found"))
+
+    await mark_signups_reviewed(db, session)
+    await db.commit()
+    return RedirectResponse(f"/work-hours/sessions/{session_id}", status_code=302)
 
 
 @router.get("/sessions/{session_id}/attendee-sheet")

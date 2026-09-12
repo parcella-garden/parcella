@@ -23,7 +23,7 @@ otherwise still no audit trail here.
 from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -369,6 +369,12 @@ async def count_new_participations(db: AsyncSession, within_days: int = NEW_PART
     retroactively recording attendance on long-past sessions and
     SPECIAL (spontaneous/unplanned) sessions as "new," swamping the
     count with noise nobody needed to act on. See docs/ADR/0079.
+
+    Also excludes anything a session's "mark reviewed" button
+    (`mark_signups_reviewed()` below) has already cleared -- a
+    participation only counts if it's newer than
+    `WorkSession.signups_reviewed_at` (NULL = never reviewed, no
+    additional filtering).
     """
     result = await db.execute(
         select(func.count()).select_from(SessionParticipation)
@@ -377,9 +383,22 @@ async def count_new_participations(db: AsyncSession, within_days: int = NEW_PART
             SessionParticipation.created_at >= new_participation_cutoff(within_days),
             WorkSession.type == SessionType.STANDARD,
             WorkSession.date >= date.today(),
+            or_(
+                WorkSession.signups_reviewed_at.is_(None),
+                SessionParticipation.created_at > WorkSession.signups_reviewed_at,
+            ),
         )
     )
     return result.scalar_one()
+
+
+async def mark_signups_reviewed(db: AsyncSession, session: WorkSession) -> None:
+    """Clears the "New" badges/count for whatever participants exist on
+    this session right now -- a participant added after this call still
+    shows as new again, until the next review or the rolling window
+    (NEW_PARTICIPATION_WINDOW_DAYS) passes on its own."""
+    session.signups_reviewed_at = datetime.now(timezone.utc)
+    await db.flush()
 
 
 def jinja_new_participations_count(request) -> int:

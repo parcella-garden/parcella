@@ -78,16 +78,31 @@
     </div>
 
     <!-- Teilnahmen -->
+    {% set session_can_show_new = session.type.value == 'STANDARD' and session.date >= today %}
+    {% set new_participants = session.participations
+        | selectattr('created_at', 'ge', new_participation_cutoff)
+        | selectattr('created_at', 'gt', session.signups_reviewed_at or epoch_datetime)
+        | list if session_can_show_new else [] %}
     <div class="col-lg-8">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <span><i class="bi bi-people me-2"></i>{{ t('work_hours.session_detail.participants_card_title') }}</span>
-                <span class="text-muted" style="font-size: 0.85rem;">
-                    {{ session.participations | selectattr('status.value', 'eq', 'ATTENDED') | list | length }}
-                    {{ t('work_hours.session_detail.attended_suffix') }} ·
-                    {{ session.participations | selectattr('status.value', 'eq', 'REGISTERED') | list | length }}
-                    {{ t('work_hours.session_detail.registered_suffix') }}
-                </span>
+                <div class="d-flex align-items-center gap-2">
+                    {% if new_participants and has_perm(request, 'work_hours', 'write') %}
+                    <form method="post" action="/work-hours/sessions/{{ session.id }}/mark-signups-reviewed">
+                        {{ csrf_field() }}
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-check2-all me-1"></i>{{ t('work_hours.session_detail.mark_reviewed_button') }}
+                        </button>
+                    </form>
+                    {% endif %}
+                    <span class="text-muted" style="font-size: 0.85rem;">
+                        {{ session.participations | selectattr('status.value', 'eq', 'ATTENDED') | list | length }}
+                        {{ t('work_hours.session_detail.attended_suffix') }} ·
+                        {{ session.participations | selectattr('status.value', 'eq', 'REGISTERED') | list | length }}
+                        {{ t('work_hours.session_detail.registered_suffix') }}
+                    </span>
+                </div>
             </div>
             {% if session.participations %}
             <div class="card-body border-bottom py-2">
@@ -117,7 +132,7 @@
                                 <td>
                                     <a href="/members/{{ t_p.member.id }}" class="text-decoration-none"
                                        style="color: var(--gv-gruen);">{{ t_p.member.full_name }}</a>
-                                    {% if session.type.value == 'STANDARD' and session.date >= today and t_p.created_at >= new_participation_cutoff %}
+                                    {% if t_p in new_participants %}
                                     <span class="badge bg-info text-dark ms-1">{{ t('work_hours.session_detail.new_participant_badge') }}</span>
                                     {% endif %}
                                 </td>

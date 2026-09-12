@@ -784,6 +784,13 @@ class WorkSession(Base):
     # board member adding a participant in Parcella itself is unaffected
     # (that flow normally records attendance *after* a session).
     signup_deadline_days: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    # "Mark reviewed" (ADR 0079 follow-up): a board member has looked at
+    # this session's participants and wants the "New" badges/count to
+    # stop showing the ones they've already seen. NULL = never reviewed,
+    # the 14-day rolling window alone applies. A participation added
+    # AFTER this timestamp still counts as new -- reviewing clears what
+    # exists so far, it doesn't suppress future sign-ups.
+    signups_reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_by_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )

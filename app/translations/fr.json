@@ -1393,6 +1393,7 @@
       "slots_label": "Places",
       "hours_per_person_label": "Heures/personne",
       "participants_card_title": "Participants",
+      "mark_reviewed_button": "Marquer comme vu",
       "attended_suffix": "présents",
       "registered_suffix": "inscrits",
       "col_member": "Membre",

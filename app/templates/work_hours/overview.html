@@ -86,7 +86,10 @@
                 <tbody>
                     {% for e in sessions %}
                     {% if e.type.value == 'STANDARD' and e.date >= today %}
-                    {% set new_count = e.participations | selectattr('created_at', 'ge', new_participation_cutoff) | list | length %}
+                    {% set new_count = e.participations
+                        | selectattr('created_at', 'ge', new_participation_cutoff)
+                        | selectattr('created_at', 'gt', e.signups_reviewed_at or epoch_datetime)
+                        | list | length %}
                     {% else %}
                     {% set new_count = 0 %}
                     {% endif %}

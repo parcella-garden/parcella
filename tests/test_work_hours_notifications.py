@@ -231,3 +231,49 @@ async def test_new_participation_count_excludes_special_and_past_sessions(client
 
     past_detail = await client.get(f"/work-hours/sessions/{past_id}")
     assert 'badge bg-info text-dark ms-1">New</span>' not in past_detail.text
+
+
+async def test_mark_reviewed_clears_new_badges_but_not_future_signups(client, admin_user):
+    """The "Mark reviewed" button clears the "New" badge/count for
+    whatever participants exist right now, but a participant added
+    afterward shows as new again -- reviewing clears what exists so
+    far, it doesn't suppress future sign-ups."""
+    session_id, member_id = await _create_session_and_member(AsyncSessionLocal)
+
+    await web_login(client, "admin@example.com")
+    add = await client.post(
+        f"/work-hours/sessions/{session_id}/participants/add",
+        data={"member_id": member_id, "status": "ATTENDED"},
+    )
+    assert add.status_code in (302, 303)
+
+    detail = await client.get(f"/work-hours/sessions/{session_id}")
+    assert 'badge bg-info text-dark ms-1">New</span>' in detail.text
+    assert f'/work-hours/sessions/{session_id}/mark-signups-reviewed' in detail.text
+
+    mark = await client.post(f"/work-hours/sessions/{session_id}/mark-signups-reviewed")
+    assert mark.status_code in (302, 303)
+
+    reviewed_detail = await client.get(f"/work-hours/sessions/{session_id}")
+    assert 'badge bg-info text-dark ms-1">New</span>' not in reviewed_detail.text
+    # The button itself disappears once there's nothing new left to review.
+    assert f'/work-hours/sessions/{session_id}/mark-signups-reviewed' not in reviewed_detail.text
+
+    dashboard = await client.get("/")
+    assert "rounded-pill bg-info text-dark" not in dashboard.text
+
+    # A member signing up afterward still counts as new.
+    async with AsyncSessionLocal() as db:
+        later_member = Member(first_name="Later", last_name="Signup")
+        db.add(later_member)
+        await db.commit()
+        later_member_id = later_member.id
+
+    add_again = await client.post(
+        f"/work-hours/sessions/{session_id}/participants/add",
+        data={"member_id": later_member_id, "status": "ATTENDED"},
+    )
+    assert add_again.status_code in (302, 303)
+
+    final_detail = await client.get(f"/work-hours/sessions/{session_id}")
+    assert final_detail.text.count('badge bg-info text-dark ms-1">New</span>') == 1

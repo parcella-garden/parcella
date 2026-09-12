@@ -112,6 +112,25 @@ service function taking a `Request` -- keeps the service layer
 transport-agnostic (same function serves both the HTML router and the
 JSON API router).
 
+## "Mark reviewed": a small escape hatch from the stateless design, not a reversal of it
+
+Once a board member had actually looked at a session's new sign-ups,
+the badges kept showing for the rest of the 14-day window regardless
+-- annoying in practice, but the fix is deliberately *not* the full
+per-user read/unread system this ADR's opening section argued against
+building. Instead: one nullable `WorkSession.signups_reviewed_at`
+timestamp, set by a "Mark reviewed" button on the session detail page
+(`mark_signups_reviewed()`, `app/services/work_hours.py`). A
+participation only counts as new if it's both inside the rolling
+window *and* newer than this timestamp (`NULL` = never reviewed, no
+extra filtering) -- so reviewing clears what exists right now, but a
+member who signs up five minutes later still shows as new again. This
+is session-scoped and boolean (reviewed or not), not per-user or
+per-participation -- deliberately simpler than "did user X see
+participation Y," matching this feature's existing small-club
+proportions rather than growing toward a real notification center one
+button at a time.
+
 ## Known gap
 
 `docs/module-work-hours.md` has a note pointing here (see its "Key
