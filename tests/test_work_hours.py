@@ -49,6 +49,48 @@ async def test_session_and_participation(client, admin_user):
     assert participation.status_code == 201
 
 
+async def test_staff_can_still_add_participant_to_a_past_session(client, admin_user):
+    """The signup deadline / "session already passed" rule
+    (WorkSession.public_signup_open) is scoped to the public
+    self-service signup API only -- staff adding a participant in
+    Parcella itself (normally used to record attendance after the
+    fact) must keep working for a session whose date, or configured
+    signup_deadline_days, has already lapsed."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    member = (await client.post(
+        "/api/v1/members", json={"first_name": "Klaus", "last_name": "Fleissig"}, headers=headers
+    )).json()
+
+    yesterday = (date.today() - timedelta(days=1)).isoformat()
+    session = (await client.post(
+        "/api/v1/work-hours/sessions",
+        json={"title": "Past Session", "type": "STANDARD", "date": yesterday, "signup_deadline_days": 30},
+        headers=headers,
+    )).json()
+
+    # Via the API.
+    participation = await client.post(
+        f"/api/v1/work-hours/sessions/{session['id']}/participations",
+        json={"member_id": member["id"], "status": "ATTENDED"},
+        headers=headers,
+    )
+    assert participation.status_code == 201
+
+    # Via the HTML form, same session.
+    other_member = (await client.post(
+        "/api/v1/members", json={"first_name": "Erika", "last_name": "Musterfrau"}, headers=headers
+    )).json()
+    web_login = await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    assert web_login.status_code in (302, 303)
+    add = await client.post(
+        f"/work-hours/sessions/{session['id']}/participants/add",
+        data={"member_id": other_member["id"], "status": "ATTENDED"},
+    )
+    assert add.status_code in (302, 303)
+
+
 async def test_task_lifecycle(client, admin_user):
     """
     Covers the full task lifecycle: create in the backlog, schedule to a

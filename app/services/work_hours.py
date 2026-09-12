@@ -292,12 +292,13 @@ async def create_session(
     db: AsyncSession, *, title: str, description: Optional[str], type: str, date_value: date,
     time_from: Optional[str], time_until: Optional[str], max_participants: Optional[int],
     hours_per_participant: Optional[float], created_by_id: str,
+    signup_deadline_days: Optional[int] = None,
 ) -> WorkSession:
     session = WorkSession(
         title=title.strip(), description=(description or "").strip() or None, type=SessionType(type),
         date=date_value, time_from=(time_from or "").strip() or None, time_until=(time_until or "").strip() or None,
         max_participants=max_participants, hours_per_participant=hours_per_participant,
-        created_by_id=created_by_id,
+        created_by_id=created_by_id, signup_deadline_days=signup_deadline_days,
     )
     db.add(session)
     await db.flush()
@@ -308,7 +309,7 @@ async def update_session(db: AsyncSession, session: WorkSession, **fields) -> Wo
     optional_string_fields = {"description", "time_from", "time_until"}
     for key in (
         "title", "description", "type", "date", "time_from", "time_until",
-        "max_participants", "hours_per_participant",
+        "max_participants", "hours_per_participant", "signup_deadline_days",
     ):
         if key not in fields:
             continue

@@ -1439,6 +1439,8 @@
       "time_until_label": "Do",
       "max_participants_label": "Maks. liczba uczestników",
       "max_participants_placeholder": "Puste = bez limitu",
+      "signup_deadline_label": "Publiczne zgłoszenia zamykają się (dni wcześniej)",
+      "signup_deadline_hint": "Dotyczy tylko publicznego formularza/API samodzielnego zgłaszania się — członek zarządu może zawsze dodać kogoś ręcznie w Parcelli. Pozostaw puste, aby blokować zgłoszenia dopiero po terminie.",
       "hours_per_participant_label": "Godziny na uczestnika",
       "hours_per_participant_placeholder": "np. 4.0",
       "hours_per_participant_hint": "Można dostosować indywidualnie podczas wpisywania obecności",
@@ -2409,5 +2411,13 @@
     "of_label": "z",
     "account_holder": "Właściciel konta: {name}",
     "board_members": "Zarząd: {names}"
+  },
+  "public_api": {
+    "signup": {
+      "session_not_found": "Nie znaleziono terminu",
+      "session_full": "Brak wolnych miejsc",
+      "no_members_for_parcel": "Do tej działki nie są obecnie przypisani żadni członkowie",
+      "registration_closed": "Zgłoszenia na ten termin zostały zamknięte"
+    }
   }
 }

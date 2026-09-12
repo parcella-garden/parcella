@@ -1439,6 +1439,8 @@
       "time_until_label": "À",
       "max_participants_label": "Max. participants",
       "max_participants_placeholder": "Vide = illimité",
+      "signup_deadline_label": "L'inscription publique se ferme (jours avant)",
+      "signup_deadline_hint": "Concerne uniquement le formulaire/l'API d'inscription publique en libre-service — un membre du conseil peut toujours ajouter quelqu'un manuellement dans Parcella. Laissez vide pour ne bloquer les inscriptions qu'une fois la date de la session passée.",
       "hours_per_participant_label": "Heures par participant",
       "hours_per_participant_placeholder": "ex. 4.0",
       "hours_per_participant_hint": "Peut être ajusté individuellement lors de l'enregistrement de la présence",
@@ -2409,5 +2411,13 @@
     "of_label": "sur",
     "account_holder": "Titulaire du compte : {name}",
     "board_members": "Membres du bureau : {names}"
+  },
+  "public_api": {
+    "signup": {
+      "session_not_found": "Session introuvable",
+      "session_full": "La session est complète",
+      "no_members_for_parcel": "Aucun membre n'est actuellement assigné à cette parcelle",
+      "registration_closed": "Les inscriptions pour cette session sont closes"
+    }
   }
 }

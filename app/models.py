@@ -8,7 +8,7 @@ Design principles:
 """
 
 import uuid
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from typing import Optional, List
 from sqlalchemy import (
     String, Integer, Boolean, Date, DateTime, Text, Numeric,
@@ -777,6 +777,13 @@ class WorkSession(Base):
         Numeric(4, 1), nullable=True,
         comment="Default value; can be overridden per participation"
     )
+    # Issue: public self-service signup (app/routers/api_public.py) had
+    # no notion of "too close to / after the event" -- NULL means only
+    # the baseline "date hasn't passed yet" rule applies (see
+    # public_signup_open below). Deliberately public-signup-only: a
+    # board member adding a participant in Parcella itself is unaffected
+    # (that flow normally records attendance *after* a session).
+    signup_deadline_days: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     created_by_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
@@ -798,6 +805,23 @@ class WorkSession(Base):
             return None
         registered = sum(1 for t in self.participations if t.status != ParticipationStatus.NO_SHOW)
         return max(0, self.max_participants - registered)
+
+    @property
+    def public_signup_open(self) -> bool:
+        """Whether app/routers/api_public.py's public self-service
+        signup still accepts registrations for this session -- checked
+        both when listing upcoming sessions and again at submit time
+        (defense in depth: a stale page shouldn't be able to sneak a
+        signup through after the window closes). Does NOT apply to
+        staff adding a participant in Parcella itself, which normally
+        records attendance after the fact and must keep working for
+        past sessions."""
+        today = date.today()
+        if self.date < today:
+            return False
+        if self.signup_deadline_days:
+            return today <= self.date - timedelta(days=self.signup_deadline_days)
+        return True
 
     def __repr__(self) -> str:
         return f"<WorkSession {self.date} {self.title}>"

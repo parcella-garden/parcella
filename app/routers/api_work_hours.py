@@ -277,6 +277,7 @@ async def session_create(
         db, title=data.title, description=data.description, type=data.type, date_value=data.date,
         time_from=data.time_from, time_until=data.time_until,
         max_participants=data.max_participants, hours_per_participant=data.hours_per_participant,
+        signup_deadline_days=data.signup_deadline_days,
         created_by_id=user.id,
     )
     await db.commit()

@@ -71,10 +71,12 @@ async def _assign_member_to_parcel(client, headers, member_id, parcel_id):
     return response.json()
 
 
-async def _create_session(client, headers, title="Standardarbeitseinsatz", max_participants=None, date=None):
+async def _create_session(client, headers, title="Standardarbeitseinsatz", max_participants=None, date=None, signup_deadline_days=None):
     payload = {"title": title, "type": "STANDARD", "date": date or _FUTURE_SESSION_DATE}
     if max_participants is not None:
         payload["max_participants"] = max_participants
+    if signup_deadline_days is not None:
+        payload["signup_deadline_days"] = signup_deadline_days
     response = await client.post("/api/v1/work-hours/sessions", json=payload, headers=headers)
     assert response.status_code == 201, response.text
     return response.json()
@@ -388,6 +390,92 @@ async def test_signup_honeypot_field_silently_ignored(client, admin_user):
     # Honeypot submissions must not actually create anything.
     participations = await _get_session_participations(client, headers, session["id"])
     assert participations == []
+
+
+async def test_signup_rejected_for_a_session_that_already_happened(client, admin_user):
+    """Baseline rule, independent of signup_deadline_days: a session
+    whose date has already passed never accepts a public signup, even
+    with no deadline configured at all."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    await _set_api_token(client, headers)
+    parcel = await _create_parcel(client, headers)
+    member = await _create_member(client, headers)
+    await _assign_member_to_parcel(client, headers, member["id"], parcel["id"])
+    yesterday = (date.today() - timedelta(days=1)).isoformat()
+    session = await _create_session(client, headers, date=yesterday)
+
+    response = await client.post(
+        "/api/v1/public/work-sessions/signup",
+        json={"parcel_number": "G042", "session_ids": [session["id"]]},
+        headers={"X-Parcella-API-Token": "test-public-api-token"},
+    )
+    assert response.status_code == 200
+    result = response.json()["results"][0]
+    assert result["accepted"] is False
+    assert result["reason"] == "Registration for this session has closed"
+
+    participations = await _get_session_participations(client, headers, session["id"])
+    assert participations == []
+
+    # Also absent from the public "upcoming" listing.
+    upcoming = await client.get("/api/v1/public/work-sessions/upcoming")
+    assert session["id"] not in [s["id"] for s in upcoming.json()]
+
+
+async def test_signup_rejected_once_past_its_configured_deadline(client, admin_user):
+    """signup_deadline_days closes registration earlier than the
+    session's own date -- a session 3 days out with a 5-day lead time
+    requirement is already closed today."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    await _set_api_token(client, headers)
+    parcel = await _create_parcel(client, headers)
+    member = await _create_member(client, headers)
+    await _assign_member_to_parcel(client, headers, member["id"], parcel["id"])
+    soon = (date.today() + timedelta(days=3)).isoformat()
+    session = await _create_session(client, headers, date=soon, signup_deadline_days=5)
+
+    response = await client.post(
+        "/api/v1/public/work-sessions/signup",
+        json={"parcel_number": "G042", "session_ids": [session["id"]]},
+        headers={"X-Parcella-API-Token": "test-public-api-token"},
+    )
+    assert response.status_code == 200
+    result = response.json()["results"][0]
+    assert result["accepted"] is False
+    assert result["reason"] == "Registration for this session has closed"
+
+    upcoming = await client.get("/api/v1/public/work-sessions/upcoming")
+    assert session["id"] not in [s["id"] for s in upcoming.json()]
+
+
+async def test_signup_still_open_within_its_deadline(client, admin_user):
+    """A session far enough out relative to its own deadline still
+    accepts signups and appears in the upcoming listing -- regression
+    guard so the deadline check doesn't over-reject."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    await _set_api_token(client, headers)
+    parcel = await _create_parcel(client, headers)
+    member = await _create_member(client, headers)
+    await _assign_member_to_parcel(client, headers, member["id"], parcel["id"])
+    far_out = (date.today() + timedelta(days=10)).isoformat()
+    session = await _create_session(client, headers, date=far_out, signup_deadline_days=5)
+
+    upcoming = await client.get("/api/v1/public/work-sessions/upcoming")
+    assert session["id"] in [s["id"] for s in upcoming.json()]
+
+    response = await client.post(
+        "/api/v1/public/work-sessions/signup",
+        json={"parcel_number": "G042", "session_ids": [session["id"]]},
+        headers={"X-Parcella-API-Token": "test-public-api-token"},
+    )
+    assert response.status_code == 200
+    assert response.json()["results"][0]["accepted"] is True
 
 
 # ---------------------------------------------------------------------------

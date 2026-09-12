@@ -170,7 +170,7 @@ function parcella_connector_signup_render_shortcode($atts) {
                 <?php endif; ?>
                 <?php if ($any_rejected): ?>
                     <div class="parcella-signup-message parcella-signup-error">
-                        <?php esc_html_e('Some of the selected sessions could not be booked (likely full). Please choose another date for those.', 'parcella-connector'); ?>
+                        <?php esc_html_e('Some of the selected sessions could not be booked (they may be full or no longer accepting signups). Please choose another date for those, or contact us directly.', 'parcella-connector'); ?>
                     </div>
                 <?php endif; ?>
             <?php endif; ?>

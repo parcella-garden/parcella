@@ -260,6 +260,7 @@ async def session_create(
     time_until: str = Form(""),
     max_participants: str = Form(""),
     hours_per_participant: str = Form(""),
+    signup_deadline_days: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "work_hours", "write")
@@ -270,6 +271,7 @@ async def session_create(
         time_from=time_from, time_until=time_until,
         max_participants=(int(max_participants) if max_participants.strip() else None),
         hours_per_participant=(float(hours_per_participant.replace(",", ".")) if hours_per_participant.strip() else None),
+        signup_deadline_days=(int(signup_deadline_days) if signup_deadline_days.strip() else None),
         created_by_id=user.id,
     )
     await db.commit()
@@ -312,6 +314,7 @@ async def session_update(
     time_until: str = Form(""),
     max_participants: str = Form(""),
     hours_per_participant: str = Form(""),
+    signup_deadline_days: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
     await require_permission(request, db, "work_hours", "write")
@@ -327,6 +330,7 @@ async def session_update(
         time_from=time_from, time_until=time_until,
         max_participants=(int(max_participants) if max_participants.strip() else None),
         hours_per_participant=(float(hours_per_participant.replace(",", ".")) if hours_per_participant.strip() else None),
+        signup_deadline_days=(int(signup_deadline_days) if signup_deadline_days.strip() else None),
     )
     await db.commit()
     return RedirectResponse(f"/work-hours/sessions/{session_id}", status_code=302)

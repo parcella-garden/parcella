@@ -310,6 +310,9 @@ class WorkSessionBase(BaseModel):
     time_until: Optional[str] = None
     max_participants: Optional[int] = None
     hours_per_participant: Optional[Decimal] = None
+    signup_deadline_days: Optional[int] = Field(
+        None, description="Public self-service signup closes this many days before the session's date; null = only once the date has passed"
+    )
 
 
 class WorkSessionCreate(WorkSessionBase):
@@ -325,6 +328,7 @@ class WorkSessionUpdate(BaseModel):
     time_until: Optional[str] = None
     max_participants: Optional[int] = None
     hours_per_participant: Optional[Decimal] = None
+    signup_deadline_days: Optional[int] = None
 
 
 class WorkSessionOut(WorkSessionBase):

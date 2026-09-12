@@ -63,6 +63,13 @@
                                placeholder="{{ t('work_hours.session_form.max_participants_placeholder') }}" min="1">
                     </div>
                     <div class="col-sm-6">
+                        <label class="form-label fw-semibold">{{ t('work_hours.session_form.signup_deadline_label') }}</label>
+                        <input type="number" name="signup_deadline_days" class="form-control"
+                               value="{{ session.signup_deadline_days if session and session.signup_deadline_days else '' }}"
+                               min="1">
+                        <div class="form-text">{{ t('work_hours.session_form.signup_deadline_hint') }}</div>
+                    </div>
+                    <div class="col-sm-6">
                         <label class="form-label fw-semibold">{{ t('work_hours.session_form.hours_per_participant_label') }}</label>
                         <div class="input-group">
                             <input type="text" name="hours_per_participant" class="form-control"

@@ -166,6 +166,37 @@ infrastructure for this felt disproportionate. Resets on deploy and
 doesn't share state across multiple workers if the app is ever run with
 more than one; acceptable for now, revisit if that changes.
 
+**Registration deadline: public signup only, checked twice.** A
+session that had already happened that same morning still accepted
+public signups that afternoon -- nothing checked whether a session's
+date had passed at all. Fixed with `WorkSession.public_signup_open`
+(`app/models.py`): a baseline "date hasn't passed" rule that always
+applies, plus an optional per-session `signup_deadline_days` (set on
+the session itself, `app/templates/work_hours/session_form.html`) that
+closes registration earlier, e.g. `1` closes the day before the event.
+Deliberately **public-signup-only** -- a board member adding a
+participant in Parcella itself (`app/routers/work_hours.py::participant_add`,
+normally used to record attendance *after* a session) is unaffected;
+blocking that would break the normal "record who showed up" workflow
+for anything in the past. Checked in two places, not redundantly: once
+in `list_upcoming_sessions` (hides a closed session from the WordPress
+dropdown, same precedent as hiding a full one) and again in
+`submit_signup` (rejects it anyway if a stale page -- slow visitor,
+bookmark, back-button, or a caching bug like the one fixed just before
+this -- submits a closed session's ID regardless).
+
+**`submit_signup`'s rejection reasons are now properly localized.**
+They weren't, originally ("Session is full" etc. were hardcoded
+English) -- inconsistent with this project's actual i18n convention
+(ADR 0020, every user-facing string in all 7 `app/translations/*.json`
+files). Fixed for all four reasons in this function, new
+`public_api.signup.*` namespace, using `request.state.language` the
+same way the notification emails in this router already do (`_lang()`,
+defined here). The sibling `submit_contact` endpoint's own hardcoded
+reason ("Data-protection consent is required...") has the same gap --
+not fixed here, since it's a different endpoint/module; worth doing
+the same pass there if it's ever touched again.
+
 ## Public contact-form API module
 
 A second, independent public-write capability living in the same

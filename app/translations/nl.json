@@ -1439,6 +1439,8 @@
       "time_until_label": "Tot",
       "max_participants_label": "Max. deelnemers",
       "max_participants_placeholder": "Leeg = onbeperkt",
+      "signup_deadline_label": "Openbare aanmelding sluit (dagen vooraf)",
+      "signup_deadline_hint": "Geldt alleen voor het openbare zelfaanmeldingsformulier/de API — een bestuurslid kan altijd zelf iemand toevoegen in Parcella. Laat leeg om aanmeldingen pas te blokkeren zodra de datum van de sessie voorbij is.",
       "hours_per_participant_label": "Uren per deelnemer",
       "hours_per_participant_placeholder": "bijv. 4.0",
       "hours_per_participant_hint": "Kan individueel worden aangepast bij registratie van aanwezigheid",
@@ -2409,5 +2411,13 @@
     "of_label": "van",
     "account_holder": "Rekeninghouder: {name}",
     "board_members": "Bestuursleden: {names}"
+  },
+  "public_api": {
+    "signup": {
+      "session_not_found": "Sessie niet gevonden",
+      "session_full": "Sessie zit vol",
+      "no_members_for_parcel": "Aan dit perceel zijn momenteel geen leden toegewezen",
+      "registration_closed": "Aanmelding voor deze sessie is gesloten"
+    }
   }
 }

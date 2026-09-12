@@ -139,6 +139,14 @@ a "New" badge per row on the session detail page's participant table
 for the full design, including why the public self-service signup path
 gets one digest email per call instead of one per row.
 
+**`WorkSession.signup_deadline_days` (optional) closes public
+self-service signup early.** The column lives here on `WorkSession`,
+but the behavior it drives (hiding/rejecting a closed-out session) is
+entirely owned by the public API module -- see
+[docs/module-public-api.md](./module-public-api.md)'s "Key decisions"
+for the full design, including why it's deliberately scoped to public
+signup only and not staff adding a participant in Parcella itself.
+
 ## Known pitfalls
 
 - `SessionType` and `ParticipationStatus` had to be corrected to uppercase

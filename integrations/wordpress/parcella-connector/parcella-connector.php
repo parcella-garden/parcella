@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Parcella Connector
  * Description: Consolidated connector for every integration between this WordPress site and a Parcella installation. Each capability lives in its own module under includes/modules/ (work-session signup, community calendar, and a contact-form-to-ticket bridge today; applicant management and others are planned), sharing one Parcella base URL and API token configured here.
- * Version: 2.2.1
+ * Version: 2.2.2
  * License: AGPL-3.0-or-later
  * Text Domain: parcella-connector
  *
@@ -32,7 +32,7 @@ if (!defined('ABSPATH')) {
 // Kept in sync with the "Version:" header above (was drifted at 2.0.0
 // from a previous release that forgot to update this constant too --
 // unused elsewhere today, but there's no reason to let it lie).
-define('PARCELLA_CONNECTOR_VERSION', '2.2.1');
+define('PARCELLA_CONNECTOR_VERSION', '2.2.2');
 // Names unchanged from the original single-purpose plugin on purpose --
 // see the History note above.
 define('PARCELLA_CONNECTOR_OPTION_BASE_URL', 'parcella_signup_base_url');

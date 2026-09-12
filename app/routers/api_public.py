@@ -52,7 +52,7 @@ from app.schemas import (
 from app.spam_filter import check_for_spam
 from app.services.tickets import create_ticket
 from app.services.work_hours import notify_new_participations_digest
-from app.i18n import DEFAULT_LANGUAGE
+from app.i18n import DEFAULT_LANGUAGE, translate
 
 
 def _lang(request: Request) -> str:
@@ -166,9 +166,10 @@ async def list_upcoming_sessions(db: AsyncSession = Depends(get_db)):
             spots_left=s.available_spots,
         )
         for s in sessions
-        # Hide sessions that are already full, rather than showing a
-        # dead-end option a visitor could still try to check.
-        if s.available_spots is None or s.available_spots > 0
+        # Hide sessions that are already full or past their signup
+        # deadline, rather than showing a dead-end option a visitor
+        # could still try to check.
+        if (s.available_spots is None or s.available_spots > 0) and s.public_signup_open
     ]
 
 
@@ -203,6 +204,7 @@ async def submit_signup(
         ])
 
     _check_rate_limit(request)
+    lang = _lang(request)
 
     parcel_result = await db.execute(
         select(Parcel).where(Parcel.plot_number == payload.parcel_number)
@@ -239,7 +241,7 @@ async def submit_signup(
         for session_id in payload.session_ids:
             results.append(PublicSignupSessionResult(
                 session_id=session_id, accepted=False,
-                reason="No members are currently assigned to this parcel",
+                reason=translate("public_api.signup.no_members_for_parcel", lang),
             ))
         return PublicSignupResult(results=results)
 
@@ -248,14 +250,27 @@ async def submit_signup(
     for session_id in payload.session_ids:
         session = sessions_by_id.get(session_id)
         if not session:
-            results.append(PublicSignupSessionResult(session_id=session_id, accepted=False, reason="Session not found"))
+            results.append(PublicSignupSessionResult(
+                session_id=session_id, accepted=False,
+                reason=translate("public_api.signup.session_not_found", lang),
+            ))
+            continue
+
+        if not session.public_signup_open:
+            results.append(PublicSignupSessionResult(
+                session_id=session_id, accepted=False,
+                reason=translate("public_api.signup.registration_closed", lang),
+            ))
             continue
 
         already_registered_member_ids = {p.member_id for p in session.participations}
         to_create = [m for m in members_to_register if m.id not in already_registered_member_ids]
 
         if session.available_spots is not None and session.available_spots < len(to_create):
-            results.append(PublicSignupSessionResult(session_id=session_id, accepted=False, reason="Session is full"))
+            results.append(PublicSignupSessionResult(
+                session_id=session_id, accepted=False,
+                reason=translate("public_api.signup.session_full", lang),
+            ))
             continue
 
         for member in to_create:

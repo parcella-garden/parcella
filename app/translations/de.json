@@ -1439,6 +1439,8 @@
       "time_until_label": "Bis",
       "max_participants_label": "Max. Teilnehmer",
       "max_participants_placeholder": "Leer = unbegrenzt",
+      "signup_deadline_label": "Öffentliche Anmeldung schließt (Tage vorher)",
+      "signup_deadline_hint": "Betrifft nur das öffentliche Selbstanmeldeformular/die API — ein Vorstandsmitglied kann jederzeit selbst jemanden in Parcella hinzufügen. Leer lassen, um Anmeldungen erst nach dem Termin des Einsatzes zu sperren.",
       "hours_per_participant_label": "Stunden pro Teilnehmer",
       "hours_per_participant_placeholder": "z.B. 4.0",
       "hours_per_participant_hint": "Kann beim Eintragen individuell angepasst werden",
@@ -2409,5 +2411,13 @@
     "of_label": "von",
     "account_holder": "Kontoinhaber: {name}",
     "board_members": "Vorstand: {names}"
+  },
+  "public_api": {
+    "signup": {
+      "session_not_found": "Einsatz nicht gefunden",
+      "session_full": "Einsatz ist ausgebucht",
+      "no_members_for_parcel": "Dieser Parzelle sind aktuell keine Mitglieder zugeordnet",
+      "registration_closed": "Die Anmeldung für diesen Einsatz ist geschlossen"
+    }
   }
 }

@@ -1439,6 +1439,8 @@
       "time_until_label": "Do",
       "max_participants_label": "Max. účastníků",
       "max_participants_placeholder": "Prázdné = neomezeno",
+      "signup_deadline_label": "Veřejné přihlašování se uzavře (dní předem)",
+      "signup_deadline_hint": "Týká se pouze veřejného formuláře/API pro samostatné přihlášení — člen výboru může kdykoli přidat účastníka ručně v Parcelle. Nechte prázdné, pokud se má přihlašování zablokovat až po termínu.",
       "hours_per_participant_label": "Hodiny na účastníka",
       "hours_per_participant_placeholder": "např. 4.0",
       "hours_per_participant_hint": "Při zaznamenávání účasti je možné individuálně upravit",
@@ -2409,5 +2411,13 @@
     "of_label": "z",
     "account_holder": "Majitel účtu: {name}",
     "board_members": "Výbor: {names}"
+  },
+  "public_api": {
+    "signup": {
+      "session_not_found": "Termín nenalezen",
+      "session_full": "Termín je obsazen",
+      "no_members_for_parcel": "K této parcele nejsou aktuálně přiřazeni žádní členové",
+      "registration_closed": "Přihlašování na tento termín bylo uzavřeno"
+    }
   }
 }
