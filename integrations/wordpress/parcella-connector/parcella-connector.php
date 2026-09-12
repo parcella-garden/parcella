@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Parcella Connector
  * Description: Consolidated connector for every integration between this WordPress site and a Parcella installation. Each capability lives in its own module under includes/modules/ (work-session signup, community calendar, and a contact-form-to-ticket bridge today; applicant management and others are planned), sharing one Parcella base URL and API token configured here.
- * Version: 2.2.0
+ * Version: 2.2.1
  * License: AGPL-3.0-or-later
  * Text Domain: parcella-connector
  *
@@ -29,7 +29,10 @@ if (!defined('ABSPATH')) {
     exit; // No direct access.
 }
 
-define('PARCELLA_CONNECTOR_VERSION', '2.0.0');
+// Kept in sync with the "Version:" header above (was drifted at 2.0.0
+// from a previous release that forgot to update this constant too --
+// unused elsewhere today, but there's no reason to let it lie).
+define('PARCELLA_CONNECTOR_VERSION', '2.2.1');
 // Names unchanged from the original single-purpose plugin on purpose --
 // see the History note above.
 define('PARCELLA_CONNECTOR_OPTION_BASE_URL', 'parcella_signup_base_url');
@@ -76,6 +79,32 @@ function parcella_connector_base_url() {
 
 function parcella_connector_api_token() {
     return get_option(PARCELLA_CONNECTOR_OPTION_API_TOKEN, '');
+}
+
+/**
+ * Best-effort opt-out from full-page caching plugins, for any page
+ * rendering one of this connector's date-sensitive shortcodes (session
+ * signup, community calendar). Those shortcodes fetch fresh data from
+ * Parcella on every render (subject only to their own short-lived
+ * transient cache -- 60s/5min, see each module) -- a full-page cache
+ * plugin (WP Super Cache, WP Rocket, W3 Total Cache, WP Fastest Cache,
+ * etc.) freezing the whole rendered HTML for hours/days shows stale or
+ * already-passed dates until that cache happens to expire or be
+ * purged, defeating the point of fetching live data at all.
+ *
+ * `DONOTCACHEPAGE` is the de facto standard constant respected by every
+ * major caching plugin listed above -- there's no single official
+ * WordPress core API for "don't cache this page", so this is the best
+ * available cross-plugin signal. Call it from a shortcode's render
+ * function: that runs during content generation, which is early enough
+ * for every caching plugin above, since they all decide whether to
+ * persist the page at output-buffer-flush time (page generation end),
+ * not before the content filters run.
+ */
+function parcella_connector_disable_page_cache() {
+    if (!defined('DONOTCACHEPAGE')) {
+        define('DONOTCACHEPAGE', true);
+    }
 }
 
 function parcella_connector_render_settings_page() {

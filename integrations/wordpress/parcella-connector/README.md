@@ -72,6 +72,14 @@ and shows a "Modules" table for whatever's active.
   it's non-empty. Worth remembering if you add a new module with its
   own form: WordPress also reserves `page`, `paged`, `author`, `cat`,
   `tag`, `feed`, `search`, `attachment`, and several others.
+- If you run a full-page caching plugin (WP Super Cache, WP Rocket, W3
+  Total Cache, WP Fastest Cache, etc.), any page containing this
+  shortcode is automatically excluded from that cache (via the
+  `DONOTCACHEPAGE` constant most such plugins respect -- see
+  `parcella_connector_disable_page_cache()` in the main plugin file) --
+  otherwise a cached page keeps showing whatever sessions were upcoming
+  at cache time, including ones that have since passed, until the cache
+  happens to expire or be purged.
 
 ## Module: Community calendar
 
@@ -92,6 +100,9 @@ and shows a "Modules" table for whatever's active.
   that actually inherits the site's own styling -- drop the shortcode
   into a Text/HTML/Shortcode widget wherever the calendar should
   appear.
+- Same full-page-cache exclusion as the signup module above, for the
+  same reason (a cached page would otherwise keep showing already-past
+  calendar entries).
 
 ## Module: Contact form
 

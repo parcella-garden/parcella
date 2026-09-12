@@ -33,6 +33,8 @@ function parcella_connector_calendar_fetch_items() {
 add_shortcode('parcella_calendar', 'parcella_connector_calendar_render_shortcode');
 
 function parcella_connector_calendar_render_shortcode($atts) {
+    parcella_connector_disable_page_cache();
+
     $atts = shortcode_atts(['limit' => 5], $atts, 'parcella_calendar');
     $limit = max(1, (int) $atts['limit']);
 

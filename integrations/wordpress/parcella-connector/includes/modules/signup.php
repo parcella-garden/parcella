@@ -110,6 +110,8 @@ function parcella_connector_signup_submit($payload) {
 add_shortcode('parcella_work_signup', 'parcella_connector_signup_render_shortcode');
 
 function parcella_connector_signup_render_shortcode($atts) {
+    parcella_connector_disable_page_cache();
+
     $feedback = null;
 
     if (
