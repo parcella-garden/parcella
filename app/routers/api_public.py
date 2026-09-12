@@ -39,7 +39,7 @@ from sqlalchemy.orm import selectinload
 from app.database import get_db, current_tenant_filter
 from app.models import (
     WorkSession, Parcel, ParcelStatus, MemberParcel, Member,
-    SessionParticipation, ParticipationStatus,
+    SessionParticipation, ParticipationStatus, SessionType,
 )
 from app.module_flags import require_module
 from app.public_api_auth import require_public_api_token
@@ -154,7 +154,10 @@ async def list_upcoming_sessions(db: AsyncSession = Depends(get_db)):
 
     result = await db.execute(
         select(WorkSession)
-        .where(WorkSession.date >= date_cls.today())
+        # SPECIAL sessions (spontaneous/unplanned) never appear on the
+        # public website -- same rule the community calendar already
+        # enforces (docs/module-calendar.md), just never applied here.
+        .where(WorkSession.date >= date_cls.today(), WorkSession.type == SessionType.STANDARD)
         .options(selectinload(WorkSession.participations))
         .order_by(WorkSession.date, WorkSession.time_from)
     )
@@ -249,7 +252,11 @@ async def submit_signup(
 
     for session_id in payload.session_ids:
         session = sessions_by_id.get(session_id)
-        if not session:
+        # A SPECIAL session is invisible to the public API entirely --
+        # treat it exactly like "not found" rather than a distinct
+        # reason, since as far as this endpoint is concerned it isn't
+        # a signup-eligible session at all.
+        if not session or session.type != SessionType.STANDARD:
             results.append(PublicSignupSessionResult(
                 session_id=session_id, accepted=False,
                 reason=translate("public_api.signup.session_not_found", lang),

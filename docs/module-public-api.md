@@ -197,7 +197,24 @@ reason ("Data-protection consent is required...") has the same gap --
 not fixed here, since it's a different endpoint/module; worth doing
 the same pass there if it's ever touched again.
 
-## Public contact-form API module
+**SPECIAL sessions never appear on the public website -- a rule that
+existed but wasn't actually enforced here.** The community calendar
+(`docs/module-calendar.md`) has always filtered to
+`type == SessionType.STANDARD` in both its list view and its ICS feed,
+specifically because a SPECIAL session is spontaneous/unplanned and
+the community calendar's whole point is helping members plan ahead.
+This public signup API predates that rule being written down as
+explicitly as it should have been and simply never had the filter
+applied -- `list_upcoming_sessions` listed every session regardless of
+type, meaning the public WordPress form let visitors sign up for
+sessions that were never meant to be public-facing at all. Fixed the
+same way as the registration-deadline check above: filtered out of
+`list_upcoming_sessions`'s query, and rejected again in `submit_signup`
+(treated identically to "session not found," since from this API's
+perspective a SPECIAL session isn't a signup-eligible session at all,
+not a distinct rejection reason) -- same defense-in-depth reasoning,
+same "don't just fix the listing, a stale/crafted request could still
+submit the ID directly" logic.
 
 A second, independent public-write capability living in the same
 router (`app/routers/api_public.py`) and reference plugin

@@ -71,8 +71,8 @@ async def _assign_member_to_parcel(client, headers, member_id, parcel_id):
     return response.json()
 
 
-async def _create_session(client, headers, title="Standardarbeitseinsatz", max_participants=None, date=None, signup_deadline_days=None):
-    payload = {"title": title, "type": "STANDARD", "date": date or _FUTURE_SESSION_DATE}
+async def _create_session(client, headers, title="Standardarbeitseinsatz", max_participants=None, date=None, signup_deadline_days=None, type="STANDARD"):
+    payload = {"title": title, "type": type, "date": date or _FUTURE_SESSION_DATE}
     if max_participants is not None:
         payload["max_participants"] = max_participants
     if signup_deadline_days is not None:
@@ -476,6 +476,51 @@ async def test_signup_still_open_within_its_deadline(client, admin_user):
     )
     assert response.status_code == 200
     assert response.json()["results"][0]["accepted"] is True
+
+
+async def test_special_session_absent_from_upcoming_listing(client, admin_user):
+    """SPECIAL sessions (spontaneous/unplanned) are never public-facing
+    -- same rule the community calendar already enforces
+    (docs/module-calendar.md), just never applied to this endpoint
+    until now."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    standard_session = await _create_session(client, headers, title="Standard Session", type="STANDARD")
+    special_session = await _create_session(client, headers, title="Special Session", type="SPECIAL")
+
+    upcoming = await client.get("/api/v1/public/work-sessions/upcoming")
+    ids = [s["id"] for s in upcoming.json()]
+    assert standard_session["id"] in ids
+    assert special_session["id"] not in ids
+
+
+async def test_signup_rejected_for_a_special_session(client, admin_user):
+    """Defense in depth, matching the deadline check: even if a SPECIAL
+    session's ID is submitted directly (bypassing the listing), signup
+    must still be rejected -- treated as "not found," since it was
+    never a signup-eligible session as far as this API is concerned."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    await _set_api_token(client, headers)
+    parcel = await _create_parcel(client, headers)
+    member = await _create_member(client, headers)
+    await _assign_member_to_parcel(client, headers, member["id"], parcel["id"])
+    session = await _create_session(client, headers, type="SPECIAL")
+
+    response = await client.post(
+        "/api/v1/public/work-sessions/signup",
+        json={"parcel_number": "G042", "session_ids": [session["id"]]},
+        headers={"X-Parcella-API-Token": "test-public-api-token"},
+    )
+    assert response.status_code == 200
+    result = response.json()["results"][0]
+    assert result["accepted"] is False
+    assert result["reason"] == "Session not found"
+
+    participations = await _get_session_participations(client, headers, session["id"])
+    assert participations == []
 
 
 # ---------------------------------------------------------------------------
