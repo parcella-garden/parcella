@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     # App metadata
     app_name: str = "Parcella"
-    app_version: str = "2.9.1"
+    app_version: str = "2.10.0"
 
     @property
     def is_development(self) -> bool:
