@@ -149,6 +149,35 @@ class FreeScoutClient:
         response = await self._request("GET", f"/api/conversations/{conversation_id}", params={"embed": embed})
         return response.json()
 
+    async def get_conversation_state(self, conversation_id: int) -> Optional[str]:
+        """Returns the conversation's current `status`, or None if it no
+        longer exists in FreeScout. FreeScout represents a deleted
+        conversation either as a 404 on refetch or as a `state: "deleted"`
+        field on an otherwise-normal response (its `status` field is
+        untouched by deletion, e.g. it can still read "active") -- this
+        method treats both the same way, since callers only care whether
+        the conversation is still there. Used by app/freescout_sync.py's
+        reconciliation pass: the incremental updatedSince-based sync can
+        never observe a deletion on its own, since a deleted conversation
+        simply stops being returned rather than being reported as changed."""
+        client = await self._get_client()
+        try:
+            response = await client.get(f"{self.base_url}/api/conversations/{conversation_id}", headers=self._headers())
+        except httpx.HTTPError as e:
+            raise FreeScoutError(f"Could not reach FreeScout: {e}") from e
+
+        if response.status_code == 404:
+            return None
+        if response.status_code == 401:
+            raise FreeScoutError("FreeScout rejected the API key (401 Unauthorized).")
+        if response.status_code >= 400:
+            raise FreeScoutError(f"FreeScout returned HTTP {response.status_code}: {response.text[:200]}")
+
+        data = response.json()
+        if data.get("state") == "deleted":
+            return None
+        return data.get("status")
+
     async def create_conversation(
         self, subject: str, customer_email: str, message: str,
         customer_name: Optional[str] = None, mailbox_id: Optional[int] = None,

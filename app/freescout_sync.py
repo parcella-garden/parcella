@@ -25,7 +25,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import current_tenant_filter
-from app.freescout_client import FreeScoutClient
+from app.freescout_client import FreeScoutClient, FreeScoutError
 from app.member_matching import find_members_by_email
 from app.models import FreescoutConversationLink, Member, MemberParcel
 
@@ -116,7 +116,10 @@ async def _resolve_member_and_parcel(
 
 async def sync_freescout_conversations(db: AsyncSession, client: FreeScoutClient) -> int:
     """Fetches conversations updated since the last successful sync and
-    upserts them. Returns the number of conversations processed this run."""
+    upserts them, then reconciles deletions (see _reconcile_deletions).
+    Returns the number of conversations upserted this run (deletions
+    detected by reconciliation are not counted -- they're a correction,
+    not new activity)."""
     last_updated = await db.scalar(select(func.max(FreescoutConversationLink.freescout_updated_at)))
     updated_since = last_updated.strftime("%Y-%m-%dT%H:%M:%SZ") if last_updated else None
 
@@ -128,7 +131,43 @@ async def sync_freescout_conversations(db: AsyncSession, client: FreeScoutClient
 
     if count:
         await db.commit()
+
+    await _reconcile_deletions(db, client)
     return count
+
+
+async def _reconcile_deletions(db: AsyncSession, client: FreeScoutClient) -> None:
+    """FreeScout represents a deleted conversation via a separate `state`
+    field (or simply a 404 on refetch), not via the `status` values
+    (active/pending/closed/spam) the incremental updatedSince-based sync
+    above watches -- a deleted conversation just stops being returned by
+    list_conversations() rather than being reported as changed, so it can
+    never be caught there. Instead, re-check every currently-visible
+    (non-hidden) local row directly by ID; one lightweight GET per row,
+    bounded by how many conversations Parcella has actually synced so
+    far, not by the mailbox's full history -- acceptable at a small
+    club's traffic volume (same trade-off already accepted elsewhere in
+    this project, e.g. docs/module-public-api.md)."""
+    result = await db.execute(
+        select(FreescoutConversationLink).where(FreescoutConversationLink.freescout_status.notin_(HIDDEN_STATUSES))
+    )
+    changed = False
+    for link in result.scalars().all():
+        try:
+            current_status = await client.get_conversation_state(link.freescout_conversation_id)
+        except FreeScoutError as e:
+            logger.warning(f"Could not check FreeScout conversation {link.freescout_conversation_id}: {e}")
+            continue
+
+        if current_status is None:
+            link.freescout_status = "deleted"
+            changed = True
+        elif current_status != link.freescout_status:
+            link.freescout_status = current_status
+            changed = True
+
+    if changed:
+        await db.commit()
 
 
 async def _upsert_conversation(db: AsyncSession, conversation: dict) -> None:

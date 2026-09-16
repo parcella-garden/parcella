@@ -21,12 +21,19 @@ from app.freescout_sync import sync_freescout_conversations
 
 
 class _FakeFreeScoutClient:
-    def __init__(self, conversations):
+    def __init__(self, conversations, states=None):
         self._conversations = conversations
+        # {freescout_conversation_id: status_or_None} -- None means "gone
+        # (deleted)"; a ROW not present in this dict is treated as still
+        # existing with its currently-stored status (i.e. "no change").
+        self._states = states or {}
         self.reply_calls = []
 
     async def list_conversations(self, mailbox_id=None, updated_since=None, page=1):
         return self._conversations
+
+    async def get_conversation_state(self, conversation_id):
+        return self._states.get(conversation_id, "active")
 
     async def create_thread(self, conversation_id, text, by_user_id=None):
         self.reply_calls.append((conversation_id, text, by_user_id))
@@ -130,6 +137,62 @@ async def test_sync_sets_parcel_when_member_has_exactly_one_current_parcel():
     async with AsyncSessionLocal() as db:
         link = (await db.execute(select(FreescoutConversationLink))).scalar_one()
         assert link.parcel_id == parcel_id
+
+
+# ---------------------------------------------------------------------------
+# Deletion reconciliation
+# ---------------------------------------------------------------------------
+
+async def test_reconciliation_marks_a_conversation_deleted_on_404():
+    """FreeScout represents deletion via a separate `state` field (or a
+    404 on refetch), never via `status` -- the incremental updatedSince
+    sync alone can never observe it, since a deleted conversation simply
+    stops appearing rather than being reported as changed. Regression
+    test for a real bug: a conversation deleted directly in FreeScout
+    stayed stuck at its last-known status ("active") in Parcella forever."""
+    client = _FakeFreeScoutClient([_conversation(8001, email="gone@example.com", customer_id=1)])
+    async with AsyncSessionLocal() as db:
+        await sync_freescout_conversations(db, client)
+
+    async with AsyncSessionLocal() as db:
+        link = (await db.execute(select(FreescoutConversationLink).where(
+            FreescoutConversationLink.freescout_conversation_id == 8001
+        ))).scalar_one()
+        assert link.freescout_status == "active"
+
+    # Conversation #8001 is now gone in FreeScout -- the next poll's
+    # reconciliation pass must catch it even though list_conversations()
+    # no longer returns it at all.
+    client2 = _FakeFreeScoutClient([], states={8001: None})
+    async with AsyncSessionLocal() as db:
+        await sync_freescout_conversations(db, client2)
+
+    async with AsyncSessionLocal() as db:
+        link = (await db.execute(select(FreescoutConversationLink).where(
+            FreescoutConversationLink.freescout_conversation_id == 8001
+        ))).scalar_one()
+        assert link.freescout_status == "deleted"
+
+
+async def test_reconciliation_does_not_recheck_already_hidden_rows():
+    """Once a row is closed/deleted, reconciliation stops spending an
+    API call on it every cycle -- it's not actionable anymore."""
+    client = _FakeFreeScoutClient([_conversation(8002, email="x@example.com", status="closed")])
+    async with AsyncSessionLocal() as db:
+        await sync_freescout_conversations(db, client)
+
+    checked_ids = []
+
+    class _TrackingClient(_FakeFreeScoutClient):
+        async def get_conversation_state(self, conversation_id):
+            checked_ids.append(conversation_id)
+            return await super().get_conversation_state(conversation_id)
+
+    client2 = _TrackingClient([])
+    async with AsyncSessionLocal() as db:
+        await sync_freescout_conversations(db, client2)
+
+    assert 8002 not in checked_ids
 
 
 # ---------------------------------------------------------------------------

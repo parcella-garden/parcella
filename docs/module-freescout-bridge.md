@@ -124,6 +124,21 @@ so a conversation that gets reopened in FreeScout still has an accurate,
 already-matched `member_id` waiting for it rather than a stale row
 nobody bothered to keep in sync.
 
+**Deletion needs its own reconciliation pass -- it can't be observed
+incrementally.** FreeScout represents a deleted conversation via a
+separate `state` field (or simply a 404 on refetch), not as a `status`
+value -- its `status` is untouched by deletion (can still read
+"active"). Since a deleted conversation just stops being returned by
+the `updatedSince`-filtered list call instead of being reported as
+changed, the incremental sync alone can never catch it (hit for real:
+a conversation deleted directly in FreeScout stayed stuck at "active" in
+Parcella indefinitely). `_reconcile_deletions()` fixes this by
+re-checking every currently-visible (non-hidden) local row directly by
+ID each poll cycle (`FreeScoutClient.get_conversation_state()`, one
+lightweight GET per row) -- bounded by how many conversations Parcella
+has actually synced, not by the mailbox's full history, so it stays
+cheap regardless of how old/large the FreeScout mailbox itself is.
+
 ## FreeScout API client
 
 `app/freescout_client.py`'s `FreeScoutClient` follows the same shape as

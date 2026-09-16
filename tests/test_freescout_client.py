@@ -127,6 +127,43 @@ async def test_create_thread_posts_message_type():
     assert captured["body"] == {"type": "message", "text": "We'll look into it."}
 
 
+async def test_get_conversation_state_returns_status_when_present():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"id": 7346, "status": "active"})
+
+    client = _client(handler)
+    state = await client.get_conversation_state(7346)
+    await client.aclose()
+
+    assert state == "active"
+
+
+async def test_get_conversation_state_returns_none_on_404():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(404)
+
+    client = _client(handler)
+    state = await client.get_conversation_state(7346)
+    await client.aclose()
+
+    assert state is None
+
+
+async def test_get_conversation_state_returns_none_when_state_field_says_deleted():
+    """FreeScout can also report a deleted conversation as a normal 200
+    response whose `status` field still reads the pre-deletion value
+    (e.g. "active") -- the separate `state: "deleted"` field is what
+    actually signals it's gone."""
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"id": 7346, "status": "active", "state": "deleted"})
+
+    client = _client(handler)
+    state = await client.get_conversation_state(7346)
+    await client.aclose()
+
+    assert state is None
+
+
 async def test_unauthorized_raises_freescout_error():
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(401)
