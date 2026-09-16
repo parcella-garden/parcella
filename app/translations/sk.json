@@ -1122,7 +1122,8 @@
       "reading_above_later": "Odpočet merača ({new_value}) nesmie byť väčší ako už zaznamenaný neskorší odpočet ({later_value}) toho istého merača.",
       "no_active_meter": "Pre tento merací bod neexistuje aktívny merač",
       "configuration_not_found": "Konfigurácia ceny nebola nájdená",
-      "configuration_year_exists": "Pre rok {year} už existuje iná konfigurácia ceny."
+      "configuration_year_exists": "Pre rok {year} už existuje iná konfigurácia ceny.",
+      "duplicate_meter_number": "Merač s číslom „{number}“ pre toto médium už existuje."
     }
   },
   "work_hours": {

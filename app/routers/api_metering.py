@@ -90,15 +90,19 @@ def create_metering_api_router(
     )
     async def create_metering_point_endpoint(
         daten: MeteringPointCreate,
+        request: Request,
         db: AsyncSession = Depends(get_db),
         user: User = Depends(require_api_permission(modul_name, "write")),
     ):
-        zp = await create_metering_point(
-            db, medium,
-            type=daten.type, parcel_id=daten.parcel_id, label=daten.label, notes=daten.notes,
-            number=daten.number, calibrated_until=daten.calibrated_until,
-            installed_at=daten.installed_at, initial_reading=daten.initial_reading,
-        )
+        try:
+            zp = await create_metering_point(
+                db, medium,
+                type=daten.type, parcel_id=daten.parcel_id, label=daten.label, notes=daten.notes,
+                number=daten.number, calibrated_until=daten.calibrated_until,
+                installed_at=daten.installed_at, initial_reading=daten.initial_reading,
+            )
+        except ServiceError as e:
+            raise HTTPException(status_code=422, detail=t_for(request, e.key, **e.params))
         await db.commit()
 
         zp = await _load_metering_point(db, zp.id)
@@ -151,6 +155,7 @@ def create_metering_api_router(
     async def exchange_meter_endpoint(
         metering_point_id: str,
         daten: MeterSwapRequest,
+        request: Request,
         db: AsyncSession = Depends(get_db),
         user: User = Depends(require_api_permission(modul_name, "write")),
     ):
@@ -158,11 +163,14 @@ def create_metering_api_router(
         if not zp:
             raise HTTPException(status_code=404, detail="Metering point not found")
 
-        new_meter = await exchange_meter(
-            db, zp,
-            new_number=daten.new_number, removed_at=daten.removed_at, installed_at=daten.installed_at,
-            calibrated_until=daten.calibrated_until, initial_reading=daten.initial_reading,
-        )
+        try:
+            new_meter = await exchange_meter(
+                db, zp,
+                new_number=daten.new_number, removed_at=daten.removed_at, installed_at=daten.installed_at,
+                calibrated_until=daten.calibrated_until, initial_reading=daten.initial_reading,
+            )
+        except ServiceError as e:
+            raise HTTPException(status_code=422, detail=t_for(request, e.key, **e.params))
         await db.commit()
         await db.refresh(new_meter)
         return new_meter

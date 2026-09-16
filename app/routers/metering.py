@@ -214,7 +214,9 @@ def create_metering_router(
         })
 
     @router.get("/metering-points/new", response_class=HTMLResponse)
-    async def metering_point_new_page(request: Request, db: AsyncSession = Depends(get_db)):
+    async def metering_point_new_page(
+        request: Request, error: Optional[str] = None, db: AsyncSession = Depends(get_db),
+    ):
         user = await require_permission(request, db, modul_name, "write")
         result = await db.execute(
             select(Parcel).where(Parcel.status == ParcelStatus.ACTIVE).order_by(Parcel.plot_number)
@@ -225,6 +227,7 @@ def create_metering_router(
             **base_context(request),
             "request": request, "user": user,
             "all_parcels": all_parcels, "today": date.today().isoformat(),
+            "error": error,
         })
 
     @router.post("/metering-points/new")
@@ -242,14 +245,19 @@ def create_metering_router(
     ):
         await require_permission(request, db, modul_name, "write")
 
-        metering_point = await create_metering_point(
-            db, medium,
-            type=type, parcel_id=(parcel_id.strip() or None), label=(label.strip() or None),
-            notes=(notes.strip() or None), number=number.strip(),
-            calibrated_until=(int(calibrated_until) if calibrated_until.strip() else None),
-            installed_at=(date.fromisoformat(installed_at) if installed_at.strip() else None),
-            initial_reading=(_parse_number(initial_reading, decimal_places) or Decimal("0")),
-        )
+        try:
+            metering_point = await create_metering_point(
+                db, medium,
+                type=type, parcel_id=(parcel_id.strip() or None), label=(label.strip() or None),
+                notes=(notes.strip() or None), number=number.strip(),
+                calibrated_until=(int(calibrated_until) if calibrated_until.strip() else None),
+                installed_at=(date.fromisoformat(installed_at) if installed_at.strip() else None),
+                initial_reading=(_parse_number(initial_reading, decimal_places) or Decimal("0")),
+            )
+        except ServiceError as e:
+            error = urllib.parse.quote(t_for(request, e.key, **e.params))
+            return RedirectResponse(f"{url_prefix}/metering-points/new?error={error}", status_code=302)
+
         await db.commit()
         return RedirectResponse(f"{url_prefix}/metering-points/{metering_point.id}", status_code=302)
 
@@ -257,6 +265,7 @@ def create_metering_router(
     async def metering_point_detail(
         metering_point_id: str,
         request: Request,
+        error: Optional[str] = None,
         db: AsyncSession = Depends(get_db),
     ):
         user = await require_permission(request, db, modul_name, "read")
@@ -306,6 +315,7 @@ def create_metering_router(
             "MeteringPointType": MeteringPointType,
             "prev_metering_point_id": prev_metering_point_id,
             "next_metering_point_id": next_metering_point_id,
+            "error": error,
         })
 
     @router.post("/metering-points/{metering_point_id}/edit")
@@ -364,13 +374,18 @@ def create_metering_router(
         if not metering_point:
             raise HTTPException(status_code=404)
 
-        await exchange_meter(
-            db, metering_point,
-            new_number=new_number.strip(), removed_at=date.fromisoformat(removed_at),
-            installed_at=date.fromisoformat(installed_at),
-            calibrated_until=(int(calibrated_until) if calibrated_until.strip() else None),
-            initial_reading=(_parse_number(initial_reading, decimal_places) or Decimal("0")),
-        )
+        try:
+            await exchange_meter(
+                db, metering_point,
+                new_number=new_number.strip(), removed_at=date.fromisoformat(removed_at),
+                installed_at=date.fromisoformat(installed_at),
+                calibrated_until=(int(calibrated_until) if calibrated_until.strip() else None),
+                initial_reading=(_parse_number(initial_reading, decimal_places) or Decimal("0")),
+            )
+        except ServiceError as e:
+            error = urllib.parse.quote(t_for(request, e.key, **e.params))
+            return RedirectResponse(f"{url_prefix}/metering-points/{metering_point_id}?error={error}", status_code=302)
+
         await db.commit()
         return RedirectResponse(f"{url_prefix}/metering-points/{metering_point_id}", status_code=302)
 

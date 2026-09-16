@@ -2,6 +2,7 @@
 Tests for metering (water & electricity). Focus: the monotonicity
 check (a reading may not decrease) and consumption calculation.
 """
+import urllib.parse
 from datetime import date
 
 from app.database import AsyncSessionLocal
@@ -173,7 +174,10 @@ async def test_metering_point_delete_button_present_and_deletes_cascade(client, 
         point = MeteringPoint(medium=MeteringMedium.WATER, type=MeteringPointType.CLUB, label="ToDelete")
         session.add(point)
         await session.flush()
-        meter = Meter(metering_point_id=point.id, number="W-DEL-1", is_active=True, initial_reading=0)
+        meter = Meter(
+            metering_point_id=point.id, medium=MeteringMedium.WATER,
+            number="W-DEL-1", is_active=True, initial_reading=0,
+        )
         session.add(meter)
         await session.flush()
         reading = MeterReading(meter_id=meter.id, year=2026, date=date(2026, 1, 1), reading=10)
@@ -250,3 +254,75 @@ async def test_readonly_with_group_grant_can_write_water_via_api(client):
         headers=auth_header(token),
     )
     assert response.status_code == 201, response.text
+
+
+# ---------------------------------------------------------------------------
+# Meter-number uniqueness is scoped per medium, not global: reproduces a
+# real prod 500 (POST /electricity/metering-points/new -> IntegrityError on
+# the "wasseruhren_nummer_key" constraint) hit when a placeholder number
+# like "ohne" ("none") was already used by a water meter.
+# ---------------------------------------------------------------------------
+
+async def test_same_meter_number_allowed_across_media(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    water = await client.post(
+        "/api/v1/water/metering-points",
+        json={"type": "CLUB", "label": "No distinct meter (water)", "number": "ohne", "initial_reading": "0"},
+        headers=headers,
+    )
+    assert water.status_code == 201, water.text
+
+    electricity = await client.post(
+        "/api/v1/electricity/metering-points",
+        json={"type": "CLUB", "label": "No distinct meter (electricity)", "number": "ohne", "initial_reading": "0"},
+        headers=headers,
+    )
+    assert electricity.status_code == 201, electricity.text
+
+
+async def test_duplicate_meter_number_same_medium_rejected_not_500(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    first = await client.post(
+        "/api/v1/electricity/metering-points",
+        json={"type": "CLUB", "label": "First", "number": "ohne", "initial_reading": "0"},
+        headers=headers,
+    )
+    assert first.status_code == 201, first.text
+
+    second = await client.post(
+        "/api/v1/electricity/metering-points",
+        json={"type": "CLUB", "label": "Second", "number": "ohne", "initial_reading": "0"},
+        headers=headers,
+    )
+    assert second.status_code == 422, second.text
+    assert "already exists" in second.json()["detail"]
+
+
+async def test_duplicate_meter_number_html_redirects_with_error_not_500(client, admin_user):
+    """Same scenario via the HTML form (the surface the prod bug report
+    came in on) -- must redirect with a friendly error, not 500."""
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"}
+    )
+    assert login_response.status_code in (302, 303)
+
+    form_data = {
+        "type": "CLUB", "parcel_id": "", "label": "Clubhouse meter", "notes": "",
+        "number": "ohne", "calibrated_until": "", "installed_at": "", "initial_reading": "0",
+    }
+    first = await client.post("/electricity/metering-points/new", data=form_data)
+    assert first.status_code == 302
+
+    second = await client.post(
+        "/electricity/metering-points/new",
+        data={**form_data, "label": "Second clubhouse meter"},
+    )
+    assert second.status_code == 302
+    location = second.headers["location"]
+    assert location.startswith("/electricity/metering-points/new?error=")
+    error_message = urllib.parse.unquote(location.split("error=", 1)[1])
+    assert error_message == "A meter with number 'ohne' already exists for this medium."

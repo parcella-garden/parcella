@@ -1122,7 +1122,8 @@
       "reading_above_later": "Odečet měřidla ({new_value}) nesmí být větší než již zaznamenaný pozdější odečet ({later_value}) stejného měřidla.",
       "no_active_meter": "Pro toto měrné místo neexistuje aktivní měřidlo",
       "configuration_not_found": "Konfigurace ceny nebyla nalezena",
-      "configuration_year_exists": "Pro rok {year} již existuje jiná konfigurace ceny."
+      "configuration_year_exists": "Pro rok {year} již existuje jiná konfigurace ceny.",
+      "duplicate_meter_number": "Měřidlo s číslem „{number}“ pro toto médium již existuje."
     }
   },
   "work_hours": {

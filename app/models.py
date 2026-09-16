@@ -1042,14 +1042,29 @@ class Meter(Base):
     MeteringPoint. When swapped, the old meter is deactivated
     (removed_at set) and a new one with a new number is created -- the
     history stays fully intact.
+
+    `medium` duplicates MeteringPoint.medium (set from the parent at
+    creation, never changed) so the uniqueness of `number` can be
+    scoped per medium at the DB level -- water and electricity are
+    physically unrelated meter registries, and both commonly use the
+    same placeholder number (e.g. "ohne"/"none") for a parcel with no
+    distinct physical meter. Before this, `number` was globally
+    unique across both media (a leftover from when this table only
+    held water meters, see the "wasseruhren_..." constraint name
+    predating the English rename, ADR 0009), so the second medium to
+    use a given placeholder would 500 on creation.
     """
     __tablename__ = "meters"
+    __table_args__ = (
+        UniqueConstraint("medium", "number", name="uq_meter_medium_number"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
     metering_point_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("metering_points.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    number: Mapped[str] = mapped_column(String(50), nullable=False, unique=True, index=True)
+    medium: Mapped[MeteringMedium] = mapped_column(SAEnum(MeteringMedium), nullable=False)
+    number: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     calibrated_until: Mapped[Optional[int]] = mapped_column(
         Integer, nullable=True,

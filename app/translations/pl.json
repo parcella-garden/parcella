@@ -1122,7 +1122,8 @@
       "reading_above_later": "Stan licznika ({new_value}) nie może być większy niż już zarejestrowany późniejszy stan ({later_value}) tego samego licznika.",
       "no_active_meter": "Brak aktywnego licznika dla tego punktu pomiarowego",
       "configuration_not_found": "Nie znaleziono konfiguracji ceny",
-      "configuration_year_exists": "Inna konfiguracja ceny na {year} już istnieje."
+      "configuration_year_exists": "Inna konfiguracja ceny na {year} już istnieje.",
+      "duplicate_meter_number": "Licznik o numerze „{number}” już istnieje dla tego medium."
     }
   },
   "work_hours": {

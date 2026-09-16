@@ -9,6 +9,12 @@
 {% endblock %}
 
 {% block content %}
+{% if error %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <div>{{ error }}</div>
+</div>
+{% endif %}
 <form method="post" action="{{ url_prefix }}/metering-points/new">
     {{ csrf_field() }}
 <div class="row g-3" style="max-width: 640px;">

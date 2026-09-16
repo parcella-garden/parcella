@@ -97,6 +97,17 @@ year -- same "nothing configured -> nothing billed" behavior as
 
 ## Known pitfalls
 
+- **`Meter.number` uniqueness is scoped per medium, not global**
+  (added after a real prod 500, see
+  [ADR 0081](./ADR/0081-meter-number-uniqueness-scoped-per-medium.md)):
+  water and electricity meters can share a number (e.g. the "ohne"/
+  "none" placeholder for a parcel with no distinct physical meter),
+  but not within the same medium. Enforced via `Meter.medium`
+  (denormalized from the parent `MeteringPoint`) plus a composite
+  unique constraint, with a friendly `ServiceError` check ahead of it
+  in `app/services/metering.py` -- don't reintroduce a bare
+  `unique=True` on `number` alone.
+
 - **Jinja2 can't do Python's `.format()`**: `"%.{}f"|format(places)|format(value)`
   does not work (Jinja's `format` filter uses the old `%` operator).
   Solution: a custom Jinja filter `fmt`, registered directly on the
