@@ -33,6 +33,7 @@ from app.models import (
     CalendarEventType,
     FinanceCategory,
     FinanceCategoryGroup,
+    FreescoutConversationLink,
     InsuranceConfiguration,
     InventoryCategory,
     InventoryItem,
@@ -41,7 +42,6 @@ from app.models import (
     Member,
     MemberEmail,
     MemberParcel,
-    MessageDirection,
     Meter,
     MeteringMedium,
     MeteringPoint,
@@ -60,9 +60,6 @@ from app.models import (
     Task,
     TaskList,
     TaskWorkload,
-    Ticket,
-    TicketMessage,
-    TicketStatus,
     User,
     UserRole,
     WorkHoursConfiguration,
@@ -93,8 +90,7 @@ def _track(db: AsyncSession, module: str, obj) -> None:
 
 _MODEL_BY_ENTITY_TYPE = {
     "FinanceCategory": FinanceCategory,
-    "TicketMessage": TicketMessage,
-    "Ticket": Ticket,
+    "FreescoutConversationLink": FreescoutConversationLink,
     "PurchaseRequestApproval": PurchaseRequestApproval,
     "PurchaseRequest": PurchaseRequest,
     "CalendarEvent": CalendarEvent,
@@ -125,7 +121,7 @@ _DELETION_ORDER = list(_MODEL_BY_ENTITY_TYPE.keys())
 # else references members/parcels).
 MODULES = [
     "core", "work_hours", "metering", "insurance",
-    "tickets", "purchase_requests", "calendar", "inventory", "tasks", "finances",
+    "freescout_bridge", "purchase_requests", "calendar", "inventory", "tasks", "finances",
 ]
 
 
@@ -218,7 +214,7 @@ async def add_sample_data(db: AsyncSession) -> dict:
     await _seed_work_hours(db, members)
     await _seed_metering(db, parcels)
     await _seed_insurance(db, parcels, assignments)
-    await _seed_tickets(db, members)
+    await _seed_freescout_bridge(db, members)
     await _seed_purchase_requests(db)
     await _seed_calendar(db)
     await _seed_inventory(db, members)
@@ -429,51 +425,47 @@ async def _seed_insurance(db: AsyncSession, parcels: list, assignments: list) ->
         _track(db, "insurance", additional)
 
 
-async def _seed_tickets(db: AsyncSession, members: list) -> None:
+async def _seed_freescout_bridge(db: AsyncSession, members: list) -> None:
+    """
+    Demo FreescoutConversationLink rows -- deliberately no live FreeScout
+    API call (sample data must work on a fresh install with no external
+    services configured). These are cross-reference rows only, same as
+    the real poller writes; there's no local message content to seed
+    since the actual transcript is always fetched live from FreeScout.
+    """
     anna, jonas, klara, peter, sofia, tom = members
 
-    assignee = await db.scalar(select(User).where(User.is_active == True).limit(1))
-
-    def make(subject: str, sender_email: str, sender_name: str, member_id: Optional[str],
-             status: TicketStatus, message: str, **extra) -> Ticket:
-        ticket = Ticket(
-            id=new_uuid(), subject=subject, sender_email=sender_email, sender_name=sender_name,
-            member_id=member_id, status=status, **extra,
+    def make(freescout_conversation_id: int, subject: str, customer_email: str, customer_name: str,
+              member_id: Optional[str], status: str, **extra) -> FreescoutConversationLink:
+        link = FreescoutConversationLink(
+            id=new_uuid(), freescout_conversation_id=freescout_conversation_id, freescout_mailbox_id=1,
+            subject=subject, customer_email=customer_email, customer_name=customer_name,
+            member_id=member_id, freescout_status=status,
+            freescout_updated_at=datetime.now(timezone.utc), **extra,
         )
-        db.add(ticket)
-        _track(db, "tickets", ticket)
-        msg = TicketMessage(id=new_uuid(), ticket_id=ticket.id, direction=MessageDirection.INCOMING, content=message)
-        db.add(msg)
-        _track(db, "tickets", msg)
-        return ticket
+        db.add(link)
+        _track(db, "freescout_bridge", link)
+        return link
 
     make(
-        "Question about the fence height on plot DEMO-01", "anna.bergmann@example.invalid", "Anna Bergmann",
-        anna.id, TicketStatus.ACTIVE,
-        "Hi, could someone tell me the maximum allowed fence height for my plot? Thanks!",
+        9001, "Question about the fence height on plot DEMO-01", "anna.bergmann@example.invalid", "Anna Bergmann",
+        anna.id, "active", message_count=1,
     )
     make(
-        "Leaking tap near plot DEMO-03", "sofia.keller@example.invalid", "Sofia Keller",
-        sofia.id, TicketStatus.ASSIGNED,
-        "The tap at the central water point close to my plot is leaking, could someone take a look?",
-        assigned_to_id=assignee.id if assignee else None,
+        9002, "Leaking tap near plot DEMO-03", "sofia.keller@example.invalid", "Sofia Keller",
+        sofia.id, "active", message_count=3,
     )
     make(
-        "Replacement membership card", "klara.hoffmann@example.invalid", "Klara Hoffmann",
-        klara.id, TicketStatus.WAITING,
-        "I'd like a new membership card -- mine got damaged. Can you confirm my address on file first?",
+        9003, "Replacement membership card", "klara.hoffmann@example.invalid", "Klara Hoffmann",
+        klara.id, "pending", message_count=2,
     )
     make(
-        "Compost delivery schedule", "unknown.visitor@example.invalid", None,
-        None, TicketStatus.POSTPONED,
-        "When is the next compost delivery scheduled for the club?",
-        postponed_until=date.today() + timedelta(days=10),
+        9004, "Compost delivery schedule", "unknown.visitor@example.invalid", None,
+        None, "pending", message_count=1,
     )
     make(
-        "Thanks for the quick repair", "tom.fischer@example.invalid", "Tom Fischer",
-        tom.id, TicketStatus.CLOSED,
-        "Thanks for fixing the fence so quickly, much appreciated!",
-        closed_at=datetime.now(timezone.utc),
+        9005, "Thanks for the quick repair", "tom.fischer@example.invalid", "Tom Fischer",
+        tom.id, "closed", message_count=2,
     )
 
 

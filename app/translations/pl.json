@@ -5,7 +5,6 @@
     "back": "Wstecz"
   },
   "nav": {
-    "tickets": "Zgłoszenia",
     "brand_subtitle": "Zarządzanie",
     "dashboard": "Panel główny",
     "members": "Członkowie",
@@ -47,13 +46,12 @@
     "finances_group": "Finanse",
     "finances_outgoing_invoices": "Faktury wychodzące",
     "finances_reminders": "Upomnienia",
-    "finances_incoming_invoices": "Faktury przychodzące"
+    "finances_incoming_invoices": "Faktury przychodzące",
+    "freescout_bridge": "Wsparcie"
   },
   "errors": {
-    "ticket_not_found": "Nie znaleziono zgłoszenia",
     "user_not_found": "Nie znaleziono użytkownika",
     "deferred_date_required": "Wymagana jest data odroczenia",
-    "ticket_status_assigned_manual": "Status \"Przypisane\" jest ustawiany automatycznie, gdy do zgłoszenia zostanie przypisany użytkownik, i nie można go wybrać ręcznie.",
     "invalid_credentials": "Nieprawidłowy e-mail lub hasło.",
     "account_deactivated": "Twoje konto jest dezaktywowane.",
     "passwords_do_not_match": "Hasła nie są zgodne.",
@@ -88,91 +86,6 @@
     "too_many_login_attempts": "Zbyt wiele nieudanych prób logowania. Odczekaj kilka minut i spróbuj ponownie.",
     "password_must_differ": "Nowe hasło musi różnić się od obecnego.",
     "csrf_invalid": "Kontrola bezpieczeństwa nie powiodła się. Strona była prawdopodobnie otwarta zbyt długo -- wróć, odśwież ją i spróbuj ponownie."
-  },
-  "tickets": {
-    "overview": {
-      "title": "Zgłoszenia",
-      "fetch_inbox_now": "Pobierz skrzynkę teraz",
-      "rescan_spam_button": "Ponownie sprawdź pod kątem spamu",
-      "rescan_result_message": "Sprawdzono {scanned} zgłoszenie/-a, oznaczono {flagged} jako spam.",
-      "rescan_result_message_more": "Sprawdzono {scanned} zgłoszenie/-a, oznaczono {flagged} jako spam. Może zostać więcej -- uruchom ponownie.",
-      "new_ticket": "Nowe zgłoszenie",
-      "filter_active": "Aktywne",
-      "filter_mine": "Moje",
-      "filter_spam": "Podejrzane",
-      "filter_closed": "Zamknięte",
-      "filter_all": "Wszystkie",
-      "search_placeholder": "Temat, nadawca…",
-      "search_button": "Szukaj",
-      "col_subject": "Temat",
-      "col_sender": "Nadawca",
-      "col_status": "Status",
-      "col_assigned_to": "Przypisane do",
-      "col_created": "Utworzono",
-      "spam_suspected_badge": "Podejrzenie spamu",
-      "status_assigned": "Przypisane",
-      "status_closed": "Zamknięte",
-      "empty_state": "Nie znaleziono zgłoszeń.",
-      "count_suffix": "zgłoszenie/-a",
-      "reactivated_notice": "{count} odroczone zgłoszenie/-a jest/są teraz ponownie aktywne.",
-      "filter_waiting": "Oczekujące",
-      "filter_postponed": "Odroczone",
-      "status_active": "Aktywny",
-      "status_waiting": "Oczekujące",
-      "status_postponed": "Odroczone",
-      "status_deleted": "Usunięte",
-      "bulk_selected_count": "Wybrano {count}",
-      "bulk_none_selected": "Nie wybrano żadnego zgłoszenia",
-      "bulk_status_placeholder": "Zmień status na…",
-      "bulk_apply_button": "Zastosuj",
-      "bulk_unassign_option": "– Cofnij przypisanie –",
-      "bulk_delete_confirm": "Czy na pewno oznaczyć {count} zgłoszenie/-a jako usunięte?",
-      "bulk_postponed_date_required": "Proszę podać datę dla statusu „Odroczone”.",
-      "bulk_mark_spam_button": "Oznacz jako spam",
-      "bulk_not_spam_button": "To nie spam",
-      "bulk_mark_spam_confirm": "Czy na pewno oznaczyć {count} zgłoszenie/-a jako spam?"
-    },
-    "form": {
-      "title": "Nowe zgłoszenie",
-      "info_banner": "Ręczne tworzenie zgłoszeń, które nie wpłynęły e-mailem. Wiadomości przychodzące na skonfigurowaną skrzynkę zgłoszeń są automatycznie zamieniane na zgłoszenia (pobieranie w tle co 2 minuty).",
-      "card_header": "Zgłoszenie",
-      "label_subject": "Temat",
-      "label_sender_email": "E-mail nadawcy",
-      "label_sender_name": "Imię i nazwisko nadawcy",
-      "label_message": "Treść",
-      "button_create": "Utwórz zgłoszenie"
-    },
-    "attachments": {
-      "cloud_not_configured": "Folder załączników zgłoszeń nie jest jeszcze skonfigurowany -- zobacz /admin/integrations."
-    },
-    "detail": {
-      "history_header": "Historia",
-      "internal_note_prefix": "Notatka wewnętrzna – ",
-      "unknown_author": "Nieznany",
-      "reply_header": "Odpowiedz / dodaj notatkę",
-      "reply_to_sender": "Odpowiedź do nadawcy",
-      "internal_note_option": "Notatka wewnętrzna",
-      "message_placeholder": "Wiadomość…",
-      "reply_help_text": "Odpowiedzi są wysyłane e-mailem do nadawcy (o ile skrzynka zgłoszeń jest skonfigurowana w /admin/settings). Notatki wewnętrzne nigdy nie są wysyłane.",
-      "save": "Zapisz",
-      "spam_header": "Podejrzenie spamu",
-      "spam_score_label": "Wynik:",
-      "spam_not_spam_button": "To nie spam – zdejmij podejrzenie",
-      "spam_mark_button": "Oznacz jako spam",
-      "status_header": "Status",
-      "status_save_button": "Zapisz status",
-      "status_assigned_auto_hint": "Ustawione automatycznie, ponieważ to zgłoszenie jest przypisane do użytkownika. Cofnij przypisanie poniżej, aby wrócić do statusu \"Aktywne\".",
-      "assignment_header": "Przypisanie",
-      "assignment_unassigned_option": "– nieprzypisane –",
-      "assignment_save_button": "Przypisz",
-      "assignment_help_text": "Osoba przypisana otrzyma powiadomienie e-mail.",
-      "member_header": "Członek / działka",
-      "member_none_assigned": "Nie przypisano żadnego członka.",
-      "member_no_assignment_option": "– brak przypisania –",
-      "member_save_button": "Zapisz przypisanie",
-      "member_multiple_candidates_help": "Kilku członków korzysta z tego adresu e-mail – proszę wybrać ręcznie.",
-      "status_postponed_until_label": "Odroczone do"
-    }
   },
   "auth": {
     "login": {
@@ -365,8 +278,6 @@
         "electricity_desc": "Liczniki prądu, stany liczników i rozliczenie zużycia. Wyłącz, jeśli stowarzyszenie nie zarządza własnym zasilaniem elektrycznym.",
         "insurance_name": "Zarządzanie ubezpieczeniami",
         "insurance_desc": "Ubezpieczenie mienia i NNW na działkę wraz z rozliczeniem rocznym. Wyłącz, jeśli stowarzyszenie nie obsługuje ubezpieczeń przez program.",
-        "tickets_name": "System zgłoszeń",
-        "tickets_desc": "Zgłoszenia wsparcia z przypisaniem, statusem i powiązaniem z członkiem. Wyłącz, jeśli stowarzyszenie nie korzysta z wewnętrznego systemu zgłoszeń.",
         "purchase_requests_name": "Wnioski zakupowe",
         "purchase_requests_desc": "Zasada dwóch osób dla wydatków stowarzyszenia: składanie wniosków, zatwierdzanie lub odrzucanie przez dwóch członków zarządu.",
         "calendar_name": "Kalendarz",
@@ -384,7 +295,9 @@
         "tasks_name": "Tablica zadań",
         "tasks_desc": "Ogólna tablica kanban (Do zrobienia / W trakcie / Zrobione) dla spraw stowarzyszenia niezwiązanych z sesją roboczą -- np. \"odnowić polisę ubezpieczeniową\", \"zadzwonić do elektryka\". Tylko dla zarządu/administratora.",
         "finances_name": "Finanse",
-        "finances_desc": "Przygotuj i wysyłaj roczne faktury dla każdej działki, z pozycjami zależnymi od zużycia i śledzeniem płatności. Najpierw skonfiguruj dane bankowe poniżej."
+        "finances_desc": "Przygotuj i wysyłaj roczne faktury dla każdej działki, z pozycjami zależnymi od zużycia i śledzeniem płatności. Najpierw skonfiguruj dane bankowe poniżej.",
+        "freescout_bridge_name": "Integracja FreeScout",
+        "freescout_bridge_desc": "Łączy rozmowy wsparcia z FreeScout z członkami i tablicą zadań."
       },
       "region_header": "Region",
       "region_help": "Określa format liczb i adresu (np. separator tysięcy, kolejność kodu pocztowego i miejscowości). Niezależnie od języka interfejsu.",
@@ -448,11 +361,18 @@
       "incoming_invoices_folder_label": "Ścieżka folderu",
       "incoming_invoices_folder_save_button": "Zapisz",
       "incoming_invoices_folder_saved": "Folder faktur przychodzących zapisany.",
-      "ticket_attachments_folder_header": "Folder załączników zgłoszeń",
-      "ticket_attachments_folder_help": "Załączniki z przychodzących wiadomości e-mail zgłoszeń są przechowywane w tym jednym wspólnym folderze. Załączników odebranych przed ustawieniem tego folderu nie można odzyskać.",
-      "ticket_attachments_folder_label": "Ścieżka folderu",
-      "ticket_attachments_folder_save_button": "Zapisz",
-      "ticket_attachments_folder_saved": "Folder załączników zgłoszeń zapisany."
+      "freescout_title": "FreeScout",
+      "freescout_desc": "Łączy Parcellę z helpdeskiem FreeScout, aby rozmowy wsparcia można było powiązać z członkami i tablicą zadań.",
+      "freescout_saved": "Zapisano ustawienia FreeScout",
+      "freescout_base_url_label": "Adres URL instancji FreeScout",
+      "freescout_mailbox_id_label": "ID skrzynki",
+      "freescout_mailbox_id_hint": "Skrzynka FreeScout do synchronizacji (patrz jej adres URL, np. /mailbox/1). Domyślnie 1.",
+      "freescout_api_key_label": "Klucz API FreeScout",
+      "freescout_api_key_hint": "Wygeneruj go na stronie FreeScout Zarządzaj > API i webhooki.",
+      "freescout_save_button": "Zapisz",
+      "freescout_test_button": "Testuj połączenie",
+      "freescout_not_configured": "FreeScout nie jest jeszcze skonfigurowany",
+      "freescout_test_success": "Połączenie udane"
     },
     "system": {
       "page_title": "System",
@@ -521,7 +441,6 @@
       "what_work_hours": "Godziny pracy: konfiguracja roczna, przeszłe i nadchodzące zebranie robocze z uczestnikami oraz kilka zadań",
       "what_metering": "Liczniki: licznik wody i prądu z odczytami z dwóch lat",
       "what_insurance": "Ubezpieczenie: konfiguracja roczna, pakiety ubezpieczenia mienia oraz ochrona dla dwóch działek",
-      "what_tickets": "Zgłoszenia: kilka przykładowych zgłoszeń w różnych statusach",
       "what_purchase_requests": "Wnioski zakupowe: jeden otwarty, jeden zatwierdzony i jeden odrzucony",
       "what_calendar": "Kalendarz: kilka przeszłych i nadchodzących wydarzeń klubowych",
       "what_inventory": "Inwentarz: kategorie, kilka przedmiotów i jedno niezwrócone wypożyczenie",
@@ -533,7 +452,6 @@
       "module_work_hours": "Godziny pracy",
       "module_metering": "Liczniki",
       "module_insurance": "Ubezpieczenie",
-      "module_tickets": "Zgłoszenia",
       "module_purchase_requests": "Wnioski zakupowe",
       "module_calendar": "Kalendarz",
       "module_inventory": "Inwentarz",
@@ -545,7 +463,9 @@
       "add_confirm": "Dodać teraz dane przykładowe we wszystkich modułach?",
       "add_button": "Dodaj dane przykładowe",
       "what_finances": "Finanse: kilka przykładowych kategorii księgowych (nie prawdziwe dane SKR42)",
-      "module_finances": "Kategorie finansowe"
+      "module_finances": "Kategorie finansowe",
+      "what_freescout_bridge": "Integracja FreeScout: kilka przykładowych powiązań rozmów w różnych statusach",
+      "module_freescout_bridge": "Integracja FreeScout"
     },
     "groups": {
       "page_title": "Grupy",
@@ -580,7 +500,6 @@
         "water": "Woda",
         "electricity": "Prąd",
         "insurance": "Ubezpieczenia",
-        "tickets": "Zgłoszenia",
         "purchase_requests": "Wnioski zakupowe",
         "calendar": "Kalendarz",
         "inventory": "Inwentarz",
@@ -1566,14 +1485,13 @@
     "quick_export_parcels_csv": "Eksportuj działki jako CSV",
     "purchase_requests_card_title": "Otwarte wnioski zakupowe",
     "purchase_requests_suffix": "oczekuje na zatwierdzenie",
-    "tickets_open_label": "Otwarte zgłoszenia",
-    "tickets_spam_suffix": "{count} podejrzanych o spam",
-    "tickets_no_spam_suffix": "brak podejrzeń o spam",
     "tasks_overdue_label": "Zaległe zadania",
     "birthdays_card_title": "Urodziny w tym tygodniu",
     "birthdays_round_badge": "Okrągłe",
     "birthdays_today": "dziś kończy {age}",
-    "birthdays_turning": "kończy {age}"
+    "birthdays_turning": "kończy {age}",
+    "freescout_needs_association_label": "Wymaga przypisania",
+    "freescout_needs_association_suffix": "rozmowy wsparcia bez przypisanego członka"
   },
   "calendar": {
     "hub": {
@@ -1938,18 +1856,6 @@
       "body": "{admin_name} złożył(a) w Twoim imieniu następujący wniosek zakupowy w {app_name}:",
       "instruction": "Proszę potwierdzić, że te dane są poprawne:",
       "button": "Potwierdź dane"
-    },
-    "ticket_assigned_single": {
-      "subject": "Zgłoszenie przypisane: {subject}",
-      "greeting": "Witaj {name},",
-      "body": "Przypisano Ci zgłoszenie w {app_name}:",
-      "instruction": "Zaloguj się do {app_name}, aby je obsłużyć."
-    },
-    "ticket_assigned_bulk": {
-      "subject": "Przypisano {count} zgłoszenie(a) w {app_name}",
-      "greeting": "Witaj {name},",
-      "body": "Przypisano Ci {count} zgłoszenie(a) w {app_name}:",
-      "instruction": "Zaloguj się do {app_name}, aby je obsłużyć."
     },
     "new_participation_notification": {
       "subject": "Nowe zgłoszenie do prac społecznych w {app_name}",
@@ -2419,6 +2325,53 @@
       "session_full": "Brak wolnych miejsc",
       "no_members_for_parcel": "Do tej działki nie są obecnie przypisani żadni członkowie",
       "registration_closed": "Zgłoszenia na ten termin zostały zamknięte"
+    }
+  },
+  "freescout": {
+    "overview": {
+      "title": "Rozmowy wsparcia",
+      "open_in_freescout": "Otwórz w FreeScout",
+      "col_subject": "Temat",
+      "col_customer": "Klient",
+      "col_member": "Członek",
+      "col_status": "Status",
+      "col_messages": "Wiadomości",
+      "col_updated": "Zaktualizowano",
+      "col_task": "Zadanie",
+      "needs_association": "Wymaga przypisania",
+      "has_task": "Powiązano z zadaniem",
+      "empty_state": "Brak jeszcze rozmów wsparcia."
+    },
+    "detail": {
+      "back": "Wstecz",
+      "open_in_freescout": "Otwórz w FreeScout",
+      "transcript_header": "Rozmowa",
+      "no_messages": "Nie udało się wczytać wiadomości.",
+      "reply_header": "Odpowiedz klientowi",
+      "reply_placeholder": "Wpisz odpowiedź...",
+      "reply_send": "Wyślij",
+      "reply_help_text": "Wysyłane przez FreeScout i doręczane klientowi e-mailem -- to nie jest notatka wewnętrzna.",
+      "member_header": "Członek",
+      "member_none": "Nie przypisano żadnego członka.",
+      "member_none_option": "-- brak --",
+      "candidate_suffix": "sugerowany",
+      "member_save": "Zapisz",
+      "member_multiple_candidates": "Więcej niż jeden członek ma ten sam adres e-mail -- wybierz właściwego.",
+      "parcel_header": "Działka",
+      "parcel_none_option": "-- brak --",
+      "parcel_save": "Zapisz",
+      "task_header": "Tablica zadań",
+      "task_open": "Otwórz zadanie",
+      "task_create": "Utwórz zadanie",
+      "not_configured": "FreeScout nie jest skonfigurowany."
+    },
+    "errors": {
+      "conversation_not_found": "Nie znaleziono rozmowy",
+      "no_lists": "Na tablicy zadań nie ma jeszcze żadnych list"
+    },
+    "task": {
+      "source_line": "Źródło: rozmowa FreeScout #{conversation_id}",
+      "member_line": "Członek: {name}"
     }
   }
 }

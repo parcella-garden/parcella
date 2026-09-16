@@ -37,7 +37,7 @@ NAV_ORDER_DEFAULTS: Dict[str, int] = {
     "dashboard": 100,
     "members": 200,
     "parcels": 300,
-    "tickets": 400,
+    "freescout_bridge": 400,
     "purchase_requests": 500,
     "work_hours": 600,
     "water": 700,

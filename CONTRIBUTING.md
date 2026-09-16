@@ -93,10 +93,10 @@ builds and pushes `ghcr.io/parcella-garden/parcella:X.Y.Z` and `:latest`. See
 ## What helps us most
 
 - Translating module UI text into English (the i18n foundation exists --
-  one language per installation, switchable in admin settings -- but only
-  the Tickets module's UI text is fully translated so far; every other
-  module still shows German text even when English is selected; see
-  `app/i18n.py` and `app/translations/`)
+  one language per installation, switchable in admin settings -- but not
+  every module's UI text is fully translated yet; some still show German
+  text even when English is selected; see `app/i18n.py` and
+  `app/translations/`)
 - Documentation for additional deployment scenarios
 - Accessibility (a11y) of the templates
 - Additional language translations (adding a new `app/translations/<code>.json`)

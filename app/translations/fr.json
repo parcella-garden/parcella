@@ -5,7 +5,6 @@
     "back": "Retour"
   },
   "nav": {
-    "tickets": "Tickets",
     "brand_subtitle": "Gestion",
     "dashboard": "Tableau de bord",
     "members": "Membres",
@@ -47,13 +46,12 @@
     "finances_group": "Finances",
     "finances_outgoing_invoices": "Factures émises",
     "finances_reminders": "Relances",
-    "finances_incoming_invoices": "Factures reçues"
+    "finances_incoming_invoices": "Factures reçues",
+    "freescout_bridge": "Assistance"
   },
   "errors": {
-    "ticket_not_found": "Ticket non trouvé",
     "user_not_found": "Utilisateur non trouvé",
     "deferred_date_required": "Une date est requise pour reporter ce ticket",
-    "ticket_status_assigned_manual": "Le statut \"Attribué\" est défini automatiquement lorsqu'un utilisateur est affecté au ticket et ne peut pas être choisi manuellement.",
     "invalid_credentials": "L'e-mail ou le mot de passe est incorrect.",
     "account_deactivated": "Votre compte a été désactivé.",
     "passwords_do_not_match": "Les mots de passe ne correspondent pas.",
@@ -88,91 +86,6 @@
     "too_many_login_attempts": "Trop de tentatives de connexion échouées. Veuillez patienter quelques minutes et réessayer.",
     "password_must_differ": "Le nouveau mot de passe doit être différent de l'actuel.",
     "csrf_invalid": "Échec du contrôle de sécurité. La page est probablement restée ouverte trop longtemps -- revenez en arrière, rechargez-la et réessayez."
-  },
-  "tickets": {
-    "overview": {
-      "title": "Tickets",
-      "fetch_inbox_now": "Récupérer la boîte de réception maintenant",
-      "rescan_spam_button": "Rechercher à nouveau le spam",
-      "rescan_result_message": "{scanned} ticket(s) analysé(s), {flagged} marqué(s) comme spam.",
-      "rescan_result_message_more": "{scanned} ticket(s) analysé(s), {flagged} marqué(s) comme spam. Il en reste peut-être -- relancez l'opération.",
-      "new_ticket": "Nouveau ticket",
-      "filter_active": "Actif",
-      "filter_mine": "Les miens",
-      "filter_spam": "Spam suspecté",
-      "filter_closed": "Fermés",
-      "filter_all": "Tous",
-      "search_placeholder": "Sujet, expéditeur…",
-      "search_button": "Rechercher",
-      "col_subject": "Sujet",
-      "col_sender": "Expéditeur",
-      "col_status": "Statut",
-      "col_assigned_to": "Assigné à",
-      "col_created": "Créé",
-      "spam_suspected_badge": "Spam suspecté",
-      "status_assigned": "Attribué",
-      "status_closed": "Fermé",
-      "empty_state": "Aucun ticket trouvé.",
-      "count_suffix": "ticket(s)",
-      "reactivated_notice": "{count} ticket(s) reporté(s) redevient/redeviennent actif(s).",
-      "filter_waiting": "En attente",
-      "filter_postponed": "Reporté",
-      "status_active": "Actif",
-      "status_waiting": "En attente",
-      "status_postponed": "Reporté",
-      "status_deleted": "Supprimé",
-      "bulk_selected_count": "{count} sélectionné(s)",
-      "bulk_none_selected": "Aucun ticket sélectionné",
-      "bulk_status_placeholder": "Changer le statut en…",
-      "bulk_apply_button": "Appliquer",
-      "bulk_unassign_option": "– Retirer l'attribution –",
-      "bulk_delete_confirm": "Vraiment marquer {count} ticket(s) comme supprimé(s) ?",
-      "bulk_postponed_date_required": "Veuillez indiquer une date pour le statut « Reporté ».",
-      "bulk_mark_spam_button": "Marquer comme spam",
-      "bulk_not_spam_button": "Pas un spam",
-      "bulk_mark_spam_confirm": "Vraiment marquer {count} ticket(s) comme spam ?"
-    },
-    "form": {
-      "title": "Nouveau ticket",
-      "info_banner": "Création manuelle pour les tickets qui ne sont pas arrivés par e-mail. Les e-mails entrants vers la boîte de réception de tickets configurée sont automatiquement transformés en tickets (récupération en arrière-plan toutes les 2 minutes).",
-      "card_header": "Ticket",
-      "label_subject": "Sujet",
-      "label_sender_email": "E-mail de l'expéditeur",
-      "label_sender_name": "Nom de l'expéditeur",
-      "label_message": "Message",
-      "button_create": "Créer un ticket"
-    },
-    "attachments": {
-      "cloud_not_configured": "Le dossier des pièces jointes des tickets n'est pas encore configuré -- voir /admin/integrations."
-    },
-    "detail": {
-      "history_header": "Historique",
-      "internal_note_prefix": "Note interne – ",
-      "unknown_author": "Inconnu",
-      "reply_header": "Répondre / ajouter une note",
-      "reply_to_sender": "Répondre à l'expéditeur",
-      "internal_note_option": "Note interne",
-      "message_placeholder": "Message…",
-      "reply_help_text": "Les réponses sont envoyées par e-mail à l'expéditeur (à condition que la boîte de réception de tickets soit configurée via /admin/settings). Les notes internes ne sont jamais envoyées.",
-      "save": "Enregistrer",
-      "spam_header": "Spam suspecté",
-      "spam_score_label": "Score :",
-      "spam_not_spam_button": "Pas un spam – lever le soupçon",
-      "spam_mark_button": "Marquer comme spam",
-      "status_header": "Statut",
-      "status_save_button": "Enregistrer le statut",
-      "status_assigned_auto_hint": "Défini automatiquement car ce ticket est attribué à un utilisateur. Annulez l'attribution ci-dessous pour revenir au statut \"Actif\".",
-      "assignment_header": "Attribution",
-      "assignment_unassigned_option": "– non attribué –",
-      "assignment_save_button": "Attribuer",
-      "assignment_help_text": "La personne assignée reçoit une notification par e-mail.",
-      "member_header": "Membre / parcelle",
-      "member_none_assigned": "Aucun membre lié.",
-      "member_no_assignment_option": "– aucune liaison –",
-      "member_save_button": "Enregistrer la liaison",
-      "member_multiple_candidates_help": "Plusieurs membres utilisent cette adresse e-mail – veuillez choisir manuellement.",
-      "status_postponed_until_label": "Reporté jusqu'au"
-    }
   },
   "auth": {
     "login": {
@@ -365,8 +278,6 @@
         "electricity_desc": "Compteurs d'électricité, relevés et rapports de consommation. Désactiver si le club ne gère pas sa propre alimentation en électricité.",
         "insurance_name": "Gestion des assurances",
         "insurance_desc": "Assurance habitation et accident par parcelle, y compris le rapport annuel. Désactiver si le club ne gère pas les assurances via le logiciel.",
-        "tickets_name": "Système de tickets",
-        "tickets_desc": "Tickets d'assistance avec attribution, statut et correspondance avec les membres. Désactiver si le club n'utilise pas de système de tickets interne.",
         "purchase_requests_name": "Demandes d'achat",
         "purchase_requests_desc": "Principe d'approbation à deux personnes pour les dépenses du club : soumettre des demandes, les faire approuver ou rejeter par deux membres du conseil d'administration.",
         "calendar_name": "Calendrier",
@@ -384,7 +295,9 @@
         "tasks_name": "Tableau des tâches",
         "tasks_desc": "Un tableau kanban général (À faire / En cours / Terminé) pour les affaires du club non liées à une session de travail -- p.ex. \"renouveler l'assurance\", \"appeler l'électricien\". Réservé au conseil/administrateur.",
         "finances_name": "Finances",
-        "finances_desc": "Préparez et envoyez des factures annuelles par parcelle, avec des lignes basées sur la consommation et un suivi des paiements. Configurez d'abord les coordonnées bancaires ci-dessous."
+        "finances_desc": "Préparez et envoyez des factures annuelles par parcelle, avec des lignes basées sur la consommation et un suivi des paiements. Configurez d'abord les coordonnées bancaires ci-dessous.",
+        "freescout_bridge_name": "Intégration FreeScout",
+        "freescout_bridge_desc": "Relie les conversations d'assistance FreeScout aux membres et au tableau des tâches."
       },
       "region_header": "Région",
       "region_help": "Détermine le format des nombres et de l'adresse (par ex. séparateur de milliers, ordre du code postal et de la ville). Indépendant de la langue de l'interface.",
@@ -448,11 +361,18 @@
       "incoming_invoices_folder_label": "Chemin du dossier",
       "incoming_invoices_folder_save_button": "Enregistrer",
       "incoming_invoices_folder_saved": "Dossier des factures reçues enregistré.",
-      "ticket_attachments_folder_header": "Dossier des pièces jointes des tickets",
-      "ticket_attachments_folder_help": "Les pièces jointes des e-mails de tickets entrants sont stockées dans ce dossier partagé unique. Les pièces jointes reçues avant la configuration de ce dossier ne peuvent pas être récupérées.",
-      "ticket_attachments_folder_label": "Chemin du dossier",
-      "ticket_attachments_folder_save_button": "Enregistrer",
-      "ticket_attachments_folder_saved": "Dossier des pièces jointes des tickets enregistré."
+      "freescout_title": "FreeScout",
+      "freescout_desc": "Connecte Parcella à votre assistance FreeScout afin de lier les conversations aux membres et au tableau des tâches.",
+      "freescout_saved": "Paramètres FreeScout enregistrés",
+      "freescout_base_url_label": "URL de l'instance FreeScout",
+      "freescout_mailbox_id_label": "ID de la boîte",
+      "freescout_mailbox_id_hint": "La boîte FreeScout à synchroniser (voir son URL, p. ex. /mailbox/1). Par défaut 1.",
+      "freescout_api_key_label": "Clé API FreeScout",
+      "freescout_api_key_hint": "À générer depuis la page FreeScout Gérer > API et webhooks.",
+      "freescout_save_button": "Enregistrer",
+      "freescout_test_button": "Tester la connexion",
+      "freescout_not_configured": "FreeScout n'est pas encore configuré",
+      "freescout_test_success": "Connexion réussie"
     },
     "system": {
       "page_title": "Système",
@@ -521,7 +441,6 @@
       "what_work_hours": "Heures de travail : une configuration annuelle, une session passée et une à venir avec des participants, ainsi que quelques tâches",
       "what_metering": "Comptage : un compteur d'eau et un compteur d'électricité avec deux années de relevés",
       "what_insurance": "Assurance : configuration annuelle, formules d'assurance habitation et couverture pour deux parcelles",
-      "what_tickets": "Tickets : quelques tickets d'exemple dans différents statuts",
       "what_purchase_requests": "Demandes d'achat : une ouverte, une approuvée et une rejetée",
       "what_calendar": "Calendrier : quelques événements associatifs passés et à venir",
       "what_inventory": "Inventaire : catégories, quelques articles et un prêt en cours",
@@ -533,7 +452,6 @@
       "module_work_hours": "Heures de travail",
       "module_metering": "Comptage",
       "module_insurance": "Assurance",
-      "module_tickets": "Tickets",
       "module_purchase_requests": "Demandes d'achat",
       "module_calendar": "Calendrier",
       "module_inventory": "Inventaire",
@@ -545,7 +463,9 @@
       "add_confirm": "Ajouter des données d'exemple dans tous les modules maintenant ?",
       "add_button": "Ajouter des données d'exemple",
       "what_finances": "Finances : quelques exemples de catégories comptables (pas de vraies données SKR42)",
-      "module_finances": "Catégories financières"
+      "module_finances": "Catégories financières",
+      "what_freescout_bridge": "Intégration FreeScout : quelques exemples de conversations liées avec différents statuts",
+      "module_freescout_bridge": "Intégration FreeScout"
     },
     "groups": {
       "page_title": "Groupes",
@@ -580,12 +500,11 @@
         "water": "Eau",
         "electricity": "Électricité",
         "insurance": "Assurance",
-        "tickets": "Tickets",
         "purchase_requests": "Demandes d'achat",
         "calendar": "Calendrier",
         "inventory": "Inventaire",
         "finances": "Finances",
-        "freescout_bridge": "Connexion FreeScout"
+        "freescout_bridge": "Intégration FreeScout"
       }
     }
   },
@@ -1566,14 +1485,13 @@
     "quick_export_parcels_csv": "Exporter les parcelles en CSV",
     "purchase_requests_card_title": "Demandes d'achat ouvertes",
     "purchase_requests_suffix": "en attente d'approbation",
-    "tickets_open_label": "Tickets ouverts",
-    "tickets_spam_suffix": "{count} suspecté(s) de spam",
-    "tickets_no_spam_suffix": "aucun spam suspecté",
     "tasks_overdue_label": "Tâches en retard",
     "birthdays_card_title": "Anniversaires cette semaine",
     "birthdays_round_badge": "Anniversaire rond",
     "birthdays_today": "aujourd'hui, {age} ans",
-    "birthdays_turning": "{age} ans"
+    "birthdays_turning": "{age} ans",
+    "freescout_needs_association_label": "À associer",
+    "freescout_needs_association_suffix": "conversations d'assistance sans membre associé"
   },
   "calendar": {
     "hub": {
@@ -1938,18 +1856,6 @@
       "body": "{admin_name} a soumis la demande d'achat suivante en votre nom dans {app_name} :",
       "instruction": "Merci de confirmer que ces informations sont correctes :",
       "button": "Confirmer les informations"
-    },
-    "ticket_assigned_single": {
-      "subject": "Ticket assigné : {subject}",
-      "greeting": "Bonjour {name},",
-      "body": "Un ticket vous a été assigné dans {app_name} :",
-      "instruction": "Merci de vous connecter à {app_name} pour le traiter."
-    },
-    "ticket_assigned_bulk": {
-      "subject": "{count} ticket(s) assigné(s) dans {app_name}",
-      "greeting": "Bonjour {name},",
-      "body": "{count} ticket(s) vous ont été assignés dans {app_name} :",
-      "instruction": "Merci de vous connecter à {app_name} pour les traiter."
     },
     "new_participation_notification": {
       "subject": "Nouvelle inscription à une session de travail dans {app_name}",
@@ -2419,6 +2325,53 @@
       "session_full": "La session est complète",
       "no_members_for_parcel": "Aucun membre n'est actuellement assigné à cette parcelle",
       "registration_closed": "Les inscriptions pour cette session sont closes"
+    }
+  },
+  "freescout": {
+    "overview": {
+      "title": "Conversations d'assistance",
+      "open_in_freescout": "Ouvrir dans FreeScout",
+      "col_subject": "Objet",
+      "col_customer": "Client",
+      "col_member": "Membre",
+      "col_status": "Statut",
+      "col_messages": "Messages",
+      "col_updated": "Mis à jour",
+      "col_task": "Tâche",
+      "needs_association": "À associer",
+      "has_task": "Lié à une tâche",
+      "empty_state": "Aucune conversation d'assistance pour l'instant."
+    },
+    "detail": {
+      "back": "Retour",
+      "open_in_freescout": "Ouvrir dans FreeScout",
+      "transcript_header": "Conversation",
+      "no_messages": "Impossible de charger les messages.",
+      "reply_header": "Répondre au client",
+      "reply_placeholder": "Saisissez votre réponse...",
+      "reply_send": "Envoyer",
+      "reply_help_text": "Envoyé via FreeScout et transmis au client par e-mail -- ce n'est pas une note interne.",
+      "member_header": "Membre",
+      "member_none": "Aucun membre associé.",
+      "member_none_option": "-- aucun --",
+      "candidate_suffix": "suggéré",
+      "member_save": "Enregistrer",
+      "member_multiple_candidates": "Plusieurs membres partagent cette adresse e-mail -- choisissez le bon.",
+      "parcel_header": "Parcelle",
+      "parcel_none_option": "-- aucune --",
+      "parcel_save": "Enregistrer",
+      "task_header": "Tableau des tâches",
+      "task_open": "Ouvrir la tâche",
+      "task_create": "Créer une tâche",
+      "not_configured": "FreeScout n'est pas configuré."
+    },
+    "errors": {
+      "conversation_not_found": "Conversation introuvable",
+      "no_lists": "Aucune liste n'existe encore sur le tableau des tâches"
+    },
+    "task": {
+      "source_line": "Source : conversation FreeScout n° {conversation_id}",
+      "member_line": "Membre : {name}"
     }
   }
 }

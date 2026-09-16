@@ -50,7 +50,7 @@ This project is licensed under the **GNU Affero General Public License v3.0** (s
 - ✅ Parcel management (status: active/terminated/deleted, area, termination)
 - ✅ Many-to-many member ↔ parcel assignment, multiple parcels per member; every resident of a parcel is held jointly responsible, with no hierarchy between them
 - ✅ CSV export and import (members, parcels) with duplicate detection
-- ✅ Dashboard with live statistics (members, parcels, areas, plus open purchase requests and open tickets when those modules are enabled)
+- ✅ Dashboard with live statistics (members, parcels, areas, plus open purchase requests and FreeScout conversations needing association when those modules are enabled)
 - ✅ Public signup API: lets an external CMS (WordPress, TYPO3, Contao, or anything else) submit work-session signups without a Parcella login, identifying only by parcel number (never a member name - the public site must not expose who lives where). Parcella matches the optional submitted name against the parcel's current residents and registers just that member if it's unambiguous, or every current resident as a precaution if it isn't, creating real participants the board can review and correct like any other signup. Off by default (it opens a public write endpoint) and protected by a regenerable shared token; a reference WordPress connector plugin (`parcella-connector`) is included under `integrations/wordpress/`, consolidating every WordPress <-> Parcella integration (currently signup; more planned) behind one shared settings screen
 
 ### Settings
@@ -85,9 +85,9 @@ postcode-before-city vs. UK-style postcode-last).
 
 - ✅ Calendar module: community calendar (member meetings, parcel inspections, work sessions - all in one simple upcoming-items list,  no full calendar-grid UI), member birthdays (with a dashboard "this week" widget highlighting round-number birthdays), council on-site presence scheduling, and self-service council absence logging (anyone with a login can enter their own). Each with its own ICS export - the community calendar's feed is public (embeddable on your public website), the other three require a private access token since they contain more sensitive information
 
-#### Support ticket system
+#### FreeScout support bridge
 
-- ✅ Ticket system with automatic member matching, spam heuristics, IMAP inbox polling, six explicit statuses (Active/Assigned/Waiting/Postponed/Closed/Deleted), bulk status-change and bulk-assign from the ticket list, and safely rendered HTML emails (allowlist-based sanitization, no tracking pixels, no script execution)
+- ✅ No built-in ticket system -- [FreeScout](https://github.com/freescout-help-desk/freescout) (or any similarly API-shaped helpdesk) is the canonical system for support conversations. Every logged-in member gets a "Support" nav link straight to it; staff additionally get a Parcella-side conversation list with automatic member/parcel matching (persistent identity mapping, never guessed when ambiguous), a live-fetched full message transcript, reply-to-customer, and one-click promotion of a conversation onto the task board. Off by default. See `docs/module-freescout-bridge.md`.
 
 #### Purchase requests
 
@@ -233,9 +233,12 @@ Tokens are valid for 24 hours. The Swagger UI has an "Authorize" button for conv
 | GET/PUT | `/api/v1/insurance/configuration/{year}` | Accident insurance amounts |
 | GET/PUT | `/api/v1/insurance/parcels/{id}/{year}` | Insurance status of a parcel |
 | GET | `/api/v1/insurance/evaluation/{year}` | Annual report |
-| GET/POST | `/api/v1/tickets` | List/create tickets |
-| GET/PUT | `/api/v1/tickets/{id}` | Ticket detail / status / assignment |
-| GET/POST | `/api/v1/tickets/{id}/messages` | Ticket messages |
+| GET | `/api/v1/freescout/conversations` | List FreeScout conversation links |
+| GET | `/api/v1/freescout/conversations/{id}` | Conversation link detail |
+| PUT | `/api/v1/freescout/conversations/{id}/member` | Set/clear the matched member |
+| PUT | `/api/v1/freescout/conversations/{id}/parcel` | Set/clear the matched parcel |
+| POST | `/api/v1/freescout/conversations/{id}/task` | Create/link a task on the task board |
+| POST | `/api/v1/freescout/conversations/{id}/reply` | Reply to the customer via FreeScout |
 | GET/POST | `/api/v1/purchase-requests` | List/create purchase requests |
 | POST | `/api/v1/purchase-requests/{id}/approve` | Approve (two distinct approvals needed) |
 | POST | `/api/v1/purchase-requests/{id}/reject` | Reject (single rejection is enough) |
@@ -283,25 +286,25 @@ curl -o .env https://raw.githubusercontent.com/parcella-garden/parcella/main/.en
 
 # Postgres self-heals ownership on its data dir, but the app image runs as
 # a fixed non-root user (uid/gid 1000) and does not -- pre-create and own
-# these two so the app can write to them on first start:
-mkdir -p data/postgres data/uploads data/ticket_attachments
-sudo chown -R 1000:1000 data/uploads data/ticket_attachments
+# this one so the app can write to it on first start:
+mkdir -p data/postgres data/uploads
+sudo chown -R 1000:1000 data/uploads
 
 docker compose run --rm --entrypoint alembic web upgrade head
 docker compose up -d
 ```
 
 Everything the running instance writes to disk -- Postgres data, uploaded
-logos/avatars/announcement images, ticket attachments -- lives under this
-one `data/` folder next to the compose file. No named Docker volumes, no
-`-f` flags: `docker-compose.yml` is Compose's own default-discovered
-filename, so every command in this guide, and `/admin/system`'s
-"update available" notice, works with bare `docker compose pull` / `up
--d`. Pin `PARCELLA_VERSION` in `.env` to a specific release for a
-reproducible deploy instead of always tracking `latest`.
+logos/avatars/announcement images -- lives under this one `data/` folder
+next to the compose file. No named Docker volumes, no `-f` flags:
+`docker-compose.yml` is Compose's own default-discovered filename, so
+every command in this guide, and `/admin/system`'s "update available"
+notice, works with bare `docker compose pull` / `up -d`. Pin
+`PARCELLA_VERSION` in `.env` to a specific release for a reproducible
+deploy instead of always tracking `latest`.
 
 **Upgrading from an older install** (named `postgres_data` volume, or no
-`data/uploads`/`data/ticket_attachments` mounts yet)? See
+`data/uploads` mount yet)? See
 [MIGRATION-NOTE-DATA-LAYOUT.md](https://github.com/parcella-garden/parcella/blob/main/MIGRATION-NOTE-DATA-LAYOUT.md)
 for the one-time manual migration -- back up first.
 
@@ -412,7 +415,7 @@ meter_readings                 – water/electricity metering
 property_insurance_packages,
 insurance_configuration,
 parcel_insurance                – insurance tracking per parcel/year
-tickets, ticket_messages        – support ticket system
+freescout_conversation_links    – FreeScout conversation cross-reference (see docs/module-freescout-bridge.md)
 purchase_requests,
 purchase_request_approvals      – purchase requests with two-person approval
 ```

@@ -220,14 +220,16 @@ A second, independent public-write capability living in the same
 router (`app/routers/api_public.py`) and reference plugin
 (`integrations/wordpress/parcella-connector/includes/modules/contact.php`,
 `[parcella_contact_form]`): `POST /api/v1/public/contact` lets an
-external site's contact form create a Parcella **ticket** directly,
-instead of sending a plain email that then has to round-trip through
-the ticket mailbox's IMAP polling. Built for a concrete case: the
-association's own `/kontakt` page previously emailed the ticket inbox
-(confirmed live -- an existing ticket titled "Kontaktanfrage von
-Website" was ingested that way, matching no Parcella translation key,
-i.e. a literal string from whatever WordPress contact-form plugin sent
-it). See [ADR 0074](./ADR/0074-public-contact-form-to-ticket-bridge.md).
+external site's contact form create a **FreeScout conversation**
+directly via the FreeScout API, instead of sending a plain email that
+would otherwise appear to come from the club's own SMTP account rather
+than the actual visitor. Originally built (see
+[ADR 0074](./ADR/0074-public-contact-form-to-ticket-bridge.md)) to feed
+Parcella's own built-in ticket module; rewritten when that module was
+removed in favor of FreeScout (see
+[ADR 0080](./ADR/0080-remove-builtin-ticket-module-freescout-conversation-bridge.md)
+and `docs/module-freescout-bridge.md`) to call
+`FreeScoutClient.create_conversation()` instead.
 
 **Its own module flag, `public_contact_api`, off by default** -- same
 reasoning as `public_signup_api` above (opens a public write endpoint),
@@ -247,20 +249,17 @@ acceptance, not an HTTP error status, since "consent missing" is a
 normal, expected outcome for a real visitor who hasn't ticked the box
 yet, not a server error.
 
-**Runs through the same spam check as incoming ticket emails.**
-`check_for_spam()` (`app/spam_filter.py`), the same function
-`app/ticket_mailer.py` applies to every incoming email -- this endpoint
-is exactly as public-facing as the ticket inbox itself, so it gets the
-same heuristics-plus-optional-external-API treatment, setting
-`spam_suspected`/`spam_score`/`spam_reasoning` on the created ticket.
-Reuses `create_ticket()` (`app/services/tickets.py`, already shared
-between the HTML and JWT-authenticated API surfaces per ADR 0070)
-rather than duplicating ticket/message creation.
+**No local spam check anymore.** The removed ticket module ran incoming
+messages through a heuristics-plus-optional-external-API spam filter;
+now that this endpoint creates a FreeScout conversation instead of a
+local record, spam triage is FreeScout's own responsibility, same as
+anything else landing in its inbox.
 
 **No dedicated consent-tracking column.** Whether consent was given is
 a submission-time gate (rejected outright if false), not something the
-board needs to query later -- the created ticket's own message body
-records that consent was given, for anyone reviewing it by hand.
+board needs to query later -- the created FreeScout conversation's
+message body records that consent was given, for anyone reviewing it
+by hand.
 
 ## Extending to another CMS
 

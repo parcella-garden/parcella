@@ -5,7 +5,6 @@
     "back": "Terug"
   },
   "nav": {
-    "tickets": "Tickets",
     "brand_subtitle": "Beheer",
     "dashboard": "Dashboard",
     "members": "Leden",
@@ -47,13 +46,12 @@
     "finances_group": "Financiën",
     "finances_outgoing_invoices": "Uitgaande facturen",
     "finances_reminders": "Herinneringen",
-    "finances_incoming_invoices": "Inkomende facturen"
+    "finances_incoming_invoices": "Inkomende facturen",
+    "freescout_bridge": "Ondersteuning"
   },
   "errors": {
-    "ticket_not_found": "Ticket niet gevonden",
     "user_not_found": "Gebruiker niet gevonden",
     "deferred_date_required": "Een datum is vereist om dit ticket uit te stellen",
-    "ticket_status_assigned_manual": "De status \"Toegewezen\" wordt automatisch ingesteld zodra een gebruiker aan het ticket wordt toegewezen en kan niet handmatig worden gekozen.",
     "invalid_credentials": "E-mail of wachtwoord is onjuist.",
     "account_deactivated": "Uw account is gedeactiveerd.",
     "passwords_do_not_match": "Wachtwoorden komen niet overeen.",
@@ -88,91 +86,6 @@
     "too_many_login_attempts": "Te veel mislukte inlogpogingen. Wacht een paar minuten en probeer het opnieuw.",
     "password_must_differ": "Het nieuwe wachtwoord moet verschillen van het huidige.",
     "csrf_invalid": "Beveiligingscontrole mislukt. De pagina stond waarschijnlijk te lang open -- ga terug, herlaad de pagina en probeer het opnieuw."
-  },
-  "tickets": {
-    "overview": {
-      "title": "Tickets",
-      "fetch_inbox_now": "Inbox nu ophalen",
-      "rescan_spam_button": "Opnieuw scannen op spam",
-      "rescan_result_message": "{scanned} ticket(s) gescand, {flagged} als spam gemarkeerd.",
-      "rescan_result_message_more": "{scanned} ticket(s) gescand, {flagged} als spam gemarkeerd. Er kunnen er nog meer zijn -- voer het opnieuw uit.",
-      "new_ticket": "Nieuw ticket",
-      "filter_active": "Actief",
-      "filter_mine": "Mijn",
-      "filter_spam": "Vermoedelijke spam",
-      "filter_closed": "Gesloten",
-      "filter_all": "Alles",
-      "search_placeholder": "Onderwerp, afzender…",
-      "search_button": "Zoeken",
-      "col_subject": "Onderwerp",
-      "col_sender": "Afzender",
-      "col_status": "Status",
-      "col_assigned_to": "Toegewezen aan",
-      "col_created": "Aangemaakt",
-      "spam_suspected_badge": "Vermoedelijke spam",
-      "status_assigned": "Toegewezen",
-      "status_closed": "Gesloten",
-      "empty_state": "Geen tickets gevonden.",
-      "count_suffix": "ticket(s)",
-      "reactivated_notice": "{count} uitgestelde ticket(s) is/zijn nu weer actief.",
-      "filter_waiting": "Wachtend",
-      "filter_postponed": "Uitgesteld",
-      "status_active": "Actief",
-      "status_waiting": "Wachtend",
-      "status_postponed": "Uitgesteld",
-      "status_deleted": "Verwijderd",
-      "bulk_selected_count": "{count} geselecteerd",
-      "bulk_none_selected": "Geen tickets geselecteerd",
-      "bulk_status_placeholder": "Status wijzigen naar…",
-      "bulk_apply_button": "Toepassen",
-      "bulk_unassign_option": "– Toewijzing opheffen –",
-      "bulk_delete_confirm": "Echt {count} ticket(s) als verwijderd markeren?",
-      "bulk_postponed_date_required": "Geef een datum op voor status \"Uitgesteld\".",
-      "bulk_mark_spam_button": "Als spam markeren",
-      "bulk_not_spam_button": "Geen spam",
-      "bulk_mark_spam_confirm": "Echt {count} ticket(s) als spam markeren?"
-    },
-    "form": {
-      "title": "Nieuw ticket",
-      "info_banner": "Handmatige aanmaak voor tickets die niet per e-mail zijn binnengekomen. Binnenkomende e-mails naar de geconfigureerde ticket-inbox worden automatisch omgezet in tickets (achtergrondophaling elke 2 minuten).",
-      "card_header": "Ticket",
-      "label_subject": "Onderwerp",
-      "label_sender_email": "E-mail afzender",
-      "label_sender_name": "Naam afzender",
-      "label_message": "Bericht",
-      "button_create": "Ticket aanmaken"
-    },
-    "attachments": {
-      "cloud_not_configured": "De map voor ticketbijlagen is nog niet ingesteld -- zie /admin/integrations."
-    },
-    "detail": {
-      "history_header": "Geschiedenis",
-      "internal_note_prefix": "Interne notitie – ",
-      "unknown_author": "Onbekend",
-      "reply_header": "Antwoorden / notitie toevoegen",
-      "reply_to_sender": "Antwoord naar afzender",
-      "internal_note_option": "Interne notitie",
-      "message_placeholder": "Bericht…",
-      "reply_help_text": "Antwoorden worden per e-mail naar de afzender verzonden (mits de ticket-inbox is geconfigureerd via /admin/settings). Interne notities worden nooit verzonden.",
-      "save": "Opslaan",
-      "spam_header": "Vermoedelijke spam",
-      "spam_score_label": "Score:",
-      "spam_not_spam_button": "Geen spam – vermoeden opheffen",
-      "spam_mark_button": "Als spam markeren",
-      "status_header": "Status",
-      "status_save_button": "Status opslaan",
-      "status_assigned_auto_hint": "Automatisch ingesteld omdat dit ticket aan een gebruiker is toegewezen. Hef de toewijzing hieronder op om terug te keren naar \"Actief\".",
-      "assignment_header": "Toewijzing",
-      "assignment_unassigned_option": "– niet toegewezen –",
-      "assignment_save_button": "Toewijzen",
-      "assignment_help_text": "De toegewezene ontvangt een e-mailmelding.",
-      "member_header": "Lid / perceel",
-      "member_none_assigned": "Geen lid gekoppeld.",
-      "member_no_assignment_option": "– geen koppeling –",
-      "member_save_button": "Koppeling opslaan",
-      "member_multiple_candidates_help": "Meerdere leden gebruiken dit e-mailadres – kies handmatig.",
-      "status_postponed_until_label": "Uitgesteld tot"
-    }
   },
   "auth": {
     "login": {
@@ -365,8 +278,6 @@
         "electricity_desc": "Elektriciteitsmeters, meterstanden en verbruiksrapporten. Uitschakelen als de vereniging haar eigen elektriciteitsvoorziening niet beheert.",
         "insurance_name": "Verzekeringsbeheer",
         "insurance_desc": "Opstal- en ongevallenverzekering per perceel, incl. jaarverslag. Uitschakelen als de vereniging verzekeringen niet via de software afhandelt.",
-        "tickets_name": "Ticketsysteem",
-        "tickets_desc": "Ondersteuningstickets met toewijzing, status en lidkoppeling. Uitschakelen als de vereniging geen intern ticketsysteem gebruikt.",
         "purchase_requests_name": "Aankoopaanvragen",
         "purchase_requests_desc": "Twee-personen goedkeuringsprincipe voor verenigingsuitgaven: aanvragen indienen, door twee bestuursleden laten goedkeuren of afwijzen.",
         "calendar_name": "Kalender",
@@ -384,7 +295,9 @@
         "tasks_name": "Takenbord",
         "tasks_desc": "Een algemeen kanbanbord (Te doen / Mee bezig / Klaar) voor verenigingszaken die niet aan een werkbeurt gekoppeld zijn -- bijv. \"verzekering verlengen\", \"elektricien bellen\". Alleen voor bestuur/beheerder.",
         "finances_name": "Financiën",
-        "finances_desc": "Bereid jaarlijkse facturen per perceel voor en verstuur ze, met verbruiksgebaseerde regels en betalingsopvolging. Stel eerst hieronder de bankgegevens in."
+        "finances_desc": "Bereid jaarlijkse facturen per perceel voor en verstuur ze, met verbruiksgebaseerde regels en betalingsopvolging. Stel eerst hieronder de bankgegevens in.",
+        "freescout_bridge_name": "FreeScout-koppeling",
+        "freescout_bridge_desc": "Koppelt FreeScout-supportgesprekken aan leden en het takenbord."
       },
       "region_header": "Regio",
       "region_help": "Bepaalt het getal- en adresformaat (bijv. duizendtalscheidingsteken, volgorde van postcode en plaats). Onafhankelijk van de interfacetaal.",
@@ -448,11 +361,18 @@
       "incoming_invoices_folder_label": "Mappad",
       "incoming_invoices_folder_save_button": "Opslaan",
       "incoming_invoices_folder_saved": "Map voor inkomende facturen opgeslagen.",
-      "ticket_attachments_folder_header": "Map voor ticketbijlagen",
-      "ticket_attachments_folder_help": "Bijlagen van inkomende ticket-e-mails worden opgeslagen in deze ene gedeelde map. Bijlagen die zijn ontvangen voordat deze map is ingesteld, kunnen niet worden hersteld.",
-      "ticket_attachments_folder_label": "Mappad",
-      "ticket_attachments_folder_save_button": "Opslaan",
-      "ticket_attachments_folder_saved": "Map voor ticketbijlagen opgeslagen."
+      "freescout_title": "FreeScout",
+      "freescout_desc": "Verbindt Parcella met jullie FreeScout-helpdesk zodat supportgesprekken gekoppeld kunnen worden aan leden en het takenbord.",
+      "freescout_saved": "FreeScout-instellingen opgeslagen",
+      "freescout_base_url_label": "URL van de FreeScout-instantie",
+      "freescout_mailbox_id_label": "Postvak-ID",
+      "freescout_mailbox_id_hint": "Het te synchroniseren FreeScout-postvak (zie de URL, bijv. /mailbox/1). Standaard 1.",
+      "freescout_api_key_label": "FreeScout-API-sleutel",
+      "freescout_api_key_hint": "Genereer er een op FreeScout's pagina Beheren > API & Webhooks.",
+      "freescout_save_button": "Opslaan",
+      "freescout_test_button": "Verbinding testen",
+      "freescout_not_configured": "FreeScout is nog niet geconfigureerd",
+      "freescout_test_success": "Verbinding geslaagd"
     },
     "system": {
       "page_title": "Systeem",
@@ -521,7 +441,6 @@
       "what_work_hours": "Werkuren: een jaarconfiguratie, een afgelopen en een aankomende werksessie met deelnemers, en enkele taken",
       "what_metering": "Meterstanden: een water- en een elektriciteitsmeter met twee jaar aan standen",
       "what_insurance": "Verzekering: jaarconfiguratie, opstalpakketten en dekking voor twee percelen",
-      "what_tickets": "Tickets: een aantal voorbeeldtickets in verschillende statussen",
       "what_purchase_requests": "Aankoopaanvragen: een open, een goedgekeurde en een afgewezen aanvraag",
       "what_calendar": "Kalender: enkele afgelopen en aankomende verenigingsevenementen",
       "what_inventory": "Inventaris: categorieën, enkele items en één openstaande uitleen",
@@ -533,7 +452,6 @@
       "module_work_hours": "Werkuren",
       "module_metering": "Meterstanden",
       "module_insurance": "Verzekering",
-      "module_tickets": "Tickets",
       "module_purchase_requests": "Aankoopaanvragen",
       "module_calendar": "Kalender",
       "module_inventory": "Inventaris",
@@ -545,7 +463,9 @@
       "add_confirm": "Nu voorbeeldgegevens toevoegen in alle modules?",
       "add_button": "Voorbeeldgegevens toevoegen",
       "what_finances": "Financiën: enkele voorbeeldboekhoudcategorieën (geen echte SKR42-gegevens)",
-      "module_finances": "Financiële categorieën"
+      "module_finances": "Financiële categorieën",
+      "what_freescout_bridge": "FreeScout-koppeling: een handvol voorbeeldkoppelingen met verschillende statussen",
+      "module_freescout_bridge": "FreeScout-koppeling"
     },
     "groups": {
       "page_title": "Groepen",
@@ -580,7 +500,6 @@
         "water": "Water",
         "electricity": "Elektriciteit",
         "insurance": "Verzekering",
-        "tickets": "Tickets",
         "purchase_requests": "Aankoopaanvragen",
         "calendar": "Kalender",
         "inventory": "Inventaris",
@@ -1566,14 +1485,13 @@
     "quick_export_parcels_csv": "Percelen exporteren als CSV",
     "purchase_requests_card_title": "Openstaande aankoopverzoeken",
     "purchase_requests_suffix": "wacht op goedkeuring",
-    "tickets_open_label": "Open tickets",
-    "tickets_spam_suffix": "{count} verdacht van spam",
-    "tickets_no_spam_suffix": "geen spam vermoed",
     "tasks_overdue_label": "Achterstallige taken",
     "birthdays_card_title": "Verjaardagen deze week",
     "birthdays_round_badge": "Rond",
     "birthdays_today": "vandaag wordt {age}",
-    "birthdays_turning": "wordt {age}"
+    "birthdays_turning": "wordt {age}",
+    "freescout_needs_association_label": "Koppeling vereist",
+    "freescout_needs_association_suffix": "supportgesprekken zonder gekoppeld lid"
   },
   "calendar": {
     "hub": {
@@ -1938,18 +1856,6 @@
       "body": "{admin_name} heeft namens u het volgende aankoopverzoek ingediend in {app_name}:",
       "instruction": "Bevestig alstublieft dat deze gegevens correct zijn:",
       "button": "Gegevens bevestigen"
-    },
-    "ticket_assigned_single": {
-      "subject": "Ticket toegewezen: {subject}",
-      "greeting": "Hallo {name},",
-      "body": "Er is een ticket aan u toegewezen in {app_name}:",
-      "instruction": "Log in op {app_name} om het te verwerken."
-    },
-    "ticket_assigned_bulk": {
-      "subject": "{count} ticket(s) toegewezen in {app_name}",
-      "greeting": "Hallo {name},",
-      "body": "Er zijn {count} ticket(s) aan u toegewezen in {app_name}:",
-      "instruction": "Log in op {app_name} om ze te verwerken."
     },
     "new_participation_notification": {
       "subject": "Nieuwe aanmelding voor een werksessie in {app_name}",
@@ -2419,6 +2325,53 @@
       "session_full": "Sessie zit vol",
       "no_members_for_parcel": "Aan dit perceel zijn momenteel geen leden toegewezen",
       "registration_closed": "Aanmelding voor deze sessie is gesloten"
+    }
+  },
+  "freescout": {
+    "overview": {
+      "title": "Supportgesprekken",
+      "open_in_freescout": "Openen in FreeScout",
+      "col_subject": "Onderwerp",
+      "col_customer": "Klant",
+      "col_member": "Lid",
+      "col_status": "Status",
+      "col_messages": "Berichten",
+      "col_updated": "Bijgewerkt",
+      "col_task": "Taak",
+      "needs_association": "Koppeling vereist",
+      "has_task": "Gekoppeld aan een taak",
+      "empty_state": "Nog geen supportgesprekken."
+    },
+    "detail": {
+      "back": "Terug",
+      "open_in_freescout": "Openen in FreeScout",
+      "transcript_header": "Gesprek",
+      "no_messages": "Er konden geen berichten worden geladen.",
+      "reply_header": "Antwoord aan klant",
+      "reply_placeholder": "Typ je antwoord...",
+      "reply_send": "Verzenden",
+      "reply_help_text": "Verzonden via FreeScout en per e-mail bezorgd bij de klant -- dit is geen interne notitie.",
+      "member_header": "Lid",
+      "member_none": "Geen lid gekoppeld.",
+      "member_none_option": "-- geen --",
+      "candidate_suffix": "voorgesteld",
+      "member_save": "Opslaan",
+      "member_multiple_candidates": "Meerdere leden delen dit e-mailadres -- kies het juiste lid.",
+      "parcel_header": "Perceel",
+      "parcel_none_option": "-- geen --",
+      "parcel_save": "Opslaan",
+      "task_header": "Takenbord",
+      "task_open": "Taak openen",
+      "task_create": "Taak aanmaken",
+      "not_configured": "FreeScout is niet geconfigureerd."
+    },
+    "errors": {
+      "conversation_not_found": "Gesprek niet gevonden",
+      "no_lists": "Er bestaan nog geen lijsten op het takenbord"
+    },
+    "task": {
+      "source_line": "Bron: FreeScout-gesprek #{conversation_id}",
+      "member_line": "Lid: {name}"
     }
   }
 }

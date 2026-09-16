@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}{{ link.subject }}{% endblock %}
+{% block page_title %}{{ link.subject }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="/freescout/" class="btn btn-sm btn-outline-secondary me-2">
+    <i class="bi bi-arrow-left me-1"></i>{{ t('freescout.detail.back') }}
+</a>
+{% if base_url %}
+<a href="{{ base_url }}/conversation/{{ link.freescout_conversation_id }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-box-arrow-up-right me-1"></i>{{ t('freescout.detail.open_in_freescout') }}
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-chat-dots me-2"></i>{{ t('freescout.detail.transcript_header') }}</div>
+            <div class="card-body">
+                {% if fetch_error %}
+                <div class="alert alert-warning mb-0">{{ fetch_error }}</div>
+                {% elif not threads %}
+                <p class="text-muted mb-0">{{ t('freescout.detail.no_messages') }}</p>
+                {% else %}
+                {% for thread in threads %}
+                <div class="border-bottom pb-3 mb-3">
+                    <div class="d-flex justify-content-between text-muted" style="font-size: 0.85rem;">
+                        <span>{{ thread.createdBy.firstName if thread.createdBy else (thread.customer.email if thread.customer else '') }}</span>
+                        <span>{{ thread.createdAt }}</span>
+                    </div>
+                    {# thread.body is untrusted external HTML (from whoever emailed
+                       in) -- sanitize_html (app/html_sanitizer.py) before rendering,
+                       same threat model the old ticket module's inbox handled. #}
+                    <div>{{ (thread.body | sanitize_html) if thread.body else thread.text }}</div>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        {% if has_perm(request, 'freescout_bridge', 'write') %}
+        <div class="card">
+            <div class="card-header"><i class="bi bi-reply me-2"></i>{{ t('freescout.detail.reply_header') }}</div>
+            <div class="card-body">
+                <form method="post" action="/freescout/{{ link.id }}/reply">
+                    {{ csrf_field() }}
+                    <textarea name="text" class="form-control mb-2" rows="4" placeholder="{{ t('freescout.detail.reply_placeholder') }}" required></textarea>
+                    <button type="submit" class="btn btn-primary btn-sm">{{ t('freescout.detail.reply_send') }}</button>
+                </form>
+                <div class="form-text">{{ t('freescout.detail.reply_help_text') }}</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-person me-2"></i>{{ t('freescout.detail.member_header') }}</div>
+            <div class="card-body">
+                {% if link.member %}
+                    <p class="mb-2"><a href="/members/{{ link.member.id }}">{{ link.member.full_name }}</a></p>
+                {% else %}
+                    <p class="text-muted mb-2">{{ t('freescout.detail.member_none') }}</p>
+                {% endif %}
+
+                {% if has_perm(request, 'freescout_bridge', 'write') %}
+                <form method="post" action="/freescout/{{ link.id }}/member" class="d-flex gap-2">
+                    {{ csrf_field() }}
+                    <select name="member_id" class="form-select form-select-sm">
+                        <option value="">{{ t('freescout.detail.member_none_option') }}</option>
+                        {% for m in candidate_members %}
+                        <option value="{{ m.id }}" {% if link.member_id == m.id %}selected{% endif %}>{{ m.full_name }} ({{ t('freescout.detail.candidate_suffix') }})</option>
+                        {% endfor %}
+                        {% for m in all_members %}
+                        <option value="{{ m.id }}" {% if link.member_id == m.id %}selected{% endif %}>{{ m.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('freescout.detail.member_save') }}</button>
+                </form>
+                {% if candidate_members|length > 1 %}
+                <div class="form-text text-warning">{{ t('freescout.detail.member_multiple_candidates') }}</div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        {% if link.member_id %}
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-grid-3x3 me-2"></i>{{ t('freescout.detail.parcel_header') }}</div>
+            <div class="card-body">
+                {% if has_perm(request, 'freescout_bridge', 'write') %}
+                <form method="post" action="/freescout/{{ link.id }}/parcel" class="d-flex gap-2">
+                    {{ csrf_field() }}
+                    <select name="parcel_id" class="form-select form-select-sm">
+                        <option value="">{{ t('freescout.detail.parcel_none_option') }}</option>
+                        {% for p in member_parcels %}
+                        <option value="{{ p.id }}" {% if link.parcel_id == p.id %}selected{% endif %}>{{ p.plot_number }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('freescout.detail.parcel_save') }}</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header"><i class="bi bi-kanban me-2"></i>{{ t('freescout.detail.task_header') }}</div>
+            <div class="card-body">
+                {% if link.task_id %}
+                    <a href="/tasks/{{ link.task_id }}/edit" class="btn btn-sm btn-outline-success w-100">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>{{ t('freescout.detail.task_open') }}
+                    </a>
+                {% elif is_full_access(request) %}
+                    <form method="post" action="/freescout/{{ link.id }}/task" class="d-flex gap-2 mb-2">
+                        {{ csrf_field() }}
+                        <select name="list_id" class="form-select form-select-sm">
+                            {% for l in lists %}
+                            <option value="{{ l.id }}">{{ l.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-primary text-nowrap">{{ t('freescout.detail.task_create') }}</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

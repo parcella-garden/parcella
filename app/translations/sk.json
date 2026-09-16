@@ -5,7 +5,6 @@
     "back": "Späť"
   },
   "nav": {
-    "tickets": "Tikety",
     "brand_subtitle": "Správa",
     "dashboard": "Dashboard",
     "members": "Členovia",
@@ -47,13 +46,12 @@
     "finances_group": "Financie",
     "finances_outgoing_invoices": "Vydané faktúry",
     "finances_reminders": "Upomienky",
-    "finances_incoming_invoices": "Prijaté faktúry"
+    "finances_incoming_invoices": "Prijaté faktúry",
+    "freescout_bridge": "Podpora"
   },
   "errors": {
-    "ticket_not_found": "Ticket nebol nájdený",
     "user_not_found": "Používateľ nebol nájdený",
     "deferred_date_required": "Na odloženie tohto ticketu je potrebný dátum",
-    "ticket_status_assigned_manual": "Stav \"Pridelené\" sa nastaví automaticky, keď je ticketu pridelený používateľ, a nedá sa vybrať ručne.",
     "invalid_credentials": "E-mail alebo heslo je nesprávne.",
     "account_deactivated": "Váš účet bol deaktivovaný.",
     "passwords_do_not_match": "Heslá sa nezhodujú.",
@@ -88,91 +86,6 @@
     "too_many_login_attempts": "Príliš veľa neúspešných pokusov o prihlásenie. Počkajte niekoľko minút a skúste to znova.",
     "password_must_differ": "Nové heslo sa musí líšiť od súčasného.",
     "csrf_invalid": "Bezpečnostná kontrola zlyhala. Stránka bola pravdepodobne otvorená príliš dlho -- vráťte sa, znovu ju načítajte a skúste to znova."
-  },
-  "tickets": {
-    "overview": {
-      "title": "Tikety",
-      "fetch_inbox_now": "Načítať doručenú poštu teraz",
-      "rescan_spam_button": "Znova skontrolovať spam",
-      "rescan_result_message": "Skontrolovaných {scanned} tiket(y), {flagged} označených ako spam.",
-      "rescan_result_message_more": "Skontrolovaných {scanned} tiket(y), {flagged} označených ako spam. Možno ich zostáva viac -- spustite to znova.",
-      "new_ticket": "Nový ticket",
-      "filter_active": "Aktívne",
-      "filter_mine": "Moje",
-      "filter_spam": "Podozrivý spam",
-      "filter_closed": "Uzavreté",
-      "filter_all": "Všetky",
-      "search_placeholder": "Predmet, odosielateľ…",
-      "search_button": "Hľadať",
-      "col_subject": "Predmet",
-      "col_sender": "Odosielateľ",
-      "col_status": "Stav",
-      "col_assigned_to": "Pridelené komu",
-      "col_created": "Vytvorené",
-      "spam_suspected_badge": "Podozrivý spam",
-      "status_assigned": "Pridelené",
-      "status_closed": "Uzavreté",
-      "empty_state": "Nenašli sa žiadne tikety.",
-      "count_suffix": "ticket(y)",
-      "reactivated_notice": "{count} odložených tiketov je teraz opäť aktívnych.",
-      "filter_waiting": "Čakajúce",
-      "filter_postponed": "Odložené",
-      "status_active": "Aktívny",
-      "status_waiting": "Čakajúce",
-      "status_postponed": "Odložené",
-      "status_deleted": "Zmazané",
-      "bulk_selected_count": "Vybraných {count}",
-      "bulk_none_selected": "Nie je vybraný žiadny tiket",
-      "bulk_status_placeholder": "Zmeniť stav na…",
-      "bulk_apply_button": "Použiť",
-      "bulk_unassign_option": "– Zrušiť priradenie –",
-      "bulk_delete_confirm": "Naozaj označiť {count} tiket(y) ako zmazané?",
-      "bulk_postponed_date_required": "Zadajte prosím dátum pre stav „Odložené“.",
-      "bulk_mark_spam_button": "Označiť ako spam",
-      "bulk_not_spam_button": "Nie je spam",
-      "bulk_mark_spam_confirm": "Naozaj označiť {count} tiket(y) ako spam?"
-    },
-    "form": {
-      "title": "Nový ticket",
-      "info_banner": "Manuálne vytvorenie pre tikety, ktoré neprišli e-mailom. Prichádzajúce e-maily do nakonfigurovanej ticketovej schránky sa automaticky menia na tikety (načítanie na pozadí každé 2 minúty).",
-      "card_header": "Ticket",
-      "label_subject": "Predmet",
-      "label_sender_email": "E-mail odosielateľa",
-      "label_sender_name": "Meno odosielateľa",
-      "label_message": "Správa",
-      "button_create": "Vytvoriť ticket"
-    },
-    "attachments": {
-      "cloud_not_configured": "Priečinok príloh tiketov ešte nie je nastavený -- pozri /admin/integrations."
-    },
-    "detail": {
-      "history_header": "História",
-      "internal_note_prefix": "Interná poznámka – ",
-      "unknown_author": "Neznámy",
-      "reply_header": "Odpovedať / pridať poznámku",
-      "reply_to_sender": "Odpovedať odosielateľovi",
-      "internal_note_option": "Interná poznámka",
-      "message_placeholder": "Správa…",
-      "reply_help_text": "Odpovede sa odosielajú e-mailom odosielateľovi (za predpokladu, že ticketová schránka je nakonfigurovaná cez /admin/settings). Interné poznámky sa nikdy neodosielajú.",
-      "save": "Uložiť",
-      "spam_header": "Podozrivý spam",
-      "spam_score_label": "Skóre:",
-      "spam_not_spam_button": "Nie je spam – zrušiť podozrenie",
-      "spam_mark_button": "Označiť ako spam",
-      "status_header": "Stav",
-      "status_save_button": "Uložiť stav",
-      "status_assigned_auto_hint": "Nastavené automaticky, pretože tento ticket je pridelený používateľovi. Zrušte pridelenie nižšie pre návrat do stavu \"Aktívne\".",
-      "assignment_header": "Pridelenie",
-      "assignment_unassigned_option": "– nepridelené –",
-      "assignment_save_button": "Prideliť",
-      "assignment_help_text": "Pridelená osoba dostane e-mailové upozornenie.",
-      "member_header": "Člen / parcela",
-      "member_none_assigned": "Žiadny člen nie je prepojený.",
-      "member_no_assignment_option": "– žiadne prepojenie –",
-      "member_save_button": "Uložiť prepojenie",
-      "member_multiple_candidates_help": "Túto e-mailovú adresu používa viacero členov – vyberte manuálne.",
-      "status_postponed_until_label": "Odložené do"
-    }
   },
   "auth": {
     "login": {
@@ -365,8 +278,6 @@
         "electricity_desc": "Elektromery, odpočty a správy o spotrebe. Vypnúť, ak spolok nespravuje vlastné zásobovanie elektrinou.",
         "insurance_name": "Správa poistení",
         "insurance_desc": "Poistenie majetku a úrazov na parcelu vrátane výročnej správy. Vypnúť, ak spolok nerieši poistenia cez softvér.",
-        "tickets_name": "Ticketový systém",
-        "tickets_desc": "Podporné tikety s priradením, stavom a priradením členov. Vypnúť, ak spolok nepoužíva interný ticketový systém.",
         "purchase_requests_name": "Žiadosti o nákup",
         "purchase_requests_desc": "Princíp schvaľovania dvoma osobami pre výdavky spolku: predkladajte žiadosti, nechajte ich schváliť alebo zamietnuť dvoma členmi výboru.",
         "calendar_name": "Kalendár",
@@ -384,7 +295,9 @@
         "tasks_name": "Nástenka úloh",
         "tasks_desc": "Všeobecná kanban nástenka (Na vybavenie / Prebieha / Hotovo) pre záležitosti spolku, ktoré nie sú viazané na pracovnú zmenu -- napr. \"obnoviť poistku\", \"zavolať elektrikára\". Len pre výbor/administrátora.",
         "finances_name": "Financie",
-        "finances_desc": "Pripravte a odosielajte ročné faktúry za každú parcelu, s položkami podľa spotreby a sledovaním platieb. Najskôr nastavte bankové údaje nižšie."
+        "finances_desc": "Pripravte a odosielajte ročné faktúry za každú parcelu, s položkami podľa spotreby a sledovaním platieb. Najskôr nastavte bankové údaje nižšie.",
+        "freescout_bridge_name": "Prepojenie s FreeScout",
+        "freescout_bridge_desc": "Prepája konverzácie podpory z FreeScout s členmi a nástenkou úloh."
       },
       "region_header": "Región",
       "region_help": "Určuje formát čísel a adresy (napr. oddeľovač tisícov, poradie PSČ a mesta). Nezávisle od jazyka rozhrania.",
@@ -448,11 +361,18 @@
       "incoming_invoices_folder_label": "Cesta k priečinku",
       "incoming_invoices_folder_save_button": "Uložiť",
       "incoming_invoices_folder_saved": "Priečinok pre prijaté faktúry bol uložený.",
-      "ticket_attachments_folder_header": "Priečinok príloh tiketov",
-      "ticket_attachments_folder_help": "Prílohy prichádzajúcich e-mailov tiketov sa ukladajú do tohto jedného spoločného priečinka. Prílohy prijaté pred nastavením tohto priečinka nie je možné obnoviť.",
-      "ticket_attachments_folder_label": "Cesta k priečinku",
-      "ticket_attachments_folder_save_button": "Uložiť",
-      "ticket_attachments_folder_saved": "Priečinok príloh tiketov bol uložený."
+      "freescout_title": "FreeScout",
+      "freescout_desc": "Prepája Parcellu s vaším helpdeskom FreeScout, aby bolo možné konverzácie podpory prepojiť s členmi a nástenkou úloh.",
+      "freescout_saved": "Nastavenia FreeScout uložené",
+      "freescout_base_url_label": "URL adresa inštancie FreeScout",
+      "freescout_mailbox_id_label": "ID schránky",
+      "freescout_mailbox_id_hint": "Schránka FreeScout na synchronizáciu (pozri jej URL, napr. /mailbox/1). Predvolené je 1.",
+      "freescout_api_key_label": "API kľúč FreeScout",
+      "freescout_api_key_hint": "Vygenerujte ho na stránke FreeScout Spravovať > API a webhooky.",
+      "freescout_save_button": "Uložiť",
+      "freescout_test_button": "Otestovať pripojenie",
+      "freescout_not_configured": "FreeScout zatiaľ nie je nakonfigurovaný",
+      "freescout_test_success": "Pripojenie úspešné"
     },
     "system": {
       "page_title": "Systém",
@@ -521,7 +441,6 @@
       "what_work_hours": "Pracovné hodiny: ročná konfigurácia, minulá a nadchádzajúca pracovná akcia s účastníkmi a niekoľko úloh",
       "what_metering": "Meranie: vodomer a elektromer s odpočtami za dva roky",
       "what_insurance": "Poistenie: ročná konfigurácia, balíčky poistenia majetku a poistné krytie pre dve parcely",
-      "what_tickets": "Tikety: niekoľko ukážkových tiketov v rôznych stavoch",
       "what_purchase_requests": "Žiadosti o nákup: jedna otvorená, jedna schválená a jedna zamietnutá",
       "what_calendar": "Kalendár: niekoľko minulých a nadchádzajúcich klubových udalostí",
       "what_inventory": "Inventár: kategórie, niekoľko položiek a jedna nevrátená výpožička",
@@ -533,7 +452,6 @@
       "module_work_hours": "Pracovné hodiny",
       "module_metering": "Meranie",
       "module_insurance": "Poistenie",
-      "module_tickets": "Tikety",
       "module_purchase_requests": "Žiadosti o nákup",
       "module_calendar": "Kalendár",
       "module_inventory": "Inventár",
@@ -545,7 +463,9 @@
       "add_confirm": "Pridať teraz ukážkové dáta vo všetkých moduloch?",
       "add_button": "Pridať ukážkové dáta",
       "what_finances": "Financie: niekoľko ukážkových účtovných kategórií (nejde o skutočné dáta SKR42)",
-      "module_finances": "Finančné kategórie"
+      "module_finances": "Finančné kategórie",
+      "what_freescout_bridge": "Prepojenie s FreeScout: niekoľko ukážkových prepojení konverzácií v rôznych stavoch",
+      "module_freescout_bridge": "Prepojenie s FreeScout"
     },
     "groups": {
       "page_title": "Skupiny",
@@ -580,12 +500,11 @@
         "water": "Voda",
         "electricity": "Elektrina",
         "insurance": "Poistenie",
-        "tickets": "Tikety",
         "purchase_requests": "Žiadosti o nákup",
         "calendar": "Kalendár",
         "inventory": "Inventár",
         "finances": "Financie",
-        "freescout_bridge": "Napojenie na FreeScout"
+        "freescout_bridge": "Prepojenie s FreeScout"
       }
     }
   },
@@ -1566,14 +1485,13 @@
     "quick_export_parcels_csv": "Exportovať parcely ako CSV",
     "purchase_requests_card_title": "Otvorené žiadosti o nákup",
     "purchase_requests_suffix": "čaká na schválenie",
-    "tickets_open_label": "Otvorené tikety",
-    "tickets_spam_suffix": "{count} podozrivých zo spamu",
-    "tickets_no_spam_suffix": "žiadne podozrenie zo spamu",
     "tasks_overdue_label": "Úlohy po termíne",
     "birthdays_card_title": "Narodeniny tento týždeň",
     "birthdays_round_badge": "Okrúhle",
     "birthdays_today": "dnes oslávi {age}",
-    "birthdays_turning": "oslávi {age}"
+    "birthdays_turning": "oslávi {age}",
+    "freescout_needs_association_label": "Vyžaduje priradenie",
+    "freescout_needs_association_suffix": "konverzácie podpory bez priradeného člena"
   },
   "calendar": {
     "hub": {
@@ -1938,18 +1856,6 @@
       "body": "{admin_name} za vás zadal(a) nasledujúcu nákupnú požiadavku v {app_name}:",
       "instruction": "Potvrďte prosím, že tieto údaje sú správne:",
       "button": "Potvrdiť údaje"
-    },
-    "ticket_assigned_single": {
-      "subject": "Pridelený tiket: {subject}",
-      "greeting": "Dobrý deň, {name},",
-      "body": "Bol vám pridelený tiket v {app_name}:",
-      "instruction": "Prihláste sa prosím do {app_name}, aby ste ho mohli spracovať."
-    },
-    "ticket_assigned_bulk": {
-      "subject": "Pridelených {count} tiket(ov) v {app_name}",
-      "greeting": "Dobrý deň, {name},",
-      "body": "Bolo vám pridelených {count} tiket(ov) v {app_name}:",
-      "instruction": "Prihláste sa prosím do {app_name}, aby ste ich mohli spracovať."
     },
     "new_participation_notification": {
       "subject": "Nové prihlásenie na pracovnú zmenu v {app_name}",
@@ -2419,6 +2325,53 @@
       "session_full": "Termín je obsadený",
       "no_members_for_parcel": "K tejto parcele nie sú momentálne priradení žiadni členovia",
       "registration_closed": "Prihlasovanie na tento termín bolo uzavreté"
+    }
+  },
+  "freescout": {
+    "overview": {
+      "title": "Konverzácie podpory",
+      "open_in_freescout": "Otvoriť vo FreeScout",
+      "col_subject": "Predmet",
+      "col_customer": "Zákazník",
+      "col_member": "Člen",
+      "col_status": "Stav",
+      "col_messages": "Správy",
+      "col_updated": "Aktualizované",
+      "col_task": "Úloha",
+      "needs_association": "Vyžaduje priradenie",
+      "has_task": "Prepojené s úlohou",
+      "empty_state": "Zatiaľ žiadne konverzácie podpory."
+    },
+    "detail": {
+      "back": "Späť",
+      "open_in_freescout": "Otvoriť vo FreeScout",
+      "transcript_header": "Konverzácia",
+      "no_messages": "Správy sa nepodarilo načítať.",
+      "reply_header": "Odpovedať zákazníkovi",
+      "reply_placeholder": "Napíšte odpoveď...",
+      "reply_send": "Odoslať",
+      "reply_help_text": "Odoslané cez FreeScout a doručené zákazníkovi e-mailom -- nejde o internú poznámku.",
+      "member_header": "Člen",
+      "member_none": "Nebol priradený žiadny člen.",
+      "member_none_option": "-- žiadny --",
+      "candidate_suffix": "navrhované",
+      "member_save": "Uložiť",
+      "member_multiple_candidates": "Túto e-mailovú adresu zdieľa viac členov -- vyberte správneho.",
+      "parcel_header": "Parcela",
+      "parcel_none_option": "-- žiadna --",
+      "parcel_save": "Uložiť",
+      "task_header": "Nástenka úloh",
+      "task_open": "Otvoriť úlohu",
+      "task_create": "Vytvoriť úlohu",
+      "not_configured": "FreeScout nie je nakonfigurovaný."
+    },
+    "errors": {
+      "conversation_not_found": "Konverzácia nenájdená",
+      "no_lists": "Na nástenke úloh zatiaľ nie sú žiadne zoznamy"
+    },
+    "task": {
+      "source_line": "Zdroj: konverzácia FreeScout č. {conversation_id}",
+      "member_line": "Člen: {name}"
     }
   }
 }

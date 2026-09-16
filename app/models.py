@@ -275,6 +275,17 @@ class Member(Base):
     # Notes (internal)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
+    # Persistent identity mapping to the FreeScout customer record for this
+    # member (see app/freescout_client.py, docs/module-freescout-bridge.md).
+    # Set lazily -- the first time this member is matched to an inbound
+    # FreeScout conversation, not proactively for every member -- so a
+    # member who never contacts support never gets pushed into FreeScout.
+    # Once set, it's the fast, unambiguous path for matching future
+    # conversations, in preference to re-matching by email every time.
+    freescout_customer_id: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True, unique=True, index=True
+    )
+
     # Audit
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -1310,177 +1321,86 @@ class AccidentInsuranceAdditionalPerson(Base):
 
 
 # ---------------------------------------------------------------------------
-# Ticket system
+# FreeScout conversation bridge
 # ---------------------------------------------------------------------------
+# Parcella no longer implements its own ticket/helpdesk system (removed --
+# see docs/ADR on this decision and docs/module-freescout-bridge.md).
+# FreeScout is the sole, canonical system for support conversations and
+# email communication. This table is a lightweight cross-reference only
+# -- NOT a mirror of FreeScout's messages/attachments. The actual message
+# transcript is fetched live from FreeScout's API when a conversation's
+# detail page is opened (app/routers/freescout.py), never stored here.
+# Populated/updated by the poll loop (app/main.py); member/parcel
+# association can additionally be corrected by staff in the UI.
 
-class TicketStatus(str, enum.Enum):
-    ACTIVE = "ACTIVE"
-    ASSIGNED = "ASSIGNED"
-    WAITING = "WAITING"        # waiting for the sender's reply
-    POSTPONED = "POSTPONED"    # postponed until postponed_until
-    CLOSED = "CLOSED"
-    DELETED = "DELETED"        # soft-delete, like Member.deleted_at
-
-
-class MessageDirection(str, enum.Enum):
-    INCOMING = "INCOMING"   # From the sender/customer (later by email, stage 1: manual)
-    OUTGOING = "OUTGOING"   # A user's reply (later sent as email, stage 2)
-    INTERNAL = "INTERNAL"   # Internal note, never sent to the sender
-
-
-class Ticket(Base):
+class FreescoutConversationLink(Base):
     """
-    A support ticket = one concern from a sender. In stage 2, tickets
-    are created automatically from incoming emails; in stage 1 they can
-    be created manually to test the basic scaffolding.
+    A cross-reference to one FreeScout conversation: which Parcella
+    member/parcel it belongs to, and optionally which Parcella task it
+    was promoted to. Staff read and reply to the actual conversation
+    content through Parcella's UI, which in turn always talks to
+    FreeScout's API live -- nothing about the conversation's message
+    content is duplicated into this table.
     """
-    __tablename__ = "tickets"
+    __tablename__ = "freescout_conversation_links"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+
+    freescout_conversation_id: Mapped[int] = mapped_column(Integer, nullable=False, unique=True, index=True)
+    freescout_mailbox_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+
     subject: Mapped[str] = mapped_column(String(255), nullable=False)
+    customer_email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    customer_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
-    status: Mapped[TicketStatus] = mapped_column(
-        SAEnum(TicketStatus), default=TicketStatus.ACTIVE, nullable=False, index=True
-    )
-    assigned_to_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
-    )
-    postponed_until: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    # FreeScout's own status string, stored as-is (e.g. "active", "pending",
+    # "closed", "spam") -- deliberately NOT translated into any Parcella
+    # enum; FreeScout owns this conversation's lifecycle, not Parcella.
+    freescout_status: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
 
-    # Automatic matching via sender email; overridable/manually
-    # correctable if the address belongs to multiple members or is unknown.
+    # From FreeScout's conversation list, if exposed there; otherwise
+    # backfilled lazily when the detail view is opened. Shown to staff as
+    # a hint for deciding which conversations are worth promoting to a
+    # task -- a displayed signal, not an automatic trigger.
+    message_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+
+    # Matching hierarchy: Member.freescout_customer_id first (exact,
+    # persisted), else find_members_by_email() (app/member_matching.py).
+    # Left NULL when ambiguous (more than one member shares the address)
+    # or unmatched (a non-member inquiry) -- never guessed.
     member_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("members.id", ondelete="SET NULL"), nullable=True, index=True
     )
-    sender_email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    sender_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    # Auto-set only when the resolved member has exactly one *current*
+    # parcel (MemberParcel.is_current / app/database.py's
+    # current_tenant_filter()); left NULL and shown as a selector in the
+    # UI when the member has more than one.
+    parcel_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("parcels.id", ondelete="SET NULL"), nullable=True, index=True
+    )
 
-    # Preparation for stage 3 (spam interface): fields already exist so
-    # no further migration is needed later. The actual check is a no-op
-    # in stage 1 (see app/spam_filter.py).
-    spam_suspected: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    spam_score: Mapped[Optional[float]] = mapped_column(Numeric(5, 2), nullable=True)
-    spam_reasoning: Mapped[Optional[str]] = mapped_column(
-        Text, nullable=True, comment="Traceable reasoning for why it was flagged as spam (transparency)"
+    # Set only by the manual "Create task"/"Link to existing task" action
+    # (app/routers/freescout.py) -- a loose, nullable cross-domain FK
+    # (SET NULL, not a hard-ownership pattern): deleting the task must
+    # not delete or break this link row, it just becomes unlinked again.
+    task_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("tasks.id", ondelete="SET NULL"), nullable=True, index=True
     )
-    # Set only by a human decision (the "mark as spam"/"not spam"
-    # buttons, their bulk equivalents, or the API's PUT /spam-status) --
-    # never by the automated check. Distinguishes "a person already
-    # decided this" from "spam_suspected is just whatever the automated
-    # check left it at (or never touched)", so the bulk backlog re-scan
-    # (POST /tickets/rescan-spam) never overwrites a staff decision.
-    spam_reviewed_by_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
-    )
-    spam_reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
-    updated_at: Mapped[datetime] = mapped_column(
+    freescout_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    last_synced_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
-    closed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
-    assigned_to: Mapped[Optional["User"]] = relationship("User", foreign_keys=[assigned_to_id])
-    spam_reviewed_by: Mapped[Optional["User"]] = relationship("User", foreign_keys=[spam_reviewed_by_id])
     member: Mapped[Optional["Member"]] = relationship("Member")
-    messages: Mapped[List["TicketMessage"]] = relationship(
-        "TicketMessage", back_populates="ticket", cascade="all, delete-orphan",
-        order_by="TicketMessage.created_at",
-    )
-
-    @property
-    def is_due(self) -> bool:
-        """True if a postponed ticket has reached its date and should be
-        treated as active again. The actual status change (POSTPONED ->
-        ACTIVE/ASSIGNED) happens lazily on the next load of the ticket
-        list (see _reaktiviere_faellige_tickets in
-        app/routers/tickets.py), not via a background job -- this
-        property is just the pure calculation, in case it's needed
-        elsewhere (e.g. a badge display).
-        """
-        if self.status != TicketStatus.POSTPONED:
-            return False
-        return self.postponed_until is not None and self.postponed_until <= date.today()
+    parcel: Mapped[Optional["Parcel"]] = relationship("Parcel")
+    task: Mapped[Optional["Task"]] = relationship("Task")
 
     def __repr__(self) -> str:
-        return f"<Ticket {self.subject!r} ({self.status.value})>"
-
-
-class TicketMessage(Base):
-    """A single message within a ticket's history."""
-    __tablename__ = "ticket_messages"
-
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    ticket_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("tickets.id", ondelete="CASCADE"), nullable=False, index=True
-    )
-    direction: Mapped[MessageDirection] = mapped_column(SAEnum(MessageDirection), nullable=False)
-    content: Mapped[str] = mapped_column(Text, nullable=False)
-    # Only set for INCOMING messages whose email had a text/html part --
-    # already sanitized (see app/html_sanitizer.py) BEFORE it's stored
-    # here, so it can be safely rendered with {{ ... | safe }}.
-    # `content` always remains the plain-text version alongside it
-    # (search, notifications, fallback display if no HTML part existed).
-    content_html: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    authored_by_id: Mapped[Optional[str]] = mapped_column(
-        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
-    )
-    # For email threading (stage 2): this message's Message-ID, or the
-    # Message-ID it's replying to. Enables matching incoming replies to
-    # the right ticket instead of just guessing from the subject.
-    message_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
-    in_reply_to: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
-
-    ticket: Mapped["Ticket"] = relationship("Ticket", back_populates="messages")
-    authored_by: Mapped[Optional["User"]] = relationship("User")
-    attachments: Mapped[List["TicketAttachment"]] = relationship(
-        "TicketAttachment", back_populates="ticket_message",
-        cascade="all, delete-orphan", order_by="TicketAttachment.created_at",
-    )
-
-
-class AttachmentStorageBackend(str, enum.Enum):
-    CLOUD = "CLOUD"    # cloud_filename names a file in the shared Nextcloud folder
-    LOCAL = "LOCAL"     # local_filename names a file under the app's private local storage
-
-
-class TicketAttachment(Base):
-    """A file attached to an incoming ticket message. Preferably stored
-    in the shared Nextcloud folder configured for ticket attachments
-    (ClubSetting "ticket_attachments_cloud_folder"), same pattern and
-    same Nextcloud connection as IncomingInvoice (see
-    docs/module-finances.md) -- but if Nextcloud isn't configured,
-    falls back to local storage (app/ticket_attachment_storage.py)
-    rather than discarding the attachment. `storage_backend` says which
-    of `cloud_filename`/`local_filename` actually applies to a given
-    row; see docs/module-tickets.md and the ADR on this fallback."""
-    __tablename__ = "ticket_attachments"
-
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
-    ticket_message_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("ticket_messages.id", ondelete="CASCADE"), nullable=False, index=True
-    )
-    original_filename: Mapped[str] = mapped_column(String(500), nullable=False)
-    storage_backend: Mapped[AttachmentStorageBackend] = mapped_column(
-        SAEnum(AttachmentStorageBackend), default=AttachmentStorageBackend.CLOUD, nullable=False
-    )
-    cloud_filename: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    local_filename: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    content_type: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    size_bytes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
-
-    ticket_message: Mapped["TicketMessage"] = relationship("TicketMessage", back_populates="attachments")
-
-    def __repr__(self) -> str:
-        return f"<TicketMessage {self.direction.value} @ {self.ticket_id}>"
+        return f"<FreescoutConversationLink freescout_id={self.freescout_conversation_id}>"
 
 
 # ---------------------------------------------------------------------------

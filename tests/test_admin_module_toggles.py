@@ -37,14 +37,14 @@ async def test_module_defaulting_to_false_renders_unchecked_when_never_saved(cli
 
 
 async def test_module_defaulting_to_true_renders_checked_when_never_saved(client, admin_user):
-    """tickets defaults to True and has never been explicitly saved --
+    """work_hours defaults to True and has never been explicitly saved --
     its checkbox must be checked, same as before this fix."""
     await web_login(client, "admin@example.com")
 
     response = await client.get("/admin/settings")
     assert response.status_code == 200
 
-    checkbox = _checkbox_html(response.text, "modul_tickets")
+    checkbox = _checkbox_html(response.text, "modul_work_hours")
     assert "checked" in checkbox
 
 

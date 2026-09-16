@@ -149,16 +149,15 @@ async def test_restore_uploads_is_a_full_mirror(client, admin_user, monkeypatch,
     assert (tmp_path / "logo.png").read_bytes() == b"fresh-from-backup"
 
 
-async def test_restore_ticket_attachments_is_a_full_mirror(client, admin_user, monkeypatch, tmp_path):
-    """Same full-mirror-replace behavior as UPLOAD_DIR, for the second
-    directory added by ADR 0072."""
-    (tmp_path / "orphan-attachment").write_bytes(b"leftover-from-before")
-    monkeypatch.setattr("app.backup.TICKET_ATTACHMENT_STORAGE_DIR", tmp_path)
-
+async def test_restore_rejects_unknown_member_prefix(client, admin_user):
+    """A backup zip from a version that still had the ticket-attachments
+    directory (removed alongside the ticket module) must be rejected
+    cleanly, not silently reinterpreted -- same fail-closed rule as any
+    other unexpected member."""
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w") as zf:
         zf.writestr("backup.sql", "SELECT 1;")
-        zf.writestr("ticket_attachments/fresh-attachment", b"fresh-from-backup")
+        zf.writestr("ticket_attachments/old-attachment", b"from-a-pre-removal-backup")
     backup_zip_bytes = buffer.getvalue()
 
     await web_login(client, "admin@example.com")
@@ -169,10 +168,7 @@ async def test_restore_ticket_attachments_is_a_full_mirror(client, admin_user, m
         follow_redirects=False,
     )
     assert resp.status_code == 302
-    assert "success=1" in resp.headers["location"]
-
-    assert not (tmp_path / "orphan-attachment").exists()
-    assert (tmp_path / "fresh-attachment").read_bytes() == b"fresh-from-backup"
+    assert "error=" in resp.headers["location"]
 
 
 async def test_restore_rolls_back_completely_on_sql_failure(client, admin_user):

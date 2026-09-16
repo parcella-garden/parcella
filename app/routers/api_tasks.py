@@ -17,7 +17,7 @@ from app.api_auth import require_admin_api
 from app.module_flags import require_module
 from app.task_board import (
     next_position, move_task, close_gap_after_delete,
-    next_list_position, move_list, delete_list,
+    next_list_position, move_list, delete_list, create_task,
 )
 from app.schemas import (
     KanbanTaskCreate, KanbanTaskUpdate, KanbanTaskMove, KanbanTaskOut,
@@ -180,19 +180,16 @@ async def task_create(
     else:
         await _get_list_or_404(db, target_list_id)
 
-    task = Task(
+    task = await create_task(
+        db,
         title=data.title,
         description=data.description,
         due_date=data.due_date,
         priority=data.priority,
         tags=data.tags,
         list_id=target_list_id,
-        position=await next_position(db, target_list_id),
+        assigned_to_ids=data.assigned_to_ids,
     )
-    db.add(task)
-    await db.flush()
-    for user_id in data.assigned_to_ids:
-        db.add(TaskAssignee(task_id=task.id, user_id=user_id))
     await db.commit()
     # created_at/updated_at are server-side defaults, and assignees was
     # populated via separately-added rows -- both need a DB round-trip

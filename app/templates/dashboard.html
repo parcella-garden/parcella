@@ -109,27 +109,23 @@
     </div>
     {% endif %}
 
-    {% if request.state.module_flags.tickets %}
+    {% if request.state.module_flags.freescout_bridge and has_perm(request, 'freescout_bridge') %}
     <div class="col-sm-6 col-xl-3">
         <div class="card h-100">
             <div class="card-body d-flex align-items-center gap-3">
                 <div style="font-size: 2rem; color: #0e7490; background: #cffafe;
                             width: 56px; height: 56px; border-radius: 12px;
                             display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-ticket-perforated"></i>
+                    <i class="bi bi-headset"></i>
                 </div>
                 <div>
-                    <div class="text-muted" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em;">{{ t('dashboard.tickets_open_label') }}</div>
-                    <div style="font-size: 1.8rem; font-weight: 700; color: #0e7490;">{{ stats.tickets_open }}</div>
-                    {% if stats.tickets_spam > 0 %}
-                    <div style="font-size: 0.75rem; color: #92400e;">{{ t('dashboard.tickets_spam_suffix', count=stats.tickets_spam) }}</div>
-                    {% else %}
-                    <div class="text-muted" style="font-size: 0.75rem;">{{ t('dashboard.tickets_no_spam_suffix') }}</div>
-                    {% endif %}
+                    <div class="text-muted" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em;">{{ t('dashboard.freescout_needs_association_label') }}</div>
+                    <div style="font-size: 1.8rem; font-weight: 700; color: #0e7490;">{{ stats.freescout_needs_association }}</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">{{ t('dashboard.freescout_needs_association_suffix') }}</div>
                 </div>
             </div>
             <div class="card-footer bg-transparent border-top-0 pt-0">
-                <a href="/tickets/?filter=aktiv" class="btn btn-sm btn-outline-primary w-100">{{ t('dashboard.show_all') }}</a>
+                <a href="/freescout/" class="btn btn-sm btn-outline-primary w-100">{{ t('dashboard.show_all') }}</a>
             </div>
         </div>
     </div>

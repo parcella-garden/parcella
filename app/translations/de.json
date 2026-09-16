@@ -5,7 +5,6 @@
     "back": "Zurück"
   },
   "nav": {
-    "tickets": "Tickets",
     "brand_subtitle": "Verwaltung",
     "dashboard": "Dashboard",
     "members": "Mitglieder",
@@ -47,13 +46,12 @@
     "finances_group": "Finanzen",
     "finances_outgoing_invoices": "Ausgangsrechnungen",
     "finances_reminders": "Mahnungen",
-    "finances_incoming_invoices": "Eingangsrechnungen"
+    "finances_incoming_invoices": "Eingangsrechnungen",
+    "freescout_bridge": "Support"
   },
   "errors": {
-    "ticket_not_found": "Ticket nicht gefunden",
     "user_not_found": "Benutzer nicht gefunden",
     "deferred_date_required": "Datum für Zurückstellung erforderlich",
-    "ticket_status_assigned_manual": "Der Status \"Zugewiesen\" wird automatisch gesetzt, sobald dem Ticket ein Benutzer zugewiesen wird, und kann nicht manuell gewählt werden.",
     "invalid_credentials": "E-Mail oder Passwort falsch.",
     "account_deactivated": "Ihr Konto ist deaktiviert.",
     "passwords_do_not_match": "Passwörter stimmen nicht überein.",
@@ -88,91 +86,6 @@
     "too_many_login_attempts": "Zu viele fehlgeschlagene Anmeldeversuche. Bitte einige Minuten warten und erneut versuchen.",
     "password_must_differ": "Das neue Passwort muss sich vom aktuellen unterscheiden.",
     "csrf_invalid": "Sicherheitsprüfung fehlgeschlagen. Die Seite war vermutlich zu lange geöffnet -- bitte zurückgehen, neu laden und erneut versuchen."
-  },
-  "tickets": {
-    "overview": {
-      "title": "Tickets",
-      "fetch_inbox_now": "Postfach jetzt abrufen",
-      "rescan_spam_button": "Auf Spam erneut prüfen",
-      "rescan_result_message": "{scanned} Ticket(s) geprüft, {flagged} als Spam markiert.",
-      "rescan_result_message_more": "{scanned} Ticket(s) geprüft, {flagged} als Spam markiert. Es könnten noch mehr übrig sein -- erneut ausführen.",
-      "new_ticket": "Neues Ticket",
-      "filter_active": "Aktiv",
-      "filter_mine": "Meine",
-      "filter_spam": "Verdächtig",
-      "filter_closed": "Geschlossen",
-      "filter_all": "Alle",
-      "search_placeholder": "Betreff, Absender…",
-      "search_button": "Suchen",
-      "col_subject": "Betreff",
-      "col_sender": "Absender",
-      "col_status": "Status",
-      "col_assigned_to": "Zugewiesen an",
-      "col_created": "Erstellt",
-      "spam_suspected_badge": "Spam-Verdacht",
-      "status_assigned": "Zugewiesen",
-      "status_closed": "Geschlossen",
-      "empty_state": "Keine Tickets gefunden.",
-      "count_suffix": "Ticket(s)",
-      "reactivated_notice": "{count} zurückgestellte(s) Ticket(s) ist/sind jetzt wieder aktiv.",
-      "filter_waiting": "Wartend",
-      "filter_postponed": "Zurückgestellt",
-      "status_active": "Aktiv",
-      "status_waiting": "Wartend",
-      "status_postponed": "Zurückgestellt",
-      "status_deleted": "Gelöscht",
-      "bulk_selected_count": "{count} ausgewählt",
-      "bulk_none_selected": "Kein Ticket ausgewählt",
-      "bulk_status_placeholder": "Status ändern in…",
-      "bulk_apply_button": "Anwenden",
-      "bulk_unassign_option": "– Zuweisung aufheben –",
-      "bulk_delete_confirm": "{count} Ticket(s) wirklich als gelöscht markieren?",
-      "bulk_postponed_date_required": "Bitte ein Datum für „Zurückgestellt“ angeben.",
-      "bulk_mark_spam_button": "Als Spam markieren",
-      "bulk_not_spam_button": "Kein Spam",
-      "bulk_mark_spam_confirm": "{count} Ticket(s) wirklich als Spam markieren?"
-    },
-    "form": {
-      "title": "Neues Ticket",
-      "info_banner": "Manuelles Anlegen für Tickets, die nicht per E-Mail eingegangen sind. Eingehende E-Mails an das konfigurierte Ticket-Postfach werden automatisch zu Tickets (Hintergrund-Abruf alle 2 Minuten).",
-      "card_header": "Ticket",
-      "label_subject": "Betreff",
-      "label_sender_email": "Absender-E-Mail",
-      "label_sender_name": "Absender-Name",
-      "label_message": "Anliegen",
-      "button_create": "Ticket anlegen"
-    },
-    "attachments": {
-      "cloud_not_configured": "Der Ordner für Ticket-Anhänge ist noch nicht konfiguriert -- siehe /admin/integrations."
-    },
-    "detail": {
-      "history_header": "Verlauf",
-      "internal_note_prefix": "Interne Notiz – ",
-      "unknown_author": "Unbekannt",
-      "reply_header": "Antworten / Notiz hinzufügen",
-      "reply_to_sender": "Antwort an Absender",
-      "internal_note_option": "Interne Notiz",
-      "message_placeholder": "Nachricht…",
-      "reply_help_text": "Antworten werden per E-Mail an den Absender gesendet (sofern das Ticket-Postfach unter /admin/settings konfiguriert ist). Interne Notizen werden nie versendet.",
-      "save": "Speichern",
-      "spam_header": "Spam-Verdacht",
-      "spam_score_label": "Score:",
-      "spam_not_spam_button": "Kein Spam – Verdacht aufheben",
-      "spam_mark_button": "Als Spam markieren",
-      "status_header": "Status",
-      "status_save_button": "Status speichern",
-      "status_assigned_auto_hint": "Automatisch gesetzt, da dieses Ticket einem Benutzer zugewiesen ist. Zuweisung unten aufheben, um zu \"Aktiv\" zurückzukehren.",
-      "assignment_header": "Zuweisung",
-      "assignment_unassigned_option": "– nicht zugewiesen –",
-      "assignment_save_button": "Zuweisen",
-      "assignment_help_text": "Bei Zuweisung erhält die Person eine E-Mail-Benachrichtigung.",
-      "member_header": "Mitglied / Parzelle",
-      "member_none_assigned": "Kein Mitglied zugeordnet.",
-      "member_no_assignment_option": "– keine Zuordnung –",
-      "member_save_button": "Zuordnung speichern",
-      "member_multiple_candidates_help": "Mehrere Mitglieder nutzen diese E-Mail-Adresse – bitte manuell auswählen.",
-      "status_postponed_until_label": "Zurückgestellt bis"
-    }
   },
   "auth": {
     "login": {
@@ -365,8 +278,6 @@
         "electricity_desc": "Stromzähler, Zählerstände und Verbrauchsauswertung. Deaktivieren, falls der Verein keine eigene Stromversorgung verwaltet.",
         "insurance_name": "Versicherungsverwaltung",
         "insurance_desc": "Sach- und Unfallversicherung pro Parcel inkl. Jahresauswertung. Deaktivieren, falls der Verein keine Versicherungen über das Programm abwickelt.",
-        "tickets_name": "Ticketsystem",
-        "tickets_desc": "Support-Tickets mit Zuweisung, Status und Member-Zuordnung. Deaktivieren, falls der Verein kein internes Ticketsystem nutzt.",
         "purchase_requests_name": "Einkaufswünsche",
         "purchase_requests_desc": "Vier-Augen-Prinzip für Vereinsausgaben: Anträge stellen, von zwei Vorstandsmitgliedern freigeben oder ablehnen lassen.",
         "calendar_name": "Kalender",
@@ -384,7 +295,9 @@
         "tasks_name": "Aufgabenboard",
         "tasks_desc": "Ein allgemeines Kanban-Board (Zu erledigen / In Bearbeitung / Erledigt) für Vereinsangelegenheiten, die nicht an einen Arbeitseinsatz gebunden sind -- z.B. \"Versicherung erneuern\", \"Elektriker anrufen\". Nur für Vorstand/Admin.",
         "finances_name": "Finanzen",
-        "finances_desc": "Jahresrechnungen je Parzelle erstellen und versenden, mit verbrauchsabhängigen Positionen und Zahlungsverfolgung. Bankdaten unten zuerst hinterlegen."
+        "finances_desc": "Jahresrechnungen je Parzelle erstellen und versenden, mit verbrauchsabhängigen Positionen und Zahlungsverfolgung. Bankdaten unten zuerst hinterlegen.",
+        "freescout_bridge_name": "FreeScout-Anbindung",
+        "freescout_bridge_desc": "Verknüpft FreeScout-Support-Konversationen mit Mitgliedern und dem Aufgabenboard."
       },
       "region_header": "Region",
       "region_help": "Bestimmt Zahlen- und Adressformat (z.B. Tausendertrennzeichen, Reihenfolge von PLZ und Ort). Unabhängig von der Oberflächensprache.",
@@ -448,11 +361,18 @@
       "incoming_invoices_folder_label": "Ordnerpfad",
       "incoming_invoices_folder_save_button": "Speichern",
       "incoming_invoices_folder_saved": "Ordner für Eingangsrechnungen gespeichert.",
-      "ticket_attachments_folder_header": "Ordner für Ticket-Anhänge",
-      "ticket_attachments_folder_help": "Anhänge eingehender Ticket-E-Mails werden in diesem einen gemeinsamen Ordner gespeichert. Anhänge, die vor dem Festlegen dieses Ordners eingegangen sind, können nicht wiederhergestellt werden.",
-      "ticket_attachments_folder_label": "Ordnerpfad",
-      "ticket_attachments_folder_save_button": "Speichern",
-      "ticket_attachments_folder_saved": "Ordner für Ticket-Anhänge gespeichert."
+      "freescout_title": "FreeScout",
+      "freescout_desc": "Verbindet Parcella mit eurem FreeScout-Helpdesk, damit Support-Konversationen mit Mitgliedern und dem Aufgabenboard verknüpft werden können.",
+      "freescout_saved": "FreeScout-Einstellungen gespeichert",
+      "freescout_base_url_label": "FreeScout-Instanz-URL",
+      "freescout_mailbox_id_label": "Postfach-ID",
+      "freescout_mailbox_id_hint": "Das zu synchronisierende FreeScout-Postfach (siehe dessen URL, z. B. /mailbox/1). Standard: 1.",
+      "freescout_api_key_label": "FreeScout-API-Schlüssel",
+      "freescout_api_key_hint": "Erstellt unter FreeScouts Seite Verwalten > API & Webhooks.",
+      "freescout_save_button": "Speichern",
+      "freescout_test_button": "Verbindung testen",
+      "freescout_not_configured": "FreeScout ist noch nicht konfiguriert",
+      "freescout_test_success": "Verbindung erfolgreich"
     },
     "system": {
       "page_title": "System",
@@ -521,7 +441,6 @@
       "what_work_hours": "Arbeitsstunden: eine Jahreskonfiguration, ein vergangener und ein bevorstehender Arbeitseinsatz mit Teilnehmern sowie einige Aufgaben",
       "what_metering": "Zählerwesen: ein Wasser- und ein Stromzähler mit Ablesungen aus zwei Jahren",
       "what_insurance": "Versicherung: Jahreskonfiguration, Sachversicherungspakete und Versicherungsschutz für zwei Parzellen",
-      "what_tickets": "Tickets: einige Beispiel-Tickets in verschiedenen Status",
       "what_purchase_requests": "Anschaffungsanträge: ein offener, ein genehmigter und ein abgelehnter Antrag",
       "what_calendar": "Kalender: einige vergangene und bevorstehende Vereinstermine",
       "what_inventory": "Inventar: Kategorien, einige Gegenstände und eine offene Ausleihe",
@@ -533,7 +452,6 @@
       "module_work_hours": "Arbeitsstunden",
       "module_metering": "Zählerwesen",
       "module_insurance": "Versicherung",
-      "module_tickets": "Tickets",
       "module_purchase_requests": "Anschaffungsanträge",
       "module_calendar": "Kalender",
       "module_inventory": "Inventar",
@@ -545,7 +463,9 @@
       "add_confirm": "Jetzt Beispieldaten in allen Modulen hinzufügen?",
       "add_button": "Beispieldaten hinzufügen",
       "what_finances": "Finanzen: ein paar Beispiel-Buchhaltungskategorien (keine echten SKR42-Daten)",
-      "module_finances": "Finanzkategorien"
+      "module_finances": "Finanzkategorien",
+      "what_freescout_bridge": "FreeScout-Anbindung: einige Beispiel-Konversationsverknüpfungen mit unterschiedlichen Status",
+      "module_freescout_bridge": "FreeScout-Anbindung"
     },
     "groups": {
       "page_title": "Gruppen",
@@ -580,7 +500,6 @@
         "water": "Wasser",
         "electricity": "Strom",
         "insurance": "Versicherung",
-        "tickets": "Tickets",
         "purchase_requests": "Einkaufswünsche",
         "calendar": "Kalender",
         "inventory": "Inventar",
@@ -1566,14 +1485,13 @@
     "quick_export_parcels_csv": "Parzellen als CSV exportieren",
     "purchase_requests_card_title": "Offene Einkaufswünsche",
     "purchase_requests_suffix": "warten auf Freigabe",
-    "tickets_open_label": "Offene Tickets",
-    "tickets_spam_suffix": "{count} Spam-Verdacht",
-    "tickets_no_spam_suffix": "kein Spam-Verdacht",
     "tasks_overdue_label": "Überfällige Aufgaben",
     "birthdays_card_title": "Geburtstage diese Woche",
     "birthdays_round_badge": "Rund",
     "birthdays_today": "heute wird {age}",
-    "birthdays_turning": "wird {age}"
+    "birthdays_turning": "wird {age}",
+    "freescout_needs_association_label": "Zuordnung erforderlich",
+    "freescout_needs_association_suffix": "Support-Konversationen ohne zugeordnetes Mitglied"
   },
   "calendar": {
     "hub": {
@@ -1938,18 +1856,6 @@
       "body": "{admin_name} hat in Ihrem Namen folgenden Einkaufswunsch im {app_name} erfasst:",
       "instruction": "Bitte bestätigen Sie, dass diese Angaben korrekt sind:",
       "button": "Angaben bestätigen"
-    },
-    "ticket_assigned_single": {
-      "subject": "Ticket zugewiesen: {subject}",
-      "greeting": "Hallo {name},",
-      "body": "Ihnen wurde ein Ticket im {app_name} zugewiesen:",
-      "instruction": "Bitte melden Sie sich im {app_name} an, um es zu bearbeiten."
-    },
-    "ticket_assigned_bulk": {
-      "subject": "{count} Ticket(s) im {app_name} zugewiesen",
-      "greeting": "Hallo {name},",
-      "body": "Ihnen wurden {count} Ticket(s) im {app_name} zugewiesen:",
-      "instruction": "Bitte melden Sie sich im {app_name} an, um sie zu bearbeiten."
     },
     "new_participation_notification": {
       "subject": "Neue Anmeldung zu einem Arbeitseinsatz in {app_name}",
@@ -2419,6 +2325,53 @@
       "session_full": "Einsatz ist ausgebucht",
       "no_members_for_parcel": "Dieser Parzelle sind aktuell keine Mitglieder zugeordnet",
       "registration_closed": "Die Anmeldung für diesen Einsatz ist geschlossen"
+    }
+  },
+  "freescout": {
+    "overview": {
+      "title": "Support-Konversationen",
+      "open_in_freescout": "In FreeScout öffnen",
+      "col_subject": "Betreff",
+      "col_customer": "Kunde",
+      "col_member": "Mitglied",
+      "col_status": "Status",
+      "col_messages": "Nachrichten",
+      "col_updated": "Aktualisiert",
+      "col_task": "Aufgabe",
+      "needs_association": "Zuordnung erforderlich",
+      "has_task": "Mit Aufgabe verknüpft",
+      "empty_state": "Noch keine Support-Konversationen."
+    },
+    "detail": {
+      "back": "Zurück",
+      "open_in_freescout": "In FreeScout öffnen",
+      "transcript_header": "Konversation",
+      "no_messages": "Es konnten keine Nachrichten geladen werden.",
+      "reply_header": "Antwort an den Kunden",
+      "reply_placeholder": "Antwort eingeben...",
+      "reply_send": "Senden",
+      "reply_help_text": "Wird über FreeScout gesendet und dem Kunden per E-Mail zugestellt -- keine interne Notiz.",
+      "member_header": "Mitglied",
+      "member_none": "Kein Mitglied zugeordnet.",
+      "member_none_option": "-- keine --",
+      "candidate_suffix": "vorgeschlagen",
+      "member_save": "Speichern",
+      "member_multiple_candidates": "Mehr als ein Mitglied nutzt diese E-Mail-Adresse -- bitte das richtige auswählen.",
+      "parcel_header": "Parzelle",
+      "parcel_none_option": "-- keine --",
+      "parcel_save": "Speichern",
+      "task_header": "Aufgabenboard",
+      "task_open": "Aufgabe öffnen",
+      "task_create": "Aufgabe erstellen",
+      "not_configured": "FreeScout ist nicht konfiguriert."
+    },
+    "errors": {
+      "conversation_not_found": "Konversation nicht gefunden",
+      "no_lists": "Es gibt noch keine Listen auf dem Aufgabenboard"
+    },
+    "task": {
+      "source_line": "Quelle: FreeScout-Konversation #{conversation_id}",
+      "member_line": "Mitglied: {name}"
     }
   }
 }

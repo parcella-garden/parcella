@@ -49,8 +49,7 @@ from app.schemas import (
     PublicSignupResult, PublicSignupSessionResult,
     PublicContactCreate, PublicContactResult,
 )
-from app.spam_filter import check_for_spam
-from app.services.tickets import create_ticket
+from app.freescout_client import FreeScoutError, get_freescout_client
 from app.services.work_hours import notify_new_participations_digest
 from app.i18n import DEFAULT_LANGUAGE, translate
 
@@ -302,7 +301,7 @@ async def submit_signup(
     return PublicSignupResult(results=results)
 
 
-_CONTACT_TICKET_SUBJECT = "Contact form inquiry"
+_CONTACT_SUBJECT = "Contact form inquiry"
 
 
 @router.post(
@@ -315,12 +314,19 @@ async def submit_contact(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    """Creates a Parcella ticket directly from an external contact form
-    (e.g. the parcella-connector WordPress plugin's [parcella_contact_form]
-    shortcode) instead of that form sending a plain email that then has
-    to be re-ingested via the ticket mailbox. Gated by its own module
-    flag (public_contact_api), independent of public_signup_api -- a
-    club should be able to enable one bridge without the other."""
+    """Creates a FreeScout conversation directly from an external contact
+    form (e.g. the parcella-connector WordPress plugin's
+    [parcella_contact_form] shortcode) via the FreeScout API, instead of
+    creating a local Parcella ticket (the ticket module was removed --
+    see docs/module-freescout-bridge.md and the ADR on that decision).
+    Going through the API rather than sending a plain email sets the
+    correct customer/mailbox metadata directly, with no ambiguity about
+    which address FreeScout treats as the customer. Gated by its own
+    module flag (public_contact_api), independent of public_signup_api
+    and freescout_bridge -- a club must have FreeScout configured
+    (Admin -> Integrations) for this to do anything, but doesn't need
+    the freescout_bridge module itself enabled just to accept inbound
+    contact-form messages."""
     # Honeypot: a real visitor never fills this field. Return a
     # believable-looking success without creating anything, same as the
     # signup endpoint's honeypot handling above.
@@ -335,15 +341,20 @@ async def submit_contact(
             accepted=False, reason="Data-protection consent is required to submit this form",
         )
 
-    spam_result = await check_for_spam(payload.email, _CONTACT_TICKET_SUBJECT, payload.message, db)
+    client = await get_freescout_client(db)
+    if client is None:
+        logger.error("Public contact form submitted but FreeScout is not configured")
+        return PublicContactResult(
+            accepted=False, reason="Support system is not configured -- please try again later",
+        )
 
-    ticket = await create_ticket(
-        db, subject=_CONTACT_TICKET_SUBJECT, sender_email=payload.email, sender_name=payload.name,
-        message=f"{payload.message}\n\n[Data protection consent given at submission]",
-    )
-    ticket.spam_suspected = spam_result.is_spam_suspected
-    ticket.spam_score = spam_result.score
-    ticket.spam_reasoning = spam_result.reasoning
-    await db.commit()
+    try:
+        await client.create_conversation(
+            subject=_CONTACT_SUBJECT, customer_email=payload.email, customer_name=payload.name,
+            message=f"{payload.message}\n\n[Data protection consent given at submission]",
+        )
+    except FreeScoutError as e:
+        logger.error(f"FreeScout API request failed for public contact form: {e}")
+        return PublicContactResult(accepted=False, reason="Could not submit your message -- please try again later")
 
     return PublicContactResult(accepted=True)

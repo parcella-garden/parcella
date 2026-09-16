@@ -259,11 +259,20 @@
         {% endif %}
         {% endmacro %}
 
-        {% macro nav_tickets(request) %}
-        {% if request.state.module_flags.tickets and has_perm(request, 'tickets') %}
-        <a href="/tickets/" class="nav-top-link {% if '/tickets' in request.url.path %}aktiv{% endif %}">
-            <i class="bi bi-ticket-perforated"></i> {{ t('nav.tickets') }}
+        {% macro nav_freescout_bridge(request) %}
+        {% if request.state.module_flags.freescout_bridge %}
+        {% if has_perm(request, 'freescout_bridge') %}
+        <a href="/freescout/" class="nav-top-link {% if '/freescout' in request.url.path %}aktiv{% endif %}">
+            <i class="bi bi-headset"></i> {{ t('nav.freescout_bridge') }}
         </a>
+        {% elif request.state.freescout_base_url %}
+        {# Every Parcella user gets a way to reach support, even without
+           freescout_bridge permission -- they link straight to FreeScout
+           itself rather than Parcella's internal staff-facing view. #}
+        <a href="{{ request.state.freescout_base_url }}" target="_blank" rel="noopener" class="nav-top-link">
+            <i class="bi bi-headset"></i> {{ t('nav.freescout_bridge') }}
+        </a>
+        {% endif %}
         {% endif %}
         {% endmacro %}
 
@@ -439,7 +448,7 @@
             {% if key == 'dashboard' %}{{ nav_dashboard(request) }}
             {% elif key == 'members' %}{{ nav_members(request) }}
             {% elif key == 'parcels' %}{{ nav_parcels(request) }}
-            {% elif key == 'tickets' %}{{ nav_tickets(request) }}
+            {% elif key == 'freescout_bridge' %}{{ nav_freescout_bridge(request) }}
             {% elif key == 'purchase_requests' %}{{ nav_purchase_requests(request) }}
             {% elif key == 'work_hours' %}{{ nav_work_hours(request) }}
             {% elif key == 'water' %}{{ nav_water(request) }}

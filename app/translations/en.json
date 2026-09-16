@@ -5,7 +5,6 @@
     "back": "Back"
   },
   "nav": {
-    "tickets": "Tickets",
     "brand_subtitle": "Management",
     "dashboard": "Dashboard",
     "members": "Members",
@@ -47,13 +46,12 @@
     "finances_group": "Finances",
     "finances_outgoing_invoices": "Outgoing Invoices",
     "finances_reminders": "Reminders",
-    "finances_incoming_invoices": "Incoming Invoices"
+    "finances_incoming_invoices": "Incoming Invoices",
+    "freescout_bridge": "Support"
   },
   "errors": {
-    "ticket_not_found": "Ticket not found",
     "user_not_found": "User not found",
     "deferred_date_required": "A date is required to defer this ticket",
-    "ticket_status_assigned_manual": "The status \"Assigned\" is set automatically when a user is assigned to the ticket and cannot be chosen manually.",
     "invalid_credentials": "Email or password is incorrect.",
     "account_deactivated": "Your account has been deactivated.",
     "passwords_do_not_match": "Passwords do not match.",
@@ -88,91 +86,6 @@
     "too_many_login_attempts": "Too many failed login attempts. Please wait a few minutes and try again.",
     "password_must_differ": "The new password must be different from the current one.",
     "csrf_invalid": "Security check failed. The page was probably open for too long -- please go back, reload it and try again."
-  },
-  "tickets": {
-    "overview": {
-      "title": "Tickets",
-      "fetch_inbox_now": "Fetch inbox now",
-      "rescan_spam_button": "Re-scan for spam",
-      "rescan_result_message": "Scanned {scanned} ticket(s), flagged {flagged} as spam.",
-      "rescan_result_message_more": "Scanned {scanned} ticket(s), flagged {flagged} as spam. There may be more left to scan -- run it again.",
-      "new_ticket": "New ticket",
-      "filter_active": "Active",
-      "filter_mine": "Mine",
-      "filter_spam": "Suspected spam",
-      "filter_closed": "Closed",
-      "filter_all": "All",
-      "search_placeholder": "Subject, sender…",
-      "search_button": "Search",
-      "col_subject": "Subject",
-      "col_sender": "Sender",
-      "col_status": "Status",
-      "col_assigned_to": "Assigned to",
-      "col_created": "Created",
-      "spam_suspected_badge": "Suspected spam",
-      "status_assigned": "Assigned",
-      "status_closed": "Closed",
-      "empty_state": "No tickets found.",
-      "count_suffix": "ticket(s)",
-      "reactivated_notice": "{count} postponed ticket(s) just became active again.",
-      "filter_waiting": "Waiting",
-      "filter_postponed": "Postponed",
-      "status_active": "Active",
-      "status_waiting": "Waiting",
-      "status_postponed": "Postponed",
-      "status_deleted": "Deleted",
-      "bulk_selected_count": "{count} selected",
-      "bulk_none_selected": "No tickets selected",
-      "bulk_status_placeholder": "Change status to…",
-      "bulk_apply_button": "Apply",
-      "bulk_unassign_option": "– Unassign –",
-      "bulk_delete_confirm": "Really mark {count} ticket(s) as deleted?",
-      "bulk_postponed_date_required": "Please provide a date for \"Postponed\".",
-      "bulk_mark_spam_button": "Mark as spam",
-      "bulk_not_spam_button": "Not spam",
-      "bulk_mark_spam_confirm": "Really mark {count} ticket(s) as spam?"
-    },
-    "form": {
-      "title": "New ticket",
-      "info_banner": "Manual creation for tickets that didn't arrive by email. Incoming emails to the configured ticket inbox are automatically turned into tickets (background fetch every 2 minutes).",
-      "card_header": "Ticket",
-      "label_subject": "Subject",
-      "label_sender_email": "Sender email",
-      "label_sender_name": "Sender name",
-      "label_message": "Message",
-      "button_create": "Create ticket"
-    },
-    "attachments": {
-      "cloud_not_configured": "The ticket attachments folder isn't configured yet -- see /admin/integrations."
-    },
-    "detail": {
-      "history_header": "History",
-      "internal_note_prefix": "Internal note – ",
-      "unknown_author": "Unknown",
-      "reply_header": "Reply / add note",
-      "reply_to_sender": "Reply to sender",
-      "internal_note_option": "Internal note",
-      "message_placeholder": "Message…",
-      "reply_help_text": "Replies are sent by email to the sender (provided the ticket inbox is configured under /admin/settings). Internal notes are never sent.",
-      "save": "Save",
-      "spam_header": "Suspected spam",
-      "spam_score_label": "Score:",
-      "spam_not_spam_button": "Not spam – clear suspicion",
-      "spam_mark_button": "Mark as spam",
-      "status_header": "Status",
-      "status_save_button": "Save status",
-      "status_assigned_auto_hint": "Set automatically because this ticket is assigned to a user. Unassign it below to return it to \"Active\".",
-      "assignment_header": "Assignment",
-      "assignment_unassigned_option": "– unassigned –",
-      "assignment_save_button": "Assign",
-      "assignment_help_text": "The assignee receives an email notification.",
-      "member_header": "Member / parcel",
-      "member_none_assigned": "No member linked.",
-      "member_no_assignment_option": "– no assignment –",
-      "member_save_button": "Save assignment",
-      "member_multiple_candidates_help": "Multiple members use this email address – please choose manually.",
-      "status_postponed_until_label": "Postponed until"
-    }
   },
   "auth": {
     "login": {
@@ -365,8 +278,6 @@
         "electricity_desc": "Electricity meters, readings, and consumption reports. Disable if the club doesn't manage its own electricity supply.",
         "insurance_name": "Insurance management",
         "insurance_desc": "Property and accident insurance per parcel, incl. annual report. Disable if the club doesn't handle insurance through the software.",
-        "tickets_name": "Ticket system",
-        "tickets_desc": "Support tickets with assignment, status, and member matching. Disable if the club doesn't use an internal ticket system.",
         "purchase_requests_name": "Purchase requests",
         "purchase_requests_desc": "Two-person approval principle for club expenses: submit requests, have them approved or rejected by two board members.",
         "calendar_name": "Calendar",
@@ -384,7 +295,9 @@
         "tasks_name": "Task board",
         "tasks_desc": "A general-purpose kanban board (To Do / In Progress / Done) for club business that isn't tied to a work session -- e.g. \"renew the insurance policy\", \"call the electrician\". Admin/board only.",
         "finances_name": "Finances",
-        "finances_desc": "Prepare and send annual invoices per parcel, with usage-based line items and payment tracking. Configure bank details below first."
+        "finances_desc": "Prepare and send annual invoices per parcel, with usage-based line items and payment tracking. Configure bank details below first.",
+        "freescout_bridge_name": "FreeScout Bridge",
+        "freescout_bridge_desc": "Links FreeScout support conversations to members and the task board."
       },
       "region_header": "Region",
       "region_help": "Determines number and address format (e.g. thousands separator, order of postal code and city). Independent of the interface language.",
@@ -448,11 +361,18 @@
       "incoming_invoices_folder_label": "Folder path",
       "incoming_invoices_folder_save_button": "Save",
       "incoming_invoices_folder_saved": "Incoming invoices folder saved.",
-      "ticket_attachments_folder_header": "Ticket attachments folder",
-      "ticket_attachments_folder_help": "Attachments on incoming ticket emails are stored in this single shared folder. Attachments received before this folder is set cannot be recovered.",
-      "ticket_attachments_folder_label": "Folder path",
-      "ticket_attachments_folder_save_button": "Save",
-      "ticket_attachments_folder_saved": "Ticket attachments folder saved."
+      "freescout_title": "FreeScout",
+      "freescout_desc": "Connects Parcella to your FreeScout helpdesk so support conversations can be linked to members and the task board.",
+      "freescout_saved": "FreeScout settings saved",
+      "freescout_base_url_label": "FreeScout instance URL",
+      "freescout_mailbox_id_label": "Mailbox ID",
+      "freescout_mailbox_id_hint": "The FreeScout mailbox to sync (see its URL, e.g. /mailbox/1). Defaults to 1.",
+      "freescout_api_key_label": "FreeScout API key",
+      "freescout_api_key_hint": "Generate one under FreeScout's Manage > API & Webhooks page.",
+      "freescout_save_button": "Save",
+      "freescout_test_button": "Test connection",
+      "freescout_not_configured": "FreeScout is not configured yet",
+      "freescout_test_success": "Connection successful"
     },
     "system": {
       "page_title": "System",
@@ -521,7 +441,6 @@
       "what_work_hours": "Work hours: a yearly configuration, a past and an upcoming work session with participants, and a few tasks",
       "what_metering": "Metering: a water and an electricity meter with two years of readings",
       "what_insurance": "Insurance: yearly configuration, property packages, and coverage for two plots",
-      "what_tickets": "Tickets: a handful of sample tickets across different statuses",
       "what_purchase_requests": "Purchase requests: an open, an approved, and a rejected request",
       "what_calendar": "Calendar: a few past and upcoming community events",
       "what_inventory": "Inventory: categories, a few items, and one outstanding loan",
@@ -533,7 +452,6 @@
       "module_work_hours": "Work hours",
       "module_metering": "Metering",
       "module_insurance": "Insurance",
-      "module_tickets": "Tickets",
       "module_purchase_requests": "Purchase requests",
       "module_calendar": "Calendar",
       "module_inventory": "Inventory",
@@ -545,7 +463,9 @@
       "add_confirm": "Add sample data across every module now?",
       "add_button": "Add sample data",
       "what_finances": "Finances: a few example bookkeeping categories (not real SKR42 data)",
-      "module_finances": "Finance categories"
+      "module_finances": "Finance categories",
+      "what_freescout_bridge": "FreeScout bridge: a handful of sample conversation links across different statuses",
+      "module_freescout_bridge": "FreeScout Bridge"
     },
     "groups": {
       "page_title": "Groups",
@@ -580,7 +500,6 @@
         "water": "Water",
         "electricity": "Electricity",
         "insurance": "Insurance",
-        "tickets": "Tickets",
         "purchase_requests": "Purchase Requests",
         "calendar": "Calendar",
         "inventory": "Inventory",
@@ -1566,14 +1485,13 @@
     "quick_export_parcels_csv": "Export Parcels as CSV",
     "purchase_requests_card_title": "Open Purchase Requests",
     "purchase_requests_suffix": "awaiting approval",
-    "tickets_open_label": "Open Tickets",
-    "tickets_spam_suffix": "{count} spam suspected",
-    "tickets_no_spam_suffix": "none flagged as spam",
     "tasks_overdue_label": "Overdue Tasks",
     "birthdays_card_title": "Birthdays This Week",
     "birthdays_round_badge": "Milestone",
     "birthdays_today": "today, turning {age}",
-    "birthdays_turning": "turning {age}"
+    "birthdays_turning": "turning {age}",
+    "freescout_needs_association_label": "Needs association",
+    "freescout_needs_association_suffix": "support conversations without a matched member"
   },
   "calendar": {
     "hub": {
@@ -1938,18 +1856,6 @@
       "body": "{admin_name} has submitted the following purchase request on your behalf in {app_name}:",
       "instruction": "Please confirm that these details are correct:",
       "button": "Confirm details"
-    },
-    "ticket_assigned_single": {
-      "subject": "Ticket assigned: {subject}",
-      "greeting": "Hello {name},",
-      "body": "A ticket has been assigned to you in {app_name}:",
-      "instruction": "Please log in to {app_name} to process it."
-    },
-    "ticket_assigned_bulk": {
-      "subject": "{count} ticket(s) assigned in {app_name}",
-      "greeting": "Hello {name},",
-      "body": "{count} ticket(s) have been assigned to you in {app_name}:",
-      "instruction": "Please log in to {app_name} to process them."
     },
     "new_participation_notification": {
       "subject": "New work-session sign-up in {app_name}",
@@ -2419,6 +2325,53 @@
       "session_full": "Session is full",
       "no_members_for_parcel": "No members are currently assigned to this parcel",
       "registration_closed": "Registration for this session has closed"
+    }
+  },
+  "freescout": {
+    "overview": {
+      "title": "Support Conversations",
+      "open_in_freescout": "Open in FreeScout",
+      "col_subject": "Subject",
+      "col_customer": "Customer",
+      "col_member": "Member",
+      "col_status": "Status",
+      "col_messages": "Messages",
+      "col_updated": "Updated",
+      "col_task": "Task",
+      "needs_association": "Needs association",
+      "has_task": "Linked to a task",
+      "empty_state": "No support conversations yet."
+    },
+    "detail": {
+      "back": "Back",
+      "open_in_freescout": "Open in FreeScout",
+      "transcript_header": "Conversation",
+      "no_messages": "No messages could be loaded.",
+      "reply_header": "Reply to customer",
+      "reply_placeholder": "Type your reply...",
+      "reply_send": "Send",
+      "reply_help_text": "Sent through FreeScout and emailed to the customer -- this is not an internal note.",
+      "member_header": "Member",
+      "member_none": "No member matched.",
+      "member_none_option": "-- none --",
+      "candidate_suffix": "suggested",
+      "member_save": "Save",
+      "member_multiple_candidates": "More than one member shares this email address -- pick the right one.",
+      "parcel_header": "Parcel",
+      "parcel_none_option": "-- none --",
+      "parcel_save": "Save",
+      "task_header": "Task board",
+      "task_open": "Open task",
+      "task_create": "Create task",
+      "not_configured": "FreeScout is not configured."
+    },
+    "errors": {
+      "conversation_not_found": "Conversation not found",
+      "no_lists": "No lists exist on the task board yet"
+    },
+    "task": {
+      "source_line": "Source: FreeScout conversation #{conversation_id}",
+      "member_line": "Member: {name}"
     }
   }
 }

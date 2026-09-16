@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ t('freescout.overview.title') }}{% endblock %}
+{% block page_title %}{{ t('freescout.overview.title') }}{% endblock %}
+
+{% block topbar_actions %}
+{% if base_url %}
+<a href="{{ base_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-box-arrow-up-right me-1"></i>{{ t('freescout.overview.open_in_freescout') }}
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>{{ t('freescout.overview.col_subject') }}</th>
+                        <th>{{ t('freescout.overview.col_customer') }}</th>
+                        <th>{{ t('freescout.overview.col_member') }}</th>
+                        <th>{{ t('freescout.overview.col_status') }}</th>
+                        <th>{{ t('freescout.overview.col_messages') }}</th>
+                        <th>{{ t('freescout.overview.col_updated') }}</th>
+                        <th>{{ t('freescout.overview.col_task') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in conversations %}
+                    <tr onclick="window.location='/freescout/{{ c.id }}'" style="cursor: pointer;">
+                        <td>{{ c.subject }}</td>
+                        <td>{{ c.customer_name or c.customer_email }}</td>
+                        <td>
+                            {% if c.member %}
+                                {{ c.member.full_name }}
+                            {% else %}
+                                <span class="badge text-bg-warning">{{ t('freescout.overview.needs_association') }}</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge text-bg-secondary">{{ c.freescout_status }}</span></td>
+                        <td>{{ c.message_count if c.message_count is not none else '—' }}</td>
+                        <td>{{ c.freescout_updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% if c.task_id %}
+                            <i class="bi bi-kanban text-success" title="{{ t('freescout.overview.has_task') }}"></i>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="text-center text-muted py-4">{{ t('freescout.overview.empty_state') }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

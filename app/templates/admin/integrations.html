@@ -200,29 +200,56 @@
                 <i class="bi bi-check-lg me-1"></i>{{ t('admin.integrations.incoming_invoices_folder_save_button') }}
             </button>
         </form>
+        {% endif %}
+    </div>
+    </div>
+</div>
 
-        <hr class="my-3">
-        <h6 class="fw-semibold">{{ t('admin.integrations.ticket_attachments_folder_header') }}</h6>
-        <p class="text-muted">{{ t('admin.integrations.ticket_attachments_folder_help') }}</p>
+<div class="card mb-3">
+    <div class="card-header settings-card-toggle collapsed" role="button" data-bs-toggle="collapse"
+         data-bs-target="#integration-card-freescout" aria-expanded="false">
+        <span><i class="bi bi-headset me-2"></i>{{ t('admin.integrations.freescout_title') }}</span>
+        <i class="bi bi-chevron-down settings-card-chevron"></i>
+    </div>
+    <div class="collapse" id="integration-card-freescout" data-bs-parent="#integrations-accordion">
+    <div class="card-body">
+        <p class="text-muted">{{ t('admin.integrations.freescout_desc') }}</p>
 
-        {% if ticket_attachments_folder_saved %}
-        <div class="alert alert-success">{{ t('admin.integrations.ticket_attachments_folder_saved') }}</div>
-        {% elif ticket_attachments_folder_error %}
-        <div class="alert alert-danger">{{ ticket_attachments_folder_error }}</div>
+        {% if freescout_saved %}
+        <div class="alert alert-success">{{ t('admin.integrations.freescout_saved') }}</div>
         {% endif %}
 
-        <form method="post" action="/admin/integrations/nextcloud/ticket-attachments-folder" class="d-flex gap-2 align-items-end flex-wrap">
+        <form method="post" action="/admin/integrations/freescout">
             {{ csrf_field() }}
-            <div style="min-width: 300px;">
-                <label class="form-label fw-semibold">{{ t('admin.integrations.ticket_attachments_folder_label') }}</label>
-                <input type="text" name="relative_path" class="form-control"
-                       value="{{ ticket_attachments_folder_path or '' }}" placeholder="Tickets/Anhaenge">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">{{ t('admin.integrations.freescout_base_url_label') }}</label>
+                <input type="url" name="freescout_base_url" class="form-control"
+                       value="{{ freescout_base_url }}" placeholder="https://service.example.com">
             </div>
-            <button type="submit" class="btn btn-outline-primary">
-                <i class="bi bi-check-lg me-1"></i>{{ t('admin.integrations.ticket_attachments_folder_save_button') }}
+            <div class="mb-3">
+                <label class="form-label fw-semibold">{{ t('admin.integrations.freescout_mailbox_id_label') }}</label>
+                <input type="number" name="freescout_mailbox_id" class="form-control" value="{{ freescout_mailbox_id }}" min="1">
+                <div class="form-text">{{ t('admin.integrations.freescout_mailbox_id_hint') }}</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">{{ t('admin.integrations.freescout_api_key_label') }}</label>
+                <input type="password" name="freescout_api_key" class="form-control" autocomplete="off"
+                       placeholder="{% if freescout_api_key_set %}{{ t('admin.settings.password_set_placeholder') }}{% else %}{{ t('admin.settings.password_unset_placeholder') }}{% endif %}">
+                <div class="form-text">{{ t('admin.integrations.freescout_api_key_hint') }}</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i>{{ t('admin.integrations.freescout_save_button') }}
             </button>
+            <button type="submit" formaction="/admin/integrations/freescout/test" formmethod="post" class="btn btn-outline-secondary">
+                {{ t('admin.integrations.freescout_test_button') }}
+            </button>
+            {% if freescout_test_result == 'success' %}
+            <span class="text-success ms-2"><i class="bi bi-check-circle"></i> {{ freescout_test_message }}</span>
+            {% elif freescout_test_result == 'failed' %}
+            <div class="text-danger mt-2"><i class="bi bi-x-circle"></i> {{ freescout_test_message }}</div>
+            {% endif %}
         </form>
-        {% endif %}
     </div>
     </div>
 </div>

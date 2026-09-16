@@ -17,8 +17,8 @@ from app.config import settings
 from app.database import get_db, AsyncSessionLocal, active_member_filter
 from app.models import User, UserRole, Member, Parcel, ParcelStatus, MemberParcel, Group, GroupMembership
 from app.models import PurchaseRequest, PurchaseRequestStatus
-from app.models import Ticket, TicketStatus
 from app.models import Task
+from app.models import FreescoutConversationLink
 from app.birthdays import upcoming_birthdays
 from app.auth import hash_password, get_current_user
 from app.module_flags import load_module_flags
@@ -40,12 +40,13 @@ from app.services.work_hours import count_new_participations
 # fast file-read operation with no DB access -- unproblematic at import.
 load_translations()
 from app.templating import templates
-from app.ticket_mailer import process_incoming_mails
-from app.routers import auth, members, parcels, admin as admin_router, admin_groups as admin_groups_router, work_hours, insurance, tickets, purchase_requests, calendar as calendar_router, announcements as announcements_router, inventory as inventory_router, tasks as tasks_router, finances as finances_router
+from app.freescout_client import get_freescout_client, load_freescout_base_url
+from app.freescout_sync import sync_freescout_conversations
+from app.routers import auth, members, parcels, admin as admin_router, admin_groups as admin_groups_router, work_hours, insurance, freescout as freescout_router, purchase_requests, calendar as calendar_router, announcements as announcements_router, inventory as inventory_router, tasks as tasks_router, finances as finances_router
 from app.routers.metering import create_metering_router
 from app.models import MeteringMedium
 from app.routers import api_auth, api_members, api_parcels, api_club_settings, api_stats
-from app.routers import api_work_hours, api_insurance, api_tickets, api_purchase_requests, api_inventory, api_tasks
+from app.routers import api_work_hours, api_insurance, api_freescout, api_purchase_requests, api_inventory, api_tasks
 from app.routers import api_public
 from app.routers.api_metering import create_metering_api_router
 
@@ -53,22 +54,28 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def _ticket_inbox_polling_loop():
+async def _freescout_polling_loop():
     """
-    Polls the configured ticket mailbox for new emails every 2 minutes.
-    Runs permanently in the background; errors are caught so a single
-    failed poll doesn't end the loop.
+    Polls FreeScout's API for new/updated conversations in the configured
+    mailbox every 5 minutes, upserting app/models.py's
+    FreescoutConversationLink rows (see app/freescout_sync.py). Runs
+    permanently in the background; errors are caught so a single failed
+    poll doesn't end the loop. A no-op (skipped, not an error) whenever
+    the freescout_bridge module isn't configured -- see
+    get_freescout_client()'s Optional[...] return.
     """
     while True:
         try:
             async with AsyncSessionLocal() as db:
-                anzahl = await process_incoming_mails(db)
-                if anzahl:
-                    logger.info(f"Ticket mailbox: {anzahl} new email(s) processed.")
+                client = await get_freescout_client(db)
+                if client is not None:
+                    synced = await sync_freescout_conversations(db, client)
+                    if synced:
+                        logger.info(f"FreeScout: {synced} conversation(s) synced.")
         except Exception as e:
-            logger.error(f"Ticket mailbox polling failed: {e}")
+            logger.error(f"FreeScout polling failed: {e}")
 
-        await asyncio.sleep(120)  # 2 minutes
+        await asyncio.sleep(5 * 60)  # 5 minutes
 
 
 async def _update_check_polling_loop():
@@ -136,7 +143,7 @@ async def lifespan(app: FastAPI):
                 "-- you will be asked to set a new password on first login."
             )
 
-    polling_task = asyncio.create_task(_ticket_inbox_polling_loop())
+    polling_task = asyncio.create_task(_freescout_polling_loop())
     update_check_task = asyncio.create_task(_update_check_polling_loop())
     cloud_backup_task = asyncio.create_task(_cloud_backup_polling_loop())
     yield
@@ -176,6 +183,12 @@ async def modul_flags_middleware(request: Request, call_next):
     """
     async with AsyncSessionLocal() as db:
         request.state.module_flags = await load_module_flags(db)
+        # Cheap enough to load alongside the module flags themselves --
+        # only the base URL (not the API key), used by base.html's
+        # "Support" nav link for members with no freescout_bridge
+        # permission (they link straight to FreeScout; staff link to
+        # Parcella's own /freescout/ list instead). See app/freescout_client.py.
+        request.state.freescout_base_url = await load_freescout_base_url(db)
     response = await call_next(request)
     return response
 
@@ -413,7 +426,7 @@ app.include_router(admin_router.router)
 app.include_router(admin_groups_router.router)
 app.include_router(work_hours.router)
 app.include_router(insurance.router)
-app.include_router(tickets.router)
+app.include_router(freescout_router.router)
 app.include_router(purchase_requests.router)
 app.include_router(calendar_router.router)
 app.include_router(announcements_router.router)
@@ -444,7 +457,7 @@ app.include_router(api_work_hours.router)
 app.include_router(api_insurance.router)
 app.include_router(api_inventory.router)
 app.include_router(api_tasks.router)
-app.include_router(api_tickets.router)
+app.include_router(api_freescout.router)
 app.include_router(api_purchase_requests.router)
 app.include_router(api_public.router)
 
@@ -518,17 +531,12 @@ async def startseite(request: Request):
             )
         )
 
-        # For the dashboard tile "Tickets" -- "open" here counts exactly
-        # like the "Active" filter on /tickets/ (ACTIVE/ASSIGNED/WAITING,
-        # see app/routers/tickets.py), NOT postponed/closed/deleted.
-        tickets_open_count = await db.scalar(
-            select(func.count()).select_from(Ticket).where(
-                Ticket.status.in_([TicketStatus.ACTIVE, TicketStatus.ASSIGNED, TicketStatus.WAITING])
-            )
-        )
-        tickets_spam_count = await db.scalar(
-            select(func.count()).select_from(Ticket).where(
-                Ticket.spam_suspected == True, Ticket.status != TicketStatus.DELETED
+        # For the dashboard tile "Support conversations needing association" --
+        # unmatched/ambiguous conversations (member_id still NULL) are the
+        # ones a staff member needs to look at; matched ones need no action.
+        freescout_needs_association_count = await db.scalar(
+            select(func.count()).select_from(FreescoutConversationLink).where(
+                FreescoutConversationLink.member_id.is_(None)
             )
         )
 
@@ -555,8 +563,7 @@ async def startseite(request: Request):
         "parcels_vacant": parcels_vacant or 0,
         "area_total_sqm": float(area_total or 0),
         "purchase_requests_open": purchase_requests_open_count or 0,
-        "tickets_open": tickets_open_count or 0,
-        "tickets_spam": tickets_spam_count or 0,
+        "freescout_needs_association": freescout_needs_association_count or 0,
         "tasks_overdue": tasks_overdue_count or 0,
         # Reuses the count new_participations_count_middleware already
         # computed for this request (nav badge) instead of querying again.

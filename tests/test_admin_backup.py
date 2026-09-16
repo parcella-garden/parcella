@@ -62,26 +62,6 @@ async def test_backup_download_bundles_uploaded_files(client, admin_user, monkey
     assert zf.read("uploads/logo.png") == b"fake-logo-bytes"
 
 
-async def test_backup_download_bundles_local_ticket_attachments(client, admin_user, monkeypatch, tmp_path):
-    """ADR 0072: locally-stored ticket attachments (Nextcloud fallback),
-    same as app/static/uploads/, are bind-mounted under ./data/ in
-    docker-compose.yml (ADR 0077) but this backup zip is still an
-    out-of-band copy that should bundle them too."""
-    attachments_dir = tmp_path / "ticket_attachments"
-    attachments_dir.mkdir(parents=True)
-    (attachments_dir / "abc123").write_bytes(b"fake-attachment-bytes")
-    monkeypatch.setattr("app.backup.TICKET_ATTACHMENT_STORAGE_DIR", attachments_dir)
-
-    await web_login(client, "admin@example.com")
-    resp = await client.post("/admin/backup/download")
-    assert resp.status_code == 200
-
-    zf = zipfile.ZipFile(io.BytesIO(resp.content))
-    names = set(zf.namelist())
-    assert "ticket_attachments/abc123" in names
-    assert zf.read("ticket_attachments/abc123") == b"fake-attachment-bytes"
-
-
 async def test_backup_download_requires_admin(client):
     """No session at all -- require_user (app/auth.py) redirects to login."""
     resp = await client.post("/admin/backup/download", follow_redirects=False)

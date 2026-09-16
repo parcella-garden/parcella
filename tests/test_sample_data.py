@@ -3,7 +3,7 @@ from sqlalchemy import select
 from app.database import AsyncSessionLocal
 from app.models import (
     Member, Parcel, MemberParcel, SampleDataRecord,
-    Ticket, TicketStatus, PurchaseRequest, PurchaseRequestStatus,
+    FreescoutConversationLink, PurchaseRequest, PurchaseRequestStatus,
     Task, TaskList, User,
 )
 from app.sample_data import (
@@ -55,14 +55,15 @@ async def test_add_sample_data_populates_every_module(board_user, second_board_u
         assert demo04_assignment.assigned_until is not None
         assert demo04_assignment.is_invoice_address is False
 
-        # Tickets: every status should be represented at least once
-        # among the sample tickets (the ASSIGNED one needs a real user,
-        # which the board_user fixture provides).
-        result = await db.execute(select(Ticket.status))
-        statuses = {row[0] for row in result.all()}
-        assert TicketStatus.ACTIVE in statuses
-        assert TicketStatus.ASSIGNED in statuses
-        assert TicketStatus.CLOSED in statuses
+        # FreeScout bridge: every demo conversation status should be
+        # represented, and the unmatched one should have no member.
+        result = await db.execute(select(FreescoutConversationLink.freescout_status, FreescoutConversationLink.member_id))
+        rows = result.all()
+        statuses = {status for status, _ in rows}
+        assert "active" in statuses
+        assert "pending" in statuses
+        assert "closed" in statuses
+        assert any(member_id is None for _, member_id in rows)
 
         # Purchase requests: with 2 distinct board users available, all
         # three states should exist.
@@ -127,10 +128,10 @@ async def test_remove_sample_data_deletes_everything_and_only_that(admin_user):
         # Nothing tracked remains in the source tables either.
         assert await db.scalar(select(Member.id).limit(1)) is None
         assert await db.scalar(select(Parcel.id).limit(1)) is None
-        assert await db.scalar(select(Ticket.id).limit(1)) is None
+        assert await db.scalar(select(FreescoutConversationLink.id).limit(1)) is None
         assert await db.scalar(select(SampleDataRecord.id).limit(1)) is None
 
-        # The real admin user (used as a ticket assignee/approver
+        # The real admin user (used as a purchase-request approver
         # candidate) must survive untouched.
         user = await db.get(User, admin_user.id)
         assert user is not None

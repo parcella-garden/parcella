@@ -78,9 +78,7 @@ A system admin can download a full backup on demand from `/admin/`
 [ADR 0053](./ADR/0053-admin-backup-download-only.md)). It's a zip
 containing a one-click `pg_dump` (plain SQL, readable text) plus
 everything under `app/static/uploads/` (the branding logo, announcement
-images, user avatars) and `app/private_uploads/ticket_attachments/`
-(locally-stored ticket attachments -- see the ADR on the Nextcloud
-fallback) -- nothing is ever written to server disk, so there's no backup
+images, user avatars) -- nothing is ever written to server disk, so there's no backup
 file to find or clean up on the server itself; the downloaded `.zip` is
 the only copy, and it's the admin's responsibility to store it
 somewhere safe.
@@ -94,7 +92,7 @@ pruning older ones automatically. Requires the `cloud_storage` module
 enabled and a working Nextcloud connection under **Admin ->
 Integrations** first. No Linux cron involved -- the schedule is an
 in-process check every 15 minutes, same style as the update-check and
-ticket-mailbox polling loops.
+FreeScout conversation polling loops.
 
 **Restoring, the normal way:** a system admin can also upload that same
 zip back through `/admin/backup/restore` ("Restore from backup" -- see
@@ -116,17 +114,15 @@ unzip parcella-backup-20260730-143000.zip -d restore/
 docker compose exec -T db psql -U parcella -d parcella < restore/parcella-backup-20260730-143000.sql
 ```
 
-Uploads and ticket attachments are plain host directories now (bind-mounted
-under `./data/`, no `docker cp` needed) -- for a published-image deploy:
+Uploads are a plain host directory now (bind-mounted under `./data/`, no
+`docker cp` needed) -- for a published-image deploy:
 
 ```bash
 cp -r restore/uploads/. data/uploads/
-cp -r restore/ticket_attachments/. data/ticket_attachments/
 ```
 
-For a dev/source checkout, the equivalent paths are `app/static/uploads/`
-and `app/private_uploads/ticket_attachments/` (already live-mounted via
-`docker-compose.dev.yml`'s `./app` bind mount).
+For a dev/source checkout, the equivalent path is `app/static/uploads/`
+(already live-mounted via `docker-compose.dev.yml`'s `./app` bind mount).
 
 **Warning:** the backup was generated with `--clean --if-exists`, so the
 SQL script itself contains `DROP ... IF EXISTS` statements ahead of each

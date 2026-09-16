@@ -23,7 +23,7 @@ from app.i18n import t_for, DEFAULT_LANGUAGE
 from app.module_flags import require_module
 from app.task_board import (
     next_position, move_task, close_gap_after_delete,
-    next_list_position, move_list, delete_list,
+    next_list_position, move_list, delete_list, create_task,
 )
 
 router = APIRouter(
@@ -183,19 +183,16 @@ async def task_create(
     lists = await _all_lists(db)
     target_list_id = list_id.strip() or lists[0].id
 
-    task = Task(
+    await create_task(
+        db,
         title=title.strip(),
         description=description.strip() or None,
         due_date=date.fromisoformat(due_date) if due_date.strip() else None,
         priority=TaskPriority(priority.strip()) if priority.strip() else None,
         tags=_parse_tags(tags),
         list_id=target_list_id,
-        position=await next_position(db, target_list_id),
+        assigned_to_ids=assigned_to_ids,
     )
-    db.add(task)
-    await db.flush()
-    for user_id in assigned_to_ids:
-        db.add(TaskAssignee(task_id=task.id, user_id=user_id))
     await db.commit()
     return RedirectResponse("/tasks/", status_code=302)
 

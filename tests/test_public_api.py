@@ -562,7 +562,57 @@ async def test_contact_requires_valid_api_token(client, admin_user):
     assert wrong_token_response.status_code == 401
 
 
-async def test_contact_creates_a_ticket(client, admin_user):
+class _FakeFreeScoutClient:
+    """Records create_conversation() calls instead of making a real HTTP
+    request -- no FreeScout instance is reachable from this test/CI
+    environment. See tests/test_freescout_client.py for the
+    httpx.MockTransport-backed tests of the real client's HTTP behavior."""
+
+    def __init__(self):
+        self.calls = []
+
+    async def create_conversation(self, **kwargs):
+        self.calls.append(kwargs)
+        return {"id": 999}
+
+
+def _patch_freescout_client(monkeypatch, fake_client):
+    import app.routers.api_public as api_public
+
+    async def _fake_get_client(db):
+        return fake_client
+
+    monkeypatch.setattr(api_public, "get_freescout_client", _fake_get_client)
+
+
+async def test_contact_creates_a_freescout_conversation(client, admin_user, monkeypatch):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_contact_module(client, headers)
+    await _set_api_token(client, headers)
+
+    fake_client = _FakeFreeScoutClient()
+    _patch_freescout_client(monkeypatch, fake_client)
+
+    response = await client.post(
+        "/api/v1/public/contact", json=_CONTACT_PAYLOAD,
+        headers={"X-Parcella-API-Token": "test-public-api-token"},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json() == {"accepted": True, "reason": None}
+
+    assert len(fake_client.calls) == 1
+    call = fake_client.calls[0]
+    assert call["customer_email"] == "gerd@example.com"
+    assert call["customer_name"] == "Gerd Mustergärtner"
+    assert "Could you please check the water tap near G042?" in call["message"]
+    assert "consent" in call["message"].lower()
+
+
+async def test_contact_not_configured_is_rejected_without_crashing(client, admin_user, monkeypatch):
+    """No FreeScout credentials saved -- get_freescout_client() returns
+    None, the endpoint must reject gracefully (structured response, not
+    a 5xx), same convention as the honeypot/consent rejections."""
     token = await login(client, "admin@example.com")
     headers = auth_header(token)
     await _enable_contact_module(client, headers)
@@ -572,30 +622,20 @@ async def test_contact_creates_a_ticket(client, admin_user):
         "/api/v1/public/contact", json=_CONTACT_PAYLOAD,
         headers={"X-Parcella-API-Token": "test-public-api-token"},
     )
-    assert response.status_code == 200, response.text
-    assert response.json() == {"accepted": True, "reason": None}
-
-    from app.database import AsyncSessionLocal
-    from sqlalchemy import select
-    from app.models import Ticket, TicketMessage
-
-    async with AsyncSessionLocal() as db:
-        result = await db.execute(select(Ticket).where(Ticket.sender_email == "gerd@example.com"))
-        ticket = result.scalar_one()
-        assert ticket.sender_name == "Gerd Mustergärtner"
-        assert ticket.spam_score is not None
-
-        message_result = await db.execute(select(TicketMessage).where(TicketMessage.ticket_id == ticket.id))
-        message = message_result.scalar_one()
-        assert "Could you please check the water tap near G042?" in message.content
-        assert "consent" in message.content.lower()
+    assert response.status_code == 200
+    body = response.json()
+    assert body["accepted"] is False
+    assert body["reason"]
 
 
-async def test_contact_without_consent_is_rejected(client, admin_user):
+async def test_contact_without_consent_is_rejected(client, admin_user, monkeypatch):
     token = await login(client, "admin@example.com")
     headers = auth_header(token)
     await _enable_contact_module(client, headers)
     await _set_api_token(client, headers)
+
+    fake_client = _FakeFreeScoutClient()
+    _patch_freescout_client(monkeypatch, fake_client)
 
     payload = {**_CONTACT_PAYLOAD, "consent": False}
     response = await client.post(
@@ -606,21 +646,17 @@ async def test_contact_without_consent_is_rejected(client, admin_user):
     body = response.json()
     assert body["accepted"] is False
     assert body["reason"]
-
-    from app.database import AsyncSessionLocal
-    from sqlalchemy import select
-    from app.models import Ticket
-
-    async with AsyncSessionLocal() as db:
-        result = await db.execute(select(Ticket).where(Ticket.sender_email == "gerd@example.com"))
-        assert result.scalar_one_or_none() is None
+    assert fake_client.calls == []
 
 
-async def test_contact_honeypot_field_silently_ignored(client, admin_user):
+async def test_contact_honeypot_field_silently_ignored(client, admin_user, monkeypatch):
     token = await login(client, "admin@example.com")
     headers = auth_header(token)
     await _enable_contact_module(client, headers)
     await _set_api_token(client, headers)
+
+    fake_client = _FakeFreeScoutClient()
+    _patch_freescout_client(monkeypatch, fake_client)
 
     payload = {**_CONTACT_PAYLOAD, "website": "http://spam.example"}
     response = await client.post(
@@ -629,11 +665,4 @@ async def test_contact_honeypot_field_silently_ignored(client, admin_user):
     )
     assert response.status_code == 200
     assert response.json() == {"accepted": True, "reason": None}
-
-    from app.database import AsyncSessionLocal
-    from sqlalchemy import select
-    from app.models import Ticket
-
-    async with AsyncSessionLocal() as db:
-        result = await db.execute(select(Ticket).where(Ticket.sender_email == "gerd@example.com"))
-        assert result.scalar_one_or_none() is None
+    assert fake_client.calls == []

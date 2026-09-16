@@ -83,3 +83,4 @@ in chronological order.
 77. [Rename docker-compose.prod.yml to docker-compose.yml; bind-mount all runtime data under ./data/](./0077-docker-compose-rename-and-tidy-data-layout.md)
 78. [Accident insurance: per-household-member opt-out, not an atomic household toggle](./0078-accident-insurance-per-household-member-opt-out.md)
 79. [Work-session sign-up notifications: a stateless rolling window, not a notification center](./0079-work-session-signup-notifications-stateless-not-a-notification-center.md)
+80. [Remove the built-in ticket module; add a FreeScout conversation bridge](./0080-remove-builtin-ticket-module-freescout-conversation-bridge.md)

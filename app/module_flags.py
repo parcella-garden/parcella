@@ -32,7 +32,6 @@ MODULE_DEFAULTS: Dict[str, bool] = {
     "water": True,
     "electricity": True,
     "insurance": True,
-    "tickets": True,
     "purchase_requests": True,
     "calendar": True,
     "inventory": True,
@@ -62,6 +61,11 @@ MODULE_DEFAULTS: Dict[str, bool] = {
     # a club must opt in deliberately, same reasoning as cloud_storage/
     # announcements above.
     "finances": False,
+    # Also defaults to False, same reasoning as cloud_storage/announcements/
+    # finances above: it stores outbound credentials (a FreeScout API key)
+    # and, once configured, surfaces a cross-reference of member
+    # communications inside Parcella -- a club must opt in deliberately.
+    "freescout_bridge": False,
 }
 
 

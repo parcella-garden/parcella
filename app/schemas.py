@@ -581,74 +581,41 @@ class ParcelInsuranceCostOut(ParcelInsuranceOut):
 
 
 # ---------------------------------------------------------------------------
-# Ticket system
+# FreeScout conversation bridge
 # ---------------------------------------------------------------------------
 
-class TicketMessageCreate(BaseModel):
-    direction: str = Field("OUTGOING", description="INCOMING, OUTGOING oder INTERNAL")
-    content: str
-
-
-class TicketMessageOut(BaseModel):
+class FreescoutConversationLinkOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: str
-    ticket_id: str
-    direction: str
-    content: str
-    authored_by_id: Optional[str] = None
-    created_at: datetime
-
-
-class TicketCreate(BaseModel):
+    freescout_conversation_id: int
+    freescout_mailbox_id: int
     subject: str
-    sender_email: EmailStr
-    sender_name: Optional[str] = None
-    message: str = Field(..., description="First message of the ticket (stored as INCOMING)")
+    customer_email: str
+    customer_name: Optional[str] = None
+    freescout_status: str
+    message_count: Optional[int] = None
+    member_id: Optional[str] = None
+    parcel_id: Optional[str] = None
+    task_id: Optional[str] = None
+    freescout_updated_at: datetime
+    last_synced_at: datetime
 
 
-class TicketStatusUpdate(BaseModel):
-    status: str = Field(
-        ...,
-        description="ACTIVE, WAITING, POSTPONED, CLOSED or DELETED. "
-        "ASSIGNED is set automatically via PUT /{ticket_id}/assignment and cannot be set directly.",
-    )
-    postponed_until: Optional[date] = None
-
-
-class TicketAssignmentUpdate(BaseModel):
-    assigned_to_id: Optional[str] = Field(None, description="Empty/None = clear assignment")
-
-
-class TicketMemberUpdate(BaseModel):
+class FreescoutConversationLinkMemberUpdate(BaseModel):
     member_id: Optional[str] = None
 
 
-class TicketSpamUpdate(BaseModel):
-    spam_suspected: bool = Field(..., description="false to clear a spam suspicion (false positive)")
+class FreescoutConversationLinkParcelUpdate(BaseModel):
+    parcel_id: Optional[str] = None
 
 
-class TicketOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    id: str
-    subject: str
-    status: str
-    assigned_to_id: Optional[str] = None
-    postponed_until: Optional[date] = None
-    member_id: Optional[str] = None
-    sender_email: str
-    sender_name: Optional[str] = None
-    spam_suspected: bool
-    spam_score: Optional[Decimal] = None
-    spam_reasoning: Optional[str] = None
-    spam_reviewed_by_id: Optional[str] = None
-    spam_reviewed_at: Optional[datetime] = None
-    created_at: datetime
-    updated_at: datetime
-    closed_at: Optional[datetime] = None
+class FreescoutAddToTaskBoardRequest(BaseModel):
+    list_id: Optional[str] = Field(None, description="Empty/None = board's first list")
+    task_id: Optional[str] = Field(None, description="Link to this existing task instead of creating a new one")
 
 
-class TicketDetailOut(TicketOut):
-    messages: List[TicketMessageOut] = []
+class FreescoutReplyCreate(BaseModel):
+    text: str = Field(..., description="Customer-facing reply text, sent to FreeScout as a new thread")
 
 
 # ---------------------------------------------------------------------------

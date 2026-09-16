@@ -16,7 +16,7 @@ from app.models import (
     User, Invitation, InvitationStatus, UserRole, ClubSetting,
     Group, InvitationGroupTarget,
     GroupMembership, ParcelCloudFolder, WorkSession, WorkTask, ChangeHistory,
-    MeterReading, Ticket, TicketMessage, PurchaseRequest, PurchaseRequestApproval,
+    MeterReading, PurchaseRequest, PurchaseRequestApproval,
     CalendarEvent, CouncilPresence, CouncilAbsence, Announcement, InventoryItem,
     ItemLoan, Task, TaskAssignee, Member, ClubBoardMember,
 )
@@ -61,9 +61,6 @@ INVITATION_DAYS = 7
 # (issue #191: folder configuration moved here, but the setting is
 # still read from app/routers/finances.py at upload/download time).
 INCOMING_INVOICES_FOLDER_SETTING = "incoming_invoices_cloud_folder"
-# Must match app/ticket_mailer.py's TICKET_ATTACHMENTS_FOLDER_SETTING --
-# same "configured here, read from the owning module" split as above.
-TICKET_ATTACHMENTS_FOLDER_SETTING = "ticket_attachments_cloud_folder"
 
 
 # Every FK-to-users.id in the schema (see ADR 0040/audit) -- a user can
@@ -77,8 +74,6 @@ _USER_REFERENCE_CHECKS = [
     (WorkTask, WorkTask.created_by_id),
     (ChangeHistory, ChangeHistory.changed_by_id),
     (MeterReading, MeterReading.recorded_by_id),
-    (Ticket, Ticket.assigned_to_id),
-    (TicketMessage, TicketMessage.authored_by_id),
     (PurchaseRequest, PurchaseRequest.requested_by_id),
     (PurchaseRequest, PurchaseRequest.created_by_id),
     (PurchaseRequest, PurchaseRequest.rejected_by_id),
@@ -848,14 +843,6 @@ SETTINGS_FIELDS = [
     ("smtp_user", "admin.settings.fields.smtp_user"),
     ("smtp_password", "admin.settings.fields.smtp_password"),
     ("smtp_from", "admin.settings.fields.sender_email"),
-    ("imap_host", "admin.settings.fields.imap_host"),
-    ("imap_port", "admin.settings.fields.imap_port"),
-    ("imap_ssl", "admin.settings.fields.imap_ssl"),
-    ("spam_domain_blocklist", "admin.settings.fields.spam_domain_blocklist"),
-    ("spam_keyword_blocklist", "admin.settings.fields.spam_keyword_blocklist"),
-    ("spam_schwellenwert", "admin.settings.fields.spam_threshold"),
-    ("spam_api_url", "admin.settings.fields.spam_api_url"),
-    ("spam_api_key", "admin.settings.fields.spam_api_key"),
 ]
 
 # Optional feature areas that each club can toggle on/off.
@@ -866,7 +853,7 @@ MODULE_FIELDS = [
     ("modul_water", "admin.settings.modules.water_name", "admin.settings.modules.water_desc"),
     ("modul_electricity", "admin.settings.modules.electricity_name", "admin.settings.modules.electricity_desc"),
     ("modul_insurance", "admin.settings.modules.insurance_name", "admin.settings.modules.insurance_desc"),
-    ("modul_tickets", "admin.settings.modules.tickets_name", "admin.settings.modules.tickets_desc"),
+    ("modul_freescout_bridge", "admin.settings.modules.freescout_bridge_name", "admin.settings.modules.freescout_bridge_desc"),
     ("modul_purchase_requests", "admin.settings.modules.purchase_requests_name", "admin.settings.modules.purchase_requests_desc"),
     ("modul_calendar", "admin.settings.modules.calendar_name", "admin.settings.modules.calendar_desc"),
     ("modul_inventory", "admin.settings.modules.inventory_name", "admin.settings.modules.inventory_desc"),
@@ -904,7 +891,7 @@ NAV_ORDER_FIELDS = [
     ("dashboard", "nav.dashboard"),
     ("members", "nav.members"),
     ("parcels", "nav.parcels"),
-    ("tickets", "nav.tickets"),
+    ("freescout_bridge", "nav.freescout_bridge"),
     ("purchase_requests", "nav.purchase_requests"),
     ("work_hours", "nav.work_hours_group"),
     ("water", "nav.water"),
@@ -1244,11 +1231,10 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
     incoming_invoices_folder_entry = incoming_invoices_folder_result.scalar_one_or_none()
     incoming_invoices_folder_path = incoming_invoices_folder_entry.value if incoming_invoices_folder_entry else None
 
-    ticket_attachments_folder_result = await db.execute(
-        select(ClubSetting).where(ClubSetting.key == TICKET_ATTACHMENTS_FOLDER_SETTING)
+    freescout_result = await db.execute(
+        select(ClubSetting).where(ClubSetting.key.in_(["freescout_base_url", "freescout_api_key", "freescout_mailbox_id"]))
     )
-    ticket_attachments_folder_entry = ticket_attachments_folder_result.scalar_one_or_none()
-    ticket_attachments_folder_path = ticket_attachments_folder_entry.value if ticket_attachments_folder_entry else None
+    freescout_stored = {e.key: e.value for e in freescout_result.scalars().all()}
 
     return templates.TemplateResponse("admin/integrations.html", {
         "request": request, "user": user,
@@ -1272,9 +1258,12 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
         "incoming_invoices_folder_path": incoming_invoices_folder_path,
         "incoming_invoices_folder_saved": request.query_params.get("incoming_invoices_folder_saved"),
         "incoming_invoices_folder_error": request.query_params.get("incoming_invoices_folder_error"),
-        "ticket_attachments_folder_path": ticket_attachments_folder_path,
-        "ticket_attachments_folder_saved": request.query_params.get("ticket_attachments_folder_saved"),
-        "ticket_attachments_folder_error": request.query_params.get("ticket_attachments_folder_error"),
+        "freescout_base_url": freescout_stored.get("freescout_base_url", ""),
+        "freescout_mailbox_id": freescout_stored.get("freescout_mailbox_id", "1"),
+        "freescout_api_key_set": bool(freescout_stored.get("freescout_api_key")),
+        "freescout_saved": request.query_params.get("freescout_saved"),
+        "freescout_test_result": request.query_params.get("freescout_test"),
+        "freescout_test_message": request.query_params.get("freescout_test_message"),
     })
 
 
@@ -1454,32 +1443,56 @@ async def integrations_incoming_invoices_folder_save(
     return RedirectResponse("/admin/integrations?incoming_invoices_folder_saved=1", status_code=303)
 
 
-@router.post("/integrations/nextcloud/ticket-attachments-folder")
-async def integrations_ticket_attachments_folder_save(
-    request: Request, relative_path: str = Form(...), db: AsyncSession = Depends(get_db),
-):
-    """Same shared-folder pattern as incoming invoices above (ClubSetting
-    TICKET_ATTACHMENTS_FOLDER_SETTING), one folder for all tickets --
-    read from app/ticket_mailer.py at ingestion time and
-    app/routers/tickets.py at download time."""
+@router.post("/integrations/freescout")
+async def integrations_freescout_save(request: Request, db: AsyncSession = Depends(get_db)):
+    """Saves FreeScout connection details -- same "blank API key field =
+    leave the existing one unchanged" convention as WordPress/Nextcloud
+    above. mailbox_id defaults to 1 (see app/freescout_client.py's
+    DEFAULT_MAILBOX_ID) if left blank."""
     await require_system_admin(request, db)
+    form = await request.form()
 
-    try:
-        sanitized = sanitize_relative_path(relative_path)
-    except InvalidCloudPathError as e:
-        from urllib.parse import quote
-        return RedirectResponse(
-            f"/admin/integrations?ticket_attachments_folder_error={quote(str(e))}", status_code=303,
-        )
+    base_url = (form.get("freescout_base_url") or "").strip() or None
+    mailbox_id = (form.get("freescout_mailbox_id") or "").strip() or "1"
+    api_key = (form.get("freescout_api_key") or "").strip()
 
-    result = await db.execute(select(ClubSetting).where(ClubSetting.key == TICKET_ATTACHMENTS_FOLDER_SETTING))
-    entry = result.scalar_one_or_none()
-    if entry:
-        entry.value = sanitized
-    else:
-        db.add(ClubSetting(
-            key=TICKET_ATTACHMENTS_FOLDER_SETTING, value=sanitized,
-            description="Shared cloud folder for incoming ticket attachments",
-        ))
+    await _upsert_club_setting(db, "freescout_base_url", base_url, "FreeScout instance URL")
+    await _upsert_club_setting(db, "freescout_mailbox_id", mailbox_id, "FreeScout mailbox ID to sync")
+    if api_key:
+        await _upsert_club_setting(db, "freescout_api_key", encrypt(api_key), "FreeScout API key (encrypted)")
+
     await db.commit()
-    return RedirectResponse("/admin/integrations?ticket_attachments_folder_saved=1", status_code=303)
+    return RedirectResponse("/admin/integrations?freescout_saved=1", status_code=303)
+
+
+@router.post("/integrations/freescout/test")
+async def integrations_freescout_test(request: Request, db: AsyncSession = Depends(get_db)):
+    """Tests FreeScout connectivity using whatever is currently in the
+    form, falling back to the already-saved configuration for any field
+    left blank -- doesn't persist anything."""
+    await require_system_admin(request, db)
+    form = await request.form()
+    from urllib.parse import quote
+    from app.freescout_client import FreeScoutClient, FreeScoutError, load_freescout_configuration
+
+    saved_config = await load_freescout_configuration(db)
+    base_url = (form.get("freescout_base_url") or "").strip() or (saved_config["base_url"] if saved_config else None)
+    api_key = (form.get("freescout_api_key") or "").strip() or (saved_config["api_key"] if saved_config else None)
+    mailbox_id = int((form.get("freescout_mailbox_id") or "").strip() or (saved_config["mailbox_id"] if saved_config else 1))
+
+    if not base_url or not api_key:
+        message = quote(t_for(request, "admin.integrations.freescout_not_configured"))
+        return RedirectResponse(f"/admin/integrations?freescout_test=failed&freescout_test_message={message}", status_code=303)
+
+    client = FreeScoutClient(base_url=base_url, api_key=api_key, mailbox_id=mailbox_id)
+    try:
+        await client.list_conversations(page=1)
+        result, message = "success", t_for(request, "admin.integrations.freescout_test_success")
+    except FreeScoutError as e:
+        result, message = "failed", str(e)
+    finally:
+        await client.aclose()
+
+    return RedirectResponse(
+        f"/admin/integrations?freescout_test={result}&freescout_test_message={quote(message)}", status_code=303,
+    )

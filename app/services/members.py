@@ -13,6 +13,7 @@ pagination instead of pushing active_member_filter() into SQL like the
 HTML side always has. Both routers now build their "active" query the
 same way, via `active_members_query()` below.
 """
+import logging
 from datetime import date, datetime, timezone
 from typing import Optional
 
@@ -21,6 +22,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import active_member_filter
 from app.models import Member, MemberEmail, MemberPhone
+from app.freescout_client import FreeScoutError, get_freescout_client
+
+logger = logging.getLogger(__name__)
 
 
 def _clean(value: Optional[str]) -> Optional[str]:
@@ -77,18 +81,39 @@ async def update_member(db: AsyncSession, member: Member, **fields) -> Member:
     fields are normalized (stripped, blank -> None) the same way for
     both callers."""
     string_fields = {"first_name", "last_name", "street", "postal_code", "city", "iban", "notes"}
+    name_changed = (
+        ("first_name" in fields and _clean(fields["first_name"]) != member.first_name)
+        or ("last_name" in fields and _clean(fields["last_name"]) != member.last_name)
+    )
     for key, value in fields.items():
         if key in string_fields and value is not None:
             value = _clean(value)
         setattr(member, key, value)
     await db.flush()
+
+    # Keep an already-linked FreeScout customer's name in sync (see
+    # app/freescout_client.py, docs/module-freescout-bridge.md). Only
+    # members that have actually been matched to a conversation ever get
+    # a freescout_customer_id in the first place (lazy push, not
+    # proactive for every member) -- nothing to do otherwise. Never
+    # blocks the member update if FreeScout is unreachable/unconfigured.
+    if name_changed and member.freescout_customer_id is not None:
+        client = await get_freescout_client(db)
+        if client is not None:
+            try:
+                await client.update_customer(
+                    member.freescout_customer_id, first_name=member.first_name, last_name=member.last_name,
+                )
+            except FreeScoutError as e:
+                logger.warning(f"Could not update FreeScout customer for member {member.id}: {e}")
+
     return member
 
 
 async def soft_delete_member(db: AsyncSession, member: Member) -> None:
-    """Sets deleted_at -- already-recorded parcel assignments, tickets,
-    work sessions etc. remain unchanged, no FK cascade, since there's
-    no real DELETE."""
+    """Sets deleted_at -- already-recorded parcel assignments, work
+    sessions etc. remain unchanged, no FK cascade, since there's no
+    real DELETE."""
     member.deleted_at = datetime.now(timezone.utc)
     await db.flush()
 

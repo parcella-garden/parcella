@@ -1,24 +1,22 @@
 """
-Sanitizes HTML from incoming ticket emails so it can be rendered safely
-in the browser.
+Sanitizes HTML from externally-sourced messages so it can be rendered
+safely in the browser -- currently used for FreeScout conversation
+threads (app/templates/freescout/detail.html), fetched live from
+FreeScout's API and rendered via the `sanitize_html` Jinja filter (see
+app/templating.py).
 
-WHY THIS MATTERS: the content comes from any arbitrary external sender
-to the ticket mailbox address -- anyone can send an email there. That's
-a classic stored-XSS setup if the HTML content were rendered unfiltered
-(e.g. <script>, <img onerror=...>, javascript: links, hidden tracking).
-Nothing from this source is ever output unfiltered with "|safe".
-
-Two layers of defense:
-1. When the email is ingested (app/ticket_mailer.py), it's already
-   sanitized HERE before anything lands in the database.
-2. The Jinja filter `sanitize_html` (see app/templating.py) sanitizes
-   again on render -- cheap and harmless on already-clean HTML, but a
-   second safety net in case some future code path lets unchecked
-   content reach a template.
+WHY THIS MATTERS: the content ultimately comes from whoever emailed the
+support inbox -- anyone can send an email there. That's a classic
+stored-XSS setup if the HTML content were rendered unfiltered (e.g.
+<script>, <img onerror=...>, javascript: links, hidden tracking).
+Nothing from this source is ever output unfiltered with "|safe" (the
+function itself returns a markupsafe.Markup instance, so the Jinja
+filter needs no separate "| safe" and can't accidentally be re-escaped).
 """
 import re
 
 import bleach
+from markupsafe import Markup
 
 # <script>/<style> must be removed COMPLETELY (tag AND content) --
 # bleach.clean() only strips disallowed tags themselves and keeps the
@@ -46,11 +44,15 @@ ALLOWED_ATTRIBUTES = {
 ALLOWED_PROTOCOLS = ["http", "https", "mailto"]
 
 
-def sanitize_email_html(html: str) -> str:
-    """Sanitizes HTML from an incoming ticket email for safe rendering.
-    Empty/None input yields an empty string."""
+def sanitize_email_html(html: str) -> Markup:
+    """Sanitizes HTML from an incoming, externally-sourced email/message
+    for safe rendering. Returns a Markup instance (not a plain str) so
+    the Jinja `sanitize_html` filter (app/templating.py) can be used
+    directly as `{{ value | sanitize_html }}` -- no separate `| safe`
+    needed, and no risk of it being escaped a second time on render.
+    Empty/None input yields an empty Markup string."""
     if not html:
-        return ""
+        return Markup("")
 
     html = _SCRIPT_STYLE_RE.sub("", html)
 
@@ -64,11 +66,11 @@ def sanitize_email_html(html: str) -> str:
     )
 
     # Open external links in a new tab without letting the target reach
-    # the ticket list via window.opener -- the content comes from an
+    # the calling page via window.opener -- the content comes from an
     # untrusted sender.
     cleaned = re.sub(
         r'<a\s+href="([^"]*)"([^>]*)>',
         r'<a href="\1" target="_blank" rel="noopener noreferrer"\2>',
         cleaned,
     )
-    return cleaned
+    return Markup(cleaned)
