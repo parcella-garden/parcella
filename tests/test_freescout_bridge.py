@@ -254,6 +254,31 @@ async def test_reply_to_customer_calls_client_and_never_touches_task_comments(cl
 # Permission gating
 # ---------------------------------------------------------------------------
 
+async def test_closed_and_deleted_conversations_are_hidden_from_the_list(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+
+    await _make_link(freescout_conversation_id=201)  # active, default in _make_link
+    async with AsyncSessionLocal() as db:
+        db.add(FreescoutConversationLink(
+            freescout_conversation_id=202, freescout_mailbox_id=1, subject="Old, resolved",
+            customer_email="x@example.com", freescout_status="closed",
+            freescout_updated_at=datetime.now(timezone.utc),
+        ))
+        db.add(FreescoutConversationLink(
+            freescout_conversation_id=203, freescout_mailbox_id=1, subject="Removed in FreeScout",
+            customer_email="x@example.com", freescout_status="deleted",
+            freescout_updated_at=datetime.now(timezone.utc),
+        ))
+        await db.commit()
+
+    response = await client.get("/api/v1/freescout/conversations", headers=headers)
+    assert response.status_code == 200, response.text
+    conversation_ids = {c["freescout_conversation_id"] for c in response.json()}
+    assert conversation_ids == {201}
+
+
 async def test_conversations_endpoint_404_when_module_disabled(client, admin_user):
     token = await login(client, "admin@example.com")
     headers = auth_header(token)

@@ -115,6 +115,15 @@ Upserts are idempotent by `freescout_conversation_id` (find-or-create,
 never a blind insert) -- a duplicate/overlapping poll never creates two
 rows for the same conversation.
 
+**Closed and deleted conversations are still synced, but hidden from
+display.** `app/freescout_sync.py`'s `HIDDEN_STATUSES` (`"closed"`,
+`"deleted"`) is excluded from the `/freescout/` list, the
+`/api/v1/freescout/conversations` list, and the dashboard's "needs
+association" stat -- but the poller keeps updating those rows normally,
+so a conversation that gets reopened in FreeScout still has an accurate,
+already-matched `member_id` waiting for it rather than a stale row
+nobody bothered to keep in sync.
+
 ## FreeScout API client
 
 `app/freescout_client.py`'s `FreeScoutClient` follows the same shape as

@@ -1,6 +1,8 @@
 """
-Helper functions for the ticket system: automatic member matching by
-sender email address.
+Automatic member matching by email address -- shared by anything that
+needs to resolve an external sender/customer address to a Parcella
+member (currently: the FreeScout conversation bridge,
+app/freescout_sync.py).
 """
 from typing import List
 

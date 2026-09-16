@@ -41,7 +41,7 @@ from app.services.work_hours import count_new_participations
 load_translations()
 from app.templating import templates
 from app.freescout_client import get_freescout_client, load_freescout_base_url
-from app.freescout_sync import sync_freescout_conversations
+from app.freescout_sync import sync_freescout_conversations, HIDDEN_STATUSES
 from app.routers import auth, members, parcels, admin as admin_router, admin_groups as admin_groups_router, work_hours, insurance, freescout as freescout_router, purchase_requests, calendar as calendar_router, announcements as announcements_router, inventory as inventory_router, tasks as tasks_router, finances as finances_router
 from app.routers.metering import create_metering_router
 from app.models import MeteringMedium
@@ -534,9 +534,13 @@ async def startseite(request: Request):
         # For the dashboard tile "Support conversations needing association" --
         # unmatched/ambiguous conversations (member_id still NULL) are the
         # ones a staff member needs to look at; matched ones need no action.
+        # Closed/deleted conversations are excluded, same as the /freescout/
+        # list itself (app/freescout_sync.py's HIDDEN_STATUSES) -- a closed
+        # conversation with no member match isn't actionable anymore.
         freescout_needs_association_count = await db.scalar(
             select(func.count()).select_from(FreescoutConversationLink).where(
-                FreescoutConversationLink.member_id.is_(None)
+                FreescoutConversationLink.member_id.is_(None),
+                FreescoutConversationLink.freescout_status.notin_(HIDDEN_STATUSES),
             )
         )
 

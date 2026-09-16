@@ -26,6 +26,7 @@ from app.i18n import t_for
 from app.module_flags import require_module
 from app.member_matching import find_members_by_email
 from app.freescout_client import FreeScoutError, get_freescout_client
+from app.freescout_sync import HIDDEN_STATUSES
 from app.task_board import create_task, next_position
 
 router = APIRouter(
@@ -73,6 +74,7 @@ async def conversation_list(request: Request, db: AsyncSession = Depends(get_db)
     result = await db.execute(
         select(FreescoutConversationLink)
         .options(selectinload(FreescoutConversationLink.member))
+        .where(FreescoutConversationLink.freescout_status.notin_(HIDDEN_STATUSES))
         .order_by(FreescoutConversationLink.freescout_updated_at.desc())
     )
     conversations = result.scalars().all()

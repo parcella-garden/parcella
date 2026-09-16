@@ -12,6 +12,7 @@ from app.models import FreescoutConversationLink, MemberParcel, TaskList, User
 from app.api_auth import require_api_permission, require_admin_api
 from app.module_flags import require_module
 from app.freescout_client import FreeScoutError, get_freescout_client
+from app.freescout_sync import HIDDEN_STATUSES
 from app.task_board import create_task
 from app.schemas import (
     FreescoutConversationLinkOut, FreescoutConversationLinkMemberUpdate,
@@ -46,7 +47,9 @@ async def list_conversations(
     user: User = Depends(require_api_permission("freescout_bridge", "read")),
 ):
     result = await db.execute(
-        select(FreescoutConversationLink).order_by(FreescoutConversationLink.freescout_updated_at.desc())
+        select(FreescoutConversationLink)
+        .where(FreescoutConversationLink.freescout_status.notin_(HIDDEN_STATUSES))
+        .order_by(FreescoutConversationLink.freescout_updated_at.desc())
     )
     return result.scalars().all()
 

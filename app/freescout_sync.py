@@ -31,6 +31,16 @@ from app.models import FreescoutConversationLink, Member, MemberParcel
 
 logger = logging.getLogger(__name__)
 
+# FreeScout conversation statuses (app.models.FreescoutConversationLink.
+# freescout_status, stored as FreeScout's own raw string) that are no
+# longer actionable -- excluded from the staff-facing list views
+# (app/routers/freescout.py, app/routers/api_freescout.py) and the
+# dashboard's "needs association" stat, but still synced/kept up to
+# date normally: a closed conversation that gets reopened in FreeScout
+# must still have an accurate, already-matched member_id waiting for it,
+# not silently stale rows nobody bothered to keep synced.
+HIDDEN_STATUSES = ("closed", "deleted")
+
 
 def _parse_datetime(value: Optional[str]) -> datetime:
     """Parses FreeScout's documented ISO-8601 UTC format
