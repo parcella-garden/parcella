@@ -358,8 +358,7 @@ async def _seed_metering(db: AsyncSession, parcels: list) -> None:
     db.add(water_point)
     _track(db, "metering", water_point)
 
-    water_meter = Meter(id=new_uuid(), metering_point_id=water_point.id, medium=MeteringMedium.WATER,
-                        number="W-DEMO-01",
+    water_meter = Meter(id=new_uuid(), metering_point_id=water_point.id, number="W-DEMO-01",
                         initial_reading=0, installed_at=date.today() - timedelta(days=365 * 2))
     db.add(water_meter)
     _track(db, "metering", water_meter)
@@ -375,8 +374,7 @@ async def _seed_metering(db: AsyncSession, parcels: list) -> None:
     db.add(electricity_point)
     _track(db, "metering", electricity_point)
 
-    electricity_meter = Meter(id=new_uuid(), metering_point_id=electricity_point.id,
-                              medium=MeteringMedium.ELECTRICITY, number="E-DEMO-02",
+    electricity_meter = Meter(id=new_uuid(), metering_point_id=electricity_point.id, number="E-DEMO-02",
                               initial_reading=0, installed_at=date.today() - timedelta(days=365 * 2))
     db.add(electricity_meter)
     _track(db, "metering", electricity_meter)

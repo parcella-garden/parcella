@@ -84,4 +84,5 @@ in chronological order.
 78. [Accident insurance: per-household-member opt-out, not an atomic household toggle](./0078-accident-insurance-per-household-member-opt-out.md)
 79. [Work-session sign-up notifications: a stateless rolling window, not a notification center](./0079-work-session-signup-notifications-stateless-not-a-notification-center.md)
 80. [Remove the built-in ticket module; add a FreeScout conversation bridge](./0080-remove-builtin-ticket-module-freescout-conversation-bridge.md)
-81. [Meter-number uniqueness is scoped per medium, not global](./0081-meter-number-uniqueness-scoped-per-medium.md)
+81. [Meter-number uniqueness is scoped per medium, not global](./0081-meter-number-uniqueness-scoped-per-medium.md) -- superseded by 82
+82. [Meter number uniqueness removed entirely](./0082-meter-number-uniqueness-removed-entirely.md)

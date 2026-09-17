@@ -33,13 +33,6 @@ from app.models import (
 from app.services.errors import ServiceError
 
 
-async def _meter_number_taken(db: AsyncSession, medium: MeteringMedium, number: str) -> bool:
-    result = await db.execute(
-        select(Meter).where(Meter.medium == medium, Meter.number == number)
-    )
-    return result.scalar_one_or_none() is not None
-
-
 async def create_metering_point(
     db: AsyncSession, medium: MeteringMedium, *,
     type: str, number: str,
@@ -47,9 +40,6 @@ async def create_metering_point(
     calibrated_until: Optional[int] = None, installed_at: Optional[date] = None,
     initial_reading: Decimal = Decimal("0"),
 ) -> MeteringPoint:
-    if await _meter_number_taken(db, medium, number):
-        raise ServiceError("metering.errors.duplicate_meter_number", http_status=400, number=number)
-
     metering_point = MeteringPoint(
         medium=medium, type=MeteringPointType(type),
         parcel_id=parcel_id, label=label, notes=notes,
@@ -58,7 +48,7 @@ async def create_metering_point(
     await db.flush()
 
     meter = Meter(
-        metering_point_id=metering_point.id, medium=medium, number=number, is_active=True,
+        metering_point_id=metering_point.id, number=number, is_active=True,
         calibrated_until=calibrated_until, installed_at=installed_at,
         initial_reading=initial_reading,
     )
@@ -90,16 +80,13 @@ async def exchange_meter(
     calibrated_until: Optional[int] = None, initial_reading: Decimal = Decimal("0"),
 ) -> Meter:
     """Deactivates the current meter (removal date) and creates a new one."""
-    if await _meter_number_taken(db, metering_point.medium, new_number):
-        raise ServiceError("metering.errors.duplicate_meter_number", http_status=400, number=new_number)
-
     old_meter = metering_point.current_meter
     if old_meter:
         old_meter.is_active = False
         old_meter.removed_at = removed_at
 
     new_meter = Meter(
-        metering_point_id=metering_point.id, medium=metering_point.medium, number=new_number, is_active=True,
+        metering_point_id=metering_point.id, number=new_number, is_active=True,
         calibrated_until=calibrated_until, installed_at=installed_at,
         initial_reading=initial_reading,
     )

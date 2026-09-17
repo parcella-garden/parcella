@@ -1122,8 +1122,7 @@
       "reading_above_later": "Der Zählerstand ({new_value}) darf nicht größer sein als der bereits erfasste spätere Stand ({later_value}) desselben Zählers.",
       "no_active_meter": "Kein aktiver Zähler für diesen Zählpunkt vorhanden",
       "configuration_not_found": "Preiskonfiguration nicht gefunden",
-      "configuration_year_exists": "Für {year} existiert bereits eine andere Preiskonfiguration.",
-      "duplicate_meter_number": "Ein Zähler mit der Nummer „{number}“ existiert für dieses Medium bereits."
+      "configuration_year_exists": "Für {year} existiert bereits eine andere Preiskonfiguration."
     }
   },
   "work_hours": {

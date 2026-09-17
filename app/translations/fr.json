@@ -1122,8 +1122,7 @@
       "reading_above_later": "Le relevé de compteur ({new_value}) ne doit pas être supérieur au relevé ultérieur déjà enregistré ({later_value}) du même compteur.",
       "no_active_meter": "Aucun compteur actif pour ce point de mesure",
       "configuration_not_found": "Configuration du prix non trouvée",
-      "configuration_year_exists": "Une autre configuration du prix existe déjà pour {year}.",
-      "duplicate_meter_number": "Un compteur avec le numéro « {number} » existe déjà pour ce type de compteur."
+      "configuration_year_exists": "Une autre configuration du prix existe déjà pour {year}."
     }
   },
   "work_hours": {

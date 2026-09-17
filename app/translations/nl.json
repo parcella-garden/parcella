@@ -1122,8 +1122,7 @@
       "reading_above_later": "De meterstand ({new_value}) mag niet groter zijn dan de al geregistreerde latere stand ({later_value}) van dezelfde meter.",
       "no_active_meter": "Geen actieve meter voor dit meetpunt",
       "configuration_not_found": "Prijsconfiguratie niet gevonden",
-      "configuration_year_exists": "Er bestaat al een andere prijsconfiguratie voor {year}.",
-      "duplicate_meter_number": "Er bestaat al een meter met nummer '{number}' voor dit medium."
+      "configuration_year_exists": "Er bestaat al een andere prijsconfiguratie voor {year}."
     }
   },
   "work_hours": {

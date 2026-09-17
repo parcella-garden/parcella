@@ -41,7 +41,7 @@ async def _add_meter_with_reading(
     point = MeteringPoint(medium=medium, type=MeteringPointType.PARCEL, parcel_id=parcel_id)
     session.add(point)
     await session.flush()
-    meter = Meter(metering_point_id=point.id, medium=medium, number=meter_number, initial_reading=initial_reading)
+    meter = Meter(metering_point_id=point.id, number=meter_number, initial_reading=initial_reading)
     session.add(meter)
     await session.flush()
     session.add(MeterReading(meter_id=meter.id, year=year, date=date(year, 10, 1), reading=current_reading))

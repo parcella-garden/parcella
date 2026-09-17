@@ -1,5 +1,15 @@
 # Meter-number uniqueness is scoped per medium, not global
 
+**Note: superseded.** Scoping the constraint per medium was still
+wrong -- kermie: "who the heck told you to make Current Electricity
+meter Number unique? this is folly." Meter number isn't something this
+software should enforce uniqueness on at all, in any scope; a meter's
+real identity is its row id. See
+[ADR 0082](./0082-meter-number-uniqueness-removed-entirely.md), which
+removes the constraint (and the `medium` column added to support it)
+completely. Left as-is here rather than edited, so the reasoning that
+led to this attempt stays visible.
+
 **Context:** production 500 on `POST /electricity/metering-points/new`
 (kermie, 2026-09-17): `sqlalchemy.exc.IntegrityError` /
 `UniqueViolationError` on constraint `wasseruhren_nummer_key`, `Key

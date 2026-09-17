@@ -1122,8 +1122,7 @@
       "reading_above_later": "The meter reading ({new_value}) must not be larger than the already-recorded later reading ({later_value}) of the same meter.",
       "no_active_meter": "No active meter for this metering point",
       "configuration_not_found": "Price configuration not found",
-      "configuration_year_exists": "A different price configuration already exists for {year}.",
-      "duplicate_meter_number": "A meter with number '{number}' already exists for this medium."
+      "configuration_year_exists": "A different price configuration already exists for {year}."
     }
   },
   "work_hours": {
