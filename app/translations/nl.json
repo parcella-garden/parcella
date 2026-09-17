@@ -970,7 +970,10 @@
       "stat_difference_suffix": "Hoofd - verdeeld",
       "nav_all_points": "Alle meetpunten",
       "nav_new_point": "Nieuw meetpunt",
-      "nav_evaluation": "Jaarverslag"
+      "nav_evaluation": "Jaarverslag",
+      "missing_points_card_title": "Percelen zonder meetpunt",
+      "missing_points_none": "Elk perceel heeft een meetpunt.",
+      "missing_points_add": "Meetpunt toevoegen"
     },
     "points_list": {
       "title_suffix": " meetpunten",

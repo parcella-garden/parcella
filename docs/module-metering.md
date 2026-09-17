@@ -95,6 +95,23 @@ year, that run's water/electricity items simply bill nothing for that
 year -- same "nothing configured -> nothing billed" behavior as
 `InsuranceConfiguration`/`WorkHoursConfiguration`.
 
+## Overview page: parcels without a metering point
+
+The `/water/` and `/electricity/` overview pages (`overview()` in
+`app/routers/metering.py`) include a card listing every `ACTIVE`/
+`TERMINATED` parcel that has no `MeteringPointType.PARCEL` metering
+point for that medium (issue #223) -- e.g. a new parcel that was never
+wired up, or one whose only metering point was deleted. `DELETED`
+parcels are excluded, and a `TERMINATED` parcel still counts as missing
+one (same convention as the "new metering point" form's parcel
+dropdown, issue #219) -- a cancelled lease doesn't retroactively make a
+missing metering point irrelevant. Water and electricity coverage are
+independent: a parcel with only a water metering point still shows up
+on the electricity card and vice versa. Each row links straight to
+`/{medium}/metering-points/new?parcel_id=<id>`, which pre-selects that
+parcel (and `type=PARCEL`, already the form's default) so the card is
+actionable rather than a dead-end list.
+
 ## Known pitfalls
 
 - **The "new metering point" parcel dropdown includes `TERMINATED`

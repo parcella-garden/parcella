@@ -970,7 +970,10 @@
       "stat_difference_suffix": "Główny − rozdzielone",
       "nav_all_points": "Wszystkie punkty pomiarowe",
       "nav_new_point": "Nowy punkt pomiarowy",
-      "nav_evaluation": "Rozliczenie roczne"
+      "nav_evaluation": "Rozliczenie roczne",
+      "missing_points_card_title": "Działki bez punktu pomiarowego",
+      "missing_points_none": "Każda działka ma punkt pomiarowy.",
+      "missing_points_add": "Dodaj punkt pomiarowy"
     },
     "points_list": {
       "title_suffix": " – punkty pomiarowe",

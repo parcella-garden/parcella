@@ -970,7 +970,10 @@
       "stat_difference_suffix": "Hlavní - rozdělený",
       "nav_all_points": "Všechna měrná místa",
       "nav_new_point": "Nové měrné místo",
-      "nav_evaluation": "Výroční zpráva"
+      "nav_evaluation": "Výroční zpráva",
+      "missing_points_card_title": "Parcely bez měřicího bodu",
+      "missing_points_none": "Každá parcela má měřicí bod.",
+      "missing_points_add": "Přidat měřicí bod"
     },
     "points_list": {
       "title_suffix": " měrných míst",

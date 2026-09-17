@@ -970,7 +970,10 @@
       "stat_difference_suffix": "Principal - distribué",
       "nav_all_points": "Tous les points de mesure",
       "nav_new_point": "Nouveau point de mesure",
-      "nav_evaluation": "Rapport annuel"
+      "nav_evaluation": "Rapport annuel",
+      "missing_points_card_title": "Parcelles sans point de comptage",
+      "missing_points_none": "Chaque parcelle dispose d'un point de comptage.",
+      "missing_points_add": "Ajouter un point de comptage"
     },
     "points_list": {
       "title_suffix": " points de mesure",

@@ -970,7 +970,10 @@
       "stat_difference_suffix": "Main - distributed",
       "nav_all_points": "All metering points",
       "nav_new_point": "New metering point",
-      "nav_evaluation": "Annual report"
+      "nav_evaluation": "Annual report",
+      "missing_points_card_title": "Parcels without a metering point",
+      "missing_points_none": "Every parcel has a metering point.",
+      "missing_points_add": "Add metering point"
     },
     "points_list": {
       "title_suffix": " metering points",

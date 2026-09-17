@@ -182,6 +182,17 @@ def create_metering_router(
         if year not in available_years:
             available_years.insert(0, year)
 
+        # Parcels without a metering point (issue #223): ACTIVE/TERMINATED
+        # parcels only -- a TERMINATED parcel can still need one (#219) --
+        # DELETED stays excluded, same convention as the "new metering
+        # point" form's own parcel dropdown.
+        parcel_ids_with_point = [p.parcel_id for p in parcels if p.parcel_id]
+        missing_query = select(Parcel).where(Parcel.status.in_([ParcelStatus.ACTIVE, ParcelStatus.TERMINATED]))
+        if parcel_ids_with_point:
+            missing_query = missing_query.where(~Parcel.id.in_(parcel_ids_with_point))
+        result = await db.execute(missing_query.order_by(Parcel.plot_number))
+        parcels_without_metering_point = result.scalars().all()
+
         return templates.TemplateResponse("metering/overview.html", {
             **base_context(request),
             "request": request, "user": user, "year": year,
@@ -194,6 +205,7 @@ def create_metering_router(
             "club_consumption": club_consumption,
             "warning": warning,
             "open_readings": open_readings_count,
+            "parcels_without_metering_point": parcels_without_metering_point,
         })
 
     # -----------------------------------------------------------------
@@ -214,7 +226,9 @@ def create_metering_router(
         })
 
     @router.get("/metering-points/new", response_class=HTMLResponse)
-    async def metering_point_new_page(request: Request, db: AsyncSession = Depends(get_db)):
+    async def metering_point_new_page(
+        request: Request, parcel_id: Optional[str] = None, db: AsyncSession = Depends(get_db),
+    ):
         user = await require_permission(request, db, modul_name, "write")
         result = await db.execute(
             select(Parcel)
@@ -227,6 +241,11 @@ def create_metering_router(
             **base_context(request),
             "request": request, "user": user,
             "all_parcels": all_parcels, "today": date.today().isoformat(),
+            # Pre-selects the parcel/type when linked from the overview's
+            # "parcels without a metering point" card (issue #223) --
+            # otherwise the card is a dead-end list that just repeats what
+            # staff already knows.
+            "preselected_parcel_id": parcel_id,
         })
 
     @router.post("/metering-points/new")

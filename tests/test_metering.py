@@ -320,3 +320,69 @@ async def test_terminated_parcel_still_offered_when_adding_metering_point(client
     assert page.status_code == 200
     assert "TERM-01" in page.text
     assert "DEL-01" not in page.text
+
+
+# ---------------------------------------------------------------------------
+# Overview card: parcels without a metering point (issue #223)
+# ---------------------------------------------------------------------------
+
+async def test_overview_lists_parcels_without_a_metering_point(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    covered = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "COVERED-01"}, headers=headers
+    )).json()
+    await client.post(
+        "/api/v1/electricity/metering-points",
+        json={"type": "PARCEL", "parcel_id": covered["id"], "number": "E-1", "initial_reading": "0"},
+        headers=headers,
+    )
+
+    water_only = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "WATER-ONLY-01"}, headers=headers
+    )).json()
+    await client.post(
+        "/api/v1/water/metering-points",
+        json={"type": "PARCEL", "parcel_id": water_only["id"], "number": "W-1", "initial_reading": "0"},
+        headers=headers,
+    )
+
+    terminated_uncovered = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "TERM-MISSING-01"}, headers=headers
+    )).json()
+    r = await client.put(
+        f"/api/v1/parcels/{terminated_uncovered['id']}", json={"status": "TERMINATED"}, headers=headers,
+    )
+    assert r.status_code == 200, r.text
+
+    deleted_uncovered = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "DEL-MISSING-01"}, headers=headers
+    )).json()
+    r = await client.put(
+        f"/api/v1/parcels/{deleted_uncovered['id']}", json={"status": "DELETED"}, headers=headers,
+    )
+    assert r.status_code == 200, r.text
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    page = await client.get("/electricity/")
+    assert page.status_code == 200
+    # Has an electricity point already -- must not be listed as missing.
+    assert "COVERED-01" not in page.text
+    # Only has a *water* point -- electricity is a separate medium (same
+    # rule as test_electricity_and_water_separate), so it's still missing.
+    assert "WATER-ONLY-01" in page.text
+    # TERMINATED but uncovered -- must still be listed (issue #219 convention).
+    assert "TERM-MISSING-01" in page.text
+    # DELETED parcels are excluded regardless of coverage.
+    assert "DEL-MISSING-01" not in page.text
+    # The card's link must preselect the parcel for the "new metering point" form.
+    assert f"/electricity/metering-points/new?parcel_id={water_only['id']}" in page.text
+
+    preselect_page = await client.get(f"/electricity/metering-points/new?parcel_id={water_only['id']}")
+    assert preselect_page.status_code == 200
+    assert f'value="{water_only["id"]}" selected' in preselect_page.text

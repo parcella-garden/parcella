@@ -970,7 +970,10 @@
       "stat_difference_suffix": "Hlavný - rozdelený",
       "nav_all_points": "Všetky meracie body",
       "nav_new_point": "Nový merací bod",
-      "nav_evaluation": "Výročná správa"
+      "nav_evaluation": "Výročná správa",
+      "missing_points_card_title": "Parcely bez merného bodu",
+      "missing_points_none": "Každá parcela má merný bod.",
+      "missing_points_add": "Pridať merný bod"
     },
     "points_list": {
       "title_suffix": " meracích bodov",

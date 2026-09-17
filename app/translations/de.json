@@ -970,7 +970,10 @@
       "stat_difference_suffix": "Haupt − Verteilung",
       "nav_all_points": "Alle Zählpunkte",
       "nav_new_point": "Neuer Zählpunkt",
-      "nav_evaluation": "Jahresauswertung"
+      "nav_evaluation": "Jahresauswertung",
+      "missing_points_card_title": "Parzellen ohne Zählpunkt",
+      "missing_points_none": "Jede Parzelle hat einen Zählpunkt.",
+      "missing_points_add": "Zählpunkt anlegen"
     },
     "points_list": {
       "title_suffix": "-Zählpunkte",

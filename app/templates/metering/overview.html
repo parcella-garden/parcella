@@ -108,6 +108,35 @@
             </div>
         </div>
     </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-exclamation-triangle me-2"></i>{{ t('metering.overview.missing_points_card_title') }}
+                <span class="badge bg-secondary ms-2">{{ parcels_without_metering_point|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for p in parcels_without_metering_point %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>
+                            {{ p.plot_number }}
+                            {% if p.status.value == 'TERMINATED' %}
+                            <span class="text-muted" style="font-size: 0.8rem;">({{ t('parcels.status.terminated') }})</span>
+                            {% endif %}
+                        </span>
+                        {% if has_perm(request, modul_name, 'write') %}
+                        <a href="{{ url_prefix }}/metering-points/new?parcel_id={{ p.id }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-plus-square me-1"></i>{{ t('metering.overview.missing_points_add') }}
+                        </a>
+                        {% endif %}
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-muted">{{ t('metering.overview.missing_points_none') }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock %}
