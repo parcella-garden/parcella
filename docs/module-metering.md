@@ -97,6 +97,17 @@ year -- same "nothing configured -> nothing billed" behavior as
 
 ## Known pitfalls
 
+- **The "new metering point" parcel dropdown includes `TERMINATED`
+  parcels, not just `ACTIVE`** (issue #219): a lease being cancelled
+  doesn't mean the parcel's water/electricity connection stops needing
+  tracking -- staff still need to add a metering point (or record a
+  final handover reading) for a just-terminated parcel before a new
+  tenant moves in. `DELETED` parcels stay excluded. Same reasoning as
+  the insurance module's `_insurance_parcels_query()` (issue #207):
+  filtering a "new/action" list down to `ACTIVE` only quietly hides the
+  parcels that most need attention right after a status change, not
+  just the settled ones.
+
 - **`Meter.number` is a free-text field, not an enforced-unique
   identifier** (see [ADR 0082](./ADR/0082-meter-number-uniqueness-removed-entirely.md),
   which supersedes [ADR 0081](./ADR/0081-meter-number-uniqueness-scoped-per-medium.md)):

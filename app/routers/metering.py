@@ -217,7 +217,9 @@ def create_metering_router(
     async def metering_point_new_page(request: Request, db: AsyncSession = Depends(get_db)):
         user = await require_permission(request, db, modul_name, "write")
         result = await db.execute(
-            select(Parcel).where(Parcel.status == ParcelStatus.ACTIVE).order_by(Parcel.plot_number)
+            select(Parcel)
+            .where(Parcel.status.in_([ParcelStatus.ACTIVE, ParcelStatus.TERMINATED]))
+            .order_by(Parcel.plot_number)
         )
         all_parcels = result.scalars().all()
 

@@ -284,3 +284,39 @@ async def test_duplicate_meter_number_allowed_same_and_across_media(client, admi
         headers=headers,
     )
     assert electricity_second.status_code == 201, electricity_second.text
+
+
+# ---------------------------------------------------------------------------
+# A TERMINATED parcel (lease cancelled) must still be offered when adding a
+# new metering point (issue #219) -- e.g. to record a final handover
+# reading before a new tenant moves in. The "new metering point" form's
+# parcel dropdown used to filter to ParcelStatus.ACTIVE only, silently
+# hiding every terminated parcel with no error. DELETED parcels must still
+# stay excluded, so this also guards against overbroadening the fix.
+# ---------------------------------------------------------------------------
+
+async def test_terminated_parcel_still_offered_when_adding_metering_point(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    terminated = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "TERM-01"}, headers=headers
+    )).json()
+    r = await client.put(f"/api/v1/parcels/{terminated['id']}", json={"status": "TERMINATED"}, headers=headers)
+    assert r.status_code == 200, r.text
+
+    deleted = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "DEL-01"}, headers=headers
+    )).json()
+    r = await client.put(f"/api/v1/parcels/{deleted['id']}", json={"status": "DELETED"}, headers=headers)
+    assert r.status_code == 200, r.text
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    page = await client.get("/electricity/metering-points/new")
+    assert page.status_code == 200
+    assert "TERM-01" in page.text
+    assert "DEL-01" not in page.text

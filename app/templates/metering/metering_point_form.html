@@ -35,7 +35,7 @@
                         <select name="parcel_id" class="form-select">
                             <option value="">{{ t('metering.point_form.select_parcel_placeholder') }}</option>
                             {% for p in all_parcels %}
-                            <option value="{{ p.id }}">{{ p.plot_number }}</option>
+                            <option value="{{ p.id }}">{{ p.plot_number }}{% if p.status.value == 'TERMINATED' %} ({{ t('parcels.status.terminated') }}){% endif %}</option>
                             {% endfor %}
                         </select>
                     </div>
