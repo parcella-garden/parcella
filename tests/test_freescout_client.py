@@ -80,6 +80,63 @@ async def test_list_conversations_passes_mailbox_and_updated_since():
     assert captured["params"]["updatedSince"] == "2026-09-01T00:00:00Z"
 
 
+async def test_list_conversations_passes_status_when_given():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["params"] = dict(request.url.params)
+        return httpx.Response(200, json={"_embedded": {"conversations": []}})
+
+    client = _client(handler)
+    await client.list_conversations(status="pending")
+    await client.aclose()
+
+    assert captured["params"]["status"] == "pending"
+
+
+async def test_list_all_conversations_covers_every_status_not_just_active():
+    """FreeScout's GET /api/conversations defaults `status` to "active"
+    when the param is omitted -- list_all_conversations() must request
+    every status explicitly or pending/closed/spam conversations are
+    silently dropped (issue #222)."""
+    requested_statuses = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        status = request.url.params["status"]
+        requested_statuses.append(status)
+        if status == "pending" and request.url.params["page"] == "1":
+            return httpx.Response(200, json={"_embedded": {"conversations": [{"id": 99, "status": "pending"}]}})
+        return httpx.Response(200, json={"_embedded": {"conversations": []}})
+
+    client = _client(handler)
+    conversations = await client.list_all_conversations()
+    await client.aclose()
+
+    assert {c["id"] for c in conversations} == {99}
+    assert set(requested_statuses) == {"active", "pending", "closed", "spam"}
+
+
+async def test_list_all_conversations_pages_past_the_first_page():
+    """A full first page must not be mistaken for "no more conversations"
+    -- list_all_conversations() has to keep paging within a status until
+    FreeScout returns a short/empty page (issue #222)."""
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.params["status"] != "active":
+            return httpx.Response(200, json={"_embedded": {"conversations": []}})
+        page = request.url.params["page"]
+        if page == "1":
+            return httpx.Response(200, json={"_embedded": {"conversations": [{"id": 1}, {"id": 2}]}})
+        if page == "2":
+            return httpx.Response(200, json={"_embedded": {"conversations": [{"id": 3}]}})
+        return httpx.Response(200, json={"_embedded": {"conversations": []}})
+
+    client = _client(handler)
+    conversations = await client.list_all_conversations()
+    await client.aclose()
+
+    assert {c["id"] for c in conversations} == {1, 2, 3}
+
+
 async def test_get_conversation_embeds_threads():
     def handler(request: httpx.Request) -> httpx.Response:
         assert request.url.params["embed"] == "threads"

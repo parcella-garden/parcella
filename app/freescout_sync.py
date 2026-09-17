@@ -123,7 +123,7 @@ async def sync_freescout_conversations(db: AsyncSession, client: FreeScoutClient
     last_updated = await db.scalar(select(func.max(FreescoutConversationLink.freescout_updated_at)))
     updated_since = last_updated.strftime("%Y-%m-%dT%H:%M:%SZ") if last_updated else None
 
-    conversations = await client.list_conversations(updated_since=updated_since)
+    conversations = await client.list_all_conversations(updated_since=updated_since)
     count = 0
     for conversation in conversations:
         await _upsert_conversation(db, conversation)
@@ -141,8 +141,8 @@ async def _reconcile_deletions(db: AsyncSession, client: FreeScoutClient) -> Non
     field (or simply a 404 on refetch), not via the `status` values
     (active/pending/closed/spam) the incremental updatedSince-based sync
     above watches -- a deleted conversation just stops being returned by
-    list_conversations() rather than being reported as changed, so it can
-    never be caught there. Instead, re-check every currently-visible
+    list_all_conversations() rather than being reported as changed, so it
+    can never be caught there. Instead, re-check every currently-visible
     (non-hidden) local row directly by ID; one lightweight GET per row,
     bounded by how many conversations Parcella has actually synced so
     far, not by the mailbox's full history -- acceptable at a small

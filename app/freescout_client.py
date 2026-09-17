@@ -40,6 +40,13 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_MAILBOX_ID = 1
 
+# Every status FreeScout's own UI can put a conversation in (see
+# app/freescout_sync.py's HIDDEN_STATUSES docstring). FreeScout's
+# GET /api/conversations defaults `status` to "active" when the param is
+# omitted -- list_all_conversations() below iterates all four explicitly
+# so pending/closed/spam conversations are never silently excluded.
+CONVERSATION_STATUSES = ("active", "pending", "closed", "spam")
+
 
 class FreeScoutError(Exception):
     """Raised for any failure talking to FreeScout -- network, auth, or
@@ -136,14 +143,44 @@ class FreeScoutClient:
 
     async def list_conversations(
         self, mailbox_id: Optional[int] = None, updated_since: Optional[str] = None, page: int = 1,
+        status: Optional[str] = None,
     ) -> List[dict]:
-        """`updated_since` is an ISO-8601 UTC string
-        ("YYYY-MM-DDThh:mm:ssZ"), FreeScout's own required format."""
+        """A single page of a single status. `updated_since` is an
+        ISO-8601 UTC string ("YYYY-MM-DDThh:mm:ssZ"), FreeScout's own
+        required format. Callers doing a full sync want
+        list_all_conversations() instead -- this method alone silently
+        returns only `status="active"` (FreeScout's own default) and only
+        one page."""
         params: Dict[str, Any] = {"mailboxId": mailbox_id or self.mailbox_id, "page": page}
         if updated_since:
             params["updatedSince"] = updated_since
+        if status:
+            params["status"] = status
         response = await self._request("GET", "/api/conversations", params=params)
         return response.json().get("_embedded", {}).get("conversations", [])
+
+    async def list_all_conversations(
+        self, mailbox_id: Optional[int] = None, updated_since: Optional[str] = None,
+    ) -> List[dict]:
+        """Every conversation in every status, across every page --
+        list_conversations() alone only ever returns a single page of the
+        "active" status (FreeScout's own default when `status` is
+        omitted), which silently drops pending/closed/spam conversations
+        and anything past the first page. Used by app/freescout_sync.py's
+        poll loop; iterates each status in CONVERSATION_STATUSES and pages
+        through each until FreeScout returns an empty page."""
+        conversations: List[dict] = []
+        for status in CONVERSATION_STATUSES:
+            page = 1
+            while True:
+                batch = await self.list_conversations(
+                    mailbox_id=mailbox_id, updated_since=updated_since, page=page, status=status,
+                )
+                if not batch:
+                    break
+                conversations.extend(batch)
+                page += 1
+        return conversations
 
     async def get_conversation(self, conversation_id: int, embed: str = "threads") -> dict:
         response = await self._request("GET", f"/api/conversations/{conversation_id}", params={"embed": embed})

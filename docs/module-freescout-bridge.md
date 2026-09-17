@@ -115,6 +115,20 @@ Upserts are idempotent by `freescout_conversation_id` (find-or-create,
 never a blind insert) -- a duplicate/overlapping poll never creates two
 rows for the same conversation.
 
+**The poller must fetch every status and every page, not just the
+default.** FreeScout's `GET /api/conversations` defaults `status` to
+`"active"` when the param is omitted, and only ever returns one page
+(`pageSize` 50, newest-`createdAt`-first) per call. Naively calling
+`FreeScoutClient.list_conversations()` once per poll therefore silently
+drops every `pending` conversation and anything past the first 50 --
+worse, since the poll's `updated_since` cursor is `max(freescout_updated_at)`
+of what's already synced, a conversation skipped this way never gets a
+second chance on a later poll. `FreeScoutClient.list_all_conversations()`
+is the fix: it loops `page` within each of `CONVERSATION_STATUSES`
+(`active`/`pending`/`closed`/`spam`) until FreeScout returns an empty
+page. The poll loop always calls `list_all_conversations()`, never
+`list_conversations()` directly (hit for real: issue #222).
+
 **Closed and deleted conversations are still synced, but hidden from
 display.** `app/freescout_sync.py`'s `HIDDEN_STATUSES` (`"closed"`,
 `"deleted"`) is excluded from the `/freescout/` list, the
@@ -203,3 +217,13 @@ like any other.
 - No automatic task-creation rules -- promoting a conversation to a task
   is always a manual staff action; `message_count` is shown as a hint,
   never a trigger.
+- **The `status`/pagination fix (issue #222) is forward-only, not a
+  backfill.** The poll's `updated_since` cursor is `max(freescout_updated_at)`
+  of what's already synced -- on an instance that already ran the old,
+  buggy poller, that cursor may already sit past conversations that were
+  silently never synced (wrong status, or past the first page). Those
+  rows aren't retroactively pulled in; they'll sync the next time
+  something changes them in FreeScout (a reply, a status change, etc.
+  bumps `updatedAt` past the cursor). Deliberate scope cut -- a one-time
+  full resync (ignoring the cursor) would need its own admin-triggered
+  action, not built here.

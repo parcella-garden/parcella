@@ -29,7 +29,7 @@ class _FakeFreeScoutClient:
         self._states = states or {}
         self.reply_calls = []
 
-    async def list_conversations(self, mailbox_id=None, updated_since=None, page=1):
+    async def list_all_conversations(self, mailbox_id=None, updated_since=None):
         return self._conversations
 
     async def get_conversation_state(self, conversation_id):
@@ -212,6 +212,27 @@ async def test_sync_is_idempotent_on_repeated_conversation():
             select(FreescoutConversationLink).where(FreescoutConversationLink.freescout_conversation_id == 6)
         )
         assert len(result.scalars().all()) == 1
+
+
+async def test_sync_persists_pending_conversations():
+    """The sync poller must fetch pending conversations, not just active
+    ones -- FreeScout's own list endpoint would otherwise silently drop
+    them (issue #222). This exercises app/freescout_sync.py's use of
+    FreeScoutClient.list_all_conversations(), not the client's HTTP layer
+    itself (see tests/test_freescout_client.py for that)."""
+    client = _FakeFreeScoutClient(
+        [_conversation(8, email="pending@example.com", customer_id=None, status="pending")],
+        states={8: "pending"},
+    )
+
+    async with AsyncSessionLocal() as db:
+        count = await sync_freescout_conversations(db, client)
+        assert count == 1
+
+        link = (await db.execute(
+            select(FreescoutConversationLink).where(FreescoutConversationLink.freescout_conversation_id == 8)
+        )).scalar_one()
+        assert link.freescout_status == "pending"
 
 
 async def test_sync_never_reguesses_once_staff_has_associated_a_conversation():
