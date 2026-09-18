@@ -88,6 +88,19 @@
             </div>
         </div>
     </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    {{ t('metering.overview.stat_missing_points') }}
+                </div>
+                <div style="font-size: 1.6rem; font-weight: 700; color: {% if parcels_without_metering_point %}#991b1b{% else %}#065f46{% endif %};">
+                    {{ parcels_without_metering_point|length }}
+                </div>
+                <div class="text-muted" style="font-size: 0.8rem;">{{ t('metering.overview.stat_missing_points_suffix') }}</div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="row g-3">
@@ -105,35 +118,6 @@
                 <a href="{{ url_prefix }}/evaluation?year={{ year }}" class="btn btn-outline-secondary text-start">
                     <i class="bi bi-bar-chart me-2"></i>{{ t('metering.overview.nav_evaluation') }}
                 </a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-exclamation-triangle me-2"></i>{{ t('metering.overview.missing_points_card_title') }}
-                <span class="badge bg-secondary ms-2">{{ parcels_without_metering_point|length }}</span>
-            </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    {% for p in parcels_without_metering_point %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>
-                            {{ p.plot_number }}
-                            {% if p.status.value == 'TERMINATED' %}
-                            <span class="text-muted" style="font-size: 0.8rem;">({{ t('parcels.status.terminated') }})</span>
-                            {% endif %}
-                        </span>
-                        {% if has_perm(request, modul_name, 'write') %}
-                        <a href="{{ url_prefix }}/metering-points/new?parcel_id={{ p.id }}" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-plus-square me-1"></i>{{ t('metering.overview.missing_points_add') }}
-                        </a>
-                        {% endif %}
-                    </li>
-                    {% else %}
-                    <li class="list-group-item text-muted">{{ t('metering.overview.missing_points_none') }}</li>
-                    {% endfor %}
-                </ul>
             </div>
         </div>
     </div>

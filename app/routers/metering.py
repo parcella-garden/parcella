@@ -226,9 +226,7 @@ def create_metering_router(
         })
 
     @router.get("/metering-points/new", response_class=HTMLResponse)
-    async def metering_point_new_page(
-        request: Request, parcel_id: Optional[str] = None, db: AsyncSession = Depends(get_db),
-    ):
+    async def metering_point_new_page(request: Request, db: AsyncSession = Depends(get_db)):
         user = await require_permission(request, db, modul_name, "write")
         result = await db.execute(
             select(Parcel)
@@ -241,11 +239,6 @@ def create_metering_router(
             **base_context(request),
             "request": request, "user": user,
             "all_parcels": all_parcels, "today": date.today().isoformat(),
-            # Pre-selects the parcel/type when linked from the overview's
-            # "parcels without a metering point" card (issue #223) --
-            # otherwise the card is a dead-end list that just repeats what
-            # staff already knows.
-            "preselected_parcel_id": parcel_id,
         })
 
     @router.post("/metering-points/new")

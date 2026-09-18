@@ -971,9 +971,8 @@
       "nav_all_points": "Alle Zählpunkte",
       "nav_new_point": "Neuer Zählpunkt",
       "nav_evaluation": "Jahresauswertung",
-      "missing_points_card_title": "Parzellen ohne Zählpunkt",
-      "missing_points_none": "Jede Parzelle hat einen Zählpunkt.",
-      "missing_points_add": "Zählpunkt anlegen"
+      "stat_missing_points": "Fehlende Zählpunkte",
+      "stat_missing_points_suffix": "Parzelle(n) ohne Zählpunkt"
     },
     "points_list": {
       "title_suffix": "-Zählpunkte",

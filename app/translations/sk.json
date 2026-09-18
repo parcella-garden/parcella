@@ -971,9 +971,8 @@
       "nav_all_points": "Všetky meracie body",
       "nav_new_point": "Nový merací bod",
       "nav_evaluation": "Výročná správa",
-      "missing_points_card_title": "Parcely bez merného bodu",
-      "missing_points_none": "Každá parcela má merný bod.",
-      "missing_points_add": "Pridať merný bod"
+      "stat_missing_points": "Chýbajúce merné body",
+      "stat_missing_points_suffix": "parcela(y) bez bodu"
     },
     "points_list": {
       "title_suffix": " meracích bodov",

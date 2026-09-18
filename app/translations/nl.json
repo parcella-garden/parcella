@@ -971,9 +971,8 @@
       "nav_all_points": "Alle meetpunten",
       "nav_new_point": "Nieuw meetpunt",
       "nav_evaluation": "Jaarverslag",
-      "missing_points_card_title": "Percelen zonder meetpunt",
-      "missing_points_none": "Elk perceel heeft een meetpunt.",
-      "missing_points_add": "Meetpunt toevoegen"
+      "stat_missing_points": "Ontbrekende meetpunten",
+      "stat_missing_points_suffix": "perceel/percelen zonder meetpunt"
     },
     "points_list": {
       "title_suffix": " meetpunten",

@@ -98,7 +98,8 @@ year -- same "nothing configured -> nothing billed" behavior as
 ## Overview page: parcels without a metering point
 
 The `/water/` and `/electricity/` overview pages (`overview()` in
-`app/routers/metering.py`) include a card listing every `ACTIVE`/
+`app/routers/metering.py`) include a fifth stat tile, alongside main
+meter/parcels/club connections/difference, counting every `ACTIVE`/
 `TERMINATED` parcel that has no `MeteringPointType.PARCEL` metering
 point for that medium (issue #223) -- e.g. a new parcel that was never
 wired up, or one whose only metering point was deleted. `DELETED`
@@ -106,11 +107,11 @@ parcels are excluded, and a `TERMINATED` parcel still counts as missing
 one (same convention as the "new metering point" form's parcel
 dropdown, issue #219) -- a cancelled lease doesn't retroactively make a
 missing metering point irrelevant. Water and electricity coverage are
-independent: a parcel with only a water metering point still shows up
-on the electricity card and vice versa. Each row links straight to
-`/{medium}/metering-points/new?parcel_id=<id>`, which pre-selects that
-parcel (and `type=PARCEL`, already the form's default) so the card is
-actionable rather than a dead-end list.
+independent: a parcel with only a water metering point still counts as
+missing on the electricity tile and vice versa. Deliberately just a
+count, matching the other four tiles -- not a list of parcel names/links,
+which was the first cut at this but didn't match the page's existing
+visual language.
 
 ## Known pitfalls
 
