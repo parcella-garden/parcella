@@ -972,7 +972,8 @@
       "nav_new_point": "Nouveau point de mesure",
       "nav_evaluation": "Rapport annuel",
       "stat_missing_points": "Points de comptage manquants",
-      "stat_missing_points_suffix": "parcelle(s) sans point"
+      "stat_missing_points_suffix": "parcelle(s) sans point",
+      "filter_show": "Afficher"
     },
     "points_list": {
       "title_suffix": " points de mesure",
@@ -993,7 +994,10 @@
       "empty": "Aucun point de mesure {medium} créé.",
       "create_first": "Créer un premier point de mesure",
       "count_suffix": "point(s) de mesure",
-      "delete_confirm": "Voulez-vous vraiment supprimer ce point de mesure ? Tous les compteurs et relevés associés seront également supprimés."
+      "delete_confirm": "Voulez-vous vraiment supprimer ce point de mesure ? Tous les compteurs et relevés associés seront également supprimés.",
+      "filter_clear": "Effacer le filtre",
+      "missing_filter_add": "Ajouter un point de comptage",
+      "missing_filter_empty": "Chaque parcelle dispose d'un point de comptage."
     },
     "point_form": {
       "title_new": "Nouveau point de mesure {medium}",

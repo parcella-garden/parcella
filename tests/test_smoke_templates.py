@@ -582,6 +582,16 @@ async def test_smoke_metering_pages_render_without_jinja_errors(client, admin_us
     assert r_points_list.status_code == 200
     assert "UndefinedError" not in r_points_list.text
 
+    # Overview stat tile filters (issue #224).
+    r_type_filter = await client.get("/water/metering-points", params={"type": "PARCEL"})
+    assert r_type_filter.status_code == 200
+    assert "UndefinedError" not in r_type_filter.text
+
+    r_missing_filter = await client.get("/water/metering-points", params={"missing": "1"})
+    assert r_missing_filter.status_code == 200
+    assert "UndefinedError" not in r_missing_filter.text
+    assert "ZZW1" in r_missing_filter.text
+
     r_new_page = await client.get("/water/metering-points/new")
     assert r_new_page.status_code == 200
     assert "UndefinedError" not in r_new_page.text

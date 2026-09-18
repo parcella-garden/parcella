@@ -972,7 +972,8 @@
       "nav_new_point": "Neuer Zählpunkt",
       "nav_evaluation": "Jahresauswertung",
       "stat_missing_points": "Fehlende Zählpunkte",
-      "stat_missing_points_suffix": "Parzelle(n) ohne Zählpunkt"
+      "stat_missing_points_suffix": "Parzelle(n) ohne Zählpunkt",
+      "filter_show": "Anzeigen"
     },
     "points_list": {
       "title_suffix": "-Zählpunkte",
@@ -993,7 +994,10 @@
       "empty": "Noch keine {medium}-Zählpunkte angelegt.",
       "create_first": "Ersten Zählpunkt anlegen",
       "count_suffix": "Zählpunkt(e)",
-      "delete_confirm": "Zählpunkt wirklich löschen? Alle zugehörigen Zähler und Zählerstände werden ebenfalls gelöscht."
+      "delete_confirm": "Zählpunkt wirklich löschen? Alle zugehörigen Zähler und Zählerstände werden ebenfalls gelöscht.",
+      "filter_clear": "Filter zurücksetzen",
+      "missing_filter_add": "Zählpunkt anlegen",
+      "missing_filter_empty": "Jede Parzelle hat einen Zählpunkt."
     },
     "point_form": {
       "title_new": "Neuer {medium}-Zählpunkt",

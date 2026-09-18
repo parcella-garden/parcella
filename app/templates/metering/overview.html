@@ -46,6 +46,9 @@
                 </div>
                 <div class="text-muted" style="font-size: 0.8rem;">{{ main_meter_count }} {{ t('metering.overview.stat_main_meter_suffix') }}</div>
             </div>
+            <div class="card-footer bg-transparent border-top-0 pt-0">
+                <a href="{{ url_prefix }}/metering-points?type=MAIN_METER" class="btn btn-sm btn-outline-primary w-100">{{ t('metering.overview.filter_show') }}</a>
+            </div>
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
@@ -59,6 +62,9 @@
                 </div>
                 <div class="text-muted" style="font-size: 0.8rem;">{{ parcel_count }} {{ t('metering.overview.stat_parcels_suffix') }}</div>
             </div>
+            <div class="card-footer bg-transparent border-top-0 pt-0">
+                <a href="{{ url_prefix }}/metering-points?type=PARCEL" class="btn btn-sm btn-outline-primary w-100">{{ t('metering.overview.filter_show') }}</a>
+            </div>
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
@@ -71,6 +77,9 @@
                     {{ club_consumption | fmt(decimal_places) }} {{ unit }}
                 </div>
                 <div class="text-muted" style="font-size: 0.8rem;">{{ club_count }} {{ t('metering.overview.stat_club_suffix') }}</div>
+            </div>
+            <div class="card-footer bg-transparent border-top-0 pt-0">
+                <a href="{{ url_prefix }}/metering-points?type=CLUB" class="btn btn-sm btn-outline-primary w-100">{{ t('metering.overview.filter_show') }}</a>
             </div>
         </div>
     </div>
@@ -98,6 +107,9 @@
                     {{ parcels_without_metering_point|length }}
                 </div>
                 <div class="text-muted" style="font-size: 0.8rem;">{{ t('metering.overview.stat_missing_points_suffix') }}</div>
+            </div>
+            <div class="card-footer bg-transparent border-top-0 pt-0">
+                <a href="{{ url_prefix }}/metering-points?missing=1" class="btn btn-sm btn-outline-primary w-100">{{ t('metering.overview.filter_show') }}</a>
             </div>
         </div>
     </div>

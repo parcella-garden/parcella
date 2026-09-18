@@ -972,7 +972,8 @@
       "nav_new_point": "Nový merací bod",
       "nav_evaluation": "Výročná správa",
       "stat_missing_points": "Chýbajúce merné body",
-      "stat_missing_points_suffix": "parcela(y) bez bodu"
+      "stat_missing_points_suffix": "parcela(y) bez bodu",
+      "filter_show": "Zobraziť"
     },
     "points_list": {
       "title_suffix": " meracích bodov",
@@ -993,7 +994,10 @@
       "empty": "Zatiaľ neboli vytvorené žiadne meracie body pre {medium}.",
       "create_first": "Vytvoriť prvý merací bod",
       "count_suffix": "merací(é) bod(y)",
-      "delete_confirm": "Naozaj vymazať tento merací bod? Všetky súvisiace merače a odpočty budú tiež vymazané."
+      "delete_confirm": "Naozaj vymazať tento merací bod? Všetky súvisiace merače a odpočty budú tiež vymazané.",
+      "filter_clear": "Zrušiť filter",
+      "missing_filter_add": "Pridať merný bod",
+      "missing_filter_empty": "Každá parcela má merný bod."
     },
     "point_form": {
       "title_new": "Nový merací bod pre {medium}",

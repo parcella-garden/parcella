@@ -113,6 +113,24 @@ count, matching the other four tiles -- not a list of parcel names/links,
 which was the first cut at this but didn't match the page's existing
 visual language.
 
+Each of the five stat tiles (except Difference, which is a computed
+value, not a category) has a "Show" footer button linking into
+`/{medium}/metering-points` with a filter (issue #224) -- same
+"stat card + Show button -> filtered list" pattern the main dashboard
+already uses (e.g. its Terminated-parcels card linking to
+`/parcels/?status_filter=TERMINATED`):
+
+- Main meter / Parcels / Club connections -> `?type=MAIN_METER`/`PARCEL`/`CLUB`,
+  filtering the normal metering-points table to that `MeteringPointType`.
+- Missing metering points -> `?missing=1`. There's no `MeteringPoint` row
+  to filter to for these, so this switches the *same* list page to a
+  distinct view: the actual parcels with none, each linking to the "new
+  metering point" form with that parcel pre-selected
+  (`?parcel_id=<id>` on `/metering-points/new`) so it's actionable
+  rather than a dead end. `_load_parcels_without_metering_point()` is
+  shared between the overview tile's count and this filtered view so
+  the two can't drift apart.
+
 ## Known pitfalls
 
 - **The "new metering point" parcel dropdown includes `TERMINATED`

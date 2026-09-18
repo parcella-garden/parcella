@@ -130,6 +130,22 @@ def create_metering_router(
         )
         return result.scalars().all()
 
+    async def _load_parcels_without_metering_point(db: AsyncSession, all_points: List[MeteringPoint]) -> List[Parcel]:
+        """ACTIVE/TERMINATED parcels with no PARCEL-type metering point for
+        this medium (issue #223) -- a TERMINATED parcel can still need one
+        (#219), DELETED stays excluded, same convention as the "new
+        metering point" form's own parcel dropdown. Shared by the overview
+        stat tile and the metering-points list's `?missing=1` filter so
+        the two can't drift apart."""
+        parcel_ids_with_point = [
+            p.parcel_id for p in all_points if p.type == MeteringPointType.PARCEL and p.parcel_id
+        ]
+        query = select(Parcel).where(Parcel.status.in_([ParcelStatus.ACTIVE, ParcelStatus.TERMINATED]))
+        if parcel_ids_with_point:
+            query = query.where(~Parcel.id.in_(parcel_ids_with_point))
+        result = await db.execute(query.order_by(Parcel.plot_number))
+        return result.scalars().all()
+
     def _metering_point_sort_key(a: MeteringPoint):
         # Same ordering as the metering-points list page (issue #212's
         # Previous/Next walks that same order, mirroring the
@@ -182,16 +198,7 @@ def create_metering_router(
         if year not in available_years:
             available_years.insert(0, year)
 
-        # Parcels without a metering point (issue #223): ACTIVE/TERMINATED
-        # parcels only -- a TERMINATED parcel can still need one (#219) --
-        # DELETED stays excluded, same convention as the "new metering
-        # point" form's own parcel dropdown.
-        parcel_ids_with_point = [p.parcel_id for p in parcels if p.parcel_id]
-        missing_query = select(Parcel).where(Parcel.status.in_([ParcelStatus.ACTIVE, ParcelStatus.TERMINATED]))
-        if parcel_ids_with_point:
-            missing_query = missing_query.where(~Parcel.id.in_(parcel_ids_with_point))
-        result = await db.execute(missing_query.order_by(Parcel.plot_number))
-        parcels_without_metering_point = result.scalars().all()
+        parcels_without_metering_point = await _load_parcels_without_metering_point(db, all_points)
 
         return templates.TemplateResponse("metering/overview.html", {
             **base_context(request),
@@ -213,20 +220,41 @@ def create_metering_router(
     # -----------------------------------------------------------------
 
     @router.get("/metering-points", response_class=HTMLResponse)
-    async def metering_points_list(request: Request, db: AsyncSession = Depends(get_db)):
+    async def metering_points_list(
+        request: Request, type: Optional[str] = None, missing: Optional[str] = None,
+        db: AsyncSession = Depends(get_db),
+    ):
         user = await require_permission(request, db, modul_name, "read")
         all_points = await _load_all_metering_points(db)
-        all_points.sort(key=_metering_point_sort_key)
+
+        parcels_without_metering_point = None
+        if missing:
+            parcels_without_metering_point = await _load_parcels_without_metering_point(db, all_points)
+            filtered_points = []
+        else:
+            filtered_points = all_points
+            if type in {t.value for t in MeteringPointType}:
+                filtered_points = [p for p in filtered_points if p.type.value == type]
+            filtered_points.sort(key=_metering_point_sort_key)
 
         return templates.TemplateResponse("metering/metering_points_list.html", {
             **base_context(request),
             "request": request, "user": user,
-            "metering_points": all_points, "MeteringPointType": MeteringPointType,
+            "metering_points": filtered_points, "MeteringPointType": MeteringPointType,
             "year": date.today().year,
+            # Overview stat tiles link here with a filter (issue #224) --
+            # `type_filter` narrows to one MeteringPointType, `missing`
+            # switches the page to the parcels-without-a-point view
+            # instead (there's no MeteringPoint row to filter to for those).
+            "type_filter": None if missing else type,
+            "missing_filter": bool(missing),
+            "parcels_without_metering_point": parcels_without_metering_point,
         })
 
     @router.get("/metering-points/new", response_class=HTMLResponse)
-    async def metering_point_new_page(request: Request, db: AsyncSession = Depends(get_db)):
+    async def metering_point_new_page(
+        request: Request, parcel_id: Optional[str] = None, db: AsyncSession = Depends(get_db),
+    ):
         user = await require_permission(request, db, modul_name, "write")
         result = await db.execute(
             select(Parcel)
@@ -239,6 +267,10 @@ def create_metering_router(
             **base_context(request),
             "request": request, "user": user,
             "all_parcels": all_parcels, "today": date.today().isoformat(),
+            # Pre-selects the parcel when linked from the metering-points
+            # list's "missing" filter (issue #224) -- otherwise that list
+            # is a dead end that just repeats what staff already knows.
+            "preselected_parcel_id": parcel_id,
         })
 
     @router.post("/metering-points/new")

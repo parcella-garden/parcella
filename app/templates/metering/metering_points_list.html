@@ -16,6 +16,57 @@
 {% endblock %}
 
 {% block content %}
+
+{% if type_filter or missing_filter %}
+<div class="alert alert-secondary d-flex justify-content-between align-items-center mb-3">
+    <span>
+        <i class="bi bi-funnel me-1"></i>
+        {% if missing_filter %}
+        {{ t('metering.overview.stat_missing_points') }}
+        {% elif type_filter == 'MAIN_METER' %}
+        {{ t('metering.points_list.type_main_meter') }}
+        {% elif type_filter == 'PARCEL' %}
+        {{ t('metering.points_list.type_parcel') }}
+        {% elif type_filter == 'CLUB' %}
+        {{ t('metering.points_list.type_club') }}
+        {% endif %}
+    </span>
+    <a href="{{ url_prefix }}/metering-points" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-x-lg me-1"></i>{{ t('metering.points_list.filter_clear') }}
+    </a>
+</div>
+{% endif %}
+
+{% if missing_filter %}
+<div class="card">
+    <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+            {% for p in parcels_without_metering_point %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                    {{ p.plot_number }}
+                    {% if p.status.value == 'TERMINATED' %}
+                    <span class="text-muted" style="font-size: 0.8rem;">({{ t('parcels.status.terminated') }})</span>
+                    {% endif %}
+                </span>
+                {% if has_perm(request, modul_name, 'write') %}
+                <a href="{{ url_prefix }}/metering-points/new?parcel_id={{ p.id }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-plus-square me-1"></i>{{ t('metering.points_list.missing_filter_add') }}
+                </a>
+                {% endif %}
+            </li>
+            {% else %}
+            <li class="list-group-item text-muted">{{ t('metering.points_list.missing_filter_empty') }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% if parcels_without_metering_point %}
+    <div class="card-footer text-muted" style="font-size: 0.82rem;">
+        {{ parcels_without_metering_point | length }} {{ t('metering.points_list.count_suffix') }}
+    </div>
+    {% endif %}
+</div>
+{% else %}
 <div class="card">
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -104,4 +155,5 @@
     </div>
     {% endif %}
 </div>
+{% endif %}
 {% endblock %}

@@ -972,7 +972,8 @@
       "nav_new_point": "Nowy punkt pomiarowy",
       "nav_evaluation": "Rozliczenie roczne",
       "stat_missing_points": "Brakujące punkty pomiarowe",
-      "stat_missing_points_suffix": "działka(i) bez punktu"
+      "stat_missing_points_suffix": "działka(i) bez punktu",
+      "filter_show": "Pokaż"
     },
     "points_list": {
       "title_suffix": " – punkty pomiarowe",
@@ -993,7 +994,10 @@
       "empty": "Nie utworzono jeszcze punktów pomiarowych ({medium}).",
       "create_first": "Utwórz pierwszy punkt pomiarowy",
       "count_suffix": "punkt(y) pomiarowe",
-      "delete_confirm": "Czy na pewno usunąć ten punkt pomiarowy? Wszystkie powiązane liczniki i odczyty zostaną również usunięte."
+      "delete_confirm": "Czy na pewno usunąć ten punkt pomiarowy? Wszystkie powiązane liczniki i odczyty zostaną również usunięte.",
+      "filter_clear": "Wyczyść filtr",
+      "missing_filter_add": "Dodaj punkt pomiarowy",
+      "missing_filter_empty": "Każda działka ma punkt pomiarowy."
     },
     "point_form": {
       "title_new": "Nowy punkt pomiarowy ({medium})",

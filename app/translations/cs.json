@@ -972,7 +972,8 @@
       "nav_new_point": "Nové měrné místo",
       "nav_evaluation": "Výroční zpráva",
       "stat_missing_points": "Chybějící měřicí body",
-      "stat_missing_points_suffix": "parcela(y) bez bodu"
+      "stat_missing_points_suffix": "parcela(y) bez bodu",
+      "filter_show": "Zobrazit"
     },
     "points_list": {
       "title_suffix": " měrných míst",
@@ -993,7 +994,10 @@
       "empty": "Zatím nebyly vytvořeny žádné měrné body pro {medium}.",
       "create_first": "Vytvořit první měrné místo",
       "count_suffix": "měrné(ých) míst(a)",
-      "delete_confirm": "Opravdu smazat toto měrné místo? Všechny přidružené měřiče a odečty budou také smazány."
+      "delete_confirm": "Opravdu smazat toto měrné místo? Všechny přidružené měřiče a odečty budou také smazány.",
+      "filter_clear": "Zrušit filtr",
+      "missing_filter_add": "Přidat měřicí bod",
+      "missing_filter_empty": "Každá parcela má měřicí bod."
     },
     "point_form": {
       "title_new": "Nové měrné místo pro {medium}",

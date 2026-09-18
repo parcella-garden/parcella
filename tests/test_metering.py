@@ -381,3 +381,88 @@ async def test_overview_counts_parcels_without_a_metering_point(client, admin_us
     match = re.search(r"Missing metering points.*?>\s*(\d+)\s*<", page.text, re.DOTALL)
     assert match, "stat tile label/count not found in rendered page"
     assert match.group(1) == "2"  # water_only + terminated_uncovered
+
+    # Overview tiles link to the filtered metering-points list (issue #224).
+    assert "/electricity/metering-points?type=MAIN_METER" in page.text
+    assert "/electricity/metering-points?type=PARCEL" in page.text
+    assert "/electricity/metering-points?type=CLUB" in page.text
+    assert "/electricity/metering-points?missing=1" in page.text
+
+
+# ---------------------------------------------------------------------------
+# Metering-points list: type/missing filters linked from the overview
+# stat tiles (issue #224)
+# ---------------------------------------------------------------------------
+
+async def test_metering_points_list_type_filter(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    main_meter = (await client.post(
+        "/api/v1/electricity/metering-points",
+        json={"type": "MAIN_METER", "label": "Main", "number": "E-MAIN", "initial_reading": "0"},
+        headers=headers,
+    )).json()
+    club = (await client.post(
+        "/api/v1/electricity/metering-points",
+        json={"type": "CLUB", "label": "Clubhouse", "number": "E-CLUB", "initial_reading": "0"},
+        headers=headers,
+    )).json()
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    page = await client.get("/electricity/metering-points", params={"type": "CLUB"})
+    assert page.status_code == 200
+    assert "Clubhouse" in page.text
+    assert "Main" not in page.text
+    # The active filter is shown with a way to clear it back to the unfiltered list.
+    assert "/electricity/metering-points\"" in page.text
+
+
+async def test_metering_points_list_missing_filter(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    covered = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "COVERED-02"}, headers=headers
+    )).json()
+    await client.post(
+        "/api/v1/electricity/metering-points",
+        json={"type": "PARCEL", "parcel_id": covered["id"], "number": "E-2", "initial_reading": "0"},
+        headers=headers,
+    )
+    uncovered = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "MISSING-02"}, headers=headers
+    )).json()
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    page = await client.get("/electricity/metering-points", params={"missing": "1"})
+    assert page.status_code == 200
+    assert "MISSING-02" in page.text
+    assert "COVERED-02" not in page.text
+    assert f"/electricity/metering-points/new?parcel_id={uncovered['id']}" in page.text
+
+
+async def test_new_metering_point_page_preselects_parcel_from_query_param(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    parcel = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "PRESEL-01"}, headers=headers
+    )).json()
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    page = await client.get(f"/electricity/metering-points/new?parcel_id={parcel['id']}")
+    assert page.status_code == 200
+    assert f'value="{parcel["id"]}" selected' in page.text
