@@ -216,10 +216,11 @@ added to the shared router factory so both media get it automatically.
   which keeps German headers as a legacy fact (see its own docstring);
   this is new functionality, so it follows the "English first, going
   forward" convention instead of copying that precedent.
-- XLSX import (a self-hoster's data sometimes arrives as an Excel file
-  rather than CSV) was raised alongside this but deliberately left out
-  of #225's scope -- worth its own ticket once there's an actual file
-  in hand.
+- XLSX import was raised alongside this (a self-hoster's data
+  sometimes arrives as an Excel file rather than CSV) and then
+  explicitly dropped, not just deferred -- kermie: CSV is the way to
+  go. Not a gap to revisit; an Excel export can be saved as CSV before
+  importing.
 
 ## REST API
 
