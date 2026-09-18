@@ -997,7 +997,15 @@
       "delete_confirm": "Dit meetpunt echt verwijderen? Alle bijbehorende meters en meterstanden worden ook verwijderd.",
       "filter_clear": "Filter wissen",
       "missing_filter_add": "Meetpunt toevoegen",
-      "missing_filter_empty": "Elk perceel heeft een meetpunt."
+      "missing_filter_empty": "Elk perceel heeft een meetpunt.",
+      "csv_import": "CSV-import",
+      "csv_export": "CSV-export",
+      "csv_import_modal_title": "CSV-import",
+      "csv_import_button": "Importeren",
+      "csv_format_help": "Formaat: puntkomma-gescheiden CSV met kolommen: Type (MAIN_METER/PARCEL/CLUB); Parcel number; Label; Meter number; Installed on (JJJJ-MM-DD); Calibrated until (jaar); Initial reading",
+      "csv_import_summary": "{created} geïmporteerd, {skipped} overgeslagen",
+      "csv_import_invalid_type": ", {count} genegeerd (ongeldig type)",
+      "csv_import_parcel_not_found": ", {count} genegeerd (perceel niet gevonden)"
     },
     "point_form": {
       "title_new": "Nieuw {medium} meetpunt",
@@ -1078,7 +1086,17 @@
       "club_header": "Verenigingsaansluitingen",
       "previous_year_label": "Vorig jaar",
       "recorded_label": "geregistreerd",
-      "no_entry_yet": "Nog niet ingevoerd"
+      "no_entry_yet": "Nog niet ingevoerd",
+      "csv_import": "CSV-import",
+      "csv_export": "CSV-export",
+      "csv_import_modal_title": "CSV-import",
+      "csv_import_button": "Importeren",
+      "csv_format_help": "Formaat: puntkomma-gescheiden CSV met kolommen: Type; Parcel number; Label; Meter number; Year; Date (JJJJ-MM-DD); Reading; Note",
+      "csv_import_summary": "{recorded} standen geregistreerd",
+      "csv_import_skipped_no_point": ", {count} overgeslagen (meetpunt niet gevonden)",
+      "csv_import_skipped_no_meter": ", {count} overgeslagen (geen actieve meter)",
+      "csv_import_skipped_invalid": ", {count} overgeslagen (ongeldige rij)",
+      "csv_import_skipped_implausible": ", {count} overgeslagen (onwaarschijnlijke stand)"
     },
     "evaluation": {
       "title_suffix": " rapport",

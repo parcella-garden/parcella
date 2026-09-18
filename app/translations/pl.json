@@ -997,7 +997,15 @@
       "delete_confirm": "Czy na pewno usunąć ten punkt pomiarowy? Wszystkie powiązane liczniki i odczyty zostaną również usunięte.",
       "filter_clear": "Wyczyść filtr",
       "missing_filter_add": "Dodaj punkt pomiarowy",
-      "missing_filter_empty": "Każda działka ma punkt pomiarowy."
+      "missing_filter_empty": "Każda działka ma punkt pomiarowy.",
+      "csv_import": "Import CSV",
+      "csv_export": "Eksport CSV",
+      "csv_import_modal_title": "Import CSV",
+      "csv_import_button": "Importuj",
+      "csv_format_help": "Format: CSV rozdzielany średnikami, kolumny: Type (MAIN_METER/PARCEL/CLUB); Parcel number; Label; Meter number; Installed on (RRRR-MM-DD); Calibrated until (rok); Initial reading",
+      "csv_import_summary": "{created} zaimportowanych, {skipped} pominiętych",
+      "csv_import_invalid_type": ", {count} zignorowanych (nieprawidłowy typ)",
+      "csv_import_parcel_not_found": ", {count} zignorowanych (działki nie znaleziono)"
     },
     "point_form": {
       "title_new": "Nowy punkt pomiarowy ({medium})",
@@ -1078,7 +1086,17 @@
       "club_header": "Przyłącza stowarzyszenia",
       "previous_year_label": "Rok poprzedni",
       "recorded_label": "zarejestrowano",
-      "no_entry_yet": "Jeszcze nie wprowadzono"
+      "no_entry_yet": "Jeszcze nie wprowadzono",
+      "csv_import": "Import CSV",
+      "csv_export": "Eksport CSV",
+      "csv_import_modal_title": "Import CSV",
+      "csv_import_button": "Importuj",
+      "csv_format_help": "Format: CSV rozdzielany średnikami, kolumny: Type; Parcel number; Label; Meter number; Year; Date (RRRR-MM-DD); Reading; Note",
+      "csv_import_summary": "{recorded} odczytów zapisanych",
+      "csv_import_skipped_no_point": ", {count} pominiętych (punktu pomiarowego nie znaleziono)",
+      "csv_import_skipped_no_meter": ", {count} pominiętych (brak aktywnego licznika)",
+      "csv_import_skipped_invalid": ", {count} pominiętych (nieprawidłowy wiersz)",
+      "csv_import_skipped_implausible": ", {count} pominiętych (nieprawdopodobny odczyt)"
     },
     "evaluation": {
       "title_suffix": " – rozliczenie",

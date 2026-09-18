@@ -3,9 +3,17 @@
 {% block page_title %}{{ medium_label }}{{ t('metering.points_list.title_suffix') }}{% endblock %}
 
 {% block topbar_actions %}
-<div class="d-flex gap-2">
+<div class="d-flex gap-2 flex-wrap">
     <a href="{{ url_prefix }}/" class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-arrow-left me-1"></i>{{ t('metering.points_list.back') }}
+    </a>
+    {% if has_perm(request, modul_name, 'write') %}
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#csvImportModal">
+        <i class="bi bi-upload me-1"></i>{{ t('metering.points_list.csv_import') }}
+    </button>
+    {% endif %}
+    <a href="{{ url_prefix }}/metering-points/export/csv" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-download me-1"></i>{{ t('metering.points_list.csv_export') }}
     </a>
     {% if has_perm(request, modul_name, 'write') %}
     <a href="{{ url_prefix }}/metering-points/new" class="btn btn-sm btn-primary">
@@ -16,6 +24,12 @@
 {% endblock %}
 
 {% block content %}
+
+{% if request.query_params.get('message') %}
+<div class="alert alert-info d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-info-circle-fill"></i> {{ request.query_params.get('message') }}
+</div>
+{% endif %}
 
 {% if type_filter or missing_filter %}
 <div class="alert alert-secondary d-flex justify-content-between align-items-center mb-3">
@@ -156,4 +170,27 @@
     {% endif %}
 </div>
 {% endif %}
+
+<!-- CSV Import Modal -->
+<div class="modal fade" id="csvImportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-upload me-2"></i>{{ t('metering.points_list.csv_import_modal_title') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{{ url_prefix }}/metering-points/import/csv" enctype="multipart/form-data"
+                      class="d-flex gap-2 align-items-center">
+                    {{ csrf_field() }}
+                    <input type="file" name="file" accept=".csv" class="form-control form-control-sm" required style="max-width: 300px;">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-upload me-1"></i>{{ t('metering.points_list.csv_import_button') }}
+                    </button>
+                </form>
+                <div class="form-text mt-1">{{ t('metering.points_list.csv_format_help') }}</div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

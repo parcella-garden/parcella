@@ -466,3 +466,186 @@ async def test_new_metering_point_page_preselects_parcel_from_query_param(client
     page = await client.get(f"/electricity/metering-points/new?parcel_id={parcel['id']}")
     assert page.status_code == 200
     assert f'value="{parcel["id"]}" selected' in page.text
+
+
+async def test_metering_points_csv_export_import_round_trip(client, admin_user):
+    """Issue #225: exporting the metering-points CSV and importing a
+    new row for a not-yet-covered parcel creates a matching
+    MeteringPoint+Meter; re-importing the same export is a no-op
+    (existing type+parcel-number/label pairs are skipped, matching
+    parcels_import_csv's own "skip existing" convention)."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    csv01_id = (await client.post("/api/v1/parcels", json={"plot_number": "CSV-01"}, headers=headers)).json()["id"]
+    await client.post("/api/v1/parcels", json={"plot_number": "CSV-02"}, headers=headers)
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    create = await client.post(
+        "/water/metering-points/new",
+        data={
+            "type": "PARCEL", "parcel_id": csv01_id, "number": "W-CSV-01",
+            "installed_at": "2024-03-01", "calibrated_until": "2030", "initial_reading": "10,0",
+        },
+        follow_redirects=False,
+    )
+    assert create.status_code in (302, 303)
+
+    export = await client.get("/water/metering-points/export/csv")
+    assert export.status_code == 200
+    assert "Type;Parcel number;Label;Meter number;Installed on;Calibrated until;Initial reading" in export.text
+    assert "CSV-01" in export.text
+    assert "W-CSV-01" in export.text
+
+    # Add a hand-written row for the not-yet-covered second parcel,
+    # simulating a self-hoster importing water points for parcels
+    # that already have electricity points entered by hand.
+    extra_row = "PARCEL;CSV-02;;W-CSV-02;2025-05-15;2031;5,0\n"
+    import_response = await client.post(
+        "/water/metering-points/import/csv",
+        files={"file": ("water_points.csv", (export.text + extra_row).encode("utf-8"), "text/csv")},
+        follow_redirects=False,
+    )
+    assert import_response.status_code in (302, 303)
+    assert "imported" in import_response.headers["location"]
+
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
+    from app.database import AsyncSessionLocal
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(MeteringPoint)
+            .options(selectinload(MeteringPoint.parcel), selectinload(MeteringPoint.meters))
+            .where(MeteringPoint.medium == MeteringMedium.WATER)
+        )
+        points = result.scalars().all()
+        # Exactly one PARCEL-type point per parcel -- the re-imported
+        # CSV-01 row was skipped as already existing, CSV-02 was created.
+        by_plot = {p.parcel.plot_number: p for p in points if p.parcel}
+        assert set(by_plot) == {"CSV-01", "CSV-02"}
+        new_meter = by_plot["CSV-02"].meters[0]
+        assert new_meter.number == "W-CSV-02"
+        assert new_meter.calibrated_until == 2031
+        assert float(new_meter.initial_reading) == 5.0
+
+
+async def test_readings_csv_export_import_applies_monotonicity_check(client, admin_user):
+    """Issue #225: readings CSV import reuses record_reading(), so a
+    bulk-imported reading is rejected by the same monotonicity check a
+    manually entered one would be -- it's skipped, not a hard failure
+    for the whole file."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    metering_point = (await client.post(
+        "/api/v1/water/metering-points",
+        json={"type": "CLUB", "label": "Vereinsheim CSV", "number": "W-READ-01", "initial_reading": "0.0"},
+        headers=headers,
+    )).json()
+
+    await client.post(
+        f"/api/v1/water/metering-points/{metering_point['id']}/readings",
+        json={"year": 2024, "date": "2024-10-01", "reading": "50.0"},
+        headers=headers,
+    )
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    export = await client.get("/water/readings/export/csv", params={"year": 2024})
+    assert export.status_code == 200
+    assert "50,0" in export.text
+
+    csv_body = (
+        "Type;Parcel number;Label;Meter number;Year;Date;Reading;Note\n"
+        # Valid: a higher reading for a later year -- must be recorded.
+        "CLUB;;Vereinsheim CSV;W-READ-01;2025;2025-10-01;80,0;imported\n"
+        # Implausible: lower than the 2024 reading -- must be skipped, not crash the import.
+        "CLUB;;Vereinsheim CSV;W-READ-01;2026;2026-10-01;10,0;imported\n"
+    )
+    import_response = await client.post(
+        "/water/readings/import/csv",
+        files={"file": ("water_readings.csv", csv_body.encode("utf-8"), "text/csv")},
+        follow_redirects=False,
+    )
+    assert import_response.status_code in (302, 303)
+    assert "skipped" in import_response.headers["location"]
+
+    from sqlalchemy import select
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(Meter).where(Meter.number == "W-READ-01"))
+        meter = result.scalar_one()
+        result = await db.execute(select(MeterReading).where(MeterReading.meter_id == meter.id))
+        readings = {r.year: float(r.reading) for r in result.scalars().all()}
+        assert readings == {2024: 50.0, 2025: 80.0}
+
+
+async def test_readings_import_join_is_parcel_number_not_meter_number(client, admin_user):
+    """Two parcels sharing the same placeholder meter number ("ohne",
+    ADR 0081/0082's real recurring value for "no distinct meter") must
+    not be confused with each other on readings import -- the lookup
+    key is (type, parcel number), never meter number, precisely
+    because meter number isn't a real identifier in this app (ADR
+    0082). Regression test for that join staying parcel-number-based
+    rather than accidentally drifting to meter-number matching."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    parcel_a_id = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "OHNE-A"}, headers=headers
+    )).json()["id"]
+    parcel_b_id = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "OHNE-B"}, headers=headers
+    )).json()["id"]
+
+    await client.post(
+        "/api/v1/water/metering-points",
+        json={"type": "PARCEL", "parcel_id": parcel_a_id, "number": "ohne", "initial_reading": "0.0"},
+        headers=headers,
+    )
+    await client.post(
+        "/api/v1/water/metering-points",
+        json={"type": "PARCEL", "parcel_id": parcel_b_id, "number": "ohne", "initial_reading": "0.0"},
+        headers=headers,
+    )
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    csv_body = (
+        "Type;Parcel number;Label;Meter number;Year;Date;Reading;Note\n"
+        "PARCEL;OHNE-A;;ohne;2025;2025-10-01;11,0;\n"
+        "PARCEL;OHNE-B;;ohne;2025;2025-10-01;22,0;\n"
+    )
+    import_response = await client.post(
+        "/water/readings/import/csv",
+        files={"file": ("ohne_readings.csv", csv_body.encode("utf-8"), "text/csv")},
+        follow_redirects=False,
+    )
+    assert import_response.status_code in (302, 303)
+
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(MeteringPoint)
+            .options(selectinload(MeteringPoint.parcel), selectinload(MeteringPoint.meters).selectinload(Meter.readings))
+            .where(MeteringPoint.medium == MeteringMedium.WATER, MeteringPoint.parcel_id.in_([parcel_a_id, parcel_b_id]))
+        )
+        points_by_plot = {p.parcel.plot_number: p for p in result.scalars().all()}
+
+        reading_a = points_by_plot["OHNE-A"].meters[0].readings[0]
+        reading_b = points_by_plot["OHNE-B"].meters[0].readings[0]
+        assert float(reading_a.reading) == 11.0
+        assert float(reading_b.reading) == 22.0

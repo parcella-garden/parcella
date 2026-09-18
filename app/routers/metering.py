@@ -12,17 +12,18 @@ place instead of being duplicated per medium.
 import csv
 import io
 import urllib.parse
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Optional, List
 
-from fastapi import APIRouter, Request, Form, Depends, HTTPException
+from fastapi import APIRouter, Request, Form, Depends, HTTPException, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
+from app.csv_utils import csv_safe
 from app.models import (
     MeteringPoint, MeteringPointType, MeteringMedium, Meter,
     Parcel, ParcelStatus, MeteringPriceConfiguration,
@@ -53,6 +54,22 @@ def _parse_number(value: str, decimal_places: int) -> Optional[Decimal]:
         return None
     quant = Decimal("1") if decimal_places == 0 else Decimal("1." + "0" * decimal_places)
     return parsed_value.quantize(quant)
+
+
+def _parse_date_flexible(value: str) -> Optional[date]:
+    """Accepts ISO (2026-09-18) and the German-locale dotted format
+    (18.09.2026) a self-hoster's own spreadsheet is more likely to use
+    (see app/routers/finances.py's _parse_date_flexible for the same
+    shape, used there for bank-statement CSV import)."""
+    value = value.strip()
+    if not value:
+        return None
+    for fmt in ("%Y-%m-%d", "%d.%m.%Y", "%d.%m.%y"):
+        try:
+            return date.fromisoformat(value) if fmt == "%Y-%m-%d" else datetime.strptime(value, fmt).date()
+        except ValueError:
+            continue
+    return None
 
 
 def create_metering_router(
@@ -391,6 +408,143 @@ def create_metering_router(
         return RedirectResponse(f"{url_prefix}/metering-points", status_code=302)
 
     # -----------------------------------------------------------------
+    # MeteringPoints: CSV export/import (issue #225) -- covers the
+    # metering point's and its current meter's static attributes
+    # (type, parcel number, meter number, installed on, calibrated
+    # until, initial reading), not readings -- see the readings
+    # export/import further below for those, scoped by year.
+    # -----------------------------------------------------------------
+
+    @router.get("/metering-points/export/csv")
+    async def metering_points_export_csv(request: Request, db: AsyncSession = Depends(get_db)):
+        await require_permission(request, db, modul_name, "read")
+        all_points = await _load_all_metering_points(db)
+
+        output = io.StringIO()
+        writer = csv.writer(output, delimiter=";")
+        writer.writerow([
+            "Type", "Parcel number", "Label", "Meter number",
+            "Installed on", "Calibrated until", "Initial reading",
+        ])
+
+        for a in sorted(all_points, key=_metering_point_sort_key):
+            z = a.current_meter
+            writer.writerow([
+                a.type.value,
+                a.parcel.plot_number if a.parcel else "",
+                csv_safe(a.label or ""),
+                csv_safe(z.number if z else ""),
+                z.installed_at.isoformat() if z and z.installed_at else "",
+                z.calibrated_until if z and z.calibrated_until else "",
+                f"{z.initial_reading:.{decimal_places}f}".replace(".", ",") if z else "",
+            ])
+
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={modul_name}_metering_points.csv"},
+        )
+
+    @router.post("/metering-points/import/csv")
+    async def metering_points_import_csv(
+        request: Request,
+        file: UploadFile = File(...),
+        db: AsyncSession = Depends(get_db),
+    ):
+        await require_permission(request, db, modul_name, "write")
+
+        content = await file.read()
+        try:
+            text = content.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            text = content.decode("latin-1")
+
+        try:
+            delimiter = csv.Sniffer().sniff(text[:2048], delimiters=";,").delimiter
+        except csv.Error:
+            delimiter = ";"
+
+        reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
+        if reader.fieldnames:
+            reader.fieldnames = [f.strip() if f else f for f in reader.fieldnames]
+
+        all_points = await _load_all_metering_points(db)
+        # Same identity used on export: (type, parcel number) for PARCEL
+        # rows, (type, label) for MAIN_METER/CLUB -- lets a re-import of
+        # an unchanged export be a no-op instead of creating duplicates.
+        existing_keys = set()
+        for a in all_points:
+            if a.type == MeteringPointType.PARCEL and a.parcel:
+                existing_keys.add((a.type.value, a.parcel.plot_number.strip().upper()))
+            elif a.label:
+                existing_keys.add((a.type.value, a.label.strip().upper()))
+
+        created = 0
+        skipped = 0
+        invalid_type = 0
+        parcel_not_found = 0
+
+        for row in reader:
+            type_str = (row.get("Type") or "").strip().upper()
+            if type_str not in {t.value for t in MeteringPointType}:
+                invalid_type += 1
+                continue
+            point_type = MeteringPointType(type_str)
+
+            parcel_number = (row.get("Parcel number") or "").strip().upper()
+            label = (row.get("Label") or "").strip()
+
+            parcel_id = None
+            if point_type == MeteringPointType.PARCEL:
+                if not parcel_number:
+                    parcel_not_found += 1
+                    continue
+                result = await db.execute(select(Parcel).where(Parcel.plot_number == parcel_number))
+                parcel = result.scalar_one_or_none()
+                if not parcel:
+                    parcel_not_found += 1
+                    continue
+                parcel_id = parcel.id
+                key = (point_type.value, parcel_number)
+            else:
+                key = (point_type.value, label.strip().upper())
+
+            if key in existing_keys and (point_type == MeteringPointType.PARCEL or label):
+                skipped += 1
+                continue
+
+            calibrated_until_str = (row.get("Calibrated until") or "").strip()
+            installed_at = _parse_date_flexible(row.get("Installed on") or "")
+            initial_reading = _parse_number(row.get("Initial reading") or "", decimal_places) or Decimal("0")
+
+            await create_metering_point(
+                db, medium,
+                type=point_type.value, parcel_id=parcel_id, label=(label or None),
+                number=(row.get("Meter number") or "").strip(),
+                calibrated_until=(int(calibrated_until_str) if calibrated_until_str else None),
+                installed_at=installed_at, initial_reading=initial_reading,
+            )
+            existing_keys.add(key)
+            created += 1
+
+        await db.commit()
+
+        message = t_for(
+            request, "metering.points_list.csv_import_summary",
+            created=created, skipped=skipped,
+        )
+        if invalid_type:
+            message += t_for(request, "metering.points_list.csv_import_invalid_type", count=invalid_type)
+        if parcel_not_found:
+            message += t_for(request, "metering.points_list.csv_import_parcel_not_found", count=parcel_not_found)
+
+        return RedirectResponse(
+            f"{url_prefix}/metering-points?message={urllib.parse.quote(message)}",
+            status_code=302,
+        )
+
+    # -----------------------------------------------------------------
     # Swap meter
     # -----------------------------------------------------------------
 
@@ -527,6 +681,164 @@ def create_metering_router(
             "error": error,
             "today": date.today().isoformat(),
         })
+
+    # -----------------------------------------------------------------
+    # Readings: CSV export/import (issue #225) -- scoped by year, one
+    # row per metering point's current meter, same shape as the
+    # existing /readings page and /evaluation/csv export. Import goes
+    # through record_reading() so a bulk-loaded reading is subject to
+    # the exact same monotonicity check as one entered by hand.
+    # -----------------------------------------------------------------
+
+    @router.get("/readings/export/csv")
+    async def readings_export_csv(
+        request: Request,
+        year: Optional[int] = None,
+        db: AsyncSession = Depends(get_db),
+    ):
+        await require_permission(request, db, modul_name, "read")
+        if not year:
+            year = date.today().year
+
+        all_points = await _load_all_metering_points(db)
+
+        output = io.StringIO()
+        writer = csv.writer(output, delimiter=";")
+        writer.writerow([
+            "Type", "Parcel number", "Label", "Meter number",
+            "Year", "Date", "Reading", "Note",
+        ])
+
+        for a in sorted(all_points, key=_metering_point_sort_key):
+            z = a.current_meter
+            if not z:
+                continue
+            entry = next((zs for zs in z.readings if zs.year == year), None)
+            writer.writerow([
+                a.type.value,
+                a.parcel.plot_number if a.parcel else "",
+                csv_safe(a.label or ""),
+                csv_safe(z.number),
+                year,
+                entry.date.isoformat() if entry else "",
+                f"{entry.reading:.{decimal_places}f}".replace(".", ",") if entry else "",
+                csv_safe(entry.note or "") if entry else "",
+            ])
+
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={modul_name}_readings_{year}.csv"},
+        )
+
+    @router.post("/readings/import/csv")
+    async def readings_import_csv(
+        request: Request,
+        file: UploadFile = File(...),
+        db: AsyncSession = Depends(get_db),
+    ):
+        user = await require_permission(request, db, modul_name, "write")
+
+        content = await file.read()
+        try:
+            text = content.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            text = content.decode("latin-1")
+
+        try:
+            delimiter = csv.Sniffer().sniff(text[:2048], delimiters=";,").delimiter
+        except csv.Error:
+            delimiter = ";"
+
+        reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
+        if reader.fieldnames:
+            reader.fieldnames = [f.strip() if f else f for f in reader.fieldnames]
+
+        all_points = await _load_all_metering_points(db)
+        # Same lookup key as the metering-points import: (type, parcel
+        # number) for PARCEL rows, (type, label) for MAIN_METER/CLUB --
+        # readings are attached to an already-existing metering point,
+        # never create one.
+        points_by_key = {}
+        for a in all_points:
+            if a.type == MeteringPointType.PARCEL and a.parcel:
+                points_by_key[(a.type.value, a.parcel.plot_number.strip().upper())] = a
+            elif a.label:
+                points_by_key[(a.type.value, a.label.strip().upper())] = a
+
+        recorded = 0
+        skipped_no_point = 0
+        skipped_no_meter = 0
+        skipped_invalid = 0
+        skipped_implausible = 0
+
+        for row in reader:
+            type_str = (row.get("Type") or "").strip().upper()
+            if type_str not in {t.value for t in MeteringPointType}:
+                skipped_invalid += 1
+                continue
+
+            parcel_number = (row.get("Parcel number") or "").strip().upper()
+            label = (row.get("Label") or "").strip().upper()
+            key = (type_str, parcel_number if type_str == MeteringPointType.PARCEL.value else label)
+
+            metering_point = points_by_key.get(key)
+            if not metering_point:
+                skipped_no_point += 1
+                continue
+
+            meter = metering_point.current_meter
+            if not meter:
+                skipped_no_meter += 1
+                continue
+
+            year_str = (row.get("Year") or "").strip()
+            reading_value = _parse_number(row.get("Reading") or "", decimal_places)
+            reading_date = _parse_date_flexible(row.get("Date") or "")
+            if not year_str.isdigit() or reading_value is None or reading_date is None:
+                skipped_invalid += 1
+                continue
+
+            year_int = int(year_str)
+            already_had_year = any(r.year == year_int for r in meter.readings)
+            try:
+                new_reading = await record_reading(
+                    db, meter, year=year_int, reading_date=reading_date, reading=reading_value,
+                    note=((row.get("Note") or "").strip() or None), recorded_by_id=user.id,
+                )
+            except ServiceError:
+                skipped_implausible += 1
+                continue
+
+            if not already_had_year:
+                # record_reading() sets meter_id on the new row directly
+                # rather than through the relationship, so meter.readings
+                # (already eagerly loaded above) wouldn't otherwise pick
+                # it up in-memory -- and a later row in this same import
+                # for the same meter needs it visible for its own
+                # monotonicity check (see docs/module-metering.md's
+                # identity-map pitfall).
+                meter.readings.append(new_reading)
+
+            recorded += 1
+
+        await db.commit()
+
+        message = t_for(request, "metering.readings_list.csv_import_summary", recorded=recorded)
+        for count, key in (
+            (skipped_no_point, "metering.readings_list.csv_import_skipped_no_point"),
+            (skipped_no_meter, "metering.readings_list.csv_import_skipped_no_meter"),
+            (skipped_invalid, "metering.readings_list.csv_import_skipped_invalid"),
+            (skipped_implausible, "metering.readings_list.csv_import_skipped_implausible"),
+        ):
+            if count:
+                message += t_for(request, key, count=count)
+
+        return RedirectResponse(
+            f"{url_prefix}/readings?message={urllib.parse.quote(message)}",
+            status_code=302,
+        )
 
     # -----------------------------------------------------------------
     # Evaluation

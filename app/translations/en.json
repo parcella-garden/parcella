@@ -997,7 +997,15 @@
       "delete_confirm": "Really delete this metering point? All its meters and readings will be deleted too.",
       "filter_clear": "Clear filter",
       "missing_filter_add": "Add metering point",
-      "missing_filter_empty": "Every parcel has a metering point."
+      "missing_filter_empty": "Every parcel has a metering point.",
+      "csv_import": "CSV Import",
+      "csv_export": "CSV Export",
+      "csv_import_modal_title": "CSV import",
+      "csv_import_button": "Import",
+      "csv_format_help": "Format: semicolon-separated CSV with columns: Type (MAIN_METER/PARCEL/CLUB); Parcel number; Label; Meter number; Installed on (YYYY-MM-DD); Calibrated until (year); Initial reading",
+      "csv_import_summary": "{created} imported, {skipped} skipped",
+      "csv_import_invalid_type": ", {count} ignored (invalid type)",
+      "csv_import_parcel_not_found": ", {count} ignored (parcel not found)"
     },
     "point_form": {
       "title_new": "New {medium} metering point",
@@ -1078,7 +1086,17 @@
       "club_header": "Club connections",
       "previous_year_label": "Previous year",
       "recorded_label": "recorded",
-      "no_entry_yet": "Not yet recorded"
+      "no_entry_yet": "Not yet recorded",
+      "csv_import": "CSV Import",
+      "csv_export": "CSV Export",
+      "csv_import_modal_title": "CSV import",
+      "csv_import_button": "Import",
+      "csv_format_help": "Format: semicolon-separated CSV with columns: Type; Parcel number; Label; Meter number; Year; Date (YYYY-MM-DD); Reading; Note",
+      "csv_import_summary": "{recorded} readings recorded",
+      "csv_import_skipped_no_point": ", {count} skipped (metering point not found)",
+      "csv_import_skipped_no_meter": ", {count} skipped (no active meter)",
+      "csv_import_skipped_invalid": ", {count} skipped (invalid row)",
+      "csv_import_skipped_implausible": ", {count} skipped (implausible reading)"
     },
     "evaluation": {
       "title_suffix": " report",

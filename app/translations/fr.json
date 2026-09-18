@@ -997,7 +997,15 @@
       "delete_confirm": "Voulez-vous vraiment supprimer ce point de mesure ? Tous les compteurs et relevés associés seront également supprimés.",
       "filter_clear": "Effacer le filtre",
       "missing_filter_add": "Ajouter un point de comptage",
-      "missing_filter_empty": "Chaque parcelle dispose d'un point de comptage."
+      "missing_filter_empty": "Chaque parcelle dispose d'un point de comptage.",
+      "csv_import": "Import CSV",
+      "csv_export": "Export CSV",
+      "csv_import_modal_title": "Import CSV",
+      "csv_import_button": "Importer",
+      "csv_format_help": "Format : CSV séparé par des points-virgules avec les colonnes : Type (MAIN_METER/PARCEL/CLUB); Parcel number; Label; Meter number; Installed on (AAAA-MM-JJ); Calibrated until (année); Initial reading",
+      "csv_import_summary": "{created} importé(s), {skipped} ignoré(s)",
+      "csv_import_invalid_type": ", {count} ignoré(s) (type invalide)",
+      "csv_import_parcel_not_found": ", {count} ignoré(s) (parcelle introuvable)"
     },
     "point_form": {
       "title_new": "Nouveau point de mesure {medium}",
@@ -1078,7 +1086,17 @@
       "club_header": "Raccordements du club",
       "previous_year_label": "Année précédente",
       "recorded_label": "enregistré",
-      "no_entry_yet": "Pas encore renseigné"
+      "no_entry_yet": "Pas encore renseigné",
+      "csv_import": "Import CSV",
+      "csv_export": "Export CSV",
+      "csv_import_modal_title": "Import CSV",
+      "csv_import_button": "Importer",
+      "csv_format_help": "Format : CSV séparé par des points-virgules avec les colonnes : Type; Parcel number; Label; Meter number; Year; Date (AAAA-MM-JJ); Reading; Note",
+      "csv_import_summary": "{recorded} relevé(s) enregistré(s)",
+      "csv_import_skipped_no_point": ", {count} ignoré(s) (point de comptage introuvable)",
+      "csv_import_skipped_no_meter": ", {count} ignoré(s) (aucun compteur actif)",
+      "csv_import_skipped_invalid": ", {count} ignoré(s) (ligne invalide)",
+      "csv_import_skipped_implausible": ", {count} ignoré(s) (relevé non plausible)"
     },
     "evaluation": {
       "title_suffix": " rapport",

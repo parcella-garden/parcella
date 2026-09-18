@@ -17,7 +17,7 @@
 {% endblock %}
 
 {% block topbar_actions %}
-<div class="d-flex gap-2 align-items-center">
+<div class="d-flex gap-2 align-items-center flex-wrap">
     <form method="get" class="d-flex gap-2">
         <select name="year" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
             {% for j in range(year + 1, year - 4, -1) %}
@@ -25,6 +25,14 @@
             {% endfor %}
         </select>
     </form>
+    {% if has_perm(request, modul_name, 'write') %}
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#csvImportModal">
+        <i class="bi bi-upload me-1"></i>{{ t('metering.readings_list.csv_import') }}
+    </button>
+    {% endif %}
+    <a href="{{ url_prefix }}/readings/export/csv?year={{ year }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-download me-1"></i>{{ t('metering.readings_list.csv_export') }}
+    </a>
     <a href="{{ url_prefix }}/" class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-arrow-left me-1"></i>{{ t('metering.readings_list.back') }}
     </a>
@@ -37,6 +45,12 @@
 <div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
     <i class="bi bi-exclamation-triangle-fill"></i>
     <div>{{ error }}</div>
+</div>
+{% endif %}
+
+{% if request.query_params.get('message') %}
+<div class="alert alert-info d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-info-circle-fill"></i> {{ request.query_params.get('message') }}
 </div>
 {% endif %}
 
@@ -106,5 +120,28 @@
     </div>
 </div>
 {% endif %}
+
+<!-- CSV Import Modal -->
+<div class="modal fade" id="csvImportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-upload me-2"></i>{{ t('metering.readings_list.csv_import_modal_title') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{{ url_prefix }}/readings/import/csv" enctype="multipart/form-data"
+                      class="d-flex gap-2 align-items-center">
+                    {{ csrf_field() }}
+                    <input type="file" name="file" accept=".csv" class="form-control form-control-sm" required style="max-width: 300px;">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-upload me-1"></i>{{ t('metering.readings_list.csv_import_button') }}
+                    </button>
+                </form>
+                <div class="form-text mt-1">{{ t('metering.readings_list.csv_format_help') }}</div>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

@@ -997,7 +997,15 @@
       "delete_confirm": "Zählpunkt wirklich löschen? Alle zugehörigen Zähler und Zählerstände werden ebenfalls gelöscht.",
       "filter_clear": "Filter zurücksetzen",
       "missing_filter_add": "Zählpunkt anlegen",
-      "missing_filter_empty": "Jede Parzelle hat einen Zählpunkt."
+      "missing_filter_empty": "Jede Parzelle hat einen Zählpunkt.",
+      "csv_import": "CSV-Import",
+      "csv_export": "CSV-Export",
+      "csv_import_modal_title": "CSV-Import",
+      "csv_import_button": "Importieren",
+      "csv_format_help": "Format: Semikolon-getrennte CSV mit den Spalten: Type (MAIN_METER/PARCEL/CLUB); Parcel number; Label; Meter number; Installed on (JJJJ-MM-TT); Calibrated until (Jahr); Initial reading",
+      "csv_import_summary": "{created} importiert, {skipped} übersprungen",
+      "csv_import_invalid_type": ", {count} ignoriert (ungültiger Typ)",
+      "csv_import_parcel_not_found": ", {count} ignoriert (Parcel nicht gefunden)"
     },
     "point_form": {
       "title_new": "Neuer {medium}-Zählpunkt",
@@ -1078,7 +1086,17 @@
       "club_header": "Vereinsanschlüsse",
       "previous_year_label": "Vorjahr",
       "recorded_label": "erfasst",
-      "no_entry_yet": "Noch nicht erfasst"
+      "no_entry_yet": "Noch nicht erfasst",
+      "csv_import": "CSV-Import",
+      "csv_export": "CSV-Export",
+      "csv_import_modal_title": "CSV-Import",
+      "csv_import_button": "Importieren",
+      "csv_format_help": "Format: Semikolon-getrennte CSV mit den Spalten: Type; Parcel number; Label; Meter number; Year; Date (JJJJ-MM-TT); Reading; Note",
+      "csv_import_summary": "{recorded} Zählerstände erfasst",
+      "csv_import_skipped_no_point": ", {count} übersprungen (Zählpunkt nicht gefunden)",
+      "csv_import_skipped_no_meter": ", {count} übersprungen (kein aktiver Zähler)",
+      "csv_import_skipped_invalid": ", {count} übersprungen (ungültige Zeile)",
+      "csv_import_skipped_implausible": ", {count} übersprungen (unplausibler Zählerstand)"
     },
     "evaluation": {
       "title_suffix": "-Auswertung",

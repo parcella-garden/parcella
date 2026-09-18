@@ -168,6 +168,59 @@ already uses (e.g. its Terminated-parcels card linking to
   `get_or_create_parcel_insurance()` in `app/services/insurance.py` for
   an example of this pattern).
 
+## CSV import/export (issue #225)
+
+Both metering points and their readings can be exported to and
+imported from CSV, on `/{medium}/metering-points` and
+`/{medium}/readings` respectively -- same two-step "export first, hand-
+edit, re-import" pattern `app/routers/parcels.py` already uses, and
+added to the shared router factory so both media get it automatically.
+
+- **Metering points** (`.../metering-points/export/csv` and
+  `.../import/csv`): the metering point's and its *current* meter's
+  static attributes -- type, parcel number, label, meter number,
+  installed on, calibrated until, initial reading. Import only
+  *creates* new metering points, matched for dedup by
+  `(type, parcel number)` for `PARCEL` rows or `(type, label)` for
+  `MAIN_METER`/`CLUB` rows -- re-importing an unchanged export is a
+  no-op rather than a pile of duplicates. A row with no `Label` for a
+  `MAIN_METER`/`CLUB` type can't be deduplicated (there's nothing to
+  key on) and is always created fresh.
+- **Readings** (`.../readings/export/csv` and `.../import/csv`):
+  scoped by year on export (mirrors `/{medium}/readings?year=` and the
+  existing `/evaluation/csv`), one row per metering point's current
+  meter. Import carries a `Year` column per row instead, so one file
+  can cover several years at once (the actual motivating case: water
+  metering points entered via CSV for 2024+2025 after electricity was
+  already entered by hand). Readings are only ever attached to an
+  *existing* metering point (looked up by the same `(type, parcel
+  number)`/`(type, label)` key as the metering-points import) --
+  import never creates one.
+- Both readings imports go through `record_reading()`
+  (`app/services/metering.py`), so a bulk-loaded reading is subject to
+  exactly the same monotonicity check as one entered by hand through
+  the UI; a row that fails it is skipped (counted, not silently
+  dropped) rather than aborting the whole file.
+- **Pitfall hit building this:** `record_reading()` sets `meter_id` on
+  the new `MeterReading` directly rather than through the relationship,
+  so the already-eagerly-loaded `meter.readings` Python list doesn't
+  pick up a newly inserted reading automatically (same identity-map
+  shape as the "freshly created rows" pitfall above, just via a raw FK
+  assignment instead of a fresh `select()`). Since one import request
+  can record several years for the *same* meter in a loop, a later
+  row's monotonicity check needs to see the earlier row's newly
+  inserted reading -- fixed by appending the returned `MeterReading` to
+  `meter.readings` by hand after each call, in `readings_import_csv()`.
+- CSV headers are plain English (`Type`, `Parcel number`, ...) for both
+  formats -- a deliberate difference from `parcels.py`'s CSV export,
+  which keeps German headers as a legacy fact (see its own docstring);
+  this is new functionality, so it follows the "English first, going
+  forward" convention instead of copying that precedent.
+- XLSX import (a self-hoster's data sometimes arrives as an Excel file
+  rather than CSV) was raised alongside this but deliberately left out
+  of #225's scope -- worth its own ticket once there's an actual file
+  in hand.
+
 ## REST API
 
 This module has (added after the fact) a complete set of REST API

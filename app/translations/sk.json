@@ -997,7 +997,15 @@
       "delete_confirm": "Naozaj vymazať tento merací bod? Všetky súvisiace merače a odpočty budú tiež vymazané.",
       "filter_clear": "Zrušiť filter",
       "missing_filter_add": "Pridať merný bod",
-      "missing_filter_empty": "Každá parcela má merný bod."
+      "missing_filter_empty": "Každá parcela má merný bod.",
+      "csv_import": "CSV import",
+      "csv_export": "CSV export",
+      "csv_import_modal_title": "CSV import",
+      "csv_import_button": "Importovať",
+      "csv_format_help": "Formát: CSV oddelené bodkočiarkami so stĺpcami: Type (MAIN_METER/PARCEL/CLUB); Parcel number; Label; Meter number; Installed on (RRRR-MM-DD); Calibrated until (rok); Initial reading",
+      "csv_import_summary": "{created} importovaných, {skipped} preskočených",
+      "csv_import_invalid_type": ", {count} ignorovaných (neplatný typ)",
+      "csv_import_parcel_not_found": ", {count} ignorovaných (parcela nenájdená)"
     },
     "point_form": {
       "title_new": "Nový merací bod pre {medium}",
@@ -1078,7 +1086,17 @@
       "club_header": "Prípojky spolku",
       "previous_year_label": "Predchádzajúci rok",
       "recorded_label": "zaznamenané",
-      "no_entry_yet": "Zatiaľ nezadané"
+      "no_entry_yet": "Zatiaľ nezadané",
+      "csv_import": "CSV import",
+      "csv_export": "CSV export",
+      "csv_import_modal_title": "CSV import",
+      "csv_import_button": "Importovať",
+      "csv_format_help": "Formát: CSV oddelené bodkočiarkami so stĺpcami: Type; Parcel number; Label; Meter number; Year; Date (RRRR-MM-DD); Reading; Note",
+      "csv_import_summary": "{recorded} odpočtov zaznamenaných",
+      "csv_import_skipped_no_point": ", {count} preskočených (meracie miesto nenájdené)",
+      "csv_import_skipped_no_meter": ", {count} preskočených (žiadny aktívny merač)",
+      "csv_import_skipped_invalid": ", {count} preskočených (neplatný riadok)",
+      "csv_import_skipped_implausible": ", {count} preskočených (nepravdepodobný odpočet)"
     },
     "evaluation": {
       "title_suffix": " správa",

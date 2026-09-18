@@ -997,7 +997,15 @@
       "delete_confirm": "Opravdu smazat toto měrné místo? Všechny přidružené měřiče a odečty budou také smazány.",
       "filter_clear": "Zrušit filtr",
       "missing_filter_add": "Přidat měřicí bod",
-      "missing_filter_empty": "Každá parcela má měřicí bod."
+      "missing_filter_empty": "Každá parcela má měřicí bod.",
+      "csv_import": "CSV import",
+      "csv_export": "CSV export",
+      "csv_import_modal_title": "CSV import",
+      "csv_import_button": "Importovat",
+      "csv_format_help": "Formát: CSV oddělené středníky se sloupci: Type (MAIN_METER/PARCEL/CLUB); Parcel number; Label; Meter number; Installed on (RRRR-MM-DD); Calibrated until (rok); Initial reading",
+      "csv_import_summary": "{created} importováno, {skipped} přeskočeno",
+      "csv_import_invalid_type": ", {count} ignorováno (neplatný typ)",
+      "csv_import_parcel_not_found": ", {count} ignorováno (parcela nenalezena)"
     },
     "point_form": {
       "title_new": "Nové měrné místo pro {medium}",
@@ -1078,7 +1086,17 @@
       "club_header": "Přípojky spolku",
       "previous_year_label": "Předchozí rok",
       "recorded_label": "zaznamenáno",
-      "no_entry_yet": "Zatím nezadáno"
+      "no_entry_yet": "Zatím nezadáno",
+      "csv_import": "CSV import",
+      "csv_export": "CSV export",
+      "csv_import_modal_title": "CSV import",
+      "csv_import_button": "Importovat",
+      "csv_format_help": "Formát: CSV oddělené středníky se sloupci: Type; Parcel number; Label; Meter number; Year; Date (RRRR-MM-DD); Reading; Note",
+      "csv_import_summary": "{recorded} odečtů zaznamenáno",
+      "csv_import_skipped_no_point": ", {count} přeskočeno (měřicí bod nenalezen)",
+      "csv_import_skipped_no_meter": ", {count} přeskočeno (žádný aktivní měřič)",
+      "csv_import_skipped_invalid": ", {count} přeskočeno (neplatný řádek)",
+      "csv_import_skipped_implausible": ", {count} přeskočeno (nepravděpodobný odečet)"
     },
     "evaluation": {
       "title_suffix": " zpráva",
