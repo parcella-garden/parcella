@@ -27,12 +27,12 @@ from app.i18n import t_for
 from app.meter_utils import calculate_consumption
 from app.services.errors import ServiceError
 from app.services.metering import (
-    create_metering_point, update_metering_point, delete_metering_point, exchange_meter,
+    create_metering_point, update_metering_point, delete_metering_point, exchange_meter, update_meter,
     record_reading, delete_reading, get_price_configuration_for_year, save_price_configuration_for_year,
 )
 from app.schemas import (
     MeteringPointOut, MeteringPointDetailOut, MeteringPointCreate, MeteringPointUpdate,
-    MeterOut, MeterSwapRequest, MeterReadingCreate, MeterReadingOut,
+    MeterOut, MeterUpdate, MeterSwapRequest, MeterReadingCreate, MeterReadingOut,
     ConsumptionRowOut, MeteringPriceConfigurationOut, MeteringPriceConfigurationCreate,
 )
 
@@ -142,6 +142,31 @@ def create_metering_api_router(
         if zp:
             await delete_metering_point(db, zp)
             await db.commit()
+
+    @router.put(
+        "/metering-points/{metering_point_id}/meter", response_model=MeterOut,
+        summary="Edit current meter",
+        description="In-place correction of the current meter's own fields "
+                     "(number, installed_at, calibrated_until, initial_reading) -- "
+                     "not a physical swap, see the exchange endpoint for that.",
+    )
+    async def update_meter_endpoint(
+        metering_point_id: str,
+        daten: MeterUpdate,
+        db: AsyncSession = Depends(get_db),
+        user: User = Depends(require_api_permission(modul_name, "write")),
+    ):
+        zp = await _load_metering_point(db, metering_point_id)
+        if not zp:
+            raise HTTPException(status_code=404, detail="Metering point not found")
+        meter = zp.current_meter
+        if not meter:
+            raise HTTPException(status_code=404, detail="No active meter")
+
+        await update_meter(db, meter, **daten.model_dump(exclude_unset=True))
+        await db.commit()
+        await db.refresh(meter)
+        return meter
 
     @router.post(
         "/metering-points/{metering_point_id}/exchange", response_model=MeterOut,

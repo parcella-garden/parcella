@@ -1075,7 +1075,9 @@
       "col_number": "Nummer",
       "col_installed": "Geïnstalleerd",
       "col_removed": "Verwijderd",
-      "col_last_reading": "Laatste stand"
+      "col_last_reading": "Laatste stand",
+      "edit_meter_button": "Meter bewerken",
+      "edit_meter_save_button": "Opslaan"
     },
     "readings_list": {
       "title_suffix": " stand",

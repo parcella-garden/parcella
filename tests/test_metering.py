@@ -649,3 +649,68 @@ async def test_readings_import_join_is_parcel_number_not_meter_number(client, ad
         reading_b = points_by_plot["OHNE-B"].meters[0].readings[0]
         assert float(reading_a.reading) == 11.0
         assert float(reading_b.reading) == 22.0
+
+
+async def test_edit_current_meter_via_api_corrects_data_entry_mistake(client, admin_user):
+    """update_meter() is an in-place correction, distinct from
+    exchange_meter() -- no new Meter row, no removed_at on the old one,
+    just the mistyped fields fixed on the still-current meter."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    metering_point = (await client.post(
+        "/api/v1/water/metering-points",
+        json={"type": "CLUB", "label": "Edit-Test", "number": "W-TYPO", "initial_reading": "100.0"},
+        headers=headers,
+    )).json()
+    meter_id = metering_point["current_meter"]["id"]
+
+    update = await client.put(
+        f"/api/v1/water/metering-points/{metering_point['id']}/meter",
+        json={"number": "W-CORRECT", "initial_reading": "10.0"},
+        headers=headers,
+    )
+    assert update.status_code == 200
+    body = update.json()
+    assert body["id"] == meter_id  # same row, not a new one
+    assert body["number"] == "W-CORRECT"
+    assert float(body["initial_reading"]) == 10.0
+
+    detail = (await client.get(f"/api/v1/water/metering-points/{metering_point['id']}", headers=headers)).json()
+    assert detail["current_meter"]["number"] == "W-CORRECT"
+    assert detail["former_meters"] == []  # not treated as an exchange
+
+
+async def test_edit_current_meter_via_html_form(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    metering_point = (await client.post(
+        "/api/v1/electricity/metering-points",
+        json={"type": "CLUB", "label": "Edit-Test-HTML", "number": "E-TYPO", "calibrated_until": 2030, "initial_reading": "5.0"},
+        headers=headers,
+    )).json()
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    edit = await client.post(
+        f"/electricity/metering-points/{metering_point['id']}/meter/edit",
+        data={"number": "E-CORRECT", "calibrated_until": "2031", "initial_reading": "7"},
+        follow_redirects=False,
+    )
+    assert edit.status_code in (302, 303)
+
+    detail_page = await client.get(f"/electricity/metering-points/{metering_point['id']}")
+    assert "E-CORRECT" in detail_page.text
+    assert "E-TYPO" not in detail_page.text
+
+    async with AsyncSessionLocal() as db:
+        from sqlalchemy import select
+        result = await db.execute(select(Meter).where(Meter.number == "E-CORRECT"))
+        meter = result.scalar_one()
+        assert meter.calibrated_until == 2031
+        assert float(meter.initial_reading) == 7.0
+        assert meter.is_active is True

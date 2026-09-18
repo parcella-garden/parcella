@@ -1075,7 +1075,9 @@
       "col_number": "Number",
       "col_installed": "Installed",
       "col_removed": "Removed",
-      "col_last_reading": "Last reading"
+      "col_last_reading": "Last reading",
+      "edit_meter_button": "Edit meter",
+      "edit_meter_save_button": "Save"
     },
     "readings_list": {
       "title_suffix": " reading",

@@ -1075,7 +1075,9 @@
       "col_number": "Numer",
       "col_installed": "Zainstalowano",
       "col_removed": "Zdemontowano",
-      "col_last_reading": "Ostatni stan"
+      "col_last_reading": "Ostatni stan",
+      "edit_meter_button": "Edytuj licznik",
+      "edit_meter_save_button": "Zapisz"
     },
     "readings_list": {
       "title_suffix": " – odczyty",

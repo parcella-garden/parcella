@@ -1075,7 +1075,9 @@
       "col_number": "Numéro",
       "col_installed": "Installé",
       "col_removed": "Retiré",
-      "col_last_reading": "Dernier relevé"
+      "col_last_reading": "Dernier relevé",
+      "edit_meter_button": "Modifier le compteur",
+      "edit_meter_save_button": "Enregistrer"
     },
     "readings_list": {
       "title_suffix": " relevé",

@@ -74,6 +74,22 @@ async def delete_metering_point(db: AsyncSession, metering_point: MeteringPoint)
     await db.flush()
 
 
+async def update_meter(db: AsyncSession, meter: Meter, **fields) -> Meter:
+    """In-place correction of a meter's own static fields (number,
+    installed_at, calibrated_until, initial_reading) -- distinct from
+    exchange_meter(), which deactivates the current meter and creates a
+    new row for an actual physical swap. This is for fixing a data-entry
+    mistake on the still-current meter, so no history/new row is
+    involved. Partial update -- only keys present in `fields` change,
+    same "HTML always sends everything, API is a genuine partial
+    update" split as update_metering_point()."""
+    for key in ("number", "installed_at", "calibrated_until", "initial_reading"):
+        if key in fields:
+            setattr(meter, key, fields[key])
+    await db.flush()
+    return meter
+
+
 async def exchange_meter(
     db: AsyncSession, metering_point: MeteringPoint, *,
     new_number: str, removed_at: date, installed_at: date,

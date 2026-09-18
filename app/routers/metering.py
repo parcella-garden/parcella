@@ -36,7 +36,7 @@ from app.meter_utils import (
 )
 from app.services.errors import ServiceError
 from app.services.metering import (
-    create_metering_point, update_metering_point, delete_metering_point, exchange_meter,
+    create_metering_point, update_metering_point, delete_metering_point, exchange_meter, update_meter,
     record_reading, delete_reading, get_price_configuration_for_year, save_price_configuration_for_year,
 )
 
@@ -543,6 +543,40 @@ def create_metering_router(
             f"{url_prefix}/metering-points?message={urllib.parse.quote(message)}",
             status_code=302,
         )
+
+    # -----------------------------------------------------------------
+    # Edit current meter (in place -- correcting a data-entry mistake,
+    # not a physical swap; see "Swap meter" below for that)
+    # -----------------------------------------------------------------
+
+    @router.post("/metering-points/{metering_point_id}/meter/edit")
+    async def meter_edit(
+        metering_point_id: str,
+        request: Request,
+        number: str = Form(...),
+        installed_at: str = Form(""),
+        calibrated_until: str = Form(""),
+        initial_reading: str = Form("0"),
+        db: AsyncSession = Depends(get_db),
+    ):
+        await require_permission(request, db, modul_name, "write")
+        metering_point = await _load_metering_point_with_details(db, metering_point_id)
+        if not metering_point:
+            raise HTTPException(status_code=404)
+
+        current_meter = metering_point.current_meter
+        if not current_meter:
+            raise HTTPException(status_code=404, detail=t_for(request, "metering.errors.no_active_meter"))
+
+        await update_meter(
+            db, current_meter,
+            number=number.strip(),
+            installed_at=(date.fromisoformat(installed_at) if installed_at.strip() else None),
+            calibrated_until=(int(calibrated_until) if calibrated_until.strip() else None),
+            initial_reading=(_parse_number(initial_reading, decimal_places) or Decimal("0")),
+        )
+        await db.commit()
+        return RedirectResponse(f"{url_prefix}/metering-points/{metering_point_id}", status_code=302)
 
     # -----------------------------------------------------------------
     # Swap meter

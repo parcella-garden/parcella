@@ -81,6 +81,15 @@ calibration deadlines), the old one is **not deleted** but deactivated
 with a new number and its own initial reading. This correctly separates
 consumption calculations -- no mixing of old and new meter readings.
 
+**Editing the current meter in place (issue #226)** is a separate
+operation from exchanging it: `update_meter()`
+(`app/services/metering.py`), `POST .../meter/edit` (HTML) and
+`PUT .../meter` (API) correct a data-entry mistake on the still-current
+`Meter` row's own fields (number, installed_at, calibrated_until,
+initial_reading) -- no new row, no `removed_at`, no history entry.
+Reach for exchange only for an actual physical meter swap; reach for
+edit for "I mistyped this."
+
 ## Billing price configuration
 
 `MeteringPriceConfiguration` (one row per `(medium, year)`, unique

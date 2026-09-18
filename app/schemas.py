@@ -486,6 +486,16 @@ class MeteringPriceConfigurationOut(MeteringPriceConfigurationBase):
     id: str
 
 
+class MeterUpdate(BaseModel):
+    """In-place correction of the current meter's own fields -- distinct
+    from MeterSwapRequest, which is a physical exchange (new row,
+    old one deactivated)."""
+    number: Optional[str] = None
+    installed_at: Optional[date] = None
+    calibrated_until: Optional[int] = None
+    initial_reading: Optional[Decimal] = None
+
+
 class MeterSwapRequest(BaseModel):
     new_number: str
     removed_at: date

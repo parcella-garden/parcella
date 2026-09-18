@@ -106,10 +106,51 @@
 
                 {% if has_perm(request, modul_name, 'write') %}
                 <hr>
-                <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="collapse"
-                        data-bs-target="#tausch-formular">
-                    <i class="bi bi-arrow-repeat me-1"></i>{{ t('metering.point_detail.exchange_meter_button') }}
-                </button>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse"
+                            data-bs-target="#edit-meter-form">
+                        <i class="bi bi-pencil me-1"></i>{{ t('metering.point_detail.edit_meter_button') }}
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="collapse"
+                            data-bs-target="#tausch-formular">
+                        <i class="bi bi-arrow-repeat me-1"></i>{{ t('metering.point_detail.exchange_meter_button') }}
+                    </button>
+                </div>
+
+                <div class="collapse mt-3" id="edit-meter-form">
+                    <div class="card card-body bg-light">
+                        <form method="post" action="{{ url_prefix }}/metering-points/{{ metering_point.id }}/meter/edit">
+                            {{ csrf_field() }}
+                            <div class="row g-2">
+                                <div class="col-sm-6">
+                                    <label class="form-label fw-semibold" style="font-size: 0.85rem;">{{ t('metering.point_detail.label_number') }} <span class="text-danger">*</span></label>
+                                    <input type="text" name="number" class="form-control form-control-sm"
+                                           value="{{ current_meter.number }}" required>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label fw-semibold" style="font-size: 0.85rem;">{{ t('metering.point_detail.label_installed_at') }}</label>
+                                    <input type="date" name="installed_at" class="form-control form-control-sm"
+                                           value="{{ current_meter.installed_at.isoformat() if current_meter.installed_at else '' }}">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label fw-semibold" style="font-size: 0.85rem;">{{ t('metering.point_detail.label_calibrated_until') }}</label>
+                                    <input type="number" name="calibrated_until" class="form-control form-control-sm"
+                                           value="{{ current_meter.calibrated_until or '' }}">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label fw-semibold" style="font-size: 0.85rem;">{{ t('metering.point_detail.label_initial_reading') }}</label>
+                                    <input type="text" name="initial_reading" class="form-control form-control-sm"
+                                           value="{{ current_meter.initial_reading | fmt(decimal_places) }}">
+                                </div>
+                                <div class="col-sm-6 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary w-100">
+                                        <i class="bi bi-check-lg me-1"></i>{{ t('metering.point_detail.edit_meter_save_button') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
                 <div class="collapse mt-3" id="tausch-formular">
                     <div class="card card-body bg-light">

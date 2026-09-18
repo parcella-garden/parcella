@@ -1075,7 +1075,9 @@
       "col_number": "Číslo",
       "col_installed": "Instalováno",
       "col_removed": "Odstraněno",
-      "col_last_reading": "Poslední odečet"
+      "col_last_reading": "Poslední odečet",
+      "edit_meter_button": "Upravit měřidlo",
+      "edit_meter_save_button": "Uložit"
     },
     "readings_list": {
       "title_suffix": " odečet",
