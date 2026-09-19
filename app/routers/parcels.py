@@ -1,6 +1,7 @@
 """
 Parcels router: list, create, edit, assignments, CSV import/export.
 """
+import base64
 import csv
 import io
 from datetime import date, datetime, timezone
@@ -14,7 +15,14 @@ from sqlalchemy import select, or_
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db, active_member_filter
-from app.csv_utils import csv_safe
+from app.csv_utils import (
+    csv_safe,
+    decode_csv_upload,
+    sniff_csv_delimiter,
+    guess_column_mapping,
+    parse_column_mapping,
+    parse_mapped_csv_rows,
+)
 from app.models import (
     Parcel, ParcelStatus, MemberParcel, Member, ChangeHistory
 )
@@ -714,35 +722,78 @@ async def parcels_export_csv(request: Request, db: AsyncSession = Depends(get_db
 # CSV import
 # ---------------------------------------------------------------------------
 
-@router.post("/import/csv")
-async def parcels_import_csv(
+CSV_IMPORT_PREVIEW_ROWS = 5
+PARCELS_IMPORT_TARGET_FIELDS = ["plot_number", "area_sqm", "latitude", "longitude", "status", "notes"]
+PARCELS_IMPORT_FIELD_ALIASES = {
+    "plot_number": {"gartennummer", "plot number", "parcel number", "parzellennummer"},
+    "area_sqm": {"fläche (qm)", "flaeche (qm)", "area", "area (sqm)", "area (m2)"},
+    "latitude": {"breitengrad", "latitude", "lat"},
+    "longitude": {"längengrad", "laengengrad", "longitude", "lng", "lon"},
+    "status": {"status"},
+    "notes": {"notizen", "notes", "note"},
+}
+
+
+@router.post("/import/preview", response_class=HTMLResponse)
+async def parcels_import_preview(
     request: Request,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
 ):
+    """Step 1 of the column-mapping wizard (ADR 0062's pattern,
+    generalized here -- see docs/ADR/0083): detects the header row and
+    lets the user map each column to a Parcella field before anything
+    is written. The raw CSV round-trips to step 2 as a hidden base64
+    field, not server-side session state."""
     await require_permission(request, db, "members_parcels", "write")
 
     content = await file.read()
-    try:
-        text = content.decode("utf-8-sig")  # BOM-safe
-    except UnicodeDecodeError:
-        text = content.decode("latin-1")
+    text = decode_csv_upload(content)
+    delimiter = sniff_csv_delimiter(text)
 
-    try:
-        delimiter = csv.Sniffer().sniff(text[:2048], delimiters=";,").delimiter
-    except csv.Error:
-        delimiter = ";"
+    reader = csv.reader(io.StringIO(text), delimiter=delimiter)
+    rows = list(reader)
+    if not rows:
+        message = t_for(request, "parcels.list.csv_empty_error")
+        return RedirectResponse(f"/parcels/?error={urlquote(message)}", status_code=303)
+    headers = [h.strip() for h in rows[0]]
+    preview_rows = rows[1:1 + CSV_IMPORT_PREVIEW_ROWS]
+    default_mapping = guess_column_mapping(headers, PARCELS_IMPORT_FIELD_ALIASES)
 
-    reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
-    if reader.fieldnames:
-        reader.fieldnames = [f.strip() if f else f for f in reader.fieldnames]
+    return templates.TemplateResponse("parcels/import_preview.html", {
+        "request": request,
+        "headers": headers, "preview_rows": preview_rows,
+        "default_mapping": default_mapping, "target_fields": PARCELS_IMPORT_TARGET_FIELDS,
+        "csv_content_b64": base64.b64encode(content).decode("ascii"), "delimiter": delimiter,
+    })
+
+
+@router.post("/import/finalize")
+async def parcels_import_finalize(
+    request: Request,
+    csv_content_b64: str = Form(...), delimiter: str = Form(";"),
+    db: AsyncSession = Depends(get_db),
+):
+    """Step 2: applies the confirmed column mapping and runs the same
+    row logic the old fixed-header importer used -- plot_number as the
+    sole dedup key, comma-decimal float parsing, status coercion -- are
+    unchanged, just fed from the mapped dict instead of a literal
+    DictReader header lookup."""
+    await require_permission(request, db, "members_parcels", "write")
+
+    form = await request.form()
+    column_mapping = parse_column_mapping(form, PARCELS_IMPORT_TARGET_FIELDS)
+    if "plot_number" not in column_mapping.values():
+        message = t_for(request, "parcels.list.csv_mapping_required_error")
+        return RedirectResponse(f"/parcels/?error={urlquote(message)}", status_code=303)
+    rows = parse_mapped_csv_rows(csv_content_b64, delimiter, column_mapping)
 
     created = 0
     skipped = 0
     missing_plot_number = 0
 
-    for row in reader:
-        plot_number = (row.get("Gartennummer") or "").strip().upper()
+    for values in rows:
+        plot_number = (values.get("plot_number") or "").strip().upper()
         if not plot_number:
             missing_plot_number += 1
             continue
@@ -755,7 +806,7 @@ async def parcels_import_csv(
             continue
 
         area = None
-        area_str = (row.get("Fläche (qm)") or "").replace(",", ".").strip()
+        area_str = (values.get("area_sqm") or "").replace(",", ".").strip()
         if area_str:
             try:
                 area = float(area_str)
@@ -763,7 +814,7 @@ async def parcels_import_csv(
                 pass
 
         lat = None
-        lat_str = (row.get("Breitengrad") or "").replace(",", ".").strip()
+        lat_str = (values.get("latitude") or "").replace(",", ".").strip()
         if lat_str:
             try:
                 lat = float(lat_str)
@@ -771,14 +822,14 @@ async def parcels_import_csv(
                 pass
 
         lng = None
-        lng_str = (row.get("Längengrad") or "").replace(",", ".").strip()
+        lng_str = (values.get("longitude") or "").replace(",", ".").strip()
         if lng_str:
             try:
                 lng = float(lng_str)
             except ValueError:
                 pass
 
-        status_str = (row.get("Status") or "ACTIVE").strip().upper()
+        status_str = (values.get("status") or "ACTIVE").strip().upper()
         status = ParcelStatus.ACTIVE
         if status_str in [s.value for s in ParcelStatus]:
             status = ParcelStatus(status_str)
@@ -789,7 +840,7 @@ async def parcels_import_csv(
             latitude=lat,
             longitude=lng,
             status=status,
-            notes=(row.get("Notizen") or "").strip() or None,
+            notes=(values.get("notes") or "").strip() or None,
         )
         db.add(parcel)
         created += 1

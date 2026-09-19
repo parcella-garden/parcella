@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ t('parcels.list.import_preview_title') }}{% endblock %}
+{% block page_title %}{{ t('parcels.list.import_preview_title') }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="/parcels/" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>{{ t('common.back') }}
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-diagram-3 me-2"></i>{{ t('parcels.list.import_preview_header') }}</div>
+            <div class="card-body">
+                <p class="text-muted">{{ t('parcels.list.import_preview_help') }}</p>
+                <form method="post" action="/parcels/import/finalize">
+                    {{ csrf_field() }}
+                    <input type="hidden" name="csv_content_b64" value="{{ csv_content_b64 }}">
+                    <input type="hidden" name="delimiter" value="{{ delimiter }}">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    {% for header in headers %}
+                                    {% set col_index = loop.index0 %}
+                                    <th>
+                                        <div class="fw-semibold mb-1">{{ header or ('#' ~ loop.index) }}</div>
+                                        <select name="map_{{ col_index }}" class="form-select form-select-sm">
+                                            <option value="ignore" {% if col_index not in default_mapping %}selected{% endif %}>{{ t('parcels.list.map_ignore') }}</option>
+                                            {% for field in target_fields %}
+                                            <option value="{{ field }}" {% if default_mapping.get(col_index) == field %}selected{% endif %}>
+                                                {{ t('parcels.list.map_field_' ~ field) }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in preview_rows %}
+                                <tr class="text-muted">
+                                    {% for cell in row %}
+                                    <td>{{ cell }}</td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="form-text mb-3">{{ t('parcels.list.import_preview_required_help') }}</div>
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-upload me-1"></i>{{ t('parcels.list.csv_import_button') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

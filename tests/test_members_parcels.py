@@ -1,5 +1,11 @@
 """Tests for members, parcels, and their m:n assignment."""
+import base64
+
 from tests.conftest import login, auth_header
+
+
+def _b64_csv(text: str) -> str:
+    return base64.b64encode(text.encode("utf-8")).decode("ascii")
 
 
 async def test_treasurer_without_group_grant_is_blocked_from_member_write_via_api(client):
@@ -398,8 +404,12 @@ async def test_parcel_csv_export_import_round_trips_coordinates(client, admin_us
     assert "G203" in export.text
 
     import_response = await client.post(
-        "/parcels/import/csv",
-        files={"file": ("parcels.csv", export.text.encode("utf-8"), "text/csv")},
+        "/parcels/import/finalize",
+        data={
+            "csv_content_b64": _b64_csv(export.text), "delimiter": ";",
+            "map_0": "plot_number", "map_1": "area_sqm", "map_2": "latitude", "map_3": "longitude",
+            "map_4": "status", "map_5": "ignore", "map_6": "ignore", "map_7": "notes",
+        },
         follow_redirects=False,
     )
     assert import_response.status_code in (302, 303)
@@ -412,8 +422,48 @@ async def test_parcel_csv_export_import_round_trips_coordinates(client, admin_us
         result = await db.execute(select(Parcel).where(Parcel.plot_number == "G203"))
         parcels = result.scalars().all()
         # Re-importing the just-exported CSV skips existing plot numbers
-        # (see parcels_import_csv), so still exactly one G203 -- but that
-        # confirms the round-trip parsed the new columns without error.
+        # (see parcels_import_finalize), so still exactly one G203 -- but
+        # that confirms the round-trip parsed the new columns without error.
         assert len(parcels) == 1
         assert float(parcels[0].latitude) == 51.339695
         assert float(parcels[0].longitude) == 12.373075
+
+
+async def test_parcel_import_wizard_maps_reordered_english_headers(client, admin_user):
+    """Issue #227: the column-mapping wizard (generalized from ADR 0062
+    in docs/ADR/0083) lets a CSV with different/reordered headers than
+    Parcella's own (German) export still be imported, by guessing a
+    mapping the user confirms."""
+    from sqlalchemy import select
+    from app.database import AsyncSessionLocal
+    from app.models import Parcel
+
+    await web_login(client, "admin@example.com")
+
+    csv_text = (
+        "Status;Plot number;Area (sqm)\n"
+        "ACTIVE;WIZ-P01;250,5\n"
+    )
+    preview = await client.post(
+        "/parcels/import/preview",
+        files={"file": ("import.csv", csv_text.encode("utf-8"), "text/csv")},
+    )
+    assert preview.status_code == 200
+    assert 'value="status" selected' in preview.text
+    assert 'value="plot_number" selected' in preview.text
+    assert 'value="area_sqm" selected' in preview.text
+
+    import_response = await client.post(
+        "/parcels/import/finalize",
+        data={
+            "csv_content_b64": _b64_csv(csv_text), "delimiter": ";",
+            "map_0": "status", "map_1": "plot_number", "map_2": "area_sqm",
+        },
+        follow_redirects=False,
+    )
+    assert import_response.status_code in (302, 303)
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(Parcel).where(Parcel.plot_number == "WIZ-P01"))
+        parcel = result.scalar_one()
+        assert float(parcel.area_sqm) == 250.5
