@@ -42,13 +42,27 @@ and members -- replacing each fixed-header importer, the same way ADR
   matching) are unchanged -- only how a row's raw values get from "CSV
   column" to "named field" changed, from a literal `DictReader` header
   lookup to a confirmed column→field mapping.
-- Each module still requires its own minimum viable mapping before
-  proceeding (metering: `type`; parcels: `plot_number`; members:
-  `first_name` **and** `last_name`) -- mirroring ADR 0062's own
-  required-`date`-and-`amount` check for bookings. Everything else is
+- Parcels and members still require their own minimum viable mapping
+  before proceeding (`plot_number`; `first_name` **and** `last_name`)
+  -- mirroring ADR 0062's own required-`date`-and-`amount` check for
+  bookings, since those fields have no sane default. Metering does
+  **not** require `type` to be mapped: a real single-medium export is
+  usually all-`PARCEL` rows with no Type column at all (the issue
+  #227 file that prompted this section -- just parcel number/meter
+  number/calibrated until/initial reading), so every row defaults to
+  `PARCEL` when `type` isn't mapped. All four importers still refuse
+  to proceed when *nothing at all* is mapped. Everything else is
   optional to map; an unmapped field just behaves as if the column
   were blank, same as a missing column did under the old fixed-header
   importers.
+- **Bug hit building this:** the `?error=...` query param these
+  redirects use to surface "nothing mapped"/"empty file" was only ever
+  rendered by `finances/account_bookings.html` -- the metering, parcels,
+  and members list templates only checked `?message=`, so an error
+  redirect landed with no visible feedback at all (silently back on the
+  list page). Fixed by adding the same `{% elif
+  request.query_params.get('error') %}` alert-danger branch (copied
+  from finances') to all three.
 - `app/routers/members.py`'s import file-upload field was renamed from
   `datei` to `file`, matching the other three modules (internal form
   field name only, no user-visible or translation impact).

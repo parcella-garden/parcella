@@ -779,6 +779,84 @@ async def test_readings_import_wizard_maps_reordered_german_headers(client, admi
         assert readings == {2025: 42.0}
 
 
+async def test_metering_points_import_wizard_defaults_to_parcel_when_type_not_mapped(client, admin_user):
+    """Issue #227 follow-up: a real self-hosted export for a single
+    medium is often all-PARCEL rows with no Type column at all (just
+    parcel number, meter number, calibrated until, initial reading).
+    Requiring Type to be mapped before import silently blocked this
+    shape of file -- it should default every row to PARCEL instead."""
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await client.post("/api/v1/parcels", json={"plot_number": "NOTYPE-01"}, headers=headers)
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    csv_text = (
+        "Parzellennummer,Zählernummer,Geeicht bis,Anfangsstand\n"
+        "NOTYPE-01,8DEL2143010321,2028,31\n"
+    )
+    preview = await client.post(
+        "/water/metering-points/import/preview",
+        files={"file": ("import.csv", csv_text.encode("utf-8"), "text/csv")},
+    )
+    assert preview.status_code == 200
+    # No "type" option is (or can be) selected -- there's no Type column.
+    assert 'value="type" selected' not in preview.text
+
+    import_response = await client.post(
+        "/water/metering-points/import/finalize",
+        data={
+            "csv_content_b64": _b64_csv(csv_text), "delimiter": ",",
+            "map_0": "parcel_number", "map_1": "meter_number",
+            "map_2": "calibrated_until", "map_3": "initial_reading",
+        },
+        follow_redirects=False,
+    )
+    assert import_response.status_code in (302, 303)
+    assert "error" not in import_response.headers["location"]
+    assert "imported" in import_response.headers["location"]
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(MeteringPoint)
+            .options(selectinload(MeteringPoint.parcel), selectinload(MeteringPoint.meters))
+            .where(MeteringPoint.medium == MeteringMedium.WATER)
+        )
+        by_plot = {p.parcel.plot_number: p for p in result.scalars().all() if p.parcel}
+        assert "NOTYPE-01" in by_plot
+        assert by_plot["NOTYPE-01"].type == MeteringPointType.PARCEL
+        assert by_plot["NOTYPE-01"].meters[0].number == "8DEL2143010321"
+
+
+async def test_metering_points_import_wizard_empty_mapping_shows_error_banner(client, admin_user):
+    """The error-redirect path (empty file, or nothing mapped at all)
+    must actually be visible -- a prior bug set ?error=... on the
+    redirect but the list template only ever rendered ?message=,
+    so the error silently vanished."""
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    import_response = await client.post(
+        "/water/metering-points/import/finalize",
+        data={"csv_content_b64": _b64_csv("A,B\n1,2\n"), "delimiter": ","},
+        follow_redirects=False,
+    )
+    assert import_response.status_code in (302, 303)
+    assert "error=" in import_response.headers["location"]
+
+    followed = await client.get(import_response.headers["location"])
+    assert followed.status_code == 200
+    assert "alert-danger" in followed.text
+
+
 async def test_edit_current_meter_via_api_corrects_data_entry_mistake(client, admin_user):
     """update_meter() is an in-place correction, distinct from
     exchange_meter() -- no new Meter row, no removed_at on the old one,

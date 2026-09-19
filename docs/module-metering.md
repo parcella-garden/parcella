@@ -214,7 +214,11 @@ added to the shared router factory so both media get it automatically.
   **replaces** the old fixed-header endpoints rather than keeping both
   (same call ADR 0062 made, for the same reason). The row-processing
   logic below is unchanged either way -- only how a row's raw values
-  get from "CSV column" to "named field" changed.
+  get from "CSV column" to "named field" changed. `Type` doesn't need
+  to be mapped at all -- a real single-medium export is usually
+  all-`PARCEL` rows with no Type column (points/readings both default
+  every row to `PARCEL` when `type` isn't mapped); only mapping
+  *nothing at all* is refused.
 - Both readings imports go through `record_reading()`
   (`app/services/metering.py`), so a bulk-loaded reading is subject to
   exactly the same monotonicity check as one entered by hand through

@@ -52,6 +52,10 @@
 <div class="alert alert-info d-flex gap-2 align-items-center mb-3">
     <i class="bi bi-info-circle-fill"></i> {{ request.query_params.get('message') }}
 </div>
+{% elif request.query_params.get('error') %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ request.query_params.get('error') }}
+</div>
 {% endif %}
 
 {% macro zeile(z, year, today) %}

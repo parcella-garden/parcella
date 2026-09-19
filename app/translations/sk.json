@@ -1051,7 +1051,7 @@
       "map_field_installed_on": "Installed on",
       "map_field_calibrated_until": "Calibrated until",
       "map_field_initial_reading": "Initial reading",
-      "csv_mapping_required_error": "Pred importom prosím priraďte stĺpec Type.",
+      "csv_mapping_required_error": "Pred importom prosím priraďte aspoň jeden stĺpec.",
       "csv_empty_error": "Tento súbor CSV sa zdá byť prázdny."
     },
     "point_form": {
@@ -1158,7 +1158,7 @@
       "map_field_date": "Date",
       "map_field_reading": "Reading",
       "map_field_note": "Note",
-      "csv_mapping_required_error": "Pred importom prosím priraďte stĺpec Type.",
+      "csv_mapping_required_error": "Pred importom prosím priraďte aspoň jeden stĺpec.",
       "csv_empty_error": "Tento súbor CSV sa zdá byť prázdny."
     },
     "evaluation": {

@@ -30,6 +30,10 @@
 <div class="alert alert-success d-flex gap-2 align-items-center mb-3">
     <i class="bi bi-check-circle-fill"></i> {{ request.query_params.get('message') }}
 </div>
+{% elif request.query_params.get('error') %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ request.query_params.get('error') }}
+</div>
 {% endif %}
 
 <!-- Suche -->

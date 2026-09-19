@@ -1051,7 +1051,7 @@
       "map_field_installed_on": "Installed on",
       "map_field_calibrated_until": "Calibrated until",
       "map_field_initial_reading": "Initial reading",
-      "csv_mapping_required_error": "Koppel eerst de kolom Type voordat u importeert.",
+      "csv_mapping_required_error": "Koppel eerst ten minste één kolom voordat u importeert.",
       "csv_empty_error": "Dit CSV-bestand lijkt leeg te zijn."
     },
     "point_form": {
@@ -1158,7 +1158,7 @@
       "map_field_date": "Date",
       "map_field_reading": "Reading",
       "map_field_note": "Note",
-      "csv_mapping_required_error": "Koppel eerst de kolom Type voordat u importeert.",
+      "csv_mapping_required_error": "Koppel eerst ten minste één kolom voordat u importeert.",
       "csv_empty_error": "Dit CSV-bestand lijkt leeg te zijn."
     },
     "evaluation": {

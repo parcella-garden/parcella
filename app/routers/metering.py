@@ -532,12 +532,18 @@ def create_metering_router(
 
         form = await request.form()
         column_mapping = parse_column_mapping(form, POINTS_IMPORT_TARGET_FIELDS)
-        if "type" not in column_mapping.values():
+        if not column_mapping:
             message = t_for(request, "metering.points_list.csv_mapping_required_error")
             return RedirectResponse(
                 f"{url_prefix}/metering-points?error={urllib.parse.quote(message)}",
                 status_code=303,
             )
+        # Type isn't required to be mapped -- most real-world exports for
+        # a single medium are entirely PARCEL rows and don't carry a Type
+        # column at all (issue #227's motivating file: just parcel
+        # number/meter number/calibrated until/initial reading). Only a
+        # row where Type *is* mapped but left blank counts as invalid.
+        type_mapped = "type" in column_mapping.values()
         rows = parse_mapped_csv_rows(csv_content_b64, delimiter, column_mapping)
 
         all_points = await _load_all_metering_points(db)
@@ -558,6 +564,8 @@ def create_metering_router(
 
         for values in rows:
             type_str = (values.get("type") or "").strip().upper()
+            if not type_str and not type_mapped:
+                type_str = MeteringPointType.PARCEL.value
             if type_str not in {t.value for t in MeteringPointType}:
                 invalid_type += 1
                 continue
@@ -878,12 +886,15 @@ def create_metering_router(
 
         form = await request.form()
         column_mapping = parse_column_mapping(form, READINGS_IMPORT_TARGET_FIELDS)
-        if "type" not in column_mapping.values():
+        if not column_mapping:
             message = t_for(request, "metering.readings_list.csv_mapping_required_error")
             return RedirectResponse(
                 f"{url_prefix}/readings?error={urllib.parse.quote(message)}",
                 status_code=303,
             )
+        # Same relaxation as the points importer: Type needn't be mapped
+        # for a single-medium, all-PARCEL export.
+        type_mapped = "type" in column_mapping.values()
         rows = parse_mapped_csv_rows(csv_content_b64, delimiter, column_mapping)
 
         all_points = await _load_all_metering_points(db)
@@ -906,6 +917,8 @@ def create_metering_router(
 
         for values in rows:
             type_str = (values.get("type") or "").strip().upper()
+            if not type_str and not type_mapped:
+                type_str = MeteringPointType.PARCEL.value
             if type_str not in {t.value for t in MeteringPointType}:
                 skipped_invalid += 1
                 continue
