@@ -222,9 +222,13 @@ added to the shared router factory so both media get it automatically.
   default -- a reading's calendar date and its billing year aren't
   reliably the same thing (an annual reading taken in January can still
   belong to the previous year's cycle), so guessing `Year` from `Date`
-  would silently misattribute readings near a year boundary. `Year`
-  must be mapped to a real column; if a source export doesn't have one,
-  it has to be added by hand first.
+  would silently misattribute readings near a year boundary. Instead,
+  the readings preview page has an optional **default year** field --
+  an explicit, human-stated "this whole import run is year X" applied
+  to any row where `Year` isn't mapped or is left blank. A row's own
+  mapped `Year` value, when present, always wins over the default.
+  This is safe where guessing from `Date` wasn't: it's the importer
+  deliberately stating the year for the batch, not the app inferring it.
 - **Optional `Meter number` cross-check on readings import:** if the CSV
   maps a `Meter number` column and a row's value doesn't match the
   metering point's *current* meter, that row is skipped rather than

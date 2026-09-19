@@ -1042,7 +1042,7 @@
       "import_preview_title_suffix": " meetpunten: import",
       "import_preview_header": "CSV-kolommen koppelen",
       "import_preview_help": "Kies voor elke kolom hieronder bij welk veld deze hoort (of laat hem genegeerd). Type is verplicht.",
-      "import_preview_required_help": "Type moet aan een kolom worden gekoppeld.",
+      "import_preview_required_help": "Er moet minstens één kolom worden gekoppeld om te importeren.",
       "map_ignore": "— Negeren —",
       "map_field_type": "Type",
       "map_field_parcel_number": "Parcel number",
@@ -1153,7 +1153,7 @@
       "import_preview_title_suffix": " stand: import",
       "import_preview_header": "CSV-kolommen koppelen",
       "import_preview_help": "Kies voor elke kolom hieronder bij welk veld deze hoort (of laat hem genegeerd). Type is verplicht.",
-      "import_preview_required_help": "Type moet aan een kolom worden gekoppeld.",
+      "import_preview_required_help": "Er moet minstens één kolom worden gekoppeld om te importeren.",
       "map_ignore": "— Negeren —",
       "map_field_type": "Type",
       "map_field_parcel_number": "Parcel number",
@@ -1172,7 +1172,9 @@
       "csv_import_more_skipped": " (en {count} meer)",
       "csv_import_skip_reason_meter_mismatch": "meternummer komt niet overeen",
       "csv_import_skipped_meter_mismatch": ", {count} overgeslagen (meternummer komt niet overeen met huidige meter)",
-      "map_field_meter_number": "Meter number"
+      "map_field_meter_number": "Meter number",
+      "default_year_label": "Standaardjaar (optioneel)",
+      "default_year_help": "Gebruikt voor elke rij waarin Year niet is gekoppeld of leeg is. Een eigen Year-waarde van de rij heeft, indien gekoppeld en ingevuld, altijd voorrang."
     },
     "evaluation": {
       "title_suffix": " rapport",

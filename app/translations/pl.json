@@ -1042,7 +1042,7 @@
       "import_preview_title_suffix": " – punkty pomiarowe: import",
       "import_preview_header": "Mapowanie kolumn CSV",
       "import_preview_help": "Dla każdej kolumny poniżej wybierz, do którego pola należy (lub pozostaw ją zignorowaną). Pole Type jest wymagane.",
-      "import_preview_required_help": "Kolumna Type musi zostać przypisana.",
+      "import_preview_required_help": "Aby zaimportować, przypisz przynajmniej jedną kolumnę.",
       "map_ignore": "— Ignoruj —",
       "map_field_type": "Type",
       "map_field_parcel_number": "Parcel number",
@@ -1153,7 +1153,7 @@
       "import_preview_title_suffix": " – odczyty: import",
       "import_preview_header": "Mapowanie kolumn CSV",
       "import_preview_help": "Dla każdej kolumny poniżej wybierz, do którego pola należy (lub pozostaw ją zignorowaną). Pole Type jest wymagane.",
-      "import_preview_required_help": "Kolumna Type musi zostać przypisana.",
+      "import_preview_required_help": "Aby zaimportować, przypisz przynajmniej jedną kolumnę.",
       "map_ignore": "— Ignoruj —",
       "map_field_type": "Type",
       "map_field_parcel_number": "Parcel number",
@@ -1172,7 +1172,9 @@
       "csv_import_more_skipped": " (i {count} więcej)",
       "csv_import_skip_reason_meter_mismatch": "niezgodny numer licznika",
       "csv_import_skipped_meter_mismatch": ", {count} pominiętych (numer licznika nie zgadza się z aktualnym licznikiem)",
-      "map_field_meter_number": "Meter number"
+      "map_field_meter_number": "Meter number",
+      "default_year_label": "Rok domyślny (opcjonalnie)",
+      "default_year_help": "Używany dla wierszy, w których kolumna Year nie jest przypisana lub jest pusta. Własna wartość Year w wierszu, jeśli przypisana i wypełniona, zawsze ma pierwszeństwo."
     },
     "evaluation": {
       "title_suffix": " – rozliczenie",

@@ -50,6 +50,11 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="mb-3" style="max-width: 300px;">
+                        <label for="default_year" class="form-label">{{ t('metering.readings_list.default_year_label') }}</label>
+                        <input type="number" id="default_year" name="default_year" class="form-control form-control-sm" min="1900" max="2999">
+                        <div class="form-text">{{ t('metering.readings_list.default_year_help') }}</div>
+                    </div>
                     <div class="form-text mb-3">{{ t('metering.readings_list.import_preview_required_help') }}</div>
                     <button type="submit" class="btn btn-sm btn-primary">
                         <i class="bi bi-upload me-1"></i>{{ t('metering.readings_list.csv_import_button') }}

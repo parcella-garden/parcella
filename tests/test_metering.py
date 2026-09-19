@@ -950,6 +950,87 @@ async def test_readings_import_wizard_requires_year_mapped_even_with_date_mapped
         assert result.scalars().all() == []
 
 
+async def test_readings_import_wizard_default_year_applies_when_year_not_mapped(client, admin_user):
+    """An explicit, human-stated 'this whole batch is year X' default
+    is safe (unlike guessing from the reading date) since the importer
+    states it deliberately for the run, not the app inferring it."""
+    from sqlalchemy import select
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    parcel_id = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "DEFYEAR-01"}, headers=headers
+    )).json()["id"]
+    await client.post(
+        "/api/v1/water/metering-points",
+        json={"type": "PARCEL", "parcel_id": parcel_id, "number": "W-DEFYEAR", "initial_reading": "0.0"},
+        headers=headers,
+    )
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    csv_text = "Parzellennummer;Ablesedatum;Zählerstand\nDEFYEAR-01;19.01.2026;42,0\n"
+    import_response = await client.post(
+        "/water/readings/import/finalize",
+        data={
+            "csv_content_b64": _b64_csv(csv_text), "delimiter": ";", "default_year": "2025",
+            "map_0": "parcel_number", "map_1": "date", "map_2": "reading",
+        },
+        follow_redirects=False,
+    )
+    assert import_response.status_code in (302, 303)
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(Meter).where(Meter.number == "W-DEFYEAR"))
+        meter = result.scalar_one()
+        result = await db.execute(select(MeterReading).where(MeterReading.meter_id == meter.id))
+        readings = {r.year: float(r.reading) for r in result.scalars().all()}
+        assert readings == {2025: 42.0}
+
+
+async def test_readings_import_wizard_mapped_year_column_overrides_default_year(client, admin_user):
+    """A row's own Year column, when mapped and filled in, always wins
+    over the form's default_year fallback."""
+    from sqlalchemy import select
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    parcel_id = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "DEFYEAR-02"}, headers=headers
+    )).json()["id"]
+    await client.post(
+        "/api/v1/water/metering-points",
+        json={"type": "PARCEL", "parcel_id": parcel_id, "number": "W-DEFYEAR2", "initial_reading": "0.0"},
+        headers=headers,
+    )
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    csv_text = "Parzellennummer;Jahr;Ablesedatum;Zählerstand\nDEFYEAR-02;2024;19.01.2026;42,0\n"
+    import_response = await client.post(
+        "/water/readings/import/finalize",
+        data={
+            "csv_content_b64": _b64_csv(csv_text), "delimiter": ";", "default_year": "2025",
+            "map_0": "parcel_number", "map_1": "year", "map_2": "date", "map_3": "reading",
+        },
+        follow_redirects=False,
+    )
+    assert import_response.status_code in (302, 303)
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(Meter).where(Meter.number == "W-DEFYEAR2"))
+        meter = result.scalar_one()
+        result = await db.execute(select(MeterReading).where(MeterReading.meter_id == meter.id))
+        readings = {r.year: float(r.reading) for r in result.scalars().all()}
+        assert readings == {2024: 42.0}
+
+
 async def test_readings_import_wizard_does_not_guess_art_column_as_type(client, admin_user):
     """Regression guard: a real export's 'Art' column (reading kind --
     Jahresablesung/Zwischenablesung) must NOT be guessed as the Type

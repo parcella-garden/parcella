@@ -901,7 +901,7 @@ def create_metering_router(
     @router.post("/readings/import/finalize")
     async def readings_import_finalize(
         request: Request,
-        csv_content_b64: str = Form(...), delimiter: str = Form(";"),
+        csv_content_b64: str = Form(...), delimiter: str = Form(";"), default_year: str = Form(""),
         db: AsyncSession = Depends(get_db),
     ):
         user = await require_permission(request, db, modul_name, "write")
@@ -985,7 +985,12 @@ def create_metering_router(
                 skip_details.append(f"{identifier}: {reason_meter_mismatch}")
                 continue
 
-            year_str = (values.get("year") or "").strip()
+            # A per-row Year column (if mapped and non-blank) always wins;
+            # `default_year` is an explicit, human-stated fallback for the
+            # whole import run ("this batch is 2025's readings"), never an
+            # automatic guess from the date -- see the Year note above for
+            # why guessing from Date specifically was rejected.
+            year_str = (values.get("year") or "").strip() or default_year.strip()
             reading_value = _parse_number(values.get("reading") or "", decimal_places)
             reading_date = _parse_date_flexible(values.get("date") or "")
             if not year_str.isdigit() or reading_value is None or reading_date is None:

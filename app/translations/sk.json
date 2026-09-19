@@ -1042,7 +1042,7 @@
       "import_preview_title_suffix": " meracích bodov: import",
       "import_preview_header": "Mapovanie stĺpcov CSV",
       "import_preview_help": "Pre každý stĺpec nižšie vyberte, ku ktorému polú patrí (alebo ho ponechajte ignorovaný). Stĺpec Type je povinný.",
-      "import_preview_required_help": "Stĺpec Type musí byť priradený.",
+      "import_preview_required_help": "Na import musí byť priradený aspoň jeden stĺpec.",
       "map_ignore": "— Ignorovať —",
       "map_field_type": "Type",
       "map_field_parcel_number": "Parcel number",
@@ -1153,7 +1153,7 @@
       "import_preview_title_suffix": " odpočet: import",
       "import_preview_header": "Mapovanie stĺpcov CSV",
       "import_preview_help": "Pre každý stĺpec nižšie vyberte, ku ktorému polú patrí (alebo ho ponechajte ignorovaný). Stĺpec Type je povinný.",
-      "import_preview_required_help": "Stĺpec Type musí byť priradený.",
+      "import_preview_required_help": "Na import musí byť priradený aspoň jeden stĺpec.",
       "map_ignore": "— Ignorovať —",
       "map_field_type": "Type",
       "map_field_parcel_number": "Parcel number",
@@ -1172,7 +1172,9 @@
       "csv_import_more_skipped": " (a {count} ďalších)",
       "csv_import_skip_reason_meter_mismatch": "nezhodné číslo merača",
       "csv_import_skipped_meter_mismatch": ", {count} preskočených (číslo merača sa nezhoduje s aktuálnym meračom)",
-      "map_field_meter_number": "Meter number"
+      "map_field_meter_number": "Meter number",
+      "default_year_label": "Predvolený rok (voliteľné)",
+      "default_year_help": "Použije sa pre každý riadok, kde stĺpec Year nie je priradený alebo je prázdny. Vlastná hodnota Year v riadku má vždy prednosť, ak je priradená a vyplnená."
     },
     "evaluation": {
       "title_suffix": " správa",
