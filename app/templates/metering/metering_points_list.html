@@ -180,7 +180,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form method="post" action="{{ url_prefix }}/metering-points/import/csv" enctype="multipart/form-data"
+                <form method="post" action="{{ url_prefix }}/metering-points/import/preview" enctype="multipart/form-data"
                       class="d-flex gap-2 align-items-center">
                     {{ csrf_field() }}
                     <input type="file" name="file" accept=".csv" class="form-control form-control-sm" required style="max-width: 300px;">

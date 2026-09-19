@@ -2,11 +2,16 @@
 Tests for metering (water & electricity). Focus: the monotonicity
 check (a reading may not decrease) and consumption calculation.
 """
+import base64
 from datetime import date
 
 from app.database import AsyncSessionLocal
 from app.models import Meter, MeterReading, MeteringMedium, MeteringPoint, MeteringPointType
 from tests.conftest import login, auth_header
+
+
+def _b64_csv(text: str) -> str:
+    return base64.b64encode(text.encode("utf-8")).decode("ascii")
 
 
 async def test_metering_point_create_and_reading(client, admin_user):
@@ -505,9 +510,14 @@ async def test_metering_points_csv_export_import_round_trip(client, admin_user):
     # simulating a self-hoster importing water points for parcels
     # that already have electricity points entered by hand.
     extra_row = "PARCEL;CSV-02;;W-CSV-02;2025-05-15;2031;5,0\n"
+    csv_text = export.text + extra_row
     import_response = await client.post(
-        "/water/metering-points/import/csv",
-        files={"file": ("water_points.csv", (export.text + extra_row).encode("utf-8"), "text/csv")},
+        "/water/metering-points/import/finalize",
+        data={
+            "csv_content_b64": _b64_csv(csv_text), "delimiter": ";",
+            "map_0": "type", "map_1": "parcel_number", "map_2": "label", "map_3": "meter_number",
+            "map_4": "installed_on", "map_5": "calibrated_until", "map_6": "initial_reading",
+        },
         follow_redirects=False,
     )
     assert import_response.status_code in (302, 303)
@@ -571,8 +581,12 @@ async def test_readings_csv_export_import_applies_monotonicity_check(client, adm
         "CLUB;;Vereinsheim CSV;W-READ-01;2026;2026-10-01;10,0;imported\n"
     )
     import_response = await client.post(
-        "/water/readings/import/csv",
-        files={"file": ("water_readings.csv", csv_body.encode("utf-8"), "text/csv")},
+        "/water/readings/import/finalize",
+        data={
+            "csv_content_b64": _b64_csv(csv_body), "delimiter": ";",
+            "map_0": "type", "map_1": "parcel_number", "map_2": "label", "map_3": "ignore",
+            "map_4": "year", "map_5": "date", "map_6": "reading", "map_7": "note",
+        },
         follow_redirects=False,
     )
     assert import_response.status_code in (302, 303)
@@ -628,8 +642,12 @@ async def test_readings_import_join_is_parcel_number_not_meter_number(client, ad
         "PARCEL;OHNE-B;;ohne;2025;2025-10-01;22,0;\n"
     )
     import_response = await client.post(
-        "/water/readings/import/csv",
-        files={"file": ("ohne_readings.csv", csv_body.encode("utf-8"), "text/csv")},
+        "/water/readings/import/finalize",
+        data={
+            "csv_content_b64": _b64_csv(csv_body), "delimiter": ";",
+            "map_0": "type", "map_1": "parcel_number", "map_2": "label", "map_3": "ignore",
+            "map_4": "year", "map_5": "date", "map_6": "reading", "map_7": "note",
+        },
         follow_redirects=False,
     )
     assert import_response.status_code in (302, 303)
@@ -649,6 +667,116 @@ async def test_readings_import_join_is_parcel_number_not_meter_number(client, ad
         reading_b = points_by_plot["OHNE-B"].meters[0].readings[0]
         assert float(reading_a.reading) == 11.0
         assert float(reading_b.reading) == 22.0
+
+
+async def test_metering_points_import_wizard_maps_reordered_german_headers(client, admin_user):
+    """Issue #227: the column-mapping wizard (ADR 0062's pattern,
+    generalized in docs/ADR/0083) lets a CSV whose headers don't match
+    Parcella's own export -- different names, different order, German
+    instead of English -- still be imported, by guessing a mapping the
+    user confirms rather than requiring an exact fixed header row."""
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await client.post("/api/v1/parcels", json={"plot_number": "WIZ-01"}, headers=headers)
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    # Reordered, German-headed CSV -- a different shape from the app's own export.
+    csv_text = (
+        "Parzellennummer;Art;Zählernummer;Anfangszählerstand\n"
+        "WIZ-01;PARCEL;W-WIZ-01;3,5\n"
+    )
+    preview = await client.post(
+        "/water/metering-points/import/preview",
+        files={"file": ("import.csv", csv_text.encode("utf-8"), "text/csv")},
+    )
+    assert preview.status_code == 200
+    # The alias guesser correctly maps each German header despite the
+    # reordering -- confirmed by which <option> the template pre-selects.
+    assert 'value="parcel_number" selected' in preview.text
+    assert 'value="type" selected' in preview.text
+    assert 'value="meter_number" selected' in preview.text
+    assert 'value="initial_reading" selected' in preview.text
+
+    import_response = await client.post(
+        "/water/metering-points/import/finalize",
+        data={
+            "csv_content_b64": _b64_csv(csv_text), "delimiter": ";",
+            "map_0": "parcel_number", "map_1": "type", "map_2": "meter_number", "map_3": "initial_reading",
+        },
+        follow_redirects=False,
+    )
+    assert import_response.status_code in (302, 303)
+    assert "imported" in import_response.headers["location"]
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(MeteringPoint)
+            .options(selectinload(MeteringPoint.parcel), selectinload(MeteringPoint.meters))
+            .where(MeteringPoint.medium == MeteringMedium.WATER)
+        )
+        by_plot = {p.parcel.plot_number: p for p in result.scalars().all() if p.parcel}
+        assert "WIZ-01" in by_plot
+        meter = by_plot["WIZ-01"].meters[0]
+        assert meter.number == "W-WIZ-01"
+        assert float(meter.initial_reading) == 3.5
+
+
+async def test_readings_import_wizard_maps_reordered_german_headers(client, admin_user):
+    """Same wizard, for the readings importer."""
+    from sqlalchemy import select
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await client.post(
+        "/api/v1/water/metering-points",
+        json={"type": "CLUB", "label": "Vereinsheim WIZ", "number": "W-WIZ-READ", "initial_reading": "0.0"},
+        headers=headers,
+    )
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    csv_text = (
+        "Bezeichnung;Art;Jahr;Datum;Zählerstand\n"
+        "Vereinsheim WIZ;CLUB;2025;2025-11-01;42,0\n"
+    )
+    preview = await client.post(
+        "/water/readings/import/preview",
+        files={"file": ("import.csv", csv_text.encode("utf-8"), "text/csv")},
+    )
+    assert preview.status_code == 200
+    assert 'value="label" selected' in preview.text
+    assert 'value="type" selected' in preview.text
+    assert 'value="year" selected' in preview.text
+    assert 'value="date" selected' in preview.text
+    assert 'value="reading" selected' in preview.text
+
+    import_response = await client.post(
+        "/water/readings/import/finalize",
+        data={
+            "csv_content_b64": _b64_csv(csv_text), "delimiter": ";",
+            "map_0": "label", "map_1": "type", "map_2": "year", "map_3": "date", "map_4": "reading",
+        },
+        follow_redirects=False,
+    )
+    assert import_response.status_code in (302, 303)
+    assert "recorded" in import_response.headers["location"]
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(Meter).where(Meter.number == "W-WIZ-READ"))
+        meter = result.scalar_one()
+        result = await db.execute(select(MeterReading).where(MeterReading.meter_id == meter.id))
+        readings = {r.year: float(r.reading) for r in result.scalars().all()}
+        assert readings == {2025: 42.0}
 
 
 async def test_edit_current_meter_via_api_corrects_data_entry_mistake(client, admin_user):

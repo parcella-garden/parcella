@@ -9,6 +9,7 @@ configured router for ONE medium. main.py instantiates it twice (for
 /water and /electricity) -- so the logic stays maintained in a single
 place instead of being duplicated per medium.
 """
+import base64
 import csv
 import io
 import urllib.parse
@@ -23,7 +24,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
-from app.csv_utils import csv_safe
+from app.csv_utils import (
+    csv_safe,
+    decode_csv_upload,
+    sniff_csv_delimiter,
+    guess_column_mapping,
+    parse_column_mapping,
+    parse_mapped_csv_rows,
+)
 from app.models import (
     MeteringPoint, MeteringPointType, MeteringMedium, Meter,
     Parcel, ParcelStatus, MeteringPriceConfiguration,
@@ -70,6 +78,34 @@ def _parse_date_flexible(value: str) -> Optional[date]:
         except ValueError:
             continue
     return None
+
+
+CSV_IMPORT_PREVIEW_ROWS = 5
+
+POINTS_IMPORT_TARGET_FIELDS = [
+    "type", "parcel_number", "label", "meter_number",
+    "installed_on", "calibrated_until", "initial_reading",
+]
+POINTS_IMPORT_FIELD_ALIASES = {
+    "type": {"type", "typ", "art"},
+    "parcel_number": {"parcel number", "plot number", "parzelle", "parzellennummer", "gartennummer"},
+    "label": {"label", "bezeichnung", "name"},
+    "meter_number": {"meter number", "zählernummer", "zähler-nr", "zähler nr", "zaehlernummer"},
+    "installed_on": {"installed on", "eingebaut am", "installationsdatum"},
+    "calibrated_until": {"calibrated until", "geeicht bis", "eichdatum"},
+    "initial_reading": {"initial reading", "anfangszählerstand", "anfangsstand", "anfangszaehlerstand"},
+}
+
+READINGS_IMPORT_TARGET_FIELDS = ["type", "parcel_number", "label", "year", "date", "reading", "note"]
+READINGS_IMPORT_FIELD_ALIASES = {
+    "type": {"type", "typ", "art"},
+    "parcel_number": {"parcel number", "plot number", "parzelle", "parzellennummer", "gartennummer"},
+    "label": {"label", "bezeichnung", "name"},
+    "year": {"year", "jahr"},
+    "date": {"date", "datum", "ablesedatum"},
+    "reading": {"reading", "zählerstand", "zaehlerstand", "stand", "ablesewert"},
+    "note": {"note", "notiz", "bemerkung", "kommentar"},
+}
 
 
 def create_metering_router(
@@ -446,28 +482,63 @@ def create_metering_router(
             headers={"Content-Disposition": f"attachment; filename={modul_name}_metering_points.csv"},
         )
 
-    @router.post("/metering-points/import/csv")
-    async def metering_points_import_csv(
+    @router.post("/metering-points/import/preview", response_class=HTMLResponse)
+    async def metering_points_import_preview(
         request: Request,
         file: UploadFile = File(...),
         db: AsyncSession = Depends(get_db),
     ):
+        """Step 1 of the column-mapping wizard (ADR 0062's pattern,
+        generalized here -- see docs/ADR/0083): detects the header row
+        and lets the user map each column to a Parcella field before
+        anything is written. The raw CSV round-trips to step 2 as a
+        hidden base64 field, not server-side session state."""
         await require_permission(request, db, modul_name, "write")
 
         content = await file.read()
-        try:
-            text = content.decode("utf-8-sig")
-        except UnicodeDecodeError:
-            text = content.decode("latin-1")
+        text = decode_csv_upload(content)
+        delimiter = sniff_csv_delimiter(text)
 
-        try:
-            delimiter = csv.Sniffer().sniff(text[:2048], delimiters=";,").delimiter
-        except csv.Error:
-            delimiter = ";"
+        reader = csv.reader(io.StringIO(text), delimiter=delimiter)
+        rows = list(reader)
+        if not rows:
+            message = t_for(request, "metering.points_list.csv_empty_error")
+            return RedirectResponse(
+                f"{url_prefix}/metering-points?error={urllib.parse.quote(message)}",
+                status_code=303,
+            )
+        headers = [h.strip() for h in rows[0]]
+        preview_rows = rows[1:1 + CSV_IMPORT_PREVIEW_ROWS]
+        default_mapping = guess_column_mapping(headers, POINTS_IMPORT_FIELD_ALIASES)
 
-        reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
-        if reader.fieldnames:
-            reader.fieldnames = [f.strip() if f else f for f in reader.fieldnames]
+        return templates.TemplateResponse("metering/metering_points_import_preview.html", {
+            "request": request, **base_context(request),
+            "headers": headers, "preview_rows": preview_rows,
+            "default_mapping": default_mapping, "target_fields": POINTS_IMPORT_TARGET_FIELDS,
+            "csv_content_b64": base64.b64encode(content).decode("ascii"), "delimiter": delimiter,
+        })
+
+    @router.post("/metering-points/import/finalize")
+    async def metering_points_import_finalize(
+        request: Request,
+        csv_content_b64: str = Form(...), delimiter: str = Form(";"),
+        db: AsyncSession = Depends(get_db),
+    ):
+        """Step 2: applies the confirmed column mapping and runs the
+        same row logic the old fixed-header importer used -- dedup key,
+        parcel lookup, date/number parsing are unchanged, just fed from
+        the mapped dict instead of a literal DictReader header lookup."""
+        await require_permission(request, db, modul_name, "write")
+
+        form = await request.form()
+        column_mapping = parse_column_mapping(form, POINTS_IMPORT_TARGET_FIELDS)
+        if "type" not in column_mapping.values():
+            message = t_for(request, "metering.points_list.csv_mapping_required_error")
+            return RedirectResponse(
+                f"{url_prefix}/metering-points?error={urllib.parse.quote(message)}",
+                status_code=303,
+            )
+        rows = parse_mapped_csv_rows(csv_content_b64, delimiter, column_mapping)
 
         all_points = await _load_all_metering_points(db)
         # Same identity used on export: (type, parcel number) for PARCEL
@@ -485,15 +556,15 @@ def create_metering_router(
         invalid_type = 0
         parcel_not_found = 0
 
-        for row in reader:
-            type_str = (row.get("Type") or "").strip().upper()
+        for values in rows:
+            type_str = (values.get("type") or "").strip().upper()
             if type_str not in {t.value for t in MeteringPointType}:
                 invalid_type += 1
                 continue
             point_type = MeteringPointType(type_str)
 
-            parcel_number = (row.get("Parcel number") or "").strip().upper()
-            label = (row.get("Label") or "").strip()
+            parcel_number = (values.get("parcel_number") or "").strip().upper()
+            label = (values.get("label") or "").strip()
 
             parcel_id = None
             if point_type == MeteringPointType.PARCEL:
@@ -514,14 +585,14 @@ def create_metering_router(
                 skipped += 1
                 continue
 
-            calibrated_until_str = (row.get("Calibrated until") or "").strip()
-            installed_at = _parse_date_flexible(row.get("Installed on") or "")
-            initial_reading = _parse_number(row.get("Initial reading") or "", decimal_places) or Decimal("0")
+            calibrated_until_str = (values.get("calibrated_until") or "").strip()
+            installed_at = _parse_date_flexible(values.get("installed_on") or "")
+            initial_reading = _parse_number(values.get("initial_reading") or "", decimal_places) or Decimal("0")
 
             await create_metering_point(
                 db, medium,
                 type=point_type.value, parcel_id=parcel_id, label=(label or None),
-                number=(row.get("Meter number") or "").strip(),
+                number=(values.get("meter_number") or "").strip(),
                 calibrated_until=(int(calibrated_until_str) if calibrated_until_str else None),
                 installed_at=installed_at, initial_reading=initial_reading,
             )
@@ -766,28 +837,54 @@ def create_metering_router(
             headers={"Content-Disposition": f"attachment; filename={modul_name}_readings_{year}.csv"},
         )
 
-    @router.post("/readings/import/csv")
-    async def readings_import_csv(
+    @router.post("/readings/import/preview", response_class=HTMLResponse)
+    async def readings_import_preview(
         request: Request,
         file: UploadFile = File(...),
         db: AsyncSession = Depends(get_db),
     ):
-        user = await require_permission(request, db, modul_name, "write")
+        await require_permission(request, db, modul_name, "write")
 
         content = await file.read()
-        try:
-            text = content.decode("utf-8-sig")
-        except UnicodeDecodeError:
-            text = content.decode("latin-1")
+        text = decode_csv_upload(content)
+        delimiter = sniff_csv_delimiter(text)
 
-        try:
-            delimiter = csv.Sniffer().sniff(text[:2048], delimiters=";,").delimiter
-        except csv.Error:
-            delimiter = ";"
+        reader = csv.reader(io.StringIO(text), delimiter=delimiter)
+        rows = list(reader)
+        if not rows:
+            message = t_for(request, "metering.readings_list.csv_empty_error")
+            return RedirectResponse(
+                f"{url_prefix}/readings?error={urllib.parse.quote(message)}",
+                status_code=303,
+            )
+        headers = [h.strip() for h in rows[0]]
+        preview_rows = rows[1:1 + CSV_IMPORT_PREVIEW_ROWS]
+        default_mapping = guess_column_mapping(headers, READINGS_IMPORT_FIELD_ALIASES)
 
-        reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
-        if reader.fieldnames:
-            reader.fieldnames = [f.strip() if f else f for f in reader.fieldnames]
+        return templates.TemplateResponse("metering/readings_import_preview.html", {
+            "request": request, **base_context(request),
+            "headers": headers, "preview_rows": preview_rows,
+            "default_mapping": default_mapping, "target_fields": READINGS_IMPORT_TARGET_FIELDS,
+            "csv_content_b64": base64.b64encode(content).decode("ascii"), "delimiter": delimiter,
+        })
+
+    @router.post("/readings/import/finalize")
+    async def readings_import_finalize(
+        request: Request,
+        csv_content_b64: str = Form(...), delimiter: str = Form(";"),
+        db: AsyncSession = Depends(get_db),
+    ):
+        user = await require_permission(request, db, modul_name, "write")
+
+        form = await request.form()
+        column_mapping = parse_column_mapping(form, READINGS_IMPORT_TARGET_FIELDS)
+        if "type" not in column_mapping.values():
+            message = t_for(request, "metering.readings_list.csv_mapping_required_error")
+            return RedirectResponse(
+                f"{url_prefix}/readings?error={urllib.parse.quote(message)}",
+                status_code=303,
+            )
+        rows = parse_mapped_csv_rows(csv_content_b64, delimiter, column_mapping)
 
         all_points = await _load_all_metering_points(db)
         # Same lookup key as the metering-points import: (type, parcel
@@ -807,14 +904,14 @@ def create_metering_router(
         skipped_invalid = 0
         skipped_implausible = 0
 
-        for row in reader:
-            type_str = (row.get("Type") or "").strip().upper()
+        for values in rows:
+            type_str = (values.get("type") or "").strip().upper()
             if type_str not in {t.value for t in MeteringPointType}:
                 skipped_invalid += 1
                 continue
 
-            parcel_number = (row.get("Parcel number") or "").strip().upper()
-            label = (row.get("Label") or "").strip().upper()
+            parcel_number = (values.get("parcel_number") or "").strip().upper()
+            label = (values.get("label") or "").strip().upper()
             key = (type_str, parcel_number if type_str == MeteringPointType.PARCEL.value else label)
 
             metering_point = points_by_key.get(key)
@@ -827,9 +924,9 @@ def create_metering_router(
                 skipped_no_meter += 1
                 continue
 
-            year_str = (row.get("Year") or "").strip()
-            reading_value = _parse_number(row.get("Reading") or "", decimal_places)
-            reading_date = _parse_date_flexible(row.get("Date") or "")
+            year_str = (values.get("year") or "").strip()
+            reading_value = _parse_number(values.get("reading") or "", decimal_places)
+            reading_date = _parse_date_flexible(values.get("date") or "")
             if not year_str.isdigit() or reading_value is None or reading_date is None:
                 skipped_invalid += 1
                 continue
@@ -839,7 +936,7 @@ def create_metering_router(
             try:
                 new_reading = await record_reading(
                     db, meter, year=year_int, reading_date=reading_date, reading=reading_value,
-                    note=((row.get("Note") or "").strip() or None), recorded_by_id=user.id,
+                    note=((values.get("note") or "").strip() or None), recorded_by_id=user.id,
                 )
             except ServiceError:
                 skipped_implausible += 1

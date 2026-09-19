@@ -36,7 +36,14 @@ from sqlalchemy import select, func, union_all, literal, or_, and_, cast, String
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db, active_member_filter
-from app.csv_utils import csv_safe
+from app.csv_utils import (
+    csv_safe,
+    decode_csv_upload,
+    sniff_csv_delimiter,
+    guess_column_mapping,
+    parse_column_mapping,
+    parse_mapped_csv_rows,
+)
 from app.i18n import t_for, load_current_language
 from app.models import (
     InvoiceRun, InvoiceRunStatus, InvoiceItemDefinition, InvoiceItemDefinitionParcel, InvoiceItemDefinitionMember,
@@ -1824,41 +1831,13 @@ CSV_IMPORT_TARGET_FIELDS = ["date", "amount", "description", "counterparty", "ib
 CSV_IMPORT_PREVIEW_ROWS = 5
 
 
-def _decode_csv_upload(content: bytes) -> str:
-    try:
-        return content.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        return content.decode("latin-1")
-
-
-def _sniff_csv_delimiter(text: str) -> str:
-    try:
-        return csv.Sniffer().sniff(text[:2048], delimiters=";,").delimiter
-    except csv.Error:
-        return ";"
-
-
-def _guess_column_mapping(headers: list) -> dict:
-    """Best-effort default mapping from common header names, so the
-    mapping step usually needs no manual adjustment for a
-    Date/Amount/Description/Counterparty(/IBAN)-shaped export --
-    still fully overridable, since issue #186 wants "any CSV of any
-    structure", not just this one."""
-    guesses = {
-        "date": {"date", "datum", "buchungsdatum"},
-        "amount": {"amount", "betrag"},
-        "description": {"description", "beschreibung", "verwendungszweck", "note"},
-        "counterparty": {"counterparty", "sender", "recipient", "empfänger", "auftraggeber", "name"},
-        "iban": {"iban"},
-    }
-    mapping = {}
-    for i, header in enumerate(headers):
-        key = (header or "").strip().lower()
-        for field, candidates in guesses.items():
-            if key in candidates and field not in mapping.values():
-                mapping[i] = field
-                break
-    return mapping
+FINANCES_IMPORT_FIELD_ALIASES = {
+    "date": {"date", "datum", "buchungsdatum"},
+    "amount": {"amount", "betrag"},
+    "description": {"description", "beschreibung", "verwendungszweck", "note"},
+    "counterparty": {"counterparty", "sender", "recipient", "empfänger", "auftraggeber", "name"},
+    "iban": {"iban"},
+}
 
 
 @router.post(
@@ -1884,8 +1863,8 @@ async def account_bookings_import_preview(
         raise HTTPException(status_code=404)
 
     content = await datei.read()
-    text = _decode_csv_upload(content)
-    delimiter = _sniff_csv_delimiter(text)
+    text = decode_csv_upload(content)
+    delimiter = sniff_csv_delimiter(text)
 
     reader = csv.reader(io.StringIO(text), delimiter=delimiter)
     rows = list(reader)
@@ -1896,7 +1875,7 @@ async def account_bookings_import_preview(
         )
     headers = [h.strip() for h in rows[0]]
     preview_rows = rows[1:1 + CSV_IMPORT_PREVIEW_ROWS]
-    default_mapping = _guess_column_mapping(headers)
+    default_mapping = guess_column_mapping(headers, FINANCES_IMPORT_FIELD_ALIASES)
 
     return templates.TemplateResponse("finances/account_bookings_import_preview.html", {
         "request": request, "user": user, "account": account,
@@ -1906,25 +1885,12 @@ async def account_bookings_import_preview(
     })
 
 
-def _parse_column_mapping(form) -> dict:
-    column_mapping: dict = {}
-    for key, value in form.items():
-        if key.startswith("map_") and value in CSV_IMPORT_TARGET_FIELDS:
-            column_mapping[int(key.removeprefix("map_"))] = value
-    return column_mapping
-
-
-def _parse_mapped_csv_rows(csv_content_b64: str, delimiter: str, column_mapping: dict) -> list:
-    text = base64.b64decode(csv_content_b64).decode("utf-8")
-    reader = csv.reader(io.StringIO(text), delimiter=delimiter)
-    rows = list(reader)[1:]  # header row already consumed in the preview step
-
+def _parse_finances_mapped_rows(csv_content_b64: str, delimiter: str, column_mapping: dict) -> list:
+    """finances-specific finishing pass over app.csv_utils.parse_mapped_csv_rows'
+    raw string values: parses date/amount and marks row validity."""
+    raw_rows = parse_mapped_csv_rows(csv_content_b64, delimiter, column_mapping)
     parsed_rows = []
-    for row in rows:
-        values = {
-            field: (row[i].strip() if i < len(row) else "")
-            for i, field in column_mapping.items()
-        }
+    for values in raw_rows:
         parsed_date = _parse_date_flexible(values.get("date", ""))
         parsed_amount = _parse_decimal(values.get("amount", ""))
         parsed_rows.append({
@@ -1956,14 +1922,14 @@ async def account_bookings_import_match(
         raise HTTPException(status_code=404)
 
     form = await request.form()
-    column_mapping = _parse_column_mapping(form)
+    column_mapping = parse_column_mapping(form, CSV_IMPORT_TARGET_FIELDS)
     if "date" not in column_mapping.values() or "amount" not in column_mapping.values():
         return RedirectResponse(
             f"/finances/accounts/{account_id}/bookings?error={urlquote(t_for(request, 'finances.account_bookings.csv_mapping_required_error'))}",
             status_code=303,
         )
 
-    parsed_rows = _parse_mapped_csv_rows(csv_content_b64, delimiter, column_mapping)
+    parsed_rows = _parse_finances_mapped_rows(csv_content_b64, delimiter, column_mapping)
 
     row_matches = []
     for row in parsed_rows:
@@ -1997,13 +1963,13 @@ async def account_bookings_import_finalize(
         raise HTTPException(status_code=404)
 
     form = await request.form()
-    column_mapping = _parse_column_mapping(form)
+    column_mapping = parse_column_mapping(form, CSV_IMPORT_TARGET_FIELDS)
     if "date" not in column_mapping.values() or "amount" not in column_mapping.values():
         return RedirectResponse(
             f"/finances/accounts/{account_id}/bookings?error={urlquote(t_for(request, 'finances.account_bookings.csv_mapping_required_error'))}",
             status_code=303,
         )
-    parsed_rows = _parse_mapped_csv_rows(csv_content_b64, delimiter, column_mapping)
+    parsed_rows = _parse_finances_mapped_rows(csv_content_b64, delimiter, column_mapping)
 
     members_by_name: dict = {}
     if "iban" in column_mapping.values() and "counterparty" in column_mapping.values():
