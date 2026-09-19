@@ -907,6 +907,49 @@ async def test_metering_points_import_wizard_lists_skip_reasons(client, admin_us
     assert "SKIP-01: invalid type" in location
 
 
+async def test_readings_import_wizard_requires_year_mapped_even_with_date_mapped(client, admin_user):
+    """Regression guard: Year must NOT be silently derived from Date's
+    calendar year -- an annual reading taken in January can still
+    belong to the previous year's billing cycle (e.g. read on
+    2026-01-19 but attributed to 2025), so a Date-only mapping must
+    leave every row invalid rather than guess."""
+    from sqlalchemy import select
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    parcel_id = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "NOYEAR-01"}, headers=headers
+    )).json()["id"]
+    await client.post(
+        "/api/v1/water/metering-points",
+        json={"type": "PARCEL", "parcel_id": parcel_id, "number": "W-NOYEAR", "initial_reading": "0.0"},
+        headers=headers,
+    )
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    csv_text = "Parzellennummer;Ablesedatum;Zählerstand\nNOYEAR-01;19.01.2026;42,0\n"
+    import_response = await client.post(
+        "/water/readings/import/finalize",
+        data={
+            "csv_content_b64": _b64_csv(csv_text), "delimiter": ";",
+            "map_0": "parcel_number", "map_1": "date", "map_2": "reading",
+        },
+        follow_redirects=False,
+    )
+    assert import_response.status_code in (302, 303)
+    assert "skipped" in import_response.headers["location"]
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(Meter).where(Meter.number == "W-NOYEAR"))
+        meter = result.scalar_one()
+        result = await db.execute(select(MeterReading).where(MeterReading.meter_id == meter.id))
+        assert result.scalars().all() == []
+
+
 async def test_edit_current_meter_via_api_corrects_data_entry_mistake(client, admin_user):
     """update_meter() is an in-place correction, distinct from
     exchange_meter() -- no new Meter row, no removed_at on the old one,

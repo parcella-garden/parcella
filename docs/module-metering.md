@@ -218,7 +218,13 @@ added to the shared router factory so both media get it automatically.
   to be mapped at all -- a real single-medium export is usually
   all-`PARCEL` rows with no Type column (points/readings both default
   every row to `PARCEL` when `type` isn't mapped); only mapping
-  *nothing at all* is refused.
+  *nothing at all* is refused. `Year` deliberately has **no** such
+  default -- a reading's calendar date and its billing year aren't
+  reliably the same thing (an annual reading taken in January can still
+  belong to the previous year's cycle), so guessing `Year` from `Date`
+  would silently misattribute readings near a year boundary. `Year`
+  must be mapped to a real column; if a source export doesn't have one,
+  it has to be added by hand first.
 - Both readings imports go through `record_reading()`
   (`app/services/metering.py`), so a bulk-loaded reading is subject to
   exactly the same monotonicity check as one entered by hand through
