@@ -857,6 +857,56 @@ async def test_metering_points_import_wizard_empty_mapping_shows_error_banner(cl
     assert "alert-danger" in followed.text
 
 
+async def test_metering_points_import_wizard_lists_skip_reasons(client, admin_user):
+    """Requested after a real import: a bare count ("3 skipped") isn't
+    enough to act on -- the message should name which rows were skipped
+    and why."""
+    import urllib.parse
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await client.post("/api/v1/parcels", json={"plot_number": "SKIP-01"}, headers=headers)
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    # First import creates SKIP-01's water point.
+    csv_text = "Parcel number,Type,Meter number\nSKIP-01,PARCEL,W-SKIP-01\n"
+    first = await client.post(
+        "/water/metering-points/import/finalize",
+        data={
+            "csv_content_b64": _b64_csv(csv_text), "delimiter": ",",
+            "map_0": "parcel_number", "map_1": "type", "map_2": "meter_number",
+        },
+        follow_redirects=False,
+    )
+    assert first.status_code in (302, 303)
+
+    # Re-import the same row (already exists) plus one for a parcel that
+    # doesn't exist (parcel not found) plus one with an invalid type.
+    csv_text = (
+        "Parcel number,Type,Meter number\n"
+        "SKIP-01,PARCEL,W-SKIP-01\n"
+        "SKIP-GHOST,PARCEL,W-GHOST\n"
+        "SKIP-01,BOGUS,W-SKIP-01\n"
+    )
+    second = await client.post(
+        "/water/metering-points/import/finalize",
+        data={
+            "csv_content_b64": _b64_csv(csv_text), "delimiter": ",",
+            "map_0": "parcel_number", "map_1": "type", "map_2": "meter_number",
+        },
+        follow_redirects=False,
+    )
+    assert second.status_code in (302, 303)
+    location = urllib.parse.unquote(second.headers["location"])
+    assert "SKIP-01: already exists" in location
+    assert "SKIP-GHOST: parcel not found" in location
+    assert "SKIP-01: invalid type" in location
+
+
 async def test_edit_current_meter_via_api_corrects_data_entry_mistake(client, admin_user):
     """update_meter() is an in-place correction, distinct from
     exchange_meter() -- no new Meter row, no removed_at on the old one,

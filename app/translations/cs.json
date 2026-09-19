@@ -1052,7 +1052,11 @@
       "map_field_calibrated_until": "Calibrated until",
       "map_field_initial_reading": "Initial reading",
       "csv_mapping_required_error": "Před importem prosím přiřaďte alespoň jeden sloupec.",
-      "csv_empty_error": "Tento soubor CSV se zdá být prázdný."
+      "csv_empty_error": "Tento soubor CSV se zdá být prázdný.",
+      "csv_import_skip_reason_exists": "již existuje",
+      "csv_import_skip_reason_invalid_type": "neplatný typ",
+      "csv_import_skip_reason_parcel_not_found": "parcela nenalezena",
+      "csv_import_more_skipped": " (a {count} dalších)"
     },
     "point_form": {
       "title_new": "Nové měrné místo pro {medium}",
@@ -1159,7 +1163,13 @@
       "map_field_reading": "Reading",
       "map_field_note": "Note",
       "csv_mapping_required_error": "Před importem prosím přiřaďte alespoň jeden sloupec.",
-      "csv_empty_error": "Tento soubor CSV se zdá být prázdný."
+      "csv_empty_error": "Tento soubor CSV se zdá být prázdný.",
+      "csv_import_skip_reason_invalid_type": "neplatný typ",
+      "csv_import_skip_reason_no_point": "měrné místo nenalezeno",
+      "csv_import_skip_reason_no_meter": "žádný aktivní měřič",
+      "csv_import_skip_reason_invalid": "neplatný řádek",
+      "csv_import_skip_reason_implausible": "neplauzibilní stav",
+      "csv_import_more_skipped": " (a {count} dalších)"
     },
     "evaluation": {
       "title_suffix": " zpráva",

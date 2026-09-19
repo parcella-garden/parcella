@@ -1052,7 +1052,11 @@
       "map_field_calibrated_until": "Calibrated until",
       "map_field_initial_reading": "Initial reading",
       "csv_mapping_required_error": "Przed importem przypisz przynajmniej jedną kolumnę.",
-      "csv_empty_error": "Ten plik CSV wydaje się być pusty."
+      "csv_empty_error": "Ten plik CSV wydaje się być pusty.",
+      "csv_import_skip_reason_exists": "już istnieje",
+      "csv_import_skip_reason_invalid_type": "nieprawidłowy typ",
+      "csv_import_skip_reason_parcel_not_found": "nie znaleziono działki",
+      "csv_import_more_skipped": " (i {count} więcej)"
     },
     "point_form": {
       "title_new": "Nowy punkt pomiarowy ({medium})",
@@ -1159,7 +1163,13 @@
       "map_field_reading": "Reading",
       "map_field_note": "Note",
       "csv_mapping_required_error": "Przed importem przypisz przynajmniej jedną kolumnę.",
-      "csv_empty_error": "Ten plik CSV wydaje się być pusty."
+      "csv_empty_error": "Ten plik CSV wydaje się być pusty.",
+      "csv_import_skip_reason_invalid_type": "nieprawidłowy typ",
+      "csv_import_skip_reason_no_point": "nie znaleziono punktu pomiarowego",
+      "csv_import_skip_reason_no_meter": "brak aktywnego licznika",
+      "csv_import_skip_reason_invalid": "nieprawidłowy wiersz",
+      "csv_import_skip_reason_implausible": "nieprawdopodobny odczyt",
+      "csv_import_more_skipped": " (i {count} więcej)"
     },
     "evaluation": {
       "title_suffix": " – rozliczenie",

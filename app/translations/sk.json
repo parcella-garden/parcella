@@ -1052,7 +1052,11 @@
       "map_field_calibrated_until": "Calibrated until",
       "map_field_initial_reading": "Initial reading",
       "csv_mapping_required_error": "Pred importom prosím priraďte aspoň jeden stĺpec.",
-      "csv_empty_error": "Tento súbor CSV sa zdá byť prázdny."
+      "csv_empty_error": "Tento súbor CSV sa zdá byť prázdny.",
+      "csv_import_skip_reason_exists": "už existuje",
+      "csv_import_skip_reason_invalid_type": "neplatný typ",
+      "csv_import_skip_reason_parcel_not_found": "parcela nenájdená",
+      "csv_import_more_skipped": " (a {count} ďalších)"
     },
     "point_form": {
       "title_new": "Nový merací bod pre {medium}",
@@ -1159,7 +1163,13 @@
       "map_field_reading": "Reading",
       "map_field_note": "Note",
       "csv_mapping_required_error": "Pred importom prosím priraďte aspoň jeden stĺpec.",
-      "csv_empty_error": "Tento súbor CSV sa zdá byť prázdny."
+      "csv_empty_error": "Tento súbor CSV sa zdá byť prázdny.",
+      "csv_import_skip_reason_invalid_type": "neplatný typ",
+      "csv_import_skip_reason_no_point": "merací bod nenájdený",
+      "csv_import_skip_reason_no_meter": "žiadny aktívny merač",
+      "csv_import_skip_reason_invalid": "neplatný riadok",
+      "csv_import_skip_reason_implausible": "neplauzibilný stav",
+      "csv_import_more_skipped": " (a {count} ďalších)"
     },
     "evaluation": {
       "title_suffix": " správa",

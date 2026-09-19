@@ -1052,7 +1052,11 @@
       "map_field_calibrated_until": "Calibrated until",
       "map_field_initial_reading": "Initial reading",
       "csv_mapping_required_error": "Please map at least one column before importing.",
-      "csv_empty_error": "That CSV file appears to be empty."
+      "csv_empty_error": "That CSV file appears to be empty.",
+      "csv_import_skip_reason_exists": "already exists",
+      "csv_import_skip_reason_invalid_type": "invalid type",
+      "csv_import_skip_reason_parcel_not_found": "parcel not found",
+      "csv_import_more_skipped": " (and {count} more)"
     },
     "point_form": {
       "title_new": "New {medium} metering point",
@@ -1159,7 +1163,13 @@
       "map_field_reading": "Reading",
       "map_field_note": "Note",
       "csv_mapping_required_error": "Please map at least one column before importing.",
-      "csv_empty_error": "That CSV file appears to be empty."
+      "csv_empty_error": "That CSV file appears to be empty.",
+      "csv_import_skip_reason_invalid_type": "invalid type",
+      "csv_import_skip_reason_no_point": "metering point not found",
+      "csv_import_skip_reason_no_meter": "no active meter",
+      "csv_import_skip_reason_invalid": "invalid row",
+      "csv_import_skip_reason_implausible": "implausible reading",
+      "csv_import_more_skipped": " (and {count} more)"
     },
     "evaluation": {
       "title_suffix": " report",

@@ -1052,7 +1052,11 @@
       "map_field_calibrated_until": "Calibrated until",
       "map_field_initial_reading": "Initial reading",
       "csv_mapping_required_error": "Koppel eerst ten minste één kolom voordat u importeert.",
-      "csv_empty_error": "Dit CSV-bestand lijkt leeg te zijn."
+      "csv_empty_error": "Dit CSV-bestand lijkt leeg te zijn.",
+      "csv_import_skip_reason_exists": "bestaat al",
+      "csv_import_skip_reason_invalid_type": "ongeldig type",
+      "csv_import_skip_reason_parcel_not_found": "perceel niet gevonden",
+      "csv_import_more_skipped": " (en {count} meer)"
     },
     "point_form": {
       "title_new": "Nieuw {medium} meetpunt",
@@ -1159,7 +1163,13 @@
       "map_field_reading": "Reading",
       "map_field_note": "Note",
       "csv_mapping_required_error": "Koppel eerst ten minste één kolom voordat u importeert.",
-      "csv_empty_error": "Dit CSV-bestand lijkt leeg te zijn."
+      "csv_empty_error": "Dit CSV-bestand lijkt leeg te zijn.",
+      "csv_import_skip_reason_invalid_type": "ongeldig type",
+      "csv_import_skip_reason_no_point": "meetpunt niet gevonden",
+      "csv_import_skip_reason_no_meter": "geen actieve meter",
+      "csv_import_skip_reason_invalid": "ongeldige rij",
+      "csv_import_skip_reason_implausible": "onwaarschijnlijke meterstand",
+      "csv_import_more_skipped": " (en {count} meer)"
     },
     "evaluation": {
       "title_suffix": " rapport",

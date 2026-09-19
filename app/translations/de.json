@@ -1052,7 +1052,11 @@
       "map_field_calibrated_until": "Calibrated until",
       "map_field_initial_reading": "Initial reading",
       "csv_mapping_required_error": "Bitte ordnen Sie vor dem Import mindestens eine Spalte zu.",
-      "csv_empty_error": "Diese CSV-Datei scheint leer zu sein."
+      "csv_empty_error": "Diese CSV-Datei scheint leer zu sein.",
+      "csv_import_skip_reason_exists": "bereits vorhanden",
+      "csv_import_skip_reason_invalid_type": "ungültiger Typ",
+      "csv_import_skip_reason_parcel_not_found": "Parzelle nicht gefunden",
+      "csv_import_more_skipped": " (und {count} weitere)"
     },
     "point_form": {
       "title_new": "Neuer {medium}-Zählpunkt",
@@ -1159,7 +1163,13 @@
       "map_field_reading": "Reading",
       "map_field_note": "Note",
       "csv_mapping_required_error": "Bitte ordnen Sie vor dem Import mindestens eine Spalte zu.",
-      "csv_empty_error": "Diese CSV-Datei scheint leer zu sein."
+      "csv_empty_error": "Diese CSV-Datei scheint leer zu sein.",
+      "csv_import_skip_reason_invalid_type": "ungültiger Typ",
+      "csv_import_skip_reason_no_point": "Zählpunkt nicht gefunden",
+      "csv_import_skip_reason_no_meter": "kein aktiver Zähler",
+      "csv_import_skip_reason_invalid": "ungültige Zeile",
+      "csv_import_skip_reason_implausible": "unplausibler Zählerstand",
+      "csv_import_more_skipped": " (und {count} weitere)"
     },
     "evaluation": {
       "title_suffix": "-Auswertung",

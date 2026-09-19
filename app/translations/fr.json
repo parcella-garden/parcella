@@ -1052,7 +1052,11 @@
       "map_field_calibrated_until": "Calibrated until",
       "map_field_initial_reading": "Initial reading",
       "csv_mapping_required_error": "Veuillez associer au moins une colonne avant d'importer.",
-      "csv_empty_error": "Ce fichier CSV semble vide."
+      "csv_empty_error": "Ce fichier CSV semble vide.",
+      "csv_import_skip_reason_exists": "existe déjà",
+      "csv_import_skip_reason_invalid_type": "type invalide",
+      "csv_import_skip_reason_parcel_not_found": "parcelle introuvable",
+      "csv_import_more_skipped": " (et {count} de plus)"
     },
     "point_form": {
       "title_new": "Nouveau point de mesure {medium}",
@@ -1159,7 +1163,13 @@
       "map_field_reading": "Reading",
       "map_field_note": "Note",
       "csv_mapping_required_error": "Veuillez associer au moins une colonne avant d'importer.",
-      "csv_empty_error": "Ce fichier CSV semble vide."
+      "csv_empty_error": "Ce fichier CSV semble vide.",
+      "csv_import_skip_reason_invalid_type": "type invalide",
+      "csv_import_skip_reason_no_point": "point de mesure introuvable",
+      "csv_import_skip_reason_no_meter": "aucun compteur actif",
+      "csv_import_skip_reason_invalid": "ligne invalide",
+      "csv_import_skip_reason_implausible": "relevé implausible",
+      "csv_import_more_skipped": " (et {count} de plus)"
     },
     "evaluation": {
       "title_suffix": " rapport",

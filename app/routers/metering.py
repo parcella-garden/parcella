@@ -561,28 +561,36 @@ def create_metering_router(
         skipped = 0
         invalid_type = 0
         parcel_not_found = 0
+        skip_details = []
+        reason_exists = t_for(request, "metering.points_list.csv_import_skip_reason_exists")
+        reason_invalid_type = t_for(request, "metering.points_list.csv_import_skip_reason_invalid_type")
+        reason_parcel_not_found = t_for(request, "metering.points_list.csv_import_skip_reason_parcel_not_found")
 
-        for values in rows:
+        for row_number, values in enumerate(rows, start=2):
+            parcel_number = (values.get("parcel_number") or "").strip().upper()
+            label = (values.get("label") or "").strip()
+            identifier = parcel_number or label or f"#{row_number}"
+
             type_str = (values.get("type") or "").strip().upper()
             if not type_str and not type_mapped:
                 type_str = MeteringPointType.PARCEL.value
             if type_str not in {t.value for t in MeteringPointType}:
                 invalid_type += 1
+                skip_details.append(f"{identifier}: {reason_invalid_type}")
                 continue
             point_type = MeteringPointType(type_str)
-
-            parcel_number = (values.get("parcel_number") or "").strip().upper()
-            label = (values.get("label") or "").strip()
 
             parcel_id = None
             if point_type == MeteringPointType.PARCEL:
                 if not parcel_number:
                     parcel_not_found += 1
+                    skip_details.append(f"{identifier}: {reason_parcel_not_found}")
                     continue
                 result = await db.execute(select(Parcel).where(Parcel.plot_number == parcel_number))
                 parcel = result.scalar_one_or_none()
                 if not parcel:
                     parcel_not_found += 1
+                    skip_details.append(f"{identifier}: {reason_parcel_not_found}")
                     continue
                 parcel_id = parcel.id
                 key = (point_type.value, parcel_number)
@@ -591,6 +599,7 @@ def create_metering_router(
 
             if key in existing_keys and (point_type == MeteringPointType.PARCEL or label):
                 skipped += 1
+                skip_details.append(f"{identifier}: {reason_exists}")
                 continue
 
             calibrated_until_str = (values.get("calibrated_until") or "").strip()
@@ -617,6 +626,10 @@ def create_metering_router(
             message += t_for(request, "metering.points_list.csv_import_invalid_type", count=invalid_type)
         if parcel_not_found:
             message += t_for(request, "metering.points_list.csv_import_parcel_not_found", count=parcel_not_found)
+        if skip_details:
+            message += " – " + " | ".join(skip_details[:3])
+            if len(skip_details) > 3:
+                message += t_for(request, "metering.points_list.csv_import_more_skipped", count=len(skip_details) - 3)
 
         return RedirectResponse(
             f"{url_prefix}/metering-points?message={urllib.parse.quote(message)}",
@@ -914,27 +927,38 @@ def create_metering_router(
         skipped_no_meter = 0
         skipped_invalid = 0
         skipped_implausible = 0
+        skip_details = []
+        reason_invalid_type = t_for(request, "metering.readings_list.csv_import_skip_reason_invalid_type")
+        reason_no_point = t_for(request, "metering.readings_list.csv_import_skip_reason_no_point")
+        reason_no_meter = t_for(request, "metering.readings_list.csv_import_skip_reason_no_meter")
+        reason_invalid_row = t_for(request, "metering.readings_list.csv_import_skip_reason_invalid")
+        reason_implausible = t_for(request, "metering.readings_list.csv_import_skip_reason_implausible")
 
-        for values in rows:
+        for row_number, values in enumerate(rows, start=2):
+            parcel_number = (values.get("parcel_number") or "").strip().upper()
+            label = (values.get("label") or "").strip().upper()
+            identifier = parcel_number or label or f"#{row_number}"
+
             type_str = (values.get("type") or "").strip().upper()
             if not type_str and not type_mapped:
                 type_str = MeteringPointType.PARCEL.value
             if type_str not in {t.value for t in MeteringPointType}:
                 skipped_invalid += 1
+                skip_details.append(f"{identifier}: {reason_invalid_type}")
                 continue
 
-            parcel_number = (values.get("parcel_number") or "").strip().upper()
-            label = (values.get("label") or "").strip().upper()
             key = (type_str, parcel_number if type_str == MeteringPointType.PARCEL.value else label)
 
             metering_point = points_by_key.get(key)
             if not metering_point:
                 skipped_no_point += 1
+                skip_details.append(f"{identifier}: {reason_no_point}")
                 continue
 
             meter = metering_point.current_meter
             if not meter:
                 skipped_no_meter += 1
+                skip_details.append(f"{identifier}: {reason_no_meter}")
                 continue
 
             year_str = (values.get("year") or "").strip()
@@ -942,6 +966,7 @@ def create_metering_router(
             reading_date = _parse_date_flexible(values.get("date") or "")
             if not year_str.isdigit() or reading_value is None or reading_date is None:
                 skipped_invalid += 1
+                skip_details.append(f"{identifier}: {reason_invalid_row}")
                 continue
 
             year_int = int(year_str)
@@ -953,6 +978,7 @@ def create_metering_router(
                 )
             except ServiceError:
                 skipped_implausible += 1
+                skip_details.append(f"{identifier}: {reason_implausible}")
                 continue
 
             if not already_had_year:
@@ -978,6 +1004,10 @@ def create_metering_router(
         ):
             if count:
                 message += t_for(request, key, count=count)
+        if skip_details:
+            message += " – " + " | ".join(skip_details[:3])
+            if len(skip_details) > 3:
+                message += t_for(request, "metering.readings_list.csv_import_more_skipped", count=len(skip_details) - 3)
 
         return RedirectResponse(
             f"{url_prefix}/readings?message={urllib.parse.quote(message)}",
