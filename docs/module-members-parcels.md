@@ -121,6 +121,21 @@ the export file in Excel and saved it again (Excel switches to a comma
 depending on locale settings). It now uses `csv.Sniffer()` to detect the
 delimiter, with semicolon as the fallback.
 
+**CSV import is a column-mapping wizard, not a fixed header row (issue
+#227, ADR 0083).** Both `/parcels/import/{preview,finalize}` and
+`/members/import/{preview,finalize}` replaced their old single-step
+`.../import/csv` endpoints with a 2-step upload → guess a
+column→field mapping (from the module's own header aliases, e.g.
+`Gartennummer`/`Plot number` → `plot_number`) → confirm → import flow,
+generalizing the wizard ADR 0062 built for finances' bank-statement
+import into shared `app/csv_utils.py` helpers. Row-level semantics are
+unchanged: parcels still dedups solely on `plot_number` (existing plot
+numbers are skipped, never updated); members still matches on
+`first_name`+`last_name` (narrowed by `date_of_birth` when that column
+is mapped) and **updates** an existing match's fields while **only**
+seeding email addresses/phone numbers on create, never touching them on
+an update.
+
 **CSV export respects the list page's current filter (issue #198).**
 `_filtered_members_query()` in `app/routers/members.py` holds the
 `search`/`include_inactive`/`pending_only` WHERE/ORDER BY logic once;

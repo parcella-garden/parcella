@@ -186,25 +186,35 @@ edit, re-import" pattern `app/routers/parcels.py` already uses, and
 added to the shared router factory so both media get it automatically.
 
 - **Metering points** (`.../metering-points/export/csv` and
-  `.../import/csv`): the metering point's and its *current* meter's
-  static attributes -- type, parcel number, label, meter number,
-  installed on, calibrated until, initial reading. Import only
-  *creates* new metering points, matched for dedup by
+  `.../import/preview` → `.../import/finalize`): the metering point's
+  and its *current* meter's static attributes -- type, parcel number,
+  label, meter number, installed on, calibrated until, initial reading.
+  Import only *creates* new metering points, matched for dedup by
   `(type, parcel number)` for `PARCEL` rows or `(type, label)` for
   `MAIN_METER`/`CLUB` rows -- re-importing an unchanged export is a
   no-op rather than a pile of duplicates. A row with no `Label` for a
   `MAIN_METER`/`CLUB` type can't be deduplicated (there's nothing to
   key on) and is always created fresh.
-- **Readings** (`.../readings/export/csv` and `.../import/csv`):
-  scoped by year on export (mirrors `/{medium}/readings?year=` and the
-  existing `/evaluation/csv`), one row per metering point's current
-  meter. Import carries a `Year` column per row instead, so one file
-  can cover several years at once (the actual motivating case: water
-  metering points entered via CSV for 2024+2025 after electricity was
-  already entered by hand). Readings are only ever attached to an
-  *existing* metering point (looked up by the same `(type, parcel
-  number)`/`(type, label)` key as the metering-points import) --
-  import never creates one.
+- **Readings** (`.../readings/export/csv` and `.../import/preview` →
+  `.../import/finalize`): scoped by year on export (mirrors
+  `/{medium}/readings?year=` and the existing `/evaluation/csv`), one
+  row per metering point's current meter. Import carries a `Year`
+  column per row instead, so one file can cover several years at once
+  (the actual motivating case: water metering points entered via CSV
+  for 2024+2025 after electricity was already entered by hand).
+  Readings are only ever attached to an *existing* metering point
+  (looked up by the same `(type, parcel number)`/`(type, label)` key as
+  the metering-points import) -- import never creates one.
+- **Column-mapping wizard (issue #227, ADR 0083):** both importers are
+  2-step -- upload → a preview page guesses a column→field mapping
+  (English and German header aliases; e.g. `Zählernummer` guesses
+  `meter_number`) which the user confirms or corrects, then finalize
+  applies it. This generalizes the wizard ADR 0062 built for finances'
+  bank-statement import into shared `app/csv_utils.py` helpers, and
+  **replaces** the old fixed-header endpoints rather than keeping both
+  (same call ADR 0062 made, for the same reason). The row-processing
+  logic below is unchanged either way -- only how a row's raw values
+  get from "CSV column" to "named field" changed.
 - Both readings imports go through `record_reading()`
   (`app/services/metering.py`), so a bulk-loaded reading is subject to
   exactly the same monotonicity check as one entered by hand through
@@ -219,12 +229,14 @@ added to the shared router factory so both media get it automatically.
   can record several years for the *same* meter in a loop, a later
   row's monotonicity check needs to see the earlier row's newly
   inserted reading -- fixed by appending the returned `MeterReading` to
-  `meter.readings` by hand after each call, in `readings_import_csv()`.
+  `meter.readings` by hand after each call, in `readings_import_finalize()`.
 - CSV headers are plain English (`Type`, `Parcel number`, ...) for both
   formats -- a deliberate difference from `parcels.py`'s CSV export,
   which keeps German headers as a legacy fact (see its own docstring);
   this is new functionality, so it follows the "English first, going
-  forward" convention instead of copying that precedent.
+  forward" convention instead of copying that precedent. The mapping
+  wizard means a non-English-headed file no longer needs hand-editing
+  first, though.
 - XLSX import was raised alongside this (a self-hoster's data
   sometimes arrives as an Excel file rather than CSV) and then
   explicitly dropped, not just deferred -- kermie: CSV is the way to
