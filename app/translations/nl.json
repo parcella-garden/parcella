@@ -1169,7 +1169,10 @@
       "csv_import_skip_reason_no_meter": "geen actieve meter",
       "csv_import_skip_reason_invalid": "ongeldige rij",
       "csv_import_skip_reason_implausible": "onwaarschijnlijke meterstand",
-      "csv_import_more_skipped": " (en {count} meer)"
+      "csv_import_more_skipped": " (en {count} meer)",
+      "csv_import_skip_reason_meter_mismatch": "meternummer komt niet overeen",
+      "csv_import_skipped_meter_mismatch": ", {count} overgeslagen (meternummer komt niet overeen met huidige meter)",
+      "map_field_meter_number": "Meter number"
     },
     "evaluation": {
       "title_suffix": " rapport",

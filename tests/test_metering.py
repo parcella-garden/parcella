@@ -689,7 +689,7 @@ async def test_metering_points_import_wizard_maps_reordered_german_headers(clien
 
     # Reordered, German-headed CSV -- a different shape from the app's own export.
     csv_text = (
-        "Parzellennummer;Art;Zählernummer;Anfangszählerstand\n"
+        "Parzellennummer;Typ;Zählernummer;Anfangszählerstand\n"
         "WIZ-01;PARCEL;W-WIZ-01;3,5\n"
     )
     preview = await client.post(
@@ -746,7 +746,7 @@ async def test_readings_import_wizard_maps_reordered_german_headers(client, admi
     assert login_response.status_code in (302, 303)
 
     csv_text = (
-        "Bezeichnung;Art;Jahr;Datum;Zählerstand\n"
+        "Bezeichnung;Typ;Jahr;Datum;Zählerstand\n"
         "Vereinsheim WIZ;CLUB;2025;2025-11-01;42,0\n"
     )
     preview = await client.post(
@@ -947,6 +947,124 @@ async def test_readings_import_wizard_requires_year_mapped_even_with_date_mapped
         result = await db.execute(select(Meter).where(Meter.number == "W-NOYEAR"))
         meter = result.scalar_one()
         result = await db.execute(select(MeterReading).where(MeterReading.meter_id == meter.id))
+        assert result.scalars().all() == []
+
+
+async def test_readings_import_wizard_does_not_guess_art_column_as_type(client, admin_user):
+    """Regression guard: a real export's 'Art' column (reading kind --
+    Jahresablesung/Zwischenablesung) must NOT be guessed as the Type
+    field. It collided with "art" as a German alias for "type" and
+    would have made the wizard pre-select every such file's reading-kind
+    column as Type, silently invalidating every row on import."""
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    csv_text = "Parzellennummer;Art;Jahr;Ablesedatum;Zählerstand\n5;Jahresablesung;2025;03.11.2025;42,0\n"
+    preview = await client.post(
+        "/water/readings/import/preview",
+        files={"file": ("import.csv", csv_text.encode("utf-8"), "text/csv")},
+    )
+    assert preview.status_code == 200
+    assert 'value="type" selected' not in preview.text
+
+
+async def test_readings_import_wizard_matching_meter_number_is_recorded(client, admin_user):
+    """When the CSV carries a meter number and it matches the point's
+    current meter, the reading is recorded as usual."""
+    from sqlalchemy import select
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    parcel_id = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "MMATCH-01"}, headers=headers
+    )).json()["id"]
+    await client.post(
+        "/api/v1/water/metering-points",
+        json={"type": "PARCEL", "parcel_id": parcel_id, "number": "W-MMATCH", "initial_reading": "0.0"},
+        headers=headers,
+    )
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    csv_text = "Parzellennummer;Zählernummer;Jahr;Ablesedatum;Zählerstand\nMMATCH-01;W-MMATCH;2025;03.11.2025;42,0\n"
+    import_response = await client.post(
+        "/water/readings/import/finalize",
+        data={
+            "csv_content_b64": _b64_csv(csv_text), "delimiter": ";",
+            "map_0": "parcel_number", "map_1": "meter_number", "map_2": "year",
+            "map_3": "date", "map_4": "reading",
+        },
+        follow_redirects=False,
+    )
+    assert import_response.status_code in (302, 303)
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(Meter).where(Meter.number == "W-MMATCH"))
+        meter = result.scalar_one()
+        result = await db.execute(select(MeterReading).where(MeterReading.meter_id == meter.id))
+        readings = {r.year: float(r.reading) for r in result.scalars().all()}
+        assert readings == {2025: 42.0}
+
+
+async def test_readings_import_wizard_meter_number_mismatch_is_skipped(client, admin_user):
+    """Issue #227 follow-up: if the CSV's meter number doesn't match the
+    metering point's *current* meter, the reading may belong to a
+    since-replaced meter (exchange_meter() deactivates the old one
+    rather than deleting it) -- it must be skipped, not silently
+    attached to the wrong physical meter's history."""
+    from sqlalchemy import select
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    parcel_id = (await client.post(
+        "/api/v1/parcels", json={"plot_number": "MMISMATCH-01"}, headers=headers
+    )).json()["id"]
+    point = (await client.post(
+        "/api/v1/water/metering-points",
+        json={"type": "PARCEL", "parcel_id": parcel_id, "number": "W-OLD", "initial_reading": "0.0"},
+        headers=headers,
+    )).json()
+
+    login_response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )
+    assert login_response.status_code in (302, 303)
+
+    # Simulate a meter swap: the parcel's current meter is now W-NEW.
+    exchange_response = await client.post(
+        f"/water/metering-points/{point['id']}/meter/exchange",
+        data={
+            "new_number": "W-NEW", "removed_at": "2025-06-01",
+            "installed_at": "2025-06-01", "calibrated_until": "", "initial_reading": "0",
+        },
+        follow_redirects=False,
+    )
+    assert exchange_response.status_code in (302, 303)
+
+    # A CSV row for the OLD (now-replaced) meter number must not be
+    # attached to the new meter's reading history.
+    csv_text = "Parzellennummer;Zählernummer;Jahr;Ablesedatum;Zählerstand\nMMISMATCH-01;W-OLD;2025;01.03.2025;42,0\n"
+    import_response = await client.post(
+        "/water/readings/import/finalize",
+        data={
+            "csv_content_b64": _b64_csv(csv_text), "delimiter": ";",
+            "map_0": "parcel_number", "map_1": "meter_number", "map_2": "year",
+            "map_3": "date", "map_4": "reading",
+        },
+        follow_redirects=False,
+    )
+    assert import_response.status_code in (302, 303)
+    assert "skipped" in import_response.headers["location"]
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(Meter).where(Meter.number == "W-NEW"))
+        new_meter = result.scalar_one()
+        result = await db.execute(select(MeterReading).where(MeterReading.meter_id == new_meter.id))
         assert result.scalars().all() == []
 
 

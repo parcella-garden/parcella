@@ -87,7 +87,12 @@ POINTS_IMPORT_TARGET_FIELDS = [
     "installed_on", "calibrated_until", "initial_reading",
 ]
 POINTS_IMPORT_FIELD_ALIASES = {
-    "type": {"type", "typ", "art"},
+    # Deliberately NOT "art" -- a real export's "Art" column is at least
+    # as likely to mean "reading kind" (Jahresablesung/Zwischenablesung,
+    # see READINGS_IMPORT_FIELD_ALIASES) as "metering point type", and a
+    # wrong guess here isn't cosmetic: every row's Type would fail
+    # validation and get skipped. "Typ" is unambiguous, "Art" isn't.
+    "type": {"type", "typ"},
     "parcel_number": {"parcel number", "plot number", "parzelle", "parzellennummer", "gartennummer"},
     "label": {"label", "bezeichnung", "name"},
     "meter_number": {"meter number", "zählernummer", "zähler-nr", "zähler nr", "zaehlernummer"},
@@ -96,11 +101,15 @@ POINTS_IMPORT_FIELD_ALIASES = {
     "initial_reading": {"initial reading", "anfangszählerstand", "anfangsstand", "anfangszaehlerstand"},
 }
 
-READINGS_IMPORT_TARGET_FIELDS = ["type", "parcel_number", "label", "year", "date", "reading", "note"]
+READINGS_IMPORT_TARGET_FIELDS = [
+    "type", "parcel_number", "label", "meter_number",
+    "year", "date", "reading", "note",
+]
 READINGS_IMPORT_FIELD_ALIASES = {
-    "type": {"type", "typ", "art"},
+    "type": {"type", "typ"},
     "parcel_number": {"parcel number", "plot number", "parzelle", "parzellennummer", "gartennummer"},
     "label": {"label", "bezeichnung", "name"},
+    "meter_number": {"meter number", "zählernummer", "zähler-nr", "zähler nr", "zaehlernummer"},
     "year": {"year", "jahr"},
     "date": {"date", "datum", "ablesedatum"},
     "reading": {"reading", "zählerstand", "zaehlerstand", "stand", "ablesewert"},
@@ -927,12 +936,14 @@ def create_metering_router(
         skipped_no_meter = 0
         skipped_invalid = 0
         skipped_implausible = 0
+        skipped_meter_mismatch = 0
         skip_details = []
         reason_invalid_type = t_for(request, "metering.readings_list.csv_import_skip_reason_invalid_type")
         reason_no_point = t_for(request, "metering.readings_list.csv_import_skip_reason_no_point")
         reason_no_meter = t_for(request, "metering.readings_list.csv_import_skip_reason_no_meter")
         reason_invalid_row = t_for(request, "metering.readings_list.csv_import_skip_reason_invalid")
         reason_implausible = t_for(request, "metering.readings_list.csv_import_skip_reason_implausible")
+        reason_meter_mismatch = t_for(request, "metering.readings_list.csv_import_skip_reason_meter_mismatch")
 
         for row_number, values in enumerate(rows, start=2):
             parcel_number = (values.get("parcel_number") or "").strip().upper()
@@ -959,6 +970,19 @@ def create_metering_router(
             if not meter:
                 skipped_no_meter += 1
                 skip_details.append(f"{identifier}: {reason_no_meter}")
+                continue
+
+            # If the row names a meter number and it doesn't match the
+            # point's *current* meter, the reading may actually belong
+            # to a since-replaced meter (exchange_meter() deactivates
+            # the old one rather than deleting it, but there is no path
+            # -- CSV import or manual entry -- to attach a reading to a
+            # non-current meter). Skip rather than silently misattribute
+            # a historical reading to the wrong physical meter.
+            row_meter_number = (values.get("meter_number") or "").strip()
+            if row_meter_number and row_meter_number.upper() != (meter.number or "").strip().upper():
+                skipped_meter_mismatch += 1
+                skip_details.append(f"{identifier}: {reason_meter_mismatch}")
                 continue
 
             year_str = (values.get("year") or "").strip()
@@ -1001,6 +1025,7 @@ def create_metering_router(
             (skipped_no_meter, "metering.readings_list.csv_import_skipped_no_meter"),
             (skipped_invalid, "metering.readings_list.csv_import_skipped_invalid"),
             (skipped_implausible, "metering.readings_list.csv_import_skipped_implausible"),
+            (skipped_meter_mismatch, "metering.readings_list.csv_import_skipped_meter_mismatch"),
         ):
             if count:
                 message += t_for(request, key, count=count)

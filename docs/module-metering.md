@@ -225,6 +225,25 @@ added to the shared router factory so both media get it automatically.
   would silently misattribute readings near a year boundary. `Year`
   must be mapped to a real column; if a source export doesn't have one,
   it has to be added by hand first.
+- **Optional `Meter number` cross-check on readings import:** if the CSV
+  maps a `Meter number` column and a row's value doesn't match the
+  metering point's *current* meter, that row is skipped rather than
+  recorded -- it may belong to a since-replaced meter. `exchange_meter()`
+  deactivates the old meter and creates a new one rather than deleting
+  it (history stays intact), but there is currently no path anywhere in
+  this app -- CSV import or manual entry via `reading_create()` -- to
+  attach a reading to a non-current meter. Silently attaching an old
+  meter's historical reading to the new meter's record would corrupt
+  that meter's own reading history; skipping is the honest behavior
+  given that gap, not a full fix for it.
+- **Alias-guessing pitfall hit building this:** `"art"` (German for
+  "kind/type") was originally a guessed alias for the `Type` field. A
+  real export's own `Art` column is at least as likely to mean "reading
+  kind" (Jahresablesung/Zwischenablesung) as "metering point type" --
+  removed from the alias set entirely (`"Typ"` is unambiguous, `"Art"`
+  isn't), since a wrong guess here isn't cosmetic: every row's `Type`
+  would fail validation and the whole import would silently come back
+  empty.
 - Both readings imports go through `record_reading()`
   (`app/services/metering.py`), so a bulk-loaded reading is subject to
   exactly the same monotonicity check as one entered by hand through

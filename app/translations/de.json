@@ -1169,7 +1169,10 @@
       "csv_import_skip_reason_no_meter": "kein aktiver Zähler",
       "csv_import_skip_reason_invalid": "ungültige Zeile",
       "csv_import_skip_reason_implausible": "unplausibler Zählerstand",
-      "csv_import_more_skipped": " (und {count} weitere)"
+      "csv_import_more_skipped": " (und {count} weitere)",
+      "csv_import_skip_reason_meter_mismatch": "Zählernummer stimmt nicht überein",
+      "csv_import_skipped_meter_mismatch": ", {count} übersprungen (Zählernummer stimmt nicht mit aktuellem Zähler überein)",
+      "map_field_meter_number": "Meter number"
     },
     "evaluation": {
       "title_suffix": "-Auswertung",

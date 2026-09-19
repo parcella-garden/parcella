@@ -1169,7 +1169,10 @@
       "csv_import_skip_reason_no_meter": "no active meter",
       "csv_import_skip_reason_invalid": "invalid row",
       "csv_import_skip_reason_implausible": "implausible reading",
-      "csv_import_more_skipped": " (and {count} more)"
+      "csv_import_more_skipped": " (and {count} more)",
+      "csv_import_skip_reason_meter_mismatch": "meter number mismatch",
+      "csv_import_skipped_meter_mismatch": ", {count} skipped (meter number doesn't match current meter)",
+      "map_field_meter_number": "Meter number"
     },
     "evaluation": {
       "title_suffix": " report",
