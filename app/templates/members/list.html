@@ -196,10 +196,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form method="post" action="/members/import/csv" enctype="multipart/form-data"
+                <form method="post" action="/members/import/preview" enctype="multipart/form-data"
                       class="d-flex gap-2 align-items-center flex-wrap">
                     {{ csrf_field() }}
-                    <input type="file" name="datei" accept=".csv" class="form-control form-control-sm"
+                    <input type="file" name="file" accept=".csv" class="form-control form-control-sm"
                            required style="max-width: 300px;">
                     <button type="submit" class="btn btn-sm btn-outline-primary">
                         <i class="bi bi-upload me-1"></i>{{ t('members.list.csv_import_button') }}

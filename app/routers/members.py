@@ -1,6 +1,7 @@
 """
 Members router: list, create, edit, CSV import/export.
 """
+import base64
 import csv
 import io
 import itertools
@@ -16,7 +17,14 @@ from sqlalchemy import select, or_, and_
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db, active_member_filter, current_tenant_filter
-from app.csv_utils import csv_safe
+from app.csv_utils import (
+    csv_safe,
+    decode_csv_upload,
+    sniff_csv_delimiter,
+    guess_column_mapping,
+    parse_column_mapping,
+    parse_mapped_csv_rows,
+)
 from app.models import Member, MemberPhone, MemberEmail, MemberParcel, Parcel
 from app.permissions import require_permission
 from app.i18n import t_for, load_current_language
@@ -573,58 +581,109 @@ async def members_export_csv(
 # CSV import
 # ---------------------------------------------------------------------------
 
-@router.post("/import/csv")
-async def members_import_csv(
+CSV_IMPORT_PREVIEW_ROWS = 5
+MEMBERS_IMPORT_TARGET_FIELDS = [
+    "first_name", "last_name", "street", "postal_code", "city",
+    "date_of_birth", "iban", "member_since", "member_until",
+    "email_notifications", "email_addresses", "phone_numbers", "notes",
+]
+MEMBERS_IMPORT_FIELD_ALIASES = {
+    "first_name": {"vorname", "first name", "firstname"},
+    "last_name": {"nachname", "last name", "lastname", "surname"},
+    "street": {"strasse", "straße", "street", "address"},
+    "postal_code": {"plz", "postal code", "zip", "zip code", "postcode"},
+    "city": {"ort", "city", "town"},
+    "date_of_birth": {"geburtsdatum", "date of birth", "birthdate", "dob"},
+    "iban": {"iban"},
+    "member_since": {"member seit", "member since", "mitglied seit"},
+    "member_until": {"member bis", "member until", "mitglied bis"},
+    "email_notifications": {"e-mail-benachrichtigungen", "email notifications", "email-benachrichtigungen"},
+    "email_addresses": {"e-mail-adressen", "email addresses", "emails", "e-mail"},
+    "phone_numbers": {"telefonnummern", "phone numbers", "phones", "telefon"},
+    "notes": {"notizen", "notes", "note"},
+}
+
+
+def _parse_member_date(s: str) -> Optional[date]:
+    s = s.strip()
+    for fmt in ("%Y-%m-%d", "%d.%m.%Y", "%d.%m.%y"):
+        try:
+            return date.fromisoformat(s) if fmt == "%Y-%m-%d" else datetime.strptime(s, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+@router.post("/import/preview", response_class=HTMLResponse)
+async def members_import_preview(
     request: Request,
-    datei: UploadFile = File(...),
+    file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
 ):
+    """Step 1 of the column-mapping wizard (ADR 0062's pattern,
+    generalized here -- see docs/ADR/0083): detects the header row and
+    lets the user map each column to a Parcella field before anything
+    is written. The raw CSV round-trips to step 2 as a hidden base64
+    field, not server-side session state."""
     await require_permission(request, db, "members_parcels", "write")
 
-    inhalt = await datei.read()
-    try:
-        text = inhalt.decode("utf-8-sig")  # BOM-safe (Excel)
-    except UnicodeDecodeError:
-        text = inhalt.decode("latin-1")    # Fallback for older Windows exports
+    content = await file.read()
+    text = decode_csv_upload(content)
+    delimiter = sniff_csv_delimiter(text)
 
-    # Auto-detect the delimiter (semicolon or comma) -- many
-    # spreadsheet programs save CSVs differently depending on the
-    # language setting, even if the file was originally exported with
-    # a semicolon.
-    try:
-        delimiter = csv.Sniffer().sniff(text[:2048], delimiters=";,").delimiter
-    except csv.Error:
-        delimiter = ";"
+    reader = csv.reader(io.StringIO(text), delimiter=delimiter)
+    rows = list(reader)
+    if not rows:
+        message = t_for(request, "members.list.csv_empty_error")
+        import urllib.parse
+        return RedirectResponse(f"/members/?error={urllib.parse.quote(message)}", status_code=303)
+    headers = [h.strip() for h in rows[0]]
+    preview_rows = rows[1:1 + CSV_IMPORT_PREVIEW_ROWS]
+    default_mapping = guess_column_mapping(headers, MEMBERS_IMPORT_FIELD_ALIASES)
 
-    reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
-    # Strip leading/trailing whitespace from column names, in case the
-    # spreadsheet program inserted some on save.
-    if reader.fieldnames:
-        reader.fieldnames = [f.strip() if f else f for f in reader.fieldnames]
+    return templates.TemplateResponse("members/import_preview.html", {
+        "request": request,
+        "headers": headers, "preview_rows": preview_rows,
+        "default_mapping": default_mapping, "target_fields": MEMBERS_IMPORT_TARGET_FIELDS,
+        "csv_content_b64": base64.b64encode(content).decode("ascii"), "delimiter": delimiter,
+    })
+
+
+@router.post("/import/finalize")
+async def members_import_finalize(
+    request: Request,
+    csv_content_b64: str = Form(...), delimiter: str = Form(";"),
+    db: AsyncSession = Depends(get_db),
+):
+    """Step 2: applies the confirmed column mapping and runs the same
+    row logic the old fixed-header importer used -- name+DOB matching,
+    update-or-create, email/phone seeding only on create -- are
+    unchanged, just fed from the mapped dict instead of a literal
+    DictReader header lookup."""
+    await require_permission(request, db, "members_parcels", "write")
+
+    form = await request.form()
+    column_mapping = parse_column_mapping(form, MEMBERS_IMPORT_TARGET_FIELDS)
+    if "first_name" not in column_mapping.values() or "last_name" not in column_mapping.values():
+        message = t_for(request, "members.list.csv_mapping_required_error")
+        import urllib.parse
+        return RedirectResponse(f"/members/?error={urllib.parse.quote(message)}", status_code=303)
+    rows = parse_mapped_csv_rows(csv_content_b64, delimiter, column_mapping)
 
     created = 0
     updated = 0
     errors = []
 
-    def parse_date(s: str) -> Optional[date]:
-        s = s.strip()
-        for fmt in ("%Y-%m-%d", "%d.%m.%Y", "%d.%m.%y"):
-            try:
-                return date.fromisoformat(s) if fmt == "%Y-%m-%d" else datetime.strptime(s, fmt).date()
-            except ValueError:
-                continue
-        return None
-
-    for row_number, row in enumerate(reader, start=2):
-        first_name = (row.get("Vorname") or "").strip()
-        last_name = (row.get("Nachname") or "").strip()
+    for row_number, values in enumerate(rows, start=2):
+        first_name = (values.get("first_name") or "").strip()
+        last_name = (values.get("last_name") or "").strip()
 
         if not first_name or not last_name:
             errors.append(f"Zeile {row_number}: Vor- oder Nachname fehlt – übersprungen.")
             continue
 
         # Duplicate detection: same first + last name + date of birth
-        date_of_birth = parse_date(row.get("Geburtsdatum") or "")
+        date_of_birth = _parse_member_date(values.get("date_of_birth") or "")
         existing_query = select(Member).where(
             Member.first_name == first_name,
             Member.last_name == last_name,
@@ -636,21 +695,21 @@ async def members_import_csv(
         existing_result = await db.execute(existing_query)
         existing = existing_result.scalars().first()
 
-        email_notifications_str = (row.get("E-Mail-Benachrichtigungen") or "Ja").strip().lower()
+        email_notifications_str = (values.get("email_notifications") or "Ja").strip().lower()
         email_notifications = email_notifications_str not in ("nein", "no", "false", "0")
 
         fields = dict(
             first_name=first_name,
             last_name=last_name,
-            street=(row.get("Strasse") or "").strip() or None,
-            postal_code=(row.get("PLZ") or "").strip() or None,
-            city=(row.get("Ort") or "").strip() or None,
+            street=(values.get("street") or "").strip() or None,
+            postal_code=(values.get("postal_code") or "").strip() or None,
+            city=(values.get("city") or "").strip() or None,
             date_of_birth=date_of_birth,
-            iban=(row.get("IBAN") or "").strip() or None,
-            member_since=parse_date(row.get("Member seit") or ""),
-            member_until=parse_date(row.get("Member bis") or ""),
+            iban=(values.get("iban") or "").strip() or None,
+            member_since=_parse_member_date(values.get("member_since") or ""),
+            member_until=_parse_member_date(values.get("member_until") or ""),
             email_notifications=email_notifications,
-            notes=(row.get("Notizen") or "").strip() or None,
+            notes=(values.get("notes") or "").strip() or None,
         )
 
         if existing:
@@ -666,7 +725,7 @@ async def members_import_csv(
             created += 1
 
         # Email addresses (semicolon-separated in one cell)
-        emails_str = (row.get("E-Mail-Adressen") or "").strip()
+        emails_str = (values.get("email_addresses") or "").strip()
         if emails_str and not existing:
             for i, email_address in enumerate(emails_str.split(";")):
                 email_address = email_address.strip().lower()
@@ -678,7 +737,7 @@ async def members_import_csv(
                     ))
 
         # Phone numbers (semicolon-separated in one cell)
-        phones_str = (row.get("Telefonnummern") or "").strip()
+        phones_str = (values.get("phone_numbers") or "").strip()
         if phones_str and not existing:
             for i, phone_number in enumerate(phones_str.split(";")):
                 phone_number = phone_number.strip()
