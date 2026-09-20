@@ -4,6 +4,20 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.css">
+<style>
+    /* EasyMDE names each toolbar button's own DOM class after its
+       internal name (see createToolbarButton() in easymde.js), so the
+       table button gets class="table" -- colliding with Bootstrap's
+       global .table class (width: 100%; margin-bottom: 1rem;
+       vertical-align: top;), which knocks it onto its own line. Reset
+       just those properties back to the other toolbar buttons' values. */
+    .editor-toolbar button.table {
+        width: auto;
+        margin-bottom: 0;
+        vertical-align: baseline;
+        color: inherit;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -204,6 +218,33 @@
         spellChecker: false,
         status: false,
         placeholder: "{{ t('announcements.form.body_placeholder') }}",
+        // EasyMDE's default toolbar hardcodes Font Awesome icon classes
+        // (fa fa-bold, ...), which this project never loads -- it uses
+        // Bootstrap Icons everywhere else. Override each button's
+        // className to the bi-* equivalent instead of pulling in a
+        // second icon font.
+        toolbar: [
+            {name: "bold", action: EasyMDE.toggleBold, className: "bi bi-type-bold", title: "Bold"},
+            {name: "italic", action: EasyMDE.toggleItalic, className: "bi bi-type-italic", title: "Italic"},
+            {name: "strikethrough", action: EasyMDE.toggleStrikethrough, className: "bi bi-type-strikethrough", title: "Strikethrough"},
+            {name: "heading", action: EasyMDE.toggleHeadingSmaller, className: "bi bi-type-h1", title: "Heading"},
+            "|",
+            {name: "code", action: EasyMDE.toggleCodeBlock, className: "bi bi-code-slash", title: "Code"},
+            {name: "quote", action: EasyMDE.toggleBlockquote, className: "bi bi-quote", title: "Quote"},
+            {name: "unordered-list", action: EasyMDE.toggleUnorderedList, className: "bi bi-list-ul", title: "Generic List"},
+            {name: "ordered-list", action: EasyMDE.toggleOrderedList, className: "bi bi-list-ol", title: "Numbered List"},
+            "|",
+            {name: "link", action: EasyMDE.drawLink, className: "bi bi-link-45deg", title: "Create Link"},
+            {name: "image", action: EasyMDE.drawImage, className: "bi bi-image", title: "Insert Image"},
+            {name: "table", action: EasyMDE.drawTable, className: "bi bi-table", title: "Insert Table"},
+            {name: "horizontal-rule", action: EasyMDE.drawHorizontalRule, className: "bi bi-dash-lg", title: "Insert Horizontal Line"},
+            "|",
+            {name: "preview", action: EasyMDE.togglePreview, className: "bi bi-eye", title: "Toggle Preview"},
+            {name: "side-by-side", action: EasyMDE.toggleSideBySide, className: "bi bi-layout-split", title: "Toggle Side by Side"},
+            {name: "fullscreen", action: EasyMDE.toggleFullScreen, className: "bi bi-arrows-fullscreen", title: "Toggle Fullscreen"},
+            "|",
+            {name: "guide", action: "https://www.markdownguide.org/basic-syntax/", className: "bi bi-question-circle", title: "Markdown Guide"},
+        ],
     });
 </script>
 {% endblock %}
