@@ -338,7 +338,7 @@ async def test_reply_to_customer_calls_client_and_never_touches_task_comments(cl
 # Permission gating
 # ---------------------------------------------------------------------------
 
-async def test_closed_and_deleted_conversations_are_hidden_from_the_list(client, admin_user):
+async def test_closed_deleted_and_spam_conversations_are_hidden_from_the_list(client, admin_user):
     token = await login(client, "admin@example.com")
     headers = auth_header(token)
     await _enable_module(client, headers)
@@ -353,6 +353,11 @@ async def test_closed_and_deleted_conversations_are_hidden_from_the_list(client,
         db.add(FreescoutConversationLink(
             freescout_conversation_id=203, freescout_mailbox_id=1, subject="Removed in FreeScout",
             customer_email="x@example.com", freescout_status="deleted",
+            freescout_updated_at=datetime.now(timezone.utc),
+        ))
+        db.add(FreescoutConversationLink(
+            freescout_conversation_id=204, freescout_mailbox_id=1, subject="Buy cheap watches",
+            customer_email="spammer@example.com", freescout_status="spam",
             freescout_updated_at=datetime.now(timezone.utc),
         ))
         await db.commit()

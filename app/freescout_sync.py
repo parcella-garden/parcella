@@ -38,8 +38,11 @@ logger = logging.getLogger(__name__)
 # dashboard's "needs association" stat, but still synced/kept up to
 # date normally: a closed conversation that gets reopened in FreeScout
 # must still have an accurate, already-matched member_id waiting for it,
-# not silently stale rows nobody bothered to keep synced.
-HIDDEN_STATUSES = ("closed", "deleted")
+# not silently stale rows nobody bothered to keep synced. "spam" is
+# included for the same reason a closed ticket is -- not something staff
+# needs to see in the normal list -- but if FreeScout ever un-marks it,
+# the row is still there and in sync (issue #230).
+HIDDEN_STATUSES = ("closed", "deleted", "spam")
 
 
 def _parse_datetime(value: Optional[str]) -> datetime:
