@@ -521,6 +521,7 @@
       "show_inactive": "Zobrazit pouze neaktivní",
       "show_pending_only": "Pouze čekající přihlášky",
       "show_active_only": "Pouze potvrzení aktivní",
+      "show_email_info_only": "Pouze s e-mailovými informacemi = ano",
       "search_button": "Hledat",
       "reset_button": "Resetovat",
       "inactive_notice": "Zobrazují se pouze neaktivní členové (členství ukončeno nebo ještě nezačalo).",

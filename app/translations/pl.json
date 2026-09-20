@@ -521,6 +521,7 @@
       "show_inactive": "Pokaż tylko nieaktywnych",
       "show_pending_only": "Tylko oczekujące zgłoszenia",
       "show_active_only": "Tylko potwierdzeni aktywni",
+      "show_email_info_only": "Tylko z informacją e-mail = tak",
       "search_button": "Szukaj",
       "reset_button": "Wyczyść",
       "inactive_notice": "Wyświetlani są tylko nieaktywni członkowie (członkostwo wygasłe lub jeszcze nierozpoczęte).",

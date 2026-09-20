@@ -53,7 +53,7 @@ async def _get_member_with_details(db: AsyncSession, member_id: str) -> Optional
     return result.scalar_one_or_none()
 
 
-def _filtered_members_query(search: str, include_inactive: bool, pending_only: bool, active_only: bool = False):
+def _filtered_members_query(search: str, include_inactive: bool, pending_only: bool, active_only: bool = False, email_info_only: bool = False):
     """WHERE/ORDER BY for the member list, shared with its CSV export
     (issue #198) so an export always matches what's currently on screen
     instead of drifting into its own copy of this filtering logic.
@@ -151,10 +151,13 @@ def _filtered_members_query(search: str, include_inactive: bool, pending_only: b
             )
         )
 
+    if email_info_only:
+        query = query.where(Member.email_notifications.is_(True))
+
     return query
 
 
-def _members_list_query_string(search: str, include_inactive: bool, pending_only: bool, active_only: bool) -> str:
+def _members_list_query_string(search: str, include_inactive: bool, pending_only: bool, active_only: bool, email_info_only: bool = False) -> str:
     """The current /members/ list filter as a query string (no leading
     '?', empty if nothing is set). Issue #202: carried from each list
     row onto its detail page, and back out again via the detail page's
@@ -170,6 +173,8 @@ def _members_list_query_string(search: str, include_inactive: bool, pending_only
         params["pending_only"] = "true"
     if active_only:
         params["active_only"] = "true"
+    if email_info_only:
+        params["email_info_only"] = "true"
     return urlencode(params)
 
 
@@ -180,11 +185,12 @@ async def members_list(
     include_inactive: bool = False,
     pending_only: bool = False,
     active_only: bool = False,
+    email_info_only: bool = False,
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "read")
 
-    query = _filtered_members_query(search, include_inactive, pending_only, active_only).options(
+    query = _filtered_members_query(search, include_inactive, pending_only, active_only, email_info_only).options(
         selectinload(Member.email_addresses),
         selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel),
     )
@@ -202,7 +208,8 @@ async def members_list(
             "include_inactive": include_inactive,
             "pending_only": pending_only,
             "active_only": active_only,
-            "list_query_string": _members_list_query_string(search, include_inactive, pending_only, active_only),
+            "email_info_only": email_info_only,
+            "list_query_string": _members_list_query_string(search, include_inactive, pending_only, active_only, email_info_only),
         },
     )
 
@@ -320,6 +327,7 @@ async def member_detail(
     include_inactive: bool = False,
     pending_only: bool = False,
     active_only: bool = False,
+    email_info_only: bool = False,
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "read")
@@ -343,7 +351,7 @@ async def member_detail(
     # guessing.
     ordered_ids = (
         await db.scalars(
-            _filtered_members_query(search, include_inactive, pending_only, active_only)
+            _filtered_members_query(search, include_inactive, pending_only, active_only, email_info_only)
             .with_only_columns(Member.id)
         )
     ).all()
@@ -355,7 +363,7 @@ async def member_detail(
             prev_member_id = ordered_ids[idx - 1]
         if idx < len(ordered_ids) - 1:
             next_member_id = ordered_ids[idx + 1]
-    list_query_string = _members_list_query_string(search, include_inactive, pending_only, active_only)
+    list_query_string = _members_list_query_string(search, include_inactive, pending_only, active_only, email_info_only)
 
     return templates.TemplateResponse(
         "members/detail.html",
@@ -529,6 +537,7 @@ async def members_export_csv(
     include_inactive: bool = False,
     pending_only: bool = False,
     active_only: bool = False,
+    email_info_only: bool = False,
     db: AsyncSession = Depends(get_db),
 ):
     await require_permission(request, db, "members_parcels", "read")
@@ -536,7 +545,7 @@ async def members_export_csv(
     # Issue #198: exports whatever the list page is currently showing,
     # not always every active member -- same filters, same query, via
     # _filtered_members_query() so the two can't drift apart.
-    query = _filtered_members_query(search, include_inactive, pending_only, active_only).options(
+    query = _filtered_members_query(search, include_inactive, pending_only, active_only, email_info_only).options(
         selectinload(Member.email_addresses),
         selectinload(Member.phone_numbers),
         selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel),

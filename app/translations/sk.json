@@ -521,6 +521,7 @@
       "show_inactive": "Zobraziť iba neaktívnych",
       "show_pending_only": "Iba čakajúce prihlášky",
       "show_active_only": "Iba potvrdení aktívni",
+      "show_email_info_only": "Iba s e-mailovými informáciami = áno",
       "search_button": "Hľadať",
       "reset_button": "Resetovať",
       "inactive_notice": "Zobrazujú sa iba neaktívni členovia (členstvo ukončené alebo ešte nezačalo).",

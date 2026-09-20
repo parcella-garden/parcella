@@ -521,6 +521,7 @@
       "show_inactive": "Show inactive only",
       "show_pending_only": "Pending applications only",
       "show_active_only": "Confirmed active only",
+      "show_email_info_only": "Email info = yes only",
       "search_button": "Search",
       "reset_button": "Reset",
       "inactive_notice": "Only inactive members are shown (membership expired or not yet started).",

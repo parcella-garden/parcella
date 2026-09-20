@@ -521,6 +521,7 @@
       "show_inactive": "Afficher uniquement les inactifs",
       "show_pending_only": "Candidatures en attente uniquement",
       "show_active_only": "Actifs confirmés uniquement",
+      "show_email_info_only": "Infos e-mail = oui uniquement",
       "search_button": "Rechercher",
       "reset_button": "Réinitialiser",
       "inactive_notice": "Seuls les membres inactifs sont affichés (adhésion terminée ou pas encore commencée).",

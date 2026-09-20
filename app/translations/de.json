@@ -521,6 +521,7 @@
       "show_inactive": "Nur Inaktive anzeigen",
       "show_pending_only": "Nur ausstehende Bewerbungen",
       "show_active_only": "Nur bestätigt aktive",
+      "show_email_info_only": "Nur mit E-Mail-Info = ja",
       "search_button": "Suchen",
       "reset_button": "Zurücksetzen",
       "inactive_notice": "Es werden nur inaktive Mitglieder angezeigt (Mitgliedschaft abgelaufen oder noch nicht begonnen).",

@@ -521,6 +521,7 @@
       "show_inactive": "Toon alleen inactieven",
       "show_pending_only": "Alleen in behandeling zijnde aanvragen",
       "show_active_only": "Alleen bevestigd actief",
+      "show_email_info_only": "Alleen e-mailinfo = ja",
       "search_button": "Zoeken",
       "reset_button": "Reset",
       "inactive_notice": "Alleen inactieve leden worden getoond (lidmaatschap beëindigd of nog niet begonnen).",
