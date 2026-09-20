@@ -1593,8 +1593,8 @@
     "birthdays_round_badge": "Kulaté",
     "birthdays_today": "dnes oslaví {age}",
     "birthdays_turning": "oslaví {age}",
-    "freescout_needs_association_label": "Vyžaduje přiřazení",
-    "freescout_needs_association_suffix": "konverzace podpory bez přiřazeného člena"
+    "freescout_open_label": "Otevřené konverzace podpory",
+    "freescout_open_suffix": "aktivní nebo čekající konverzace FreeScout"
   },
   "calendar": {
     "hub": {
@@ -2441,7 +2441,6 @@
       "col_messages": "Zprávy",
       "col_updated": "Aktualizováno",
       "col_task": "Úkol",
-      "needs_association": "Vyžaduje přiřazení",
       "has_task": "Propojeno s úkolem",
       "empty_state": "Zatím žádné konverzace podpory."
     },

@@ -368,6 +368,60 @@ async def test_closed_deleted_and_spam_conversations_are_hidden_from_the_list(cl
     assert conversation_ids == {201}
 
 
+async def test_unmatched_conversation_shows_no_action_badge_in_list(client, admin_user):
+    """Issue #231: an unmatched conversation (no member_id) is normal and
+    expected -- a lot of inbound mail is from non-members -- so the list
+    must not flag it as something staff needs to act on."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    await _make_link(freescout_conversation_id=301)  # unassociated by default
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    response = await client.get("/freescout/")
+    assert response.status_code == 200
+    assert "Needs association" not in response.text
+
+
+async def test_dashboard_freescout_stat_counts_open_conversations_regardless_of_match(client, admin_user):
+    """Issue #231: the dashboard tile counts active/pending conversations,
+    not unmatched ones -- a member match no longer factors in, and closed
+    conversations stay excluded (existing HIDDEN_STATUSES behavior)."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+
+    member = await _make_member("matched@example.com")
+    async with AsyncSessionLocal() as db:
+        db.add(FreescoutConversationLink(
+            freescout_conversation_id=401, freescout_mailbox_id=1, subject="Matched, active",
+            customer_email="matched@example.com", freescout_status="active", member_id=member.id,
+            freescout_updated_at=datetime.now(timezone.utc),
+        ))
+        db.add(FreescoutConversationLink(
+            freescout_conversation_id=402, freescout_mailbox_id=1, subject="Unmatched, active",
+            customer_email="neighbor@example.com", freescout_status="active",
+            freescout_updated_at=datetime.now(timezone.utc),
+        ))
+        db.add(FreescoutConversationLink(
+            freescout_conversation_id=403, freescout_mailbox_id=1, subject="Unmatched, pending",
+            customer_email="vendor@example.com", freescout_status="pending",
+            freescout_updated_at=datetime.now(timezone.utc),
+        ))
+        db.add(FreescoutConversationLink(
+            freescout_conversation_id=404, freescout_mailbox_id=1, subject="Old, resolved",
+            customer_email="x@example.com", freescout_status="closed",
+            freescout_updated_at=datetime.now(timezone.utc),
+        ))
+        await db.commit()
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    response = await client.get("/")
+    assert response.status_code == 200
+    assert "Needs association" not in response.text
+    assert ">3<" in response.text
+
+
 async def test_conversations_endpoint_404_when_module_disabled(client, admin_user):
     token = await login(client, "admin@example.com")
     headers = auth_header(token)

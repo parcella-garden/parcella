@@ -531,15 +531,15 @@ async def startseite(request: Request):
             )
         )
 
-        # For the dashboard tile "Support conversations needing association" --
-        # unmatched/ambiguous conversations (member_id still NULL) are the
-        # ones a staff member needs to look at; matched ones need no action.
-        # Closed/deleted conversations are excluded, same as the /freescout/
-        # list itself (app/freescout_sync.py's HIDDEN_STATUSES) -- a closed
-        # conversation with no member match isn't actionable anymore.
-        freescout_needs_association_count = await db.scalar(
+        # For the dashboard tile "Open support conversations" (issue #231) --
+        # a plain count of currently active/pending conversations,
+        # regardless of member association: an unmatched conversation is
+        # normal and expected (many inbound emails are from non-members),
+        # not something staff necessarily needs to act on, so this no
+        # longer singles those out. Same HIDDEN_STATUSES exclusion as the
+        # /freescout/ list itself (app/freescout_sync.py).
+        freescout_open_count = await db.scalar(
             select(func.count()).select_from(FreescoutConversationLink).where(
-                FreescoutConversationLink.member_id.is_(None),
                 FreescoutConversationLink.freescout_status.notin_(HIDDEN_STATUSES),
             )
         )
@@ -567,7 +567,7 @@ async def startseite(request: Request):
         "parcels_vacant": parcels_vacant or 0,
         "area_total_sqm": float(area_total or 0),
         "purchase_requests_open": purchase_requests_open_count or 0,
-        "freescout_needs_association": freescout_needs_association_count or 0,
+        "freescout_open": freescout_open_count or 0,
         "tasks_overdue": tasks_overdue_count or 0,
         # Reuses the count new_participations_count_middleware already
         # computed for this request (nav badge) instead of querying again.

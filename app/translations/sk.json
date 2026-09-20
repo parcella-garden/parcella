@@ -1593,8 +1593,8 @@
     "birthdays_round_badge": "Okrúhle",
     "birthdays_today": "dnes oslávi {age}",
     "birthdays_turning": "oslávi {age}",
-    "freescout_needs_association_label": "Vyžaduje priradenie",
-    "freescout_needs_association_suffix": "konverzácie podpory bez priradeného člena"
+    "freescout_open_label": "Otvorené konverzácie podpory",
+    "freescout_open_suffix": "aktívne alebo čakajúce konverzácie FreeScout"
   },
   "calendar": {
     "hub": {
@@ -2441,7 +2441,6 @@
       "col_messages": "Správy",
       "col_updated": "Aktualizované",
       "col_task": "Úloha",
-      "needs_association": "Vyžaduje priradenie",
       "has_task": "Prepojené s úlohou",
       "empty_state": "Zatiaľ žiadne konverzácie podpory."
     },

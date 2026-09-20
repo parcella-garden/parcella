@@ -1593,8 +1593,8 @@
     "birthdays_round_badge": "Rund",
     "birthdays_today": "heute wird {age}",
     "birthdays_turning": "wird {age}",
-    "freescout_needs_association_label": "Zuordnung erforderlich",
-    "freescout_needs_association_suffix": "Support-Konversationen ohne zugeordnetes Mitglied"
+    "freescout_open_label": "Offene Support-Anfragen",
+    "freescout_open_suffix": "aktive oder ausstehende FreeScout-Konversationen"
   },
   "calendar": {
     "hub": {
@@ -2441,7 +2441,6 @@
       "col_messages": "Nachrichten",
       "col_updated": "Aktualisiert",
       "col_task": "Aufgabe",
-      "needs_association": "Zuordnung erforderlich",
       "has_task": "Mit Aufgabe verknüpft",
       "empty_state": "Noch keine Support-Konversationen."
     },

@@ -56,6 +56,23 @@ Parcella, and it keeps `body_html` genuinely *derived* data rather than
 canonical markup. The editor is EasyMDE (MIT-licensed), loaded via CDN
 only on the announcement form page, with live preview.
 
+**EasyMDE's toolbar needs an explicit `toolbar:` config, not the
+library default (issue #228).** EasyMDE's built-in toolbar buttons are
+hardcoded to Font Awesome icon classes (`fa fa-bold`, etc.), which this
+project never loads (it uses Bootstrap Icons everywhere else, see
+`app/templates/base.html`) -- the default toolbar rendered with every
+button blank. `app/templates/announcements/form.html`'s `EasyMDE({...})`
+call now passes its own `toolbar:` array mapping each button to its
+`bi bi-*` equivalent. That in turn exposed a second, separate issue:
+EasyMDE names each button's own DOM class after its internal name
+(`createToolbarButton()` in EasyMDE's source), so the table button's
+`class="table"` collides with Bootstrap 5's global `.table` class
+(`width: 100%`, forcing it onto its own line) -- fixed with a scoped
+CSS reset in the same template's `extra_head` block. Any future EasyMDE
+upgrade should re-check both: a new default toolbar entry needs its own
+`bi-*` mapping, and any other button name that happens to match a
+Bootstrap utility/component class would hit the same collision.
+
 **A separate sanitizer profile from the ticket-email sanitizer.**
 `app/html_sanitizer.py`'s `sanitize_email_html()` strips all images,
 because that content comes from an arbitrary external sender (anyone

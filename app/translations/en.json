@@ -1593,8 +1593,8 @@
     "birthdays_round_badge": "Milestone",
     "birthdays_today": "today, turning {age}",
     "birthdays_turning": "turning {age}",
-    "freescout_needs_association_label": "Needs association",
-    "freescout_needs_association_suffix": "support conversations without a matched member"
+    "freescout_open_label": "Open support conversations",
+    "freescout_open_suffix": "active or pending FreeScout conversations"
   },
   "calendar": {
     "hub": {
@@ -2441,7 +2441,6 @@
       "col_messages": "Messages",
       "col_updated": "Updated",
       "col_task": "Task",
-      "needs_association": "Needs association",
       "has_task": "Linked to a task",
       "empty_state": "No support conversations yet."
     },

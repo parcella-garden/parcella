@@ -1593,8 +1593,8 @@
     "birthdays_round_badge": "Rond",
     "birthdays_today": "vandaag wordt {age}",
     "birthdays_turning": "wordt {age}",
-    "freescout_needs_association_label": "Koppeling vereist",
-    "freescout_needs_association_suffix": "supportgesprekken zonder gekoppeld lid"
+    "freescout_open_label": "Open supportgesprekken",
+    "freescout_open_suffix": "actieve of in behandeling zijnde FreeScout-gesprekken"
   },
   "calendar": {
     "hub": {
@@ -2441,7 +2441,6 @@
       "col_messages": "Berichten",
       "col_updated": "Bijgewerkt",
       "col_task": "Taak",
-      "needs_association": "Koppeling vereist",
       "has_task": "Gekoppeld aan een taak",
       "empty_state": "Nog geen supportgesprekken."
     },

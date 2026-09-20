@@ -1593,8 +1593,8 @@
     "birthdays_round_badge": "Anniversaire rond",
     "birthdays_today": "aujourd'hui, {age} ans",
     "birthdays_turning": "{age} ans",
-    "freescout_needs_association_label": "À associer",
-    "freescout_needs_association_suffix": "conversations d'assistance sans membre associé"
+    "freescout_open_label": "Conversations d'assistance ouvertes",
+    "freescout_open_suffix": "conversations FreeScout actives ou en attente"
   },
   "calendar": {
     "hub": {
@@ -2441,7 +2441,6 @@
       "col_messages": "Messages",
       "col_updated": "Mis à jour",
       "col_task": "Tâche",
-      "needs_association": "À associer",
       "has_task": "Lié à une tâche",
       "empty_state": "Aucune conversation d'assistance pour l'instant."
     },

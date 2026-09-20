@@ -1593,8 +1593,8 @@
     "birthdays_round_badge": "Okrągłe",
     "birthdays_today": "dziś kończy {age}",
     "birthdays_turning": "kończy {age}",
-    "freescout_needs_association_label": "Wymaga przypisania",
-    "freescout_needs_association_suffix": "rozmowy wsparcia bez przypisanego członka"
+    "freescout_open_label": "Otwarte rozmowy wsparcia",
+    "freescout_open_suffix": "aktywne lub oczekujące rozmowy FreeScout"
   },
   "calendar": {
     "hub": {
@@ -2441,7 +2441,6 @@
       "col_messages": "Wiadomości",
       "col_updated": "Zaktualizowano",
       "col_task": "Zadanie",
-      "needs_association": "Wymaga przypisania",
       "has_task": "Powiązano z zadaniem",
       "empty_state": "Brak jeszcze rozmów wsparcia."
     },

@@ -62,10 +62,13 @@ Applied by the poll loop (`app/freescout_sync.py`) for every conversation:
    - Exactly one match -> auto-associate, and backfill
      `Member.freescout_customer_id` so step 1 short-circuits next time.
    - More than one match (e.g. a couple sharing an inbox) -> leave
-     `member_id` NULL, surfaced in the staff UI as "needs association"
-     with the candidate members to choose from.
+     `member_id` NULL, shown in the conversation's detail page with the
+     candidate members to choose from.
    - No match -> leave unassociated (a non-member inquiry -- normal and
-     expected, e.g. a neighbor or vendor).
+     expected, e.g. a neighbor or vendor). Unassociated conversations are
+     not flagged as needing action anywhere in the UI (issue #231) --
+     matching a member is a manual convenience for staff, not a
+     required step.
 
 Once staff has manually associated (or the automation has auto-matched)
 a conversation, a later re-poll never re-runs this matching for that row
@@ -129,14 +132,14 @@ is the fix: it loops `page` within each of `CONVERSATION_STATUSES`
 page. The poll loop always calls `list_all_conversations()`, never
 `list_conversations()` directly (hit for real: issue #222).
 
-**Closed and deleted conversations are still synced, but hidden from
-display.** `app/freescout_sync.py`'s `HIDDEN_STATUSES` (`"closed"`,
-`"deleted"`) is excluded from the `/freescout/` list, the
-`/api/v1/freescout/conversations` list, and the dashboard's "needs
-association" stat -- but the poller keeps updating those rows normally,
-so a conversation that gets reopened in FreeScout still has an accurate,
-already-matched `member_id` waiting for it rather than a stale row
-nobody bothered to keep in sync.
+**Closed, deleted, and spam conversations are still synced, but hidden
+from display.** `app/freescout_sync.py`'s `HIDDEN_STATUSES` (`"closed"`,
+`"deleted"`, `"spam"` -- issue #230) is excluded from the `/freescout/`
+list, the `/api/v1/freescout/conversations` list, and the dashboard's
+"Open support conversations" stat -- but the poller keeps updating
+those rows normally, so a conversation that gets reopened in FreeScout
+still has an accurate, already-matched `member_id` waiting for it
+rather than a stale row nobody bothered to keep in sync.
 
 **Deletion needs its own reconciliation pass -- it can't be observed
 incrementally.** FreeScout represents a deleted conversation via a
