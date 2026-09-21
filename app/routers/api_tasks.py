@@ -14,7 +14,9 @@ from sqlalchemy.orm import selectinload
 from app.database import get_db
 from app.models import Task, TaskAssignee, TaskComment, TaskList, User
 from app.api_auth import require_admin_api
+from app.change_tracker import ChangeTracker
 from app.module_flags import require_module
+from app.routers.tasks import TASK_TRACKED_FIELDS
 from app.task_board import (
     next_position, move_task, close_gap_after_delete,
     next_list_position, move_list, delete_list, create_task,
@@ -206,6 +208,7 @@ async def task_update(
     user: User = Depends(require_admin_api),
 ):
     task = await _get_task_or_404(db, task_id)
+    tracker = ChangeTracker(task, "Task", TASK_TRACKED_FIELDS)
 
     fields = data.model_dump(exclude_unset=True)
     assigned_to_ids = fields.pop("assigned_to_ids", None)
@@ -223,6 +226,7 @@ async def task_update(
         for user_id in assigned_to_ids:
             db.add(TaskAssignee(task_id=task.id, user_id=user_id))
 
+    await tracker.commit(db, user.id)
     await db.commit()
     await db.refresh(task, attribute_names=["updated_at", "assignees"])
     return task
@@ -241,7 +245,7 @@ async def task_move(
 ):
     task = await _get_task_or_404(db, task_id)
     await _get_list_or_404(db, data.list_id)
-    await move_task(db, task, data.list_id, data.position)
+    await move_task(db, task, data.list_id, data.position, changed_by_id=user.id)
     # Only updated_at needs a DB round-trip (server-side onupdate) --
     # list_id/position are already correct in-memory, and refreshing
     # without attribute_names would expire (and require a lazy-load of)

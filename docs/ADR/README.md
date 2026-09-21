@@ -87,3 +87,5 @@ in chronological order.
 81. [Meter-number uniqueness is scoped per medium, not global](./0081-meter-number-uniqueness-scoped-per-medium.md) -- superseded by 82
 82. [Meter number uniqueness removed entirely](./0082-meter-number-uniqueness-removed-entirely.md)
 83. [CSV column-mapping wizard becomes the app-wide standard, replacing fixed headers everywhere](./0083-csv-column-mapping-wizard-becomes-the-app-wide-standard.md)
+84. [Task board: modal editing with a real, unique URL per card](./0084-task-board-modal-editing-with-real-urls.md)
+85. [Task board: per-card change history, via the existing generic audit log](./0085-task-board-change-history-via-change-history.md)

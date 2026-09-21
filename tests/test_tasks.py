@@ -6,6 +6,8 @@ management (create/rename/reorder/delete-with-reassignment, issue #100)
 -- and the admin/board-only permission boundary on both the web UI and
 the API.
 """
+from sqlalchemy import select
+
 from app.database import AsyncSessionLocal
 from app.models import TaskList
 from tests.conftest import login, auth_header
@@ -550,6 +552,183 @@ async def test_readonly_member_gets_403_on_export_report(client, admin_user):
     await web_login(client, "readonly3@example.com")
     response = await client.get("/tasks/export")
     assert response.status_code == 403
+
+
+# ---------------------------------------------------------------------------
+# Modal editing with a real URL, and per-card change history
+# (issue #232 follow-ups -- see ADR 0084/0085)
+# ---------------------------------------------------------------------------
+
+async def test_edit_route_renders_board_with_modal_open(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    await _seed_lists()
+
+    task = (await client.post("/api/v1/tasks", json={"title": "Fix the gate"}, headers=headers)).json()
+
+    await web_login(client, "admin@example.com")
+    response = await client.get(f"/tasks/{task['id']}/edit")
+    assert response.status_code == 200
+    # It's the board (kanban columns), not a standalone page, with the
+    # modal rendered open on top of it -- both markers must be present.
+    assert "kanban-scroll" in response.text
+    assert 'id="taskModal"' in response.text
+    assert 'data-auto-open="1"' in response.text
+    assert f'action="/tasks/{task["id"]}/edit"' in response.text
+    assert "Fix the gate" in response.text
+
+
+async def test_plain_board_has_no_task_modal(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    await _seed_lists()
+
+    await web_login(client, "admin@example.com")
+    response = await client.get("/tasks/")
+    assert response.status_code == 200
+    assert 'id="taskModal"' not in response.text
+
+
+async def test_new_route_renders_board_with_empty_modal(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    await _seed_lists()
+
+    await web_login(client, "admin@example.com")
+    response = await client.get("/tasks/new")
+    assert response.status_code == 200
+    assert 'id="taskModal"' in response.text
+    assert 'action="/tasks/new"' in response.text
+
+
+async def test_editing_task_fields_creates_history_and_shows_in_modal(client, admin_user):
+    from app.models import ChangeHistory
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    await _seed_lists()
+
+    task = (await client.post("/api/v1/tasks", json={"title": "Original title"}, headers=headers)).json()
+
+    await web_login(client, "admin@example.com")
+    edit_response = await client.post(
+        f"/tasks/{task['id']}/edit",
+        data={"title": "Updated title", "due_date": ""},
+    )
+    assert edit_response.status_code in (302, 303)
+
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(ChangeHistory).where(
+                ChangeHistory.entity_type == "Task", ChangeHistory.entity_id == task["id"],
+            )
+        )
+        entries = {e.field_name: e for e in result.scalars().all()}
+    assert "title" in entries
+    assert entries["title"].old_value == "Original title"
+    assert entries["title"].new_value == "Updated title"
+
+    modal_response = await client.get(f"/tasks/{task['id']}/edit")
+    assert "Original title" in modal_response.text
+    assert "Updated title" in modal_response.text
+
+
+async def test_moving_task_cross_list_creates_list_id_history_with_list_names(client, admin_user):
+    from app.models import ChangeHistory
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    lists = await _seed_lists()
+
+    task = (await client.post("/api/v1/tasks", json={"title": "Water the trees"}, headers=headers)).json()
+
+    await web_login(client, "admin@example.com")
+    move_response = await client.post(
+        f"/tasks/{task['id']}/move", json={"list_id": lists["In Progress"], "position": 0},
+    )
+    assert move_response.status_code == 200
+
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(ChangeHistory).where(
+                ChangeHistory.entity_type == "Task", ChangeHistory.entity_id == task["id"],
+                ChangeHistory.field_name == "list_id",
+            )
+        )
+        entry = result.scalar_one()
+    # The raw stored values are ids -- the row itself doesn't resolve names.
+    assert entry.old_value == lists["To Do"]
+    assert entry.new_value == lists["In Progress"]
+
+    # The modal resolves those ids to names for display.
+    modal_response = await client.get(f"/tasks/{task['id']}/edit")
+    assert modal_response.status_code == 200
+    assert '<td class="text-muted">To Do</td>' in modal_response.text
+    assert '<td class="fw-semibold">In Progress</td>' in modal_response.text
+
+
+async def test_same_list_reorder_does_not_create_history(client, admin_user):
+    from app.models import ChangeHistory
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    lists = await _seed_lists()
+
+    a = (await client.post("/api/v1/tasks", json={"title": "A"}, headers=headers)).json()
+    (await client.post("/api/v1/tasks", json={"title": "B"}, headers=headers)).json()
+
+    await web_login(client, "admin@example.com")
+    move_response = await client.post(
+        f"/tasks/{a['id']}/move", json={"list_id": lists["To Do"], "position": 1},
+    )
+    assert move_response.status_code == 200
+
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(ChangeHistory).where(
+                ChangeHistory.entity_type == "Task", ChangeHistory.entity_id == a["id"],
+            )
+        )
+        assert result.scalars().all() == []
+
+
+async def test_api_update_and_move_create_history_rows(client, admin_user):
+    from app.models import ChangeHistory
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    lists = await _seed_lists()
+
+    task = (await client.post("/api/v1/tasks", json={"title": "Original"}, headers=headers)).json()
+
+    update_response = await client.put(
+        f"/api/v1/tasks/{task['id']}", json={"title": "Renamed via API"}, headers=headers,
+    )
+    assert update_response.status_code == 200
+
+    move_response = await client.post(
+        f"/api/v1/tasks/{task['id']}/move",
+        json={"list_id": lists["Done"], "position": 0}, headers=headers,
+    )
+    assert move_response.status_code == 200
+
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(ChangeHistory).where(
+                ChangeHistory.entity_type == "Task", ChangeHistory.entity_id == task["id"],
+            )
+        )
+        entries = {e.field_name: e for e in result.scalars().all()}
+    assert entries["title"].old_value == "Original"
+    assert entries["title"].new_value == "Renamed via API"
+    assert entries["list_id"].new_value == lists["Done"]
 
 
 # ---------------------------------------------------------------------------

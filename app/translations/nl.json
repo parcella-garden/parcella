@@ -1926,7 +1926,14 @@
       "priority_none": "Geen prioriteit",
       "priority_low": "Laag",
       "priority_medium": "Gemiddeld",
-      "priority_high": "Hoog"
+      "priority_high": "Hoog",
+      "history_header": "Wijzigingsgeschiedenis",
+      "no_history": "Nog geen wijzigingen geregistreerd.",
+      "history_col_timestamp": "Tijdstempel",
+      "history_col_field": "Veld",
+      "history_col_old_value": "Oude waarde",
+      "history_col_new_value": "Nieuwe waarde",
+      "history_col_changed_by": "Gewijzigd door"
     },
     "lists": {
       "add_modal_title": "Lijst toevoegen",

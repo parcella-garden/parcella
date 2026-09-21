@@ -1926,7 +1926,14 @@
       "priority_none": "Aucune priorité",
       "priority_low": "Basse",
       "priority_medium": "Moyenne",
-      "priority_high": "Haute"
+      "priority_high": "Haute",
+      "history_header": "Historique des modifications",
+      "no_history": "Aucune modification enregistrée pour le moment.",
+      "history_col_timestamp": "Horodatage",
+      "history_col_field": "Champ",
+      "history_col_old_value": "Ancienne valeur",
+      "history_col_new_value": "Nouvelle valeur",
+      "history_col_changed_by": "Modifié par"
     },
     "lists": {
       "add_modal_title": "Ajouter une liste",

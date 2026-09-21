@@ -1926,7 +1926,14 @@
       "priority_none": "No priority",
       "priority_low": "Low",
       "priority_medium": "Medium",
-      "priority_high": "High"
+      "priority_high": "High",
+      "history_header": "Change history",
+      "no_history": "No changes recorded yet.",
+      "history_col_timestamp": "Timestamp",
+      "history_col_field": "Field",
+      "history_col_old_value": "Old value",
+      "history_col_new_value": "New value",
+      "history_col_changed_by": "Changed by"
     },
     "lists": {
       "add_modal_title": "Add list",

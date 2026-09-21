@@ -241,11 +241,57 @@ filter checkbox -- same `data-overdue="1"` attribute and definition of
 "overdue" (`due_date` in the past, any list) the board already used to
 color a card red. See [ADR 0051](./ADR/0051-dashboard-overdue-tasks-card.md).
 
-Create/edit (of a card) use the same separate-page pattern as the rest
-of the app (`/tasks/new`, `/tasks/{id}/edit`) rather than a modal, for
-consistency with Members/Parcels/Work Hours; lists themselves are
-managed inline on the board instead, since there's no other data to
-edit on a list besides its name.
+Lists themselves are managed inline on the board (rename/delete via the
+column header's dropdown), since there's no other data to edit on a
+list besides its name.
+
+## Create/edit as a modal, with a real per-card URL (issue #232 follow-up)
+
+`/tasks/new` and `/tasks/{id}/edit` used to render a separate page
+(`app/templates/tasks/form.html`, now deleted) -- a deliberate choice
+for consistency with Members/Parcels/Work Hours. That's since been
+reversed: both routes now render the *board* itself
+(`app/routers/tasks.py::_render_board()`, shared by all three of
+`board()`/`task_new_page()`/`task_edit_page()`) with a `#taskModal`
+pre-opened on top of it, instead of navigating to a separate page. See
+[ADR 0084](./ADR/0084-task-board-modal-editing-with-real-urls.md) for
+why, and for the alternative (a true AJAX/pushState modal) explicitly
+rejected in favor of this simpler, reload-based approach: clicking a
+card is a normal navigation to `/tasks/{id}/edit`, which is a real,
+unique, bookmarkable/refreshable URL -- there's no client-side routing
+in this codebase, deliberately not introduced here either. Closing the
+modal (X, backdrop, Esc, or Cancel) all funnel through Bootstrap's
+`hidden.bs.modal` event, which navigates back to `/tasks/`.
+
+The edit modal now also shows the card's change history -- see below.
+
+## Change history per card (issue #232 follow-up)
+
+Each card's edit modal has a "Change history" section below Comments,
+listing every recorded field change (timestamp, field, old value, new
+value, changed by), newest first. This reuses the app's existing
+generic audit log rather than a bespoke table -- see
+[ADR 0085](./ADR/0085-task-board-change-history-via-change-history.md).
+Tracked fields: `title`, `description`, `due_date`, `priority`, `tags`
+(via `app/change_tracker.py`'s `ChangeTracker`, in both
+`app/routers/tasks.py::task_update` and
+`app/routers/api_tasks.py::task_update`) and `list_id` (written
+directly inside `app/task_board.py::move_task()` -- the single funnel
+every list change goes through, web drag-and-drop and the API's move
+endpoint included -- only when the list actually changes, not on a
+same-list reorder). `list_id`'s old/new values are resolved to list
+*names* in the template, not shown as raw ids.
+
+**Not tracked, deliberately:** assignee changes (`assigned_to_ids` is a
+derived property over the `TaskAssignee` join table, not a plain
+column -- would need its own before/after-with-names diff to display
+sensibly, not a good fit for the generic field-diff mechanism as-is),
+and the bulk list reassignment `delete_list()` does when a list with
+cards is deleted (a side effect of deleting the list, not a deliberate
+per-card edit). Both are reasonable follow-ups, not done here.
+
+History only exists from when this feature shipped onward -- there's no
+retroactive data for moves/edits that happened before it.
 
 ## Activity report export (Markdown)
 
@@ -270,12 +316,14 @@ The report has three sections:
    above) -- there's no reliable way to infer which list means "done".
 
 **Important limitation, stated in the generated file itself (not just
-here):** the task board keeps no move-history log, only each card's
-current `list_id` plus `created_at`/`updated_at`. "Touched" in section 1
-means created or updated in the window -- it cannot mean "moved to its
-current list on this date," since that fact was never recorded. Whoever
-reads the exported file (human or LLM) needs that caveat to avoid
-inventing a precise timeline the data doesn't support.
+here):** "Touched" in section 1 means created or updated in the window,
+not necessarily "moved to its current list on this date" -- the report
+itself doesn't read the change-history table described below (a
+reasonable follow-up, not done here), so it still can't reconstruct an
+exact move timeline from before this feature shipped or reflect the new
+per-field history it now records. Whoever reads the exported file
+(human or LLM) needs that caveat to avoid inventing a precise timeline
+the data doesn't support.
 
 ## A full REST API, alongside the web UI
 

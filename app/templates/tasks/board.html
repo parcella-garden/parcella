@@ -299,6 +299,207 @@
     </div>
 </div>
 
+<!-- Task create/edit modal -- app/routers/tasks.py's _render_board() only
+     renders open_task/is_new_task_open (and their required active_users/
+     priorities/task_history context) when this modal should actually be
+     shown, so its presence in the DOM at all is the signal, not a hidden
+     class -- see docs/ADR/0084. -->
+{% if open_task or is_new_task_open %}
+{% set task = open_task %}
+<div class="modal fade" id="taskModal" tabindex="-1" aria-hidden="true" data-auto-open="1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-kanban me-2"></i>
+                    {% if task %}{{ t('tasks.form.heading_edit') }}{% else %}{{ t('tasks.form.heading_new') }}{% endif %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="taskEditForm" method="post" action="{% if task %}/tasks/{{ task.id }}/edit{% else %}/tasks/new{% endif %}">
+                    {{ csrf_field() }}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">{{ t('tasks.form.label_title') }} <span class="text-danger">*</span></label>
+                            <input type="text" name="title" class="form-control"
+                                   value="{{ task.title if task else '' }}" required autofocus>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">{{ t('tasks.form.label_description') }}</label>
+                            <textarea name="description" class="form-control" rows="3">{{ task.description if task else '' }}</textarea>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold">{{ t('tasks.form.label_due_date') }}</label>
+                            <input type="date" name="due_date" class="form-control"
+                                   value="{{ task.due_date.isoformat() if task and task.due_date else '' }}">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold">{{ t('tasks.form.label_priority') }}</label>
+                            <select name="priority" class="form-select">
+                                <option value="">{{ t('tasks.form.priority_none') }}</option>
+                                {% for p in priorities %}
+                                <option value="{{ p.value }}" {% if task and task.priority == p %}selected{% endif %}>
+                                    {{ t('tasks.form.priority_' + p.value.lower()) }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">{{ t('tasks.form.label_tags') }}</label>
+                            <input type="text" name="tags" class="form-control"
+                                   placeholder="{{ t('tasks.form.tags_placeholder') }}"
+                                   value="{{ task.tags | join(', ') if task and task.tags else '' }}">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold">{{ t('tasks.form.label_list') }}</label>
+                            <select name="list_id" class="form-select">
+                                {% for list in lists %}
+                                <option value="{{ list.id }}"
+                                        {% if (task and task.list_id == list.id) or (not task and loop.first) %}selected{% endif %}>
+                                    {{ list.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">{{ t('tasks.form.label_assigned_to') }}</label>
+                            {% set assigned_ids = task.assigned_to_ids if task else [] %}
+                            <div class="row" style="max-height: 160px; overflow-y: auto; border: 1px solid #dce8df; border-radius: 6px; padding: 0.5rem; margin: 0;">
+                                {% for u in active_users %}
+                                <div class="col-sm-6 form-check">
+                                    <input type="checkbox" name="assigned_to_ids" value="{{ u.id }}"
+                                           class="form-check-input" id="assignee-{{ u.id }}"
+                                           {% if u.id in assigned_ids %}checked{% endif %}>
+                                    <label class="form-check-label d-inline-flex align-items-center gap-1" for="assignee-{{ u.id }}">{{ user_avatar(u, size=18) }}{{ u.name }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                {% if task %}
+                <hr>
+                <h6><i class="bi bi-chat-left-text me-2"></i>{{ t('tasks.form.comments_header') }}</h6>
+                {% if task.comments %}
+                {% for comment in task.comments %}
+                <div class="mb-3 p-3 rounded" style="background: #f8faf9; border-left: 3px solid var(--gv-gruen);">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="fw-semibold d-inline-flex align-items-center gap-1" style="font-size: 0.85rem;">
+                            {% if comment.created_by %}{{ user_avatar(comment.created_by, size=18) }}{% endif %}
+                            {{ comment.created_by.name if comment.created_by else t('tasks.form.unknown_author') }}
+                        </span>
+                        <span class="text-muted" style="font-size: 0.78rem;">{{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                    </div>
+                    <div style="white-space: pre-wrap; font-size: 0.9rem;">{{ comment.content }}</div>
+                    <form method="post" action="/tasks/{{ task.id }}/comments/{{ comment.id }}/delete"
+                          onsubmit="return confirm('{{ t('tasks.form.delete_comment_confirm') }}')" class="mt-1">
+                        {{ csrf_field() }}
+                        <button type="submit" class="btn btn-sm btn-link text-danger p-0" style="font-size: 0.78rem;">
+                            <i class="bi bi-trash me-1"></i>{{ t('tasks.form.button_delete') }}
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted mb-3">{{ t('tasks.form.no_comments') }}</p>
+                {% endif %}
+                <form method="post" action="/tasks/{{ task.id }}/comments">
+                    {{ csrf_field() }}
+                    <label class="form-label fw-semibold">{{ t('tasks.form.label_new_comment') }}</label>
+                    <textarea name="content" class="form-control mb-2" rows="2" required></textarea>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-lg me-1"></i>{{ t('tasks.form.button_add_comment') }}
+                    </button>
+                </form>
+
+                <hr>
+                <h6><i class="bi bi-clock-history me-2"></i>{{ t('tasks.form.history_header') }}</h6>
+                {% if task_history %}
+                {% set list_names_by_id = {} %}
+                {% for l in lists %}{% set _ = list_names_by_id.update({l.id: l.name}) %}{% endfor %}
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ t('tasks.form.history_col_timestamp') }}</th>
+                                <th>{{ t('tasks.form.history_col_field') }}</th>
+                                <th>{{ t('tasks.form.history_col_old_value') }}</th>
+                                <th>{{ t('tasks.form.history_col_new_value') }}</th>
+                                <th>{{ t('tasks.form.history_col_changed_by') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in task_history %}
+                            <tr>
+                                <td class="text-muted" style="font-size: 0.8rem;">{{ entry.changed_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                <td><code style="font-size: 0.78rem;">{{ entry.field_name }}</code></td>
+                                {% if entry.field_name == 'list_id' %}
+                                <td class="text-muted">{{ list_names_by_id.get(entry.old_value, entry.old_value) or '–' }}</td>
+                                <td class="fw-semibold">{{ list_names_by_id.get(entry.new_value, entry.new_value) or '–' }}</td>
+                                {% else %}
+                                <td class="text-muted">{{ entry.old_value or '–' }}</td>
+                                <td class="fw-semibold">{{ entry.new_value or '–' }}</td>
+                                {% endif %}
+                                <td class="text-muted" style="font-size: 0.8rem;">{{ entry.changed_by.name if entry.changed_by else t('tasks.form.unknown_author') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">{{ t('tasks.form.no_history') }}</p>
+                {% endif %}
+                {% endif %}
+            </div>
+            <div class="modal-footer justify-content-between">
+                {% if task %}
+                <form method="post" action="/tasks/{{ task.id }}/delete"
+                      onsubmit="return confirm('{{ t('tasks.form.delete_confirm') }}')" class="m-0">
+                    {{ csrf_field() }}
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-trash me-1"></i>{{ t('tasks.form.button_delete') }}
+                    </button>
+                </form>
+                {% else %}
+                <span></span>
+                {% endif %}
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ t('tasks.form.cancel') }}</button>
+                    <button type="submit" form="taskEditForm" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>
+                        {% if task %}{{ t('tasks.form.button_save_changes') }}{% else %}{{ t('tasks.form.button_create') }}{% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+(function () {
+    // Modal presentation for create/edit with a real, unique URL (see
+    // docs/ADR/0084): the server already rendered #taskModal open (or
+    // not at all) based on the request path -- this just triggers
+    // Bootstrap's own show(), and sends the browser back to the plain
+    // board on every close path (X, backdrop, Esc, or the Cancel
+    // button's plain data-bs-dismiss) via the one hidden.bs.modal event
+    // all of those already funnel through, so none of them need their
+    // own navigation logic.
+    var taskModalEl = document.getElementById('taskModal');
+    if (taskModalEl) {
+        if (taskModalEl.dataset.autoOpen === '1') {
+            new bootstrap.Modal(taskModalEl).show();
+        }
+        taskModalEl.addEventListener('hidden.bs.modal', function () {
+            window.location.href = '/tasks/';
+        });
+    }
+})();
+</script>
+
 <!-- Rename list modal -->
 <div class="modal fade" id="renameListModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">

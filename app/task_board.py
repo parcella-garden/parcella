@@ -12,7 +12,7 @@ from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Task, TaskAssignee, TaskList, TaskPriority
+from app.models import ChangeHistory, Task, TaskAssignee, TaskList, TaskPriority
 
 
 async def next_position(db: AsyncSession, list_id: str) -> int:
@@ -60,7 +60,10 @@ async def create_task(
     return task
 
 
-async def move_task(db: AsyncSession, task: Task, new_list_id: str, new_position: int) -> None:
+async def move_task(
+    db: AsyncSession, task: Task, new_list_id: str, new_position: int,
+    changed_by_id: Optional[str] = None,
+) -> None:
     """
     Moves a card to `new_list_id` at `new_position` (0-based index within
     that list), and fully renumbers the affected list(s) so `position`
@@ -70,6 +73,13 @@ async def move_task(db: AsyncSession, task: Task, new_list_id: str, new_position
     list: the target list's cards (excluding this one) are fetched, the
     card is reinserted at the clamped target index, and the whole list is
     renumbered in one pass.
+
+    This is the single funnel every list change goes through (web
+    drag-and-drop, the edit form's list dropdown, and the API's move
+    endpoint), so it's also where a `list_id` ChangeHistory row is
+    written when the card actually changes list (not for a same-list
+    reorder) -- see docs/ADR/0085 for why this reuses the generic
+    ChangeHistory/ChangeTracker mechanism instead of a bespoke table.
     """
     old_list_id = task.list_id
 
@@ -90,6 +100,12 @@ async def move_task(db: AsyncSession, task: Task, new_list_id: str, new_position
     for index, card in enumerate(column):
         card.position = index
         card.list_id = new_list_id
+
+    if old_list_id != new_list_id:
+        db.add(ChangeHistory(
+            entity_type="Task", entity_id=task.id, field_name="list_id",
+            old_value=old_list_id, new_value=new_list_id, changed_by_id=changed_by_id,
+        ))
 
     await db.commit()
 

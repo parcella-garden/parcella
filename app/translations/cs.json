@@ -1926,7 +1926,14 @@
       "priority_none": "Bez priority",
       "priority_low": "Nízká",
       "priority_medium": "Střední",
-      "priority_high": "Vysoká"
+      "priority_high": "Vysoká",
+      "history_header": "Historie změn",
+      "no_history": "Zatím nebyly zaznamenány žádné změny.",
+      "history_col_timestamp": "Časová značka",
+      "history_col_field": "Pole",
+      "history_col_old_value": "Původní hodnota",
+      "history_col_new_value": "Nová hodnota",
+      "history_col_changed_by": "Změnil"
     },
     "lists": {
       "add_modal_title": "Přidat seznam",

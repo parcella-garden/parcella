@@ -7,6 +7,7 @@ editing, per explicit product decision. Columns are user-configurable
 managed here.
 """
 from datetime import date, timedelta
+from typing import Optional
 from urllib.parse import quote as urlquote
 
 from babel.dates import get_month_names
@@ -17,8 +18,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
-from app.models import Task, TaskAssignee, TaskComment, TaskList, TaskPriority, User
+from app.models import ChangeHistory, Task, TaskAssignee, TaskComment, TaskList, TaskPriority, User
 from app.auth import require_admin
+from app.change_tracker import ChangeTracker
 from app.i18n import t_for, DEFAULT_LANGUAGE
 from app.module_flags import require_module
 from app.task_board import (
@@ -28,6 +30,12 @@ from app.task_board import (
 from app.task_report import build_report_markdown
 
 EXPORT_DEFAULT_WINDOW_DAYS = 30
+# Scalar fields tracked in the change-history table (app/models.py's
+# ChangeHistory, see docs/ADR/0085) -- list_id is tracked separately,
+# directly inside app/task_board.py's move_task(), since that's the
+# single funnel every list change (web + API, drag-and-drop + form)
+# goes through. assigned_to_ids is deliberately excluded -- see ADR 0085.
+TASK_TRACKED_FIELDS = ["title", "description", "due_date", "priority", "tags"]
 
 router = APIRouter(
     prefix="/tasks",
@@ -87,6 +95,16 @@ async def _active_users(db: AsyncSession):
     return result.scalars().all()
 
 
+async def _change_history(db: AsyncSession, task_id: str):
+    result = await db.execute(
+        select(ChangeHistory)
+        .options(selectinload(ChangeHistory.changed_by))
+        .where(ChangeHistory.entity_type == "Task", ChangeHistory.entity_id == task_id)
+        .order_by(ChangeHistory.changed_at.desc())
+    )
+    return result.scalars().all()
+
+
 def _parse_tags(raw: str) -> list[str]:
     """Comma-separated free text -> a deduped, order-preserving tag list."""
     seen: dict[str, None] = {}
@@ -97,8 +115,16 @@ def _parse_tags(raw: str) -> list[str]:
     return list(seen)
 
 
-@router.get("/", response_class=HTMLResponse)
-async def board(request: Request, db: AsyncSession = Depends(get_db)):
+async def _render_board(
+    request: Request, db: AsyncSession, *,
+    open_task: Optional[Task] = None, is_new: bool = False,
+):
+    """Shared render path for the board itself and for "opening" a card
+    (create or edit): both a plain `/tasks/` view and `/tasks/new` /
+    `/tasks/{id}/edit` render this same template -- the latter two just
+    also render the #taskModal pre-opened on top of it. This gives every
+    task a real, unique, bookmarkable/refreshable URL while presenting
+    as a modal rather than a separate page -- see docs/ADR/0084."""
     user = await require_admin(request, db)
 
     result = await db.execute(
@@ -140,7 +166,7 @@ async def board(request: Request, db: AsyncSession = Depends(get_db)):
         for year, month in sorted(due_year_months)
     ]
 
-    return templates.TemplateResponse("tasks/board.html", {
+    context = {
         "request": request, "user": user,
         "lists": lists,
         "today": date.today(),
@@ -156,7 +182,21 @@ async def board(request: Request, db: AsyncSession = Depends(get_db)):
         # own default filter" rule).
         "overdue_prefilter": request.query_params.get("overdue") == "1",
         "export_default_date_from": date.today() - timedelta(days=EXPORT_DEFAULT_WINDOW_DAYS),
-    })
+        "open_task": open_task,
+        "is_new_task_open": is_new,
+    }
+    if open_task or is_new:
+        context["active_users"] = await _active_users(db)
+        context["priorities"] = list(TaskPriority)
+    if open_task:
+        context["task_history"] = await _change_history(db, open_task.id)
+
+    return templates.TemplateResponse("tasks/board.html", context)
+
+
+@router.get("/", response_class=HTMLResponse)
+async def board(request: Request, db: AsyncSession = Depends(get_db)):
+    return await _render_board(request, db)
 
 
 @router.get("/export")
@@ -184,13 +224,8 @@ async def export_report(request: Request, db: AsyncSession = Depends(get_db)):
 
 @router.get("/new", response_class=HTMLResponse)
 async def task_new_page(request: Request, db: AsyncSession = Depends(get_db)):
-    user = await require_admin(request, db)
-    return templates.TemplateResponse("tasks/form.html", {
-        "request": request, "user": user, "task": None,
-        "active_users": await _active_users(db),
-        "lists": await _all_lists(db),
-        "priorities": list(TaskPriority),
-    })
+    await require_admin(request, db)
+    return await _render_board(request, db, is_new=True)
 
 
 @router.post("/new")
@@ -279,14 +314,9 @@ async def list_delete(
 
 @router.get("/{task_id}/edit", response_class=HTMLResponse)
 async def task_edit_page(task_id: str, request: Request, db: AsyncSession = Depends(get_db)):
-    user = await require_admin(request, db)
+    await require_admin(request, db)
     task = await _get_task_or_404(db, task_id, request)
-    return templates.TemplateResponse("tasks/form.html", {
-        "request": request, "user": user, "task": task,
-        "active_users": await _active_users(db),
-        "lists": await _all_lists(db),
-        "priorities": list(TaskPriority),
-    })
+    return await _render_board(request, db, open_task=task)
 
 
 @router.post("/{task_id}/edit")
@@ -302,8 +332,10 @@ async def task_update(
     list_id: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
-    await require_admin(request, db)
+    user = await require_admin(request, db)
     task = await _get_task_or_404(db, task_id, request)
+
+    tracker = ChangeTracker(task, "Task", TASK_TRACKED_FIELDS)
 
     task.title = title.strip()
     task.description = description.strip() or None
@@ -311,7 +343,10 @@ async def task_update(
     task.priority = TaskPriority(priority.strip()) if priority.strip() else None
     task.tags = _parse_tags(tags)
     if list_id.strip() and list_id.strip() != task.list_id:
-        await move_task(db, task, list_id.strip(), await next_position(db, list_id.strip()))
+        await move_task(
+            db, task, list_id.strip(), await next_position(db, list_id.strip()),
+            changed_by_id=user.id,
+        )
 
     # Always resync assignees to what was actually submitted, same as
     # finances.py's parcel_scopes/member_scopes resync. Unlike those scope
@@ -325,13 +360,14 @@ async def task_update(
     for user_id in assigned_to_ids:
         db.add(TaskAssignee(task_id=task.id, user_id=user_id))
 
+    await tracker.commit(db, user.id)
     await db.commit()
     return RedirectResponse("/tasks/", status_code=302)
 
 
 @router.post("/{task_id}/move")
 async def task_move(task_id: str, request: Request, db: AsyncSession = Depends(get_db)):
-    await require_admin(request, db)
+    user = await require_admin(request, db)
     task = await _get_task_or_404(db, task_id, request)
 
     body = await request.json()
@@ -341,7 +377,7 @@ async def task_move(task_id: str, request: Request, db: AsyncSession = Depends(g
     except (KeyError, ValueError):
         raise HTTPException(status_code=400, detail=t_for(request, "tasks.errors.invalid_move"))
 
-    await move_task(db, task, new_list_id, new_position)
+    await move_task(db, task, new_list_id, new_position, changed_by_id=user.id)
     return JSONResponse({"ok": True})
 
 
