@@ -198,6 +198,19 @@ silently continuing.
   HTML; any externally-sourced string heading for a header, path, or
   shell argument needs the same treatment, not just the field that
   happened to get sanitized first.
+- **Jinja scans a template's raw text for `{% %}`/`{{ }}` everywhere,
+  including inside `<script>` comments -- it has no idea those are JS
+  comments.** Writing the literal syntax `{% block content %}` inside a
+  `//` comment (e.g. explaining *why* some JS runs relative to where
+  another block renders) gets parsed as a real, unclosed block-tag
+  open, and the whole template fails with `TemplateSyntaxError:
+  Unexpected end of template... innermost block that needs to be closed
+  is 'block'` -- pointing at the file's actual `{% endblock %}` near the
+  end, nowhere near the real mistake. Hit for real in
+  `app/templates/tasks/board.html` writing a comment about
+  `{% block content %}` itself. When a code comment needs to reference
+  Jinja's own tag syntax, describe it in prose instead of writing the
+  literal `{%`/`%}`/`{{`/`}}` characters.
 
 ## Testing
 
