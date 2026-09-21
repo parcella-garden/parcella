@@ -247,6 +247,36 @@ consistency with Members/Parcels/Work Hours; lists themselves are
 managed inline on the board instead, since there's no other data to
 edit on a list besides its name.
 
+## Activity report export (Markdown)
+
+A third header button ("Export report", next to "Add list"/"New task")
+opens a modal to pick a date range and downloads a Markdown file
+(`GET /tasks/export?date_from=...&date_to=...`, `app/task_report.py`)
+meant to be pasted into an LLM to draft board minutes or a monthly
+protocol. Defaults to the last 30 days if hit without query params.
+Admin/board only, same `require_admin` check as every other route in
+`app/routers/tasks.py`.
+
+The report has three sections:
+
+1. **Cards touched in the period** -- created or updated within the
+   range.
+2. **Comments in the period** -- the closest thing this module has to a
+   decision/discussion log.
+3. **Full board snapshot** -- every current card, any list, as of
+   generation time, for context regardless of the chosen window. Not
+   filtered by any "done"-looking list name, since lists are free text
+   and user-configurable (see "Column labels are no longer translated"
+   above) -- there's no reliable way to infer which list means "done".
+
+**Important limitation, stated in the generated file itself (not just
+here):** the task board keeps no move-history log, only each card's
+current `list_id` plus `created_at`/`updated_at`. "Touched" in section 1
+means created or updated in the window -- it cannot mean "moved to its
+current list on this date," since that fact was never recorded. Whoever
+reads the exported file (human or LLM) needs that caveat to avoid
+inventing a precise timeline the data doesn't support.
+
 ## A full REST API, alongside the web UI
 
 `/api/v1/tasks` covers list (with an optional `list_id` filter),

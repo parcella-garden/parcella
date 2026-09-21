@@ -1894,7 +1894,8 @@
       "sort_label": "Taken sorteren",
       "sort_manual": "Handmatig (sleepvolgorde)",
       "sort_due_date": "Vervaldatum",
-      "sort_priority": "Prioriteit"
+      "sort_priority": "Prioriteit",
+      "export_report_button": "Rapport exporteren"
     },
     "form": {
       "title_new": "Nieuwe taak",
@@ -1941,6 +1942,34 @@
       "delete_button": "Lijst verwijderen",
       "delete_confirm_empty": "Lijst \"{name}\" verwijderen? Dit kan niet ongedaan worden gemaakt.",
       "delete_confirm_with_cards": "Deze lijst bevat nog kaarten. Kies een andere lijst om ze naartoe te verplaatsen voordat u verwijdert."
+    },
+    "export": {
+      "modal_title": "Activiteitenrapport exporteren",
+      "date_from_label": "Van",
+      "date_to_label": "Tot",
+      "download_button": "Downloaden",
+      "report_title": "{club_name} — Takenbord-rapport",
+      "period_label": "Periode: {date_from} tot {date_to}",
+      "generated_label": "Gegenereerd: {generated_at}",
+      "caveat_note": "Het takenbord houdt geen verplaatsingsgeschiedenis bij, alleen de huidige lijst en het laatste wijzigingsmoment van elke kaart — ‘aangeraakt’ hieronder betekent aangemaakt of gewijzigd in deze periode, niet per se verplaatst naar de huidige lijst.",
+      "section_touched": "Kaarten aangeraakt in deze periode",
+      "section_comments": "Reacties in deze periode",
+      "section_snapshot": "Volledige bordstatus (op moment van genereren)",
+      "col_list": "Lijst",
+      "col_title": "Titel",
+      "col_priority": "Prioriteit",
+      "col_tags": "Tags",
+      "col_due": "Vervaldatum",
+      "col_created": "Aangemaakt",
+      "col_updated": "Laatst gewijzigd",
+      "col_assignees": "Toegewezen aan",
+      "col_created_by": "Aangemaakt door",
+      "col_date": "Datum",
+      "col_card": "Kaart",
+      "col_author": "Auteur",
+      "col_comment": "Reactie",
+      "col_overdue": "Te laat?",
+      "overdue_yes": "ja"
     }
   },
   "email": {

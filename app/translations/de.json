@@ -1894,7 +1894,8 @@
       "sort_label": "Aufgaben sortieren",
       "sort_manual": "Manuell (Ziehreihenfolge)",
       "sort_due_date": "Fälligkeitsdatum",
-      "sort_priority": "Priorität"
+      "sort_priority": "Priorität",
+      "export_report_button": "Bericht exportieren"
     },
     "form": {
       "title_new": "Neue Aufgabe",
@@ -1941,6 +1942,34 @@
       "delete_button": "Liste löschen",
       "delete_confirm_empty": "Liste \"{name}\" löschen? Das kann nicht rückgängig gemacht werden.",
       "delete_confirm_with_cards": "Diese Liste enthält noch Karten. Wählen Sie eine andere Liste aus, in die sie vor dem Löschen verschoben werden sollen."
+    },
+    "export": {
+      "modal_title": "Aktivitätsbericht exportieren",
+      "date_from_label": "Von",
+      "date_to_label": "Bis",
+      "download_button": "Herunterladen",
+      "report_title": "{club_name} — Aufgabenboard-Bericht",
+      "period_label": "Zeitraum: {date_from} bis {date_to}",
+      "generated_label": "Erstellt: {generated_at}",
+      "caveat_note": "Das Aufgabenboard speichert keinen Verlauf von Listenwechseln, nur die aktuelle Liste und den letzten Änderungszeitpunkt jeder Karte — „berührt“ bedeutet unten: in diesem Zeitraum erstellt oder geändert, nicht zwingend in die aktuelle Liste verschoben.",
+      "section_touched": "In diesem Zeitraum berührte Karten",
+      "section_comments": "Kommentare in diesem Zeitraum",
+      "section_snapshot": "Vollständiger Board-Stand (zum Erstellungszeitpunkt)",
+      "col_list": "Liste",
+      "col_title": "Titel",
+      "col_priority": "Priorität",
+      "col_tags": "Tags",
+      "col_due": "Fällig",
+      "col_created": "Erstellt",
+      "col_updated": "Zuletzt geändert",
+      "col_assignees": "Zuständig",
+      "col_created_by": "Erstellt von",
+      "col_date": "Datum",
+      "col_card": "Karte",
+      "col_author": "Autor",
+      "col_comment": "Kommentar",
+      "col_overdue": "Überfällig?",
+      "overdue_yes": "ja"
     }
   },
   "email": {

@@ -469,6 +469,90 @@ async def test_module_disabled_returns_404(client, admin_user):
 
 
 # ---------------------------------------------------------------------------
+# Export report -- Markdown activity export (app/task_report.py)
+# ---------------------------------------------------------------------------
+
+async def test_export_report_includes_touched_and_full_snapshot(client, admin_user):
+    from datetime import datetime, timedelta, timezone
+    from app.models import Task, TaskComment
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    lists = await _seed_lists()
+
+    now = datetime.now(timezone.utc)
+    old = now - timedelta(days=90)
+
+    async with AsyncSessionLocal() as session:
+        touched = Task(
+            title="Touched Card", list_id=lists["To Do"], position=0,
+            created_at=now, updated_at=now,
+        )
+        untouched = Task(
+            title="Old Untouched Card", list_id=lists["Done"], position=0,
+            created_at=old, updated_at=old,
+        )
+        session.add_all([touched, untouched])
+        await session.flush()
+        session.add(TaskComment(task_id=touched.id, content="Discussed in the window", created_at=now))
+        await session.commit()
+
+    await web_login(client, "admin@example.com")
+    date_from = (now - timedelta(days=7)).date().isoformat()
+    date_to = now.date().isoformat()
+    response = await client.get("/tasks/export", params={"date_from": date_from, "date_to": date_to})
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/markdown")
+    assert f'tasks_report_{date_from}_{date_to}.md' in response.headers["content-disposition"]
+
+    body = response.text
+    touched_section, _, remainder = body.partition("## Comments in this period")
+    assert "Touched Card" in touched_section
+    assert "Old Untouched Card" not in touched_section
+    assert "Discussed in the window" in remainder
+    # The full-board snapshot section lists every card regardless of window.
+    assert "Old Untouched Card" in body
+
+
+async def test_export_report_defaults_to_30_day_window_without_params(client, admin_user):
+    from datetime import date, timedelta
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    await _seed_lists()
+
+    await web_login(client, "admin@example.com")
+    response = await client.get("/tasks/export")
+
+    assert response.status_code == 200
+    expected_from = date.today() - timedelta(days=30)
+    assert f'tasks_report_{expected_from}_{date.today()}.md' in response.headers["content-disposition"]
+
+
+async def test_readonly_member_gets_403_on_export_report(client, admin_user):
+    from app.models import User, UserRole
+    from app.auth import hash_password
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+
+    async with AsyncSessionLocal() as session:
+        session.add(User(
+            email="readonly3@example.com", name="Readonly Three",
+            password_hash=hash_password("testpasswort123"), role=UserRole.READONLY,
+        ))
+        await session.commit()
+
+    await web_login(client, "readonly3@example.com")
+    response = await client.get("/tasks/export")
+    assert response.status_code == 403
+
+
+# ---------------------------------------------------------------------------
 # List (column) management -- issue #100
 # ---------------------------------------------------------------------------
 

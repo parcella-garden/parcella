@@ -1894,7 +1894,8 @@
       "sort_label": "Sortuj zadania",
       "sort_manual": "Ręcznie (kolejność przeciągania)",
       "sort_due_date": "Termin",
-      "sort_priority": "Priorytet"
+      "sort_priority": "Priorytet",
+      "export_report_button": "Eksportuj raport"
     },
     "form": {
       "title_new": "Nowe zadanie",
@@ -1941,6 +1942,34 @@
       "delete_button": "Usuń listę",
       "delete_confirm_empty": "Usunąć listę \"{name}\"? Tej operacji nie można cofnąć.",
       "delete_confirm_with_cards": "Ta lista nadal zawiera karty. Przed usunięciem wybierz inną listę, do której mają zostać przeniesione."
+    },
+    "export": {
+      "modal_title": "Eksportuj raport aktywności",
+      "date_from_label": "Od",
+      "date_to_label": "Do",
+      "download_button": "Pobierz",
+      "report_title": "{club_name} — Raport tablicy zadań",
+      "period_label": "Okres: {date_from} do {date_to}",
+      "generated_label": "Wygenerowano: {generated_at}",
+      "caveat_note": "Tablica zadań nie przechowuje historii przenoszenia — tylko aktualną listę i czas ostatniej zmiany każdej karty. „Dotknięte” poniżej oznacza utworzone lub zmienione w tym okresie, niekoniecznie przeniesione na obecną listę.",
+      "section_touched": "Karty dotknięte w tym okresie",
+      "section_comments": "Komentarze w tym okresie",
+      "section_snapshot": "Pełny stan tablicy (na czas wygenerowania)",
+      "col_list": "Lista",
+      "col_title": "Tytuł",
+      "col_priority": "Priorytet",
+      "col_tags": "Tagi",
+      "col_due": "Termin",
+      "col_created": "Utworzono",
+      "col_updated": "Ostatnia zmiana",
+      "col_assignees": "Przypisani",
+      "col_created_by": "Utworzone przez",
+      "col_date": "Data",
+      "col_card": "Karta",
+      "col_author": "Autor",
+      "col_comment": "Komentarz",
+      "col_overdue": "Po terminie?",
+      "overdue_yes": "tak"
     }
   },
   "email": {

@@ -6,12 +6,12 @@ editing, per explicit product decision. Columns are user-configurable
 `TaskList` rows (issue #100, see ADR 0043) -- both cards and lists are
 managed here.
 """
-from datetime import date
+from datetime import date, timedelta
 from urllib.parse import quote as urlquote
 
 from babel.dates import get_month_names
 from fastapi import APIRouter, Request, Form, Depends, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -25,6 +25,9 @@ from app.task_board import (
     next_position, move_task, close_gap_after_delete,
     next_list_position, move_list, delete_list, create_task,
 )
+from app.task_report import build_report_markdown
+
+EXPORT_DEFAULT_WINDOW_DAYS = 30
 
 router = APIRouter(
     prefix="/tasks",
@@ -152,7 +155,31 @@ async def board(request: Request, db: AsyncSession = Depends(get_db)):
         # (see docs/ADR/0019's "stat query must match the list page's
         # own default filter" rule).
         "overdue_prefilter": request.query_params.get("overdue") == "1",
+        "export_default_date_from": date.today() - timedelta(days=EXPORT_DEFAULT_WINDOW_DAYS),
     })
+
+
+@router.get("/export")
+async def export_report(request: Request, db: AsyncSession = Depends(get_db)):
+    """Downloadable Markdown activity report for a date range -- see
+    app/task_report.py. Registered before the "/{task_id}/..." routes
+    below (same reasoning as "/new" and "/lists/..." above) so this
+    literal path segment isn't swallowed by a {task_id} path param."""
+    await require_admin(request, db)
+
+    q = request.query_params
+    today = date.today()
+    date_from_str = q.get("date_from", "").strip()
+    date_to_str = q.get("date_to", "").strip()
+    date_from = date.fromisoformat(date_from_str) if date_from_str else today - timedelta(days=EXPORT_DEFAULT_WINDOW_DAYS)
+    date_to = date.fromisoformat(date_to_str) if date_to_str else today
+
+    markdown = await build_report_markdown(db, request, date_from, date_to)
+    return Response(
+        content=markdown,
+        media_type="text/markdown",
+        headers={"Content-Disposition": f'attachment; filename="tasks_report_{date_from}_{date_to}.md"'},
+    )
 
 
 @router.get("/new", response_class=HTMLResponse)

@@ -1894,7 +1894,8 @@
       "sort_label": "Zoradiť úlohy",
       "sort_manual": "Ručne (poradie ťahania)",
       "sort_due_date": "Termín splnenia",
-      "sort_priority": "Priorita"
+      "sort_priority": "Priorita",
+      "export_report_button": "Exportovať report"
     },
     "form": {
       "title_new": "Nová úloha",
@@ -1941,6 +1942,34 @@
       "delete_button": "Odstrániť zoznam",
       "delete_confirm_empty": "Odstrániť zoznam „{name}“? Túto akciu nemožno vrátiť späť.",
       "delete_confirm_with_cards": "Tento zoznam stále obsahuje karty. Pred odstránením vyberte iný zoznam, do ktorého sa majú presunúť."
+    },
+    "export": {
+      "modal_title": "Export reportu aktivít",
+      "date_from_label": "Od",
+      "date_to_label": "Do",
+      "download_button": "Stiahnuť",
+      "report_title": "{club_name} — Report tabule úloh",
+      "period_label": "Obdobie: {date_from} až {date_to}",
+      "generated_label": "Vygenerované: {generated_at}",
+      "caveat_note": "Tabuľa úloh neuchováva históriu presunov, len aktuálny zoznam a čas poslednej zmeny každej karty — „zasiahnuté“ nižšie znamená vytvorené alebo zmenené v tomto období, nie nutne presunuté do aktuálneho zoznamu.",
+      "section_touched": "Karty zasiahnuté v tomto období",
+      "section_comments": "Komentáre v tomto období",
+      "section_snapshot": "Úplný stav tabule (v čase vygenerovania)",
+      "col_list": "Zoznam",
+      "col_title": "Názov",
+      "col_priority": "Priorita",
+      "col_tags": "Štítky",
+      "col_due": "Termín",
+      "col_created": "Vytvorené",
+      "col_updated": "Posledná zmena",
+      "col_assignees": "Priradené",
+      "col_created_by": "Vytvoril",
+      "col_date": "Dátum",
+      "col_card": "Karta",
+      "col_author": "Autor",
+      "col_comment": "Komentár",
+      "col_overdue": "Po termíne?",
+      "overdue_yes": "áno"
     }
   },
   "email": {

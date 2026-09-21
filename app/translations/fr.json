@@ -1894,7 +1894,8 @@
       "sort_label": "Trier les tâches",
       "sort_manual": "Manuel (ordre de glisser-déposer)",
       "sort_due_date": "Date d'échéance",
-      "sort_priority": "Priorité"
+      "sort_priority": "Priorité",
+      "export_report_button": "Exporter le rapport"
     },
     "form": {
       "title_new": "Nouvelle tâche",
@@ -1941,6 +1942,34 @@
       "delete_button": "Supprimer la liste",
       "delete_confirm_empty": "Supprimer la liste « {name} » ? Cette action est irréversible.",
       "delete_confirm_with_cards": "Cette liste contient encore des cartes. Choisissez une autre liste vers laquelle les déplacer avant de la supprimer."
+    },
+    "export": {
+      "modal_title": "Exporter le rapport d'activité",
+      "date_from_label": "Du",
+      "date_to_label": "Au",
+      "download_button": "Télécharger",
+      "report_title": "{club_name} — Rapport du tableau des tâches",
+      "period_label": "Période : du {date_from} au {date_to}",
+      "generated_label": "Généré le : {generated_at}",
+      "caveat_note": "Le tableau des tâches ne conserve pas d'historique des déplacements, seulement la liste actuelle et la date de dernière modification de chaque carte — « touché » ci-dessous signifie créé ou modifié pendant cette période, pas nécessairement déplacé vers sa liste actuelle.",
+      "section_touched": "Cartes touchées pendant cette période",
+      "section_comments": "Commentaires pendant cette période",
+      "section_snapshot": "État complet du tableau (au moment de la génération)",
+      "col_list": "Liste",
+      "col_title": "Titre",
+      "col_priority": "Priorité",
+      "col_tags": "Étiquettes",
+      "col_due": "Échéance",
+      "col_created": "Créée",
+      "col_updated": "Dernière modification",
+      "col_assignees": "Assignés",
+      "col_created_by": "Créée par",
+      "col_date": "Date",
+      "col_card": "Carte",
+      "col_author": "Auteur",
+      "col_comment": "Commentaire",
+      "col_overdue": "En retard ?",
+      "overdue_yes": "oui"
     }
   },
   "email": {

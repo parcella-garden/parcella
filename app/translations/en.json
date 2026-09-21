@@ -1894,7 +1894,8 @@
       "sort_label": "Sort tasks",
       "sort_manual": "Manual (drag order)",
       "sort_due_date": "Due date",
-      "sort_priority": "Priority"
+      "sort_priority": "Priority",
+      "export_report_button": "Export report"
     },
     "form": {
       "title_new": "New task",
@@ -1941,6 +1942,34 @@
       "delete_button": "Delete list",
       "delete_confirm_empty": "Delete the list \"{name}\"? This cannot be undone.",
       "delete_confirm_with_cards": "This list still has cards. Choose another list to move them to before deleting it."
+    },
+    "export": {
+      "modal_title": "Export activity report",
+      "date_from_label": "From",
+      "date_to_label": "To",
+      "download_button": "Download",
+      "report_title": "{club_name} — Task Board Report",
+      "period_label": "Period: {date_from} to {date_to}",
+      "generated_label": "Generated: {generated_at}",
+      "caveat_note": "The task board does not keep a move history, only each card's current list and last-updated time — \"touched\" below means created or updated in this period, not necessarily moved to its current list then.",
+      "section_touched": "Cards touched in this period",
+      "section_comments": "Comments in this period",
+      "section_snapshot": "Full board snapshot (as of generation time)",
+      "col_list": "List",
+      "col_title": "Title",
+      "col_priority": "Priority",
+      "col_tags": "Tags",
+      "col_due": "Due",
+      "col_created": "Created",
+      "col_updated": "Last updated",
+      "col_assignees": "Assignees",
+      "col_created_by": "Created by",
+      "col_date": "Date",
+      "col_card": "Card",
+      "col_author": "Author",
+      "col_comment": "Comment",
+      "col_overdue": "Overdue?",
+      "overdue_yes": "yes"
     }
   },
   "email": {

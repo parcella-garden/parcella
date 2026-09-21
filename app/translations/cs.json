@@ -1894,7 +1894,8 @@
       "sort_label": "Řadit úkoly",
       "sort_manual": "Ručně (pořadí přetažení)",
       "sort_due_date": "Termín splnění",
-      "sort_priority": "Priorita"
+      "sort_priority": "Priorita",
+      "export_report_button": "Exportovat report"
     },
     "form": {
       "title_new": "Nový úkol",
@@ -1941,6 +1942,34 @@
       "delete_button": "Smazat seznam",
       "delete_confirm_empty": "Smazat seznam „{name}“? Tuto akci nelze vrátit zpět.",
       "delete_confirm_with_cards": "Tento seznam stále obsahuje karty. Před smazáním vyberte jiný seznam, do kterého se mají přesunout."
+    },
+    "export": {
+      "modal_title": "Export reportu aktivit",
+      "date_from_label": "Od",
+      "date_to_label": "Do",
+      "download_button": "Stáhnout",
+      "report_title": "{club_name} — Report úkolové nástěnky",
+      "period_label": "Období: {date_from} až {date_to}",
+      "generated_label": "Vygenerováno: {generated_at}",
+      "caveat_note": "Úkolová nástěnka neukládá historii přesunů, pouze aktuální seznam a čas poslední změny každé karty — „zasažené“ níže znamená vytvořené nebo změněné v tomto období, ne nutně přesunuté do aktuálního seznamu.",
+      "section_touched": "Karty zasažené v tomto období",
+      "section_comments": "Komentáře v tomto období",
+      "section_snapshot": "Úplný stav nástěnky (k okamžiku vygenerování)",
+      "col_list": "Seznam",
+      "col_title": "Název",
+      "col_priority": "Priorita",
+      "col_tags": "Štítky",
+      "col_due": "Termín",
+      "col_created": "Vytvořeno",
+      "col_updated": "Poslední změna",
+      "col_assignees": "Přiřazeno",
+      "col_created_by": "Vytvořil",
+      "col_date": "Datum",
+      "col_card": "Karta",
+      "col_author": "Autor",
+      "col_comment": "Komentář",
+      "col_overdue": "Po termínu?",
+      "overdue_yes": "ano"
     }
   },
   "email": {

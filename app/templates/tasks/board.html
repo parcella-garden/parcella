@@ -7,6 +7,9 @@
 <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addListModal">
     <i class="bi bi-layout-three-columns me-1"></i>{{ t('tasks.board.add_list_button') }}
 </button>
+<button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#exportReportModal">
+    <i class="bi bi-download me-1"></i>{{ t('tasks.board.export_report_button') }}
+</button>
 <a href="/tasks/new" class="btn btn-sm btn-primary">
     <i class="bi bi-plus-lg me-1"></i>{{ t('tasks.board.new_task_button') }}
 </a>
@@ -262,6 +265,34 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ t('tasks.lists.cancel') }}</button>
                     <button type="submit" class="btn btn-primary">{{ t('tasks.lists.add_button') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Export report modal -->
+<div class="modal fade" id="exportReportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="get" action="/tasks/export">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-download me-2"></i>{{ t('tasks.export.modal_title') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ t('tasks.export.date_from_label') }}</label>
+                        <input type="date" name="date_from" class="form-control" value="{{ export_default_date_from }}" required>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-semibold">{{ t('tasks.export.date_to_label') }}</label>
+                        <input type="date" name="date_to" class="form-control" value="{{ today }}" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ t('tasks.lists.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ t('tasks.export.download_button') }}</button>
                 </div>
             </form>
         </div>
