@@ -577,6 +577,15 @@ async def test_edit_route_renders_board_with_modal_open(client, admin_user):
     assert 'data-auto-open="1"' in response.text
     assert f'action="/tasks/{task["id"]}/edit"' in response.text
     assert "Fix the gate" in response.text
+    # Regression guard: the auto-open/close script must run after
+    # bootstrap.bundle.min.js has loaded (base.html loads it near the end
+    # of <body>, after {% block content %}) -- calling `bootstrap.Modal`
+    # any earlier throws a ReferenceError and silently breaks both the
+    # auto-open and the close-navigates-back handler. Not directly
+    # testable without a browser, but this at least catches someone
+    # removing the DOMContentLoaded wrapper again.
+    assert "document.addEventListener('DOMContentLoaded'" in response.text
+    assert response.text.index("document.addEventListener('DOMContentLoaded'") < response.text.index("new bootstrap.Modal(taskModalEl)")
 
 
 async def test_plain_board_has_no_task_modal(client, admin_user):

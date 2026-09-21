@@ -488,15 +488,29 @@
     // button's plain data-bs-dismiss) via the one hidden.bs.modal event
     // all of those already funnel through, so none of them need their
     // own navigation logic.
-    var taskModalEl = document.getElementById('taskModal');
-    if (taskModalEl) {
-        if (taskModalEl.dataset.autoOpen === '1') {
-            new bootstrap.Modal(taskModalEl).show();
+    //
+    // Deferred to DOMContentLoaded: base.html loads bootstrap.bundle.min.js
+    // as a plain (non-deferred) script near the end of the body, after
+    // this page's own content block -- so the `bootstrap` global doesn't
+    // exist yet at the point this inline script would otherwise run, and
+    // calling `new bootstrap.Modal(...)` immediately throws, silently
+    // skipping the addEventListener below it too (same script, same
+    // block). DOMContentLoaded only fires once every synchronous script
+    // up to that point -- including bootstrap's -- has already run.
+    // NOTE: never write the literal Jinja block-tag syntax in a comment
+    // in this file -- Jinja scans raw text for it everywhere, including
+    // inside <script> comments, not just outside tags.
+    document.addEventListener('DOMContentLoaded', function () {
+        var taskModalEl = document.getElementById('taskModal');
+        if (taskModalEl) {
+            if (taskModalEl.dataset.autoOpen === '1') {
+                new bootstrap.Modal(taskModalEl).show();
+            }
+            taskModalEl.addEventListener('hidden.bs.modal', function () {
+                window.location.href = '/tasks/';
+            });
         }
-        taskModalEl.addEventListener('hidden.bs.modal', function () {
-            window.location.href = '/tasks/';
-        });
-    }
+    });
 })();
 </script>
 
