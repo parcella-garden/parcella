@@ -8,7 +8,7 @@ import urllib.parse
 from fastapi import APIRouter, Request, Form, Depends, HTTPException, File, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db, active_member_filter
@@ -18,7 +18,7 @@ from app.models import (
     GroupMembership, ParcelCloudFolder, WorkSession, WorkTask, ChangeHistory,
     MeterReading, PurchaseRequest, PurchaseRequestApproval,
     CalendarEvent, CouncilPresence, CouncilAbsence, Announcement, InventoryItem,
-    ItemLoan, Task, TaskAssignee, Member, ClubBoardMember,
+    ItemLoan, Task, TaskAssignee, Member, ClubBoardMember, ExternalTaskLink,
 )
 from app.auth import require_system_admin, create_invitation_token, hash_password
 from app.permissions import is_last_admin
@@ -26,6 +26,8 @@ from app.email_service import send_email
 from app.crypto_utils import encrypt
 from app.blog_publisher import load_wordpress_configuration, WordPressPublisher, BlogPublishError
 from app.cloud_storage import load_nextcloud_configuration, get_nextcloud_provider, NextcloudProvider, CloudStorageError
+from app.task_sync import load_deck_configuration, load_deck_board_id, DeckTaskProvider, DeckError
+from app.deck_sync import sync_deck_tasks
 from app.i18n import AVAILABLE_LANGUAGES, t_for
 from app.l10n import AVAILABLE_REGIONS, AVAILABLE_CURRENCIES
 from app.branding import save_logo_upload, remove_logo_file
@@ -863,6 +865,7 @@ MODULE_FIELDS = [
     ("modul_announcements", "admin.settings.modules.announcements_name", "admin.settings.modules.announcements_desc"),
     ("modul_cloud_storage", "admin.settings.modules.cloud_storage_name", "admin.settings.modules.cloud_storage_desc"),
     ("modul_finances", "admin.settings.modules.finances_name", "admin.settings.modules.finances_desc"),
+    ("modul_deck_sync", "admin.settings.modules.deck_sync_name", "admin.settings.modules.deck_sync_desc"),
 ]
 
 # Finances module (annual invoices, issue #55): bank details for the
@@ -1236,6 +1239,18 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
     )
     freescout_stored = {e.key: e.value for e in freescout_result.scalars().all()}
 
+    deck_result = await db.execute(
+        select(ClubSetting).where(
+            ClubSetting.key.in_(["deck_base_url", "deck_username", "deck_app_password", "deck_board_id"])
+        )
+    )
+    deck_stored = {e.key: e.value for e in deck_result.scalars().all()}
+    deck_link_stats = (await db.execute(
+        select(func.count(ExternalTaskLink.id), func.max(ExternalTaskLink.last_synced_at))
+        .where(ExternalTaskLink.source == "deck")
+    )).one()
+    deck_synced_count, deck_last_synced_at = deck_link_stats
+
     return templates.TemplateResponse("admin/integrations.html", {
         "request": request, "user": user,
         "api_token": token,
@@ -1264,6 +1279,16 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
         "freescout_saved": request.query_params.get("freescout_saved"),
         "freescout_test_result": request.query_params.get("freescout_test"),
         "freescout_test_message": request.query_params.get("freescout_test_message"),
+        "deck_base_url": deck_stored.get("deck_base_url", ""),
+        "deck_username": deck_stored.get("deck_username", ""),
+        "deck_app_password_set": bool(deck_stored.get("deck_app_password")),
+        "deck_board_id": deck_stored.get("deck_board_id", ""),
+        "deck_saved": request.query_params.get("deck_saved"),
+        "deck_test_result": request.query_params.get("deck_test"),
+        "deck_test_message": request.query_params.get("deck_test_message"),
+        "deck_synced_now": request.query_params.get("deck_synced"),
+        "deck_synced_count": deck_synced_count,
+        "deck_last_synced_at": deck_last_synced_at,
     })
 
 
@@ -1496,3 +1521,81 @@ async def integrations_freescout_test(request: Request, db: AsyncSession = Depen
     return RedirectResponse(
         f"/admin/integrations?freescout_test={result}&freescout_test_message={quote(message)}", status_code=303,
     )
+
+
+@router.post("/integrations/deck")
+async def integrations_deck_save(request: Request, db: AsyncSession = Depends(get_db)):
+    """Saves the Nextcloud Deck credentials plus the single board id to
+    sync from -- same "blank app password field = leave the existing
+    one unchanged" convention as WordPress/Nextcloud/FreeScout above.
+    Deliberately its own set of ClubSetting keys, not shared with
+    cloud storage's nextcloud_* ones -- see app/task_sync.py's
+    module docstring and docs/ADR/0086."""
+    await require_system_admin(request, db)
+    form = await request.form()
+
+    base_url = (form.get("deck_base_url") or "").strip() or None
+    username = (form.get("deck_username") or "").strip() or None
+    board_id = (form.get("deck_board_id") or "").strip() or None
+    app_password = (form.get("deck_app_password") or "").strip()
+
+    await _upsert_club_setting(db, "deck_base_url", base_url, "Nextcloud server URL for Deck task sync")
+    await _upsert_club_setting(db, "deck_username", username, "Nextcloud username for Deck task sync")
+    await _upsert_club_setting(db, "deck_board_id", board_id, "Deck board id to sync tasks from")
+    if app_password:
+        await _upsert_club_setting(
+            db, "deck_app_password", encrypt(app_password), "Nextcloud Application Password for Deck sync (encrypted)",
+        )
+
+    await db.commit()
+    return RedirectResponse("/admin/integrations?deck_saved=1", status_code=303)
+
+
+@router.post("/integrations/deck/test")
+async def integrations_deck_test(request: Request, db: AsyncSession = Depends(get_db)):
+    """Tests Deck connectivity using whatever is currently in the form,
+    falling back to the already-saved configuration for any field left
+    blank -- doesn't persist anything. Only checks the connection/
+    credentials, not the board id (test_connection() just lists
+    boards -- it doesn't need a specific board to succeed)."""
+    await require_system_admin(request, db)
+    form = await request.form()
+    from urllib.parse import quote
+
+    saved_config = await load_deck_configuration(db)
+    base_url = (form.get("deck_base_url") or "").strip() or (saved_config["base_url"] if saved_config else None)
+    username = (form.get("deck_username") or "").strip() or (saved_config["username"] if saved_config else None)
+    app_password = (form.get("deck_app_password") or "").strip() or (saved_config["app_password"] if saved_config else None)
+
+    if not base_url or not username or not app_password:
+        message = quote(t_for(request, "admin.integrations.deck_not_configured"))
+        return RedirectResponse(f"/admin/integrations?deck_test=failed&deck_test_message={message}", status_code=303)
+
+    provider = DeckTaskProvider(base_url=base_url, username=username, app_password=app_password)
+    try:
+        await provider.test_connection()
+        result, message = "success", t_for(request, "admin.integrations.deck_test_success")
+    except DeckError as e:
+        result, message = "failed", str(e)
+    finally:
+        await provider.aclose()
+
+    return RedirectResponse(
+        f"/admin/integrations?deck_test={result}&deck_test_message={quote(message)}", status_code=303,
+    )
+
+
+@router.post("/integrations/deck/sync-now")
+async def integrations_deck_sync_now(request: Request, db: AsyncSession = Depends(get_db)):
+    """Manual on-demand sync, same precedent as
+    POST /admin/backup/cloud/run-now -- calls the exact same function
+    the background poller calls (app/deck_sync.py's sync_deck_tasks)."""
+    await require_system_admin(request, db)
+    from urllib.parse import quote
+
+    try:
+        count = await sync_deck_tasks(db)
+        message = t_for(request, "admin.integrations.deck_sync_now_success", count=count)
+        return RedirectResponse(f"/admin/integrations?deck_synced=success&deck_test_message={quote(message)}", status_code=303)
+    except DeckError as e:
+        return RedirectResponse(f"/admin/integrations?deck_synced=failed&deck_test_message={quote(str(e))}", status_code=303)

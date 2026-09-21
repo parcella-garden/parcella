@@ -58,6 +58,7 @@ async def _get_task_or_404(db: AsyncSession, task_id: str, request: Request) -> 
         .options(
             selectinload(Task.assignees),
             selectinload(Task.comments).selectinload(TaskComment.created_by),
+            selectinload(Task.external_link),
         )
         .where(Task.id == task_id)
     )
@@ -132,6 +133,7 @@ async def _render_board(
         .options(
             selectinload(TaskList.tasks).selectinload(Task.assignees).selectinload(TaskAssignee.user),
             selectinload(TaskList.tasks).selectinload(Task.comments),
+            selectinload(TaskList.tasks).selectinload(Task.external_link),
         )
         .order_by(TaskList.position)
     )
@@ -392,6 +394,24 @@ async def task_delete(task_id: str, request: Request, db: AsyncSession = Depends
     await close_gap_after_delete(db, list_id, position)
 
     return RedirectResponse("/tasks/", status_code=302)
+
+
+@router.post("/{task_id}/adopt")
+async def task_adopt(task_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    """Detaches a card synced from an external task source (see
+    app/deck_sync.py, docs/ADR/0086) -- deletes its ExternalTaskLink row
+    only, never the Task itself. From then on it's a normal task,
+    editable like any other, and untouched by future syncs (unless it
+    happens to get re-linked, which nothing does automatically -- a
+    detached task is not re-matched against Deck cards)."""
+    await require_admin(request, db)
+    task = await _get_task_or_404(db, task_id, request)
+
+    if task.external_link is not None:
+        await db.delete(task.external_link)
+        await db.commit()
+
+    return RedirectResponse(f"/tasks/{task_id}/edit", status_code=302)
 
 
 @router.post("/{task_id}/comments")

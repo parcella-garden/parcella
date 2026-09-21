@@ -254,6 +254,81 @@
     </div>
 </div>
 
+<div class="card mb-3">
+    <div class="card-header settings-card-toggle collapsed" role="button" data-bs-toggle="collapse"
+         data-bs-target="#integration-card-deck" aria-expanded="false">
+        <span><i class="bi bi-kanban me-2"></i>{{ t('admin.integrations.deck_title') }}</span>
+        <i class="bi bi-chevron-down settings-card-chevron"></i>
+    </div>
+    <div class="collapse" id="integration-card-deck" data-bs-parent="#integrations-accordion">
+    <div class="card-body">
+        <p class="text-muted">{{ t('admin.integrations.deck_desc') }}</p>
+
+        {% if deck_saved %}
+        <div class="alert alert-success">{{ t('admin.integrations.deck_saved') }}</div>
+        {% endif %}
+
+        <form method="post" action="/admin/integrations/deck">
+            {{ csrf_field() }}
+            <div class="mb-3">
+                <label class="form-label fw-semibold">{{ t('admin.integrations.deck_base_url_label') }}</label>
+                <input type="url" name="deck_base_url" class="form-control"
+                       value="{{ deck_base_url }}" placeholder="https://cloud.example.com">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">{{ t('admin.integrations.deck_username_label') }}</label>
+                <input type="text" name="deck_username" class="form-control" value="{{ deck_username }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">{{ t('admin.integrations.deck_app_password_label') }}</label>
+                <input type="password" name="deck_app_password" class="form-control" autocomplete="off"
+                       placeholder="{% if deck_app_password_set %}{{ t('admin.settings.password_set_placeholder') }}{% else %}{{ t('admin.settings.password_unset_placeholder') }}{% endif %}">
+                <div class="form-text">{{ t('admin.integrations.deck_app_password_hint') }}</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">{{ t('admin.integrations.deck_board_id_label') }}</label>
+                <input type="text" name="deck_board_id" class="form-control" value="{{ deck_board_id }}">
+                <div class="form-text">{{ t('admin.integrations.deck_board_id_hint') }}</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i>{{ t('admin.integrations.deck_save_button') }}
+            </button>
+            <button type="submit" formaction="/admin/integrations/deck/test" formmethod="post" class="btn btn-outline-secondary">
+                {{ t('admin.integrations.deck_test_button') }}
+            </button>
+            {% if deck_test_result == 'success' %}
+            <span class="text-success ms-2"><i class="bi bi-check-circle"></i> {{ deck_test_message }}</span>
+            {% elif deck_test_result == 'failed' %}
+            <div class="text-danger mt-2"><i class="bi bi-x-circle"></i> {{ deck_test_message }}</div>
+            {% endif %}
+        </form>
+
+        {% if deck_board_id %}
+        <hr class="my-3">
+        <form method="post" action="/admin/integrations/deck/sync-now" class="d-flex align-items-center gap-2 flex-wrap">
+            {{ csrf_field() }}
+            <button type="submit" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-arrow-repeat me-1"></i>{{ t('admin.integrations.deck_sync_now_button') }}
+            </button>
+            <span class="text-muted" style="font-size: 0.85rem;">
+                {% if deck_last_synced_at %}
+                {{ t('admin.integrations.deck_last_synced_label', count=deck_synced_count, when=deck_last_synced_at.strftime('%d.%m.%Y %H:%M')) }}
+                {% else %}
+                {{ t('admin.integrations.deck_never_synced_label') }}
+                {% endif %}
+            </span>
+        </form>
+        {% if deck_synced_now == 'success' %}
+        <div class="text-success mt-2"><i class="bi bi-check-circle"></i> {{ deck_test_message }}</div>
+        {% elif deck_synced_now == 'failed' %}
+        <div class="text-danger mt-2"><i class="bi bi-x-circle"></i> {{ deck_test_message }}</div>
+        {% endif %}
+        {% endif %}
+    </div>
+    </div>
+</div>
+
 </div>
 
 {% endblock %}

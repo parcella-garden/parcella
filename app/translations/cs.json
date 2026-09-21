@@ -297,7 +297,9 @@
         "finances_name": "Finance",
         "finances_desc": "Připravte a odesílejte roční faktury za každou parcelu, s položkami podle spotřeby a sledováním plateb. Nejprve nastavte bankovní údaje níže.",
         "freescout_bridge_name": "Propojení s FreeScout",
-        "freescout_bridge_desc": "Propojuje konverzace podpory z FreeScout s členy a nástěnkou úkolů."
+        "freescout_bridge_desc": "Propojuje konverzace podpory z FreeScout s členy a nástěnkou úkolů.",
+        "deck_sync_name": "Synchronizace Nextcloud Deck",
+        "deck_sync_desc": "Stahuje karty z nástěnky Nextcloud Deck do nástěnky úkolů, jednosměrně, automaticky udržované aktuální. Nejprve nastavte připojení v Admin -> Integrace."
       },
       "region_header": "Region",
       "region_help": "Určuje formát čísel a adresy (např. oddělovač tisíců, pořadí PSČ a města). Nezávisle na jazyce rozhraní.",
@@ -372,7 +374,24 @@
       "freescout_save_button": "Uložit",
       "freescout_test_button": "Otestovat připojení",
       "freescout_not_configured": "FreeScout zatím není nakonfigurován",
-      "freescout_test_success": "Připojení úspěšné"
+      "freescout_test_success": "Připojení úspěšné",
+      "deck_title": "Nextcloud Deck",
+      "deck_desc": "Stahuje úkoly z nástěnky Nextcloud Deck do nástěnky úkolů Parcelly -- jednosměrné zrcadlo pouze pro čtení, automaticky udržované aktuální. Záměrně samostatné připojení od úložiště v cloudu výše, i když míří na stejný server.",
+      "deck_base_url_label": "URL serveru Nextcloud",
+      "deck_username_label": "Uživatelské jméno Nextcloud",
+      "deck_app_password_label": "Aplikační heslo Nextcloud",
+      "deck_app_password_hint": "Vytvořte je v Osobním nastavení Nextcloud > Zabezpečení.",
+      "deck_board_id_label": "ID nástěnky Deck",
+      "deck_board_id_hint": "Nástěnka Deck k synchronizaci (viz její URL, např. /apps/deck/board/3).",
+      "deck_save_button": "Uložit",
+      "deck_test_button": "Otestovat připojení",
+      "deck_test_success": "Připojení úspěšné",
+      "deck_saved": "Nastavení Deck uloženo",
+      "deck_not_configured": "Deck zatím není nakonfigurován",
+      "deck_sync_now_button": "Synchronizovat nyní",
+      "deck_sync_now_success": "Synchronizováno {count} karet",
+      "deck_last_synced_label": "Synchronizováno {count} úkolů, naposledy {when}",
+      "deck_never_synced_label": "Zatím nesynchronizováno"
     },
     "system": {
       "page_title": "Systém",
@@ -1895,7 +1914,8 @@
       "sort_manual": "Ručně (pořadí přetažení)",
       "sort_due_date": "Termín splnění",
       "sort_priority": "Priorita",
-      "export_report_button": "Exportovat report"
+      "export_report_button": "Exportovat report",
+      "synced_badge": "Synchronizováno z Nextcloud Deck"
     },
     "form": {
       "title_new": "Nový úkol",
@@ -1933,7 +1953,9 @@
       "history_col_field": "Pole",
       "history_col_old_value": "Původní hodnota",
       "history_col_new_value": "Nová hodnota",
-      "history_col_changed_by": "Změnil"
+      "history_col_changed_by": "Změnil",
+      "synced_notice": "Tato karta je synchronizována z Nextcloud Deck -- název, popis, termín a seznam jsou spravovány tam a aktualizují se automaticky. Priorita, štítky, přiřazení a komentáře existují pouze v Parcelle a lze je vždy upravovat.",
+      "adopt_button": "Převzít do Parcelly"
     },
     "lists": {
       "add_modal_title": "Přidat seznam",

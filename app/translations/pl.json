@@ -297,7 +297,9 @@
         "finances_name": "Finanse",
         "finances_desc": "Przygotuj i wysyłaj roczne faktury dla każdej działki, z pozycjami zależnymi od zużycia i śledzeniem płatności. Najpierw skonfiguruj dane bankowe poniżej.",
         "freescout_bridge_name": "Integracja FreeScout",
-        "freescout_bridge_desc": "Łączy rozmowy wsparcia z FreeScout z członkami i tablicą zadań."
+        "freescout_bridge_desc": "Łączy rozmowy wsparcia z FreeScout z członkami i tablicą zadań.",
+        "deck_sync_name": "Synchronizacja Nextcloud Deck",
+        "deck_sync_desc": "Pobiera karty z tablicy Nextcloud Deck do tablicy zadań, jednokierunkowo, automatycznie aktualizowane. Najpierw skonfiguruj połączenie w Admin -> Integracje."
       },
       "region_header": "Region",
       "region_help": "Określa format liczb i adresu (np. separator tysięcy, kolejność kodu pocztowego i miejscowości). Niezależnie od języka interfejsu.",
@@ -372,7 +374,24 @@
       "freescout_save_button": "Zapisz",
       "freescout_test_button": "Testuj połączenie",
       "freescout_not_configured": "FreeScout nie jest jeszcze skonfigurowany",
-      "freescout_test_success": "Połączenie udane"
+      "freescout_test_success": "Połączenie udane",
+      "deck_title": "Nextcloud Deck",
+      "deck_desc": "Pobiera zadania z tablicy Nextcloud Deck do tablicy zadań Parcelli -- jednokierunkowe, tylko do odczytu lustro, automatycznie aktualizowane. Celowo osobne połączenie od magazynu w chmurze powyżej, nawet jeśli wskazuje na ten sam serwer.",
+      "deck_base_url_label": "URL serwera Nextcloud",
+      "deck_username_label": "Nazwa użytkownika Nextcloud",
+      "deck_app_password_label": "Hasło aplikacji Nextcloud",
+      "deck_app_password_hint": "Wygeneruj je w Ustawieniach osobistych Nextcloud > Bezpieczeństwo.",
+      "deck_board_id_label": "ID tablicy Deck",
+      "deck_board_id_hint": "Tablica Deck do synchronizacji (patrz jej adres URL, np. /apps/deck/board/3).",
+      "deck_save_button": "Zapisz",
+      "deck_test_button": "Testuj połączenie",
+      "deck_test_success": "Połączenie udane",
+      "deck_saved": "Zapisano ustawienia Deck",
+      "deck_not_configured": "Deck nie jest jeszcze skonfigurowany",
+      "deck_sync_now_button": "Synchronizuj teraz",
+      "deck_sync_now_success": "Zsynchronizowano {count} kart",
+      "deck_last_synced_label": "Zsynchronizowano {count} zadań, ostatnio o {when}",
+      "deck_never_synced_label": "Jeszcze nie zsynchronizowano"
     },
     "system": {
       "page_title": "System",
@@ -1895,7 +1914,8 @@
       "sort_manual": "Ręcznie (kolejność przeciągania)",
       "sort_due_date": "Termin",
       "sort_priority": "Priorytet",
-      "export_report_button": "Eksportuj raport"
+      "export_report_button": "Eksportuj raport",
+      "synced_badge": "Zsynchronizowano z Nextcloud Deck"
     },
     "form": {
       "title_new": "Nowe zadanie",
@@ -1933,7 +1953,9 @@
       "history_col_field": "Pole",
       "history_col_old_value": "Stara wartość",
       "history_col_new_value": "Nowa wartość",
-      "history_col_changed_by": "Zmienione przez"
+      "history_col_changed_by": "Zmienione przez",
+      "synced_notice": "Ta karta jest zsynchronizowana z Nextcloud Deck -- tytuł, opis, termin i lista są zarządzane tam i aktualizowane automatycznie. Priorytet, tagi, przypisani i komentarze istnieją tylko w Parcelli i zawsze można je edytować.",
+      "adopt_button": "Przejmij do Parcelli"
     },
     "lists": {
       "add_modal_title": "Dodaj listę",

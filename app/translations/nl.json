@@ -297,7 +297,9 @@
         "finances_name": "Financiën",
         "finances_desc": "Bereid jaarlijkse facturen per perceel voor en verstuur ze, met verbruiksgebaseerde regels en betalingsopvolging. Stel eerst hieronder de bankgegevens in.",
         "freescout_bridge_name": "FreeScout-koppeling",
-        "freescout_bridge_desc": "Koppelt FreeScout-supportgesprekken aan leden en het takenbord."
+        "freescout_bridge_desc": "Koppelt FreeScout-supportgesprekken aan leden en het takenbord.",
+        "deck_sync_name": "Nextcloud Deck-synchronisatie",
+        "deck_sync_desc": "Haalt kaarten op van een Nextcloud Deck-bord naar het takenbord, eenrichtingsverkeer, automatisch actueel gehouden. Configureer eerst de verbinding onder Admin -> Integraties."
       },
       "region_header": "Regio",
       "region_help": "Bepaalt het getal- en adresformaat (bijv. duizendtalscheidingsteken, volgorde van postcode en plaats). Onafhankelijk van de interfacetaal.",
@@ -372,7 +374,24 @@
       "freescout_save_button": "Opslaan",
       "freescout_test_button": "Verbinding testen",
       "freescout_not_configured": "FreeScout is nog niet geconfigureerd",
-      "freescout_test_success": "Verbinding geslaagd"
+      "freescout_test_success": "Verbinding geslaagd",
+      "deck_title": "Nextcloud Deck",
+      "deck_desc": "Haalt taken op van een Nextcloud Deck-bord naar het takenbord van Parcella -- een eenrichtings, alleen-lezen spiegel die automatisch actueel wordt gehouden. Bewust een aparte verbinding van de cloudopslag hierboven, ook als deze naar dezelfde server verwijst.",
+      "deck_base_url_label": "Nextcloud-server-URL",
+      "deck_username_label": "Nextcloud-gebruikersnaam",
+      "deck_app_password_label": "Nextcloud-app-wachtwoord",
+      "deck_app_password_hint": "Genereer er een onder Nextclouds Persoonlijke instellingen > Beveiliging.",
+      "deck_board_id_label": "Deck-bord-ID",
+      "deck_board_id_hint": "Het te synchroniseren Deck-bord (zie de URL, bijv. /apps/deck/board/3).",
+      "deck_save_button": "Opslaan",
+      "deck_test_button": "Verbinding testen",
+      "deck_test_success": "Verbinding geslaagd",
+      "deck_saved": "Deck-instellingen opgeslagen",
+      "deck_not_configured": "Deck is nog niet geconfigureerd",
+      "deck_sync_now_button": "Nu synchroniseren",
+      "deck_sync_now_success": "{count} kaart(en) gesynchroniseerd",
+      "deck_last_synced_label": "{count} taak/taken gesynchroniseerd, laatst om {when}",
+      "deck_never_synced_label": "Nog niet gesynchroniseerd"
     },
     "system": {
       "page_title": "Systeem",
@@ -1895,7 +1914,8 @@
       "sort_manual": "Handmatig (sleepvolgorde)",
       "sort_due_date": "Vervaldatum",
       "sort_priority": "Prioriteit",
-      "export_report_button": "Rapport exporteren"
+      "export_report_button": "Rapport exporteren",
+      "synced_badge": "Gesynchroniseerd vanuit Nextcloud Deck"
     },
     "form": {
       "title_new": "Nieuwe taak",
@@ -1933,7 +1953,9 @@
       "history_col_field": "Veld",
       "history_col_old_value": "Oude waarde",
       "history_col_new_value": "Nieuwe waarde",
-      "history_col_changed_by": "Gewijzigd door"
+      "history_col_changed_by": "Gewijzigd door",
+      "synced_notice": "Deze kaart is gesynchroniseerd vanuit Nextcloud Deck -- titel, beschrijving, vervaldatum en lijst worden daar beheerd en automatisch bijgewerkt. Prioriteit, tags, toegewezenen en reacties bestaan alleen in Parcella en zijn altijd bewerkbaar.",
+      "adopt_button": "Overnemen in Parcella"
     },
     "lists": {
       "add_modal_title": "Lijst toevoegen",

@@ -297,7 +297,9 @@
         "finances_name": "Finances",
         "finances_desc": "Prepare and send annual invoices per parcel, with usage-based line items and payment tracking. Configure bank details below first.",
         "freescout_bridge_name": "FreeScout Bridge",
-        "freescout_bridge_desc": "Links FreeScout support conversations to members and the task board."
+        "freescout_bridge_desc": "Links FreeScout support conversations to members and the task board.",
+        "deck_sync_name": "Nextcloud Deck Sync",
+        "deck_sync_desc": "Pulls cards from a Nextcloud Deck board into the task board, one-way, kept up to date automatically. Configure the connection under Admin -> Integrations first."
       },
       "region_header": "Region",
       "region_help": "Determines number and address format (e.g. thousands separator, order of postal code and city). Independent of the interface language.",
@@ -372,7 +374,24 @@
       "freescout_save_button": "Save",
       "freescout_test_button": "Test connection",
       "freescout_not_configured": "FreeScout is not configured yet",
-      "freescout_test_success": "Connection successful"
+      "freescout_test_success": "Connection successful",
+      "deck_title": "Nextcloud Deck",
+      "deck_desc": "Pulls tasks from a Nextcloud Deck board into Parcella's task board -- a one-way, read-only mirror kept up to date automatically. Deliberately a separate connection from Cloud storage above, even if it points at the same server.",
+      "deck_base_url_label": "Nextcloud server URL",
+      "deck_username_label": "Nextcloud username",
+      "deck_app_password_label": "Nextcloud Application Password",
+      "deck_app_password_hint": "Generate one under Nextcloud's Personal Settings > Security page.",
+      "deck_board_id_label": "Deck board ID",
+      "deck_board_id_hint": "The Deck board to sync (see its URL, e.g. /apps/deck/board/3).",
+      "deck_save_button": "Save",
+      "deck_test_button": "Test connection",
+      "deck_test_success": "Connection successful",
+      "deck_saved": "Deck settings saved",
+      "deck_not_configured": "Deck is not configured yet",
+      "deck_sync_now_button": "Sync now",
+      "deck_sync_now_success": "{count} card(s) synced",
+      "deck_last_synced_label": "{count} task(s) synced, last at {when}",
+      "deck_never_synced_label": "Not synced yet"
     },
     "system": {
       "page_title": "System",
@@ -1895,7 +1914,8 @@
       "sort_manual": "Manual (drag order)",
       "sort_due_date": "Due date",
       "sort_priority": "Priority",
-      "export_report_button": "Export report"
+      "export_report_button": "Export report",
+      "synced_badge": "Synced from Nextcloud Deck"
     },
     "form": {
       "title_new": "New task",
@@ -1933,7 +1953,9 @@
       "history_col_field": "Field",
       "history_col_old_value": "Old value",
       "history_col_new_value": "New value",
-      "history_col_changed_by": "Changed by"
+      "history_col_changed_by": "Changed by",
+      "synced_notice": "This card is synced from Nextcloud Deck -- title, description, due date, and list are managed there and update automatically. Priority, tags, assignees, and comments are only in Parcella and always editable.",
+      "adopt_button": "Adopt into Parcella"
     },
     "lists": {
       "add_modal_title": "Add list",

@@ -42,6 +42,7 @@ load_translations()
 from app.templating import templates
 from app.freescout_client import get_freescout_client, load_freescout_base_url
 from app.freescout_sync import sync_freescout_conversations, HIDDEN_STATUSES
+from app.deck_sync import sync_deck_tasks
 from app.routers import auth, members, parcels, admin as admin_router, admin_groups as admin_groups_router, work_hours, insurance, freescout as freescout_router, purchase_requests, calendar as calendar_router, announcements as announcements_router, inventory as inventory_router, tasks as tasks_router, finances as finances_router
 from app.routers.metering import create_metering_router
 from app.models import MeteringMedium
@@ -120,6 +121,31 @@ async def _cloud_backup_polling_loop():
         await asyncio.sleep(15 * 60)  # 15 minutes
 
 
+async def _deck_sync_polling_loop():
+    """
+    Polls the configured Nextcloud Deck board for new/updated cards
+    every 15 minutes, upserting app/models.py's ExternalTaskLink + Task
+    rows (see app/deck_sync.py). A no-op whenever Deck sync isn't both
+    enabled (Admin -> Settings) and configured (Admin -> Integrations)
+    -- unlike the FreeScout loop above, this one also checks the module
+    flag itself (not just whether credentials are present), so pausing
+    an already-configured sync doesn't require clearing the credentials
+    -- see docs/ADR/0086.
+    """
+    while True:
+        try:
+            async with AsyncSessionLocal() as db:
+                flags = await load_module_flags(db)
+                if flags.get("deck_sync"):
+                    synced = await sync_deck_tasks(db)
+                    if synced:
+                        logger.info(f"Deck sync: {synced} card(s) synced.")
+        except Exception as e:
+            logger.error(f"Deck sync polling failed: {e}")
+
+        await asyncio.sleep(15 * 60)  # 15 minutes
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup: create the first admin if the users table is empty."""
@@ -146,10 +172,12 @@ async def lifespan(app: FastAPI):
     polling_task = asyncio.create_task(_freescout_polling_loop())
     update_check_task = asyncio.create_task(_update_check_polling_loop())
     cloud_backup_task = asyncio.create_task(_cloud_backup_polling_loop())
+    deck_sync_task = asyncio.create_task(_deck_sync_polling_loop())
     yield
     polling_task.cancel()
     update_check_task.cancel()
     cloud_backup_task.cancel()
+    deck_sync_task.cancel()
 
 
 app = FastAPI(

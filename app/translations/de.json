@@ -297,7 +297,9 @@
         "finances_name": "Finanzen",
         "finances_desc": "Jahresrechnungen je Parzelle erstellen und versenden, mit verbrauchsabhängigen Positionen und Zahlungsverfolgung. Bankdaten unten zuerst hinterlegen.",
         "freescout_bridge_name": "FreeScout-Anbindung",
-        "freescout_bridge_desc": "Verknüpft FreeScout-Support-Konversationen mit Mitgliedern und dem Aufgabenboard."
+        "freescout_bridge_desc": "Verknüpft FreeScout-Support-Konversationen mit Mitgliedern und dem Aufgabenboard.",
+        "deck_sync_name": "Nextcloud-Deck-Synchronisierung",
+        "deck_sync_desc": "Überträgt Karten von einem Nextcloud-Deck-Board in das Aufgabenboard, einseitig und automatisch aktuell gehalten. Verbindung zuerst unter Admin -> Integrationen einrichten."
       },
       "region_header": "Region",
       "region_help": "Bestimmt Zahlen- und Adressformat (z.B. Tausendertrennzeichen, Reihenfolge von PLZ und Ort). Unabhängig von der Oberflächensprache.",
@@ -372,7 +374,24 @@
       "freescout_save_button": "Speichern",
       "freescout_test_button": "Verbindung testen",
       "freescout_not_configured": "FreeScout ist noch nicht konfiguriert",
-      "freescout_test_success": "Verbindung erfolgreich"
+      "freescout_test_success": "Verbindung erfolgreich",
+      "deck_title": "Nextcloud Deck",
+      "deck_desc": "Überträgt Aufgaben von einem Nextcloud-Deck-Board in Parcellas Aufgabenboard -- ein einseitiger, schreibgeschützter Spiegel, der automatisch aktuell gehalten wird. Bewusst eine eigene Verbindung, getrennt von der Cloud-Speicher-Verbindung oben, auch wenn sie auf denselben Server zeigt.",
+      "deck_base_url_label": "Nextcloud-Server-URL",
+      "deck_username_label": "Nextcloud-Benutzername",
+      "deck_app_password_label": "Nextcloud-App-Passwort",
+      "deck_app_password_hint": "Erstellt unter Nextclouds Persönliche Einstellungen > Sicherheit.",
+      "deck_board_id_label": "Deck-Board-ID",
+      "deck_board_id_hint": "Das zu synchronisierende Deck-Board (siehe dessen URL, z. B. /apps/deck/board/3).",
+      "deck_save_button": "Speichern",
+      "deck_test_button": "Verbindung testen",
+      "deck_test_success": "Verbindung erfolgreich",
+      "deck_saved": "Deck-Einstellungen gespeichert",
+      "deck_not_configured": "Deck ist noch nicht konfiguriert",
+      "deck_sync_now_button": "Jetzt synchronisieren",
+      "deck_sync_now_success": "{count} Karte(n) synchronisiert",
+      "deck_last_synced_label": "{count} Aufgabe(n) synchronisiert, zuletzt am {when}",
+      "deck_never_synced_label": "Noch nicht synchronisiert"
     },
     "system": {
       "page_title": "System",
@@ -1895,7 +1914,8 @@
       "sort_manual": "Manuell (Ziehreihenfolge)",
       "sort_due_date": "Fälligkeitsdatum",
       "sort_priority": "Priorität",
-      "export_report_button": "Bericht exportieren"
+      "export_report_button": "Bericht exportieren",
+      "synced_badge": "Synchronisiert von Nextcloud Deck"
     },
     "form": {
       "title_new": "Neue Aufgabe",
@@ -1933,7 +1953,9 @@
       "history_col_field": "Feld",
       "history_col_old_value": "Alter Wert",
       "history_col_new_value": "Neuer Wert",
-      "history_col_changed_by": "Geändert von"
+      "history_col_changed_by": "Geändert von",
+      "synced_notice": "Diese Karte wird von Nextcloud Deck synchronisiert -- Titel, Beschreibung, Fälligkeitsdatum und Liste werden dort verwaltet und automatisch aktualisiert. Priorität, Tags, Zuständige und Kommentare gibt es nur in Parcella und sind immer bearbeitbar.",
+      "adopt_button": "In Parcella übernehmen"
     },
     "lists": {
       "add_modal_title": "Liste hinzufügen",

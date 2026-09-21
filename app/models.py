@@ -1992,6 +1992,9 @@ class Task(Base):
         "TaskComment", back_populates="task", order_by="TaskComment.created_at",
         cascade="all, delete-orphan",
     )
+    external_link: Mapped[Optional["ExternalTaskLink"]] = relationship(
+        "ExternalTaskLink", back_populates="task", uselist=False, cascade="all, delete-orphan",
+    )
 
     @property
     def assigned_to_ids(self) -> List[str]:
@@ -2051,6 +2054,60 @@ class TaskComment(Base):
 
     def __repr__(self) -> str:
         return f"<TaskComment task={self.task_id}>"
+
+
+class ExternalTaskLink(Base):
+    """
+    Cross-reference from a Task to a card in an external task source
+    (Nextcloud Deck today -- see app/task_sync.py's TaskSyncProvider
+    interface and docs/ADR/0086). One row per synced Task, one-to-one
+    (ON DELETE CASCADE -- deleting the Task also drops its link, the
+    reverse of every other FK in this app, since the link has no
+    meaning without the Task it points at).
+
+    Presence of this row is what makes a card "synced": the task board
+    (app/templates/tasks/board.html) shows a badge and locks the fields
+    the external source owns (title/description/due_date/list_id, see
+    app/deck_sync.py) whenever a Task has one. Removing the row --
+    whether via the admin "Adopt into Parcella" action
+    (POST /tasks/{id}/adopt) or automatically when the card disappears
+    from Deck (app/deck_sync.py's reconciliation pass) -- turns the Task
+    into a normal, fully-independent, fully-editable one from then on;
+    the Task row itself is never touched by either path.
+    """
+    __tablename__ = "external_task_links"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    task_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False, unique=True, index=True
+    )
+
+    # "deck" is the only source today -- kept as a column (not hardcoded
+    # into the table name) so a second provider never needs a schema
+    # change, only a new value here.
+    source: Mapped[str] = mapped_column(String(50), nullable=False)
+    external_board_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    external_stack_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    external_card_id: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    # The external source's own last-modified timestamp for this card --
+    # the incremental-sync high-water-mark (app/deck_sync.py skips
+    # re-writing a card whose external_updated_at hasn't advanced).
+    # Deliberately NOT this row's own updated_at: that would conflate
+    # "Deck changed this card" with "Parcella last polled it".
+    external_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last_synced_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    task: Mapped["Task"] = relationship("Task", back_populates="external_link")
+
+    __table_args__ = (
+        UniqueConstraint("source", "external_card_id", name="uq_external_task_link_source_card"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<ExternalTaskLink {self.source}:{self.external_card_id} task={self.task_id}>"
 
 
 # ---------------------------------------------------------------------------

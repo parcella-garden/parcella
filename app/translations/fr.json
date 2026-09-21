@@ -297,7 +297,9 @@
         "finances_name": "Finances",
         "finances_desc": "Préparez et envoyez des factures annuelles par parcelle, avec des lignes basées sur la consommation et un suivi des paiements. Configurez d'abord les coordonnées bancaires ci-dessous.",
         "freescout_bridge_name": "Intégration FreeScout",
-        "freescout_bridge_desc": "Relie les conversations d'assistance FreeScout aux membres et au tableau des tâches."
+        "freescout_bridge_desc": "Relie les conversations d'assistance FreeScout aux membres et au tableau des tâches.",
+        "deck_sync_name": "Synchronisation Nextcloud Deck",
+        "deck_sync_desc": "Importe les cartes d'un tableau Nextcloud Deck dans le tableau des tâches, à sens unique, tenu à jour automatiquement. Configurez d'abord la connexion sous Admin -> Intégrations."
       },
       "region_header": "Région",
       "region_help": "Détermine le format des nombres et de l'adresse (par ex. séparateur de milliers, ordre du code postal et de la ville). Indépendant de la langue de l'interface.",
@@ -372,7 +374,24 @@
       "freescout_save_button": "Enregistrer",
       "freescout_test_button": "Tester la connexion",
       "freescout_not_configured": "FreeScout n'est pas encore configuré",
-      "freescout_test_success": "Connexion réussie"
+      "freescout_test_success": "Connexion réussie",
+      "deck_title": "Nextcloud Deck",
+      "deck_desc": "Importe les tâches d'un tableau Nextcloud Deck dans le tableau des tâches de Parcella -- un miroir à sens unique, en lecture seule, tenu à jour automatiquement. Volontairement une connexion distincte de celle du stockage cloud ci-dessus, même si elle pointe vers le même serveur.",
+      "deck_base_url_label": "URL du serveur Nextcloud",
+      "deck_username_label": "Nom d'utilisateur Nextcloud",
+      "deck_app_password_label": "Mot de passe d'application Nextcloud",
+      "deck_app_password_hint": "À générer sous Paramètres personnels > Sécurité de Nextcloud.",
+      "deck_board_id_label": "ID du tableau Deck",
+      "deck_board_id_hint": "Le tableau Deck à synchroniser (voir son URL, p. ex. /apps/deck/board/3).",
+      "deck_save_button": "Enregistrer",
+      "deck_test_button": "Tester la connexion",
+      "deck_test_success": "Connexion réussie",
+      "deck_saved": "Paramètres Deck enregistrés",
+      "deck_not_configured": "Deck n'est pas encore configuré",
+      "deck_sync_now_button": "Synchroniser maintenant",
+      "deck_sync_now_success": "{count} carte(s) synchronisée(s)",
+      "deck_last_synced_label": "{count} tâche(s) synchronisée(s), dernière fois à {when}",
+      "deck_never_synced_label": "Pas encore synchronisé"
     },
     "system": {
       "page_title": "Système",
@@ -1895,7 +1914,8 @@
       "sort_manual": "Manuel (ordre de glisser-déposer)",
       "sort_due_date": "Date d'échéance",
       "sort_priority": "Priorité",
-      "export_report_button": "Exporter le rapport"
+      "export_report_button": "Exporter le rapport",
+      "synced_badge": "Synchronisé depuis Nextcloud Deck"
     },
     "form": {
       "title_new": "Nouvelle tâche",
@@ -1933,7 +1953,9 @@
       "history_col_field": "Champ",
       "history_col_old_value": "Ancienne valeur",
       "history_col_new_value": "Nouvelle valeur",
-      "history_col_changed_by": "Modifié par"
+      "history_col_changed_by": "Modifié par",
+      "synced_notice": "Cette carte est synchronisée depuis Nextcloud Deck -- le titre, la description, la date d'échéance et la liste y sont gérés et mis à jour automatiquement. La priorité, les étiquettes, les assignés et les commentaires n'existent que dans Parcella et restent toujours modifiables.",
+      "adopt_button": "Adopter dans Parcella"
     },
     "lists": {
       "add_modal_title": "Ajouter une liste",

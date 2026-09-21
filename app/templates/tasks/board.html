@@ -215,6 +215,9 @@
                 </div>
                 {% endif %}
                 <div class="kanban-card-title">
+                    {% if task.external_link %}
+                    <i class="bi bi-cloud-check text-muted me-1" title="{{ t('tasks.board.synced_badge') }}"></i>
+                    {% endif %}
                     <a href="/tasks/{{ task.id }}/edit" class="text-decoration-none text-body">{{ task.title }}</a>
                 </div>
                 {% if task.assignees or task.due_date %}
@@ -317,22 +320,33 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                {% set is_synced = task and task.external_link %}
+                {% if is_synced %}
+                <div class="alert alert-secondary d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-cloud-check"></i>
+                    <div class="flex-grow-1">{{ t('tasks.form.synced_notice') }}</div>
+                    <form method="post" action="/tasks/{{ task.id }}/adopt" class="m-0">
+                        {{ csrf_field() }}
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">{{ t('tasks.form.adopt_button') }}</button>
+                    </form>
+                </div>
+                {% endif %}
                 <form id="taskEditForm" method="post" action="{% if task %}/tasks/{{ task.id }}/edit{% else %}/tasks/new{% endif %}">
                     {{ csrf_field() }}
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="form-label fw-semibold">{{ t('tasks.form.label_title') }} <span class="text-danger">*</span></label>
                             <input type="text" name="title" class="form-control"
-                                   value="{{ task.title if task else '' }}" required autofocus>
+                                   value="{{ task.title if task else '' }}" required autofocus {% if is_synced %}readonly{% endif %}>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">{{ t('tasks.form.label_description') }}</label>
-                            <textarea name="description" class="form-control" rows="3">{{ task.description if task else '' }}</textarea>
+                            <textarea name="description" class="form-control" rows="3" {% if is_synced %}readonly{% endif %}>{{ task.description if task else '' }}</textarea>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold">{{ t('tasks.form.label_due_date') }}</label>
                             <input type="date" name="due_date" class="form-control"
-                                   value="{{ task.due_date.isoformat() if task and task.due_date else '' }}">
+                                   value="{{ task.due_date.isoformat() if task and task.due_date else '' }}" {% if is_synced %}readonly{% endif %}>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold">{{ t('tasks.form.label_priority') }}</label>
@@ -353,7 +367,7 @@
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold">{{ t('tasks.form.label_list') }}</label>
-                            <select name="list_id" class="form-select">
+                            <select name="list_id" class="form-select" {% if is_synced %}disabled{% endif %}>
                                 {% for list in lists %}
                                 <option value="{{ list.id }}"
                                         {% if (task and task.list_id == list.id) or (not task and loop.first) %}selected{% endif %}>
@@ -361,6 +375,12 @@
                                 </option>
                                 {% endfor %}
                             </select>
+                            {% if is_synced %}
+                            {# A disabled <select> submits nothing -- this hidden twin carries
+                               the actual value through so task_update() still receives list_id
+                               (it's a required-shape Form field) without letting it be edited. #}
+                            <input type="hidden" name="list_id" value="{{ task.list_id }}">
+                            {% endif %}
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">{{ t('tasks.form.label_assigned_to') }}</label>

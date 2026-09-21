@@ -66,6 +66,12 @@ MODULE_DEFAULTS: Dict[str, bool] = {
     # and, once configured, surfaces a cross-reference of member
     # communications inside Parcella -- a club must opt in deliberately.
     "freescout_bridge": False,
+    # Also defaults to False, same reasoning as cloud_storage/freescout_bridge
+    # above: it stores outbound credentials (a Nextcloud Deck app password)
+    # and, once configured, pulls external content (Deck cards) into the
+    # task board automatically via a background poller -- a club must opt
+    # in deliberately.
+    "deck_sync": False,
 }
 
 
