@@ -517,7 +517,7 @@
       "csv_import": "CSV Import",
       "csv_export": "CSV Export",
       "new_member": "Neues Mitglied",
-      "search_placeholder": "Nach Name oder Parzellennummer suchen…",
+      "search_placeholder": "Nach Name, Parzellennummer, E-Mail oder Telefon suchen…",
       "show_inactive": "Nur Inaktive anzeigen",
       "show_pending_only": "Nur ausstehende Bewerbungen",
       "show_active_only": "Nur bestätigt aktive",

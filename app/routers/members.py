@@ -126,13 +126,13 @@ def _filtered_members_query(search: str, include_inactive: bool, pending_only: b
             query = query.where(active_member_filter())
 
     if search:
-        # Searches by first/last name OR parcel number. For the parcel
-        # search: by default only current assignments (who lives there
-        # NOW); with "include_inactive" also already-ended assignments (who
-        # used to live there) -- the same toggle logic as for active/
-        # inactive members, just applied to the parcel's tenant history.
-        # "City" was deliberately removed, since searching by it wasn't
-        # used in practice.
+        # Searches by first/last name, parcel number, email, or phone.
+        # For the parcel search: by default only current assignments (who
+        # lives there NOW); with "include_inactive" also already-ended
+        # assignments (who used to live there) -- the same toggle logic as
+        # for active/inactive members, just applied to the parcel's tenant
+        # history. "City" was deliberately removed, since searching by it
+        # wasn't used in practice.
         parcel_condition = Parcel.plot_number.ilike(f"%{search}%")
         if not include_inactive:
             parcel_condition = and_(
@@ -143,11 +143,21 @@ def _filtered_members_query(search: str, include_inactive: bool, pending_only: b
             .join(Parcel, MemberParcel.parcel_id == Parcel.id)
             .where(parcel_condition)
         )
+        # Matches any of a member's emails/phones (both are one-to-many,
+        # app/models.py), not just the primary one -- same "find this
+        # member no matter which record matches" logic as parcel number
+        # above. No phone-number normalization (no precedent for that
+        # anywhere in this app) -- a plain substring match, same as
+        # everything else here.
+        email_matches = select(MemberEmail.member_id).where(MemberEmail.address.ilike(f"%{search}%"))
+        phone_matches = select(MemberPhone.member_id).where(MemberPhone.number.ilike(f"%{search}%"))
         query = query.where(
             or_(
                 Member.first_name.ilike(f"%{search}%"),
                 Member.last_name.ilike(f"%{search}%"),
                 Member.id.in_(parcel_matches),
+                Member.id.in_(email_matches),
+                Member.id.in_(phone_matches),
             )
         )
 

@@ -517,7 +517,7 @@
       "csv_import": "Import CSV",
       "csv_export": "Eksport CSV",
       "new_member": "Nowy członek",
-      "search_placeholder": "Szukaj po nazwisku lub numerze działki…",
+      "search_placeholder": "Szukaj po nazwisku, numerze działki, e-mailu lub telefonie…",
       "show_inactive": "Pokaż tylko nieaktywnych",
       "show_pending_only": "Tylko oczekujące zgłoszenia",
       "show_active_only": "Tylko potwierdzeni aktywni",

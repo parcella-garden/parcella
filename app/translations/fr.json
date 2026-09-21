@@ -517,7 +517,7 @@
       "csv_import": "Import CSV",
       "csv_export": "Export CSV",
       "new_member": "Nouveau membre",
-      "search_placeholder": "Rechercher par nom ou numéro de parcelle…",
+      "search_placeholder": "Rechercher par nom, numéro de parcelle, e-mail ou téléphone…",
       "show_inactive": "Afficher uniquement les inactifs",
       "show_pending_only": "Candidatures en attente uniquement",
       "show_active_only": "Actifs confirmés uniquement",

@@ -517,7 +517,7 @@
       "csv_import": "CSV-import",
       "csv_export": "CSV-export",
       "new_member": "Nieuw lid",
-      "search_placeholder": "Zoeken op naam of perceelnummer…",
+      "search_placeholder": "Zoeken op naam, perceelnummer, e-mail of telefoon…",
       "show_inactive": "Toon alleen inactieven",
       "show_pending_only": "Alleen in behandeling zijnde aanvragen",
       "show_active_only": "Alleen bevestigd actief",

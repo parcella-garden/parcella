@@ -517,7 +517,7 @@
       "csv_import": "CSV Import",
       "csv_export": "CSV Export",
       "new_member": "New member",
-      "search_placeholder": "Search by name or parcel number…",
+      "search_placeholder": "Search by name, parcel number, email, or phone…",
       "show_inactive": "Show inactive only",
       "show_pending_only": "Pending applications only",
       "show_active_only": "Confirmed active only",

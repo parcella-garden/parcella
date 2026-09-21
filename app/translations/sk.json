@@ -517,7 +517,7 @@
       "csv_import": "CSV import",
       "csv_export": "CSV export",
       "new_member": "Nový člen",
-      "search_placeholder": "Hľadať podľa mena alebo čísla záhradky…",
+      "search_placeholder": "Hľadať podľa mena, čísla záhradky, e-mailu alebo telefónu…",
       "show_inactive": "Zobraziť iba neaktívnych",
       "show_pending_only": "Iba čakajúce prihlášky",
       "show_active_only": "Iba potvrdení aktívni",
