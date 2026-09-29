@@ -1714,12 +1714,13 @@
       "title": "Ogłoszenia",
       "new_button": "Nowe ogłoszenie",
       "col_title": "Tytuł",
-      "col_status": "Status",
       "col_created": "Utworzono",
-      "status_draft": "Szkic",
-      "status_published": "Opublikowano",
-      "status_archived": "Zarchiwizowano",
-      "empty": "Brak ogłoszeń."
+      "empty": "Brak ogłoszeń.",
+      "col_channels": "Kanały",
+      "channel_state_sent": "wykonano",
+      "channel_state_sending": "wysyłanie",
+      "channel_state_failed": "niepowodzenie",
+      "channel_state_none": "jeszcze nie"
     },
     "form": {
       "title": "Ogłoszenie",
@@ -1747,7 +1748,7 @@
       "delivery_failed": "Niepowodzenie",
       "delivery_not_sent": "Jeszcze nie wysłano",
       "send_email_button": "Wyślij teraz",
-      "send_email_confirm": "Wysłać to ogłoszenie e-mailem do wszystkich obecnych członków z włączonymi powiadomieniami e-mail?",
+      "send_email_confirm": "Wysłać to ogłoszenie e-mailem do wszystkich obecnych członków z włączonymi powiadomieniami e-mail? Można to zrobić tylko raz.",
       "save_does_not_send_hint": "Zapisanie tylko przechowuje zmiany -- nic nie zostaje wysłane ani opublikowane. Gdy będziesz gotowy, użyj przycisków poniżej.",
       "test_email_title": "Wyślij e-mail testowy",
       "test_email_hint": "Wysyła bieżącą treść na jeden adres do sprawdzenia. Nigdy nie liczy się jako prawdziwa wysyłka i nigdy nie trafia do członków.",
@@ -1757,7 +1758,7 @@
       "test_email_missing_address": "Podaj adres e-mail.",
       "delivery_sending": "Wysyłanie...",
       "sending_refresh_hint": "W toku -- odśwież stronę, aby zobaczyć aktualny stan.",
-      "blog_edit_draft_link": "Otwórz szkic w WordPress",
+      "blog_edit_draft_link": "Otwórz w WordPress",
       "send_blog_button": "Utwórz szkic",
       "print_generated": "PDF wygenerowany",
       "print_too_long_status": "Za długie na jedną stronę",
@@ -1765,7 +1766,14 @@
       "delete_title": "Usuń ogłoszenie",
       "delete_hint": "Trwale usuwa to ogłoszenie. Można je usunąć niezależnie od statusu (szkic, opublikowane lub zarchiwizowane) czy historii wysyłki.",
       "delete_confirm": "Czy na pewno usunąć to ogłoszenie? Tej operacji nie można cofnąć.",
-      "button_delete": "Usuń ogłoszenie"
+      "button_delete": "Usuń ogłoszenie",
+      "channels_hint": "Każdy kanał jest realizowany raz. Po zmianie treści i zapisaniu można zaktualizować wpis na blogu i PDF; e-mail wysyłany jest tylko raz.",
+      "email_changed_after_send": "Treść zmieniono po wysłaniu e-maila. Członkowie otrzymali wcześniejszą wersję.",
+      "changed_since_delivery": "Treść zmieniona od tego czasu.",
+      "update_blog_button": "Zaktualizuj wpis WordPress",
+      "update_blog_confirm": "Nadpisać tytuł, tekst i obraz istniejącego wpisu WordPress? Zmiany tekstu wprowadzone bezpośrednio w WordPress zostaną utracone; ustawienia SEO, kategorie i status publikacji zostaną zachowane.",
+      "print_download_link": "Pobierz",
+      "print_qr_pending_hint": "Tekst skrócono bez kodu QR, ponieważ wpis na blogu nie był jeszcze publiczny. Po opublikowaniu go w WordPress utwórz PDF ponownie, aby dodać kod QR."
     }
   },
   "inventory": {

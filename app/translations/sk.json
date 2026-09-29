@@ -1714,12 +1714,13 @@
       "title": "Oznamy",
       "new_button": "Nový oznam",
       "col_title": "Názov",
-      "col_status": "Stav",
       "col_created": "Vytvorené",
-      "status_draft": "Koncept",
-      "status_published": "Zverejnené",
-      "status_archived": "Archivované",
-      "empty": "Zatiaľ žiadne oznamy."
+      "empty": "Zatiaľ žiadne oznamy.",
+      "col_channels": "Kanály",
+      "channel_state_sent": "hotovo",
+      "channel_state_sending": "odosiela sa",
+      "channel_state_failed": "zlyhalo",
+      "channel_state_none": "zatiaľ nie"
     },
     "form": {
       "title": "Oznam",
@@ -1747,7 +1748,7 @@
       "delivery_failed": "Zlyhalo",
       "delivery_not_sent": "Zatiaľ neodoslané",
       "send_email_button": "Odoslať teraz",
-      "send_email_confirm": "Odoslať tento oznam e-mailom všetkým aktuálnym členom s povolenými e-mailovými upozorneniami?",
+      "send_email_confirm": "Odoslať tento oznam e-mailom všetkým aktuálnym členom s povolenými e-mailovými upozorneniami? Je to možné iba raz.",
       "save_does_not_send_hint": "Uloženie iba ukladá vaše zmeny -- nič sa tým neodosiela ani nezverejňuje. Keď budete pripravení, použite tlačidlá nižšie.",
       "test_email_title": "Odoslať testovací e-mail",
       "test_email_hint": "Odošle aktuálny obsah na jednu adresu na kontrolu. Nikdy sa nepočíta ako skutočné odoslanie a nikdy nejde členom.",
@@ -1757,7 +1758,7 @@
       "test_email_missing_address": "Zadajte prosím e-mailovú adresu.",
       "delivery_sending": "Odosiela sa...",
       "sending_refresh_hint": "Prebieha -- načítajte stránku znova, aby ste videli aktuálny stav.",
-      "blog_edit_draft_link": "Otvoriť koncept vo WordPress",
+      "blog_edit_draft_link": "Otvoriť vo WordPresse",
       "send_blog_button": "Vytvoriť koncept",
       "print_generated": "PDF vytvorené",
       "print_too_long_status": "Príliš dlhé na jednu stranu",
@@ -1765,7 +1766,14 @@
       "delete_title": "Odstrániť oznámenie",
       "delete_hint": "Trvalo odstráni toto oznámenie. Dá sa odstrániť bez ohľadu na stav (koncept, zverejnené alebo archivované) či históriu odoslania.",
       "delete_confirm": "Naozaj odstrániť toto oznámenie? Túto akciu nemožno vrátiť späť.",
-      "button_delete": "Odstrániť oznámenie"
+      "button_delete": "Odstrániť oznámenie",
+      "channels_hint": "Každý kanál sa vykoná raz. Po zmene obsahu a uložení je možné aktualizovať príspevok na blogu a PDF; e-mail sa odosiela iba raz.",
+      "email_changed_after_send": "Obsah bol zmenený po odoslaní e-mailu. Členovia dostali skoršiu verziu.",
+      "changed_since_delivery": "Obsah sa odvtedy zmenil.",
+      "update_blog_button": "Aktualizovať príspevok WordPress",
+      "update_blog_confirm": "Prepísať názov, text a obrázok existujúceho príspevku WordPress? Úpravy textu vykonané priamo vo WordPresse sa stratia; nastavenia SEO, kategórie a stav publikovania zostanú zachované.",
+      "print_download_link": "Stiahnuť",
+      "print_qr_pending_hint": "Text bol skrátený bez QR kódu, pretože príspevok na blogu ešte nebol verejný. Keď bude vo WordPresse publikovaný, vytvorte PDF znova a QR kód sa pridá."
     }
   },
   "inventory": {

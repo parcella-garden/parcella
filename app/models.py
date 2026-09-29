@@ -1612,14 +1612,6 @@ class CouncilAbsence(Base):
         return f"<CouncilAbsence {self.user_id} {self.start_date}-{self.end_date}>"
 
 
-class AnnouncementStatus(str, enum.Enum):
-    """Lifecycle of an announcement itself (not of any individual channel
-    delivery -- see AnnouncementDelivery for per-channel state)."""
-    DRAFT = "DRAFT"
-    PUBLISHED = "PUBLISHED"
-    ARCHIVED = "ARCHIVED"
-
-
 class AnnouncementChannel(str, enum.Enum):
     BLOG = "BLOG"
     EMAIL = "EMAIL"
@@ -1652,6 +1644,10 @@ class Announcement(Base):
     auto-filled with a shortened version if the full text doesn't fit
     on one printed page, and remains freely hand-editable afterward --
     it is a real editable field, not just a computed preview.
+
+    There is deliberately no overall status (draft/published/...):
+    what has gone out where is entirely per channel, on
+    AnnouncementDelivery -- see docs/ADR/0087.
     """
     __tablename__ = "announcements"
 
@@ -1661,9 +1657,6 @@ class Announcement(Base):
     body_html: Mapped[str] = mapped_column(Text, nullable=False, default="")
     image_filename: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     print_text_override: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    status: Mapped[AnnouncementStatus] = mapped_column(
-        SAEnum(AnnouncementStatus), default=AnnouncementStatus.DRAFT, nullable=False
-    )
     created_by_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
@@ -1691,7 +1684,7 @@ class Announcement(Base):
         return next((d for d in self.deliveries if d.channel == channel), None)
 
     def __repr__(self) -> str:
-        return f"<Announcement {self.title!r} ({self.status.value})>"
+        return f"<Announcement {self.title!r}>"
 
 
 class AnnouncementDelivery(Base):
@@ -1714,6 +1707,20 @@ class AnnouncementDelivery(Base):
     since been published and what its current public URL is, rather
     than storing (and risking a stale) public URL here on the BLOG
     delivery row itself.
+
+    content_fingerprint / image_filename record exactly what content
+    this channel last delivered successfully (see
+    app.announcement_utils.channel_fingerprint). A channel's action is
+    only offered again when the current content differs from that --
+    so saving unchanged text doesn't re-enable anything, and a change
+    to print_text_override only re-enables PRINT. EMAIL never
+    re-enables after a successful send, regardless (ADR 0087).
+
+    pdf_filename (PRINT only) is the stored copy of the last generated
+    PDF, so it can be downloaded again without regenerating.
+    qr_pending (PRINT only) is True when the PDF was shortened but got
+    no QR code because the blog post wasn't public yet -- regenerating
+    once it is public is the one reason to redo an unchanged PDF.
     """
     __tablename__ = "announcement_deliveries"
 
@@ -1735,6 +1742,10 @@ class AnnouncementDelivery(Base):
     # status is FAILED. Kept as one field rather than adding a second
     # column, since only one of these is ever relevant at a time.
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    content_fingerprint: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    image_filename: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    pdf_filename: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    qr_pending: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

@@ -90,3 +90,4 @@ in chronological order.
 84. [Task board: modal editing with a real, unique URL per card](./0084-task-board-modal-editing-with-real-urls.md)
 85. [Task board: per-card change history, via the existing generic audit log](./0085-task-board-change-history-via-change-history.md)
 86. [Generic external task-source sync, Nextcloud Deck as the first provider](./0086-generic-external-task-source-deck-first.md)
+87. [Announcements: no overall status, one action per channel until the content changes](./0087-announcements-no-overall-status-one-action-per-channel.md)

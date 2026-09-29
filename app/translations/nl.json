@@ -1714,12 +1714,13 @@
       "title": "Mededelingen",
       "new_button": "Nieuwe mededeling",
       "col_title": "Titel",
-      "col_status": "Status",
       "col_created": "Aangemaakt",
-      "status_draft": "Concept",
-      "status_published": "Gepubliceerd",
-      "status_archived": "Gearchiveerd",
-      "empty": "Nog geen mededelingen."
+      "empty": "Nog geen mededelingen.",
+      "col_channels": "Kanalen",
+      "channel_state_sent": "gedaan",
+      "channel_state_sending": "wordt verzonden",
+      "channel_state_failed": "mislukt",
+      "channel_state_none": "nog niet"
     },
     "form": {
       "title": "Mededeling",
@@ -1747,7 +1748,7 @@
       "delivery_failed": "Mislukt",
       "delivery_not_sent": "Nog niet verzonden",
       "send_email_button": "Nu verzenden",
-      "send_email_confirm": "Deze mededeling per e-mail versturen naar alle huidige leden met e-mailmeldingen ingeschakeld?",
+      "send_email_confirm": "Deze mededeling per e-mail versturen naar alle huidige leden met e-mailmeldingen ingeschakeld? Dit kan maar één keer.",
       "save_does_not_send_hint": "Opslaan bewaart alleen je wijzigingen -- er wordt niets verzonden of gepubliceerd. Gebruik de knoppen hieronder zodra je klaar bent.",
       "test_email_title": "Test-e-mail versturen",
       "test_email_hint": "Verstuurt de huidige inhoud ter controle naar één adres. Telt nooit als echte verzending en gaat nooit naar leden.",
@@ -1757,7 +1758,7 @@
       "test_email_missing_address": "Voer een e-mailadres in.",
       "delivery_sending": "Bezig met verzenden...",
       "sending_refresh_hint": "Bezig -- laad deze pagina opnieuw voor de actuele stand.",
-      "blog_edit_draft_link": "Concept openen in WordPress",
+      "blog_edit_draft_link": "Openen in WordPress",
       "send_blog_button": "Concept aanmaken",
       "print_generated": "PDF gegenereerd",
       "print_too_long_status": "Te lang voor één pagina",
@@ -1765,7 +1766,14 @@
       "delete_title": "Mededeling verwijderen",
       "delete_hint": "Verwijdert deze mededeling permanent. Kan verwijderd worden ongeacht status (concept, gepubliceerd of gearchiveerd) of verzendgeschiedenis.",
       "delete_confirm": "Deze mededeling echt verwijderen? Dit kan niet ongedaan worden gemaakt.",
-      "button_delete": "Mededeling verwijderen"
+      "button_delete": "Mededeling verwijderen",
+      "channels_hint": "Elk kanaal wordt één keer uitgevoerd. Na een inhoudelijke wijziging en opslaan kunnen het blogbericht en de PDF worden bijgewerkt; de e-mail wordt maar één keer verzonden.",
+      "email_changed_after_send": "De inhoud is gewijzigd nadat de e-mail is verzonden. Leden hebben de eerdere versie ontvangen.",
+      "changed_since_delivery": "Inhoud sindsdien gewijzigd.",
+      "update_blog_button": "WordPress-bericht bijwerken",
+      "update_blog_confirm": "Titel, tekst en afbeelding van het bestaande WordPress-bericht overschrijven? Tekstwijzigingen die rechtstreeks in WordPress zijn gemaakt gaan verloren; SEO-instellingen, categorieën en de publicatiestatus blijven behouden.",
+      "print_download_link": "Downloaden",
+      "print_qr_pending_hint": "De tekst is ingekort zonder QR-code omdat het blogbericht nog niet openbaar was. Zodra het in WordPress is gepubliceerd, maak de PDF opnieuw aan om de QR-code toe te voegen."
     }
   },
   "inventory": {

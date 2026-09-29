@@ -1714,12 +1714,13 @@
       "title": "Announcements",
       "new_button": "New Announcement",
       "col_title": "Title",
-      "col_status": "Status",
       "col_created": "Created",
-      "status_draft": "Draft",
-      "status_published": "Published",
-      "status_archived": "Archived",
-      "empty": "No announcements yet."
+      "empty": "No announcements yet.",
+      "col_channels": "Channels",
+      "channel_state_sent": "done",
+      "channel_state_sending": "sending",
+      "channel_state_failed": "failed",
+      "channel_state_none": "not yet"
     },
     "form": {
       "title": "Announcement",
@@ -1747,7 +1748,7 @@
       "delivery_failed": "Failed",
       "delivery_not_sent": "Not sent yet",
       "send_email_button": "Send now",
-      "send_email_confirm": "Send this announcement by email to all current members with email notifications enabled?",
+      "send_email_confirm": "Send this announcement by email to all current members with email notifications enabled? This can only be done once.",
       "save_does_not_send_hint": "Saving only stores your changes -- it doesn't send or publish anything. Use the buttons below once you're ready.",
       "test_email_title": "Send a test email",
       "test_email_hint": "Sends the current content to one address for review. Never counted as a real send and never goes to members.",
@@ -1757,7 +1758,7 @@
       "test_email_missing_address": "Please enter an email address.",
       "delivery_sending": "Sending...",
       "sending_refresh_hint": "In progress -- reload this page to see the latest count.",
-      "blog_edit_draft_link": "Open draft in WordPress",
+      "blog_edit_draft_link": "Open in WordPress",
       "send_blog_button": "Create draft",
       "print_generated": "PDF generated",
       "print_too_long_status": "Too long for one page",
@@ -1765,7 +1766,14 @@
       "delete_title": "Delete announcement",
       "delete_hint": "Permanently removes this announcement. It stays deletable regardless of status (draft, published, or archived) or delivery history.",
       "delete_confirm": "Really delete this announcement? This cannot be undone.",
-      "button_delete": "Delete announcement"
+      "button_delete": "Delete announcement",
+      "channels_hint": "Each channel is done once. After you change the content and save, the blog post and the PDF can be updated; the email is only sent once.",
+      "email_changed_after_send": "The content was changed after the email went out. Members received the earlier version.",
+      "changed_since_delivery": "Content changed since then.",
+      "update_blog_button": "Update WordPress post",
+      "update_blog_confirm": "Overwrite title, text and image of the existing WordPress post? Text edits made directly in WordPress will be lost; SEO settings, categories and the publish status are kept.",
+      "print_download_link": "Download",
+      "print_qr_pending_hint": "The text was shortened without a QR code because the blog post wasn't public yet. Once it's published in WordPress, create the PDF again to add the QR code."
     }
   },
   "inventory": {

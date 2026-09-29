@@ -46,6 +46,11 @@ class BlogPublishError(Exception):
     AnnouncementDelivery with this message shown to the admin."""
 
 
+class BlogPostNotFoundError(BlogPublishError):
+    """update_post() target no longer exists on the CMS (deleted by
+    hand). The router falls back to creating a fresh draft."""
+
+
 @dataclass
 class BlogDraftResult:
     edit_url: str
@@ -68,6 +73,17 @@ class BlogPublisher:
         image_bytes: Optional[bytes] = None, image_filename: Optional[str] = None,
         image_mime: Optional[str] = None,
     ) -> BlogDraftResult:
+        raise NotImplementedError
+
+    async def update_post(
+        self, post_id: str, title: str, html_content: str,
+        image_bytes: Optional[bytes] = None, image_filename: Optional[str] = None,
+        image_mime: Optional[str] = None, clear_image: bool = False,
+    ) -> BlogDraftResult:
+        """Overwrites title/content (and the featured image, only if
+        image_bytes is given, or removes it with clear_image) of an
+        existing post. Must NOT touch the
+        post's publish status -- see WordPressPublisher.update_post."""
         raise NotImplementedError
 
 
@@ -154,6 +170,47 @@ class WordPressPublisher(BlogPublisher):
         post_id = data["id"]
         edit_url = f"{self.site_url}/wp-admin/post.php?post={post_id}&action=edit"
         return BlogDraftResult(edit_url=edit_url, post_id=post_id)
+
+    async def update_post(
+        self, post_id: str, title: str, html_content: str,
+        image_bytes: Optional[bytes] = None, image_filename: Optional[str] = None,
+        image_mime: Optional[str] = None, clear_image: bool = False,
+    ) -> BlogDraftResult:
+        """Pushes changed announcement content into the SAME WordPress
+        post instead of creating a second one (ADR 0087). The payload
+        deliberately has no "status": a post a human already published
+        in WordPress stays published. Only title, content and -- when
+        the announcement's image changed -- featured_media are sent, so
+        SEO plugin fields (Yoast etc. store theirs as separate post
+        meta), excerpt, categories and tags set in WordPress survive;
+        text edits made directly in WordPress's own editor do not.
+        """
+        client = await self._get_client()
+
+        featured_media_id = None
+        if image_bytes and image_filename and image_mime:
+            featured_media_id = await self._upload_media(client, image_bytes, image_filename, image_mime)
+
+        payload = {"title": title, "content": html_content}
+        if featured_media_id is not None:
+            payload["featured_media"] = featured_media_id
+        elif clear_image:
+            payload["featured_media"] = 0
+
+        try:
+            response = await client.post(
+                f"{self.site_url}/wp-json/wp/v2/posts/{post_id}", headers=self._auth_header(), json=payload,
+            )
+        except httpx.HTTPError as e:
+            raise BlogPublishError(f"Could not reach {self.site_url}: {e}") from e
+
+        if response.status_code in (404, 410):
+            raise BlogPostNotFoundError(f"WordPress post {post_id} no longer exists.")
+        if response.status_code != 200:
+            raise BlogPublishError(f"WordPress rejected the update (HTTP {response.status_code}): {response.text[:200]}")
+
+        edit_url = f"{self.site_url}/wp-admin/post.php?post={post_id}&action=edit"
+        return BlogDraftResult(edit_url=edit_url, post_id=int(post_id))
 
     async def get_public_url_if_published(self, post_id: str) -> Optional[str]:
         """Asks WordPress directly whether this post has been published

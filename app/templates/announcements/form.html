@@ -115,7 +115,10 @@
 <div class="card mt-3">
     <div class="card-body">
         <h6 class="card-title">{{ t('announcements.form.channels_title') }}</h6>
-        <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+        <p class="text-muted" style="font-size: 0.85rem;">{{ t('announcements.form.channels_hint') }}</p>
+        {% set email = channels.EMAIL %}
+        {% set email_delivery = email.delivery %}
+        <div class="d-flex align-items-center justify-content-between py-2 border-bottom gap-2 flex-wrap">
             <div>
                 <i class="bi bi-envelope me-2"></i>{{ t('announcements.form.channel_email') }}
                 {% if email_delivery %}
@@ -133,21 +136,26 @@
                     {% if email_delivery.error_message %}
                     <div class="text-muted" style="font-size: 0.8rem;">{{ email_delivery.error_message }}</div>
                     {% endif %}
+                    {% if email.changed %}
+                    <div class="text-muted" style="font-size: 0.8rem;"><i class="bi bi-info-circle"></i> {{ t('announcements.form.email_changed_after_send') }}</div>
+                    {% endif %}
                 {% else %}
                 <span class="badge ms-2" style="background: #e5e7eb; color: #4b5563;">{{ t('announcements.form.delivery_not_sent') }}</span>
                 {% endif %}
             </div>
             {% if email_delivery and email_delivery.status.value == 'SENDING' %}
             <span class="text-muted" style="font-size: 0.8rem;">{{ t('announcements.form.sending_refresh_hint') }}</span>
-            {% else %}
+            {% elif email.available %}
             <form method="post" action="/announcements/{{ announcement.id }}/send/email"
-                  onsubmit="return confirm('{{ t('announcements.form.send_email_confirm') }}');">
+                  onsubmit="return confirm({{ t('announcements.form.send_email_confirm')|tojson|forceescape }});">
                 {{ csrf_field() }}
                 <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('announcements.form.send_email_button') }}</button>
             </form>
             {% endif %}
         </div>
-        <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+        {% set blog = channels.BLOG %}
+        {% set blog_delivery = blog.delivery %}
+        <div class="d-flex align-items-center justify-content-between py-2 border-bottom gap-2 flex-wrap">
             <div>
                 <i class="bi bi-wordpress me-2"></i>{{ t('announcements.form.channel_blog') }}
                 {% if blog_delivery %}
@@ -160,36 +168,61 @@
                     {% if blog_delivery.error_message %}
                     <div class="text-muted" style="font-size: 0.8rem;">{{ blog_delivery.error_message }}</div>
                     {% endif %}
+                    {% if blog.changed %}
+                    <div class="text-muted" style="font-size: 0.8rem;"><i class="bi bi-pencil"></i> {{ t('announcements.form.changed_since_delivery') }}</div>
+                    {% endif %}
                 {% else %}
                 <span class="badge ms-2" style="background: #e5e7eb; color: #4b5563;">{{ t('announcements.form.delivery_not_sent') }}</span>
                 {% endif %}
             </div>
+            {% if blog.available %}
+            {% if blog_delivery and blog_delivery.external_id %}
+            <form method="post" action="/announcements/{{ announcement.id }}/send/blog"
+                  onsubmit="return confirm({{ t('announcements.form.update_blog_confirm')|tojson|forceescape }});">
+                {{ csrf_field() }}
+                <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('announcements.form.update_blog_button') }}</button>
+            </form>
+            {% else %}
             <form method="post" action="/announcements/{{ announcement.id }}/send/blog">
                 {{ csrf_field() }}
                 <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('announcements.form.send_blog_button') }}</button>
             </form>
+            {% endif %}
+            {% endif %}
         </div>
-        <div class="d-flex align-items-center justify-content-between py-2">
+        {% set print = channels.PRINT %}
+        {% set print_delivery = print.delivery %}
+        <div class="d-flex align-items-center justify-content-between py-2 gap-2 flex-wrap">
             <div>
                 <i class="bi bi-printer me-2"></i>{{ t('announcements.form.channel_print') }}
                 {% if print_delivery %}
                     {% if print_delivery.status.value == 'SENT' %}
                     <span class="badge badge-aktiv ms-2">{{ t('announcements.form.print_generated') }}</span>
                     <span class="text-muted ms-1" style="font-size: 0.85rem;">{{ print_delivery.sent_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    {% if print_delivery.pdf_filename %}
+                    <a href="/announcements/{{ announcement.id }}/print/download" class="ms-2" style="font-size: 0.85rem;"><i class="bi bi-download"></i> {{ t('announcements.form.print_download_link') }}</a>
+                    {% endif %}
                     {% else %}
                     <span class="badge ms-2" style="background: #fee2e2; color: #991b1b;">{{ t('announcements.form.print_too_long_status') }}</span>
                     {% endif %}
                     {% if print_delivery.error_message %}
                     <div class="text-muted" style="font-size: 0.8rem;">{{ print_delivery.error_message }}</div>
                     {% endif %}
+                    {% if print.changed %}
+                    <div class="text-muted" style="font-size: 0.8rem;"><i class="bi bi-pencil"></i> {{ t('announcements.form.changed_since_delivery') }}</div>
+                    {% elif print.available and print_delivery.qr_pending %}
+                    <div class="text-muted" style="font-size: 0.8rem;"><i class="bi bi-qr-code"></i> {{ t('announcements.form.print_qr_pending_hint') }}</div>
+                    {% endif %}
                 {% else %}
                 <span class="badge ms-2" style="background: #e5e7eb; color: #4b5563;">{{ t('announcements.form.delivery_not_sent') }}</span>
                 {% endif %}
             </div>
+            {% if print.available %}
             <form method="post" action="/announcements/{{ announcement.id }}/print">
                 {{ csrf_field() }}
                 <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('announcements.form.print_generate_button') }}</button>
             </form>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -199,7 +232,7 @@
         <h6 class="card-title text-danger">{{ t('announcements.form.delete_title') }}</h6>
         <p class="text-muted" style="font-size: 0.85rem;">{{ t('announcements.form.delete_hint') }}</p>
         <form method="post" action="/announcements/{{ announcement.id }}/delete"
-              onsubmit="return confirm('{{ t('announcements.form.delete_confirm') }}');">
+              onsubmit="return confirm({{ t('announcements.form.delete_confirm')|tojson|forceescape }});">
             {{ csrf_field() }}
             <button type="submit" class="btn btn-danger">
                 <i class="bi bi-trash me-1"></i>{{ t('announcements.form.button_delete') }}

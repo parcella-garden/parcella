@@ -2,15 +2,19 @@
 Announcements module router.
 
 Authoring an Announcement (title, Markdown body, optional image,
-optional print override) and its lifecycle (draft/published/archived),
-plus all three delivery channels:
+optional print override), plus all three delivery channels. There is
+no announcement-level status: each channel's AnnouncementDelivery says
+what went out, and a channel's action is only offered while it has
+something new to do (see _channel_action_available, ADR 0087):
 - email: a paced real send to current members
   (app.announcement_mailer.run_paced_email_send, run as a background
   task so a large roster doesn't hold the request open) and a one-off
   test send to a single address for review before committing to the
   real thing.
 - blog: publishes a draft post to WordPress (app.blog_publisher),
-  using whatever credentials are configured under Admin -> Integrations.
+  using whatever credentials are configured under Admin -> Integrations;
+  after a content change, updates that same post instead of creating
+  a second one.
 - print: renders a one-page branded PDF (app.print_publisher),
   auto-shortening the text and adding a QR code if it doesn't fit as-is
   -- see app.print_publisher's module docstring for the full logic.
@@ -26,18 +30,18 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Request, Depends, HTTPException, UploadFile, BackgroundTasks, Response
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
-from app.models import Announcement, AnnouncementStatus, AnnouncementChannel, AnnouncementDeliveryStatus
+from app.models import Announcement, AnnouncementDelivery, AnnouncementChannel, AnnouncementDeliveryStatus
 from app.auth import require_admin
 from app.module_flags import require_module
-from app.announcement_utils import render_markdown_to_html, likely_fits_one_print_page
+from app.announcement_utils import render_markdown_to_html, likely_fits_one_print_page, channel_fingerprint
 from app.announcement_mailer import start_paced_email_send, run_paced_email_send, send_test_email
-from app.blog_publisher import get_wordpress_publisher, BlogPublishError
+from app.blog_publisher import get_wordpress_publisher, BlogPublishError, BlogPostNotFoundError
 from app.print_publisher import render_announcement_print_pdf, PrintTooLongError
 from app.branding import load_branding
 from app.pdf_chrome import load_org_footer_context
@@ -57,6 +61,11 @@ ALLOWED_IMAGE_TYPES = {
     "image/webp": ".webp",
 }
 MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB
+# Stored copies of generated print PDFs (download again without
+# regenerating). Under static/uploads/ because that's the one persisted
+# data directory (ADR 0077); names are random uuids, and the content is
+# a notice meant for the club's notice board anyway.
+PRINT_PDF_DIR = Path("app/static/uploads/announcements/print")
 
 
 async def _save_announcement_image(file: UploadFile) -> str:
@@ -90,6 +99,95 @@ def _delete_announcement_image(filename: Optional[str]) -> None:
             pass
 
 
+def _delete_print_pdf(filename: Optional[str]) -> None:
+    if not filename:
+        return
+    path = PRINT_PDF_DIR / filename
+    if path.exists():
+        try:
+            path.unlink()
+        except OSError:
+            pass
+
+
+def _current_fingerprint(announcement: Announcement, channel: AnnouncementChannel) -> str:
+    return channel_fingerprint(
+        channel.name, announcement.title, announcement.body_markdown, announcement.print_text_override,
+    )
+
+
+def _content_changed_since(announcement: Announcement, delivery: AnnouncementDelivery) -> bool:
+    return (
+        delivery.content_fingerprint != _current_fingerprint(announcement, delivery.channel)
+        or delivery.image_filename != announcement.image_filename
+    )
+
+
+def _record_delivered_content(announcement: Announcement, delivery: AnnouncementDelivery) -> None:
+    delivery.content_fingerprint = _current_fingerprint(announcement, delivery.channel)
+    delivery.image_filename = announcement.image_filename
+
+
+def _channel_action_available(announcement: Announcement, channel: AnnouncementChannel) -> bool:
+    """Whether a channel's action button (send email / create-or-update
+    blog post / create PDF) makes sense right now -- enforced here on
+    the server too, not just by hiding the button (ADR 0087):
+
+    - never attempted, or last attempt FAILED -> yes (first try / retry)
+    - SENDING -> no
+    - EMAIL, SENT -> never again: every member already has it, and a
+      second full send is not something to offer after an edit.
+    - BLOG, SENT -> only once title/body/image changed since.
+    - PRINT, SENT -> once title/body/print text/image changed since,
+      when the stored PDF is gone, or when it was shortened without a
+      QR code and a blog post exists that may since have been published.
+    """
+    delivery = announcement.delivery_for(channel)
+    if delivery is None or delivery.status == AnnouncementDeliveryStatus.FAILED:
+        return True
+    if delivery.status != AnnouncementDeliveryStatus.SENT:
+        return False
+    if channel == AnnouncementChannel.EMAIL:
+        return False
+    if _content_changed_since(announcement, delivery):
+        return True
+    if channel == AnnouncementChannel.PRINT:
+        if not delivery.pdf_filename or not (PRINT_PDF_DIR / delivery.pdf_filename).exists():
+            return True
+        blog_delivery = announcement.delivery_for(AnnouncementChannel.BLOG)
+        if delivery.qr_pending and blog_delivery is not None and blog_delivery.status == AnnouncementDeliveryStatus.SENT:
+            return True
+    return False
+
+
+def _require_channel_action_available(announcement: Announcement, channel: AnnouncementChannel) -> None:
+    if not _channel_action_available(announcement, channel):
+        raise HTTPException(status_code=409, detail="Nothing new to deliver on this channel")
+
+
+def _form_context(announcement: Optional[Announcement]) -> dict:
+    """Template context for the edit form's channel section. Also used
+    when re-rendering the form after a validation error, so the page
+    looks the same either way."""
+    if announcement is None:
+        return {}
+    channels = {}
+    for channel in AnnouncementChannel:
+        delivery = announcement.delivery_for(channel)
+        channels[channel.name] = {
+            "delivery": delivery,
+            "available": _channel_action_available(announcement, channel),
+            "changed": delivery is not None and delivery.status == AnnouncementDeliveryStatus.SENT
+                       and _content_changed_since(announcement, delivery),
+        }
+    return {
+        "channels": channels,
+        "fits_one_page": likely_fits_one_print_page(
+            announcement.print_text_override or announcement.body_markdown
+        ),
+    }
+
+
 async def _get_announcement_or_404(db: AsyncSession, announcement_id: str) -> Announcement:
     result = await db.execute(
         select(Announcement)
@@ -109,7 +207,10 @@ async def _get_announcement_or_404(db: AsyncSession, announcement_id: str) -> An
 @router.get("/", response_class=HTMLResponse)
 async def announcement_list(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_admin(request, db)
-    result = await db.execute(select(Announcement).order_by(Announcement.created_at.desc()))
+    result = await db.execute(
+        select(Announcement).options(selectinload(Announcement.deliveries))
+        .order_by(Announcement.created_at.desc())
+    )
     announcements = result.scalars().all()
     return templates.TemplateResponse("announcements/list.html", {
         "request": request, "user": user, "announcements": announcements,
@@ -161,7 +262,6 @@ async def announcement_create(
         body_markdown=body_markdown,
         body_html=render_markdown_to_html(body_markdown),
         image_filename=image_filename,
-        status=AnnouncementStatus.DRAFT,
         created_by_id=user.id,
     )
     db.add(announcement)
@@ -180,15 +280,9 @@ async def announcement_edit_form(
 ):
     user = await require_admin(request, db)
     announcement = await _get_announcement_or_404(db, announcement_id)
-    fits_one_page = likely_fits_one_print_page(
-        announcement.print_text_override or announcement.body_markdown
-    )
     return templates.TemplateResponse("announcements/form.html", {
-        "request": request, "user": user, "announcement": announcement,
-        "fits_one_page": fits_one_page, "error": None,
-        "email_delivery": announcement.delivery_for(AnnouncementChannel.EMAIL),
-        "blog_delivery": announcement.delivery_for(AnnouncementChannel.BLOG),
-        "print_delivery": announcement.delivery_for(AnnouncementChannel.PRINT),
+        "request": request, "user": user, "announcement": announcement, "error": None,
+        **_form_context(announcement),
         "test_email_result": request.query_params.get("test_email_result"),
         "test_email_address": request.query_params.get("test_email_address"),
     })
@@ -211,7 +305,7 @@ async def announcement_update(
     if not title or not body_markdown:
         return templates.TemplateResponse("announcements/form.html", {
             "request": request, "user": user, "announcement": announcement,
-            "error": "missing_fields",
+            "error": "missing_fields", **_form_context(announcement),
         }, status_code=400)
 
     if remove_image:
@@ -225,7 +319,7 @@ async def announcement_update(
         except ValueError as e:
             return templates.TemplateResponse("announcements/form.html", {
                 "request": request, "user": user, "announcement": announcement,
-                "error": str(e),
+                "error": str(e), **_form_context(announcement),
             }, status_code=400)
 
     announcement.title = title
@@ -249,14 +343,12 @@ async def announcement_send_email(
     await require_admin(request, db)
     announcement = await _get_announcement_or_404(db, announcement_id)
 
-    if announcement.status == AnnouncementStatus.ARCHIVED:
-        raise HTTPException(status_code=400, detail="Cannot send an archived announcement")
+    # 409 both while a send is in progress and after a successful one --
+    # the email goes out once (ADR 0087); only a FAILED send can be retried.
+    _require_channel_action_available(announcement, AnnouncementChannel.EMAIL)
 
-    existing_delivery = announcement.delivery_for(AnnouncementChannel.EMAIL)
-    if existing_delivery is not None and existing_delivery.status == AnnouncementDeliveryStatus.SENDING:
-        raise HTTPException(status_code=409, detail="A send is already in progress for this announcement")
-
-    _delivery, recipient_count = await start_paced_email_send(announcement, db)
+    delivery, recipient_count = await start_paced_email_send(announcement, db)
+    _record_delivered_content(announcement, delivery)
     await db.commit()
 
     if recipient_count > 0:
@@ -315,13 +407,10 @@ async def announcement_send_blog(
 ):
     await require_admin(request, db)
     announcement = await _get_announcement_or_404(db, announcement_id)
-
-    if announcement.status == AnnouncementStatus.ARCHIVED:
-        raise HTTPException(status_code=400, detail="Cannot send an archived announcement")
+    _require_channel_action_available(announcement, AnnouncementChannel.BLOG)
 
     delivery = announcement.delivery_for(AnnouncementChannel.BLOG)
     if delivery is None:
-        from app.models import AnnouncementDelivery
         delivery = AnnouncementDelivery(announcement_id=announcement.id, channel=AnnouncementChannel.BLOG)
         db.add(delivery)
 
@@ -336,14 +425,32 @@ async def announcement_send_blog(
     image_bytes, image_filename, image_mime = _read_announcement_image(announcement)
 
     try:
-        result = await publisher.publish_draft(
-            title=announcement.title, html_content=announcement.body_html,
-            image_bytes=image_bytes, image_filename=image_filename, image_mime=image_mime,
-        )
+        result = None
+        if delivery.external_id:
+            # A post already exists: update it in place rather than
+            # leaving a duplicate behind in WordPress. The image is only
+            # re-uploaded if it changed, so an unchanged one doesn't pile
+            # up copies in the WordPress media library.
+            image_changed = delivery.image_filename != announcement.image_filename
+            try:
+                result = await publisher.update_post(
+                    delivery.external_id, title=announcement.title, html_content=announcement.body_html,
+                    image_bytes=image_bytes if image_changed else None,
+                    image_filename=image_filename, image_mime=image_mime,
+                    clear_image=image_changed and image_bytes is None,
+                )
+            except BlogPostNotFoundError:
+                result = None  # deleted in WordPress by hand -- start over below
+        if result is None:
+            result = await publisher.publish_draft(
+                title=announcement.title, html_content=announcement.body_html,
+                image_bytes=image_bytes, image_filename=image_filename, image_mime=image_mime,
+            )
         delivery.status = AnnouncementDeliveryStatus.SENT
         delivery.external_reference = result.edit_url
         delivery.external_id = str(result.post_id)
         delivery.error_message = None
+        _record_delivered_content(announcement, delivery)
     except BlogPublishError as e:
         delivery.status = AnnouncementDeliveryStatus.FAILED
         delivery.error_message = str(e)
@@ -384,13 +491,10 @@ async def announcement_generate_print_pdf(
 ):
     await require_admin(request, db)
     announcement = await _get_announcement_or_404(db, announcement_id)
-
-    if announcement.status == AnnouncementStatus.ARCHIVED:
-        raise HTTPException(status_code=400, detail="Cannot generate a print PDF for an archived announcement")
+    _require_channel_action_available(announcement, AnnouncementChannel.PRINT)
 
     delivery = announcement.delivery_for(AnnouncementChannel.PRINT)
     if delivery is None:
-        from app.models import AnnouncementDelivery
         delivery = AnnouncementDelivery(announcement_id=announcement.id, channel=AnnouncementChannel.PRINT)
         db.add(delivery)
 
@@ -412,8 +516,19 @@ async def announcement_generate_print_pdf(
         await db.commit()
         return RedirectResponse(url=f"/announcements/{announcement.id}/edit", status_code=303)
 
+    PRINT_PDF_DIR.mkdir(parents=True, exist_ok=True)
+    pdf_filename = f"{uuid.uuid4()}.pdf"
+    (PRINT_PDF_DIR / pdf_filename).write_bytes(result.pdf_bytes)
+    _delete_print_pdf(delivery.pdf_filename)
+    delivery.pdf_filename = pdf_filename
+
     delivery.status = AnnouncementDeliveryStatus.SENT
     delivery.sent_at = datetime.now(timezone.utc)
+    # Recorded after rendering: a render that had to shorten the text
+    # has just auto-filled print_text_override, and that shortened
+    # version is what this PDF actually contains.
+    _record_delivered_content(announcement, delivery)
+    delivery.qr_pending = result.was_shortened and not result.qr_included
     if result.was_shortened and result.qr_included:
         delivery.error_message = "Text was shortened automatically to fit one page; a QR code linking to the published blog post was added."
     elif result.was_shortened:
@@ -422,28 +537,37 @@ async def announcement_generate_print_pdf(
         delivery.error_message = None
     await db.commit()
 
-    filename = f"{announcement.title[:50].strip().replace(' ', '_') or 'announcement'}.pdf"
     return Response(
         content=result.pdf_bytes,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={"Content-Disposition": f'attachment; filename="{_print_pdf_download_name(announcement)}"'},
+    )
+
+
+def _print_pdf_download_name(announcement: Announcement) -> str:
+    return f"{announcement.title[:50].strip().replace(' ', '_') or 'announcement'}.pdf"
+
+
+@router.get("/{announcement_id}/print/download")
+async def announcement_download_print_pdf(
+    announcement_id: str, request: Request, db: AsyncSession = Depends(get_db),
+):
+    """The last generated PDF, as stored -- no regeneration, so it's
+    byte-identical to what was printed."""
+    await require_admin(request, db)
+    announcement = await _get_announcement_or_404(db, announcement_id)
+    delivery = announcement.delivery_for(AnnouncementChannel.PRINT)
+    if delivery is None or not delivery.pdf_filename or not (PRINT_PDF_DIR / delivery.pdf_filename).exists():
+        raise HTTPException(status_code=404, detail="No stored PDF for this announcement")
+    return FileResponse(
+        PRINT_PDF_DIR / delivery.pdf_filename, media_type="application/pdf",
+        filename=_print_pdf_download_name(announcement),
     )
 
 
 # ---------------------------------------------------------------------------
-# Status changes / delete
+# Delete
 # ---------------------------------------------------------------------------
-
-@router.post("/{announcement_id}/archive")
-async def announcement_archive(
-    announcement_id: str, request: Request, db: AsyncSession = Depends(get_db),
-):
-    await require_admin(request, db)
-    announcement = await _get_announcement_or_404(db, announcement_id)
-    announcement.status = AnnouncementStatus.ARCHIVED
-    await db.commit()
-    return RedirectResponse(url="/announcements/", status_code=303)
-
 
 @router.post("/{announcement_id}/delete")
 async def announcement_delete(
@@ -452,6 +576,9 @@ async def announcement_delete(
     await require_admin(request, db)
     announcement = await _get_announcement_or_404(db, announcement_id)
     _delete_announcement_image(announcement.image_filename)
+    print_delivery = announcement.delivery_for(AnnouncementChannel.PRINT)
+    if print_delivery is not None:
+        _delete_print_pdf(print_delivery.pdf_filename)
     await db.delete(announcement)
     await db.commit()
     return RedirectResponse(url="/announcements/", status_code=303)

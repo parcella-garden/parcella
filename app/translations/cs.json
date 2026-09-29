@@ -1714,12 +1714,13 @@
       "title": "Oznámení",
       "new_button": "Nové oznámení",
       "col_title": "Název",
-      "col_status": "Stav",
       "col_created": "Vytvořeno",
-      "status_draft": "Koncept",
-      "status_published": "Zveřejněno",
-      "status_archived": "Archivováno",
-      "empty": "Zatím žádná oznámení."
+      "empty": "Zatím žádná oznámení.",
+      "col_channels": "Kanály",
+      "channel_state_sent": "hotovo",
+      "channel_state_sending": "odesílá se",
+      "channel_state_failed": "selhalo",
+      "channel_state_none": "zatím ne"
     },
     "form": {
       "title": "Oznámení",
@@ -1747,7 +1748,7 @@
       "delivery_failed": "Selhalo",
       "delivery_not_sent": "Zatím neodesláno",
       "send_email_button": "Odeslat nyní",
-      "send_email_confirm": "Odeslat toto oznámení e-mailem všem aktuálním členům s povolenými e-mailovými upozorněními?",
+      "send_email_confirm": "Odeslat toto oznámení e-mailem všem aktuálním členům s povolenými e-mailovými upozorněními? Lze to provést pouze jednou.",
       "save_does_not_send_hint": "Uložení pouze ukládá vaše změny -- nic se tím neodesílá ani nezveřejňuje. Jakmile budete připraveni, použijte tlačítka níže.",
       "test_email_title": "Odeslat testovací e-mail",
       "test_email_hint": "Odešle aktuální obsah na jednu adresu ke kontrole. Nikdy se nepočítá jako skutečné odeslání a nikdy nejde členům.",
@@ -1757,7 +1758,7 @@
       "test_email_missing_address": "Zadejte prosím e-mailovou adresu.",
       "delivery_sending": "Odesílá se...",
       "sending_refresh_hint": "Probíhá -- načtěte stránku znovu, abyste viděli aktuální stav.",
-      "blog_edit_draft_link": "Otevřít koncept ve WordPress",
+      "blog_edit_draft_link": "Otevřít ve WordPressu",
       "send_blog_button": "Vytvořit koncept",
       "print_generated": "PDF vytvořeno",
       "print_too_long_status": "Příliš dlouhé na jednu stránku",
@@ -1765,7 +1766,14 @@
       "delete_title": "Smazat oznámení",
       "delete_hint": "Trvale odstraní toto oznámení. Lze smazat bez ohledu na stav (koncept, publikováno nebo archivováno) či historii odeslání.",
       "delete_confirm": "Opravdu smazat toto oznámení? Tuto akci nelze vrátit zpět.",
-      "button_delete": "Smazat oznámení"
+      "button_delete": "Smazat oznámení",
+      "channels_hint": "Každý kanál se provede jednou. Po změně obsahu a uložení lze aktualizovat příspěvek na blogu a PDF; e-mail se odesílá jen jednou.",
+      "email_changed_after_send": "Obsah byl změněn po odeslání e-mailu. Členové obdrželi dřívější verzi.",
+      "changed_since_delivery": "Obsah se od té doby změnil.",
+      "update_blog_button": "Aktualizovat příspěvek WordPress",
+      "update_blog_confirm": "Přepsat název, text a obrázek stávajícího příspěvku WordPress? Úpravy textu provedené přímo ve WordPressu budou ztraceny; nastavení SEO, kategorie a stav publikace zůstanou zachovány.",
+      "print_download_link": "Stáhnout",
+      "print_qr_pending_hint": "Text byl zkrácen bez QR kódu, protože příspěvek na blogu ještě nebyl veřejný. Jakmile bude ve WordPressu publikován, vytvořte PDF znovu a QR kód se přidá."
     }
   },
   "inventory": {

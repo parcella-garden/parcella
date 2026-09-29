@@ -2,7 +2,8 @@
 Tests for the announcements module foundation (see
 docs/module-announcements.md): authoring an Announcement (Markdown body,
 image, optional print override) and its module-flag gating. Sending to
-channels (blog/email/PDF) is not built yet, so not tested here.
+channels (blog/email/PDF) and when each channel's action is offered
+again (ADR 0087) are covered further down.
 
 Uses the web UI's cookie-based session login, since the announcements
 router is a traditional web-form router (same reasoning as
@@ -10,7 +11,16 @@ tests/test_calendar.py), plus the JWT API to toggle the module flag
 (same pattern as tests/test_public_api.py, since "announcements" also
 defaults to False).
 """
+import pytest
+
 from tests.conftest import login, auth_header
+
+
+@pytest.fixture(autouse=True)
+def _print_pdfs_in_tmp(monkeypatch, tmp_path):
+    # Generated print PDFs are stored on disk now (ADR 0087); keep them
+    # out of the real, shared app/static/uploads/ directory.
+    monkeypatch.setattr("app.routers.announcements.PRINT_PDF_DIR", tmp_path / "print")
 
 
 async def web_login(client, email: str, password: str = "testpasswort123") -> None:
@@ -66,7 +76,6 @@ async def test_create_and_edit_announcement(client, admin_user):
         result = await session.execute(select(Announcement).where(Announcement.id == announcement_id))
         announcement = result.scalar_one()
         assert "<strong>Saturday</strong>" in announcement.body_html
-        assert announcement.status.value == "DRAFT"
 
     update = await client.post(
         edit_url,
@@ -339,24 +348,6 @@ async def test_send_email_partial_failure_still_counts_as_sent(client, admin_use
         delivery = announcement.delivery_for(AnnouncementChannel.EMAIL)
         assert delivery.status.value == "SENT"
         assert "1 of 2" in delivery.error_message
-
-
-async def test_archived_announcement_cannot_be_sent(client, admin_user):
-    token = await login(client, "admin@example.com")
-    await _enable_module(client, auth_header(token))
-    await web_login(client, "admin@example.com")
-
-    create = await client.post(
-        "/announcements/new",
-        data={"title": "Old news", "body_markdown": "Content."},
-    )
-    announcement_id = create.headers["location"].split("/")[2]
-
-    archive = await client.post(f"/announcements/{announcement_id}/archive")
-    assert archive.status_code == 303
-
-    send = await client.post(f"/announcements/{announcement_id}/send/email")
-    assert send.status_code == 400
 
 
 async def test_email_send_is_paced_in_batches(client, admin_user, monkeypatch):
@@ -1144,18 +1135,252 @@ async def test_generate_print_pdf_too_long_is_marked_failed_without_pdf(client, 
         assert "shorten" in delivery.error_message.lower()
 
 
-async def test_generate_print_pdf_rejects_archived_announcement(client, admin_user):
+# ---------------------------------------------------------------------------
+# One action per channel, offered again only when there's something new
+# to deliver (ADR 0087 -- replaces the old draft/published/archived
+# status, which never left "draft").
+# ---------------------------------------------------------------------------
+
+async def _load_announcement(announcement_id):
+    from app.database import AsyncSessionLocal
+    from app.models import Announcement
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
+
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(Announcement).where(Announcement.id == announcement_id)
+            .options(selectinload(Announcement.deliveries))
+        )
+        return result.scalar_one()
+
+
+async def _setup_announcement(client, title="Channel test", body="Content."):
     token = await login(client, "admin@example.com")
     await _enable_module(client, auth_header(token))
     await web_login(client, "admin@example.com")
+    create = await client.post("/announcements/new", data={"title": title, "body_markdown": body})
+    return token, create.headers["location"].split("/")[2]
+
+
+def _recording_wordpress_transport(requests_seen, *, existing_post_status=200):
+    """Like _wordpress_mock_transport, but also handles updates to an
+    existing post (/posts/<id>) and records every request made."""
+    import httpx as httpx_module
+    import json as json_module
+
+    def handler(request: httpx_module.Request) -> httpx_module.Response:
+        body = json_module.loads(request.content) if request.headers.get("content-type") == "application/json" else None
+        requests_seen.append((request.method, request.url.path, body))
+        if request.url.path == "/wp-json/wp/v2/media":
+            return httpx_module.Response(201, json={"id": 42})
+        if request.url.path == "/wp-json/wp/v2/posts":
+            return httpx_module.Response(201, json={"id": 99})
+        if request.url.path.startswith("/wp-json/wp/v2/posts/"):
+            post_id = int(request.url.path.rsplit("/", 1)[1])
+            if existing_post_status != 200:
+                return httpx_module.Response(existing_post_status, json={"code": "rest_post_invalid_id"})
+            return httpx_module.Response(200, json={"id": post_id})
+        return httpx_module.Response(404, text="not found")
+
+    return httpx_module.MockTransport(handler)
+
+
+def _patch_wordpress(monkeypatch, transport):
+    import httpx as httpx_module
+    mock_client = httpx_module.AsyncClient(transport=transport)
+
+    async def fake_get_wordpress_publisher(db, client=None):
+        from app.blog_publisher import WordPressPublisher
+        return WordPressPublisher(
+            site_url="https://blog.example.com", username="board",
+            application_password="abcd 1234 efgh 5678", client=mock_client,
+        )
+
+    monkeypatch.setattr("app.routers.announcements.get_wordpress_publisher", fake_get_wordpress_publisher)
+    return mock_client
+
+
+async def test_email_is_sent_only_once_even_after_an_edit(client, admin_user, monkeypatch):
+    _token, announcement_id = await _setup_announcement(client)
+
+    from app.database import AsyncSessionLocal
+    async with AsyncSessionLocal() as session:
+        await _create_resident_with_email(session, plot_number="E1", email="once@example.com")
+
+    sent_to = []
+
+    async def fake_send_email(empfaenger, betreff, html_body, text_body=None, db=None):
+        sent_to.append(empfaenger)
+        return True
+
+    monkeypatch.setattr("app.announcement_mailer.send_email", fake_send_email)
+
+    assert (await client.post(f"/announcements/{announcement_id}/send/email")).status_code == 303
+    assert sent_to == ["once@example.com"]
+
+    page = await client.get(f"/announcements/{announcement_id}/edit")
+    assert f"/announcements/{announcement_id}/send/email" not in page.text
+
+    # Changing the content does not bring the email back.
+    await client.post(f"/announcements/{announcement_id}/edit", data={"title": "Channel test", "body_markdown": "Changed."})
+    page = await client.get(f"/announcements/{announcement_id}/edit")
+    assert f"/announcements/{announcement_id}/send/email" not in page.text
+
+    second = await client.post(f"/announcements/{announcement_id}/send/email")
+    assert second.status_code == 409
+    assert sent_to == ["once@example.com"]
+
+
+async def test_failed_email_send_can_be_retried(client, admin_user, monkeypatch):
+    _token, announcement_id = await _setup_announcement(client)
+
+    # No recipients yet -> FAILED.
+    assert (await client.post(f"/announcements/{announcement_id}/send/email")).status_code == 303
+    announcement = await _load_announcement(announcement_id)
+    from app.models import AnnouncementChannel
+    assert announcement.delivery_for(AnnouncementChannel.EMAIL).status.value == "FAILED"
+
+    page = await client.get(f"/announcements/{announcement_id}/edit")
+    assert f"/announcements/{announcement_id}/send/email" in page.text
+
+
+async def test_blog_is_updated_in_place_only_after_a_content_change(client, admin_user, monkeypatch, tmp_path):
+    monkeypatch.setattr("app.routers.announcements.UPLOAD_DIR", tmp_path)
+    token, _ = await _setup_announcement(client)
+    await _configure_wordpress(client, auth_header(token))
 
     create = await client.post(
         "/announcements/new",
-        data={"title": "Alt", "body_markdown": "Content."},
+        data={"title": "Compost", "body_markdown": "Old text."},
+        files={"image": ("bins.png", _TINY_PNG_BYTES, "image/png")},
     )
     announcement_id = create.headers["location"].split("/")[2]
 
-    await client.post(f"/announcements/{announcement_id}/archive")
+    requests_seen = []
+    mock_client = _patch_wordpress(monkeypatch, _recording_wordpress_transport(requests_seen))
 
-    response = await client.post(f"/announcements/{announcement_id}/print")
-    assert response.status_code == 400
+    assert (await client.post(f"/announcements/{announcement_id}/send/blog")).status_code == 303
+    assert [(m, p) for m, p, _ in requests_seen] == [("POST", "/wp-json/wp/v2/media"), ("POST", "/wp-json/wp/v2/posts")]
+
+    # Nothing changed -> no button, and the server refuses too.
+    page = await client.get(f"/announcements/{announcement_id}/edit")
+    assert f"/announcements/{announcement_id}/send/blog" not in page.text
+    assert (await client.post(f"/announcements/{announcement_id}/send/blog")).status_code == 409
+
+    # Saving without any change doesn't count as a change either.
+    await client.post(f"/announcements/{announcement_id}/edit", data={"title": "Compost", "body_markdown": "Old text."})
+    assert (await client.post(f"/announcements/{announcement_id}/send/blog")).status_code == 409
+
+    await client.post(f"/announcements/{announcement_id}/edit", data={"title": "Compost", "body_markdown": "New text."})
+    page = await client.get(f"/announcements/{announcement_id}/edit")
+    assert f"/announcements/{announcement_id}/send/blog" in page.text
+
+    requests_seen.clear()
+    assert (await client.post(f"/announcements/{announcement_id}/send/blog")).status_code == 303
+    # Same post updated, image not re-uploaded, publish status untouched.
+    assert [(m, p) for m, p, _ in requests_seen] == [("POST", "/wp-json/wp/v2/posts/99")]
+    payload = requests_seen[0][2]
+    assert "New text." in payload["content"]
+    assert "status" not in payload
+    assert "featured_media" not in payload
+
+    announcement = await _load_announcement(announcement_id)
+    from app.models import AnnouncementChannel
+    delivery = announcement.delivery_for(AnnouncementChannel.BLOG)
+    assert delivery.status.value == "SENT"
+    assert delivery.external_id == "99"
+
+    await mock_client.aclose()
+
+
+async def test_blog_update_creates_new_draft_if_post_was_deleted_in_wordpress(client, admin_user, monkeypatch):
+    token, announcement_id = await _setup_announcement(client)
+    await _configure_wordpress(client, auth_header(token))
+
+    from app.database import AsyncSessionLocal
+    from app.models import AnnouncementDelivery, AnnouncementChannel, AnnouncementDeliveryStatus
+    async with AsyncSessionLocal() as session:
+        session.add(AnnouncementDelivery(
+            announcement_id=announcement_id, channel=AnnouncementChannel.BLOG,
+            status=AnnouncementDeliveryStatus.SENT, external_id="7", content_fingerprint="outdated",
+        ))
+        await session.commit()
+
+    requests_seen = []
+    mock_client = _patch_wordpress(monkeypatch, _recording_wordpress_transport(requests_seen, existing_post_status=404))
+
+    assert (await client.post(f"/announcements/{announcement_id}/send/blog")).status_code == 303
+    assert [(m, p) for m, p, _ in requests_seen] == [
+        ("POST", "/wp-json/wp/v2/posts/7"), ("POST", "/wp-json/wp/v2/posts"),
+    ]
+    announcement = await _load_announcement(announcement_id)
+    assert announcement.delivery_for(AnnouncementChannel.BLOG).external_id == "99"
+
+    await mock_client.aclose()
+
+
+async def test_print_pdf_is_stored_downloadable_and_only_regenerated_after_a_change(client, admin_user):
+    _token, announcement_id = await _setup_announcement(client, title="Aushang", body="Kurzer Text.")
+
+    generated = await client.post(f"/announcements/{announcement_id}/print")
+    assert generated.status_code == 200
+
+    download = await client.get(f"/announcements/{announcement_id}/print/download")
+    assert download.status_code == 200
+    assert download.headers["content-type"] == "application/pdf"
+    assert download.content == generated.content
+
+    page = await client.get(f"/announcements/{announcement_id}/edit")
+    assert f'action="/announcements/{announcement_id}/print"' not in page.text
+    assert f"/announcements/{announcement_id}/print/download" in page.text
+    assert (await client.post(f"/announcements/{announcement_id}/print")).status_code == 409
+
+    # A print-text-only change re-enables the PDF...
+    from app.routers import announcements as router_module
+    from app.models import AnnouncementChannel
+    old_pdf = (await _load_announcement(announcement_id)).delivery_for(AnnouncementChannel.PRINT).pdf_filename
+    await client.post(
+        f"/announcements/{announcement_id}/edit",
+        data={"title": "Aushang", "body_markdown": "Kurzer Text.", "print_text_override": "Noch kürzer."},
+    )
+    assert (await client.post(f"/announcements/{announcement_id}/print")).status_code == 200
+    new_pdf = (await _load_announcement(announcement_id)).delivery_for(AnnouncementChannel.PRINT).pdf_filename
+    assert new_pdf != old_pdf
+    assert not (router_module.PRINT_PDF_DIR / old_pdf).exists()
+
+    # ...and deleting the announcement removes the stored PDF.
+    await client.post(f"/announcements/{announcement_id}/delete")
+    assert not (router_module.PRINT_PDF_DIR / new_pdf).exists()
+
+
+async def test_print_pdf_offered_again_for_qr_code_once_a_blog_post_exists(client, admin_user):
+    long_body = "\n\n".join(f"Absatz Nummer {i}. " * 30 for i in range(1, 20))
+    _token, announcement_id = await _setup_announcement(client, title="Lang", body=long_body)
+
+    assert (await client.post(f"/announcements/{announcement_id}/print")).status_code == 200
+    from app.models import AnnouncementDelivery, AnnouncementChannel, AnnouncementDeliveryStatus
+    assert (await _load_announcement(announcement_id)).delivery_for(AnnouncementChannel.PRINT).qr_pending is True
+
+    # Shortened without QR, but no blog post at all -> nothing to gain.
+    assert (await client.post(f"/announcements/{announcement_id}/print")).status_code == 409
+
+    from app.database import AsyncSessionLocal
+    async with AsyncSessionLocal() as session:
+        session.add(AnnouncementDelivery(
+            announcement_id=announcement_id, channel=AnnouncementChannel.BLOG,
+            status=AnnouncementDeliveryStatus.SENT, external_id="42",
+        ))
+        await session.commit()
+
+    page = await client.get(f"/announcements/{announcement_id}/edit")
+    assert f'action="/announcements/{announcement_id}/print"' in page.text
+
+
+def test_print_text_change_only_affects_the_print_fingerprint():
+    from app.announcement_utils import channel_fingerprint
+
+    for channel in ("EMAIL", "BLOG"):
+        assert channel_fingerprint(channel, "T", "Body", None) == channel_fingerprint(channel, "T", "Body", "Short")
+    assert channel_fingerprint("PRINT", "T", "Body", None) != channel_fingerprint("PRINT", "T", "Body", "Short")
+    assert channel_fingerprint("BLOG", "T", "Body", None) != channel_fingerprint("BLOG", "T", "Body 2", None)

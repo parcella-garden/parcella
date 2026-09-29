@@ -3,9 +3,7 @@
 Lets a board member write a single piece of club news once and push it
 out to up to three channels: a blog draft on the club's CMS (e.g.
 WordPress), a member email, and a printable one-page PDF notice for the
-allotment area. This first delivery covers only the **foundation** --
-authoring the content and its data model. The three delivery channels
-are built in later phases on top of this.
+allotment area. All three channels are built (see below).
 
 ## Data model
 
@@ -40,6 +38,14 @@ announcement_deliveries   -- one row per (announcement, channel) send attempt
 content per channel: one row per (announcement, channel), upserted
 rather than appended, so retrying a failed send updates the existing
 row instead of creating a growing history of attempts.
+
+There is **no announcement-level status** (a `DRAFT`/`PUBLISHED`/
+`ARCHIVED` column existed until migration 0092 but never left "draft"
+-- see docs/ADR/0087). What went out where is per channel only. Each
+successful delivery also records what it delivered
+(`content_fingerprint`, `image_filename`), and PRINT keeps the
+generated file (`pdf_filename`) plus `qr_pending`, which is used to decide
+whether a channel's action is offered again. See "One action per channel" below.
 `external_reference` holds whatever pointer a later phase needs back
 from the channel -- currently only meaningful for BLOG, which will
 store the published post's public URL once the blog channel exists (the
@@ -103,6 +109,30 @@ until an external system needs to read/write announcements
 programmatically, which so far only the (not-yet-built) WordPress
 publisher will, and that's an outbound call Parcella makes, not an
 inbound API surface.
+
+## One action per channel (ADR 0087)
+
+Each channel's button on the edit page is only shown while it has
+something new to do. The server enforces the same rule with a 409, via
+`_channel_action_available()` in `app/routers/announcements.py`:
+
+- **Email**: once sent successfully, never again, not even after an
+  edit. The page notes when the content changed after sending. A
+  FAILED send can be retried.
+- **Blog**: after a change to title/body/image, the button becomes
+  "Update WordPress post". It updates the **same** post
+  (`WordPressPublisher.update_post`) and never touches its publish
+  status, so a published post stays published and SEO fields survive. If
+  the post was deleted in WordPress, a new draft is created instead.
+- **Print**: the PDF is stored and offered as "Download" (no
+  regeneration). "Generate PDF" comes back after a change to
+  title/body/print text/image, or when the last PDF was shortened
+  without a QR code and a blog post now exists.
+
+"Changed" means the channel's content fingerprint differs from the
+current content. It is not a timestamp, so saving unchanged text does
+not re-enable anything, and a print-text-only change re-enables only
+the PDF.
 
 ## Email channel (built)
 

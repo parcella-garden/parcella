@@ -21,6 +21,7 @@ pushed to WordPress and to every member's inbox, so it must be free of
 script/on*-handler injection), but images and a couple of extra
 formatting tags are allowed.
 """
+import hashlib
 import re
 
 import bleach
@@ -85,3 +86,29 @@ def likely_fits_one_print_page(markdown_text: str) -> bool:
     PDF channel is built."""
     word_count = len((markdown_text or "").split())
     return word_count <= APPROX_WORDS_PER_PRINT_PAGE
+
+
+# ---------------------------------------------------------------------------
+# Per-channel content fingerprint (ADR 0087)
+# ---------------------------------------------------------------------------
+
+def channel_fingerprint(channel: str, title: str, body_markdown: str, print_text_override: str | None) -> str:
+    """Hash of exactly the text a channel delivers, stored on its
+    AnnouncementDelivery at send time. Comparing it with the current
+    content tells whether the channel is out of date -- a timestamp
+    can't, since saving unchanged text (or changing it back) would
+    still bump it.
+
+    channel is the AnnouncementChannel *name* ("EMAIL"/"BLOG"/"PRINT").
+    Email and blog share title + body; print also includes the print
+    override, so editing only the print text leaves the other two
+    untouched. The image is tracked separately (delivery.image_filename)
+    since the blog update needs to know whether to re-upload it.
+
+    migrations/versions/0092_announcement_no_status.py backfills with a
+    copy of this function -- keep the two in sync if this ever changes.
+    """
+    parts = [channel, title, body_markdown]
+    if channel == "PRINT":
+        parts.append(print_text_override or "")
+    return hashlib.sha256("\x1f".join(parts).encode("utf-8")).hexdigest()

@@ -1714,12 +1714,13 @@
       "title": "Annonces",
       "new_button": "Nouvelle annonce",
       "col_title": "Titre",
-      "col_status": "Statut",
       "col_created": "Créée le",
-      "status_draft": "Brouillon",
-      "status_published": "Publiée",
-      "status_archived": "Archivée",
-      "empty": "Aucune annonce pour le moment."
+      "empty": "Aucune annonce pour le moment.",
+      "col_channels": "Canaux",
+      "channel_state_sent": "fait",
+      "channel_state_sending": "envoi en cours",
+      "channel_state_failed": "échec",
+      "channel_state_none": "pas encore"
     },
     "form": {
       "title": "Annonce",
@@ -1747,7 +1748,7 @@
       "delivery_failed": "Échec",
       "delivery_not_sent": "Pas encore envoyé",
       "send_email_button": "Envoyer maintenant",
-      "send_email_confirm": "Envoyer cette annonce par e-mail à tous les membres actuels ayant activé les notifications par e-mail ?",
+      "send_email_confirm": "Envoyer cette annonce par e-mail à tous les membres actuels ayant activé les notifications par e-mail ? Cette action n'est possible qu'une seule fois.",
       "save_does_not_send_hint": "Enregistrer se contente de sauvegarder vos modifications -- rien n'est envoyé ni publié. Utilisez les boutons ci-dessous quand vous serez prêt.",
       "test_email_title": "Envoyer un e-mail de test",
       "test_email_hint": "Envoie le contenu actuel à une adresse pour relecture. N'est jamais compté comme un envoi réel et ne va jamais aux membres.",
@@ -1757,7 +1758,7 @@
       "test_email_missing_address": "Veuillez saisir une adresse e-mail.",
       "delivery_sending": "Envoi en cours...",
       "sending_refresh_hint": "En cours -- rechargez cette page pour voir l'état actuel.",
-      "blog_edit_draft_link": "Ouvrir le brouillon dans WordPress",
+      "blog_edit_draft_link": "Ouvrir dans WordPress",
       "send_blog_button": "Créer le brouillon",
       "print_generated": "PDF généré",
       "print_too_long_status": "Trop long pour une page",
@@ -1765,7 +1766,14 @@
       "delete_title": "Supprimer l'annonce",
       "delete_hint": "Supprime définitivement cette annonce. Elle reste supprimable quel que soit son statut (brouillon, publiée ou archivée) ou son historique d'envoi.",
       "delete_confirm": "Vraiment supprimer cette annonce ? Cette action est irréversible.",
-      "button_delete": "Supprimer l'annonce"
+      "button_delete": "Supprimer l'annonce",
+      "channels_hint": "Chaque canal n'est exécuté qu'une fois. Après avoir modifié et enregistré le contenu, l'article de blog et le PDF peuvent être mis à jour ; l'e-mail n'est envoyé qu'une seule fois.",
+      "email_changed_after_send": "Le contenu a été modifié après l'envoi de l'e-mail. Les membres ont reçu la version précédente.",
+      "changed_since_delivery": "Contenu modifié depuis.",
+      "update_blog_button": "Mettre à jour l'article WordPress",
+      "update_blog_confirm": "Écraser le titre, le texte et l'image de l'article WordPress existant ? Les modifications de texte faites directement dans WordPress seront perdues ; les réglages SEO, les catégories et le statut de publication sont conservés.",
+      "print_download_link": "Télécharger",
+      "print_qr_pending_hint": "Le texte a été raccourci sans code QR car l'article de blog n'était pas encore public. Une fois publié dans WordPress, générez à nouveau le PDF pour ajouter le code QR."
     }
   },
   "inventory": {

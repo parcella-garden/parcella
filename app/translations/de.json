@@ -1714,12 +1714,13 @@
       "title": "Mitteilungen",
       "new_button": "Neue Mitteilung",
       "col_title": "Titel",
-      "col_status": "Status",
       "col_created": "Erstellt",
-      "status_draft": "Entwurf",
-      "status_published": "Veröffentlicht",
-      "status_archived": "Archiviert",
-      "empty": "Noch keine Mitteilungen vorhanden."
+      "empty": "Noch keine Mitteilungen vorhanden.",
+      "col_channels": "Kanäle",
+      "channel_state_sent": "erledigt",
+      "channel_state_sending": "wird gesendet",
+      "channel_state_failed": "fehlgeschlagen",
+      "channel_state_none": "noch nicht"
     },
     "form": {
       "title": "Mitteilung",
@@ -1747,7 +1748,7 @@
       "delivery_failed": "Fehlgeschlagen",
       "delivery_not_sent": "Noch nicht gesendet",
       "send_email_button": "Jetzt senden",
-      "send_email_confirm": "Diese Mitteilung per E-Mail an alle aktuellen Mitglieder mit aktivierten E-Mail-Benachrichtigungen senden?",
+      "send_email_confirm": "Diese Mitteilung per E-Mail an alle aktuellen Mitglieder mit aktivierten E-Mail-Benachrichtigungen senden? Dies ist nur einmal möglich.",
       "save_does_not_send_hint": "Speichern sichert nur Ihre Änderungen -- es wird nichts versendet oder veröffentlicht. Nutzen Sie dafür die Schaltflächen weiter unten.",
       "test_email_title": "Test-E-Mail senden",
       "test_email_hint": "Sendet den aktuellen Inhalt zur Prüfung an eine einzelne Adresse. Zählt nie als echter Versand und geht nie an Mitglieder.",
@@ -1757,7 +1758,7 @@
       "test_email_missing_address": "Bitte eine E-Mail-Adresse eingeben.",
       "delivery_sending": "Wird gesendet...",
       "sending_refresh_hint": "Läuft -- Seite neu laden, um den aktuellen Stand zu sehen.",
-      "blog_edit_draft_link": "Entwurf in WordPress öffnen",
+      "blog_edit_draft_link": "In WordPress öffnen",
       "send_blog_button": "Entwurf erstellen",
       "print_generated": "PDF erstellt",
       "print_too_long_status": "Zu lang für eine Seite",
@@ -1765,7 +1766,14 @@
       "delete_title": "Ankündigung löschen",
       "delete_hint": "Entfernt diese Ankündigung dauerhaft. Löschbar unabhängig von Status (Entwurf, veröffentlicht oder archiviert) oder Versandverlauf.",
       "delete_confirm": "Diese Ankündigung wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
-      "button_delete": "Ankündigung löschen"
+      "button_delete": "Ankündigung löschen",
+      "channels_hint": "Jeder Kanal wird einmal ausgeführt. Nach einer inhaltlichen Änderung und Speichern können Blogbeitrag und PDF aktualisiert werden; die E-Mail wird nur einmal versendet.",
+      "email_changed_after_send": "Der Inhalt wurde nach dem E-Mail-Versand geändert. Die Mitglieder haben die frühere Fassung erhalten.",
+      "changed_since_delivery": "Inhalt seitdem geändert.",
+      "update_blog_button": "WordPress-Beitrag aktualisieren",
+      "update_blog_confirm": "Titel, Text und Bild des bestehenden WordPress-Beitrags überschreiben? Direkt in WordPress vorgenommene Textänderungen gehen verloren; SEO-Einstellungen, Kategorien und der Veröffentlichungsstatus bleiben erhalten.",
+      "print_download_link": "Herunterladen",
+      "print_qr_pending_hint": "Der Text wurde ohne QR-Code gekürzt, weil der Blogbeitrag noch nicht öffentlich war. Sobald er in WordPress veröffentlicht ist, das PDF erneut erstellen, um den QR-Code hinzuzufügen."
     }
   },
   "inventory": {

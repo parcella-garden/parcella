@@ -17,7 +17,7 @@
                     <tr>
                         <th></th>
                         <th>{{ t('announcements.list.col_title') }}</th>
-                        <th>{{ t('announcements.list.col_status') }}</th>
+                        <th>{{ t('announcements.list.col_channels') }}</th>
                         <th>{{ t('announcements.list.col_created') }}</th>
                         <th></th>
                     </tr>
@@ -36,13 +36,13 @@
                             <a href="/announcements/{{ a.id }}/edit" class="text-decoration-none fw-semibold" style="color: var(--gv-gruen);">{{ a.title }}</a>
                         </td>
                         <td>
-                            {% if a.status.value == 'DRAFT' %}
-                            <span class="badge" style="background: #fef3c7; color: #92400e;">{{ t('announcements.list.status_draft') }}</span>
-                            {% elif a.status.value == 'PUBLISHED' %}
-                            <span class="badge badge-aktiv">{{ t('announcements.list.status_published') }}</span>
-                            {% else %}
-                            <span class="badge" style="background: #e5e7eb; color: #4b5563;">{{ t('announcements.list.status_archived') }}</span>
-                            {% endif %}
+                            {% for channel, icon in [('EMAIL', 'bi-envelope'), ('BLOG', 'bi-wordpress'), ('PRINT', 'bi-printer')] %}
+                            {% set d = a.deliveries | selectattr('channel.name', 'equalto', channel) | first %}
+                            {% set state = d.status.value if d else 'NONE' %}
+                            <i class="bi {{ icon }} me-2 {% if state == 'SENT' %}text-success{% elif state == 'FAILED' %}text-danger{% elif state == 'SENDING' %}text-primary{% else %}text-muted opacity-50{% endif %}"
+                               title="{{ t('announcements.form.channel_' ~ channel.lower()) }}: {{ t('announcements.list.channel_state_' ~ state.lower()) }}"
+                               aria-label="{{ t('announcements.form.channel_' ~ channel.lower()) }}: {{ t('announcements.list.channel_state_' ~ state.lower()) }}"></i>
+                            {% endfor %}
                         </td>
                         <td class="text-muted" style="font-size: 0.85rem;">{{ a.created_at.strftime('%Y-%m-%d') }}</td>
                         <td class="text-end">
