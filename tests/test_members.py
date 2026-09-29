@@ -55,6 +55,74 @@ async def test_members_import_wizard_creates_member_with_emails_and_phones(clien
         assert [p.number for p in member.phone_numbers] == ["0123-456789"]
 
 
+async def test_member_create_form_saves_email_and_phone(client, admin_user):
+    """The "New member" form's email/phone fields (added after issue #236:
+    members created via /members/new had no way to enter an email address
+    or phone number at all, only the email_notifications checkbox -- which
+    defaults to checked regardless of whether an address was ever
+    captured, letting a member silently end up eligible for announcement
+    emails with zero stored addresses) must create the member's first
+    MemberEmail/MemberPhone rows."""
+    await _web_login(client, "admin@example.com")
+
+    create_response = await client.post(
+        "/members/new",
+        data={
+            "first_name": "Frieda", "last_name": "Neumitglied",
+            "email": "frieda@example.com", "phone": "0123-456789",
+            "email_notifications": "true",
+        },
+        follow_redirects=False,
+    )
+    assert create_response.status_code in (302, 303)
+
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
+    from app.database import AsyncSessionLocal
+    from app.models import Member
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(Member)
+            .options(selectinload(Member.email_addresses), selectinload(Member.phone_numbers))
+            .where(Member.first_name == "Frieda", Member.last_name == "Neumitglied")
+        )
+        member = result.scalar_one()
+        assert [e.address for e in member.email_addresses] == ["frieda@example.com"]
+        assert member.email_addresses[0].is_primary is True
+        assert [p.number for p in member.phone_numbers] == ["0123-456789"]
+        assert member.phone_numbers[0].is_primary is True
+
+
+async def test_member_create_form_allows_blank_email_and_phone(client, admin_user):
+    """Leaving the new email/phone fields blank must not error or create
+    MemberEmail/MemberPhone rows -- both fields are optional, addresses
+    can still be added later on the member's detail page."""
+    await _web_login(client, "admin@example.com")
+
+    create_response = await client.post(
+        "/members/new",
+        data={"first_name": "Klaus", "last_name": "Ohnekontakt"},
+        follow_redirects=False,
+    )
+    assert create_response.status_code in (302, 303)
+
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
+    from app.database import AsyncSessionLocal
+    from app.models import Member
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(Member)
+            .options(selectinload(Member.email_addresses), selectinload(Member.phone_numbers))
+            .where(Member.first_name == "Klaus", Member.last_name == "Ohnekontakt")
+        )
+        member = result.scalar_one()
+        assert member.email_addresses == []
+        assert member.phone_numbers == []
+
+
 async def test_members_import_wizard_updates_existing_member_without_touching_emails(client, admin_user):
     """Re-importing a row matching an existing member by name+DOB updates
     their fields but never touches existing emails/phones -- those are

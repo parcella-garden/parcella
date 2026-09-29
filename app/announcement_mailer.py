@@ -1,11 +1,18 @@
 """
 Email channel for the announcements module.
 
-Recipients are current parcel residents (MemberParcel.is_current --
-same "present tenant" definition used elsewhere in the app, e.g.
-insurance household grouping) who are not soft-deleted, whose
-membership hasn't ended, and who have email_notifications = True (this
-is the "e-mail info = yes" flag from the original feature request).
+Recipients are current club members -- active_member_filter(), the
+same canonical "active member" definition used by /members/'s own
+list and API (see app/services/members.py's docstring re: issue #167,
+two independent reimplementations of "active" drifting apart) -- who
+have email_notifications = True (this is the "e-mail info = yes" flag
+from the original feature request). Deliberately NOT scoped to current
+parcel residents (an earlier version was, matching the original
+feature request's literal wording): a member who is still within
+their membership period but has given up their parcel lease is still
+a club member and still expects to hear about club matters (issue
+#236's Daniel Hetzger case -- member until 2026-12-31, lease ended
+2026-06-30, should still receive announcements).
 A member with no stored email address is silently skipped rather than
 treated as an error -- that's a data-completeness issue for Members
 admin, not an announcements-sending failure.
@@ -38,17 +45,17 @@ sent -- same pattern as app.main's ticket-inbox polling loop.
 """
 import asyncio
 import logging
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from typing import List, Optional, Tuple
 
-from sqlalchemy import select, or_
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.database import AsyncSessionLocal, current_tenant_filter
+from app.database import AsyncSessionLocal, active_member_filter
 from app.models import (
     Announcement, AnnouncementChannel, AnnouncementDelivery,
-    AnnouncementDeliveryStatus, Member, MemberParcel,
+    AnnouncementDeliveryStatus, Member,
 )
 from app.email_service import send_email
 from app.branding import load_branding
@@ -65,24 +72,17 @@ EMAIL_BATCH_PAUSE_SECONDS = 60
 
 
 async def get_active_recipient_emails(db: AsyncSession) -> List[Tuple[Member, str]]:
-    """Current parcel residents with email_notifications=True and at
-    least one stored email address. One (member, email) pair per
-    member, using their primary email if marked, otherwise the first
-    one on file."""
-    today = date.today()
+    """Current club members (active_member_filter()) with
+    email_notifications=True and at least one stored email address --
+    not scoped to current parcel residents, see module docstring. One
+    (member, email) pair per member, using their primary email if
+    marked, otherwise the first one on file."""
     result = await db.execute(
         select(Member)
-        .join(MemberParcel, MemberParcel.member_id == Member.id)
-        .where(
-            current_tenant_filter(),
-            Member.deleted_at.is_(None),
-            Member.email_notifications.is_(True),
-            or_(Member.member_until.is_(None), Member.member_until >= today),
-        )
+        .where(active_member_filter(), Member.email_notifications.is_(True))
         .options(selectinload(Member.email_addresses))
-        .distinct()
     )
-    members = result.scalars().unique().all()
+    members = result.scalars().all()
 
     recipients: List[Tuple[Member, str]] = []
     for member in members:

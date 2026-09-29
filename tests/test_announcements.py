@@ -154,8 +154,10 @@ async def test_readonly_role_cannot_access_announcements(client, admin_user):
 async def _create_resident_with_email(
     session, *, plot_number: str, email: str, email_notifications: bool = True,
 ) -> None:
-    """Creates a Parcel + current-resident Member + email address, the
-    minimum needed for get_active_recipient_emails() to pick them up."""
+    """Creates a Parcel + current-resident Member + email address --
+    a parcel is no longer required for get_active_recipient_emails() to
+    pick a member up (issue #236), but most of these tests still model
+    a typical resident, parcel included."""
     from app.models import Member, MemberEmail, Parcel, MemberParcel
 
     member = Member(first_name="Gerd", last_name="Mustergärtner", email_notifications=email_notifications)
@@ -213,6 +215,55 @@ async def test_send_email_reaches_current_residents_with_notifications_enabled(c
         delivery = announcement.delivery_for(AnnouncementChannel.EMAIL)
         assert delivery.status.value == "SENT"
         assert delivery.error_message is None
+
+
+async def test_send_email_reaches_member_without_current_parcel(client, admin_user, monkeypatch):
+    """issue #236: a member still within their membership period but
+    with no current (or no) parcel lease must still receive
+    announcements -- club membership, not parcel tenancy, is what
+    governs eligibility."""
+    token = await login(client, "admin@example.com")
+    await _enable_module(client, auth_header(token))
+    await web_login(client, "admin@example.com")
+
+    from datetime import date, timedelta
+    from app.database import AsyncSessionLocal
+    from app.models import Member, MemberEmail, Parcel, MemberParcel
+
+    async with AsyncSessionLocal() as session:
+        member = Member(
+            first_name="Daniel", last_name="Ohne-Parzelle", email_notifications=True,
+            member_until=date.today() + timedelta(days=90),
+        )
+        parcel = Parcel(plot_number="G016")
+        session.add_all([member, parcel])
+        await session.flush()
+        session.add(MemberEmail(member_id=member.id, address="lease-ended@example.com", is_primary=True))
+        # Lease ended in the past -- no current MemberParcel row.
+        session.add(MemberParcel(
+            member_id=member.id, parcel_id=parcel.id,
+            assigned_from=date.today() - timedelta(days=365),
+            assigned_until=date.today() - timedelta(days=30),
+        ))
+        await session.commit()
+
+    create = await client.post(
+        "/announcements/new",
+        data={"title": "Club news", "body_markdown": "Content."},
+    )
+    announcement_id = create.headers["location"].split("/")[2]
+
+    sent_to = []
+
+    async def fake_send_email(empfaenger, betreff, html_body, text_body=None, db=None):
+        sent_to.append(empfaenger)
+        return True
+
+    monkeypatch.setattr("app.announcement_mailer.send_email", fake_send_email)
+
+    send = await client.post(f"/announcements/{announcement_id}/send/email")
+    assert send.status_code == 303
+    assert sent_to == ["lease-ended@example.com"]
 
 
 async def test_send_email_with_no_recipients_is_marked_failed(client, admin_user, monkeypatch):

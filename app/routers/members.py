@@ -304,6 +304,8 @@ async def member_create(
     member_since: str = Form(""),
     member_until: str = Form(""),
     email_notifications: bool = Form(False),
+    email: str = Form(""),
+    phone: str = Form(""),
     notes: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
@@ -324,6 +326,10 @@ async def member_create(
         iban=iban, member_since=parse_date(member_since), member_until=parse_date(member_until),
         email_notifications=email_notifications, notes=notes,
     )
+    if email.strip():
+        await add_email(db, member.id, address=email.strip(), is_primary=True)
+    if phone.strip():
+        await add_phone(db, member.id, number=phone.strip(), is_primary=True)
     await db.commit()
 
     return RedirectResponse(f"/members/{member.id}", status_code=302)

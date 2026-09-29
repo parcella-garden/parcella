@@ -92,6 +92,18 @@
                                value="{{ member.member_until.isoformat() if member and member.member_until else '' }}">
                         <div class="form-text">{{ t('members.form.member_until_help') }}</div>
                     </div>
+                    {% if not member %}
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold">{{ t('members.form.label_email_address') }}</label>
+                        <input type="email" name="email" class="form-control" placeholder="email@beispiel.de">
+                        <div class="form-text">{{ t('members.form.email_address_help') }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold">{{ t('members.form.label_phone_number') }}</label>
+                        <input type="tel" name="phone" class="form-control" placeholder="0123 456789">
+                        <div class="form-text">{{ t('members.form.phone_number_help') }}</div>
+                    </div>
+                    {% endif %}
                     <div class="col-12">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" name="email_notifications"

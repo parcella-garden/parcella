@@ -106,13 +106,19 @@ inbound API surface.
 
 ## Email channel (built)
 
-`app/announcement_mailer.py` sends the announcement to current parcel
-residents (`MemberParcel.assigned_until IS NULL`) who aren't
-soft-deleted, whose membership hasn't lapsed, and who have
-`email_notifications = True` -- the "e-mail info = yes" flag from the
-original request. Members with no stored email address are silently
-skipped (a Members-admin data-completeness issue, not a sending
-failure). The email body is the announcement's `body_html` wrapped in
+`app/announcement_mailer.py` sends the announcement to current club
+members (`active_member_filter()` -- the same canonical "active"
+definition `/members/`'s own list and API use, see ADR-adjacent note
+in `app/services/members.py`) who have `email_notifications = True`
+-- the "e-mail info = yes" flag from the original request. **Not**
+scoped to current parcel residents: an earlier version required an
+active `MemberParcel` too, matching the original feature request's
+literal wording, but that silently excluded members who are still
+within their membership period yet no longer hold a parcel lease
+(issue #236) -- club communications should reach anyone who's still a
+member, lease or no lease. Members with no stored email address are
+silently skipped (a Members-admin data-completeness issue, not a
+sending failure). The email body is the announcement's `body_html` wrapped in
 a minimal branded shell (club name + header image + the same content
 that would go to the blog) -- reusing `app/email_service.py`'s
 existing `sende_email()`.
