@@ -26,6 +26,7 @@ here would quietly couple its deliberately backend-agnostic abstraction
 docs/ADR/0086 for the full reasoning.
 """
 import logging
+import re
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from typing import List, Optional
@@ -236,6 +237,26 @@ async def load_deck_configuration(db: AsyncSession) -> Optional[dict]:
     if not base_url or not username or not app_password:
         return None
     return {"base_url": base_url, "username": username, "app_password": app_password}
+
+
+def normalize_deck_board_id(raw: str) -> str:
+    """Accepts either a bare board id ("8") or the URL/path an admin
+    would naturally copy out of their browser's address bar while
+    looking at the board ("/apps/deck/board/8", a full
+    "https://cloud.example.com/apps/deck/board/8", with or without a
+    trailing slash -- exactly the ambiguity the admin UI's own hint
+    text invites by showing "/apps/deck/board/3" as its example) and
+    returns just the numeric id Deck's API expects. Pasting the whole
+    path in unmodified previously built a nonsensical request path
+    (f"/boards/{board_id}/stacks" with board_id itself containing more
+    slashes) that Nextcloud answered with a confusing HTTP 405 rather
+    than a clear "board not found". Falls back to the trimmed input
+    unchanged if no trailing digits are found, so a genuinely
+    unexpected format still surfaces as Deck's own error rather than
+    being silently mangled further."""
+    raw = raw.strip()
+    match = re.search(r"(\d+)/?$", raw)
+    return match.group(1) if match else raw
 
 
 async def load_deck_board_id(db: AsyncSession) -> Optional[str]:

@@ -382,7 +382,7 @@
       "deck_app_password_label": "Aplikačné heslo Nextcloud",
       "deck_app_password_hint": "Vytvorte ho v Osobnom nastavení Nextcloud > Zabezpečenie.",
       "deck_board_id_label": "ID nástenky Deck",
-      "deck_board_id_hint": "Nástenka Deck na synchronizáciu (pozri jej URL, napr. /apps/deck/board/3).",
+      "deck_board_id_hint": "Nástenka Deck na synchronizáciu -- iba číslo na konci jej URL (napr. .../apps/deck/board/3 -> zadajte 3). Vloženie celej URL alebo cesty tiež funguje.",
       "deck_save_button": "Uložiť",
       "deck_test_button": "Otestovať pripojenie",
       "deck_test_success": "Pripojenie úspešné",

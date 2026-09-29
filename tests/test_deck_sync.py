@@ -228,6 +228,43 @@ async def test_sync_is_a_noop_without_configuration():
 # Admin Integrations routes
 # ---------------------------------------------------------------------------
 
+def test_normalize_deck_board_id_extracts_number_from_pasted_url_or_path():
+    """Real-world case: the admin UI's own hint text shows
+    "/apps/deck/board/3" as its example, which reads as "paste this
+    format" rather than "extract the number" -- an admin pasting the
+    full path/URL they copied straight out of Nextcloud's address bar
+    previously produced a malformed Deck API request
+    (f"/boards/{board_id}/stacks" with more slashes baked into
+    board_id) that surfaced as a confusing HTTP 405."""
+    from app.task_sync import normalize_deck_board_id
+
+    assert normalize_deck_board_id("8") == "8"
+    assert normalize_deck_board_id("/apps/deck/board/8") == "8"
+    assert normalize_deck_board_id("/apps/deck/board/8/") == "8"
+    assert normalize_deck_board_id("https://cloud.example.com/apps/deck/board/8") == "8"
+    assert normalize_deck_board_id("  8  ") == "8"
+    # No trailing digits found -- returned unchanged so it surfaces as
+    # Deck's own error rather than being silently mangled further.
+    assert normalize_deck_board_id("not-a-board") == "not-a-board"
+
+
+async def test_integrations_page_normalizes_pasted_board_url_to_bare_id(client, admin_user):
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+
+    response = await client.post(
+        "/admin/integrations/deck",
+        data={
+            "deck_base_url": "https://cloud.example.com", "deck_username": "board",
+            "deck_app_password": "app-password-1", "deck_board_id": "/apps/deck/board/8",
+        },
+    )
+    assert response.status_code == 303
+
+    async with AsyncSessionLocal() as db:
+        from app.task_sync import load_deck_board_id
+        assert await load_deck_board_id(db) == "8"
+
+
 async def test_integrations_page_saves_deck_credentials(client, admin_user):
     await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
 

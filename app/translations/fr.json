@@ -382,7 +382,7 @@
       "deck_app_password_label": "Mot de passe d'application Nextcloud",
       "deck_app_password_hint": "À générer sous Paramètres personnels > Sécurité de Nextcloud.",
       "deck_board_id_label": "ID du tableau Deck",
-      "deck_board_id_hint": "Le tableau Deck à synchroniser (voir son URL, p. ex. /apps/deck/board/3).",
+      "deck_board_id_hint": "Le tableau Deck à synchroniser -- juste le numéro à la fin de son URL (p. ex. .../apps/deck/board/3 -> entrez 3). Coller l'URL ou le chemin complet fonctionne aussi.",
       "deck_save_button": "Enregistrer",
       "deck_test_button": "Tester la connexion",
       "deck_test_success": "Connexion réussie",

@@ -26,7 +26,9 @@ from app.email_service import send_email
 from app.crypto_utils import encrypt
 from app.blog_publisher import load_wordpress_configuration, WordPressPublisher, BlogPublishError
 from app.cloud_storage import load_nextcloud_configuration, get_nextcloud_provider, NextcloudProvider, CloudStorageError
-from app.task_sync import load_deck_configuration, load_deck_board_id, DeckTaskProvider, DeckError
+from app.task_sync import (
+    load_deck_configuration, load_deck_board_id, normalize_deck_board_id, DeckTaskProvider, DeckError,
+)
 from app.deck_sync import sync_deck_tasks
 from app.i18n import AVAILABLE_LANGUAGES, t_for
 from app.l10n import AVAILABLE_REGIONS, AVAILABLE_CURRENCIES
@@ -1536,7 +1538,7 @@ async def integrations_deck_save(request: Request, db: AsyncSession = Depends(ge
 
     base_url = (form.get("deck_base_url") or "").strip() or None
     username = (form.get("deck_username") or "").strip() or None
-    board_id = (form.get("deck_board_id") or "").strip() or None
+    board_id = normalize_deck_board_id(form.get("deck_board_id") or "") or None
     app_password = (form.get("deck_app_password") or "").strip()
 
     await _upsert_club_setting(db, "deck_base_url", base_url, "Nextcloud server URL for Deck task sync")

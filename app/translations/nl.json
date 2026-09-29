@@ -382,7 +382,7 @@
       "deck_app_password_label": "Nextcloud-app-wachtwoord",
       "deck_app_password_hint": "Genereer er een onder Nextclouds Persoonlijke instellingen > Beveiliging.",
       "deck_board_id_label": "Deck-bord-ID",
-      "deck_board_id_hint": "Het te synchroniseren Deck-bord (zie de URL, bijv. /apps/deck/board/3).",
+      "deck_board_id_hint": "Het te synchroniseren Deck-bord -- alleen het nummer aan het einde van de URL (bijv. .../apps/deck/board/3 -> vul 3 in). De volledige URL of het pad plakken werkt ook.",
       "deck_save_button": "Opslaan",
       "deck_test_button": "Verbinding testen",
       "deck_test_success": "Verbinding geslaagd",

@@ -382,7 +382,7 @@
       "deck_app_password_label": "Nextcloud Application Password",
       "deck_app_password_hint": "Generate one under Nextcloud's Personal Settings > Security page.",
       "deck_board_id_label": "Deck board ID",
-      "deck_board_id_hint": "The Deck board to sync (see its URL, e.g. /apps/deck/board/3).",
+      "deck_board_id_hint": "The Deck board to sync -- just the number at the end of its URL (e.g. .../apps/deck/board/3 -> enter 3). Pasting the full URL or path works too.",
       "deck_save_button": "Save",
       "deck_test_button": "Test connection",
       "deck_test_success": "Connection successful",
