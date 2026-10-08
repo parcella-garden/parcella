@@ -391,7 +391,15 @@
       "deck_sync_now_button": "Synchronizuj teraz",
       "deck_sync_now_success": "Zsynchronizowano {count} kart",
       "deck_last_synced_label": "Zsynchronizowano {count} zadań, ostatnio o {when}",
-      "deck_never_synced_label": "Jeszcze nie zsynchronizowano"
+      "deck_never_synced_label": "Jeszcze nie zsynchronizowano",
+      "auth_origin_allowlist": "Dozwolone adresy stron",
+      "public_forms_title": "Zwykłe formularze HTML (strony statyczne)",
+      "public_forms_desc": "Dla strony bez kodu po stronie serwera: jej formularze wysyłają dane bezpośrednio do dwóch powyższych punktów końcowych /forms/, a odwiedzający zostaje przekierowany z powrotem na stronę. Nie używa się tu tokenu API, dlatego przyjmowane są tylko zgłoszenia wysłane z adresów stron wpisanych poniżej. Dopóki lista jest pusta, oba punkty końcowe pozostają zamknięte.",
+      "public_forms_origins_label": "Dozwolone adresy stron",
+      "public_forms_origins_hint": "Jeden w wierszu, tylko schemat i host, np. https://example.org",
+      "public_forms_save_button": "Zapisz adresy",
+      "public_forms_saved": "Dozwolone adresy stron zostały zapisane.",
+      "public_forms_ignored": "Te wpisy nie są adresami http(s) i zostały pominięte: {entries}"
     },
     "system": {
       "page_title": "System",

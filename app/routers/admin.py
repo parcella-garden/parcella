@@ -41,7 +41,10 @@ from app.invoice_generation import (
 )
 from app.config import settings
 from app.module_flags import MODULE_DEFAULTS
-from app.public_api_auth import get_or_create_public_api_token, regenerate_public_api_token
+from app.public_api_auth import (
+    PUBLIC_FORM_ORIGINS_SETTING_KEY, allowed_form_origins, get_or_create_public_api_token,
+    normalize_origin, regenerate_public_api_token,
+)
 from app.update_check import get_update_status, refresh_update_check_cache
 from app.sample_data import (
     add_sample_data, remove_sample_data, sample_data_counts,
@@ -1253,9 +1256,17 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
     )).one()
     deck_synced_count, deck_last_synced_at = deck_link_stats
 
+    form_origins_result = await db.execute(
+        select(ClubSetting).where(ClubSetting.key == PUBLIC_FORM_ORIGINS_SETTING_KEY)
+    )
+    form_origins_entry = form_origins_result.scalar_one_or_none()
+
     return templates.TemplateResponse("admin/integrations.html", {
         "request": request, "user": user,
         "api_token": token,
+        "public_form_origins": "\n".join(sorted(await allowed_form_origins(db))) if form_origins_entry else "",
+        "public_forms_saved": request.query_params.get("public_forms_saved"),
+        "public_forms_ignored": request.query_params.get("public_forms_ignored"),
         "module_active": module_active,
         "contact_module_active": contact_module_active,
         "base_url": str(request.base_url).rstrip("/"),
@@ -1299,6 +1310,29 @@ async def integrations_token_regenerate(request: Request, db: AsyncSession = Dep
     await require_system_admin(request, db)
     await regenerate_public_api_token(db)
     return RedirectResponse("/admin/integrations?success=1", status_code=302)
+
+
+@router.post("/integrations/public-forms")
+async def integrations_public_forms_save(request: Request, db: AsyncSession = Depends(get_db)):
+    """Saves the website origins allowed to post the plain-HTML-form
+    endpoints (app/routers/api_public.py, ADR 0088). Entries are reduced
+    to scheme://host[:port]; anything that isn't an http(s) URL is
+    dropped and reported back rather than stored."""
+    await require_system_admin(request, db)
+    form = await request.form()
+    entries = (form.get("public_form_origins") or "").split()
+    origins = sorted({o for o in map(normalize_origin, entries) if o})
+    ignored = [e for e in entries if not normalize_origin(e)]
+
+    await _upsert_club_setting(
+        db, PUBLIC_FORM_ORIGINS_SETTING_KEY, "\n".join(origins) or None,
+        "Website origins allowed to post the public plain-HTML forms",
+    )
+    await db.commit()
+    query = "public_forms_saved=1"
+    if ignored:
+        query += f"&public_forms_ignored={urllib.parse.quote(', '.join(ignored))}"
+    return RedirectResponse(f"/admin/integrations?{query}", status_code=303)
 
 
 async def _upsert_club_setting(db: AsyncSession, key: str, value: Optional[str], description: str = "") -> None:

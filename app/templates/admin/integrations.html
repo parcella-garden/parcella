@@ -68,8 +68,37 @@
                     <td><code>{{ base_url }}/api/v1/public/contact</code></td>
                     <td><code>X-Parcella-API-Token</code></td>
                 </tr>
+                <tr>
+                    <td><span class="badge bg-primary">POST</span></td>
+                    <td><code>{{ base_url }}/api/v1/public/forms/work-session-signup</code></td>
+                    <td>{{ t('admin.integrations.auth_origin_allowlist') }}</td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-primary">POST</span></td>
+                    <td><code>{{ base_url }}/api/v1/public/forms/contact</code></td>
+                    <td>{{ t('admin.integrations.auth_origin_allowlist') }}</td>
+                </tr>
             </tbody>
         </table>
+
+        <label class="form-label fw-semibold">{{ t('admin.integrations.public_forms_title') }}</label>
+        <p class="text-muted" style="font-size: 0.85rem;">{{ t('admin.integrations.public_forms_desc') }}</p>
+        {% if public_forms_saved %}
+        <div class="alert alert-success">{{ t('admin.integrations.public_forms_saved') }}</div>
+        {% endif %}
+        {% if public_forms_ignored %}
+        <div class="alert alert-warning">{{ t('admin.integrations.public_forms_ignored', entries=public_forms_ignored) }}</div>
+        {% endif %}
+        <form method="post" action="/admin/integrations/public-forms" class="mb-3">
+            {{ csrf_field() }}
+            <label class="form-label" for="public_form_origins">{{ t('admin.integrations.public_forms_origins_label') }}</label>
+            <textarea id="public_form_origins" name="public_form_origins" class="form-control" rows="3"
+                      placeholder="https://example.org">{{ public_form_origins }}</textarea>
+            <div class="form-text mb-2">{{ t('admin.integrations.public_forms_origins_hint') }}</div>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i>{{ t('admin.integrations.public_forms_save_button') }}
+            </button>
+        </form>
 
         {% if not contact_module_active %}
         <div class="alert alert-warning" style="font-size: 0.85rem;">

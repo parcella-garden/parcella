@@ -277,3 +277,58 @@ Any connector needs to, in order:
 
 New module checklist entries in `docs/README.md` apply here too if this
 module gets extended (new translation keys go in all 7 language files).
+
+## Static websites: plain HTML forms
+
+A site with no server-side code (static HTML on FTP-only hosting, for
+instance) can't keep the API token secret, so it uses two form endpoints
+instead -- see [ADR 0088](./ADR/0088-plain-html-form-endpoints-origin-allowlist.md)
+for the reasoning.
+
+| Method | Path | Auth |
+|---|---|---|
+| POST | `/api/v1/public/forms/work-session-signup` | origin allowlist |
+| POST | `/api/v1/public/forms/contact` | origin allowlist |
+
+They run the exact same logic as the JSON endpoints, take ordinary
+`application/x-www-form-urlencoded` form posts, and answer with a 303
+redirect back to the website. Requirements:
+
+- the module flag (`public_signup_api` / `public_contact_api`) is on, and
+- the website's origin (e.g. `https://example.org`) is listed under
+  Administration -> Integrations -> "Allowed website origins". While that
+  list is empty both endpoints answer 403.
+
+Form fields: the same names as in the JSON payloads (`session_ids`
+repeated once per ticked checkbox; `consent` as a checkbox), the hidden
+honeypot `website`, and optional `success_url`/`error_url`. Both URLs
+must be on an allowed origin -- anything else is ignored in favour of the
+submitting page, so the endpoint can't be used as an open redirect.
+
+Outcome, as the URL fragment: `success_url#ok`, `success_url#partial`
+(signup: some ticked sessions were rejected), or `error_url#<code>` with
+`code` one of `session_full`, `registration_closed`, `session_not_found`,
+`no_members_for_parcel`, `unknown_parcel`, `no_session_selected`,
+`consent_missing`, `invalid`, `rate_limited`, `unavailable`, `error`. A
+static page can show the matching message with CSS alone:
+
+```html
+<form method="post" action="https://parcella.example.org/api/v1/public/forms/contact">
+  <input name="name" required> <input name="email" type="email" required>
+  <textarea name="message" required></textarea>
+  <label><input type="checkbox" name="consent" required> I agree to the privacy policy</label>
+  <input name="website" tabindex="-1" autocomplete="off" hidden>
+  <input type="hidden" name="success_url" value="https://example.org/danke/">
+  <input type="hidden" name="error_url" value="https://example.org/fehler/">
+  <button>Send</button>
+</form>
+
+<!-- on /fehler/ -->
+<style>.reason { display: none } .reason:target { display: block }</style>
+<p id="consent_missing" class="reason">Please tick the privacy checkbox.</p>
+<p id="rate_limited" class="reason">Too many messages -- please try again later.</p>
+```
+
+The session and parcel choices for the signup form come from the two
+unauthenticated GET endpoints above -- fetched when the static site is
+built, so the page itself stays plain HTML.

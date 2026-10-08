@@ -391,7 +391,15 @@
       "deck_sync_now_button": "Nu synchroniseren",
       "deck_sync_now_success": "{count} kaart(en) gesynchroniseerd",
       "deck_last_synced_label": "{count} taak/taken gesynchroniseerd, laatst om {when}",
-      "deck_never_synced_label": "Nog niet gesynchroniseerd"
+      "deck_never_synced_label": "Nog niet gesynchroniseerd",
+      "auth_origin_allowlist": "Toegestane websiteadressen",
+      "public_forms_title": "Eenvoudige HTML-formulieren (statische websites)",
+      "public_forms_desc": "Voor een website zonder servercode: de formulieren versturen rechtstreeks naar de twee /forms/-eindpunten hierboven, waarna de bezoeker wordt teruggestuurd naar de website. Er komt geen API-token aan te pas, dus alleen inzendingen vanaf de hier vermelde websiteadressen worden geaccepteerd. Zolang de lijst leeg is, blijven beide eindpunten gesloten.",
+      "public_forms_origins_label": "Toegestane websiteadressen",
+      "public_forms_origins_hint": "Eén per regel, alleen schema en host, bijv. https://example.org",
+      "public_forms_save_button": "Adressen opslaan",
+      "public_forms_saved": "Toegestane websiteadressen opgeslagen.",
+      "public_forms_ignored": "Deze vermeldingen zijn geen http(s)-adressen en zijn genegeerd: {entries}"
     },
     "system": {
       "page_title": "Systeem",

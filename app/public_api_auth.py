@@ -19,6 +19,7 @@ is safe here, the same reasoning as the public community ICS feed.
 """
 import secrets
 from typing import Optional
+from urllib.parse import urlsplit
 
 from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -89,3 +90,32 @@ async def require_public_api_token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing or invalid API token",
         )
+
+
+# ---------------------------------------------------------------------------
+# Website-origin allowlist for the plain-HTML-form endpoints
+# (app/routers/api_public.py, ADR 0088) -- their stand-in for the token
+# above, which a static website has nowhere secret to keep.
+# ---------------------------------------------------------------------------
+
+PUBLIC_FORM_ORIGINS_SETTING_KEY = "public_form_allowed_origins"
+
+
+def normalize_origin(value: str) -> Optional[str]:
+    """Reduces a URL to its origin -- https://Example.org/some/page becomes
+    https://example.org -- or None for anything that isn't an absolute
+    http(s) URL."""
+    try:
+        parts = urlsplit((value or "").strip())
+    except ValueError:
+        return None
+    if parts.scheme not in ("http", "https") or not parts.hostname:
+        return None
+    return f"{parts.scheme}://{parts.netloc.lower()}"
+
+
+async def allowed_form_origins(db: AsyncSession) -> set[str]:
+    result = await db.execute(select(ClubSetting).where(ClubSetting.key == PUBLIC_FORM_ORIGINS_SETTING_KEY))
+    entry = result.scalar_one_or_none()
+    lines = (entry.value or "").split() if entry else []
+    return {origin for origin in map(normalize_origin, lines) if origin}

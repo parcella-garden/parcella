@@ -391,7 +391,15 @@
       "deck_sync_now_button": "Jetzt synchronisieren",
       "deck_sync_now_success": "{count} Karte(n) synchronisiert",
       "deck_last_synced_label": "{count} Aufgabe(n) synchronisiert, zuletzt am {when}",
-      "deck_never_synced_label": "Noch nicht synchronisiert"
+      "deck_never_synced_label": "Noch nicht synchronisiert",
+      "auth_origin_allowlist": "Erlaubte Website-Adressen",
+      "public_forms_title": "Einfache HTML-Formulare (statische Websites)",
+      "public_forms_desc": "Für eine Website ohne serverseitigen Code: Ihre Formulare senden direkt an die beiden /forms/-Endpunkte oben, danach wird der Besucher auf die Website zurückgeleitet. Ein API-Token ist dabei nicht im Spiel, deshalb werden nur Einsendungen von den hier eingetragenen Website-Adressen angenommen. Solange die Liste leer ist, bleiben beide Endpunkte geschlossen.",
+      "public_forms_origins_label": "Erlaubte Website-Adressen",
+      "public_forms_origins_hint": "Eine pro Zeile, nur Schema und Host, z. B. https://example.org",
+      "public_forms_save_button": "Adressen speichern",
+      "public_forms_saved": "Erlaubte Website-Adressen gespeichert.",
+      "public_forms_ignored": "Diese Einträge sind keine http(s)-Adressen und wurden ignoriert: {entries}"
     },
     "system": {
       "page_title": "System",

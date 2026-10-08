@@ -391,7 +391,15 @@
       "deck_sync_now_button": "Synchroniser maintenant",
       "deck_sync_now_success": "{count} carte(s) synchronisée(s)",
       "deck_last_synced_label": "{count} tâche(s) synchronisée(s), dernière fois à {when}",
-      "deck_never_synced_label": "Pas encore synchronisé"
+      "deck_never_synced_label": "Pas encore synchronisé",
+      "auth_origin_allowlist": "Adresses de sites autorisées",
+      "public_forms_title": "Formulaires HTML simples (sites statiques)",
+      "public_forms_desc": "Pour un site sans code côté serveur : ses formulaires envoient directement les données aux deux points de terminaison /forms/ ci-dessus, puis le visiteur est redirigé vers le site. Aucun jeton API n'intervient, seules les soumissions envoyées depuis les adresses de sites indiquées ici sont donc acceptées. Tant que la liste est vide, les deux points de terminaison restent fermés.",
+      "public_forms_origins_label": "Adresses de sites autorisées",
+      "public_forms_origins_hint": "Une par ligne, schéma et hôte uniquement, p. ex. https://example.org",
+      "public_forms_save_button": "Enregistrer les adresses",
+      "public_forms_saved": "Adresses de sites autorisées enregistrées.",
+      "public_forms_ignored": "Ces entrées ne sont pas des adresses http(s) et ont été ignorées : {entries}"
     },
     "system": {
       "page_title": "Système",

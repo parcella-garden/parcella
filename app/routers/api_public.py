@@ -29,9 +29,12 @@ WordPress connector under integrations/wordpress/.
 """
 import re
 import logging
-from typing import List
+from typing import List, Optional
+from urllib.parse import urlsplit, urlunsplit
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import RedirectResponse
+from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -42,7 +45,7 @@ from app.models import (
     SessionParticipation, ParticipationStatus, SessionType,
 )
 from app.module_flags import require_module
-from app.public_api_auth import require_public_api_token
+from app.public_api_auth import allowed_form_origins, normalize_origin, require_public_api_token
 from app.rate_limit import check_and_record, client_ip_key
 from app.schemas import (
     PublicWorkSessionOut, PublicParcelOut, PublicSignupCreate,
@@ -196,6 +199,20 @@ async def submit_signup(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
+    result, _codes = await _process_signup(payload, request, db)
+    return result
+
+
+async def _process_signup(
+    payload: PublicSignupCreate, request: Request, db: AsyncSession,
+) -> tuple[PublicSignupResult, list[Optional[str]]]:
+    """The signup logic shared by the JSON endpoint above and the
+    plain-HTML-form endpoint further down. Besides the API response it
+    returns one reason code per session (None = accepted) -- the same
+    suffixes as the public_api.signup.* translation keys, which the form
+    endpoint puts into its redirect instead of the translated text.
+    Raises HTTPException for an unknown parcel (404) and for the rate
+    limit (429), exactly as before."""
     # Honeypot: a real visitor never fills this field. Return a
     # believable-looking success without creating anything, so the bot
     # doesn't learn its submission was rejected.
@@ -203,7 +220,7 @@ async def submit_signup(
         logger.info("Public signup honeypot triggered, silently ignoring submission")
         return PublicSignupResult(results=[
             PublicSignupSessionResult(session_id=sid, accepted=True) for sid in payload.session_ids
-        ])
+        ]), [None] * len(payload.session_ids)
 
     _check_rate_limit(request)
     lang = _lang(request)
@@ -237,15 +254,20 @@ async def submit_signup(
     sessions_by_id = {s.id: s for s in sessions_result.scalars().all()}
 
     results: list[PublicSignupSessionResult] = []
+    codes: list[Optional[str]] = []
     created_count = 0
+
+    def reject(session_id: str, code: str) -> None:
+        results.append(PublicSignupSessionResult(
+            session_id=session_id, accepted=False,
+            reason=translate(f"public_api.signup.{code}", lang),
+        ))
+        codes.append(code)
 
     if not members_to_register:
         for session_id in payload.session_ids:
-            results.append(PublicSignupSessionResult(
-                session_id=session_id, accepted=False,
-                reason=translate("public_api.signup.no_members_for_parcel", lang),
-            ))
-        return PublicSignupResult(results=results)
+            reject(session_id, "no_members_for_parcel")
+        return PublicSignupResult(results=results), codes
 
     note = _build_note(parcel.plot_number, payload, was_matched, len(current_tenants))
 
@@ -256,27 +278,18 @@ async def submit_signup(
         # reason, since as far as this endpoint is concerned it isn't
         # a signup-eligible session at all.
         if not session or session.type != SessionType.STANDARD:
-            results.append(PublicSignupSessionResult(
-                session_id=session_id, accepted=False,
-                reason=translate("public_api.signup.session_not_found", lang),
-            ))
+            reject(session_id, "session_not_found")
             continue
 
         if not session.public_signup_open:
-            results.append(PublicSignupSessionResult(
-                session_id=session_id, accepted=False,
-                reason=translate("public_api.signup.registration_closed", lang),
-            ))
+            reject(session_id, "registration_closed")
             continue
 
         already_registered_member_ids = {p.member_id for p in session.participations}
         to_create = [m for m in members_to_register if m.id not in already_registered_member_ids]
 
         if session.available_spots is not None and session.available_spots < len(to_create):
-            results.append(PublicSignupSessionResult(
-                session_id=session_id, accepted=False,
-                reason=translate("public_api.signup.session_full", lang),
-            ))
+            reject(session_id, "session_full")
             continue
 
         for member in to_create:
@@ -287,6 +300,7 @@ async def submit_signup(
             created_count += 1
 
         results.append(PublicSignupSessionResult(session_id=session_id, accepted=True))
+        codes.append(None)
 
     if created_count > 0:
         await db.commit()
@@ -298,7 +312,7 @@ async def submit_signup(
     else:
         await db.rollback()
 
-    return PublicSignupResult(results=results)
+    return PublicSignupResult(results=results), codes
 
 
 _CONTACT_SUBJECT = "Contact form inquiry"
@@ -327,26 +341,37 @@ async def submit_contact(
     (Admin -> Integrations) for this to do anything, but doesn't need
     the freescout_bridge module itself enabled just to accept inbound
     contact-form messages."""
+    result, _code = await _process_contact(payload, request, db)
+    return result
+
+
+async def _process_contact(
+    payload: PublicContactCreate, request: Request, db: AsyncSession,
+) -> tuple[PublicContactResult, Optional[str]]:
+    """Shared by the JSON endpoint above and the plain-HTML-form endpoint
+    below, same split as _process_signup. The second value is a reason
+    code for a rejection (None = accepted); raises HTTPException 429 for
+    the rate limit."""
     # Honeypot: a real visitor never fills this field. Return a
     # believable-looking success without creating anything, same as the
     # signup endpoint's honeypot handling above.
     if payload.website:
         logger.info("Public contact-form honeypot triggered, silently ignoring submission")
-        return PublicContactResult(accepted=True)
+        return PublicContactResult(accepted=True), None
 
     _check_contact_rate_limit(request)
 
     if not payload.consent:
         return PublicContactResult(
             accepted=False, reason="Data-protection consent is required to submit this form",
-        )
+        ), "consent_missing"
 
     client = await get_freescout_client(db)
     if client is None:
         logger.error("Public contact form submitted but FreeScout is not configured")
         return PublicContactResult(
             accepted=False, reason="Support system is not configured -- please try again later",
-        )
+        ), "unavailable"
 
     try:
         await client.create_conversation(
@@ -355,6 +380,136 @@ async def submit_contact(
         )
     except FreeScoutError as e:
         logger.error(f"FreeScout API request failed for public contact form: {e}")
-        return PublicContactResult(accepted=False, reason="Could not submit your message -- please try again later")
+        return PublicContactResult(accepted=False, reason="Could not submit your message -- please try again later"), "unavailable"
 
-    return PublicContactResult(accepted=True)
+    return PublicContactResult(accepted=True), None
+
+
+# ---------------------------------------------------------------------------
+# Plain HTML forms (static websites). The endpoints above expect a server-
+# side connector that holds the shared API token -- a static site has none,
+# and a token written into its HTML would be public. These two accept a
+# browser's own form POST instead and answer with a 303 redirect back to
+# the site, gated by an allowlist of website origins rather than the
+# token. See docs/ADR/0088-plain-html-form-endpoints-origin-allowlist.md.
+# ---------------------------------------------------------------------------
+
+def _request_origin(request: Request) -> Optional[str]:
+    """Where the form was submitted from. Browsers send Origin on every
+    cross-origin POST; Referer is the fallback for the rare one that
+    doesn't (or sends the literal "null")."""
+    origin = request.headers.get("origin")
+    if origin and origin != "null":
+        return normalize_origin(origin)
+    return normalize_origin(request.headers.get("referer", ""))
+
+
+def _redirect_target(requested: Optional[str], request: Request, allowed: set[str], fragment: str) -> str:
+    """The form's own success_url/error_url if it points at an allowed
+    origin -- otherwise the submitting page, otherwise that site's root.
+    Never anywhere else: an unchecked target would turn this endpoint
+    into an open redirect. The outcome travels as the URL fragment, so a
+    static page can show the matching message with CSS :target alone."""
+    referer = request.headers.get("referer", "")
+    for candidate in (requested, referer):
+        if candidate and normalize_origin(candidate) in allowed:
+            parts = urlsplit(candidate.strip())
+            return urlunsplit((parts.scheme, parts.netloc, parts.path or "/", parts.query, fragment))
+    return f"{_request_origin(request)}/#{fragment}"
+
+
+async def _check_form_origin(request: Request, db: AsyncSession) -> set[str]:
+    allowed = await allowed_form_origins(db)
+    if not allowed:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Public forms are not enabled")
+    if _request_origin(request) not in allowed:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Form submitted from a website that isn't allowed")
+    return allowed
+
+
+def _form_text(form, name: str) -> Optional[str]:
+    value = form.get(name)
+    return value if isinstance(value, str) else None
+
+
+def _is_checked(form, name: str) -> bool:
+    return (_form_text(form, name) or "").strip().lower() in ("on", "true", "1", "yes")
+
+
+def _http_error_code(error: HTTPException) -> str:
+    return {404: "unknown_parcel", 429: "rate_limited"}.get(error.status_code, "error")
+
+
+@router.post(
+    "/forms/work-session-signup",
+    dependencies=[Depends(require_module("public_signup_api"))],
+)
+async def submit_signup_form(request: Request, db: AsyncSession = Depends(get_db)):
+    """Plain-HTML-form variant of POST /work-sessions/signup. Fields as in
+    PublicSignupCreate (session_ids repeated, one per ticked checkbox),
+    plus optional success_url/error_url. Every session accepted ->
+    success_url#ok; some -> success_url#partial; none -> error_url#<code>."""
+    allowed = await _check_form_origin(request, db)
+    form = await request.form()
+    success_url, error_url = _form_text(form, "success_url"), _form_text(form, "error_url")
+
+    def redirect(url: Optional[str], fragment: str) -> RedirectResponse:
+        return RedirectResponse(_redirect_target(url, request, allowed, fragment), status_code=status.HTTP_303_SEE_OTHER)
+
+    try:
+        payload = PublicSignupCreate(
+            parcel_number=_form_text(form, "parcel_number") or "",
+            name=_form_text(form, "name"), phone=_form_text(form, "phone"),
+            email=_form_text(form, "email"), remarks=_form_text(form, "remarks"),
+            session_ids=[v for v in form.getlist("session_ids") if isinstance(v, str) and v],
+            website=_form_text(form, "website"),
+        )
+    except ValidationError as e:
+        fields = {str(err["loc"][0]) for err in e.errors() if err.get("loc")}
+        return redirect(error_url, "no_session_selected" if "session_ids" in fields else "invalid")
+    if not payload.parcel_number.strip():
+        return redirect(error_url, "invalid")
+
+    try:
+        _result, codes = await _process_signup(payload, request, db)
+    except HTTPException as e:
+        return redirect(error_url, _http_error_code(e))
+
+    rejected = [code for code in codes if code]
+    if not rejected:
+        return redirect(success_url, "ok")
+    if len(rejected) < len(codes):
+        return redirect(success_url, "partial")
+    return redirect(error_url, rejected[0])
+
+
+@router.post(
+    "/forms/contact",
+    dependencies=[Depends(require_module("public_contact_api"))],
+)
+async def submit_contact_form(request: Request, db: AsyncSession = Depends(get_db)):
+    """Plain-HTML-form variant of POST /contact: name, email, message, a
+    consent checkbox, the honeypot, plus optional success_url/error_url.
+    Redirects to success_url#ok or error_url#<code>."""
+    allowed = await _check_form_origin(request, db)
+    form = await request.form()
+    success_url, error_url = _form_text(form, "success_url"), _form_text(form, "error_url")
+
+    def redirect(url: Optional[str], fragment: str) -> RedirectResponse:
+        return RedirectResponse(_redirect_target(url, request, allowed, fragment), status_code=status.HTTP_303_SEE_OTHER)
+
+    try:
+        payload = PublicContactCreate(
+            name=(_form_text(form, "name") or "").strip(), email=(_form_text(form, "email") or "").strip(),
+            message=(_form_text(form, "message") or "").strip(), consent=_is_checked(form, "consent"),
+            website=_form_text(form, "website"),
+        )
+    except ValidationError:
+        return redirect(error_url, "invalid")
+
+    try:
+        _result, code = await _process_contact(payload, request, db)
+    except HTTPException as e:
+        return redirect(error_url, _http_error_code(e))
+
+    return redirect(error_url, code) if code else redirect(success_url, "ok")

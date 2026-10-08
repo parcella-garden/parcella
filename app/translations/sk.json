@@ -391,7 +391,15 @@
       "deck_sync_now_button": "Synchronizovať teraz",
       "deck_sync_now_success": "Synchronizovaných {count} kariet",
       "deck_last_synced_label": "Synchronizovaných {count} úloh, naposledy {when}",
-      "deck_never_synced_label": "Zatiaľ nesynchronizované"
+      "deck_never_synced_label": "Zatiaľ nesynchronizované",
+      "auth_origin_allowlist": "Povolené adresy webov",
+      "public_forms_title": "Jednoduché HTML formuláre (statické weby)",
+      "public_forms_desc": "Pre web bez kódu na strane servera: jeho formuláre odosielajú údaje priamo na dva vyššie uvedené koncové body /forms/ a návštevník je potom presmerovaný späť na web. Nepoužíva sa žiadny API token, preto sa prijímajú len odoslania z adries webov uvedených tu. Kým je zoznam prázdny, oba koncové body zostávajú zatvorené.",
+      "public_forms_origins_label": "Povolené adresy webov",
+      "public_forms_origins_hint": "Jedna na riadok, len schéma a host, napr. https://example.org",
+      "public_forms_save_button": "Uložiť adresy",
+      "public_forms_saved": "Povolené adresy webov boli uložené.",
+      "public_forms_ignored": "Tieto položky nie sú adresy http(s) a boli ignorované: {entries}"
     },
     "system": {
       "page_title": "Systém",
