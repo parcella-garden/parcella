@@ -43,7 +43,7 @@ from sqlalchemy.orm import selectinload
 from app.database import get_db, current_tenant_filter
 from app.models import (
     WorkSession, Parcel, ParcelStatus, MemberParcel, Member,
-    SessionParticipation, ParticipationStatus, SessionType,
+    SessionParticipation, ParticipationStatus, SessionType, ApplicantSource,
 )
 from app.module_flags import require_module
 from app.public_api_auth import allowed_form_origins, normalize_origin, require_public_api_token
@@ -52,9 +52,11 @@ from app.schemas import (
     PublicWorkSessionOut, PublicParcelOut, PublicSignupCreate,
     PublicSignupResult, PublicSignupSessionResult,
     PublicContactCreate, PublicContactResult,
+    PublicApplicantCreate, PublicApplicantResult,
 )
 from app.form_altcha import altcha_required, new_challenge, verify as verify_altcha
 from app.freescout_client import FreeScoutError, get_freescout_client
+from app.services.applicants import create_applicant
 from app.services.work_hours import notify_new_participations_digest
 from app.i18n import DEFAULT_LANGUAGE, translate
 
@@ -82,6 +84,12 @@ _RATE_LIMIT_MAX_REQUESTS = 20
 # endpoint doesn't consume the other's budget for the same visitor.
 _CONTACT_RATE_LIMIT_WINDOW_SECONDS = 3600
 _CONTACT_RATE_LIMIT_MAX_REQUESTS = 10
+
+
+# Plot applications (docs/module-applicants.md): own bucket, same size as
+# the contact form's.
+_APPLICANT_RATE_LIMIT_WINDOW_SECONDS = 3600
+_APPLICANT_RATE_LIMIT_MAX_REQUESTS = 10
 
 
 def _connector_client_ip(request: Request) -> Optional[str]:
@@ -118,6 +126,15 @@ def _check_contact_rate_limit(request: Request) -> None:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Too many contact requests from this address, please try again later",
+        )
+
+
+def _check_applicant_rate_limit(request: Request) -> None:
+    key = client_ip_key(request, "public_applicant", ip=_rate_limit_ip(request))
+    if not check_and_record(key, _APPLICANT_RATE_LIMIT_MAX_REQUESTS, _APPLICANT_RATE_LIMIT_WINDOW_SECONDS):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many applications from this address, please try again later",
         )
 
 
@@ -429,6 +446,56 @@ async def _process_contact(
     return PublicContactResult(accepted=True), None
 
 
+@router.post(
+    "/applicants",
+    response_model=PublicApplicantResult,
+    dependencies=[Depends(require_module("public_applicant_api")), Depends(require_public_api_token)],
+)
+async def submit_applicant(
+    payload: PublicApplicantCreate,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """An application for a free garden plot, from a server-side
+    connector. Creates an Applicant (source WEBSITE) for the board's
+    applicants list -- see docs/module-applicants.md. The website's own
+    form uses /forms/applicant below instead."""
+    request.state.connector_client_ip = _connector_client_ip(request)
+    result, _code = await _process_applicant(payload, request, db)
+    return result
+
+
+async def _process_applicant(
+    payload: PublicApplicantCreate, request: Request, db: AsyncSession,
+) -> tuple[PublicApplicantResult, Optional[str]]:
+    """Shared by the JSON endpoint above and the plain-HTML-form endpoint
+    below, same split and same order as _process_contact: honeypot,
+    ALTCHA, rate limit (raises HTTPException 429), consent."""
+    if payload.website:
+        logger.info("Public applicant-form honeypot triggered, silently ignoring submission")
+        return PublicApplicantResult(accepted=True), None
+
+    def reject(code: str) -> tuple[PublicApplicantResult, str]:
+        return PublicApplicantResult(
+            accepted=False, code=code, reason=translate(f"public_api.applicant.{code}", _lang(request)),
+        ), code
+
+    if not await _altcha_ok(payload.altcha, db):
+        return reject("captcha")
+
+    _check_applicant_rate_limit(request)
+
+    if not payload.consent:
+        return reject("consent_missing")
+
+    await create_applicant(
+        db, email=payload.email, first_name=payload.first_name, last_name=payload.last_name,
+        phone=payload.phone, message=payload.message,
+        source=ApplicantSource.WEBSITE, consent_given=True,
+    )
+    return PublicApplicantResult(accepted=True), None
+
+
 # ---------------------------------------------------------------------------
 # Plain HTML forms (static websites). The endpoints above expect a server-
 # side connector that holds the shared API token -- a static site has none,
@@ -584,6 +651,41 @@ async def submit_contact_form(request: Request, db: AsyncSession = Depends(get_d
 
     try:
         _result, code = await _process_contact(payload, request, db)
+    except HTTPException as e:
+        return redirect(error_url, _http_error_code(e))
+
+    return redirect(error_url, code) if code else redirect(success_url, "ok")
+
+
+@router.post(
+    "/forms/applicant",
+    dependencies=[Depends(require_module("public_applicant_api"))],
+)
+async def submit_applicant_form(request: Request, db: AsyncSession = Depends(get_db)):
+    """Plain-HTML-form variant of POST /applicants: email (required),
+    first_name, last_name, phone, message, a consent checkbox, the
+    honeypot, the ALTCHA field, plus optional success_url/error_url.
+    Redirects to success_url#ok or error_url#<code>."""
+    allowed = await _check_form_origin(request, db)
+    form = await request.form()
+    success_url, error_url = _form_text(form, "success_url"), _form_text(form, "error_url")
+
+    def redirect(url: Optional[str], fragment: str) -> RedirectResponse:
+        return RedirectResponse(_redirect_target(url, request, allowed, fragment), status_code=status.HTTP_303_SEE_OTHER)
+
+    try:
+        payload = PublicApplicantCreate(
+            email=(_form_text(form, "email") or "").strip(),
+            first_name=_form_text(form, "first_name"), last_name=_form_text(form, "last_name"),
+            phone=_form_text(form, "phone"), message=_form_text(form, "message"),
+            consent=_is_checked(form, "consent"),
+            website=_form_text(form, "website"), altcha=_form_text(form, "altcha"),
+        )
+    except ValidationError:
+        return redirect(error_url, "invalid")
+
+    try:
+        _result, code = await _process_applicant(payload, request, db)
     except HTTPException as e:
         return redirect(error_url, _http_error_code(e))
 

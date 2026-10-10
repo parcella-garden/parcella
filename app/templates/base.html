@@ -284,6 +284,14 @@
         {% endif %}
         {% endmacro %}
 
+        {% macro nav_applicants(request) %}
+        {% if request.state.module_flags.applicants and has_perm(request, 'applicants') %}
+        <a href="/applicants/" class="nav-top-link {% if request.url.path.startswith('/applicants') %}aktiv{% endif %}">
+            <i class="bi bi-person-raised-hand"></i> {{ t('nav.applicants') }}
+        </a>
+        {% endif %}
+        {% endmacro %}
+
         {% macro nav_work_hours(request) %}
         {% if request.state.module_flags.work_hours and has_perm(request, 'work_hours') %}
         <div class="nav-group" data-group="work_hours">
@@ -459,6 +467,7 @@
             {% elif key == 'inventory' %}{{ nav_inventory(request) }}
             {% elif key == 'tasks' %}{{ nav_tasks(request) }}
             {% elif key == 'finances' %}{{ nav_finances(request) }}
+            {% elif key == 'applicants' %}{{ nav_applicants(request) }}
             {% endif %}
         {% endfor %}
 

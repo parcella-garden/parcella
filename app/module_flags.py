@@ -36,6 +36,10 @@ MODULE_DEFAULTS: Dict[str, bool] = {
     "calendar": True,
     "inventory": True,
     "tasks": True,
+    # The board's view of plot applications (docs/module-applicants.md).
+    # On by default: by itself it opens nothing to the public -- the
+    # submit endpoints have their own flag, public_applicant_api, below.
+    "applicants": True,
     # Unlike the modules above, this defaults to False: it opens a public,
     # unauthenticated-write HTTP endpoint (see app/routers/api_public.py),
     # which is a deliberate security-relevant choice a club must opt into,
@@ -46,6 +50,10 @@ MODULE_DEFAULTS: Dict[str, bool] = {
     # endpoint (a contact-form-to-ticket bridge), and a club should be able
     # to enable one bridge without the other.
     "public_contact_api": False,
+    # Third public write endpoint (plot applications from the website),
+    # same reasoning as the two above -- and its own flag, so a club can
+    # use the applicants list for manual entries only.
+    "public_applicant_api": False,
     # Also defaults to False: it stores outbound credentials (a
     # Nextcloud/cloud storage app password) and, once configured, lets
     # board members upload and download real member paperwork. A club

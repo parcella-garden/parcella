@@ -312,6 +312,10 @@ connector sends the visitor's IP as `X-Parcella-Client-IP`; it's only
 honoured on the token endpoints (the token is what makes the claim
 trustworthy) and ignored unless it's a valid IPv4/IPv6 address.
 
+The plot-application form (`/forms/applicant`, `/applicants`) follows
+the same contract with its own fields -- see
+[module-applicants.md](./module-applicants.md).
+
 Deliberately not supported: bridges to CMS form-builder plugins
 (Contact Form 7, WPForms, Gravity Forms, ...). A site uses the
 contract directly, through a plain HTML form or its own small connector.

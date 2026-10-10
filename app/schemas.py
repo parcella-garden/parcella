@@ -11,7 +11,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, EmailStr, ConfigDict, Field, field_validator
 
-from app.models import ParcelStatus, UserRole, TaskPriority
+from app.models import ApplicantSource, ApplicantStatus, ParcelStatus, UserRole, TaskPriority
 
 
 # ---------------------------------------------------------------------------
@@ -766,6 +766,75 @@ class PublicContactResult(BaseModel):
     accepted: bool
     reason: Optional[str] = Field(None, description="Set when accepted=false, e.g. missing consent")
     code: Optional[str] = Field(None, description="Machine-readable reason, e.g. consent_missing -- same codes as the plain-HTML forms' redirect fragment")
+
+
+class PublicApplicantCreate(BaseModel):
+    """An application for a free garden plot (docs/module-applicants.md).
+    Only the email address is required; same form contract as the
+    contact form otherwise (consent, honeypot, ALTCHA -- ADR 0090)."""
+    email: EmailStr
+    first_name: Optional[str] = Field(None, max_length=100)
+    last_name: Optional[str] = Field(None, max_length=100)
+    phone: Optional[str] = Field(None, max_length=50)
+    message: Optional[str] = None
+    consent: bool = Field(..., description="Must be true -- data-protection consent given at submission")
+    website: Optional[str] = Field(None, description="Leave empty")
+    altcha: Optional[str] = Field(None, description="ALTCHA widget solution (base64), required while the installation requires ALTCHA")
+
+    @field_validator("first_name", "last_name", "phone", "message", "website", "altcha", mode="before")
+    @classmethod
+    def blank_to_none(cls, value):
+        if isinstance(value, str) and value.strip() == "":
+            return None
+        return value
+
+
+class PublicApplicantResult(BaseModel):
+    accepted: bool
+    reason: Optional[str] = Field(None, description="Set when accepted=false, e.g. missing consent")
+    code: Optional[str] = Field(None, description="Machine-readable reason, e.g. consent_missing -- same codes as the plain-HTML forms' redirect fragment")
+
+
+# ---------------------------------------------------------------------------
+# Applicants (board side, docs/module-applicants.md)
+# ---------------------------------------------------------------------------
+
+class ApplicantCreate(BaseModel):
+    """Entered by the board, e.g. after a phone call -- source MANUAL."""
+    email: EmailStr
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    message: Optional[str] = None
+    board_note: Optional[str] = None
+
+
+class ApplicantUpdate(BaseModel):
+    """Only the fields present in the request body are changed."""
+    email: Optional[EmailStr] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    message: Optional[str] = None
+    board_note: Optional[str] = None
+    status: Optional[ApplicantStatus] = None
+
+
+class ApplicantOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    email: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    message: Optional[str] = None
+    status: ApplicantStatus
+    source: ApplicantSource
+    board_note: Optional[str] = None
+    consent_at: Optional[datetime] = None
+    applied_at: datetime
+    status_changed_at: Optional[datetime] = None
+    updated_at: datetime
 
 
 # ---------------------------------------------------------------------------

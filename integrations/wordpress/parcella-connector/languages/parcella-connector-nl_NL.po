@@ -1,10 +1,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Parcella Connector 3.0.0\n"
+"Project-Id-Version: Parcella Connector 3.1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/parcella-garden/parcella/issues\n"
-"POT-Creation-Date: 2026-10-10 22:02+0000\n"
-"PO-Revision-Date: 2026-10-10 22:02+0000\n"
+"POT-Creation-Date: 2026-10-10 22:59+0000\n"
+"PO-Revision-Date: 2026-10-10 22:59+0000\n"
 "Language: nl_NL\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -58,14 +58,68 @@ msgstr "Verenigingskalender"
 msgid "Contact form"
 msgstr "Contactformulier"
 
+msgid "Garden plot applications"
+msgstr "Aanmeldingen voor een tuin"
+
 msgid ""
-"More modules (applicant management) are planned. Each will appear in this "
-"table once added, sharing the connection settings above -- no separate "
-"credentials to configure per module."
+"Further modules will appear in this table once added, sharing the connection "
+"settings above -- no separate settings to configure per module."
 msgstr ""
-"Meer modules (aanvragersbeheer) zijn gepland. Elke module verschijnt in deze "
-"tabel zodra ze is toegevoegd, met gebruik van de bovenstaande "
-"verbindingsinstellingen -- geen aparte inloggegevens per module nodig."
+"Verdere modules verschijnen in deze tabel zodra ze zijn toegevoegd en "
+"gebruiken de verbindingsinstellingen hierboven -- zonder aparte instellingen "
+"per module."
+
+msgid ""
+"Thank you, your application has been received. We will get in touch with you."
+msgstr "Bedankt, je aanmelding is ontvangen. We nemen contact met je op."
+
+msgid "Please confirm you have read the privacy policy to submit this form."
+msgstr ""
+"Bevestig dat je het privacybeleid hebt gelezen om dit formulier te versturen."
+
+msgid "Please enter a valid email address."
+msgstr "Vul een geldig e-mailadres in."
+
+msgid "Too many submissions right now. Please try again in a little while."
+msgstr ""
+"Op dit moment te veel inzendingen. Probeer het over een tijdje opnieuw."
+
+msgid "The spam protection check failed. Please reload the page and try again."
+msgstr ""
+"De spambeveiliging is mislukt. Laad de pagina opnieuw en probeer het nog "
+"eens."
+
+msgid ""
+"Something went wrong submitting your application. Please try again later."
+msgstr ""
+"Er ging iets mis bij het verzenden van je aanmelding. Probeer het later "
+"opnieuw."
+
+msgid "Email address"
+msgstr "E-mailadres"
+
+msgid "First name"
+msgstr "Voornaam"
+
+msgid "Last name"
+msgstr "Achternaam"
+
+msgid "Phone"
+msgstr "Telefoon"
+
+msgid "Anything you would like to tell us?"
+msgstr "Wil je ons nog iets laten weten?"
+
+msgid ""
+"I have read the privacy policy and agree that my details are stored and "
+"processed electronically to handle my application for a garden plot."
+msgstr ""
+"Ik heb de privacyverklaring gelezen en ga ermee akkoord dat mijn gegevens "
+"elektronisch worden opgeslagen en verwerkt voor de behandeling van mijn "
+"aanmelding voor een tuin."
+
+msgid "Send application"
+msgstr "Aanmelding versturen"
 
 msgid "The calendar is temporarily unavailable. Please try again later."
 msgstr "De kalender is tijdelijk niet beschikbaar. Probeer het later opnieuw."
@@ -78,24 +132,11 @@ msgid ""
 msgstr ""
 "Bedankt, je bericht is ontvangen. We nemen binnenkort contact met je op."
 
-msgid "Please confirm you have read the privacy policy to submit this form."
-msgstr ""
-"Bevestig dat je het privacybeleid hebt gelezen om dit formulier te versturen."
-
 msgid "Please fill in your name, email address, and message."
 msgstr "Vul je naam, e-mailadres en bericht in."
 
-msgid "Too many submissions right now. Please try again in a little while."
-msgstr ""
-"Op dit moment te veel inzendingen. Probeer het over een tijdje opnieuw."
-
 msgid "Your message could not be submitted right now. Please try again later."
 msgstr "Je bericht kon nu niet worden verzonden. Probeer het later opnieuw."
-
-msgid "The spam protection check failed. Please reload the page and try again."
-msgstr ""
-"De spambeveiliging is mislukt. Laad de pagina opnieuw en probeer het nog "
-"eens."
 
 msgid "Something went wrong submitting your message. Please try again later."
 msgstr ""
@@ -103,9 +144,6 @@ msgstr ""
 
 msgid "Name"
 msgstr "Naam"
-
-msgid "Email address"
-msgstr "E-mailadres"
 
 msgid "Message"
 msgstr "Bericht"

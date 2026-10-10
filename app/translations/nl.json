@@ -47,7 +47,8 @@
     "finances_outgoing_invoices": "Uitgaande facturen",
     "finances_reminders": "Herinneringen",
     "finances_incoming_invoices": "Inkomende facturen",
-    "freescout_bridge": "Ondersteuning"
+    "freescout_bridge": "Ondersteuning",
+    "applicants": "Aanmelders"
   },
   "errors": {
     "user_not_found": "Gebruiker niet gevonden",
@@ -299,7 +300,11 @@
         "freescout_bridge_name": "FreeScout-koppeling",
         "freescout_bridge_desc": "Koppelt FreeScout-supportgesprekken aan leden en het takenbord.",
         "deck_sync_name": "Nextcloud Deck-synchronisatie",
-        "deck_sync_desc": "Haalt kaarten op van een Nextcloud Deck-bord naar het takenbord, eenrichtingsverkeer, automatisch actueel gehouden. Configureer eerst de verbinding onder Admin -> Integraties."
+        "deck_sync_desc": "Haalt kaarten op van een Nextcloud Deck-bord naar het takenbord, eenrichtingsverkeer, automatisch actueel gehouden. Configureer eerst de verbinding onder Admin -> Integraties.",
+        "applicants_name": "Aanmelders",
+        "applicants_desc": "Mensen die zich hebben aangemeld voor een vrije tuin: contactgegevens, aanmelddatum, status en notities van het bestuur. Aanmeldingen via de website komen alleen binnen als de \"Openbare aanmeldformulier-API\" aanstaat.",
+        "public_applicant_api_name": "Openbare aanmeldformulier-API",
+        "public_applicant_api_desc": "Laat het aanmeldformulier voor vrije tuinen op de verenigingswebsite direct aanmelders aanmaken. Standaard uit omdat het een openbaar schrijf-eindpunt opent; zie de pagina \"Integraties\" voor de eindpunten."
       },
       "region_header": "Regio",
       "region_help": "Bepaalt het getal- en adresformaat (bijv. duizendtalscheidingsteken, volgorde van postcode en plaats). Onafhankelijk van de interfacetaal.",
@@ -394,7 +399,7 @@
       "deck_never_synced_label": "Nog niet gesynchroniseerd",
       "auth_origin_allowlist": "Toegestane websiteadressen",
       "public_forms_title": "Websiteformulieren (eenvoudige HTML, WordPress-plugin)",
-      "public_forms_desc": "Voor websites waarvan de formulieren rechtstreeks vanuit de browser van de bezoeker naar de twee /forms/-eindpunten hierboven versturen: eenvoudige HTML-pagina's in elk CMS en de WordPress-plugin vanaf versie 3.0. Daarna wordt de bezoeker teruggestuurd naar de website. Er komt geen API-token aan te pas, dus alleen inzendingen vanaf de hier vermelde websiteadressen worden geaccepteerd -- ook het adres van een WordPress-website hoort hier. Zolang de lijst leeg is, blijven beide eindpunten gesloten.",
+      "public_forms_desc": "Voor websites waarvan de formulieren rechtstreeks vanuit de browser van de bezoeker naar de /forms/-eindpunten hierboven versturen: eenvoudige HTML-pagina's in elk CMS en de WordPress-plugin vanaf versie 3.0. Daarna wordt de bezoeker teruggestuurd naar de website. Er komt geen API-token aan te pas, dus alleen inzendingen vanaf de hier vermelde websiteadressen worden geaccepteerd -- ook het adres van een WordPress-website hoort hier. Zolang de lijst leeg is, blijven beide eindpunten gesloten.",
       "public_forms_origins_label": "Toegestane websiteadressen",
       "public_forms_origins_hint": "Eén per regel, alleen schema en host, bijv. https://example.org",
       "public_forms_save_button": "Adressen opslaan",
@@ -533,7 +538,8 @@
         "calendar": "Kalender",
         "inventory": "Inventaris",
         "finances": "Financiën",
-        "freescout_bridge": "FreeScout-koppeling"
+        "freescout_bridge": "FreeScout-koppeling",
+        "applicants": "Aanmelders"
       }
     }
   },
@@ -1627,7 +1633,9 @@
     "birthdays_today": "vandaag wordt {age}",
     "birthdays_turning": "wordt {age}",
     "freescout_open_label": "Open supportgesprekken",
-    "freescout_open_suffix": "actieve of in behandeling zijnde FreeScout-gesprekken"
+    "freescout_open_suffix": "actieve of in behandeling zijnde FreeScout-gesprekken",
+    "applicants_card_title": "Nieuwe aanmeldingen",
+    "applicants_suffix": "nog niet bekeken"
   },
   "calendar": {
     "hub": {
@@ -2514,6 +2522,10 @@
       "captcha": "De spambeveiliging is mislukt -- laad de pagina opnieuw en probeer het nog eens",
       "consent_missing": "Voor het verzenden van dit formulier is toestemming voor de gegevensverwerking vereist",
       "unavailable": "Je bericht kon nu niet worden verzonden -- probeer het later opnieuw"
+    },
+    "applicant": {
+      "captcha": "De spambeveiliging is mislukt -- laad de pagina opnieuw en probeer het nog eens",
+      "consent_missing": "Voor het verzenden van dit formulier is toestemming voor de gegevensverwerking vereist"
     }
   },
   "freescout": {
@@ -2560,6 +2572,70 @@
     "task": {
       "source_line": "Bron: FreeScout-gesprek #{conversation_id}",
       "member_line": "Lid: {name}"
+    }
+  },
+  "applicants": {
+    "list": {
+      "title": "Aanmelders",
+      "new": "Aanmelder toevoegen",
+      "filter_open": "Open",
+      "filter_new": "Nieuw",
+      "filter_closed": "Afgerond",
+      "filter_all": "Alle",
+      "col_name": "Naam",
+      "col_email": "E-mail",
+      "col_phone": "Telefoon",
+      "col_applied_at": "Aangemeld op",
+      "col_status": "Status",
+      "open": "Openen",
+      "empty": "Geen aanmeldingen.",
+      "repeat_hint": "Dit e-mailadres heeft zich meer dan eens aangemeld.",
+      "repeat_badge": "{count}×"
+    },
+    "fields": {
+      "email": "E-mailadres",
+      "first_name": "Voornaam",
+      "last_name": "Achternaam",
+      "phone": "Telefoon",
+      "message": "Bericht van de aanmelder",
+      "board_note": "Notitie van het bestuur",
+      "board_note_hint": "Intern -- wordt nooit aan de aanmelder getoond.",
+      "status": "Status",
+      "applied_at": "Aangemeld op",
+      "source": "Bron",
+      "consent_at": "Toestemming gegeven",
+      "status_changed_at": "Status gewijzigd"
+    },
+    "status": {
+      "NEW": "Nieuw",
+      "CONTACTED": "Gecontacteerd",
+      "OFFERED": "Tuin aangeboden",
+      "ACCEPTED": "Geaccepteerd",
+      "WITHDRAWN": "Ingetrokken",
+      "REJECTED": "Afgewezen"
+    },
+    "source": {
+      "WEBSITE": "Websiteformulier",
+      "MANUAL": "Handmatig ingevoerd"
+    },
+    "form": {
+      "title": "Nieuwe aanmelder",
+      "back": "Terug",
+      "card_header": "Aanmelder",
+      "manual_hint": "Voor aanmeldingen die niet via de website binnenkwamen, bijv. telefonisch. Aanmeldingen via het websiteformulier verschijnen hier vanzelf.",
+      "save": "Opslaan"
+    },
+    "detail": {
+      "card_header": "Aanmelding",
+      "facts_header": "Details",
+      "other_applications": "Andere aanmeldingen van dit adres",
+      "history": "Statusgeschiedenis",
+      "history_empty": "Nog geen statuswijzigingen.",
+      "delete": "Verwijderen",
+      "delete_confirm": "Deze aanmelder definitief verwijderen? Dit kan niet ongedaan worden gemaakt."
+    },
+    "errors": {
+      "invalid_email": "Vul een geldig e-mailadres in."
     }
   }
 }

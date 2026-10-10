@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ t('applicants.form.title') }}{% endblock %}
+{% block page_title %}{{ t('applicants.form.title') }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="/applicants/" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>{{ t('applicants.form.back') }}
+</a>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 640px;">
+    {% if error %}<div class="alert alert-danger">{{ t(error) }}</div>{% endif %}
+    <form method="post" action="/applicants/new">
+        {{ csrf_field() }}
+        <div class="card">
+            <div class="card-header"><i class="bi bi-person-raised-hand me-2"></i>{{ t('applicants.form.card_header') }}</div>
+            <div class="card-body">
+                <p class="text-muted" style="font-size: 0.85rem;">{{ t('applicants.form.manual_hint') }}</p>
+                {% include "applicants/_fields.html" %}
+            </div>
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>{{ t('applicants.form.save') }}</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

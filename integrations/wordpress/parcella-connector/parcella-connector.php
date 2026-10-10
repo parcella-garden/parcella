@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Parcella Connector
- * Description: Consolidated connector for every integration between this WordPress site and a Parcella installation. Each capability lives in its own module under includes/modules/ (work-session signup, community calendar, and a contact form that lands in the club's FreeScout inbox today; applicant management and others are planned), sharing one Parcella base URL configured here.
- * Version: 3.0.0
+ * Description: Consolidated connector for every integration between this WordPress site and a Parcella installation. Each capability lives in its own module under includes/modules/ (work-session signup, community calendar, a contact form that lands in the club's FreeScout inbox, and an application form for free garden plots), sharing one Parcella base URL configured here.
+ * Version: 3.1.0
  * License: AGPL-3.0-or-later
  * Text Domain: parcella-connector
  *
@@ -39,7 +39,7 @@ if (!defined('ABSPATH')) {
 // Kept in sync with the "Version:" header above (was drifted at 2.0.0
 // from a previous release that forgot to update this constant too --
 // unused elsewhere today, but there's no reason to let it lie).
-define('PARCELLA_CONNECTOR_VERSION', '3.0.0');
+define('PARCELLA_CONNECTOR_VERSION', '3.1.0');
 // Name unchanged from the original single-purpose plugin on purpose --
 // see the History note above.
 define('PARCELLA_CONNECTOR_OPTION_BASE_URL', 'parcella_signup_base_url');
@@ -217,7 +217,8 @@ function parcella_connector_render_form_styles() {
             cursor: pointer;
         }
         .parcella-submit:hover { background: #40916c; }
-        .parcella-work-signup altcha-widget, .parcella-contact-form altcha-widget { display: block; margin-bottom: 1em; }
+        .parcella-work-signup altcha-widget, .parcella-contact-form altcha-widget,
+        .parcella-applicant-form altcha-widget { display: block; margin-bottom: 1em; }
     </style>
     <?php
 }
@@ -312,10 +313,15 @@ function parcella_connector_render_settings_page() {
                     <td><span style="color: #1e4620;">&#9679; <?php esc_html_e('Active', 'parcella-connector'); ?></span></td>
                     <td><code>[parcella_contact_form]</code></td>
                 </tr>
+                <tr>
+                    <td><?php esc_html_e('Garden plot applications', 'parcella-connector'); ?></td>
+                    <td><span style="color: #1e4620;">&#9679; <?php esc_html_e('Active', 'parcella-connector'); ?></span></td>
+                    <td><code>[parcella_applicant_form]</code></td>
+                </tr>
             </tbody>
         </table>
         <p class="description">
-            <?php esc_html_e('More modules (applicant management) are planned. Each will appear in this table once added, sharing the connection settings above -- no separate credentials to configure per module.', 'parcella-connector'); ?>
+            <?php esc_html_e('Further modules will appear in this table once added, sharing the connection settings above -- no separate settings to configure per module.', 'parcella-connector'); ?>
         </p>
     </div>
     <?php
@@ -333,3 +339,4 @@ function parcella_connector_render_settings_page() {
 require_once PARCELLA_CONNECTOR_PATH . 'includes/modules/signup.php';
 require_once PARCELLA_CONNECTOR_PATH . 'includes/modules/calendar.php';
 require_once PARCELLA_CONNECTOR_PATH . 'includes/modules/contact.php';
+require_once PARCELLA_CONNECTOR_PATH . 'includes/modules/applicants.php';

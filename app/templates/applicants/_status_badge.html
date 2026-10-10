@@ -1,0 +1,6 @@
+{%- set colors = {
+    'NEW': ('#dbeafe', '#1e40af'), 'CONTACTED': ('#fef3c7', '#92400e'), 'OFFERED': ('#ede9fe', '#5b21b6'),
+    'ACCEPTED': ('#dcfce7', '#166534'), 'WITHDRAWN': ('#f3f4f6', '#4b5563'), 'REJECTED': ('#fee2e2', '#991b1b'),
+} -%}
+{%- set bg, fg = colors[status.value] -%}
+<span class="badge" style="background: {{ bg }}; color: {{ fg }};">{{ t('applicants.status.' ~ status.value) }}</span>

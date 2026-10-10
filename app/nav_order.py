@@ -48,6 +48,7 @@ NAV_ORDER_DEFAULTS: Dict[str, int] = {
     "inventory": 1200,
     "tasks": 1300,
     "finances": 1400,
+    "applicants": 1500,
 }
 
 

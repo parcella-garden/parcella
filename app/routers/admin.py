@@ -866,8 +866,10 @@ MODULE_FIELDS = [
     ("modul_calendar", "admin.settings.modules.calendar_name", "admin.settings.modules.calendar_desc"),
     ("modul_inventory", "admin.settings.modules.inventory_name", "admin.settings.modules.inventory_desc"),
     ("modul_tasks", "admin.settings.modules.tasks_name", "admin.settings.modules.tasks_desc"),
+    ("modul_applicants", "admin.settings.modules.applicants_name", "admin.settings.modules.applicants_desc"),
     ("modul_public_signup_api", "admin.settings.modules.public_signup_api_name", "admin.settings.modules.public_signup_api_desc"),
     ("modul_public_contact_api", "admin.settings.modules.public_contact_api_name", "admin.settings.modules.public_contact_api_desc"),
+    ("modul_public_applicant_api", "admin.settings.modules.public_applicant_api_name", "admin.settings.modules.public_applicant_api_desc"),
     ("modul_announcements", "admin.settings.modules.announcements_name", "admin.settings.modules.announcements_desc"),
     ("modul_cloud_storage", "admin.settings.modules.cloud_storage_name", "admin.settings.modules.cloud_storage_desc"),
     ("modul_finances", "admin.settings.modules.finances_name", "admin.settings.modules.finances_desc"),
@@ -911,6 +913,7 @@ NAV_ORDER_FIELDS = [
     ("inventory", "nav.inventory"),
     ("tasks", "nav.tasks"),
     ("finances", "nav.finances_group"),
+    ("applicants", "nav.applicants"),
 ]
 
 

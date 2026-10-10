@@ -1,0 +1,28 @@
+{#- Contact fields shared by the "new" form and the detail page's edit form. -#}
+<div class="row g-3">
+    <div class="col-12">
+        <label class="form-label fw-semibold" for="applicant-email">{{ t('applicants.fields.email') }} <span class="text-danger">*</span></label>
+        <input type="email" id="applicant-email" name="email" class="form-control" required value="{{ values.email or '' }}">
+    </div>
+    <div class="col-sm-6">
+        <label class="form-label fw-semibold" for="applicant-first-name">{{ t('applicants.fields.first_name') }}</label>
+        <input type="text" id="applicant-first-name" name="first_name" class="form-control" value="{{ values.first_name or '' }}">
+    </div>
+    <div class="col-sm-6">
+        <label class="form-label fw-semibold" for="applicant-last-name">{{ t('applicants.fields.last_name') }}</label>
+        <input type="text" id="applicant-last-name" name="last_name" class="form-control" value="{{ values.last_name or '' }}">
+    </div>
+    <div class="col-sm-6">
+        <label class="form-label fw-semibold" for="applicant-phone">{{ t('applicants.fields.phone') }}</label>
+        <input type="tel" id="applicant-phone" name="phone" class="form-control" value="{{ values.phone or '' }}">
+    </div>
+    <div class="col-12">
+        <label class="form-label fw-semibold" for="applicant-message">{{ t('applicants.fields.message') }}</label>
+        <textarea id="applicant-message" name="message" class="form-control" rows="3">{{ values.message or '' }}</textarea>
+    </div>
+    <div class="col-12">
+        <label class="form-label fw-semibold" for="applicant-board-note">{{ t('applicants.fields.board_note') }}</label>
+        <textarea id="applicant-board-note" name="board_note" class="form-control" rows="3">{{ values.board_note or '' }}</textarea>
+        <div class="form-text">{{ t('applicants.fields.board_note_hint') }}</div>
+    </div>
+</div>

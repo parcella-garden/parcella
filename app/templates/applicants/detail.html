@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}{{ applicant.display_name }}{% endblock %}
+{% block page_title %}{{ applicant.display_name }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="/applicants/" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>{{ t('applicants.form.back') }}
+</a>
+{% if has_perm(request, 'applicants', 'delete') %}
+<form method="post" action="/applicants/{{ applicant.id }}/delete" class="d-inline"
+      onsubmit="return confirm('{{ t('applicants.detail.delete_confirm') }}');">
+    {{ csrf_field() }}
+    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>{{ t('applicants.detail.delete') }}</button>
+</form>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% set can_write = has_perm(request, 'applicants', 'write') %}
+<div class="row g-3">
+    <div class="col-lg-7">
+        {% if error %}<div class="alert alert-danger">{{ t(error) }}</div>{% endif %}
+        <form method="post" action="/applicants/{{ applicant.id }}/edit">
+            {{ csrf_field() }}
+            <div class="card">
+                <div class="card-header"><i class="bi bi-person-raised-hand me-2"></i>{{ t('applicants.detail.card_header') }}</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="applicant-status">{{ t('applicants.fields.status') }}</label>
+                        <select id="applicant-status" name="status" class="form-select" {% if not can_write %}disabled{% endif %}>
+                            {% for status in statuses %}
+                            <option value="{{ status.value }}" {% if status == applicant.status %}selected{% endif %}>{{ t('applicants.status.' ~ status.value) }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% with values=applicant %}{% include "applicants/_fields.html" %}{% endwith %}
+                </div>
+                {% if can_write %}
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>{{ t('applicants.form.save') }}</button>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-info-circle me-2"></i>{{ t('applicants.detail.facts_header') }}</div>
+            <div class="card-body" style="font-size: 0.9rem;">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">{{ t('applicants.fields.applied_at') }}</dt>
+                    <dd class="col-sm-7">{{ applicant.applied_at.strftime('%d.%m.%Y %H:%M') }}</dd>
+                    <dt class="col-sm-5">{{ t('applicants.fields.source') }}</dt>
+                    <dd class="col-sm-7">
+                        {{ t('applicants.source.' ~ applicant.source.value) }}
+                        {% if applicant.created_by %}({{ applicant.created_by.name }}){% endif %}
+                    </dd>
+                    <dt class="col-sm-5">{{ t('applicants.fields.consent_at') }}</dt>
+                    <dd class="col-sm-7">{{ applicant.consent_at.strftime('%d.%m.%Y %H:%M') if applicant.consent_at else '–' }}</dd>
+                    <dt class="col-sm-5">{{ t('applicants.fields.status_changed_at') }}</dt>
+                    <dd class="col-sm-7">{{ applicant.status_changed_at.strftime('%d.%m.%Y %H:%M') if applicant.status_changed_at else '–' }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        {% if other_applications %}
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-files me-2"></i>{{ t('applicants.detail.other_applications') }}</div>
+            <ul class="list-group list-group-flush">
+                {% for other in other_applications %}
+                <li class="list-group-item d-flex justify-content-between align-items-center" style="font-size: 0.9rem;">
+                    <a href="/applicants/{{ other.id }}">{{ other.applied_at.strftime('%d.%m.%Y') }}</a>
+                    {% with status=other.status %}{% include "applicants/_status_badge.html" %}{% endwith %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header"><i class="bi bi-clock-history me-2"></i>{{ t('applicants.detail.history') }}</div>
+            <ul class="list-group list-group-flush">
+                {% for entry in history %}
+                <li class="list-group-item" style="font-size: 0.85rem;">
+                    <span class="text-muted">{{ entry.changed_at.strftime('%d.%m.%Y %H:%M') }}{% if entry.changed_by %} · {{ entry.changed_by.name }}{% endif %}</span><br>
+                    {{ t('applicants.status.' ~ entry.old_value) if entry.old_value else '–' }}
+                    <i class="bi bi-arrow-right mx-1"></i>
+                    {{ t('applicants.status.' ~ entry.new_value) if entry.new_value else '–' }}
+                </li>
+                {% else %}
+                <li class="list-group-item text-muted" style="font-size: 0.85rem;">{{ t('applicants.detail.history_empty') }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ t('applicants.list.title') }}{% endblock %}
+{% block page_title %}{{ t('applicants.list.title') }}{% endblock %}
+
+{% block topbar_actions %}
+{% if has_perm(request, 'applicants', 'write') %}
+<a href="/applicants/new" class="btn btn-sm btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>{{ t('applicants.list.new') }}
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="btn-group btn-group-sm flex-wrap" role="group">
+            {% for key in ('open', 'new', 'closed', 'all') %}
+            <a href="/applicants/?filter={{ key }}" class="btn btn-{{ 'primary' if filter == key else 'outline-secondary' }}">{{ t('applicants.list.filter_' ~ key) }}</a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{{ t('applicants.list.col_name') }}</th>
+                        <th>{{ t('applicants.list.col_email') }}</th>
+                        <th>{{ t('applicants.list.col_phone') }}</th>
+                        <th>{{ t('applicants.list.col_applied_at') }}</th>
+                        <th>{{ t('applicants.list.col_status') }}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for applicant in applicants %}
+                    <tr>
+                        <td>
+                            <a href="/applicants/{{ applicant.id }}" class="text-decoration-none fw-semibold"
+                               style="color: var(--gv-gruen);">{{ applicant.display_name }}</a>
+                            {% if application_counts.get(applicant.email, 1) > 1 %}
+                            <span class="badge bg-light text-dark ms-1" title="{{ t('applicants.list.repeat_hint') }}">
+                                {{ t('applicants.list.repeat_badge', count=application_counts[applicant.email]) }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 0.85rem;"><a href="mailto:{{ applicant.email }}">{{ applicant.email }}</a></td>
+                        <td class="text-muted" style="font-size: 0.85rem;">{{ applicant.phone or '–' }}</td>
+                        <td class="text-muted" style="font-size: 0.85rem;">{{ applicant.applied_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                        <td>{% with status=applicant.status %}{% include "applicants/_status_badge.html" %}{% endwith %}</td>
+                        <td class="text-end">
+                            <a href="/applicants/{{ applicant.id }}" class="btn btn-sm btn-outline-secondary" aria-label="{{ t('applicants.list.open') }}">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-person-raised-hand d-block mb-2" style="font-size: 1.5rem;"></i>
+                            {{ t('applicants.list.empty') }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -47,7 +47,8 @@
     "finances_outgoing_invoices": "Ausgangsrechnungen",
     "finances_reminders": "Mahnungen",
     "finances_incoming_invoices": "Eingangsrechnungen",
-    "freescout_bridge": "Support"
+    "freescout_bridge": "Support",
+    "applicants": "Bewerber"
   },
   "errors": {
     "user_not_found": "Benutzer nicht gefunden",
@@ -299,7 +300,11 @@
         "freescout_bridge_name": "FreeScout-Anbindung",
         "freescout_bridge_desc": "Verknüpft FreeScout-Support-Konversationen mit Mitgliedern und dem Aufgabenboard.",
         "deck_sync_name": "Nextcloud-Deck-Synchronisierung",
-        "deck_sync_desc": "Überträgt Karten von einem Nextcloud-Deck-Board in das Aufgabenboard, einseitig und automatisch aktuell gehalten. Verbindung zuerst unter Admin -> Integrationen einrichten."
+        "deck_sync_desc": "Überträgt Karten von einem Nextcloud-Deck-Board in das Aufgabenboard, einseitig und automatisch aktuell gehalten. Verbindung zuerst unter Admin -> Integrationen einrichten.",
+        "applicants_name": "Bewerber",
+        "applicants_desc": "Personen, die sich um einen freien Garten beworben haben: Kontaktdaten, Bewerbungsdatum, Status und Notizen des Vorstands. Bewerbungen von der Website kommen nur mit eingeschalteter \"Öffentliche Bewerbungsformular-API\" an.",
+        "public_applicant_api_name": "Öffentliche Bewerbungsformular-API",
+        "public_applicant_api_desc": "Lässt das Bewerbungsformular für freie Gärten auf der Vereins-Website direkt Bewerber anlegen. Standardmäßig aus, da es einen öffentlichen Schreib-Endpunkt öffnet; die Endpunkte stehen auf der Seite \"Integrationen\"."
       },
       "region_header": "Region",
       "region_help": "Bestimmt Zahlen- und Adressformat (z.B. Tausendertrennzeichen, Reihenfolge von PLZ und Ort). Unabhängig von der Oberflächensprache.",
@@ -394,7 +399,7 @@
       "deck_never_synced_label": "Noch nicht synchronisiert",
       "auth_origin_allowlist": "Erlaubte Website-Adressen",
       "public_forms_title": "Website-Formulare (einfaches HTML, WordPress-Plugin)",
-      "public_forms_desc": "Für Websites, deren Formulare direkt aus dem Browser des Besuchers an die beiden /forms/-Endpunkte oben senden: einfache HTML-Seiten in jedem CMS und das WordPress-Plugin ab Version 3.0. Danach wird der Besucher auf die Website zurückgeleitet. Ein API-Token ist dabei nicht im Spiel, deshalb werden nur Einsendungen von den hier eingetragenen Website-Adressen angenommen -- auch die Adresse einer WordPress-Website gehört hierher. Solange die Liste leer ist, bleiben beide Endpunkte geschlossen.",
+      "public_forms_desc": "Für Websites, deren Formulare direkt aus dem Browser des Besuchers an die /forms/-Endpunkte oben senden: einfache HTML-Seiten in jedem CMS und das WordPress-Plugin ab Version 3.0. Danach wird der Besucher auf die Website zurückgeleitet. Ein API-Token ist dabei nicht im Spiel, deshalb werden nur Einsendungen von den hier eingetragenen Website-Adressen angenommen -- auch die Adresse einer WordPress-Website gehört hierher. Solange die Liste leer ist, bleiben beide Endpunkte geschlossen.",
       "public_forms_origins_label": "Erlaubte Website-Adressen",
       "public_forms_origins_hint": "Eine pro Zeile, nur Schema und Host, z. B. https://example.org",
       "public_forms_save_button": "Adressen speichern",
@@ -533,7 +538,8 @@
         "calendar": "Kalender",
         "inventory": "Inventar",
         "finances": "Finanzen",
-        "freescout_bridge": "FreeScout-Anbindung"
+        "freescout_bridge": "FreeScout-Anbindung",
+        "applicants": "Bewerber"
       }
     }
   },
@@ -1627,7 +1633,9 @@
     "birthdays_today": "heute wird {age}",
     "birthdays_turning": "wird {age}",
     "freescout_open_label": "Offene Support-Anfragen",
-    "freescout_open_suffix": "aktive oder ausstehende FreeScout-Konversationen"
+    "freescout_open_suffix": "aktive oder ausstehende FreeScout-Konversationen",
+    "applicants_card_title": "Neue Bewerbungen",
+    "applicants_suffix": "noch nicht bearbeitet"
   },
   "calendar": {
     "hub": {
@@ -2514,6 +2522,10 @@
       "captcha": "Spam-Schutz-Prüfung fehlgeschlagen -- bitte die Seite neu laden und erneut versuchen.",
       "consent_missing": "Für das Absenden dieses Formulars ist die Einwilligung in die Datenverarbeitung erforderlich",
       "unavailable": "Die Nachricht konnte gerade nicht übermittelt werden -- bitte später erneut versuchen."
+    },
+    "applicant": {
+      "captcha": "Spam-Schutz-Prüfung fehlgeschlagen -- bitte die Seite neu laden und erneut versuchen.",
+      "consent_missing": "Für das Absenden dieses Formulars ist die Einwilligung in die Datenverarbeitung erforderlich"
     }
   },
   "freescout": {
@@ -2560,6 +2572,70 @@
     "task": {
       "source_line": "Quelle: FreeScout-Konversation #{conversation_id}",
       "member_line": "Mitglied: {name}"
+    }
+  },
+  "applicants": {
+    "list": {
+      "title": "Bewerber",
+      "new": "Bewerber erfassen",
+      "filter_open": "Offen",
+      "filter_new": "Neu",
+      "filter_closed": "Abgeschlossen",
+      "filter_all": "Alle",
+      "col_name": "Name",
+      "col_email": "E-Mail",
+      "col_phone": "Telefon",
+      "col_applied_at": "Beworben am",
+      "col_status": "Status",
+      "open": "Öffnen",
+      "empty": "Hier gibt es keine Bewerbungen.",
+      "repeat_hint": "Diese E-Mail-Adresse hat sich mehrfach beworben.",
+      "repeat_badge": "{count}×"
+    },
+    "fields": {
+      "email": "E-Mail-Adresse",
+      "first_name": "Vorname",
+      "last_name": "Nachname",
+      "phone": "Telefon",
+      "message": "Nachricht des Bewerbers",
+      "board_note": "Notiz des Vorstands",
+      "board_note_hint": "Intern -- wird dem Bewerber nie angezeigt.",
+      "status": "Status",
+      "applied_at": "Beworben am",
+      "source": "Herkunft",
+      "consent_at": "Einwilligung erteilt",
+      "status_changed_at": "Status geändert"
+    },
+    "status": {
+      "NEW": "Neu",
+      "CONTACTED": "Kontaktiert",
+      "OFFERED": "Garten angeboten",
+      "ACCEPTED": "Angenommen",
+      "WITHDRAWN": "Zurückgezogen",
+      "REJECTED": "Abgelehnt"
+    },
+    "source": {
+      "WEBSITE": "Website-Formular",
+      "MANUAL": "Von Hand erfasst"
+    },
+    "form": {
+      "title": "Bewerber erfassen",
+      "back": "Zurück",
+      "card_header": "Bewerber",
+      "manual_hint": "Für Bewerbungen, die nicht über die Website kamen, z. B. per Telefon. Bewerbungen über das Website-Formular erscheinen hier von selbst.",
+      "save": "Speichern"
+    },
+    "detail": {
+      "card_header": "Bewerbung",
+      "facts_header": "Details",
+      "other_applications": "Weitere Bewerbungen dieser Adresse",
+      "history": "Statusverlauf",
+      "history_empty": "Noch keine Statusänderungen.",
+      "delete": "Löschen",
+      "delete_confirm": "Diesen Bewerber endgültig löschen? Das lässt sich nicht rückgängig machen."
+    },
+    "errors": {
+      "invalid_email": "Bitte eine gültige E-Mail-Adresse eingeben."
     }
   }
 }

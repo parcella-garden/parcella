@@ -8,7 +8,9 @@ A consolidated WordPress plugin for every integration between this site and a Pa
 - **Community calendar** (`includes/modules/calendar.php`) -- upcoming meetings, parcel inspections, and work sessions via the `[parcella_calendar limit="5"]` shortcode, backed by Parcella's public `/calendar/community.json` feed. Read-only, needs just the base URL.
 - **Contact form** (`includes/modules/contact.php`) -- a public contact form via the `[parcella_contact_form]` shortcode whose messages land as conversations in the club's FreeScout inbox (through Parcella), instead of being sent as a plain email.
 
-More modules (applicant management) are planned and will be added the same way: a new file under `includes/modules/`, required from the main plugin file, using the same shared base URL rather than asking for its own settings.
+- **Garden plot applications** (`includes/modules/applicants.php`) -- an application form for free garden plots via the `[parcella_applicant_form]` shortcode; applications land in Parcella's applicants list.
+
+Further modules are added the same way: a new file under `includes/modules/`, required from the main plugin file, using the same shared base URL rather than asking for its own settings.
 
 ## How the forms work (since 3.0.0)
 
@@ -164,6 +166,22 @@ and shows a "Modules" table for whatever's active.
 - Styling is deliberately minimal (`.parcella-contact-form`,
   `.parcella-contact-submit`, plus the shared `.parcella-outcome-*`
   messages). Override in your theme's CSS as needed.
+
+## Module: Garden plot applications
+
+- Renders an application form for a free garden plot via the
+  `[parcella_applicant_form]` shortcode: email address (required), first
+  and last name, phone and a free-text message (all optional), and a
+  required data-protection consent checkbox.
+- Posts straight to Parcella (see "How the forms work" above), which adds
+  the applicant to its applicants list for the board. Needs **Applicants**
+  and **Public applicant-form API** enabled in Parcella (Administration ->
+  Settings -> optional modules); the latter is off by default.
+- The consent wording is hard-coded in `applicants.php`; edit it there if
+  your privacy policy text or link needs to change.
+- Honeypot and ALTCHA widget included, same as the other forms. Styling:
+  `.parcella-applicant-form`, `.parcella-applicant-submit`, plus the shared
+  `.parcella-outcome-*` messages.
 
 ## Spam protection: ALTCHA
 

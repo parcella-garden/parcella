@@ -1,10 +1,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Parcella Connector 3.0.0\n"
+"Project-Id-Version: Parcella Connector 3.1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/parcella-garden/parcella/issues\n"
-"POT-Creation-Date: 2026-10-10 22:02+0000\n"
-"PO-Revision-Date: 2026-10-10 22:02+0000\n"
+"POT-Creation-Date: 2026-10-10 22:59+0000\n"
+"PO-Revision-Date: 2026-10-10 22:59+0000\n"
 "Language: de_DE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -58,14 +58,68 @@ msgstr "Vereinskalender"
 msgid "Contact form"
 msgstr "Kontaktformular"
 
+msgid "Garden plot applications"
+msgstr "Bewerbungen um einen Garten"
+
 msgid ""
-"More modules (applicant management) are planned. Each will appear in this "
-"table once added, sharing the connection settings above -- no separate "
-"credentials to configure per module."
+"Further modules will appear in this table once added, sharing the connection "
+"settings above -- no separate settings to configure per module."
 msgstr ""
-"Weitere Module (Bewerberverwaltung) sind geplant. Jedes erscheint nach der "
-"Einführung in dieser Tabelle und nutzt die obigen Verbindungseinstellungen "
-"-- keine separaten Zugangsdaten pro Modul nötig."
+"Weitere Module erscheinen in dieser Tabelle, sobald sie hinzukommen, und "
+"nutzen die Verbindungseinstellungen oben -- ohne eigene Einstellungen pro "
+"Modul."
+
+msgid ""
+"Thank you, your application has been received. We will get in touch with you."
+msgstr "Vielen Dank, die Bewerbung ist eingegangen. Wir melden uns."
+
+msgid "Please confirm you have read the privacy policy to submit this form."
+msgstr ""
+"Bitte bestätige, dass du die Datenschutzerklärung gelesen hast, um dieses "
+"Formular abzusenden."
+
+msgid "Please enter a valid email address."
+msgstr "Bitte eine gültige E-Mail-Adresse eingeben."
+
+msgid "Too many submissions right now. Please try again in a little while."
+msgstr "Gerade zu viele Anfragen. Bitte in Kürze erneut versuchen."
+
+msgid "The spam protection check failed. Please reload the page and try again."
+msgstr ""
+"Spam-Schutz-Prüfung fehlgeschlagen. Bitte die Seite neu laden und erneut "
+"versuchen."
+
+msgid ""
+"Something went wrong submitting your application. Please try again later."
+msgstr ""
+"Beim Absenden der Bewerbung ist etwas schiefgegangen. Bitte später erneut "
+"versuchen."
+
+msgid "Email address"
+msgstr "E-Mail-Adresse"
+
+msgid "First name"
+msgstr "Vorname"
+
+msgid "Last name"
+msgstr "Nachname"
+
+msgid "Phone"
+msgstr "Telefon"
+
+msgid "Anything you would like to tell us?"
+msgstr "Möchtest du uns noch etwas mitteilen?"
+
+msgid ""
+"I have read the privacy policy and agree that my details are stored and "
+"processed electronically to handle my application for a garden plot."
+msgstr ""
+"Ich habe die Datenschutzerklärung gelesen und bin einverstanden, dass meine "
+"Angaben zur Bearbeitung meiner Bewerbung um einen Garten elektronisch "
+"gespeichert und verarbeitet werden."
+
+msgid "Send application"
+msgstr "Bewerbung absenden"
 
 msgid "The calendar is temporarily unavailable. Please try again later."
 msgstr ""
@@ -80,25 +134,12 @@ msgid ""
 msgstr ""
 "Vielen Dank, deine Nachricht wurde übermittelt. Wir melden uns bald bei dir."
 
-msgid "Please confirm you have read the privacy policy to submit this form."
-msgstr ""
-"Bitte bestätige, dass du die Datenschutzerklärung gelesen hast, um dieses "
-"Formular abzusenden."
-
 msgid "Please fill in your name, email address, and message."
 msgstr "Bitte gib deinen Namen, deine E-Mail-Adresse und deine Nachricht ein."
-
-msgid "Too many submissions right now. Please try again in a little while."
-msgstr "Gerade zu viele Anfragen. Bitte in Kürze erneut versuchen."
 
 msgid "Your message could not be submitted right now. Please try again later."
 msgstr ""
 "Die Nachricht konnte gerade nicht übermittelt werden. Bitte später erneut "
-"versuchen."
-
-msgid "The spam protection check failed. Please reload the page and try again."
-msgstr ""
-"Spam-Schutz-Prüfung fehlgeschlagen. Bitte die Seite neu laden und erneut "
 "versuchen."
 
 msgid "Something went wrong submitting your message. Please try again later."
@@ -108,9 +149,6 @@ msgstr ""
 
 msgid "Name"
 msgstr "Name"
-
-msgid "Email address"
-msgstr "E-Mail-Adresse"
 
 msgid "Message"
 msgstr "Nachricht"

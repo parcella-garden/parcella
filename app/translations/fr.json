@@ -47,7 +47,8 @@
     "finances_outgoing_invoices": "Factures émises",
     "finances_reminders": "Relances",
     "finances_incoming_invoices": "Factures reçues",
-    "freescout_bridge": "Assistance"
+    "freescout_bridge": "Assistance",
+    "applicants": "Candidats"
   },
   "errors": {
     "user_not_found": "Utilisateur non trouvé",
@@ -299,7 +300,11 @@
         "freescout_bridge_name": "Intégration FreeScout",
         "freescout_bridge_desc": "Relie les conversations d'assistance FreeScout aux membres et au tableau des tâches.",
         "deck_sync_name": "Synchronisation Nextcloud Deck",
-        "deck_sync_desc": "Importe les cartes d'un tableau Nextcloud Deck dans le tableau des tâches, à sens unique, tenu à jour automatiquement. Configurez d'abord la connexion sous Admin -> Intégrations."
+        "deck_sync_desc": "Importe les cartes d'un tableau Nextcloud Deck dans le tableau des tâches, à sens unique, tenu à jour automatiquement. Configurez d'abord la connexion sous Admin -> Intégrations.",
+        "applicants_name": "Candidats",
+        "applicants_desc": "Personnes candidates à une parcelle libre : coordonnées, date de candidature, statut et notes du bureau. Les candidatures du site web n'arrivent que si l'« API publique du formulaire de candidature » est activée.",
+        "public_applicant_api_name": "API publique du formulaire de candidature",
+        "public_applicant_api_desc": "Permet au formulaire de candidature aux parcelles libres du site de l'association de créer directement des candidats. Désactivé par défaut car il ouvre un point d'écriture public ; voir la page « Intégrations » pour les points de terminaison."
       },
       "region_header": "Région",
       "region_help": "Détermine le format des nombres et de l'adresse (par ex. séparateur de milliers, ordre du code postal et de la ville). Indépendant de la langue de l'interface.",
@@ -394,7 +399,7 @@
       "deck_never_synced_label": "Pas encore synchronisé",
       "auth_origin_allowlist": "Adresses de sites autorisées",
       "public_forms_title": "Formulaires du site (HTML simple, extension WordPress)",
-      "public_forms_desc": "Pour les sites dont les formulaires envoient les données directement depuis le navigateur du visiteur aux deux points de terminaison /forms/ ci-dessus : des pages HTML simples dans n'importe quel CMS, et l'extension WordPress à partir de la version 3.0. Le visiteur est ensuite redirigé vers le site. Aucun jeton API n'intervient, seules les soumissions envoyées depuis les adresses de sites indiquées ici sont donc acceptées -- l'adresse d'un site WordPress doit aussi y figurer. Tant que la liste est vide, les deux points de terminaison restent fermés.",
+      "public_forms_desc": "Pour les sites dont les formulaires envoient les données directement depuis le navigateur du visiteur aux points de terminaison /forms/ ci-dessus : des pages HTML simples dans n'importe quel CMS, et l'extension WordPress à partir de la version 3.0. Le visiteur est ensuite redirigé vers le site. Aucun jeton API n'intervient, seules les soumissions envoyées depuis les adresses de sites indiquées ici sont donc acceptées -- l'adresse d'un site WordPress doit aussi y figurer. Tant que la liste est vide, les deux points de terminaison restent fermés.",
       "public_forms_origins_label": "Adresses de sites autorisées",
       "public_forms_origins_hint": "Une par ligne, schéma et hôte uniquement, p. ex. https://example.org",
       "public_forms_save_button": "Enregistrer les adresses",
@@ -533,7 +538,8 @@
         "calendar": "Calendrier",
         "inventory": "Inventaire",
         "finances": "Finances",
-        "freescout_bridge": "Intégration FreeScout"
+        "freescout_bridge": "Intégration FreeScout",
+        "applicants": "Candidats"
       }
     }
   },
@@ -1627,7 +1633,9 @@
     "birthdays_today": "aujourd'hui, {age} ans",
     "birthdays_turning": "{age} ans",
     "freescout_open_label": "Conversations d'assistance ouvertes",
-    "freescout_open_suffix": "conversations FreeScout actives ou en attente"
+    "freescout_open_suffix": "conversations FreeScout actives ou en attente",
+    "applicants_card_title": "Nouvelles candidatures",
+    "applicants_suffix": "pas encore traitées"
   },
   "calendar": {
     "hub": {
@@ -2514,6 +2522,10 @@
       "captcha": "La vérification anti-spam a échoué -- veuillez recharger la page et réessayer",
       "consent_missing": "Le consentement au traitement des données est requis pour envoyer ce formulaire",
       "unavailable": "Votre message n'a pas pu être envoyé pour le moment -- veuillez réessayer plus tard"
+    },
+    "applicant": {
+      "captcha": "La vérification anti-spam a échoué -- veuillez recharger la page et réessayer",
+      "consent_missing": "Le consentement au traitement des données est requis pour envoyer ce formulaire"
     }
   },
   "freescout": {
@@ -2560,6 +2572,70 @@
     "task": {
       "source_line": "Source : conversation FreeScout n° {conversation_id}",
       "member_line": "Membre : {name}"
+    }
+  },
+  "applicants": {
+    "list": {
+      "title": "Candidats",
+      "new": "Nouveau candidat",
+      "filter_open": "En cours",
+      "filter_new": "Nouvelles",
+      "filter_closed": "Clôturées",
+      "filter_all": "Toutes",
+      "col_name": "Nom",
+      "col_email": "E-mail",
+      "col_phone": "Téléphone",
+      "col_applied_at": "Candidature",
+      "col_status": "Statut",
+      "open": "Ouvrir",
+      "empty": "Aucune candidature.",
+      "repeat_hint": "Cette adresse e-mail a postulé plusieurs fois.",
+      "repeat_badge": "{count}×"
+    },
+    "fields": {
+      "email": "Adresse e-mail",
+      "first_name": "Prénom",
+      "last_name": "Nom",
+      "phone": "Téléphone",
+      "message": "Message du candidat",
+      "board_note": "Note du bureau",
+      "board_note_hint": "Interne -- jamais montrée au candidat.",
+      "status": "Statut",
+      "applied_at": "Candidature",
+      "source": "Origine",
+      "consent_at": "Consentement donné",
+      "status_changed_at": "Statut modifié"
+    },
+    "status": {
+      "NEW": "Nouvelle",
+      "CONTACTED": "Contacté",
+      "OFFERED": "Parcelle proposée",
+      "ACCEPTED": "Acceptée",
+      "WITHDRAWN": "Retirée",
+      "REJECTED": "Refusée"
+    },
+    "source": {
+      "WEBSITE": "Formulaire du site",
+      "MANUAL": "Saisie manuelle"
+    },
+    "form": {
+      "title": "Nouveau candidat",
+      "back": "Retour",
+      "card_header": "Candidat",
+      "manual_hint": "Pour les candidatures qui ne sont pas passées par le site, p. ex. par téléphone. Celles du formulaire du site apparaissent ici d'elles-mêmes.",
+      "save": "Enregistrer"
+    },
+    "detail": {
+      "card_header": "Candidature",
+      "facts_header": "Détails",
+      "other_applications": "Autres candidatures de cette adresse",
+      "history": "Historique du statut",
+      "history_empty": "Aucun changement de statut.",
+      "delete": "Supprimer",
+      "delete_confirm": "Supprimer définitivement ce candidat ? Action irréversible."
+    },
+    "errors": {
+      "invalid_email": "Veuillez saisir une adresse e-mail valide."
     }
   }
 }

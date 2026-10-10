@@ -70,12 +70,22 @@
                 </tr>
                 <tr>
                     <td><span class="badge bg-primary">POST</span></td>
+                    <td><code>{{ base_url }}/api/v1/public/applicants</code></td>
+                    <td><code>X-Parcella-API-Token</code></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-primary">POST</span></td>
                     <td><code>{{ base_url }}/api/v1/public/forms/work-session-signup</code></td>
                     <td>{{ t('admin.integrations.auth_origin_allowlist') }}</td>
                 </tr>
                 <tr>
                     <td><span class="badge bg-primary">POST</span></td>
                     <td><code>{{ base_url }}/api/v1/public/forms/contact</code></td>
+                    <td>{{ t('admin.integrations.auth_origin_allowlist') }}</td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-primary">POST</span></td>
+                    <td><code>{{ base_url }}/api/v1/public/forms/applicant</code></td>
                     <td>{{ t('admin.integrations.auth_origin_allowlist') }}</td>
                 </tr>
                 <tr>

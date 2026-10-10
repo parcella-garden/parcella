@@ -47,7 +47,8 @@
     "finances_outgoing_invoices": "Faktury wychodzące",
     "finances_reminders": "Upomnienia",
     "finances_incoming_invoices": "Faktury przychodzące",
-    "freescout_bridge": "Wsparcie"
+    "freescout_bridge": "Wsparcie",
+    "applicants": "Kandydaci"
   },
   "errors": {
     "user_not_found": "Nie znaleziono użytkownika",
@@ -299,7 +300,11 @@
         "freescout_bridge_name": "Integracja FreeScout",
         "freescout_bridge_desc": "Łączy rozmowy wsparcia z FreeScout z członkami i tablicą zadań.",
         "deck_sync_name": "Synchronizacja Nextcloud Deck",
-        "deck_sync_desc": "Pobiera karty z tablicy Nextcloud Deck do tablicy zadań, jednokierunkowo, automatycznie aktualizowane. Najpierw skonfiguruj połączenie w Admin -> Integracje."
+        "deck_sync_desc": "Pobiera karty z tablicy Nextcloud Deck do tablicy zadań, jednokierunkowo, automatycznie aktualizowane. Najpierw skonfiguruj połączenie w Admin -> Integracje.",
+        "applicants_name": "Kandydaci",
+        "applicants_desc": "Osoby, które ubiegają się o wolną działkę: dane kontaktowe, data zgłoszenia, status i notatki zarządu. Zgłoszenia ze strony internetowej trafiają tu tylko przy włączonym \"Publicznym API formularza zgłoszeń\".",
+        "public_applicant_api_name": "Publiczne API formularza zgłoszeń",
+        "public_applicant_api_desc": "Pozwala formularzowi zgłoszeń na wolne działki na stronie stowarzyszenia bezpośrednio tworzyć kandydatów. Domyślnie wyłączone, ponieważ otwiera publiczny punkt zapisu; punkty końcowe znajdziesz na stronie \"Integracje\"."
       },
       "region_header": "Region",
       "region_help": "Określa format liczb i adresu (np. separator tysięcy, kolejność kodu pocztowego i miejscowości). Niezależnie od języka interfejsu.",
@@ -394,7 +399,7 @@
       "deck_never_synced_label": "Jeszcze nie zsynchronizowano",
       "auth_origin_allowlist": "Dozwolone adresy stron",
       "public_forms_title": "Formularze na stronie (zwykły HTML, wtyczka WordPress)",
-      "public_forms_desc": "Dla stron, których formularze wysyłają dane bezpośrednio z przeglądarki odwiedzającego do dwóch powyższych punktów końcowych /forms/: zwykłe strony HTML w dowolnym CMS oraz wtyczka WordPress od wersji 3.0. Następnie odwiedzający zostaje przekierowany z powrotem na stronę. Nie używa się tu tokenu API, dlatego przyjmowane są tylko zgłoszenia wysłane z adresów stron wpisanych poniżej -- adres strony WordPress również należy tu wpisać. Dopóki lista jest pusta, oba punkty końcowe pozostają zamknięte.",
+      "public_forms_desc": "Dla stron, których formularze wysyłają dane bezpośrednio z przeglądarki odwiedzającego do powyższych punktów końcowych /forms/: zwykłe strony HTML w dowolnym CMS oraz wtyczka WordPress od wersji 3.0. Następnie odwiedzający zostaje przekierowany z powrotem na stronę. Nie używa się tu tokenu API, dlatego przyjmowane są tylko zgłoszenia wysłane z adresów stron wpisanych poniżej -- adres strony WordPress również należy tu wpisać. Dopóki lista jest pusta, oba punkty końcowe pozostają zamknięte.",
       "public_forms_origins_label": "Dozwolone adresy stron",
       "public_forms_origins_hint": "Jeden w wierszu, tylko schemat i host, np. https://example.org",
       "public_forms_save_button": "Zapisz adresy",
@@ -533,7 +538,8 @@
         "calendar": "Kalendarz",
         "inventory": "Inwentarz",
         "finances": "Finanse",
-        "freescout_bridge": "Integracja FreeScout"
+        "freescout_bridge": "Integracja FreeScout",
+        "applicants": "Kandydaci"
       }
     }
   },
@@ -1627,7 +1633,9 @@
     "birthdays_today": "dziś kończy {age}",
     "birthdays_turning": "kończy {age}",
     "freescout_open_label": "Otwarte rozmowy wsparcia",
-    "freescout_open_suffix": "aktywne lub oczekujące rozmowy FreeScout"
+    "freescout_open_suffix": "aktywne lub oczekujące rozmowy FreeScout",
+    "applicants_card_title": "Nowe zgłoszenia",
+    "applicants_suffix": "jeszcze nierozpatrzone"
   },
   "calendar": {
     "hub": {
@@ -2514,6 +2522,10 @@
       "captcha": "Weryfikacja ochrony przed spamem nie powiodła się -- odśwież stronę i spróbuj ponownie",
       "consent_missing": "Aby wysłać ten formularz, wymagana jest zgoda na przetwarzanie danych",
       "unavailable": "Nie udało się teraz wysłać wiadomości -- spróbuj ponownie później"
+    },
+    "applicant": {
+      "captcha": "Weryfikacja ochrony przed spamem nie powiodła się -- odśwież stronę i spróbuj ponownie",
+      "consent_missing": "Aby wysłać ten formularz, wymagana jest zgoda na przetwarzanie danych"
     }
   },
   "freescout": {
@@ -2560,6 +2572,70 @@
     "task": {
       "source_line": "Źródło: rozmowa FreeScout #{conversation_id}",
       "member_line": "Członek: {name}"
+    }
+  },
+  "applicants": {
+    "list": {
+      "title": "Kandydaci",
+      "new": "Dodaj kandydata",
+      "filter_open": "Otwarte",
+      "filter_new": "Nowe",
+      "filter_closed": "Zamknięte",
+      "filter_all": "Wszystkie",
+      "col_name": "Imię i nazwisko",
+      "col_email": "E-mail",
+      "col_phone": "Telefon",
+      "col_applied_at": "Data zgłoszenia",
+      "col_status": "Status",
+      "open": "Otwórz",
+      "empty": "Brak zgłoszeń.",
+      "repeat_hint": "Ten adres e-mail zgłaszał się więcej niż raz.",
+      "repeat_badge": "{count}×"
+    },
+    "fields": {
+      "email": "Adres e-mail",
+      "first_name": "Imię",
+      "last_name": "Nazwisko",
+      "phone": "Telefon",
+      "message": "Wiadomość kandydata",
+      "board_note": "Notatka zarządu",
+      "board_note_hint": "Wewnętrzna -- nigdy nie jest pokazywana kandydatowi.",
+      "status": "Status",
+      "applied_at": "Data zgłoszenia",
+      "source": "Źródło",
+      "consent_at": "Zgoda udzielona",
+      "status_changed_at": "Zmiana statusu"
+    },
+    "status": {
+      "NEW": "Nowe",
+      "CONTACTED": "Skontaktowano",
+      "OFFERED": "Działka zaproponowana",
+      "ACCEPTED": "Przyjęte",
+      "WITHDRAWN": "Wycofane",
+      "REJECTED": "Odrzucone"
+    },
+    "source": {
+      "WEBSITE": "Formularz na stronie",
+      "MANUAL": "Wprowadzone ręcznie"
+    },
+    "form": {
+      "title": "Nowy kandydat",
+      "back": "Wstecz",
+      "card_header": "Kandydat",
+      "manual_hint": "Dla zgłoszeń, które nie przyszły przez stronę, np. telefonicznie. Zgłoszenia z formularza na stronie pojawiają się tu automatycznie.",
+      "save": "Zapisz"
+    },
+    "detail": {
+      "card_header": "Zgłoszenie",
+      "facts_header": "Szczegóły",
+      "other_applications": "Inne zgłoszenia z tego adresu",
+      "history": "Historia statusu",
+      "history_empty": "Brak zmian statusu.",
+      "delete": "Usuń",
+      "delete_confirm": "Trwale usunąć tego kandydata? Tego nie można cofnąć."
+    },
+    "errors": {
+      "invalid_email": "Podaj prawidłowy adres e-mail."
     }
   }
 }

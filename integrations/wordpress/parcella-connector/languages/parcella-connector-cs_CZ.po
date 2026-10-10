@@ -1,10 +1,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Parcella Connector 3.0.0\n"
+"Project-Id-Version: Parcella Connector 3.1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/parcella-garden/parcella/issues\n"
-"POT-Creation-Date: 2026-10-10 22:02+0000\n"
-"PO-Revision-Date: 2026-10-10 22:02+0000\n"
+"POT-Creation-Date: 2026-10-10 22:59+0000\n"
+"PO-Revision-Date: 2026-10-10 22:59+0000\n"
 "Language: cs_CZ\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -57,14 +57,65 @@ msgstr "Spolkový kalendář"
 msgid "Contact form"
 msgstr "Kontaktní formulář"
 
+msgid "Garden plot applications"
+msgstr "Přihlášky o zahradu"
+
 msgid ""
-"More modules (applicant management) are planned. Each will appear in this "
-"table once added, sharing the connection settings above -- no separate "
-"credentials to configure per module."
+"Further modules will appear in this table once added, sharing the connection "
+"settings above -- no separate settings to configure per module."
 msgstr ""
-"Plánují se další moduly (správa uchazečů). Každý se v této tabulce objeví po "
-"přidání a bude sdílet výše uvedené nastavení připojení -- žádné samostatné "
-"přihlašovací údaje pro každý modul."
+"Další moduly se v této tabulce objeví po přidání a budou sdílet výše uvedené "
+"nastavení připojení -- bez vlastního nastavení pro každý modul."
+
+msgid ""
+"Thank you, your application has been received. We will get in touch with you."
+msgstr "Děkujeme, vaše přihláška byla přijata. Ozveme se vám."
+
+msgid "Please confirm you have read the privacy policy to submit this form."
+msgstr ""
+"Potvrďte prosím, že jste si přečetli zásady ochrany osobních údajů, abyste "
+"mohli tento formulář odeslat."
+
+msgid "Please enter a valid email address."
+msgstr "Zadejte prosím platnou e-mailovou adresu."
+
+msgid "Too many submissions right now. Please try again in a little while."
+msgstr "Momentálně příliš mnoho odeslání. Zkuste to prosím za chvíli znovu."
+
+msgid "The spam protection check failed. Please reload the page and try again."
+msgstr ""
+"Kontrola ochrany proti spamu selhala. Obnovte prosím stránku a zkuste to "
+"znovu."
+
+msgid ""
+"Something went wrong submitting your application. Please try again later."
+msgstr "Při odesílání přihlášky se něco pokazilo. Zkuste to prosím později."
+
+msgid "Email address"
+msgstr "E-mailová adresa"
+
+msgid "First name"
+msgstr "Jméno"
+
+msgid "Last name"
+msgstr "Příjmení"
+
+msgid "Phone"
+msgstr "Telefon"
+
+msgid "Anything you would like to tell us?"
+msgstr "Chcete nám ještě něco sdělit?"
+
+msgid ""
+"I have read the privacy policy and agree that my details are stored and "
+"processed electronically to handle my application for a garden plot."
+msgstr ""
+"Přečetl/a jsem zásady ochrany osobních údajů a souhlasím s tím, že mé údaje "
+"budou elektronicky uloženy a zpracovány za účelem vyřízení mé přihlášky o "
+"zahradu."
+
+msgid "Send application"
+msgstr "Odeslat přihlášku"
 
 msgid "The calendar is temporarily unavailable. Please try again later."
 msgstr "Kalendář je dočasně nedostupný. Zkuste to prosím později."
@@ -76,33 +127,17 @@ msgid ""
 "Thank you, your message has been received. We will get back to you soon."
 msgstr "Děkujeme, vaše zpráva byla přijata. Brzy se vám ozveme."
 
-msgid "Please confirm you have read the privacy policy to submit this form."
-msgstr ""
-"Potvrďte prosím, že jste si přečetli zásady ochrany osobních údajů, abyste "
-"mohli tento formulář odeslat."
-
 msgid "Please fill in your name, email address, and message."
 msgstr "Vyplňte prosím své jméno, e-mailovou adresu a zprávu."
 
-msgid "Too many submissions right now. Please try again in a little while."
-msgstr "Momentálně příliš mnoho odeslání. Zkuste to prosím za chvíli znovu."
-
 msgid "Your message could not be submitted right now. Please try again later."
 msgstr "Vaši zprávu se teď nepodařilo odeslat. Zkuste to prosím později."
-
-msgid "The spam protection check failed. Please reload the page and try again."
-msgstr ""
-"Kontrola ochrany proti spamu selhala. Obnovte prosím stránku a zkuste to "
-"znovu."
 
 msgid "Something went wrong submitting your message. Please try again later."
 msgstr "Při odesílání zprávy došlo k chybě. Zkuste to prosím později."
 
 msgid "Name"
 msgstr "Jméno"
-
-msgid "Email address"
-msgstr "E-mailová adresa"
 
 msgid "Message"
 msgstr "Zpráva"

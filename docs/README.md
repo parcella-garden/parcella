@@ -16,6 +16,7 @@ decisions and reasoning are still fresh.
 - [Calendar](./module-calendar.md) -- community calendar, birthdays, council presence/absence, ICS export
 - [Public Signup API](./module-public-api.md) -- CMS-agnostic public API for external site connectors (WordPress plugin included)
 - [Finances](./module-finances.md) -- annual invoicing, payments, dunning reminders, bookkeeping categories
+- [Applicants](./module-applicants.md) -- applications for free garden plots, from the website form or entered by hand
 
 ## Cross-cutting topics
 

@@ -47,7 +47,8 @@
     "finances_outgoing_invoices": "Outgoing Invoices",
     "finances_reminders": "Reminders",
     "finances_incoming_invoices": "Incoming Invoices",
-    "freescout_bridge": "Support"
+    "freescout_bridge": "Support",
+    "applicants": "Applicants"
   },
   "errors": {
     "user_not_found": "User not found",
@@ -299,7 +300,11 @@
         "freescout_bridge_name": "FreeScout Bridge",
         "freescout_bridge_desc": "Links FreeScout support conversations to members and the task board.",
         "deck_sync_name": "Nextcloud Deck Sync",
-        "deck_sync_desc": "Pulls cards from a Nextcloud Deck board into the task board, one-way, kept up to date automatically. Configure the connection under Admin -> Integrations first."
+        "deck_sync_desc": "Pulls cards from a Nextcloud Deck board into the task board, one-way, kept up to date automatically. Configure the connection under Admin -> Integrations first.",
+        "applicants_name": "Applicants",
+        "applicants_desc": "People who applied for a free garden plot: contact data, when they applied, status and board notes. Applications from the website arrive only with the \"Public applicant-form API\" switched on.",
+        "public_applicant_api_name": "Public applicant-form API",
+        "public_applicant_api_desc": "Lets the club website's application form for free garden plots create applicants directly. Off by default since it opens a public write endpoint; see the Integrations page for the endpoints."
       },
       "region_header": "Region",
       "region_help": "Determines number and address format (e.g. thousands separator, order of postal code and city). Independent of the interface language.",
@@ -394,7 +399,7 @@
       "deck_never_synced_label": "Not synced yet",
       "auth_origin_allowlist": "Allowed website origins",
       "public_forms_title": "Website forms (plain HTML, WordPress plugin)",
-      "public_forms_desc": "For websites whose forms post straight from the visitor's browser to the two /forms/ endpoints above: plain HTML pages on any CMS, and the WordPress plugin from version 3.0. Afterwards the visitor is redirected back to the site. No API token is involved, so only submissions sent from the website origins listed here are accepted -- a WordPress site's own address belongs here too. While the list is empty, both endpoints stay closed.",
+      "public_forms_desc": "For websites whose forms post straight from the visitor's browser to the /forms/ endpoints above: plain HTML pages on any CMS, and the WordPress plugin from version 3.0. Afterwards the visitor is redirected back to the site. No API token is involved, so only submissions sent from the website origins listed here are accepted -- a WordPress site's own address belongs here too. While the list is empty, both endpoints stay closed.",
       "public_forms_origins_label": "Allowed website origins",
       "public_forms_origins_hint": "One per line, scheme and host only, e.g. https://example.org",
       "public_forms_save_button": "Save origins",
@@ -533,7 +538,8 @@
         "calendar": "Calendar",
         "inventory": "Inventory",
         "finances": "Finances",
-        "freescout_bridge": "FreeScout Bridge"
+        "freescout_bridge": "FreeScout Bridge",
+        "applicants": "Applicants"
       }
     }
   },
@@ -1627,7 +1633,9 @@
     "birthdays_today": "today, turning {age}",
     "birthdays_turning": "turning {age}",
     "freescout_open_label": "Open support conversations",
-    "freescout_open_suffix": "active or pending FreeScout conversations"
+    "freescout_open_suffix": "active or pending FreeScout conversations",
+    "applicants_card_title": "New applications",
+    "applicants_suffix": "not looked at yet"
   },
   "calendar": {
     "hub": {
@@ -2514,6 +2522,10 @@
       "captcha": "The spam protection check failed -- please reload the page and try again",
       "consent_missing": "Data-protection consent is required to submit this form",
       "unavailable": "Your message could not be submitted right now -- please try again later"
+    },
+    "applicant": {
+      "captcha": "The spam protection check failed -- please reload the page and try again",
+      "consent_missing": "Data-protection consent is required to submit this form"
     }
   },
   "freescout": {
@@ -2560,6 +2572,70 @@
     "task": {
       "source_line": "Source: FreeScout conversation #{conversation_id}",
       "member_line": "Member: {name}"
+    }
+  },
+  "applicants": {
+    "list": {
+      "title": "Applicants",
+      "new": "New applicant",
+      "filter_open": "Open",
+      "filter_new": "New",
+      "filter_closed": "Closed",
+      "filter_all": "All",
+      "col_name": "Name",
+      "col_email": "Email",
+      "col_phone": "Phone",
+      "col_applied_at": "Applied",
+      "col_status": "Status",
+      "open": "Open",
+      "empty": "No applications here.",
+      "repeat_hint": "This email address has applied more than once.",
+      "repeat_badge": "{count}×"
+    },
+    "fields": {
+      "email": "Email address",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "phone": "Phone",
+      "message": "Applicant's message",
+      "board_note": "Board note",
+      "board_note_hint": "Internal -- never shown to the applicant.",
+      "status": "Status",
+      "applied_at": "Applied",
+      "source": "Source",
+      "consent_at": "Consent given",
+      "status_changed_at": "Status changed"
+    },
+    "status": {
+      "NEW": "New",
+      "CONTACTED": "Contacted",
+      "OFFERED": "Plot offered",
+      "ACCEPTED": "Accepted",
+      "WITHDRAWN": "Withdrawn",
+      "REJECTED": "Rejected"
+    },
+    "source": {
+      "WEBSITE": "Website form",
+      "MANUAL": "Entered by hand"
+    },
+    "form": {
+      "title": "New applicant",
+      "back": "Back",
+      "card_header": "Applicant",
+      "manual_hint": "For applications that didn't come through the website, e.g. by phone. Applications from the website form appear here on their own.",
+      "save": "Save"
+    },
+    "detail": {
+      "card_header": "Application",
+      "facts_header": "Details",
+      "other_applications": "Other applications from this address",
+      "history": "Status history",
+      "history_empty": "No status changes yet.",
+      "delete": "Delete",
+      "delete_confirm": "Delete this applicant for good? This can't be undone."
+    },
+    "errors": {
+      "invalid_email": "Please enter a valid email address."
     }
   }
 }

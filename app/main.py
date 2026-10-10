@@ -17,6 +17,7 @@ from app.config import settings
 from app.database import get_db, AsyncSessionLocal, active_member_filter
 from app.models import User, UserRole, Member, Parcel, ParcelStatus, MemberParcel, Group, GroupMembership
 from app.models import PurchaseRequest, PurchaseRequestStatus
+from app.models import Applicant, ApplicantStatus
 from app.models import Task
 from app.models import FreescoutConversationLink
 from app.birthdays import upcoming_birthdays
@@ -48,6 +49,7 @@ from app.routers.metering import create_metering_router
 from app.models import MeteringMedium
 from app.routers import api_auth, api_members, api_parcels, api_club_settings, api_stats
 from app.routers import api_work_hours, api_insurance, api_freescout, api_purchase_requests, api_inventory, api_tasks
+from app.routers import applicants as applicants_router, api_applicants
 from app.routers import api_public
 from app.routers.api_metering import create_metering_api_router
 
@@ -461,6 +463,7 @@ app.include_router(announcements_router.router)
 app.include_router(inventory_router.router)
 app.include_router(tasks_router.router)
 app.include_router(finances_router.router)
+app.include_router(applicants_router.router)
 
 # Metering: ONE codebase (app/routers/metering.py), instantiated twice
 # for water and electricity -- see create_metering_router().
@@ -485,6 +488,7 @@ app.include_router(api_work_hours.router)
 app.include_router(api_insurance.router)
 app.include_router(api_inventory.router)
 app.include_router(api_tasks.router)
+app.include_router(api_applicants.router)
 app.include_router(api_freescout.router)
 app.include_router(api_purchase_requests.router)
 app.include_router(api_public.router)
@@ -553,6 +557,11 @@ async def startseite(request: Request):
         # For the dashboard tile "Open purchase requests" -- only relevant
         # when the module is active (see request.state.module_flags in
         # the template), but the query costs nothing when empty/disabled.
+        # "New applications" tile -- counts exactly what the card's link
+        # (/applicants/?filter=new) lists (ADR 0019).
+        applicants_new_count = await db.scalar(
+            select(func.count()).select_from(Applicant).where(Applicant.status == ApplicantStatus.NEW)
+        )
         purchase_requests_open_count = await db.scalar(
             select(func.count()).select_from(PurchaseRequest).where(
                 PurchaseRequest.status == PurchaseRequestStatus.OPEN
@@ -595,6 +604,7 @@ async def startseite(request: Request):
         "parcels_vacant": parcels_vacant or 0,
         "area_total_sqm": float(area_total or 0),
         "purchase_requests_open": purchase_requests_open_count or 0,
+        "applicants_new": applicants_new_count or 0,
         "freescout_open": freescout_open_count or 0,
         "tasks_overdue": tasks_overdue_count or 0,
         # Reuses the count new_participations_count_middleware already

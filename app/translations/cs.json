@@ -47,7 +47,8 @@
     "finances_outgoing_invoices": "Vydané faktury",
     "finances_reminders": "Upomínky",
     "finances_incoming_invoices": "Přijaté faktury",
-    "freescout_bridge": "Podpora"
+    "freescout_bridge": "Podpora",
+    "applicants": "Uchazeči"
   },
   "errors": {
     "user_not_found": "Uživatel nebyl nalezen",
@@ -299,7 +300,11 @@
         "freescout_bridge_name": "Propojení s FreeScout",
         "freescout_bridge_desc": "Propojuje konverzace podpory z FreeScout s členy a nástěnkou úkolů.",
         "deck_sync_name": "Synchronizace Nextcloud Deck",
-        "deck_sync_desc": "Stahuje karty z nástěnky Nextcloud Deck do nástěnky úkolů, jednosměrně, automaticky udržované aktuální. Nejprve nastavte připojení v Admin -> Integrace."
+        "deck_sync_desc": "Stahuje karty z nástěnky Nextcloud Deck do nástěnky úkolů, jednosměrně, automaticky udržované aktuální. Nejprve nastavte připojení v Admin -> Integrace.",
+        "applicants_name": "Uchazeči",
+        "applicants_desc": "Lidé, kteří se ucházejí o volnou zahradu: kontaktní údaje, datum přihlášky, stav a poznámky výboru. Přihlášky z webu přicházejí jen se zapnutým \"Veřejným API formuláře přihlášek\".",
+        "public_applicant_api_name": "Veřejné API formuláře přihlášek",
+        "public_applicant_api_desc": "Umožní formuláři přihlášek o volné zahrady na webu spolku přímo zakládat uchazeče. Ve výchozím stavu vypnuto, protože otevírá veřejný zápisový koncový bod; koncové body najdete na stránce \"Integrace\"."
       },
       "region_header": "Region",
       "region_help": "Určuje formát čísel a adresy (např. oddělovač tisíců, pořadí PSČ a města). Nezávisle na jazyce rozhraní.",
@@ -394,7 +399,7 @@
       "deck_never_synced_label": "Zatím nesynchronizováno",
       "auth_origin_allowlist": "Povolené adresy webů",
       "public_forms_title": "Formuláře na webu (jednoduché HTML, plugin pro WordPress)",
-      "public_forms_desc": "Pro weby, jejichž formuláře odesílají data přímo z prohlížeče návštěvníka na dva výše uvedené koncové body /forms/: jednoduché HTML stránky v libovolném CMS a plugin pro WordPress od verze 3.0. Návštěvník je poté přesměrován zpět na web. Nepoužívá se žádný API token, proto jsou přijímána jen odeslání z adres webů uvedených zde -- patří sem i adresa webu na WordPressu. Dokud je seznam prázdný, zůstávají oba koncové body uzavřené.",
+      "public_forms_desc": "Pro weby, jejichž formuláře odesílají data přímo z prohlížeče návštěvníka na výše uvedené koncové body /forms/: jednoduché HTML stránky v libovolném CMS a plugin pro WordPress od verze 3.0. Návštěvník je poté přesměrován zpět na web. Nepoužívá se žádný API token, proto jsou přijímána jen odeslání z adres webů uvedených zde -- patří sem i adresa webu na WordPressu. Dokud je seznam prázdný, zůstávají oba koncové body uzavřené.",
       "public_forms_origins_label": "Povolené adresy webů",
       "public_forms_origins_hint": "Jedna na řádek, jen schéma a host, např. https://example.org",
       "public_forms_save_button": "Uložit adresy",
@@ -533,7 +538,8 @@
         "calendar": "Kalendář",
         "inventory": "Inventář",
         "finances": "Finance",
-        "freescout_bridge": "Propojení s FreeScout"
+        "freescout_bridge": "Propojení s FreeScout",
+        "applicants": "Uchazeči"
       }
     }
   },
@@ -1627,7 +1633,9 @@
     "birthdays_today": "dnes oslaví {age}",
     "birthdays_turning": "oslaví {age}",
     "freescout_open_label": "Otevřené konverzace podpory",
-    "freescout_open_suffix": "aktivní nebo čekající konverzace FreeScout"
+    "freescout_open_suffix": "aktivní nebo čekající konverzace FreeScout",
+    "applicants_card_title": "Nové přihlášky",
+    "applicants_suffix": "zatím nevyřízené"
   },
   "calendar": {
     "hub": {
@@ -2514,6 +2522,10 @@
       "captcha": "Kontrola ochrany proti spamu selhala -- obnovte prosím stránku a zkuste to znovu",
       "consent_missing": "K odeslání tohoto formuláře je nutný souhlas se zpracováním osobních údajů",
       "unavailable": "Vaši zprávu se teď nepodařilo odeslat -- zkuste to prosím později"
+    },
+    "applicant": {
+      "captcha": "Kontrola ochrany proti spamu selhala -- obnovte prosím stránku a zkuste to znovu",
+      "consent_missing": "K odeslání tohoto formuláře je nutný souhlas se zpracováním osobních údajů"
     }
   },
   "freescout": {
@@ -2560,6 +2572,70 @@
     "task": {
       "source_line": "Zdroj: konverzace FreeScout č. {conversation_id}",
       "member_line": "Člen: {name}"
+    }
+  },
+  "applicants": {
+    "list": {
+      "title": "Uchazeči",
+      "new": "Přidat uchazeče",
+      "filter_open": "Otevřené",
+      "filter_new": "Nové",
+      "filter_closed": "Uzavřené",
+      "filter_all": "Všechny",
+      "col_name": "Jméno",
+      "col_email": "E-mail",
+      "col_phone": "Telefon",
+      "col_applied_at": "Přihlášeno",
+      "col_status": "Stav",
+      "open": "Otevřít",
+      "empty": "Žádné přihlášky.",
+      "repeat_hint": "Tato e-mailová adresa se přihlásila vícekrát.",
+      "repeat_badge": "{count}×"
+    },
+    "fields": {
+      "email": "E-mailová adresa",
+      "first_name": "Jméno",
+      "last_name": "Příjmení",
+      "phone": "Telefon",
+      "message": "Zpráva uchazeče",
+      "board_note": "Poznámka výboru",
+      "board_note_hint": "Interní -- uchazeči se nikdy nezobrazí.",
+      "status": "Stav",
+      "applied_at": "Přihlášeno",
+      "source": "Zdroj",
+      "consent_at": "Souhlas udělen",
+      "status_changed_at": "Stav změněn"
+    },
+    "status": {
+      "NEW": "Nová",
+      "CONTACTED": "Kontaktován",
+      "OFFERED": "Zahrada nabídnuta",
+      "ACCEPTED": "Přijato",
+      "WITHDRAWN": "Staženo",
+      "REJECTED": "Zamítnuto"
+    },
+    "source": {
+      "WEBSITE": "Formulář na webu",
+      "MANUAL": "Zadáno ručně"
+    },
+    "form": {
+      "title": "Nový uchazeč",
+      "back": "Zpět",
+      "card_header": "Uchazeč",
+      "manual_hint": "Pro přihlášky, které nepřišly přes web, např. telefonicky. Přihlášky z formuláře na webu se tu objeví samy.",
+      "save": "Uložit"
+    },
+    "detail": {
+      "card_header": "Přihláška",
+      "facts_header": "Podrobnosti",
+      "other_applications": "Další přihlášky z této adresy",
+      "history": "Historie stavu",
+      "history_empty": "Zatím žádné změny stavu.",
+      "delete": "Smazat",
+      "delete_confirm": "Trvale smazat tohoto uchazeče? Nelze vrátit zpět."
+    },
+    "errors": {
+      "invalid_email": "Zadejte prosím platnou e-mailovou adresu."
     }
   }
 }
