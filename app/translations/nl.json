@@ -393,15 +393,15 @@
       "deck_last_synced_label": "{count} taak/taken gesynchroniseerd, laatst om {when}",
       "deck_never_synced_label": "Nog niet gesynchroniseerd",
       "auth_origin_allowlist": "Toegestane websiteadressen",
-      "public_forms_title": "Eenvoudige HTML-formulieren (statische websites)",
-      "public_forms_desc": "Voor een website zonder servercode: de formulieren versturen rechtstreeks naar de twee /forms/-eindpunten hierboven, waarna de bezoeker wordt teruggestuurd naar de website. Er komt geen API-token aan te pas, dus alleen inzendingen vanaf de hier vermelde websiteadressen worden geaccepteerd. Zolang de lijst leeg is, blijven beide eindpunten gesloten.",
+      "public_forms_title": "Websiteformulieren (eenvoudige HTML, WordPress-plugin)",
+      "public_forms_desc": "Voor websites waarvan de formulieren rechtstreeks vanuit de browser van de bezoeker naar de twee /forms/-eindpunten hierboven versturen: eenvoudige HTML-pagina's in elk CMS en de WordPress-plugin vanaf versie 3.0. Daarna wordt de bezoeker teruggestuurd naar de website. Er komt geen API-token aan te pas, dus alleen inzendingen vanaf de hier vermelde websiteadressen worden geaccepteerd -- ook het adres van een WordPress-website hoort hier. Zolang de lijst leeg is, blijven beide eindpunten gesloten.",
       "public_forms_origins_label": "Toegestane websiteadressen",
       "public_forms_origins_hint": "Eén per regel, alleen schema en host, bijv. https://example.org",
       "public_forms_save_button": "Adressen opslaan",
       "public_forms_saved": "Toegestane websiteadressen opgeslagen.",
       "public_forms_ignored": "Deze vermeldingen zijn geen http(s)-adressen en zijn genegeerd: {entries}",
       "public_forms_altcha_label": "ALTCHA vereisen (rekenpuzzel tegen spambots)",
-      "public_forms_altcha_hint": "De browser van de bezoeker moet een kleine rekenpuzzel oplossen voordat het formulier wordt geaccepteerd – zonder cookies, zonder derden, zonder klikken. Schakel dit pas in als de formulieren van de website de ALTCHA-widget bevatten, die zijn puzzel ophaalt van {challenge_url}; anders wordt elke inzending geweigerd."
+      "public_forms_altcha_hint": "De browser van de bezoeker moet een kleine rekenpuzzel oplossen voordat een formulier wordt geaccepteerd -- geen cookies, geen derde partij, niets om aan te klikken. Dit geldt voor elke manier van verzenden: de eenvoudige HTML-formulieren, de WordPress-plugin (vanaf versie 3.0) en koppelingen via het API-token, die dan de oplossing van de widget in het veld \"altcha\" moeten meesturen. Zet dit pas aan als de formulieren van alle websites de ALTCHA-widget bevatten, die zijn puzzel ophaalt van {challenge_url}; anders wordt elke inzending geweigerd."
     },
     "system": {
       "page_title": "Systeem",
@@ -2507,7 +2507,13 @@
       "session_not_found": "Sessie niet gevonden",
       "session_full": "Sessie zit vol",
       "no_members_for_parcel": "Aan dit perceel zijn momenteel geen leden toegewezen",
-      "registration_closed": "Aanmelding voor deze sessie is gesloten"
+      "registration_closed": "Aanmelding voor deze sessie is gesloten",
+      "captcha": "De spambeveiliging is mislukt -- laad de pagina opnieuw en probeer het nog eens"
+    },
+    "contact": {
+      "captcha": "De spambeveiliging is mislukt -- laad de pagina opnieuw en probeer het nog eens",
+      "consent_missing": "Voor het verzenden van dit formulier is toestemming voor de gegevensverwerking vereist",
+      "unavailable": "Je bericht kon nu niet worden verzonden -- probeer het later opnieuw"
     }
   },
   "freescout": {

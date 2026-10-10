@@ -393,15 +393,15 @@
       "deck_last_synced_label": "{count} tâche(s) synchronisée(s), dernière fois à {when}",
       "deck_never_synced_label": "Pas encore synchronisé",
       "auth_origin_allowlist": "Adresses de sites autorisées",
-      "public_forms_title": "Formulaires HTML simples (sites statiques)",
-      "public_forms_desc": "Pour un site sans code côté serveur : ses formulaires envoient directement les données aux deux points de terminaison /forms/ ci-dessus, puis le visiteur est redirigé vers le site. Aucun jeton API n'intervient, seules les soumissions envoyées depuis les adresses de sites indiquées ici sont donc acceptées. Tant que la liste est vide, les deux points de terminaison restent fermés.",
+      "public_forms_title": "Formulaires du site (HTML simple, extension WordPress)",
+      "public_forms_desc": "Pour les sites dont les formulaires envoient les données directement depuis le navigateur du visiteur aux deux points de terminaison /forms/ ci-dessus : des pages HTML simples dans n'importe quel CMS, et l'extension WordPress à partir de la version 3.0. Le visiteur est ensuite redirigé vers le site. Aucun jeton API n'intervient, seules les soumissions envoyées depuis les adresses de sites indiquées ici sont donc acceptées -- l'adresse d'un site WordPress doit aussi y figurer. Tant que la liste est vide, les deux points de terminaison restent fermés.",
       "public_forms_origins_label": "Adresses de sites autorisées",
       "public_forms_origins_hint": "Une par ligne, schéma et hôte uniquement, p. ex. https://example.org",
       "public_forms_save_button": "Enregistrer les adresses",
       "public_forms_saved": "Adresses de sites autorisées enregistrées.",
       "public_forms_ignored": "Ces entrées ne sont pas des adresses http(s) et ont été ignorées : {entries}",
       "public_forms_altcha_label": "Exiger ALTCHA (preuve de travail contre les robots de spam)",
-      "public_forms_altcha_hint": "Le navigateur du visiteur doit résoudre un petit calcul avant que le formulaire soit accepté – sans cookies, sans service tiers, sans clic. N'activez cette option qu'une fois que les formulaires du site intègrent le widget ALTCHA, qui récupère son calcul sur {challenge_url} ; sinon, chaque envoi sera refusé."
+      "public_forms_altcha_hint": "Le navigateur du visiteur doit résoudre un petit calcul avant qu'un formulaire soit accepté -- pas de cookies, pas de tiers, rien à cliquer. Cela s'applique à tous les modes d'envoi : les formulaires HTML simples, l'extension WordPress (version 3.0 ou ultérieure) et les connecteurs utilisant le jeton d'API, qui doivent alors transmettre la solution du widget dans le champ \"altcha\". N'activez cette option qu'une fois que les formulaires de tous les sites intègrent le widget ALTCHA, qui récupère son calcul depuis {challenge_url} ; sinon, chaque envoi est refusé."
     },
     "system": {
       "page_title": "Système",
@@ -2507,7 +2507,13 @@
       "session_not_found": "Session introuvable",
       "session_full": "La session est complète",
       "no_members_for_parcel": "Aucun membre n'est actuellement assigné à cette parcelle",
-      "registration_closed": "Les inscriptions pour cette session sont closes"
+      "registration_closed": "Les inscriptions pour cette session sont closes",
+      "captcha": "La vérification anti-spam a échoué -- veuillez recharger la page et réessayer"
+    },
+    "contact": {
+      "captcha": "La vérification anti-spam a échoué -- veuillez recharger la page et réessayer",
+      "consent_missing": "Le consentement au traitement des données est requis pour envoyer ce formulaire",
+      "unavailable": "Votre message n'a pas pu être envoyé pour le moment -- veuillez réessayer plus tard"
     }
   },
   "freescout": {

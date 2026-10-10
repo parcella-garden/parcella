@@ -79,9 +79,13 @@ def client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
-def client_ip_key(request: Request, prefix: str, discriminator: Optional[str] = None) -> str:
+def client_ip_key(
+    request: Request, prefix: str, discriminator: Optional[str] = None, ip: Optional[str] = None,
+) -> str:
     """Builds a namespaced key, e.g. "login:ip:203.0.113.5" or
     "login:ip+email:203.0.113.5|someone@example.org". The prefix keeps
-    unrelated limiters from sharing a bucket."""
-    base = f"{prefix}:{client_ip(request)}"
+    unrelated limiters from sharing a bucket. `ip` overrides the
+    connection's address -- for a trusted connector that forwards its
+    visitor's IP (see app/routers/api_public.py)."""
+    base = f"{prefix}:{ip or client_ip(request)}"
     return f"{base}|{discriminator}" if discriminator else base

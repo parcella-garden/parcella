@@ -393,15 +393,15 @@
       "deck_last_synced_label": "{count} task(s) synced, last at {when}",
       "deck_never_synced_label": "Not synced yet",
       "auth_origin_allowlist": "Allowed website origins",
-      "public_forms_title": "Plain HTML forms (static websites)",
-      "public_forms_desc": "For a website without server-side code: its forms post straight to the two /forms/ endpoints above and the visitor is redirected back to the site. No API token is involved, so only submissions sent from the website origins listed here are accepted. While the list is empty, both endpoints stay closed.",
+      "public_forms_title": "Website forms (plain HTML, WordPress plugin)",
+      "public_forms_desc": "For websites whose forms post straight from the visitor's browser to the two /forms/ endpoints above: plain HTML pages on any CMS, and the WordPress plugin from version 3.0. Afterwards the visitor is redirected back to the site. No API token is involved, so only submissions sent from the website origins listed here are accepted -- a WordPress site's own address belongs here too. While the list is empty, both endpoints stay closed.",
       "public_forms_origins_label": "Allowed website origins",
       "public_forms_origins_hint": "One per line, scheme and host only, e.g. https://example.org",
       "public_forms_save_button": "Save origins",
       "public_forms_saved": "Allowed website origins saved.",
       "public_forms_ignored": "These entries aren't http(s) URLs and were ignored: {entries}",
       "public_forms_altcha_label": "Require ALTCHA (proof of work against spam bots)",
-      "public_forms_altcha_hint": "The visitor's browser has to solve a small computing puzzle before the form is accepted -- no cookies, no third party, nothing to click. Only switch this on once the website's forms include the ALTCHA widget, which fetches its puzzle from {challenge_url}; otherwise every submission is rejected."
+      "public_forms_altcha_hint": "The visitor's browser has to solve a small computing puzzle before a form is accepted -- no cookies, no third party, nothing to click. This applies to every way of submitting: the plain HTML forms, the WordPress plugin (version 3.0 or later) and connectors using the API token, which then have to pass on the widget's solution in the field \"altcha\". Only switch this on once every website's forms include the ALTCHA widget, which fetches its puzzle from {challenge_url}; otherwise every submission is rejected."
     },
     "system": {
       "page_title": "System",
@@ -2507,7 +2507,13 @@
       "session_not_found": "Session not found",
       "session_full": "Session is full",
       "no_members_for_parcel": "No members are currently assigned to this parcel",
-      "registration_closed": "Registration for this session has closed"
+      "registration_closed": "Registration for this session has closed",
+      "captcha": "The spam protection check failed -- please reload the page and try again"
+    },
+    "contact": {
+      "captcha": "The spam protection check failed -- please reload the page and try again",
+      "consent_missing": "Data-protection consent is required to submit this form",
+      "unavailable": "Your message could not be submitted right now -- please try again later"
     }
   },
   "freescout": {

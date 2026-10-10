@@ -27,6 +27,7 @@ registering nobody, or guessing wrong without a trace. See
 docs/module-public-api.md for the full rationale and the reference
 WordPress connector under integrations/wordpress/.
 """
+import ipaddress
 import re
 import logging
 from typing import List, Optional
@@ -83,8 +84,27 @@ _CONTACT_RATE_LIMIT_WINDOW_SECONDS = 3600
 _CONTACT_RATE_LIMIT_MAX_REQUESTS = 10
 
 
+def _connector_client_ip(request: Request) -> Optional[str]:
+    """The visitor's IP as forwarded by a server-side connector in
+    X-Parcella-Client-IP. Without it, every visitor of a CMS that posts
+    from its own server shares that server's address -- and so one rate
+    limit bucket for the whole website (ADR 0090). Only ever read on the
+    token endpoints, after the token checked out: an anonymous caller
+    must not be able to pick its own bucket. Anything that isn't a valid
+    IP address is ignored."""
+    value = (request.headers.get("x-parcella-client-ip") or "").strip()
+    try:
+        return str(ipaddress.ip_address(value))
+    except ValueError:
+        return None
+
+
+def _rate_limit_ip(request: Request) -> Optional[str]:
+    return getattr(request.state, "connector_client_ip", None)
+
+
 def _check_rate_limit(request: Request) -> None:
-    key = client_ip_key(request, "public_signup")
+    key = client_ip_key(request, "public_signup", ip=_rate_limit_ip(request))
     if not check_and_record(key, _RATE_LIMIT_MAX_REQUESTS, _RATE_LIMIT_WINDOW_SECONDS):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -93,7 +113,7 @@ def _check_rate_limit(request: Request) -> None:
 
 
 def _check_contact_rate_limit(request: Request) -> None:
-    key = client_ip_key(request, "public_contact")
+    key = client_ip_key(request, "public_contact", ip=_rate_limit_ip(request))
     if not check_and_record(key, _CONTACT_RATE_LIMIT_MAX_REQUESTS, _CONTACT_RATE_LIMIT_WINDOW_SECONDS):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -148,6 +168,12 @@ def _build_note(parcel_number: str, payload: PublicSignupCreate, was_matched: bo
     return " | ".join(parts)
 
 
+async def _altcha_ok(solution: Optional[str], db: AsyncSession) -> bool:
+    """False only while the admin switch requires ALTCHA and the
+    submission's solution is missing, wrong, expired or reused."""
+    return not await altcha_required(db) or verify_altcha(solution)
+
+
 @router.get(
     "/work-sessions/upcoming", response_model=list[PublicWorkSessionOut],
     dependencies=[Depends(require_module("public_signup_api"))],
@@ -200,6 +226,7 @@ async def submit_signup(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
+    request.state.connector_client_ip = _connector_client_ip(request)
     result, _codes = await _process_signup(payload, request, db)
     return result
 
@@ -213,7 +240,12 @@ async def _process_signup(
     suffixes as the public_api.signup.* translation keys, which the form
     endpoint puts into its redirect instead of the translated text.
     Raises HTTPException for an unknown parcel (404) and for the rate
-    limit (429), exactly as before."""
+    limit (429), exactly as before.
+
+    The ALTCHA check (ADR 0089) lives here rather than in the form
+    endpoint, so the switch covers every path alike (ADR 0090). It runs
+    before the rate limit and the parcel lookup: a submission without
+    the proof of work costs nothing and learns nothing."""
     # Honeypot: a real visitor never fills this field. Return a
     # believable-looking success without creating anything, so the bot
     # doesn't learn its submission was rejected.
@@ -223,8 +255,23 @@ async def _process_signup(
             PublicSignupSessionResult(session_id=sid, accepted=True) for sid in payload.session_ids
         ]), [None] * len(payload.session_ids)
 
-    _check_rate_limit(request)
     lang = _lang(request)
+    results: list[PublicSignupSessionResult] = []
+    codes: list[Optional[str]] = []
+
+    def reject(session_id: str, code: str) -> None:
+        results.append(PublicSignupSessionResult(
+            session_id=session_id, accepted=False, code=code,
+            reason=translate(f"public_api.signup.{code}", lang),
+        ))
+        codes.append(code)
+
+    if not await _altcha_ok(payload.altcha, db):
+        for session_id in payload.session_ids:
+            reject(session_id, "captcha")
+        return PublicSignupResult(results=results), codes
+
+    _check_rate_limit(request)
 
     parcel_result = await db.execute(
         select(Parcel).where(Parcel.plot_number == payload.parcel_number)
@@ -254,16 +301,7 @@ async def _process_signup(
     )
     sessions_by_id = {s.id: s for s in sessions_result.scalars().all()}
 
-    results: list[PublicSignupSessionResult] = []
-    codes: list[Optional[str]] = []
     created_count = 0
-
-    def reject(session_id: str, code: str) -> None:
-        results.append(PublicSignupSessionResult(
-            session_id=session_id, accepted=False,
-            reason=translate(f"public_api.signup.{code}", lang),
-        ))
-        codes.append(code)
 
     if not members_to_register:
         for session_id in payload.session_ids:
@@ -342,6 +380,7 @@ async def submit_contact(
     (Admin -> Integrations) for this to do anything, but doesn't need
     the freescout_bridge module itself enabled just to accept inbound
     contact-form messages."""
+    request.state.connector_client_ip = _connector_client_ip(request)
     result, _code = await _process_contact(payload, request, db)
     return result
 
@@ -360,19 +399,23 @@ async def _process_contact(
         logger.info("Public contact-form honeypot triggered, silently ignoring submission")
         return PublicContactResult(accepted=True), None
 
+    def reject(code: str) -> tuple[PublicContactResult, str]:
+        return PublicContactResult(
+            accepted=False, code=code, reason=translate(f"public_api.contact.{code}", _lang(request)),
+        ), code
+
+    if not await _altcha_ok(payload.altcha, db):
+        return reject("captcha")
+
     _check_contact_rate_limit(request)
 
     if not payload.consent:
-        return PublicContactResult(
-            accepted=False, reason="Data-protection consent is required to submit this form",
-        ), "consent_missing"
+        return reject("consent_missing")
 
     client = await get_freescout_client(db)
     if client is None:
         logger.error("Public contact form submitted but FreeScout is not configured")
-        return PublicContactResult(
-            accepted=False, reason="Support system is not configured -- please try again later",
-        ), "unavailable"
+        return reject("unavailable")
 
     try:
         await client.create_conversation(
@@ -381,7 +424,7 @@ async def _process_contact(
         )
     except FreeScoutError as e:
         logger.error(f"FreeScout API request failed for public contact form: {e}")
-        return PublicContactResult(accepted=False, reason="Could not submit your message -- please try again later"), "unavailable"
+        return reject("unavailable")
 
     return PublicContactResult(accepted=True), None
 
@@ -459,12 +502,6 @@ async def form_challenge_preflight(request: Request, db: AsyncSession = Depends(
     return Response(status_code=status.HTTP_204_NO_CONTENT, headers=headers)
 
 
-async def _altcha_failed(form, db: AsyncSession) -> bool:
-    """True if the admin switch requires ALTCHA and the submission's
-    solution (field `altcha`) is missing, wrong, expired or reused."""
-    return await altcha_required(db) and not verify_altcha(_form_text(form, "altcha"))
-
-
 def _form_text(form, name: str) -> Optional[str]:
     value = form.get(name)
     return value if isinstance(value, str) else None
@@ -494,16 +531,13 @@ async def submit_signup_form(request: Request, db: AsyncSession = Depends(get_db
     def redirect(url: Optional[str], fragment: str) -> RedirectResponse:
         return RedirectResponse(_redirect_target(url, request, allowed, fragment), status_code=status.HTTP_303_SEE_OTHER)
 
-    if await _altcha_failed(form, db):
-        return redirect(error_url, "captcha")
-
     try:
         payload = PublicSignupCreate(
             parcel_number=_form_text(form, "parcel_number") or "",
             name=_form_text(form, "name"), phone=_form_text(form, "phone"),
             email=_form_text(form, "email"), remarks=_form_text(form, "remarks"),
             session_ids=[v for v in form.getlist("session_ids") if isinstance(v, str) and v],
-            website=_form_text(form, "website"),
+            website=_form_text(form, "website"), altcha=_form_text(form, "altcha"),
         )
     except ValidationError as e:
         fields = {str(err["loc"][0]) for err in e.errors() if err.get("loc")}
@@ -539,14 +573,11 @@ async def submit_contact_form(request: Request, db: AsyncSession = Depends(get_d
     def redirect(url: Optional[str], fragment: str) -> RedirectResponse:
         return RedirectResponse(_redirect_target(url, request, allowed, fragment), status_code=status.HTTP_303_SEE_OTHER)
 
-    if await _altcha_failed(form, db):
-        return redirect(error_url, "captcha")
-
     try:
         payload = PublicContactCreate(
             name=(_form_text(form, "name") or "").strip(), email=(_form_text(form, "email") or "").strip(),
             message=(_form_text(form, "message") or "").strip(), consent=_is_checked(form, "consent"),
-            website=_form_text(form, "website"),
+            website=_form_text(form, "website"), altcha=_form_text(form, "altcha"),
         )
     except ValidationError:
         return redirect(error_url, "invalid")

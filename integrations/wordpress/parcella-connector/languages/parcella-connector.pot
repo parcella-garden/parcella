@@ -1,9 +1,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Parcella Connector 2.2.0\n"
+"Project-Id-Version: Parcella Connector 3.0.0\n"
 "Report-Msgid-Bugs-To: https://github.com/parcella-garden/parcella/issues\n"
-"POT-Creation-Date: 2026-08-16 22:23+0000\n"
+"POT-Creation-Date: 2026-10-10 22:02+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -14,21 +14,21 @@ msgstr ""
 msgid "Parcella Connector"
 msgstr ""
 
-msgid ""
-"Shared connection settings for every Parcella integration on this site. Find"
-" the base URL and API token on the \"Integrations\" page in Parcella's admin"
-" area (Administration -> Integrations)."
+msgid "Leave this field empty"
 msgstr ""
+
 
 msgid "Parcella base URL"
 msgstr ""
 
-msgid "API token"
+msgid "Allowed website origin"
 msgstr ""
 
 msgid ""
-"Sent server-side only, for any module below that needs to write back to "
-"Parcella. Never exposed to visitors."
+"The forms on this site are sent straight from the visitor's browser to "
+"Parcella. Parcella only accepts them once this address is listed in its "
+"admin area under Administration -> Integrations -> \"Allowed website "
+"origins\"."
 msgstr ""
 
 msgid "Modules"
@@ -61,46 +61,93 @@ msgid ""
 "credentials to configure per module."
 msgstr ""
 
-msgid ""
-"This form is not fully configured yet. Please contact the site "
-"administrator."
+msgid "The calendar is temporarily unavailable. Please try again later."
 msgstr ""
 
-msgid "Could not reach Parcella. Please try again later."
+msgid "No upcoming dates at the moment."
 msgstr ""
 
 msgid ""
-"This form is not correctly configured (invalid API token). Please contact "
-"the site administrator."
+"Thank you, your message has been received. We will get back to you soon."
+msgstr ""
+
+msgid "Please confirm you have read the privacy policy to submit this form."
+msgstr ""
+
+msgid "Please fill in your name, email address, and message."
 msgstr ""
 
 msgid "Too many submissions right now. Please try again in a little while."
 msgstr ""
 
-msgid "That parcel number was not found. Please check it and try again."
+msgid "Your message could not be submitted right now. Please try again later."
 msgstr ""
 
-msgid "Something went wrong submitting your signup. Please try again later."
+msgid "The spam protection check failed. Please reload the page and try again."
 msgstr ""
 
-msgid "Please provide a parcel number and select at least one session."
+msgid "Something went wrong submitting your message. Please try again later."
 msgstr ""
 
-msgid "The signup form is temporarily unavailable. Please try again later."
+msgid "Name"
+msgstr ""
+
+msgid "Email address"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid ""
+"I have read the privacy policy and understand that my data will inevitably "
+"have to be processed electronically when I submit this contact form, as this "
+"is simply the nature of the process."
+msgstr ""
+
+msgid "Send message"
+msgstr ""
+
+msgid "Please choose another date, or contact us directly."
 msgstr ""
 
 msgid "Thank you, your signup has been received."
 msgstr ""
 
 msgid ""
-"Some of the selected sessions could not be booked (likely full). Please "
-"choose another date for those."
+"Thank you, your signup has been received. Some of the selected sessions "
+"could not be booked, though (they may be full or no longer accepting "
+"signups). Please choose another date for those, or contact us directly."
+msgstr ""
+
+msgid "The selected session is already full."
+msgstr ""
+
+msgid "Registration for the selected session has closed."
+msgstr ""
+
+msgid "The selected session is no longer available."
+msgstr ""
+
+msgid ""
+"No members are currently assigned to this parcel. Please contact us directly."
+msgstr ""
+
+msgid "That parcel number was not found. Please check it and try again."
+msgstr ""
+
+msgid "Please provide a parcel number and select at least one session."
+msgstr ""
+
+msgid "Please check your entries and try again."
+msgstr ""
+
+msgid "Something went wrong submitting your signup. Please try again later."
+msgstr ""
+
+msgid "The signup form is temporarily unavailable. Please try again later."
 msgstr ""
 
 msgid "There are currently no upcoming work sessions open for signup."
-msgstr ""
-
-msgid "Name"
 msgstr ""
 
 msgid "Parcel number"
@@ -112,57 +159,20 @@ msgstr ""
 msgid "I would like to sign up for the following work sessions:"
 msgstr ""
 
+#. translators: 1: date, 2: start time, 3: end time, 4: session title
+#, php-format
 msgid "%1$s, %2$s - %3$s %4$s"
 msgstr ""
 
-msgid "Remarks or individual session requests"
-msgstr ""
-
-msgid "Leave this field empty"
-msgstr ""
-
-msgid "Sign up"
-msgstr ""
-
-msgid "The calendar is temporarily unavailable. Please try again later."
-msgstr ""
-
-msgid "No upcoming dates at the moment."
-msgstr ""
-
-msgid "Email address"
-msgstr ""
-
-msgid "Message"
-msgstr ""
-
-msgid ""
-"I have read the privacy policy and understand that my data will inevitably "
-"have to be processed electronically when I submit this contact form, as this"
-" is simply the nature of the process."
-msgstr ""
-
-msgid "Please fill in your name, email address, and message."
-msgstr ""
-
-msgid "Please confirm you have read the privacy policy to submit this form."
-msgstr ""
-
-msgid ""
-"Your message could not be submitted. Please check the form and try again."
-msgstr ""
-
-msgid "Something went wrong submitting your message. Please try again later."
-msgstr ""
-
-msgid ""
-"Thank you, your message has been received. We will get back to you soon."
-msgstr ""
-
-msgid "Send message"
-msgstr ""
-
+#. translators: %d: number of remaining spots
+#, php-format
 msgid "(%d spot left)"
 msgid_plural "(%d spots left)"
 msgstr[0] ""
 msgstr[1] ""
+
+msgid "Remarks or individual session requests"
+msgstr ""
+
+msgid "Sign up"
+msgstr ""

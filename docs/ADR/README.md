@@ -93,3 +93,4 @@ in chronological order.
 87. [Announcements: no overall status, one action per channel until the content changes](./0087-announcements-no-overall-status-one-action-per-channel.md)
 88. [Plain-HTML-form endpoints for static websites, gated by an origin allowlist](./0088-plain-html-form-endpoints-origin-allowlist.md)
 89. [ALTCHA proof of work for the plain-HTML-form endpoints](./0089-altcha-proof-of-work-for-plain-html-forms.md)
+90. [One form contract for every website; the WordPress plugin posts plain forms](./0090-one-form-contract-wordpress-via-plain-forms.md)

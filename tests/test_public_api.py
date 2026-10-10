@@ -169,7 +169,7 @@ async def test_signup_requires_valid_api_token(client, admin_user):
         headers={"X-Parcella-API-Token": "test-public-api-token"},
     )
     assert ok_response.status_code == 200, ok_response.text
-    assert ok_response.json()["results"] == [{"session_id": session["id"], "accepted": True, "reason": None}]
+    assert ok_response.json()["results"] == [{"session_id": session["id"], "accepted": True, "reason": None, "code": None}]
 
 
 async def test_signup_with_matching_name_registers_only_that_member(client, admin_user):
@@ -599,7 +599,7 @@ async def test_contact_creates_a_freescout_conversation(client, admin_user, monk
         headers={"X-Parcella-API-Token": "test-public-api-token"},
     )
     assert response.status_code == 200, response.text
-    assert response.json() == {"accepted": True, "reason": None}
+    assert response.json() == {"accepted": True, "reason": None, "code": None}
 
     assert len(fake_client.calls) == 1
     call = fake_client.calls[0]
@@ -664,5 +664,5 @@ async def test_contact_honeypot_field_silently_ignored(client, admin_user, monke
         headers={"X-Parcella-API-Token": "test-public-api-token"},
     )
     assert response.status_code == 200
-    assert response.json() == {"accepted": True, "reason": None}
+    assert response.json() == {"accepted": True, "reason": None, "code": None}
     assert fake_client.calls == []

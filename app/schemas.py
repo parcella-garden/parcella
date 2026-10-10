@@ -716,8 +716,11 @@ class PublicSignupCreate(BaseModel):
     # that fill in every field they find. Not documented in the public API
     # docs' example payload on purpose.
     website: Optional[str] = Field(None, description="Leave empty")
+    # ALTCHA solution from the website's widget (ADR 0089/0090) -- only
+    # checked while "Require ALTCHA" is on, then on every path alike.
+    altcha: Optional[str] = Field(None, description="ALTCHA widget solution (base64), required while the installation requires ALTCHA")
 
-    @field_validator("name", "phone", "email", "remarks", "website", mode="before")
+    @field_validator("name", "phone", "email", "remarks", "website", "altcha", mode="before")
     @classmethod
     def blank_to_none(cls, value):
         # HTML forms send empty optional fields as "", not absent -- most
@@ -735,6 +738,7 @@ class PublicSignupSessionResult(BaseModel):
     session_id: str
     accepted: bool
     reason: Optional[str] = Field(None, description="Set when accepted=false, e.g. session full")
+    code: Optional[str] = Field(None, description="Machine-readable reason, e.g. session_full -- same codes as the plain-HTML forms' redirect fragment")
 
 
 class PublicSignupResult(BaseModel):
@@ -748,8 +752,9 @@ class PublicContactCreate(BaseModel):
     consent: bool = Field(..., description="Must be true -- data-protection consent given at submission")
     # Honeypot, same convention as PublicSignupCreate.website above.
     website: Optional[str] = Field(None, description="Leave empty")
+    altcha: Optional[str] = Field(None, description="ALTCHA widget solution (base64), required while the installation requires ALTCHA")
 
-    @field_validator("website", mode="before")
+    @field_validator("website", "altcha", mode="before")
     @classmethod
     def blank_to_none(cls, value):
         if isinstance(value, str) and value.strip() == "":
@@ -760,6 +765,7 @@ class PublicContactCreate(BaseModel):
 class PublicContactResult(BaseModel):
     accepted: bool
     reason: Optional[str] = Field(None, description="Set when accepted=false, e.g. missing consent")
+    code: Optional[str] = Field(None, description="Machine-readable reason, e.g. consent_missing -- same codes as the plain-HTML forms' redirect fragment")
 
 
 # ---------------------------------------------------------------------------

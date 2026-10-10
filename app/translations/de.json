@@ -393,15 +393,15 @@
       "deck_last_synced_label": "{count} Aufgabe(n) synchronisiert, zuletzt am {when}",
       "deck_never_synced_label": "Noch nicht synchronisiert",
       "auth_origin_allowlist": "Erlaubte Website-Adressen",
-      "public_forms_title": "Einfache HTML-Formulare (statische Websites)",
-      "public_forms_desc": "Für eine Website ohne serverseitigen Code: Ihre Formulare senden direkt an die beiden /forms/-Endpunkte oben, danach wird der Besucher auf die Website zurückgeleitet. Ein API-Token ist dabei nicht im Spiel, deshalb werden nur Einsendungen von den hier eingetragenen Website-Adressen angenommen. Solange die Liste leer ist, bleiben beide Endpunkte geschlossen.",
+      "public_forms_title": "Website-Formulare (einfaches HTML, WordPress-Plugin)",
+      "public_forms_desc": "Für Websites, deren Formulare direkt aus dem Browser des Besuchers an die beiden /forms/-Endpunkte oben senden: einfache HTML-Seiten in jedem CMS und das WordPress-Plugin ab Version 3.0. Danach wird der Besucher auf die Website zurückgeleitet. Ein API-Token ist dabei nicht im Spiel, deshalb werden nur Einsendungen von den hier eingetragenen Website-Adressen angenommen -- auch die Adresse einer WordPress-Website gehört hierher. Solange die Liste leer ist, bleiben beide Endpunkte geschlossen.",
       "public_forms_origins_label": "Erlaubte Website-Adressen",
       "public_forms_origins_hint": "Eine pro Zeile, nur Schema und Host, z. B. https://example.org",
       "public_forms_save_button": "Adressen speichern",
       "public_forms_saved": "Erlaubte Website-Adressen gespeichert.",
       "public_forms_ignored": "Diese Einträge sind keine http(s)-Adressen und wurden ignoriert: {entries}",
       "public_forms_altcha_label": "ALTCHA verlangen (Rechenaufgabe gegen Spam-Bots)",
-      "public_forms_altcha_hint": "Der Browser der Besucher muss eine kleine Rechenaufgabe lösen, bevor das Formular angenommen wird – ohne Cookies, ohne Drittanbieter, ohne Klicken. Erst einschalten, wenn die Formulare der Website das ALTCHA-Widget enthalten, das seine Aufgabe von {challenge_url} holt; sonst wird jede Einsendung abgelehnt."
+      "public_forms_altcha_hint": "Der Browser des Besuchers muss eine kleine Rechenaufgabe lösen, bevor ein Formular angenommen wird -- keine Cookies, kein Drittanbieter, nichts anzuklicken. Das gilt für jeden Übermittlungsweg: die einfachen HTML-Formulare, das WordPress-Plugin (ab Version 3.0) und Anbindungen über den API-Token, die dann die Lösung des Widgets im Feld \"altcha\" mitschicken müssen. Erst einschalten, wenn die Formulare aller Websites das ALTCHA-Widget enthalten, das seine Aufgabe von {challenge_url} abruft -- sonst wird jede Übermittlung abgelehnt."
     },
     "system": {
       "page_title": "System",
@@ -2507,7 +2507,13 @@
       "session_not_found": "Einsatz nicht gefunden",
       "session_full": "Einsatz ist ausgebucht",
       "no_members_for_parcel": "Dieser Parzelle sind aktuell keine Mitglieder zugeordnet",
-      "registration_closed": "Die Anmeldung für diesen Einsatz ist geschlossen"
+      "registration_closed": "Die Anmeldung für diesen Einsatz ist geschlossen",
+      "captcha": "Spam-Schutz-Prüfung fehlgeschlagen -- bitte die Seite neu laden und erneut versuchen."
+    },
+    "contact": {
+      "captcha": "Spam-Schutz-Prüfung fehlgeschlagen -- bitte die Seite neu laden und erneut versuchen.",
+      "consent_missing": "Für das Absenden dieses Formulars ist die Einwilligung in die Datenverarbeitung erforderlich",
+      "unavailable": "Die Nachricht konnte gerade nicht übermittelt werden -- bitte später erneut versuchen."
     }
   },
   "freescout": {

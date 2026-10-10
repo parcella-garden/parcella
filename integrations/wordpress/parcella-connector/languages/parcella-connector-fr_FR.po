@@ -1,10 +1,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Parcella Connector 2.2.0\n"
+"Project-Id-Version: Parcella Connector 3.0.0\n"
 "Report-Msgid-Bugs-To: https://github.com/parcella-garden/parcella/issues\n"
-"POT-Creation-Date: 2026-08-16 22:23+0000\n"
-"PO-Revision-Date: 2026-08-16 22:23+0000\n"
+"POT-Creation-Date: 2026-10-10 22:02+0000\n"
+"PO-Revision-Date: 2026-10-10 22:02+0000\n"
 "Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -14,27 +14,25 @@ msgstr ""
 msgid "Parcella Connector"
 msgstr "Parcella Connector"
 
-msgid ""
-"Shared connection settings for every Parcella integration on this site. Find"
-" the base URL and API token on the \"Integrations\" page in Parcella's admin"
-" area (Administration -> Integrations)."
-msgstr ""
-"Paramètres de connexion partagés pour chaque intégration Parcella sur ce "
-"site. Retrouvez l'URL de base et le jeton API sur la page \"Intégrations\" "
-"de l'administration Parcella (Administration -> Intégrations)."
+msgid "Leave this field empty"
+msgstr "Laissez ce champ vide"
 
 msgid "Parcella base URL"
 msgstr "URL de base de Parcella"
 
-msgid "API token"
-msgstr "Jeton API"
+msgid "Allowed website origin"
+msgstr "Adresse de site autorisée"
 
 msgid ""
-"Sent server-side only, for any module below that needs to write back to "
-"Parcella. Never exposed to visitors."
+"The forms on this site are sent straight from the visitor's browser to "
+"Parcella. Parcella only accepts them once this address is listed in its "
+"admin area under Administration -> Integrations -> \"Allowed website "
+"origins\"."
 msgstr ""
-"Utilisé uniquement côté serveur, pour tout module ci-dessous devant écrire "
-"des données vers Parcella. Jamais exposé aux visiteurs."
+"Les formulaires de ce site sont envoyés directement depuis le navigateur du "
+"visiteur vers Parcella. Parcella ne les accepte qu'une fois cette adresse "
+"ajoutée dans son espace d'administration, sous Administration -> "
+"Intégrations -> « Adresses de sites autorisées »."
 
 msgid "Modules"
 msgstr "Modules"
@@ -69,61 +67,121 @@ msgstr ""
 "dans ce tableau une fois ajouté, en partageant les paramètres de connexion "
 "ci-dessus -- pas d'identifiants séparés à configurer par module."
 
-msgid ""
-"This form is not fully configured yet. Please contact the site "
-"administrator."
+msgid "The calendar is temporarily unavailable. Please try again later."
 msgstr ""
-"Ce formulaire n'est pas encore entièrement configuré. Merci de contacter "
-"l'administrateur du site."
+"Le calendrier est temporairement indisponible. Merci de réessayer plus tard."
 
-msgid "Could not reach Parcella. Please try again later."
-msgstr "Impossible de joindre Parcella. Merci de réessayer plus tard."
+msgid "No upcoming dates at the moment."
+msgstr "Aucune date à venir pour le moment."
 
 msgid ""
-"This form is not correctly configured (invalid API token). Please contact "
-"the site administrator."
+"Thank you, your message has been received. We will get back to you soon."
 msgstr ""
-"Ce formulaire n'est pas correctement configuré (jeton API invalide). Merci "
-"de contacter l'administrateur du site."
+"Merci, votre message a bien été reçu. Nous reviendrons vers vous rapidement."
+
+msgid "Please confirm you have read the privacy policy to submit this form."
+msgstr ""
+"Merci de confirmer que vous avez lu la politique de confidentialité pour "
+"envoyer ce formulaire."
+
+msgid "Please fill in your name, email address, and message."
+msgstr "Merci de renseigner votre nom, votre adresse e-mail et votre message."
 
 msgid "Too many submissions right now. Please try again in a little while."
 msgstr ""
 "Trop de soumissions pour le moment. Merci de réessayer un peu plus tard."
 
+msgid "Your message could not be submitted right now. Please try again later."
+msgstr ""
+"Votre message n'a pas pu être envoyé pour le moment. Merci de réessayer plus "
+"tard."
+
+msgid "The spam protection check failed. Please reload the page and try again."
+msgstr ""
+"La vérification anti-spam a échoué. Merci de recharger la page et de "
+"réessayer."
+
+msgid "Something went wrong submitting your message. Please try again later."
+msgstr ""
+"Un problème est survenu lors de l'envoi de votre message. Merci de réessayer "
+"plus tard."
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "Email address"
+msgstr "Adresse e-mail"
+
+msgid "Message"
+msgstr "Message"
+
+msgid ""
+"I have read the privacy policy and understand that my data will inevitably "
+"have to be processed electronically when I submit this contact form, as this "
+"is simply the nature of the process."
+msgstr ""
+"J'ai lu la politique de confidentialité et je comprends que mes données "
+"devront inévitablement être traitées électroniquement lors de l'envoi de ce "
+"formulaire de contact, cela faisant simplement partie du processus."
+
+msgid "Send message"
+msgstr "Envoyer le message"
+
+msgid "Please choose another date, or contact us directly."
+msgstr "Merci de choisir une autre date ou de nous contacter directement."
+
+msgid "Thank you, your signup has been received."
+msgstr "Merci, votre inscription a bien été reçue."
+
+msgid ""
+"Thank you, your signup has been received. Some of the selected sessions "
+"could not be booked, though (they may be full or no longer accepting "
+"signups). Please choose another date for those, or contact us directly."
+msgstr ""
+"Merci, votre inscription a bien été reçue. Certains chantiers sélectionnés "
+"n'ont toutefois pas pu être réservés (probablement complets ou inscriptions "
+"closes). Merci de choisir une autre date pour ceux-ci ou de nous contacter "
+"directement."
+
+msgid "The selected session is already full."
+msgstr "Le chantier sélectionné est déjà complet."
+
+msgid "Registration for the selected session has closed."
+msgstr "Les inscriptions au chantier sélectionné sont closes."
+
+msgid "The selected session is no longer available."
+msgstr "Le chantier sélectionné n'est plus disponible."
+
+msgid ""
+"No members are currently assigned to this parcel. Please contact us directly."
+msgstr ""
+"Aucun membre n'est actuellement rattaché à cette parcelle. Merci de nous "
+"contacter directement."
+
 msgid "That parcel number was not found. Please check it and try again."
 msgstr ""
 "Ce numéro de parcelle est introuvable. Merci de le vérifier et de réessayer."
-
-msgid "Something went wrong submitting your signup. Please try again later."
-msgstr ""
-"Un problème est survenu lors de l'envoi de votre inscription. Merci de "
-"réessayer plus tard."
 
 msgid "Please provide a parcel number and select at least one session."
 msgstr ""
 "Merci d'indiquer un numéro de parcelle et de sélectionner au moins un "
 "chantier."
 
+msgid "Please check your entries and try again."
+msgstr "Merci de vérifier vos saisies et de réessayer."
+
+msgid "Something went wrong submitting your signup. Please try again later."
+msgstr ""
+"Un problème est survenu lors de l'envoi de votre inscription. Merci de "
+"réessayer plus tard."
+
 msgid "The signup form is temporarily unavailable. Please try again later."
 msgstr ""
 "Le formulaire d'inscription est temporairement indisponible. Merci de "
 "réessayer plus tard."
 
-msgid "Thank you, your signup has been received."
-msgstr "Merci, votre inscription a bien été reçue."
-
-msgid ""
-"Some of the selected sessions could not be booked (likely full). Please "
-"choose another date for those."
-msgstr ""
-"Certains chantiers sélectionnés n'ont pas pu être réservés (probablement "
-"complets). Merci de choisir une autre date pour ceux-ci."
-
 msgid "There are currently no upcoming work sessions open for signup."
 msgstr "Il n'y a actuellement aucun chantier à venir ouvert aux inscriptions."
-
-msgid "Name"
-msgstr "Nom"
 
 msgid "Parcel number"
 msgstr "Numéro de parcelle"
@@ -134,68 +192,20 @@ msgstr "Veuillez choisir..."
 msgid "I would like to sign up for the following work sessions:"
 msgstr "Je souhaite m'inscrire aux chantiers collectifs suivants :"
 
+#. translators: 1: date, 2: start time, 3: end time, 4: session title
+#, php-format
 msgid "%1$s, %2$s - %3$s %4$s"
 msgstr "%1$s, %2$s - %3$s %4$s"
 
-msgid "Remarks or individual session requests"
-msgstr "Remarques ou demandes de chantiers particuliers"
-
-msgid "Leave this field empty"
-msgstr "Laissez ce champ vide"
-
-msgid "Sign up"
-msgstr "S'inscrire"
-
-msgid "The calendar is temporarily unavailable. Please try again later."
-msgstr ""
-"Le calendrier est temporairement indisponible. Merci de réessayer plus tard."
-
-msgid "No upcoming dates at the moment."
-msgstr "Aucune date à venir pour le moment."
-
-msgid "Email address"
-msgstr "Adresse e-mail"
-
-msgid "Message"
-msgstr "Message"
-
-msgid ""
-"I have read the privacy policy and understand that my data will inevitably "
-"have to be processed electronically when I submit this contact form, as this"
-" is simply the nature of the process."
-msgstr ""
-"J'ai lu la politique de confidentialité et je comprends que mes données "
-"devront inévitablement être traitées électroniquement lors de l'envoi de ce "
-"formulaire de contact, cela faisant simplement partie du processus."
-
-msgid "Please fill in your name, email address, and message."
-msgstr "Merci de renseigner votre nom, votre adresse e-mail et votre message."
-
-msgid "Please confirm you have read the privacy policy to submit this form."
-msgstr ""
-"Merci de confirmer que vous avez lu la politique de confidentialité pour "
-"envoyer ce formulaire."
-
-msgid ""
-"Your message could not be submitted. Please check the form and try again."
-msgstr ""
-"Votre message n'a pas pu être envoyé. Merci de vérifier le formulaire et de "
-"réessayer."
-
-msgid "Something went wrong submitting your message. Please try again later."
-msgstr ""
-"Un problème est survenu lors de l'envoi de votre message. Merci de réessayer"
-" plus tard."
-
-msgid ""
-"Thank you, your message has been received. We will get back to you soon."
-msgstr ""
-"Merci, votre message a bien été reçu. Nous reviendrons vers vous rapidement."
-
-msgid "Send message"
-msgstr "Envoyer le message"
-
+#. translators: %d: number of remaining spots
+#, php-format
 msgid "(%d spot left)"
 msgid_plural "(%d spots left)"
 msgstr[0] "(%d place restante)"
 msgstr[1] "(%d places restantes)"
+
+msgid "Remarks or individual session requests"
+msgstr "Remarques ou demandes de chantiers particuliers"
+
+msgid "Sign up"
+msgstr "S'inscrire"

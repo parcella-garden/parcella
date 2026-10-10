@@ -393,15 +393,15 @@
       "deck_last_synced_label": "Synchronizováno {count} úkolů, naposledy {when}",
       "deck_never_synced_label": "Zatím nesynchronizováno",
       "auth_origin_allowlist": "Povolené adresy webů",
-      "public_forms_title": "Jednoduché HTML formuláře (statické weby)",
-      "public_forms_desc": "Pro web bez kódu na straně serveru: jeho formuláře odesílají data přímo na dva výše uvedené koncové body /forms/ a návštěvník je poté přesměrován zpět na web. Nepoužívá se žádný API token, proto jsou přijímána jen odeslání z adres webů uvedených zde. Dokud je seznam prázdný, zůstávají oba koncové body uzavřené.",
+      "public_forms_title": "Formuláře na webu (jednoduché HTML, plugin pro WordPress)",
+      "public_forms_desc": "Pro weby, jejichž formuláře odesílají data přímo z prohlížeče návštěvníka na dva výše uvedené koncové body /forms/: jednoduché HTML stránky v libovolném CMS a plugin pro WordPress od verze 3.0. Návštěvník je poté přesměrován zpět na web. Nepoužívá se žádný API token, proto jsou přijímána jen odeslání z adres webů uvedených zde -- patří sem i adresa webu na WordPressu. Dokud je seznam prázdný, zůstávají oba koncové body uzavřené.",
       "public_forms_origins_label": "Povolené adresy webů",
       "public_forms_origins_hint": "Jedna na řádek, jen schéma a host, např. https://example.org",
       "public_forms_save_button": "Uložit adresy",
       "public_forms_saved": "Povolené adresy webů byly uloženy.",
       "public_forms_ignored": "Tyto položky nejsou adresy http(s) a byly ignorovány: {entries}",
       "public_forms_altcha_label": "Vyžadovat ALTCHA (výpočetní úloha proti spamovým botům)",
-      "public_forms_altcha_hint": "Prohlížeč návštěvníka musí před přijetím formuláře vyřešit malou výpočetní úlohu – bez cookies, bez třetích stran, bez klikání. Zapněte až tehdy, když formuláře webu obsahují widget ALTCHA, který si úlohu stahuje z {challenge_url}; jinak bude každé odeslání odmítnuto."
+      "public_forms_altcha_hint": "Prohlížeč návštěvníka musí vyřešit malou výpočetní úlohu, než je formulář přijat -- žádné cookies, žádná třetí strana, nic ke klikání. Platí to pro každý způsob odeslání: jednoduché HTML formuláře, plugin pro WordPress (od verze 3.0) i napojení přes API token, která pak musí předávat řešení widgetu v poli \"altcha\". Zapněte to až ve chvíli, kdy formuláře všech webů obsahují widget ALTCHA, který si úlohu stahuje z {challenge_url}; jinak bude každé odeslání odmítnuto."
     },
     "system": {
       "page_title": "Systém",
@@ -2507,7 +2507,13 @@
       "session_not_found": "Termín nenalezen",
       "session_full": "Termín je obsazen",
       "no_members_for_parcel": "K této parcele nejsou aktuálně přiřazeni žádní členové",
-      "registration_closed": "Přihlašování na tento termín bylo uzavřeno"
+      "registration_closed": "Přihlašování na tento termín bylo uzavřeno",
+      "captcha": "Kontrola ochrany proti spamu selhala -- obnovte prosím stránku a zkuste to znovu"
+    },
+    "contact": {
+      "captcha": "Kontrola ochrany proti spamu selhala -- obnovte prosím stránku a zkuste to znovu",
+      "consent_missing": "K odeslání tohoto formuláře je nutný souhlas se zpracováním osobních údajů",
+      "unavailable": "Vaši zprávu se teď nepodařilo odeslat -- zkuste to prosím později"
     }
   },
   "freescout": {

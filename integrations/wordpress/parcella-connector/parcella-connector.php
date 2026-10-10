@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Parcella Connector
- * Description: Consolidated connector for every integration between this WordPress site and a Parcella installation. Each capability lives in its own module under includes/modules/ (work-session signup, community calendar, and a contact-form-to-ticket bridge today; applicant management and others are planned), sharing one Parcella base URL and API token configured here.
- * Version: 2.2.2
+ * Description: Consolidated connector for every integration between this WordPress site and a Parcella installation. Each capability lives in its own module under includes/modules/ (work-session signup, community calendar, and a contact form that lands in the club's FreeScout inbox today; applicant management and others are planned), sharing one Parcella base URL configured here.
+ * Version: 3.0.0
  * License: AGPL-3.0-or-later
  * Text Domain: parcella-connector
  *
@@ -16,13 +16,20 @@
  * History: this plugin began life as "Parcella Work Session Signup", a
  * single-purpose connector. As more WordPress <-> Parcella
  * integrations were planned, it was consolidated into this one plugin
- * so every future integration shares one settings screen and one
- * base-URL/token pair, rather than each shipping its own plugin with
- * its own separate credentials to configure. The underlying WordPress
- * option names were deliberately kept unchanged
- * (parcella_signup_base_url / parcella_signup_api_token) specifically
- * so upgrading from the old plugin doesn't require re-entering them --
- * see README.md for the exact upgrade steps.
+ * so every future integration shares one settings screen, rather than
+ * each shipping its own plugin with its own separate credentials to
+ * configure. The base URL's option name was deliberately kept
+ * unchanged (parcella_signup_base_url) specifically so upgrading from
+ * the old plugin doesn't require re-entering it -- see README.md for
+ * the exact upgrade steps.
+ *
+ * Since 3.0.0 the forms no longer post to WordPress and on to Parcella
+ * with a shared API token: the visitor's browser posts them straight to
+ * Parcella's plain-HTML-form endpoints, exactly like a form on any
+ * other website (see docs/ADR/0090 in the Parcella repository). That
+ * gives every website one form contract -- same fields, same ALTCHA
+ * spam protection, same rate limit per visitor -- and leaves this
+ * plugin with no secret to keep.
  */
 
 if (!defined('ABSPATH')) {
@@ -32,12 +39,15 @@ if (!defined('ABSPATH')) {
 // Kept in sync with the "Version:" header above (was drifted at 2.0.0
 // from a previous release that forgot to update this constant too --
 // unused elsewhere today, but there's no reason to let it lie).
-define('PARCELLA_CONNECTOR_VERSION', '2.2.2');
-// Names unchanged from the original single-purpose plugin on purpose --
+define('PARCELLA_CONNECTOR_VERSION', '3.0.0');
+// Name unchanged from the original single-purpose plugin on purpose --
 // see the History note above.
 define('PARCELLA_CONNECTOR_OPTION_BASE_URL', 'parcella_signup_base_url');
-define('PARCELLA_CONNECTOR_OPTION_API_TOKEN', 'parcella_signup_api_token');
+// The API token 2.x stored. No longer used; deleted on upgrade so a
+// secret doesn't linger in the WordPress database.
+define('PARCELLA_CONNECTOR_OPTION_LEGACY_API_TOKEN', 'parcella_signup_api_token');
 define('PARCELLA_CONNECTOR_PATH', plugin_dir_path(__FILE__));
+define('PARCELLA_CONNECTOR_URL', plugin_dir_url(__FILE__));
 
 // Loads translations from languages/parcella-connector-{locale}.mo.
 // Falls back to the English strings in this file automatically if no
@@ -48,8 +58,8 @@ add_action('plugins_loaded', function () {
 
 // ---------------------------------------------------------------------------
 // Shared settings page (Settings -> Parcella Connector)
-// One base URL + one API token here, shared by every module below --
-// a module never renders its own copy of these fields.
+// One base URL here, shared by every module below -- a module never
+// renders its own copy of this field.
 // ---------------------------------------------------------------------------
 
 add_action('admin_menu', function () {
@@ -68,17 +78,148 @@ add_action('admin_init', function () {
             return untrailingslashit(esc_url_raw(trim($value)));
         },
     ]);
-    register_setting('parcella_connector_settings', PARCELLA_CONNECTOR_OPTION_API_TOKEN, [
-        'sanitize_callback' => 'sanitize_text_field',
-    ]);
+    if (get_option(PARCELLA_CONNECTOR_OPTION_LEGACY_API_TOKEN) !== false) {
+        delete_option(PARCELLA_CONNECTOR_OPTION_LEGACY_API_TOKEN);
+    }
 });
 
 function parcella_connector_base_url() {
     return get_option(PARCELLA_CONNECTOR_OPTION_BASE_URL, '');
 }
 
-function parcella_connector_api_token() {
-    return get_option(PARCELLA_CONNECTOR_OPTION_API_TOKEN, '');
+/**
+ * This site's origin (scheme://host[:port]) -- what Parcella has to list
+ * under Administration -> Integrations -> "Allowed website origins" before
+ * it accepts this site's forms.
+ */
+function parcella_connector_site_origin() {
+    $parts = wp_parse_url(home_url());
+    if (empty($parts['scheme']) || empty($parts['host'])) {
+        return '';
+    }
+    $origin = strtolower($parts['scheme'] . '://' . $parts['host']);
+    return isset($parts['port']) ? $origin . ':' . $parts['port'] : $origin;
+}
+
+// ---------------------------------------------------------------------------
+// Shared form helpers. The forms post straight from the visitor's browser
+// to Parcella's /api/v1/public/forms/* endpoints; Parcella answers with a
+// redirect back to this page, carrying the outcome as the URL fragment
+// (#ok, #session_full, #captcha, ...). The page shows the matching
+// message with CSS :target alone -- no JavaScript needed for that part.
+// ---------------------------------------------------------------------------
+
+function parcella_connector_form_action($endpoint) {
+    return parcella_connector_base_url() . '/api/v1/public/forms/' . $endpoint;
+}
+
+/**
+ * Where Parcella sends the visitor back to: this page, tagged with which
+ * form was submitted, so only that form's messages are rendered -- the
+ * outcome codes are used as element ids, and two shortcodes on one page
+ * would otherwise both carry e.g. id="ok".
+ */
+function parcella_connector_return_url($form) {
+    $base = is_singular() ? get_permalink() : home_url('/');
+    return add_query_arg('parcella_form', $form, remove_query_arg('parcella_form', $base));
+}
+
+function parcella_connector_returned_from($form) {
+    return isset($_GET['parcella_form']) && sanitize_key(wp_unslash($_GET['parcella_form'])) === $form;
+}
+
+/**
+ * The outcome messages for one form, rendered only when the visitor has
+ * just come back from submitting that form. Each one is hidden until its
+ * id matches the URL fragment.
+ *
+ * @param string $form     'signup' or 'contact'
+ * @param array  $messages outcome code => message; 'ok' and 'partial' are
+ *                         successes, everything else an error
+ */
+function parcella_connector_render_outcome($form, $messages) {
+    if (!parcella_connector_returned_from($form)) {
+        return;
+    }
+    echo '<div class="parcella-outcome">';
+    foreach ($messages as $code => $text) {
+        $kind = in_array($code, ['ok', 'partial'], true) ? 'success' : 'error';
+        printf(
+            '<p id="%1$s" class="parcella-outcome-message parcella-outcome-%2$s" role="status">%3$s</p>',
+            esc_attr($code), esc_attr($kind), esc_html($text)
+        );
+    }
+    echo '</div>';
+}
+
+/**
+ * The hidden fields every form carries: where to come back to, and the
+ * honeypot -- hidden from real visitors via CSS and kept out of the tab
+ * order / accessibility tree, but still present in the markup for simple
+ * bots that fill in every field they find.
+ */
+function parcella_connector_render_common_fields($form) {
+    $return_url = parcella_connector_return_url($form);
+    ?>
+    <input type="hidden" name="success_url" value="<?php echo esc_url($return_url); ?>">
+    <input type="hidden" name="error_url" value="<?php echo esc_url($return_url); ?>">
+    <p class="parcella-hp" aria-hidden="true">
+        <label for="parcella-<?php echo esc_attr($form); ?>-website"><?php esc_html_e('Leave this field empty', 'parcella-connector'); ?></label>
+        <input type="text" id="parcella-<?php echo esc_attr($form); ?>-website" name="website" tabindex="-1" autocomplete="off">
+    </p>
+    <?php
+}
+
+/**
+ * The ALTCHA widget (MIT, bundled under assets/altcha/ -- no third party,
+ * no cookies). Always embedded: while "Require ALTCHA" is off in Parcella
+ * the solution is simply ignored, so the switch can be flipped there at
+ * any time without touching this site.
+ */
+function parcella_connector_render_altcha() {
+    wp_enqueue_script(
+        'parcella-connector-altcha',
+        PARCELLA_CONNECTOR_URL . 'assets/altcha/altcha.i18n.min.js',
+        [], '3.2.3', true
+    );
+    ?>
+    <altcha-widget challenge="<?php echo esc_url(parcella_connector_form_action('challenge')); ?>"
+                   auto="onfocus" language="<?php echo esc_attr(substr(get_locale(), 0, 2)); ?>"
+                   configuration='{"humanInteractionSignature": false}'></altcha-widget>
+    <?php
+}
+
+// The bundle declares top-level consts; loading it as a module keeps them
+// out of the page's global scope.
+add_filter('script_loader_tag', function ($tag, $handle) {
+    if ($handle === 'parcella-connector-altcha') {
+        $tag = str_replace('<script ', '<script type="module" ', $tag);
+    }
+    return $tag;
+}, 10, 2);
+
+function parcella_connector_render_form_styles() {
+    ?>
+    <style>
+        .parcella-hp { position: absolute; left: -9999px; }
+        .parcella-outcome-message { display: none; padding: 0.75em 1em; margin-bottom: 1em; border-radius: 4px; }
+        .parcella-outcome-message:target { display: block; }
+        .parcella-outcome-success { background: #e6f4ea; color: #1e4620; }
+        .parcella-outcome-error { background: #fdecea; color: #611a15; }
+        .parcella-submit {
+            font-size: 1.15em;
+            font-weight: 600;
+            padding: 0.6em 1.6em;
+            background: #2d6a4f;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .parcella-submit:hover { background: #40916c; }
+        .parcella-work-signup altcha-widget, .parcella-contact-form altcha-widget { display: block; margin-bottom: 1em; }
+    </style>
+    <?php
 }
 
 /**
@@ -116,7 +257,7 @@ function parcella_connector_render_settings_page() {
         <h1><?php esc_html_e('Parcella Connector', 'parcella-connector'); ?></h1>
         <p>
             <?php esc_html_e(
-                'Shared connection settings for every Parcella integration on this site. Find the base URL and API token on the "Integrations" page in Parcella\'s admin area (Administration -> Integrations).',
+                'Shared connection settings for every Parcella integration on this site. Find the base URL on the "Integrations" page in Parcella\'s admin area (Administration -> Integrations).',
                 'parcella-connector'
             ); ?>
         </p>
@@ -134,15 +275,11 @@ function parcella_connector_render_settings_page() {
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row">
-                        <label for="parcella_api_token"><?php esc_html_e('API token', 'parcella-connector'); ?></label>
-                    </th>
+                    <th scope="row"><?php esc_html_e('Allowed website origin', 'parcella-connector'); ?></th>
                     <td>
-                        <input type="password" id="parcella_api_token" name="<?php echo esc_attr(PARCELLA_CONNECTOR_OPTION_API_TOKEN); ?>"
-                               value="<?php echo esc_attr(get_option(PARCELLA_CONNECTOR_OPTION_API_TOKEN, '')); ?>"
-                               class="regular-text" autocomplete="off">
+                        <code><?php echo esc_html(parcella_connector_site_origin()); ?></code>
                         <p class="description">
-                            <?php esc_html_e('Sent server-side only, for any module below that needs to write back to Parcella. Never exposed to visitors.', 'parcella-connector'); ?>
+                            <?php esc_html_e('The forms on this site are sent straight from the visitor\'s browser to Parcella. Parcella only accepts them once this address is listed in its admin area under Administration -> Integrations -> "Allowed website origins".', 'parcella-connector'); ?>
                         </p>
                     </td>
                 </tr>
@@ -189,8 +326,7 @@ function parcella_connector_render_settings_page() {
 //
 // Each module is a self-contained file registering whatever shortcodes,
 // hooks, or admin UI it needs, using parcella_connector_base_url() and
-// parcella_connector_api_token() above rather than reading its own
-// options. To add a new module: drop a new file in includes/modules/,
+// the shared form helpers above rather than reading its own options. To add a new module: drop a new file in includes/modules/,
 // require it below, and add a row to the table above.
 // ---------------------------------------------------------------------------
 

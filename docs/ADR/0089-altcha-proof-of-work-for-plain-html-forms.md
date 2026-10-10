@@ -50,7 +50,8 @@ installation.
    unauthenticated like the other read endpoints; issuing a challenge
    costs the server one HMAC.
 
-**Not done:** the JSON endpoints used by server-side connectors (the
+**Not done** (superseded by ADR 0090, which extends the check to every
+path): the JSON endpoints used by server-side connectors (the
 WordPress plugin) don't check ALTCHA -- they are behind the API token,
 and a connector would have to forward the widget's payload. The widget's
 optional "human interaction signature" and the code (image/audio)

@@ -13,9 +13,11 @@ consolidated `integrations/wordpress/parcella-connector/` plugin (see
 its own README for installation) -- this plugin also hosts other
 WordPress <-> Parcella integrations (see
 docs/ADR/0030-wordpress-connector-plugin-consolidated-into-one-plugin.md for why it was consolidated rather than
-shipping a separate plugin per integration). Writing an equivalent
-connector for another CMS means implementing the same three-endpoint
-contract below; none of the logic needs to be reimplemented per CMS.
+shipping a separate plugin per integration). Since plugin 3.0.0 its
+forms post straight from the visitor's browser to the plain-HTML-form
+endpoints, like any other website's would (ADR 0090). Every way of
+submitting follows the same contract -- see "Form contract" below;
+none of the logic needs to be reimplemented per CMS.
 
 ## The core constraint: no member names on the public site
 
@@ -106,7 +108,10 @@ The POST endpoint requires the installation's shared API token (see
 `app/public_api_auth.py`, same shared-secret pattern as the private ICS
 feeds) plus a lightweight honeypot field and a per-IP rate limit (20
 requests/hour, in-memory, see `app/routers/api_public.py`) as
-defense-in-depth on top of the token.
+defense-in-depth on top of the token. A connector that posts from its
+own server should send its visitor's address in `X-Parcella-Client-IP`
+-- otherwise all of its visitors share the server's one bucket (see
+"Form contract").
 
 `POST .../signup` accepts multiple `session_ids` in one submission and
 evaluates each independently -- a full session is rejected with a
@@ -192,10 +197,8 @@ English) -- inconsistent with this project's actual i18n convention
 files). Fixed for all four reasons in this function, new
 `public_api.signup.*` namespace, using `request.state.language` the
 same way the notification emails in this router already do (`_lang()`,
-defined here). The sibling `submit_contact` endpoint's own hardcoded
-reason ("Data-protection consent is required...") has the same gap --
-not fixed here, since it's a different endpoint/module; worth doing
-the same pass there if it's ever touched again.
+defined here). The sibling contact endpoint's reasons followed later,
+in the `public_api.contact.*` namespace (ADR 0090).
 
 **SPECIAL sessions never appear on the public website -- a rule that
 existed but wasn't actually enforced here.** The community calendar
@@ -261,18 +264,75 @@ board needs to query later -- the created FreeScout conversation's
 message body records that consent was given, for anyone reviewing it
 by hand.
 
+## Form contract
+
+One contract for every way a website can submit (ADR 0090): the
+plain-HTML-form endpoints (`/forms/*`, used by static sites, a "Custom
+HTML" block in any CMS, and the WordPress plugin since 3.0.0) and the
+token-authenticated JSON endpoints (for server-side connectors). Both
+run the same helpers (`_process_signup`/`_process_contact`), so
+validation, honeypot, ALTCHA, rate limit and reason codes are identical.
+
+**Fields** -- the same names on both paths:
+
+| Field | Signup | Contact | Notes |
+|---|---|---|---|
+| `parcel_number` | required | -- | plot number as listed by `GET /parcels` |
+| `session_ids` | required, 1+ | -- | repeated form field / JSON list |
+| `name` | optional | required | signup: free text, never a member dropdown |
+| `email` | optional | required | blank counts as absent |
+| `phone` | optional | -- | |
+| `remarks` | optional | -- | |
+| `message` | -- | required | |
+| `consent` | -- | required | JSON `true`; form checkbox (`on`/`1`/`true`/`yes`) |
+| `website` | honeypot | honeypot | must stay empty; hide it with CSS |
+| `altcha` | see below | see below | the ALTCHA widget's solution |
+| `success_url`, `error_url` | forms only | forms only | must be on an allowed origin |
+
+**Reason codes** -- forms get them as the redirect fragment, JSON as
+`code` next to the translated `reason` (per session for signup):
+`session_full`, `registration_closed`, `session_not_found`,
+`no_members_for_parcel`, `consent_missing`, `unavailable`, `captcha`.
+The form path adds `ok`/`partial` and turns HTTP-level failures into
+codes too (`unknown_parcel`, `no_session_selected`, `invalid`,
+`rate_limited`, `error`); on the JSON path those stay HTTP 404 / 422 /
+429 as before.
+
+**ALTCHA** -- while "Require ALTCHA" is on (Administration ->
+Integrations), every path needs a fresh, solved challenge in `altcha`;
+otherwise the submission is rejected with `captcha`, before the rate
+limit and before any lookup. The widget fetches its challenge in the
+visitor's browser from `GET /forms/challenge`, which answers only
+allowed origins -- so a site using a server-side connector lists its
+origin too, and its connector forwards the widget's field.
+
+**Rate limit per visitor** -- on the `/forms/*` path the visitor's
+browser connects directly, so the limit counts visitors. A server-side
+connector sends the visitor's IP as `X-Parcella-Client-IP`; it's only
+honoured on the token endpoints (the token is what makes the claim
+trustworthy) and ignored unless it's a valid IPv4/IPv6 address.
+
+Deliberately not supported: bridges to CMS form-builder plugins
+(Contact Form 7, WPForms, Gravity Forms, ...). A site uses the
+contract directly, through a plain HTML form or its own small connector.
+
 ## Extending to another CMS
 
-Any connector needs to, in order:
+The default for any CMS is a plain HTML form posting to `/forms/*` (see
+"Static websites: plain HTML forms" below) -- nothing to install, works
+in any HTML/"Custom HTML" block once the site's origin is allowed.
+
+A server-side connector instead needs to, in order:
 1. `GET /work-sessions/upcoming` and `GET /parcels` to render a form
    (cache both briefly -- see the WordPress plugin's use of transients).
-2. Collect parcel number (required), optional name/phone/email/remarks,
-   and one or more chosen session IDs. The name field, if offered,
-   should never be a dropdown of members -- see "The core constraint"
-   above.
-3. `POST /work-sessions/signup` with the API token in
-   `X-Parcella-API-Token`, server-side only.
-4. Handle a per-session `accepted`/`reason` in the response -- a
+2. Collect the fields from the contract above. The name field, if
+   offered, should never be a dropdown of members -- see "The core
+   constraint" above.
+3. `POST /work-sessions/signup` (or `/contact`) with the API token in
+   `X-Parcella-API-Token`, server-side only, and the visitor's IP in
+   `X-Parcella-Client-IP`. Forward `altcha` if the installation requires
+   it.
+4. Handle a per-session `accepted`/`code`/`reason` in the response -- a
    submission can partially succeed.
 
 New module checklist entries in `docs/README.md` apply here too if this
@@ -338,9 +398,10 @@ built, so the page itself stays plain HTML.
 ### Optional: ALTCHA against spam bots
 
 With "Require ALTCHA" ticked (Administration -> Integrations, next to the
-allowed origins), both form endpoints only accept submissions carrying a
-solved ALTCHA proof of work in the field `altcha`; anything else
-redirects to `error_url#captcha`. See
+allowed origins), both form endpoints -- and, since ADR 0090, the JSON
+endpoints too -- only accept submissions carrying a solved ALTCHA proof
+of work in the field `altcha`; on the form path anything else redirects
+to `error_url#captcha`. See
 [ADR 0089](./ADR/0089-altcha-proof-of-work-for-plain-html-forms.md).
 Embed the [ALTCHA widget](https://altcha.org) (3.x) in each form first,
 then tick the box:

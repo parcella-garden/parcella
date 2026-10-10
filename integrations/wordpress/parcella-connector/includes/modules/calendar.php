@@ -2,9 +2,8 @@
 /**
  * Calendar module -- renders the [parcella_calendar] shortcode, backed
  * by Parcella's public community-calendar JSON feed
- * (GET {base_url}/calendar/community.json). Read-only, so unlike
- * signup.php this module never needs the API token -- only the base
- * URL. See docs/ADR (calendar-display-via-shortcode) on the Parcella
+ * (GET {base_url}/calendar/community.json). Read-only, needs only the
+ * base URL. See docs/ADR (calendar-display-via-shortcode) on the Parcella
  * side for why this replaced the earlier plan of just pointing an ICS
  * widget at community.ics: a shortcode renders as styled HTML matching
  * the surrounding page/widget, which a generic ICS-consuming widget
