@@ -399,7 +399,9 @@
       "public_forms_origins_hint": "Eén per regel, alleen schema en host, bijv. https://example.org",
       "public_forms_save_button": "Adressen opslaan",
       "public_forms_saved": "Toegestane websiteadressen opgeslagen.",
-      "public_forms_ignored": "Deze vermeldingen zijn geen http(s)-adressen en zijn genegeerd: {entries}"
+      "public_forms_ignored": "Deze vermeldingen zijn geen http(s)-adressen en zijn genegeerd: {entries}",
+      "public_forms_altcha_label": "ALTCHA vereisen (rekenpuzzel tegen spambots)",
+      "public_forms_altcha_hint": "De browser van de bezoeker moet een kleine rekenpuzzel oplossen voordat het formulier wordt geaccepteerd – zonder cookies, zonder derden, zonder klikken. Schakel dit pas in als de formulieren van de website de ALTCHA-widget bevatten, die zijn puzzel ophaalt van {challenge_url}; anders wordt elke inzending geweigerd."
     },
     "system": {
       "page_title": "Systeem",

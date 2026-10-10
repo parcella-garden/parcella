@@ -399,7 +399,9 @@
       "public_forms_origins_hint": "Jedna na řádek, jen schéma a host, např. https://example.org",
       "public_forms_save_button": "Uložit adresy",
       "public_forms_saved": "Povolené adresy webů byly uloženy.",
-      "public_forms_ignored": "Tyto položky nejsou adresy http(s) a byly ignorovány: {entries}"
+      "public_forms_ignored": "Tyto položky nejsou adresy http(s) a byly ignorovány: {entries}",
+      "public_forms_altcha_label": "Vyžadovat ALTCHA (výpočetní úloha proti spamovým botům)",
+      "public_forms_altcha_hint": "Prohlížeč návštěvníka musí před přijetím formuláře vyřešit malou výpočetní úlohu – bez cookies, bez třetích stran, bez klikání. Zapněte až tehdy, když formuláře webu obsahují widget ALTCHA, který si úlohu stahuje z {challenge_url}; jinak bude každé odeslání odmítnuto."
     },
     "system": {
       "page_title": "Systém",

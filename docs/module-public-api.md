@@ -289,6 +289,7 @@ for the reasoning.
 |---|---|---|
 | POST | `/api/v1/public/forms/work-session-signup` | origin allowlist |
 | POST | `/api/v1/public/forms/contact` | origin allowlist |
+| GET | `/api/v1/public/forms/challenge` | origin allowlist (CORS) |
 
 They run the exact same logic as the JSON endpoints, take ordinary
 `application/x-www-form-urlencoded` form posts, and answer with a 303
@@ -309,7 +310,8 @@ Outcome, as the URL fragment: `success_url#ok`, `success_url#partial`
 (signup: some ticked sessions were rejected), or `error_url#<code>` with
 `code` one of `session_full`, `registration_closed`, `session_not_found`,
 `no_members_for_parcel`, `unknown_parcel`, `no_session_selected`,
-`consent_missing`, `invalid`, `rate_limited`, `unavailable`, `error`. A
+`consent_missing`, `invalid`, `rate_limited`, `unavailable`, `captcha`,
+`error`. A
 static page can show the matching message with CSS alone:
 
 ```html
@@ -332,3 +334,28 @@ static page can show the matching message with CSS alone:
 The session and parcel choices for the signup form come from the two
 unauthenticated GET endpoints above -- fetched when the static site is
 built, so the page itself stays plain HTML.
+
+### Optional: ALTCHA against spam bots
+
+With "Require ALTCHA" ticked (Administration -> Integrations, next to the
+allowed origins), both form endpoints only accept submissions carrying a
+solved ALTCHA proof of work in the field `altcha`; anything else
+redirects to `error_url#captcha`. See
+[ADR 0089](./ADR/0089-altcha-proof-of-work-for-plain-html-forms.md).
+Embed the [ALTCHA widget](https://altcha.org) (3.x) in each form first,
+then tick the box:
+
+```html
+<form method="post" action="https://parcella.example.org/api/v1/public/forms/contact">
+  ...
+  <altcha-widget challenge="https://parcella.example.org/api/v1/public/forms/challenge"
+                 auto="onfocus" configuration='{"humanInteractionSignature": false}'></altcha-widget>
+  <button>Send</button>
+</form>
+<script src="/altcha.min.js" defer></script>
+```
+
+The widget fetches a challenge (answered with CORS headers for the
+allowed origins only), solves it in a second or so, and puts the
+solution into a hidden `altcha` field. Each solution is accepted once
+and expires after 10 minutes. No cookies, no third party.

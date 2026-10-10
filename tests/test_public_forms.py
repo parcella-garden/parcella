@@ -252,3 +252,133 @@ async def test_admin_saves_normalized_origins_and_reports_invalid_ones(client, a
     assert page.status_code == 200
     assert "/api/v1/public/forms/contact" in page.text
     assert SITE in page.text
+
+
+# ---------------------------------------------------------------------------
+# ALTCHA (ADR 0089)
+# ---------------------------------------------------------------------------
+
+from altcha import Challenge, Payload, solve_challenge  # noqa: E402
+
+from app import form_altcha  # noqa: E402
+
+
+@pytest.fixture
+def _cheap_altcha(monkeypatch):
+    # Solving at the production cost takes a second or so per challenge in
+    # pure Python; the check itself doesn't depend on the cost.
+    monkeypatch.setattr(form_altcha, "COST", 1)
+    form_altcha.reset_used()
+    yield
+    form_altcha.reset_used()
+
+
+async def _require_altcha(client, headers):
+    response = await client.put(
+        "/api/v1/club-settings/public_form_require_altcha", json={"value": "1"}, headers=headers,
+    )
+    assert response.status_code == 200, response.text
+
+
+async def _solved(client):
+    """What the widget would submit: a fetched challenge, solved."""
+    response = await client.get("/api/v1/public/forms/challenge", headers=FROM_SITE)
+    assert response.status_code == 200, response.text
+    challenge = Challenge.from_dict(response.json())
+    return Payload(challenge, solve_challenge(challenge)).to_base64()
+
+
+async def test_challenge_only_for_allowed_origins_with_cors(client, admin_user, _cheap_altcha):
+    headers = auth_header(await login(client, "admin@example.com"))
+    closed = await client.get("/api/v1/public/forms/challenge", headers=FROM_SITE)
+    assert closed.status_code == 403  # no origins configured yet
+
+    await _allow_origins(client, headers)
+    other = await client.get("/api/v1/public/forms/challenge", headers={"Origin": "https://evil.example"})
+    assert other.status_code == 403
+
+    response = await client.get("/api/v1/public/forms/challenge", headers=FROM_SITE)
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == SITE
+    assert response.headers["cache-control"] == "no-store"
+    body = response.json()
+    assert body["signature"] and body["parameters"]["algorithm"] == "PBKDF2/SHA-256"
+
+    preflight = await client.options("/api/v1/public/forms/challenge", headers={
+        **FROM_SITE, "Access-Control-Request-Method": "GET", "Access-Control-Request-Headers": "content-type"})
+    assert preflight.status_code == 204
+    assert preflight.headers["access-control-allow-origin"] == SITE
+
+
+async def test_altcha_not_checked_while_switched_off(client, admin_user, monkeypatch, _cheap_altcha):
+    await _contact_setup(client, monkeypatch)
+    response = await _post_contact(client, _contact_form())
+    assert response.headers["location"] == f"{SUCCESS_URL}#ok"
+
+
+async def test_contact_form_requires_a_valid_unused_altcha_solution(client, admin_user, monkeypatch, _cheap_altcha):
+    fake_client = await _contact_setup(client, monkeypatch)
+    await _require_altcha(client, auth_header(await login(client, "admin@example.com")))
+
+    missing = await _post_contact(client, _contact_form())
+    assert missing.headers["location"] == f"{ERROR_URL}#captcha"
+    garbage = await _post_contact(client, _contact_form(altcha="bm90IGpzb24="))
+    assert garbage.headers["location"] == f"{ERROR_URL}#captcha"
+
+    solution = await _solved(client)
+    accepted = await _post_contact(client, _contact_form(altcha=solution))
+    assert accepted.headers["location"] == f"{SUCCESS_URL}#ok"
+    assert len(fake_client.calls) == 1
+
+    # The same solution a second time: a bot can't solve once and post many times.
+    replayed = await _post_contact(client, _contact_form(altcha=solution))
+    assert replayed.headers["location"] == f"{ERROR_URL}#captcha"
+    assert len(fake_client.calls) == 1
+
+
+async def test_altcha_rejects_tampered_and_expired_challenges(client, admin_user, monkeypatch, _cheap_altcha):
+    await _contact_setup(client, monkeypatch)
+    await _require_altcha(client, auth_header(await login(client, "admin@example.com")))
+
+    # Lowering the stated cost after the fact breaks the server's signature.
+    response = await client.get("/api/v1/public/forms/challenge", headers=FROM_SITE)
+    data = response.json()
+    data["parameters"]["cost"] = 0
+    tampered = Challenge.from_dict(data)
+    forged = Payload(tampered, solve_challenge(Challenge.from_dict(response.json()))).to_base64()
+    assert (await _post_contact(client, _contact_form(altcha=forged))).headers["location"] == f"{ERROR_URL}#captcha"
+
+    solution = await _solved(client)
+    monkeypatch.setattr(form_altcha.time, "time", lambda: 10**10)  # far beyond the expiry
+    assert (await _post_contact(client, _contact_form(altcha=solution))).headers["location"] == f"{ERROR_URL}#captcha"
+
+
+async def test_signup_form_requires_altcha_too(client, admin_user, _cheap_altcha):
+    headers, session = await _signup_setup(client)
+    await _require_altcha(client, headers)
+
+    rejected = await _post_signup(client, _signup_form(session["id"]))
+    assert rejected.headers["location"] == f"{ERROR_URL}#captcha"
+    assert await _get_session_participations(client, headers, session["id"]) == []
+
+    accepted = await _post_signup(client, _signup_form(session["id"], altcha=await _solved(client)))
+    assert accepted.headers["location"] == f"{SUCCESS_URL}#ok"
+
+
+async def test_admin_switches_altcha_on_and_off(client, admin_user):
+    await web_login(client)
+
+    async def saved_value():
+        async with AsyncSessionLocal() as session:
+            return (await session.execute(
+                select(ClubSetting.value).where(ClubSetting.key == "public_form_require_altcha")
+            )).scalar_one()
+
+    await client.post("/admin/integrations/public-forms", data={"public_form_origins": SITE, "require_altcha": "1"})
+    assert await saved_value() == "1"
+    page = await client.get("/admin/integrations")
+    assert 'id="require_altcha"' in page.text and "checked" in page.text.split('id="require_altcha"')[1][:80]
+    assert "/api/v1/public/forms/challenge" in page.text
+
+    await client.post("/admin/integrations/public-forms", data={"public_form_origins": SITE})
+    assert await saved_value() == "0"

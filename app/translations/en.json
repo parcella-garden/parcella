@@ -399,7 +399,9 @@
       "public_forms_origins_hint": "One per line, scheme and host only, e.g. https://example.org",
       "public_forms_save_button": "Save origins",
       "public_forms_saved": "Allowed website origins saved.",
-      "public_forms_ignored": "These entries aren't http(s) URLs and were ignored: {entries}"
+      "public_forms_ignored": "These entries aren't http(s) URLs and were ignored: {entries}",
+      "public_forms_altcha_label": "Require ALTCHA (proof of work against spam bots)",
+      "public_forms_altcha_hint": "The visitor's browser has to solve a small computing puzzle before the form is accepted -- no cookies, no third party, nothing to click. Only switch this on once the website's forms include the ALTCHA widget, which fetches its puzzle from {challenge_url}; otherwise every submission is rejected."
     },
     "system": {
       "page_title": "System",

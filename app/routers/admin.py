@@ -45,6 +45,7 @@ from app.public_api_auth import (
     PUBLIC_FORM_ORIGINS_SETTING_KEY, allowed_form_origins, get_or_create_public_api_token,
     normalize_origin, regenerate_public_api_token,
 )
+from app.form_altcha import REQUIRE_ALTCHA_SETTING_KEY, altcha_required
 from app.update_check import get_update_status, refresh_update_check_cache
 from app.sample_data import (
     add_sample_data, remove_sample_data, sample_data_counts,
@@ -1265,6 +1266,7 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
         "request": request, "user": user,
         "api_token": token,
         "public_form_origins": "\n".join(sorted(await allowed_form_origins(db))) if form_origins_entry else "",
+        "public_form_require_altcha": await altcha_required(db),
         "public_forms_saved": request.query_params.get("public_forms_saved"),
         "public_forms_ignored": request.query_params.get("public_forms_ignored"),
         "module_active": module_active,
@@ -1315,7 +1317,8 @@ async def integrations_token_regenerate(request: Request, db: AsyncSession = Dep
 @router.post("/integrations/public-forms")
 async def integrations_public_forms_save(request: Request, db: AsyncSession = Depends(get_db)):
     """Saves the website origins allowed to post the plain-HTML-form
-    endpoints (app/routers/api_public.py, ADR 0088). Entries are reduced
+    endpoints (app/routers/api_public.py, ADR 0088) and whether those
+    forms must carry an ALTCHA solution (ADR 0089). Entries are reduced
     to scheme://host[:port]; anything that isn't an http(s) URL is
     dropped and reported back rather than stored."""
     await require_system_admin(request, db)
@@ -1327,6 +1330,10 @@ async def integrations_public_forms_save(request: Request, db: AsyncSession = De
     await _upsert_club_setting(
         db, PUBLIC_FORM_ORIGINS_SETTING_KEY, "\n".join(origins) or None,
         "Website origins allowed to post the public plain-HTML forms",
+    )
+    await _upsert_club_setting(
+        db, REQUIRE_ALTCHA_SETTING_KEY, "1" if form.get("require_altcha") else "0",
+        "Plain-HTML forms must carry an ALTCHA proof-of-work solution",
     )
     await db.commit()
     query = "public_forms_saved=1"

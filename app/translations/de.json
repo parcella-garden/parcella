@@ -399,7 +399,9 @@
       "public_forms_origins_hint": "Eine pro Zeile, nur Schema und Host, z. B. https://example.org",
       "public_forms_save_button": "Adressen speichern",
       "public_forms_saved": "Erlaubte Website-Adressen gespeichert.",
-      "public_forms_ignored": "Diese Einträge sind keine http(s)-Adressen und wurden ignoriert: {entries}"
+      "public_forms_ignored": "Diese Einträge sind keine http(s)-Adressen und wurden ignoriert: {entries}",
+      "public_forms_altcha_label": "ALTCHA verlangen (Rechenaufgabe gegen Spam-Bots)",
+      "public_forms_altcha_hint": "Der Browser der Besucher muss eine kleine Rechenaufgabe lösen, bevor das Formular angenommen wird – ohne Cookies, ohne Drittanbieter, ohne Klicken. Erst einschalten, wenn die Formulare der Website das ALTCHA-Widget enthalten, das seine Aufgabe von {challenge_url} holt; sonst wird jede Einsendung abgelehnt."
     },
     "system": {
       "page_title": "System",

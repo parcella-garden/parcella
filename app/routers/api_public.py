@@ -33,7 +33,7 @@ from typing import List, Optional
 from urllib.parse import urlsplit, urlunsplit
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, Response
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -52,6 +52,7 @@ from app.schemas import (
     PublicSignupResult, PublicSignupSessionResult,
     PublicContactCreate, PublicContactResult,
 )
+from app.form_altcha import altcha_required, new_challenge, verify as verify_altcha
 from app.freescout_client import FreeScoutError, get_freescout_client
 from app.services.work_hours import notify_new_participations_digest
 from app.i18n import DEFAULT_LANGUAGE, translate
@@ -427,6 +428,43 @@ async def _check_form_origin(request: Request, db: AsyncSession) -> set[str]:
     return allowed
 
 
+def _cors_headers(origin: str) -> dict:
+    return {
+        "Access-Control-Allow-Origin": origin,
+        "Access-Control-Allow-Methods": "GET",
+        "Access-Control-Max-Age": "600",
+        "Vary": "Origin",
+        "Cache-Control": "no-store",
+    }
+
+
+@router.get("/forms/challenge")
+async def form_challenge(request: Request, db: AsyncSession = Depends(get_db)):
+    """A fresh ALTCHA challenge for the website's form widget (ADR 0089).
+    Fetched by the visitor's browser with fetch(), so -- unlike the form
+    POSTs -- it needs CORS: answered only for the allowed origins, the
+    same allowlist the form endpoints use."""
+    await _check_form_origin(request, db)
+    return JSONResponse(new_challenge(), headers=_cors_headers(_request_origin(request)))
+
+
+@router.options("/forms/challenge")
+async def form_challenge_preflight(request: Request, db: AsyncSession = Depends(get_db)):
+    """CORS preflight, in case a browser sends one for the GET above."""
+    await _check_form_origin(request, db)
+    headers = _cors_headers(_request_origin(request))
+    requested = request.headers.get("access-control-request-headers")
+    if requested:
+        headers["Access-Control-Allow-Headers"] = requested
+    return Response(status_code=status.HTTP_204_NO_CONTENT, headers=headers)
+
+
+async def _altcha_failed(form, db: AsyncSession) -> bool:
+    """True if the admin switch requires ALTCHA and the submission's
+    solution (field `altcha`) is missing, wrong, expired or reused."""
+    return await altcha_required(db) and not verify_altcha(_form_text(form, "altcha"))
+
+
 def _form_text(form, name: str) -> Optional[str]:
     value = form.get(name)
     return value if isinstance(value, str) else None
@@ -455,6 +493,9 @@ async def submit_signup_form(request: Request, db: AsyncSession = Depends(get_db
 
     def redirect(url: Optional[str], fragment: str) -> RedirectResponse:
         return RedirectResponse(_redirect_target(url, request, allowed, fragment), status_code=status.HTTP_303_SEE_OTHER)
+
+    if await _altcha_failed(form, db):
+        return redirect(error_url, "captcha")
 
     try:
         payload = PublicSignupCreate(
@@ -497,6 +538,9 @@ async def submit_contact_form(request: Request, db: AsyncSession = Depends(get_d
 
     def redirect(url: Optional[str], fragment: str) -> RedirectResponse:
         return RedirectResponse(_redirect_target(url, request, allowed, fragment), status_code=status.HTTP_303_SEE_OTHER)
+
+    if await _altcha_failed(form, db):
+        return redirect(error_url, "captcha")
 
     try:
         payload = PublicContactCreate(

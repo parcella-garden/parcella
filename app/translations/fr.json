@@ -399,7 +399,9 @@
       "public_forms_origins_hint": "Une par ligne, schéma et hôte uniquement, p. ex. https://example.org",
       "public_forms_save_button": "Enregistrer les adresses",
       "public_forms_saved": "Adresses de sites autorisées enregistrées.",
-      "public_forms_ignored": "Ces entrées ne sont pas des adresses http(s) et ont été ignorées : {entries}"
+      "public_forms_ignored": "Ces entrées ne sont pas des adresses http(s) et ont été ignorées : {entries}",
+      "public_forms_altcha_label": "Exiger ALTCHA (preuve de travail contre les robots de spam)",
+      "public_forms_altcha_hint": "Le navigateur du visiteur doit résoudre un petit calcul avant que le formulaire soit accepté – sans cookies, sans service tiers, sans clic. N'activez cette option qu'une fois que les formulaires du site intègrent le widget ALTCHA, qui récupère son calcul sur {challenge_url} ; sinon, chaque envoi sera refusé."
     },
     "system": {
       "page_title": "Système",

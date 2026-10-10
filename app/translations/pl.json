@@ -399,7 +399,9 @@
       "public_forms_origins_hint": "Jeden w wierszu, tylko schemat i host, np. https://example.org",
       "public_forms_save_button": "Zapisz adresy",
       "public_forms_saved": "Dozwolone adresy stron zostały zapisane.",
-      "public_forms_ignored": "Te wpisy nie są adresami http(s) i zostały pominięte: {entries}"
+      "public_forms_ignored": "Te wpisy nie są adresami http(s) i zostały pominięte: {entries}",
+      "public_forms_altcha_label": "Wymagaj ALTCHA (zadanie obliczeniowe przeciw botom spamującym)",
+      "public_forms_altcha_hint": "Przeglądarka odwiedzającego musi rozwiązać małe zadanie obliczeniowe, zanim formularz zostanie przyjęty – bez plików cookie, bez podmiotów trzecich, bez klikania. Włącz dopiero wtedy, gdy formularze strony zawierają widżet ALTCHA, który pobiera zadanie z {challenge_url}; w przeciwnym razie każde zgłoszenie zostanie odrzucone."
     },
     "system": {
       "page_title": "System",

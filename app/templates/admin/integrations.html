@@ -95,6 +95,12 @@
             <textarea id="public_form_origins" name="public_form_origins" class="form-control" rows="3"
                       placeholder="https://example.org">{{ public_form_origins }}</textarea>
             <div class="form-text mb-2">{{ t('admin.integrations.public_forms_origins_hint') }}</div>
+            <div class="form-check mb-1">
+                <input class="form-check-input" type="checkbox" id="require_altcha" name="require_altcha" value="1"
+                       {% if public_form_require_altcha %}checked{% endif %}>
+                <label class="form-check-label" for="require_altcha">{{ t('admin.integrations.public_forms_altcha_label') }}</label>
+            </div>
+            <div class="form-text mb-2">{{ t('admin.integrations.public_forms_altcha_hint', challenge_url=base_url ~ '/api/v1/public/forms/challenge') }}</div>
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-check-lg me-1"></i>{{ t('admin.integrations.public_forms_save_button') }}
             </button>
