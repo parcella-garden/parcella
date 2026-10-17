@@ -86,7 +86,7 @@
                             </button>
                         </form>
                         <form method="post" action="/admin/invitations/{{ e.id }}/delete" class="d-inline"
-                              onsubmit="return confirm('{{ t('admin.dashboard.delete_invitation_confirm') }}')">
+                              onsubmit="return confirm({{ t('admin.dashboard.delete_invitation_confirm')|tojson|forceescape }})">
                             {{ csrf_field() }}
                             <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ t('admin.dashboard.button_delete_invitation') }}">
                                 <i class="bi bi-trash"></i>

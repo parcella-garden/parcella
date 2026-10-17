@@ -177,7 +177,7 @@
                 {% if can_delete %}
                 <p class="text-muted small">{{ t('admin.users.edit.delete_text') }}</p>
                 <form method="post" action="/admin/users/{{ target.id }}/delete"
-                      onsubmit="return confirm('{{ t('admin.users.edit.delete_confirm') }}')">
+                      onsubmit="return confirm({{ t('admin.users.edit.delete_confirm')|tojson|forceescape }})">
                     {{ csrf_field() }}
                     <button type="submit" class="btn btn-danger">
                         <i class="bi bi-trash me-1"></i>{{ t('admin.users.edit.button_delete') }}

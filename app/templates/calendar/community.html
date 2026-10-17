@@ -125,7 +125,7 @@
                                     <form method="post" action="/calendar/community/{{ item.id }}/delete" class="d-inline">
                                         {{ csrf_field() }}
                                         <button type="submit" class="btn btn-sm btn-outline-danger border-0"
-                                                onclick="return confirm('{{ t('calendar.community.delete_confirm') }}')">
+                                                onclick="return confirm({{ t('calendar.community.delete_confirm')|tojson|forceescape }})">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>

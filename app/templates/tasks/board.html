@@ -414,7 +414,7 @@
                     </div>
                     <div style="white-space: pre-wrap; font-size: 0.9rem;">{{ comment.content }}</div>
                     <form method="post" action="/tasks/{{ task.id }}/comments/{{ comment.id }}/delete"
-                          onsubmit="return confirm('{{ t('tasks.form.delete_comment_confirm') }}')" class="mt-1">
+                          onsubmit="return confirm({{ t('tasks.form.delete_comment_confirm')|tojson|forceescape }})" class="mt-1">
                         {{ csrf_field() }}
                         <button type="submit" class="btn btn-sm btn-link text-danger p-0" style="font-size: 0.78rem;">
                             <i class="bi bi-trash me-1"></i>{{ t('tasks.form.button_delete') }}
@@ -476,7 +476,7 @@
             <div class="modal-footer justify-content-between">
                 {% if task %}
                 <form method="post" action="/tasks/{{ task.id }}/delete"
-                      onsubmit="return confirm('{{ t('tasks.form.delete_confirm') }}')" class="m-0">
+                      onsubmit="return confirm({{ t('tasks.form.delete_confirm')|tojson|forceescape }})" class="m-0">
                     {{ csrf_field() }}
                     <button type="submit" class="btn btn-outline-danger btn-sm">
                         <i class="bi bi-trash me-1"></i>{{ t('tasks.form.button_delete') }}

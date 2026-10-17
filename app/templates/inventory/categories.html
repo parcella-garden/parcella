@@ -51,7 +51,7 @@
                     <td class="text-muted" style="font-size: 0.85rem;">{{ category.description or '' }}</td>
                     <td class="text-end">
                         <form method="post" action="/inventory/categories/{{ category.id }}/delete" class="d-inline"
-                              onsubmit="return confirm('{{ t('inventory.categories.delete_confirm') }}');">
+                              onsubmit="return confirm({{ t('inventory.categories.delete_confirm')|tojson|forceescape }});">
                             {{ csrf_field() }}
                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                 <i class="bi bi-trash"></i>

@@ -27,7 +27,7 @@
     <div class="card-header"><i class="bi bi-upload me-2"></i>{{ t('admin.restore.form_header') }}</div>
     <div class="card-body">
         <form method="post" action="/admin/backup/restore" enctype="multipart/form-data"
-              onsubmit="return confirm('{{ t('admin.restore.submit_confirm') }}');">
+              onsubmit="return confirm({{ t('admin.restore.submit_confirm')|tojson|forceescape }});">
             {{ csrf_field() }}
             <div class="mb-3">
                 <label class="form-label fw-semibold">{{ t('admin.restore.label_file') }}</label>

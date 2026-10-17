@@ -374,6 +374,51 @@ async def test_every_post_form_in_the_templates_carries_a_token():
     assert not missing, "POST forms without {{ csrf_field() }}:\n" + "\n".join(missing)
 
 
+async def test_no_confirm_dialog_hand_quotes_a_template_string():
+    """Issue #238: `confirm('{{ ... }}')` breaks on any apostrophe in the
+    rendered text (French "l'accès", a member named O'Brien) -- the
+    browser decodes &#39; back to ' before parsing the JS, the string
+    ends early, the handler throws, and the form submits without asking.
+    Every call site must go through |tojson|forceescape instead."""
+    import pathlib
+    import re
+
+    hand_quoted = re.compile(r"confirm\(\s*['\"]\{\{")
+    offenders = []
+    for path in sorted(pathlib.Path("app/templates").rglob("*.html")):
+        source = path.read_text()
+        for match in hand_quoted.finditer(source):
+            line = source[:match.start()].count("\n") + 1
+            offenders.append(f"{path}:{line}")
+
+    assert not offenders, "confirm() with a hand-quoted template string:\n" + "\n".join(offenders)
+
+
+async def test_confirm_dialog_survives_an_apostrophe_in_french():
+    """Same issue, end to end: render the actual pattern with a real
+    French string containing ' (and "), then undo the HTML escaping the
+    way a browser does before handing the attribute to the JS parser --
+    what's left must be exactly one valid string literal."""
+    import html
+    import json
+
+    from app.i18n import translate
+    from app.templating import templates
+
+    text = translate("admin.groups.delete_confirm", "fr")
+    assert "'" in text  # the precondition that made this a bug
+
+    attribute = templates.env.from_string(
+        '<form onsubmit="return confirm({{ text|tojson|forceescape }})">'
+    ).render(text=text)
+    handler = html.unescape(attribute.split('onsubmit="', 1)[1].rsplit('"', 1)[0])
+
+    assert handler.startswith("return confirm(") and handler.endswith(")")
+    literal = handler[len("return confirm("):-1]
+    assert "'" not in literal
+    assert json.loads(literal) == text
+
+
 # ---------------------------------------------------------------------------
 # 8. CSV formula injection in export paths
 # ---------------------------------------------------------------------------

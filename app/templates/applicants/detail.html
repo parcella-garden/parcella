@@ -8,7 +8,7 @@
 </a>
 {% if has_perm(request, 'applicants', 'delete') %}
 <form method="post" action="/applicants/{{ applicant.id }}/delete" class="d-inline"
-      onsubmit="return confirm('{{ t('applicants.detail.delete_confirm') }}');">
+      onsubmit="return confirm({{ t('applicants.detail.delete_confirm')|tojson|forceescape }});">
     {{ csrf_field() }}
     <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>{{ t('applicants.detail.delete') }}</button>
 </form>

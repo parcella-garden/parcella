@@ -183,7 +183,7 @@
                                 </div>
                                 <div class="col-sm-6 d-flex align-items-end">
                                     <button type="submit" class="btn btn-sm btn-warning w-100"
-                                            onclick="return confirm('{{ t('metering.point_detail.exchange_confirm') }}')">
+                                            onclick="return confirm({{ t('metering.point_detail.exchange_confirm')|tojson|forceescape }})">
                                         <i class="bi bi-check-lg me-1"></i>{{ t('metering.point_detail.exchange_button') }}
                                     </button>
                                 </div>
@@ -234,7 +234,7 @@
                                     <form method="post" action="{{ url_prefix }}/readings/{{ eintrag.reading.id }}/delete">
                                         {{ csrf_field() }}
                                         <button type="submit" class="btn btn-sm btn-outline-danger border-0"
-                                                onclick="return confirm('{{ t('metering.point_detail.delete_confirm') }}')">
+                                                onclick="return confirm({{ t('metering.point_detail.delete_confirm')|tojson|forceescape }})">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>

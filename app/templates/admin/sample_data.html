@@ -56,7 +56,7 @@
             </tbody>
         </table>
         <form method="post" action="/admin/sample-data/remove"
-              onsubmit="return confirm('{{ t('admin.sample_data.remove_confirm') }}');">
+              onsubmit="return confirm({{ t('admin.sample_data.remove_confirm')|tojson|forceescape }});">
             {{ csrf_field() }}
             <button type="submit" class="btn btn-outline-danger">
                 <i class="bi bi-trash3 me-1"></i>{{ t('admin.sample_data.remove_button') }}
@@ -67,7 +67,7 @@
         {% else %}
         <p class="text-muted">{{ t('admin.sample_data.fresh_install_hint') }}</p>
         <form method="post" action="/admin/sample-data/add"
-              onsubmit="return confirm('{{ t('admin.sample_data.add_confirm') }}');">
+              onsubmit="return confirm({{ t('admin.sample_data.add_confirm')|tojson|forceescape }});">
             {{ csrf_field() }}
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-magic me-1"></i>{{ t('admin.sample_data.add_button') }}

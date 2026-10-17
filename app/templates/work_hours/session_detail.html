@@ -16,7 +16,7 @@
     <form method="post" action="/work-hours/sessions/{{ session.id }}/delete" class="d-inline">
         {{ csrf_field() }}
         <button type="submit" class="btn btn-sm btn-outline-danger"
-                onclick="return confirm('{{ t('work_hours.session_detail.delete_confirm', title=session.title) }}')">
+                onclick="return confirm({{ t('work_hours.session_detail.delete_confirm', title=session.title)|tojson|forceescape }})">
             <i class="bi bi-trash me-1"></i>{{ t('work_hours.session_detail.delete_button') }}
         </button>
     </form>
@@ -179,7 +179,7 @@
                                           action="/work-hours/sessions/{{ session.id }}/participants/{{ t_p.id }}/remove">
                                         {{ csrf_field() }}
                                         <button type="submit" class="btn btn-sm btn-outline-danger border-0"
-                                                onclick="return confirm('{{ t('work_hours.session_detail.remove_participation_confirm') }}')">
+                                                onclick="return confirm({{ t('work_hours.session_detail.remove_participation_confirm')|tojson|forceescape }})">
                                             <i class="bi bi-x-lg"></i>
                                         </button>
                                     </form>

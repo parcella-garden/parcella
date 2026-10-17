@@ -92,7 +92,7 @@
                                     <form method="post" action="/calendar/council-absence/{{ e.id }}/delete" class="d-inline">
                                         {{ csrf_field() }}
                                         <button type="submit" class="btn btn-sm btn-outline-danger border-0"
-                                                onclick="return confirm('{{ t('calendar.council_absence.delete_confirm') }}')">
+                                                onclick="return confirm({{ t('calendar.council_absence.delete_confirm')|tojson|forceescape }})">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>

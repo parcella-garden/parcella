@@ -244,7 +244,7 @@
                     {{ t('members.detail.danger_zone_text', name=member.full_name) }}
                 </p>
                 <form method="post" action="/members/{{ member.id }}/delete"
-                      onsubmit="return confirm('{{ t('members.detail.delete_confirm', name=member.full_name) }}')">
+                      onsubmit="return confirm({{ t('members.detail.delete_confirm', name=member.full_name)|tojson|forceescape }})">
                     {{ csrf_field() }}
                     <button type="submit" class="btn btn-outline-danger">
                         <i class="bi bi-trash me-1"></i>{{ t('members.detail.button_delete') }}

@@ -106,7 +106,7 @@
                     {{ t('parcels.form.danger_zone_text', plot_number=parcel.plot_number) }}
                 </p>
                 <form method="post" action="/parcels/{{ parcel.id }}/permanently-delete"
-                      onsubmit="return confirm('{{ t('parcels.form.delete_confirm', plot_number=parcel.plot_number) }}')">
+                      onsubmit="return confirm({{ t('parcels.form.delete_confirm', plot_number=parcel.plot_number)|tojson|forceescape }})">
                     {{ csrf_field() }}
                     <button type="submit" class="btn btn-outline-danger">
                         <i class="bi bi-trash me-1"></i>{{ t('parcels.form.button_delete_permanently') }}

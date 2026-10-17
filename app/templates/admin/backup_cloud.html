@@ -121,7 +121,7 @@
                             <td class="text-end">
                                 <form method="post" action="/admin/backup/restore-from-cloud"
                                       class="d-flex gap-2 align-items-center justify-content-end"
-                                      onsubmit="return confirm('{{ t('admin.restore.submit_confirm') }}');">
+                                      onsubmit="return confirm({{ t('admin.restore.submit_confirm')|tojson|forceescape }});">
                                     {{ csrf_field() }}
                                     <input type="hidden" name="filename" value="{{ b.name }}">
                                     <input type="text" name="confirm_phrase" class="form-control form-control-sm"

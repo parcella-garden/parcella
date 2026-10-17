@@ -10,7 +10,7 @@
     </a>
     {% if not item.retired_at %}
     <form method="post" action="/inventory/{{ item.id }}/retire" class="d-inline"
-          onsubmit="return confirm('{{ t('inventory.detail.retire_confirm') }}');">
+          onsubmit="return confirm({{ t('inventory.detail.retire_confirm')|tojson|forceescape }});">
         {{ csrf_field() }}
         <button type="submit" class="btn btn-sm btn-outline-secondary">
             <i class="bi bi-archive me-1"></i>{{ t('inventory.detail.retire_button') }}
@@ -20,7 +20,7 @@
     {% endif %}
     {% if has_perm(request, 'inventory', 'delete') %}
     <form method="post" action="/inventory/{{ item.id }}/delete" class="d-inline"
-          onsubmit="return confirm('{{ t('inventory.detail.delete_confirm') }}');">
+          onsubmit="return confirm({{ t('inventory.detail.delete_confirm')|tojson|forceescape }});">
         {{ csrf_field() }}
         <button type="submit" class="btn btn-sm btn-outline-danger">
             <i class="bi bi-trash me-1"></i>{{ t('inventory.detail.delete_button') }}
