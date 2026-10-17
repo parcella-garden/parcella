@@ -2521,11 +2521,22 @@
     "contact": {
       "captcha": "Weryfikacja ochrony przed spamem nie powiodła się -- odśwież stronę i spróbuj ponownie",
       "consent_missing": "Aby wysłać ten formularz, wymagana jest zgoda na przetwarzanie danych",
-      "unavailable": "Nie udało się teraz wysłać wiadomości -- spróbuj ponownie później"
+      "unavailable": "Nie udało się teraz wysłać wiadomości -- spróbuj ponownie później",
+      "subject": "Zapytanie z formularza kontaktowego",
+      "consent_note": "[Zgoda na przetwarzanie danych udzielona przy wysyłce]"
     },
     "applicant": {
       "captcha": "Weryfikacja ochrony przed spamem nie powiodła się -- odśwież stronę i spróbuj ponownie",
       "consent_missing": "Aby wysłać ten formularz, wymagana jest zgoda na przetwarzanie danych"
+    },
+    "signup_note": {
+      "matched": "Zgłoszenie publiczne, przypisane po nazwisku (działka {parcel})",
+      "ambiguous": "Zgłoszenie publiczne (działka {parcel}) -- nie udało się jednoznacznie przypisać podanego nazwiska do jednego mieszkańca, dlatego zapisano wszystkich {count} obecnych mieszkańców tej działki. Sprawdź i usuń osoby, które same się nie zgłosiły.",
+      "plain": "Zgłoszenie publiczne (działka {parcel})",
+      "name": "Podane nazwisko: {value}",
+      "phone": "Telefon: {value}",
+      "email": "E-mail: {value}",
+      "remarks": "Uwagi: {value}"
     }
   },
   "freescout": {

@@ -2521,11 +2521,22 @@
     "contact": {
       "captcha": "The spam protection check failed -- please reload the page and try again",
       "consent_missing": "Data-protection consent is required to submit this form",
-      "unavailable": "Your message could not be submitted right now -- please try again later"
+      "unavailable": "Your message could not be submitted right now -- please try again later",
+      "subject": "Contact form inquiry",
+      "consent_note": "[Data protection consent given at submission]"
     },
     "applicant": {
       "captcha": "The spam protection check failed -- please reload the page and try again",
       "consent_missing": "Data-protection consent is required to submit this form"
+    },
+    "signup_note": {
+      "matched": "Public signup, matched by name (parcel {parcel})",
+      "ambiguous": "Public signup (parcel {parcel}) -- could not confidently match a submitted name to one resident, so all {count} current residents of this parcel were registered. Please verify and remove whoever didn't actually sign up.",
+      "plain": "Public signup (parcel {parcel})",
+      "name": "Name given: {value}",
+      "phone": "Phone: {value}",
+      "email": "Email: {value}",
+      "remarks": "Remarks: {value}"
     }
   },
   "freescout": {

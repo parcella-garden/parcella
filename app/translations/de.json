@@ -2521,11 +2521,22 @@
     "contact": {
       "captcha": "Spam-Schutz-Prüfung fehlgeschlagen -- bitte die Seite neu laden und erneut versuchen.",
       "consent_missing": "Für das Absenden dieses Formulars ist die Einwilligung in die Datenverarbeitung erforderlich",
-      "unavailable": "Die Nachricht konnte gerade nicht übermittelt werden -- bitte später erneut versuchen."
+      "unavailable": "Die Nachricht konnte gerade nicht übermittelt werden -- bitte später erneut versuchen.",
+      "subject": "Anfrage über das Kontaktformular",
+      "consent_note": "[Einwilligung in die Datenverarbeitung beim Absenden erteilt]"
     },
     "applicant": {
       "captcha": "Spam-Schutz-Prüfung fehlgeschlagen -- bitte die Seite neu laden und erneut versuchen.",
       "consent_missing": "Für das Absenden dieses Formulars ist die Einwilligung in die Datenverarbeitung erforderlich"
+    },
+    "signup_note": {
+      "matched": "Öffentliche Anmeldung, über den Namen zugeordnet (Parzelle {parcel})",
+      "ambiguous": "Öffentliche Anmeldung (Parzelle {parcel}) -- der angegebene Name ließ sich nicht eindeutig einem Bewohner zuordnen, deshalb wurden alle {count} aktuellen Bewohner dieser Parzelle angemeldet. Bitte prüfen und alle entfernen, die sich nicht selbst angemeldet haben.",
+      "plain": "Öffentliche Anmeldung (Parzelle {parcel})",
+      "name": "Angegebener Name: {value}",
+      "phone": "Telefon: {value}",
+      "email": "E-Mail: {value}",
+      "remarks": "Anmerkungen: {value}"
     }
   },
   "freescout": {

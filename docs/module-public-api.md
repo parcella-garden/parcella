@@ -288,6 +288,7 @@ validation, honeypot, ALTCHA, rate limit and reason codes are identical.
 | `website` | honeypot | honeypot | must stay empty; hide it with CSS |
 | `altcha` | see below | see below | the ALTCHA widget's solution |
 | `success_url`, `error_url` | forms only | forms only | must be on an allowed origin |
+| `lang` | forms only | forms only | the website's language (`de`, `en`, ...), see below |
 
 **Reason codes** -- forms get them as the redirect fragment, JSON as
 `code` next to the translated `reason` (per session for signup):
@@ -370,6 +371,14 @@ honeypot `website`, and optional `success_url`/`error_url`. Both URLs
 must be on an allowed origin -- anything else is ignored in favour of the
 submitting page, so the endpoint can't be used as an open redirect.
 
+Language: what goes back to the visitor -- the subject and consent note
+of the FreeScout conversation they get replies to, and the translated
+rejection `reason` -- is in the language the form sends as `lang` (one of
+Parcella's languages, anything else is ignored), otherwise in the club's
+language. A website in another language than the club's sets it in a
+hidden field. What the board reads -- the participation note, the digest
+email -- always follows the club's language.
+
 Outcome, as the URL fragment: `success_url#ok`, `success_url#partial`
 (signup: some ticked sessions were rejected), or `error_url#<code>` with
 `code` one of `session_full`, `registration_closed`, `session_not_found`,
@@ -386,6 +395,7 @@ static page can show the matching message with CSS alone:
   <input name="website" tabindex="-1" autocomplete="off" hidden>
   <input type="hidden" name="success_url" value="https://example.org/danke/">
   <input type="hidden" name="error_url" value="https://example.org/fehler/">
+  <input type="hidden" name="lang" value="de">
   <button>Send</button>
 </form>
 

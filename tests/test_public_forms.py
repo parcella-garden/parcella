@@ -382,3 +382,59 @@ async def test_admin_switches_altcha_on_and_off(client, admin_user):
 
     await client.post("/admin/integrations/public-forms", data={"public_form_origins": SITE})
     assert await saved_value() == "0"
+
+
+# ---------------------------------------------------------------------------
+# Language: what the visitor gets back (the FreeScout conversation they
+# receive replies to, rejection reasons) follows the form's `lang` field,
+# else the club's language; what the board reads (the participation note)
+# follows the club's language. Regression: these were hardcoded English
+# even on a German club's German website.
+# ---------------------------------------------------------------------------
+
+async def _set_club_language(client, value):
+    headers = auth_header(await login(client, "admin@example.com"))
+    response = await client.put("/api/v1/club-settings/language", json={"value": value}, headers=headers)
+    assert response.status_code == 200, response.text
+
+
+async def test_contact_form_conversation_in_the_forms_language(client, admin_user, monkeypatch):
+    fake_client = await _contact_setup(client, monkeypatch)
+
+    response = await _post_contact(client, _contact_form(lang="de"))
+    assert response.headers["location"] == f"{SUCCESS_URL}#ok"
+    call = fake_client.calls[0]
+    assert call["subject"] == "Anfrage über das Kontaktformular"
+    assert call["message"].endswith("[Einwilligung in die Datenverarbeitung beim Absenden erteilt]")
+    assert "consent" not in call["message"].lower()
+
+
+async def test_contact_form_conversation_falls_back_to_the_club_language(client, admin_user, monkeypatch):
+    fake_client = await _contact_setup(client, monkeypatch)
+    await _set_club_language(client, "de")
+
+    await _post_contact(client, _contact_form())
+    # An unknown lang value is ignored, not passed through.
+    await _post_contact(client, _contact_form(lang="xx"))
+    assert [c["subject"] for c in fake_client.calls] == ["Anfrage über das Kontaktformular"] * 2
+
+
+async def test_contact_form_conversation_in_english_by_default(client, admin_user, monkeypatch):
+    fake_client = await _contact_setup(client, monkeypatch)
+
+    await _post_contact(client, _contact_form())
+    assert fake_client.calls[0]["subject"] == "Contact form inquiry"
+
+
+async def test_signup_form_note_in_the_club_language(client, admin_user):
+    headers, session = await _signup_setup(client)
+    await _set_club_language(client, "de")
+
+    # The website's own language doesn't matter here: the note is for the board.
+    response = await _post_signup(client, _signup_form(session["id"], phone="0341 123", remarks="Bringe Spaten mit", lang="en"))
+    assert response.headers["location"] == f"{SUCCESS_URL}#ok"
+
+    [participation] = await _get_session_participations(client, headers, session["id"])
+    assert participation["note"] == (
+        "Öffentliche Anmeldung (Parzelle G042) | Telefon: 0341 123 | Anmerkungen: Bringe Spaten mit"
+    )

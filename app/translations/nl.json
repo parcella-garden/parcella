@@ -2521,11 +2521,22 @@
     "contact": {
       "captcha": "De spambeveiliging is mislukt -- laad de pagina opnieuw en probeer het nog eens",
       "consent_missing": "Voor het verzenden van dit formulier is toestemming voor de gegevensverwerking vereist",
-      "unavailable": "Je bericht kon nu niet worden verzonden -- probeer het later opnieuw"
+      "unavailable": "Je bericht kon nu niet worden verzonden -- probeer het later opnieuw",
+      "subject": "Vraag via het contactformulier",
+      "consent_note": "[Toestemming voor gegevensverwerking gegeven bij verzending]"
     },
     "applicant": {
       "captcha": "De spambeveiliging is mislukt -- laad de pagina opnieuw en probeer het nog eens",
       "consent_missing": "Voor het verzenden van dit formulier is toestemming voor de gegevensverwerking vereist"
+    },
+    "signup_note": {
+      "matched": "Openbare aanmelding, gekoppeld op naam (perceel {parcel})",
+      "ambiguous": "Openbare aanmelding (perceel {parcel}) -- de opgegeven naam kon niet eenduidig aan één bewoner worden gekoppeld, daarom zijn alle {count} huidige bewoners van dit perceel aangemeld. Controleer dit en verwijder wie zich niet zelf heeft aangemeld.",
+      "plain": "Openbare aanmelding (perceel {parcel})",
+      "name": "Opgegeven naam: {value}",
+      "phone": "Telefoon: {value}",
+      "email": "E-mail: {value}",
+      "remarks": "Opmerkingen: {value}"
     }
   },
   "freescout": {

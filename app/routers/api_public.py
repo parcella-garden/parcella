@@ -58,11 +58,20 @@ from app.form_altcha import altcha_required, new_challenge, verify as verify_alt
 from app.freescout_client import FreeScoutError, get_freescout_client
 from app.services.applicants import create_applicant
 from app.services.work_hours import notify_new_participations_digest
-from app.i18n import DEFAULT_LANGUAGE, translate
+from app.i18n import AVAILABLE_LANGUAGES, DEFAULT_LANGUAGE, translate
 
 
 def _lang(request: Request) -> str:
+    """The club's language -- for what the board reads (participation
+    notes, the digest email)."""
     return getattr(request.state, "language", DEFAULT_LANGUAGE)
+
+
+def _visitor_lang(request: Request) -> str:
+    """The language for what the website's visitor gets to see (rejection
+    reasons, the FreeScout conversation they get replies to): the one the
+    plain-HTML form asked for in its `lang` field, otherwise the club's."""
+    return getattr(request.state, "visitor_language", None) or _lang(request)
 
 logger = logging.getLogger(__name__)
 
@@ -162,26 +171,13 @@ def _find_matching_members(submitted_name: str, current_tenants: List[Member]) -
     return matches if len(matches) == 1 else []
 
 
-def _build_note(parcel_number: str, payload: PublicSignupCreate, was_matched: bool, tenant_count: int) -> str:
-    parts = []
-    if was_matched:
-        parts.append(f"Public signup, matched by name (parcel {parcel_number})")
-    elif tenant_count > 1:
-        parts.append(
-            f"Public signup (parcel {parcel_number}) -- could not confidently match a "
-            f"submitted name to one resident, so all {tenant_count} current residents of "
-            f"this parcel were registered. Please verify and remove whoever didn't actually sign up."
-        )
-    else:
-        parts.append(f"Public signup (parcel {parcel_number})")
-    if payload.name:
-        parts.append(f"Name given: {payload.name}")
-    if payload.phone:
-        parts.append(f"Phone: {payload.phone}")
-    if payload.email:
-        parts.append(f"Email: {payload.email}")
-    if payload.remarks:
-        parts.append(f"Remarks: {payload.remarks}")
+def _build_note(parcel_number: str, payload: PublicSignupCreate, was_matched: bool, tenant_count: int, lang: str) -> str:
+    kind = "matched" if was_matched else "ambiguous" if tenant_count > 1 else "plain"
+    parts = [translate(f"public_api.signup_note.{kind}", lang, parcel=parcel_number, count=tenant_count)]
+    for field in ("name", "phone", "email", "remarks"):
+        value = getattr(payload, field)
+        if value:
+            parts.append(translate(f"public_api.signup_note.{field}", lang, value=value))
     return " | ".join(parts)
 
 
@@ -272,7 +268,7 @@ async def _process_signup(
             PublicSignupSessionResult(session_id=sid, accepted=True) for sid in payload.session_ids
         ]), [None] * len(payload.session_ids)
 
-    lang = _lang(request)
+    lang = _visitor_lang(request)
     results: list[PublicSignupSessionResult] = []
     codes: list[Optional[str]] = []
 
@@ -325,7 +321,7 @@ async def _process_signup(
             reject(session_id, "no_members_for_parcel")
         return PublicSignupResult(results=results), codes
 
-    note = _build_note(parcel.plot_number, payload, was_matched, len(current_tenants))
+    note = _build_note(parcel.plot_number, payload, was_matched, len(current_tenants), _lang(request))
 
     for session_id in payload.session_ids:
         session = sessions_by_id.get(session_id)
@@ -369,9 +365,6 @@ async def _process_signup(
         await db.rollback()
 
     return PublicSignupResult(results=results), codes
-
-
-_CONTACT_SUBJECT = "Contact form inquiry"
 
 
 @router.post(
@@ -418,7 +411,7 @@ async def _process_contact(
 
     def reject(code: str) -> tuple[PublicContactResult, str]:
         return PublicContactResult(
-            accepted=False, code=code, reason=translate(f"public_api.contact.{code}", _lang(request)),
+            accepted=False, code=code, reason=translate(f"public_api.contact.{code}", _visitor_lang(request)),
         ), code
 
     if not await _altcha_ok(payload.altcha, db):
@@ -434,10 +427,14 @@ async def _process_contact(
         logger.error("Public contact form submitted but FreeScout is not configured")
         return reject("unavailable")
 
+    # The visitor gets FreeScout's replies under this subject, so it's in
+    # their language rather than hardcoded English.
+    lang = _visitor_lang(request)
     try:
         await client.create_conversation(
-            subject=_CONTACT_SUBJECT, customer_email=payload.email, customer_name=payload.name,
-            message=f"{payload.message}\n\n[Data protection consent given at submission]",
+            subject=translate("public_api.contact.subject", lang),
+            customer_email=payload.email, customer_name=payload.name,
+            message=f"{payload.message}\n\n{translate('public_api.contact.consent_note', lang)}",
         )
     except FreeScoutError as e:
         logger.error(f"FreeScout API request failed for public contact form: {e}")
@@ -477,7 +474,7 @@ async def _process_applicant(
 
     def reject(code: str) -> tuple[PublicApplicantResult, str]:
         return PublicApplicantResult(
-            accepted=False, code=code, reason=translate(f"public_api.applicant.{code}", _lang(request)),
+            accepted=False, code=code, reason=translate(f"public_api.applicant.{code}", _visitor_lang(request)),
         ), code
 
     if not await _altcha_ok(payload.altcha, db):
@@ -574,6 +571,15 @@ def _form_text(form, name: str) -> Optional[str]:
     return value if isinstance(value, str) else None
 
 
+def _use_form_language(form, request: Request) -> None:
+    """A website in another language than the club's sends its own in a
+    `lang` field (e.g. lang=de), so its visitors aren't answered in the
+    club's language. Unknown values are ignored."""
+    lang = (_form_text(form, "lang") or "").strip().lower()
+    if lang in AVAILABLE_LANGUAGES:
+        request.state.visitor_language = lang
+
+
 def _is_checked(form, name: str) -> bool:
     return (_form_text(form, name) or "").strip().lower() in ("on", "true", "1", "yes")
 
@@ -593,6 +599,7 @@ async def submit_signup_form(request: Request, db: AsyncSession = Depends(get_db
     success_url#ok; some -> success_url#partial; none -> error_url#<code>."""
     allowed = await _check_form_origin(request, db)
     form = await request.form()
+    _use_form_language(form, request)
     success_url, error_url = _form_text(form, "success_url"), _form_text(form, "error_url")
 
     def redirect(url: Optional[str], fragment: str) -> RedirectResponse:
@@ -635,6 +642,7 @@ async def submit_contact_form(request: Request, db: AsyncSession = Depends(get_d
     Redirects to success_url#ok or error_url#<code>."""
     allowed = await _check_form_origin(request, db)
     form = await request.form()
+    _use_form_language(form, request)
     success_url, error_url = _form_text(form, "success_url"), _form_text(form, "error_url")
 
     def redirect(url: Optional[str], fragment: str) -> RedirectResponse:
@@ -668,6 +676,7 @@ async def submit_applicant_form(request: Request, db: AsyncSession = Depends(get
     Redirects to success_url#ok or error_url#<code>."""
     allowed = await _check_form_origin(request, db)
     form = await request.form()
+    _use_form_language(form, request)
     success_url, error_url = _form_text(form, "success_url"), _form_text(form, "error_url")
 
     def redirect(url: Optional[str], fragment: str) -> RedirectResponse:

@@ -2521,11 +2521,22 @@
     "contact": {
       "captcha": "La vérification anti-spam a échoué -- veuillez recharger la page et réessayer",
       "consent_missing": "Le consentement au traitement des données est requis pour envoyer ce formulaire",
-      "unavailable": "Votre message n'a pas pu être envoyé pour le moment -- veuillez réessayer plus tard"
+      "unavailable": "Votre message n'a pas pu être envoyé pour le moment -- veuillez réessayer plus tard",
+      "subject": "Demande via le formulaire de contact",
+      "consent_note": "[Consentement au traitement des données donné lors de l'envoi]"
     },
     "applicant": {
       "captcha": "La vérification anti-spam a échoué -- veuillez recharger la page et réessayer",
       "consent_missing": "Le consentement au traitement des données est requis pour envoyer ce formulaire"
+    },
+    "signup_note": {
+      "matched": "Inscription publique, rattachée par le nom (parcelle {parcel})",
+      "ambiguous": "Inscription publique (parcelle {parcel}) -- le nom indiqué n'a pas pu être rattaché avec certitude à un seul occupant, donc les {count} occupants actuels de cette parcelle ont tous été inscrits. Veuillez vérifier et retirer ceux qui ne se sont pas inscrits eux-mêmes.",
+      "plain": "Inscription publique (parcelle {parcel})",
+      "name": "Nom indiqué : {value}",
+      "phone": "Téléphone : {value}",
+      "email": "E-mail : {value}",
+      "remarks": "Remarques : {value}"
     }
   },
   "freescout": {

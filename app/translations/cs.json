@@ -2521,11 +2521,22 @@
     "contact": {
       "captcha": "Kontrola ochrany proti spamu selhala -- obnovte prosím stránku a zkuste to znovu",
       "consent_missing": "K odeslání tohoto formuláře je nutný souhlas se zpracováním osobních údajů",
-      "unavailable": "Vaši zprávu se teď nepodařilo odeslat -- zkuste to prosím později"
+      "unavailable": "Vaši zprávu se teď nepodařilo odeslat -- zkuste to prosím později",
+      "subject": "Dotaz z kontaktního formuláře",
+      "consent_note": "[Souhlas se zpracováním údajů udělen při odeslání]"
     },
     "applicant": {
       "captcha": "Kontrola ochrany proti spamu selhala -- obnovte prosím stránku a zkuste to znovu",
       "consent_missing": "K odeslání tohoto formuláře je nutný souhlas se zpracováním osobních údajů"
+    },
+    "signup_note": {
+      "matched": "Veřejná přihláška, přiřazena podle jména (parcela {parcel})",
+      "ambiguous": "Veřejná přihláška (parcela {parcel}) -- zadané jméno nešlo jednoznačně přiřadit jednomu obyvateli, proto byli přihlášeni všichni {count} současní obyvatelé této parcely. Zkontrolujte to prosím a odeberte ty, kdo se sami nepřihlásili.",
+      "plain": "Veřejná přihláška (parcela {parcel})",
+      "name": "Zadané jméno: {value}",
+      "phone": "Telefon: {value}",
+      "email": "E-mail: {value}",
+      "remarks": "Poznámky: {value}"
     }
   },
   "freescout": {
