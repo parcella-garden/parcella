@@ -82,6 +82,7 @@
                         <th>{{ t('work_hours.evaluation.col_required') }}</th>
                         <th>{{ t('work_hours.evaluation.col_sessions') }}</th>
                         <th>{{ t('work_hours.evaluation.col_sponsorship') }}</th>
+                        <th title="{{ t('work_hours.evaluation.col_transfers_hint') }}">{{ t('work_hours.evaluation.col_transfers') }}</th>
                         <th>{{ t('work_hours.evaluation.col_total') }}</th>
                         <th>{{ t('work_hours.evaluation.col_open') }}</th>
                         <th>{{ t('work_hours.evaluation.col_debt') }}</th>
@@ -112,6 +113,8 @@
                         <td>{{ z.required_hours | number(1) }} h</td>
                         <td>{{ z.tenant_details | sum(attribute='hours.session_hours')|number(1) }} h</td>
                         <td>{{ z.tenant_details | sum(attribute='hours.sponsorship_hours')|number(1) }} h</td>
+                        {% set net = z.tenant_details | sum(attribute='hours.transferred_net') %}
+                        <td>{% if net %}{{ '+' if net > 0 else '' }}{{ net|number(1) }} h{% else %}–{% endif %}</td>
                         <td class="fw-semibold">{{ z.total_hours|number(1) }} h</td>
                         <td>{% if z.all_exempt %}–{% else %}{{ z.outstanding_hours|number(1) }} h{% endif %}</td>
                         <td>{% if z.all_exempt %}–{% else %}{{ z.amount_due|money }}{% endif %}</td>
@@ -125,6 +128,8 @@
                         <td>{{ z.required_hours | number(1) }} h</td>
                         <td>{{ z.hours.session_hours|number(1) }} h</td>
                         <td>{{ z.hours.sponsorship_hours|number(1) }} h</td>
+                        {% set net = z.hours.transferred_net %}
+                        <td>{% if net %}{{ '+' if net > 0 else '' }}{{ net|number(1) }} h{% else %}–{% endif %}</td>
                         <td class="fw-semibold">{{ z.hours.total|number(1) }} h</td>
                         <td>{% if z.exempt %}–{% else %}{{ z.outstanding_hours|number(1) }} h{% endif %}</td>
                         <td>{% if z.exempt %}–{% else %}{{ z.amount_due|money }}{% endif %}</td>
@@ -142,7 +147,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="9" class="text-center text-muted py-4">
+                        <td colspan="10" class="text-center text-muted py-4">
                             {{ t('work_hours.evaluation.no_data') }}
                         </td>
                     </tr>

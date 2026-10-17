@@ -48,7 +48,8 @@
     "finances_reminders": "Reminders",
     "finances_incoming_invoices": "Incoming Invoices",
     "freescout_bridge": "Support",
-    "applicants": "Applicants"
+    "applicants": "Applicants",
+    "work_hours_transfers": "Hours transfers"
   },
   "errors": {
     "user_not_found": "User not found",
@@ -1451,7 +1452,9 @@
       "status_open": "Open",
       "not_yet_assigned": "not yet assigned",
       "no_data": "No data available – have parcels and members been created?",
-      "lease_ended_badge": "lease ended {date}"
+      "lease_ended_badge": "lease ended {date}",
+      "col_transfers": "Transfers",
+      "col_transfers_hint": "Hours given to (+) or by (−) other members"
     },
     "member_club_role_form": {
       "title": "Edit Assignment",
@@ -1625,6 +1628,35 @@
       "not_yet_assigned": "Not yet assigned",
       "toggle_done_tooltip": "Mark done / not done",
       "assign_hint": "Assign each task to one of this session's signed-up participants above."
+    },
+    "transfers": {
+      "title": "Hours transfers {year}",
+      "page_title": "Hours transfers",
+      "year_label": "Year",
+      "to_evaluation": "Evaluation",
+      "intro": "Members who did more than they owe can give hours to others, e.g. to help a neighbour. Only the giver's surplus for the year can be given; members without a plot or exempt members can give all of their hours.",
+      "create_card_title": "Give hours ({year})",
+      "giver_member_id_label": "From (gives)",
+      "receiver_member_id_label": "To (receives)",
+      "hours_label": "Hours",
+      "hours_hint": "At most the giver's surplus for this year.",
+      "note_label": "Note",
+      "save_button": "Transfer hours",
+      "list_title": "Transfers in {year}",
+      "col_giver": "From",
+      "col_receiver": "To",
+      "col_hours": "Hours",
+      "col_note": "Note",
+      "delete_confirm": "Delete this transfer? The hours go back to the giver.",
+      "delete_button": "Delete transfer",
+      "empty": "No hours transferred in {year} yet.",
+      "errors": {
+        "members_required": "Please choose who gives and who receives.",
+        "same_member": "A member can't give hours to themselves.",
+        "hours_positive": "Please enter a positive number of hours.",
+        "member_not_found": "Member not found.",
+        "exceeds_surplus": "Only {available} h can be given -- that's the giver's surplus for this year."
+      }
     }
   },
   "dashboard": {

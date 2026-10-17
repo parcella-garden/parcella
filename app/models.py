@@ -818,6 +818,50 @@ class SessionType(str, enum.Enum):
     SPECIAL = "SPECIAL"      # Spontaneous/unplanned (painting a garden bench, etc.)
 
 
+class HoursTransfer(Base):
+    """
+    A member gives some of their work hours for a year to another member
+    (issue #243) -- e.g. someone who already did more than required helps
+    out a neighbour. Counted in calculate_hours_for_member() as +hours
+    for the receiver and -hours for the giver, so both evaluation modes
+    and invoicing see it without special cases. Only the giver's surplus
+    for that year can be given (checked when the transfer is created,
+    app/services/work_hours.py:create_hours_transfer). A wrong entry is
+    deleted, not historized -- it's a correction, not club history.
+    See docs/ADR/0094.
+    """
+    __tablename__ = "hours_transfers"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    giver_member_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("members.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    receiver_member_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("members.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    year: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    hours: Mapped[float] = mapped_column(Numeric(5, 1), nullable=False)
+    note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_by_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    giver: Mapped["Member"] = relationship("Member", foreign_keys=[giver_member_id])
+    receiver: Mapped["Member"] = relationship("Member", foreign_keys=[receiver_member_id])
+    created_by: Mapped[Optional["User"]] = relationship("User", foreign_keys=[created_by_id])
+
+    __table_args__ = (
+        CheckConstraint("hours > 0", name="ck_hours_transfers_positive"),
+        CheckConstraint("giver_member_id <> receiver_member_id", name="ck_hours_transfers_not_self"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<HoursTransfer {self.year} {self.hours}h>"
+
+
 class ParticipationStatus(str, enum.Enum):
     REGISTERED = "REGISTERED"    # Signed up
     ATTENDED = "ATTENDED"        # Showed up, hours get credited

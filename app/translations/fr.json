@@ -48,7 +48,8 @@
     "finances_reminders": "Relances",
     "finances_incoming_invoices": "Factures reçues",
     "freescout_bridge": "Assistance",
-    "applicants": "Candidats"
+    "applicants": "Candidats",
+    "work_hours_transfers": "Transferts d'heures"
   },
   "errors": {
     "user_not_found": "Utilisateur non trouvé",
@@ -1451,7 +1452,9 @@
       "status_open": "Ouvert",
       "not_yet_assigned": "pas encore attribué",
       "no_data": "Aucune donnée disponible – des parcelles et des membres ont-ils été créés ?",
-      "lease_ended_badge": "bail terminé le {date}"
+      "lease_ended_badge": "bail terminé le {date}",
+      "col_transfers": "Transférées",
+      "col_transfers_hint": "Heures reçues d'autres membres (+) ou données (−)"
     },
     "member_club_role_form": {
       "title": "Modifier l'attribution",
@@ -1625,6 +1628,35 @@
       "not_yet_assigned": "Pas encore attribuée",
       "toggle_done_tooltip": "Marquer comme terminée / non terminée",
       "assign_hint": "Attribuez chaque tâche ci-dessus à l'un des participants inscrits à cette session."
+    },
+    "transfers": {
+      "title": "Transferts d'heures {year}",
+      "page_title": "Transferts d'heures",
+      "year_label": "Année",
+      "to_evaluation": "Évaluation",
+      "intro": "Les membres qui ont fait plus que leur dû peuvent donner des heures à d'autres, p. ex. pour aider un voisin. Seul l'excédent de l'année peut être donné ; les membres sans parcelle ou exemptés peuvent donner toutes leurs heures.",
+      "create_card_title": "Donner des heures ({year})",
+      "giver_member_id_label": "De (donne)",
+      "receiver_member_id_label": "À (reçoit)",
+      "hours_label": "Heures",
+      "hours_hint": "Au maximum l'excédent du donneur pour cette année.",
+      "note_label": "Note",
+      "save_button": "Transférer les heures",
+      "list_title": "Transferts en {year}",
+      "col_giver": "De",
+      "col_receiver": "À",
+      "col_hours": "Heures",
+      "col_note": "Note",
+      "delete_confirm": "Supprimer ce transfert ? Les heures reviennent au donneur.",
+      "delete_button": "Supprimer le transfert",
+      "empty": "Aucune heure transférée en {year} pour l'instant.",
+      "errors": {
+        "members_required": "Veuillez choisir qui donne et qui reçoit.",
+        "same_member": "Un membre ne peut pas se donner des heures à lui-même.",
+        "hours_positive": "Veuillez saisir un nombre d'heures positif.",
+        "member_not_found": "Membre introuvable.",
+        "exceeds_surplus": "Seulement {available} h peuvent être données -- c'est l'excédent du donneur pour cette année."
+      }
     }
   },
   "dashboard": {

@@ -48,7 +48,8 @@
     "finances_reminders": "Herinneringen",
     "finances_incoming_invoices": "Inkomende facturen",
     "freescout_bridge": "Ondersteuning",
-    "applicants": "Aanmelders"
+    "applicants": "Aanmelders",
+    "work_hours_transfers": "Uren overdragen"
   },
   "errors": {
     "user_not_found": "Gebruiker niet gevonden",
@@ -1451,7 +1452,9 @@
       "status_open": "Open",
       "not_yet_assigned": "nog niet toegewezen",
       "no_data": "Geen gegevens beschikbaar – zijn er percelen en leden aangemaakt?",
-      "lease_ended_badge": "pacht beëindigd {date}"
+      "lease_ended_badge": "pacht beëindigd {date}",
+      "col_transfers": "Overgedragen",
+      "col_transfers_hint": "Uren ontvangen van (+) of gegeven aan (−) andere leden"
     },
     "member_club_role_form": {
       "title": "Koppeling bewerken",
@@ -1625,6 +1628,35 @@
       "not_yet_assigned": "Nog niet toegewezen",
       "toggle_done_tooltip": "Markeren als voltooid / niet voltooid",
       "assign_hint": "Wijs elke taak hierboven toe aan een van de aangemelde deelnemers van deze sessie."
+    },
+    "transfers": {
+      "title": "Urenoverdrachten {year}",
+      "page_title": "Urenoverdrachten",
+      "year_label": "Jaar",
+      "to_evaluation": "Evaluatie",
+      "intro": "Leden die meer hebben gedaan dan nodig, kunnen uren aan anderen geven, bijv. om een buur te helpen. Alleen het overschot van het jaar kan worden gegeven; leden zonder perceel of vrijgestelde leden kunnen al hun uren geven.",
+      "create_card_title": "Uren overdragen ({year})",
+      "giver_member_id_label": "Van (geeft)",
+      "receiver_member_id_label": "Aan (ontvangt)",
+      "hours_label": "Uren",
+      "hours_hint": "Maximaal het overschot van de gever dit jaar.",
+      "note_label": "Notitie",
+      "save_button": "Uren overdragen",
+      "list_title": "Overdrachten in {year}",
+      "col_giver": "Van",
+      "col_receiver": "Aan",
+      "col_hours": "Uren",
+      "col_note": "Notitie",
+      "delete_confirm": "Deze overdracht verwijderen? De uren gaan terug naar de gever.",
+      "delete_button": "Overdracht verwijderen",
+      "empty": "In {year} zijn nog geen uren overgedragen.",
+      "errors": {
+        "members_required": "Kies wie geeft en wie ontvangt.",
+        "same_member": "Een lid kan zichzelf geen uren geven.",
+        "hours_positive": "Voer een positief aantal uren in.",
+        "member_not_found": "Lid niet gevonden.",
+        "exceeds_surplus": "Er kunnen maar {available} u worden overgedragen -- dat is het overschot van de gever dit jaar."
+      }
     }
   },
   "dashboard": {

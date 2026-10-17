@@ -48,7 +48,8 @@
     "finances_reminders": "Upomnienia",
     "finances_incoming_invoices": "Faktury przychodzące",
     "freescout_bridge": "Wsparcie",
-    "applicants": "Kandydaci"
+    "applicants": "Kandydaci",
+    "work_hours_transfers": "Przekazywanie godzin"
   },
   "errors": {
     "user_not_found": "Nie znaleziono użytkownika",
@@ -1451,7 +1452,9 @@
       "status_open": "Otwarte",
       "not_yet_assigned": "jeszcze nie przydzielone",
       "no_data": "Brak danych – czy utworzono działki i członków?",
-      "lease_ended_badge": "dzierżawa zakończona {date}"
+      "lease_ended_badge": "dzierżawa zakończona {date}",
+      "col_transfers": "Przekazane",
+      "col_transfers_hint": "Godziny otrzymane od innych członków (+) lub im przekazane (−)"
     },
     "member_club_role_form": {
       "title": "Edytuj przypisanie",
@@ -1625,6 +1628,35 @@
       "not_yet_assigned": "Jeszcze nie przydzielone",
       "toggle_done_tooltip": "Oznacz jako wykonane / niewykonane",
       "assign_hint": "Przydziel każde zadanie jednemu z zarejestrowanych uczestników tego wpisu powyżej."
+    },
+    "transfers": {
+      "title": "Przekazywanie godzin {year}",
+      "page_title": "Przekazywanie godzin",
+      "year_label": "Rok",
+      "to_evaluation": "Ocena",
+      "intro": "Członkowie, którzy przepracowali więcej niż muszą, mogą przekazać godziny innym, np. aby pomóc sąsiadowi. Przekazać można tylko nadwyżkę z danego roku; członkowie bez działki lub zwolnieni mogą przekazać wszystkie swoje godziny.",
+      "create_card_title": "Przekaż godziny ({year})",
+      "giver_member_id_label": "Od (przekazuje)",
+      "receiver_member_id_label": "Do (otrzymuje)",
+      "hours_label": "Godziny",
+      "hours_hint": "Najwyżej nadwyżka przekazującego w tym roku.",
+      "note_label": "Notatka",
+      "save_button": "Przekaż godziny",
+      "list_title": "Przekazania w {year}",
+      "col_giver": "Od",
+      "col_receiver": "Do",
+      "col_hours": "Godziny",
+      "col_note": "Notatka",
+      "delete_confirm": "Usunąć to przekazanie? Godziny wrócą do przekazującego.",
+      "delete_button": "Usuń przekazanie",
+      "empty": "W {year} nie przekazano jeszcze godzin.",
+      "errors": {
+        "members_required": "Wybierz, kto przekazuje, a kto otrzymuje.",
+        "same_member": "Członek nie może przekazać godzin samemu sobie.",
+        "hours_positive": "Podaj dodatnią liczbę godzin.",
+        "member_not_found": "Nie znaleziono członka.",
+        "exceeds_surplus": "Można przekazać tylko {available} h -- to nadwyżka przekazującego w tym roku."
+      }
     }
   },
   "dashboard": {

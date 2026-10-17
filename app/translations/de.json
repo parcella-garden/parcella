@@ -48,7 +48,8 @@
     "finances_reminders": "Mahnungen",
     "finances_incoming_invoices": "Eingangsrechnungen",
     "freescout_bridge": "Support",
-    "applicants": "Bewerber"
+    "applicants": "Bewerber",
+    "work_hours_transfers": "Stundenübertragung"
   },
   "errors": {
     "user_not_found": "Benutzer nicht gefunden",
@@ -1451,7 +1452,9 @@
       "status_open": "Offen",
       "not_yet_assigned": "noch nicht vergeben",
       "no_data": "Keine Daten vorhanden – sind Parzellen und Mitglieder angelegt?",
-      "lease_ended_badge": "Pacht beendet {date}"
+      "lease_ended_badge": "Pacht beendet {date}",
+      "col_transfers": "Übertragen",
+      "col_transfers_hint": "Von anderen Mitgliedern erhaltene (+) oder an sie abgegebene (−) Stunden"
     },
     "member_club_role_form": {
       "title": "Zuordnung bearbeiten",
@@ -1625,6 +1628,35 @@
       "not_yet_assigned": "Noch nicht zugewiesen",
       "toggle_done_tooltip": "Als erledigt / nicht erledigt markieren",
       "assign_hint": "Weisen Sie jede Aufgabe oben einem der angemeldeten Teilnehmer dieses Einsatzes zu."
+    },
+    "transfers": {
+      "title": "Stundenübertragungen {year}",
+      "page_title": "Stundenübertragungen",
+      "year_label": "Jahr",
+      "to_evaluation": "Auswertung",
+      "intro": "Mitglieder, die mehr geleistet haben als sie müssen, können Stunden an andere abgeben, z. B. um Nachbarn zu helfen. Abgeben lässt sich nur der Überschuss des Jahres; Mitglieder ohne Parzelle oder befreite Mitglieder können alle ihre Stunden abgeben.",
+      "create_card_title": "Stunden übertragen ({year})",
+      "giver_member_id_label": "Von (gibt ab)",
+      "receiver_member_id_label": "An (erhält)",
+      "hours_label": "Stunden",
+      "hours_hint": "Höchstens der Überschuss des Gebenden in diesem Jahr.",
+      "note_label": "Notiz",
+      "save_button": "Stunden übertragen",
+      "list_title": "Übertragungen {year}",
+      "col_giver": "Von",
+      "col_receiver": "An",
+      "col_hours": "Stunden",
+      "col_note": "Notiz",
+      "delete_confirm": "Diese Übertragung löschen? Die Stunden gehen an den Gebenden zurück.",
+      "delete_button": "Übertragung löschen",
+      "empty": "{year} wurden noch keine Stunden übertragen.",
+      "errors": {
+        "members_required": "Bitte auswählen, wer abgibt und wer erhält.",
+        "same_member": "Ein Mitglied kann sich nicht selbst Stunden übertragen.",
+        "hours_positive": "Bitte eine positive Stundenzahl eingeben.",
+        "member_not_found": "Mitglied nicht gefunden.",
+        "exceeds_surplus": "Es können nur {available} h übertragen werden -- das ist der Überschuss des Gebenden in diesem Jahr."
+      }
     }
   },
   "dashboard": {

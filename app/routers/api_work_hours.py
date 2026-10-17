@@ -21,7 +21,7 @@ from app.models import (
     WorkHoursConfiguration, WorkHoursMode,
     ClubRole, MemberClubRole,
     WorkSession, SessionParticipation, SessionType, ParticipationStatus,
-    Sponsorship, User, Member,
+    Sponsorship, User, Member, HoursTransfer,
     WorkTask, TaskWorkload,
 )
 from app.api_auth import require_api_permission
@@ -33,6 +33,7 @@ from app.services.work_hours import (
     create_club_role, update_club_role, assign_member_to_club_role,
     create_session, update_session, add_participation, update_participation,
     create_sponsorship, update_sponsorship,
+    create_hours_transfer, list_hours_transfers,
     create_task, schedule_task, assign_task_to_participant,
     notify_new_participation,
 )
@@ -47,6 +48,7 @@ from app.schemas import (
     WorkSessionOut, WorkSessionCreate, WorkSessionUpdate,
     SessionParticipationOut, SessionParticipationCreate, SessionParticipationUpdate,
     SponsorshipOut, SponsorshipCreate, SponsorshipUpdate,
+    HoursTransferOut, HoursTransferCreate,
     TaskOut, TaskCreate, TaskUpdate,
     EvaluationRowOut,
 )
@@ -489,6 +491,56 @@ async def sponsorship_delete(
     if sponsorship:
         await db.delete(sponsorship)
         await db.commit()
+
+
+# ---------------------------------------------------------------------------
+# Hours transfers (issue #243, ADR 0094)
+# ---------------------------------------------------------------------------
+
+@router.get("/transfers", response_model=List[HoursTransferOut], summary="List hours transfers of a year")
+async def transfers_list(
+    year: int = Query(..., description="Evaluation year"),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_api_permission("work_hours", "read")),
+):
+    return await list_hours_transfers(db, year)
+
+
+@router.post(
+    "/transfers", response_model=HoursTransferOut, status_code=status.HTTP_201_CREATED,
+    summary="Give hours to another member",
+    description="Only the giver's surplus for the year can be given (422 otherwise).",
+)
+async def transfer_create(
+    data: HoursTransferCreate, request: Request,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_api_permission("work_hours", "write")),
+):
+    try:
+        transfer = await create_hours_transfer(
+            db, giver_member_id=data.giver_member_id, receiver_member_id=data.receiver_member_id,
+            year=data.year, hours=float(data.hours), note=data.note, created_by_id=user.id,
+        )
+    except ServiceError as e:
+        raise HTTPException(
+            status_code=404 if e.http_status == 404 else status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=t_for(request, e.key, **e.params),
+        )
+    await db.commit()
+    return transfer
+
+
+@router.delete("/transfers/{transfer_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete an hours transfer")
+async def transfer_delete(
+    transfer_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_api_permission("work_hours", "delete")),
+):
+    transfer = await db.get(HoursTransfer, transfer_id)
+    if transfer is None:
+        raise HTTPException(status_code=404, detail="Transfer not found")
+    await db.delete(transfer)
+    await db.commit()
 
 
 # ---------------------------------------------------------------------------

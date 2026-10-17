@@ -405,6 +405,27 @@ class SponsorshipOut(SponsorshipBase):
     member_id: Optional[str] = None
 
 
+class HoursTransferCreate(BaseModel):
+    """Give work hours of `year` from one member to another (issue #243).
+    Refused (422) if it exceeds the giver's surplus for that year."""
+    giver_member_id: str
+    receiver_member_id: str
+    year: int
+    hours: Decimal = Field(..., gt=0)
+    note: Optional[str] = None
+
+
+class HoursTransferOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    giver_member_id: str
+    receiver_member_id: str
+    year: int
+    hours: Decimal
+    note: Optional[str] = None
+    created_at: datetime
+
+
 class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None

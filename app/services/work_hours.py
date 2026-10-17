@@ -20,10 +20,11 @@ about newly created SessionParticipation rows (see
 notify_new_participation/notify_new_participations_digest below) --
 otherwise still no audit trail here.
 """
+import math
 from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -32,7 +33,7 @@ from app.database import tenant_in_year_filter
 from app.email_service import send_email
 from app.i18n import translate
 from app.models import (
-    ClubRole, ExemptionReason, Member, MemberClubRole, MemberParcel, Parcel, ParcelStatus,
+    ClubRole, ExemptionReason, HoursTransfer, Member, MemberClubRole, MemberParcel, Parcel, ParcelStatus,
     ParticipationStatus, SessionParticipation, SessionType, Sponsorship, TaskWorkload,
     User, UserRole, WorkHoursConfiguration, WorkHoursMode, WorkSession, WorkTask,
 )
@@ -78,10 +79,24 @@ async def calculate_hours_for_member(db: AsyncSession, member_id: str, year: int
         )
     ) or 0
 
+    # Issue #243: hours given to / received from other members, one query.
+    transferred_in, transferred_out = (await db.execute(
+        select(
+            func.coalesce(func.sum(case((HoursTransfer.receiver_member_id == member_id, HoursTransfer.hours))), 0),
+            func.coalesce(func.sum(case((HoursTransfer.giver_member_id == member_id, HoursTransfer.hours))), 0),
+        ).where(
+            HoursTransfer.year == year,
+            or_(HoursTransfer.receiver_member_id == member_id, HoursTransfer.giver_member_id == member_id),
+        )
+    )).one()
+
     return {
         "session_hours": float(session_hours),
         "sponsorship_hours": float(sponsorship_hours),
-        "total": float(session_hours) + float(sponsorship_hours),
+        "transferred_in": float(transferred_in),
+        "transferred_out": float(transferred_out),
+        "transferred_net": float(transferred_in) - float(transferred_out),
+        "total": float(session_hours) + float(sponsorship_hours) + float(transferred_in) - float(transferred_out),
     }
 
 
@@ -561,6 +576,105 @@ async def create_sponsorship(
     db.add(sponsorship)
     await db.flush()
     return sponsorship
+
+
+# ---------------------------------------------------------------------------
+# Hours transfers (issue #243, ADR 0094): a member gives surplus hours of
+# a year to another member.
+# ---------------------------------------------------------------------------
+
+async def transferable_hours(db: AsyncSession, member_id: str, year: int) -> float:
+    """How many hours `member_id` can still give away for `year`: what
+    they did beyond what they owe, never more than their own hours.
+
+    - PER_MEMBER: own total minus the requirement.
+    - PER_PARCEL: the surplus of the plot(s) they're a tenant of that
+      year (hours are pooled there, so giving must not push the plot
+      below its requirement), capped at their own total -- a co-tenant's
+      hours aren't theirs to give. With several plots, the smallest
+      surplus counts.
+    - Exempt, or no lease that year (a helper without a plot): nothing
+      is owed, so all of their own hours.
+    Their own total already nets earlier transfers in and out."""
+    config = await get_config_for_year(db, year)
+    if config is None:
+        raise ServiceError("work_hours.errors.no_configuration_for_year", year=year)
+    own = (await calculate_hours_for_member(db, member_id, year))["total"]
+    if await is_exempt(db, member_id, year):
+        return max(0.0, own)
+
+    if config.mode == WorkHoursMode.PER_MEMBER:
+        # Same rule as evaluate_year: only a tenant in that year owes hours.
+        has_lease = await db.scalar(
+            select(MemberParcel.id).where(MemberParcel.member_id == member_id, tenant_in_year_filter(year)).limit(1)
+        )
+        return max(0.0, own - float(config.hours_required)) if has_lease else max(0.0, own)
+
+    parcels = (await db.scalars(
+        select(Parcel)
+        .join(MemberParcel, MemberParcel.parcel_id == Parcel.id)
+        .where(MemberParcel.member_id == member_id, tenant_in_year_filter(year))
+        .options(
+            selectinload(Parcel.member_assignments)
+            .selectinload(MemberParcel.member)
+            .selectinload(Member.parcel_assignments)
+        )
+    )).unique().all()
+    surpluses = []
+    for parcel in parcels:
+        row = await evaluate_parcel(db, parcel, year, config=config)
+        if row is None or not any(t["member"].id == member_id for t in row["tenant_details"]):
+            continue  # e.g. they moved off this plot during the year
+        surpluses.append(own if row["exempt"] else row["total_hours"] - row["required_hours"])
+    if not surpluses:
+        return max(0.0, own)
+    return max(0.0, min([own] + surpluses))
+
+
+async def create_hours_transfer(
+    db: AsyncSession, *, giver_member_id: str, receiver_member_id: str, year: int,
+    hours: float, note: Optional[str] = None, created_by_id: Optional[str] = None,
+) -> HoursTransfer:
+    if not giver_member_id or not receiver_member_id:
+        raise ServiceError("work_hours.transfers.errors.members_required")
+    if giver_member_id == receiver_member_id:
+        raise ServiceError("work_hours.transfers.errors.same_member")
+    hours = float(hours)
+    if not math.isfinite(hours) or round(hours, 1) <= 0:  # float("nan") passes every comparison
+        raise ServiceError("work_hours.transfers.errors.hours_positive")
+    hours = round(hours, 1)
+    for member_id in (giver_member_id, receiver_member_id):
+        member = await db.get(Member, member_id)
+        if member is None or member.deleted_at is not None:
+            raise ServiceError("work_hours.transfers.errors.member_not_found", http_status=404)
+
+    # Lock the giver's row for this transaction: two transfers from the
+    # same giver submitted at once would otherwise both see the full
+    # surplus and together give more than it.
+    await db.execute(select(Member.id).where(Member.id == giver_member_id).with_for_update())
+    available = await transferable_hours(db, giver_member_id, year)
+    if hours > available + 1e-9:
+        raise ServiceError("work_hours.transfers.errors.exceeds_surplus", available=f"{available:.1f}")
+
+    transfer = HoursTransfer(
+        giver_member_id=giver_member_id, receiver_member_id=receiver_member_id, year=year,
+        hours=hours, note=(note or "").strip() or None, created_by_id=created_by_id,
+    )
+    db.add(transfer)
+    await db.flush()
+    return transfer
+
+
+async def list_hours_transfers(db: AsyncSession, year: int) -> List[HoursTransfer]:
+    return list((await db.scalars(
+        select(HoursTransfer)
+        .options(
+            selectinload(HoursTransfer.giver), selectinload(HoursTransfer.receiver),
+            selectinload(HoursTransfer.created_by),
+        )
+        .where(HoursTransfer.year == year)
+        .order_by(HoursTransfer.created_at.desc())
+    )).all())
 
 
 async def update_sponsorship(db: AsyncSession, sponsorship: Sponsorship, **fields) -> Sponsorship:

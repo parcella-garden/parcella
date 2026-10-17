@@ -48,7 +48,8 @@
     "finances_reminders": "Upomienky",
     "finances_incoming_invoices": "Prijaté faktúry",
     "freescout_bridge": "Podpora",
-    "applicants": "Uchádzači"
+    "applicants": "Uchádzači",
+    "work_hours_transfers": "Prevod hodín"
   },
   "errors": {
     "user_not_found": "Používateľ nebol nájdený",
@@ -1451,7 +1452,9 @@
       "status_open": "Otvorené",
       "not_yet_assigned": "zatiaľ nepriradené",
       "no_data": "Nie sú k dispozícii žiadne údaje – boli vytvorené parcely a členovia?",
-      "lease_ended_badge": "nájom ukončený {date}"
+      "lease_ended_badge": "nájom ukončený {date}",
+      "col_transfers": "Prevedené",
+      "col_transfers_hint": "Hodiny prijaté od iných členov (+) alebo im odovzdané (−)"
     },
     "member_club_role_form": {
       "title": "Upraviť priradenie",
@@ -1625,6 +1628,35 @@
       "not_yet_assigned": "Zatiaľ nepridelené",
       "toggle_done_tooltip": "Označiť ako hotové / nehotové",
       "assign_hint": "Priraďte každú úlohu vyššie jednému z prihlásených účastníkov tejto zmeny."
+    },
+    "transfers": {
+      "title": "Prevody hodín {year}",
+      "page_title": "Prevody hodín",
+      "year_label": "Rok",
+      "to_evaluation": "Vyhodnotenie",
+      "intro": "Členovia, ktorí odpracovali viac, než musia, môžu odovzdať hodiny iným, napr. na pomoc susedovi. Odovzdať sa dá len prebytok daného roka; členovia bez parcely alebo oslobodení členovia môžu odovzdať všetky svoje hodiny.",
+      "create_card_title": "Previesť hodiny ({year})",
+      "giver_member_id_label": "Od (odovzdáva)",
+      "receiver_member_id_label": "Komu (prijíma)",
+      "hours_label": "Hodiny",
+      "hours_hint": "Najviac prebytok odovzdávajúceho v tomto roku.",
+      "note_label": "Poznámka",
+      "save_button": "Previesť hodiny",
+      "list_title": "Prevody v roku {year}",
+      "col_giver": "Od",
+      "col_receiver": "Komu",
+      "col_hours": "Hodiny",
+      "col_note": "Poznámka",
+      "delete_confirm": "Zmazať tento prevod? Hodiny sa vrátia odovzdávajúcemu.",
+      "delete_button": "Zmazať prevod",
+      "empty": "V roku {year} zatiaľ neboli prevedené žiadne hodiny.",
+      "errors": {
+        "members_required": "Vyberte, kto odovzdáva a kto prijíma.",
+        "same_member": "Člen nemôže previesť hodiny sám sebe.",
+        "hours_positive": "Zadajte kladný počet hodín.",
+        "member_not_found": "Člen sa nenašiel.",
+        "exceeds_surplus": "Previesť sa dá len {available} h -- to je prebytok odovzdávajúceho v tomto roku."
+      }
     }
   },
   "dashboard": {

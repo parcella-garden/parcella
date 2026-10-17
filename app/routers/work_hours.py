@@ -3,6 +3,7 @@ Work hours router: work sessions, sponsorships, club roles, configuration.
 """
 import csv
 import io
+import urllib.parse
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional, List
@@ -19,7 +20,7 @@ from app.models import (
     WorkSession, SessionParticipation, SessionType, ParticipationStatus,
     Sponsorship, ClubRole, MemberClubRole, ExemptionReason,
     WorkHoursConfiguration, WorkHoursMode,
-    Member, MemberParcel,
+    Member, MemberParcel, HoursTransfer,
     WorkTask, TaskWorkload,
 )
 from app.permissions import require_permission
@@ -36,6 +37,7 @@ from app.services.work_hours import (
     create_club_role, update_club_role, assign_member_to_club_role,
     create_session, update_session, add_participation, update_participation,
     create_sponsorship, update_sponsorship,
+    create_hours_transfer, list_hours_transfers,
     create_task, schedule_task, assign_task_to_participant, toggle_task_done,
     new_participation_cutoff, notify_new_participation, mark_signups_reviewed,
 )
@@ -1078,6 +1080,91 @@ async def sponsorship_delete(
 
 
 # ---------------------------------------------------------------------------
+# Hours transfers (issue #243, ADR 0094): a member gives surplus hours of
+# a year to another member. The surplus check lives in the service.
+# ---------------------------------------------------------------------------
+
+@router.get("/transfers", response_class=HTMLResponse)
+async def transfers_page(
+    request: Request,
+    year: Optional[int] = None,
+    db: AsyncSession = Depends(get_db),
+):
+    user = await require_permission(request, db, "work_hours", "read")
+    if not year:
+        year = date.today().year
+
+    # Anyone who was a member at some point in the year can give or
+    # receive -- including a tenant who left mid-year and still owes
+    # that year's hours (issue #239).
+    members_result = await db.execute(
+        select(Member)
+        .options(selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel))
+        .where(
+            Member.deleted_at.is_(None),
+            or_(Member.member_since.is_(None), Member.member_since <= date(year, 12, 31)),
+            or_(Member.member_until.is_(None), Member.member_until >= date(year, 1, 1)),
+        )
+    )
+    years_result = await db.execute(
+        select(WorkHoursConfiguration.year).order_by(WorkHoursConfiguration.year.desc())
+    )
+    return templates.TemplateResponse(
+        "work_hours/transfers.html",
+        {
+            "request": request,
+            "user": user,
+            "year": year,
+            "config": await get_config_for_year(db, year),
+            "available_years": [r[0] for r in years_result.all()],
+            "transfers": await list_hours_transfers(db, year),
+            "all_members": _sort_members_by_plot(members_result.scalars().all()),
+        },
+    )
+
+
+@router.post("/transfers/new")
+async def transfer_create(
+    request: Request,
+    year: int = Form(...),
+    giver_member_id: str = Form(""),
+    receiver_member_id: str = Form(""),
+    hours: str = Form(...),
+    note: str = Form(""),
+    db: AsyncSession = Depends(get_db),
+):
+    user = await require_permission(request, db, "work_hours", "write")
+    try:
+        try:
+            parsed_hours = float(hours.replace(",", "."))
+        except ValueError:
+            raise ServiceError("work_hours.transfers.errors.hours_positive")
+        await create_hours_transfer(
+            db, giver_member_id=giver_member_id, receiver_member_id=receiver_member_id,
+            year=year, hours=parsed_hours, note=note, created_by_id=user.id,
+        )
+    except ServiceError as e:
+        await db.rollback()
+        message = t_for(request, e.key, **e.params)
+        return RedirectResponse(
+            f"/work-hours/transfers?year={year}&error={urllib.parse.quote(message)}", status_code=303,
+        )
+    await db.commit()
+    return RedirectResponse(f"/work-hours/transfers?year={year}", status_code=303)
+
+
+@router.post("/transfers/{transfer_id}/delete")
+async def transfer_delete(transfer_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    await require_permission(request, db, "work_hours", "delete")
+    transfer = await db.get(HoursTransfer, transfer_id)
+    year = transfer.year if transfer else date.today().year
+    if transfer:
+        await db.delete(transfer)
+        await db.commit()
+    return RedirectResponse(f"/work-hours/transfers?year={year}", status_code=303)
+
+
+# ---------------------------------------------------------------------------
 # Evaluation: annual standing per member/parcel
 # ---------------------------------------------------------------------------
 
@@ -1132,7 +1219,7 @@ async def evaluation_export_csv(
     writer = csv.writer(output, delimiter=";")
     writer.writerow([
         "Parcel", "Pächter", "Pflicht (h)", "Geleistet (h)",
-        "Sponsorship (h)", "Gesamt (h)", "Offen (h)",
+        "Sponsorship (h)", "Übertragen (h)", "Gesamt (h)", "Offen (h)",
         "Schuldbetrag (EUR)", "Befreit", "Erfüllt"
     ])
 
@@ -1144,6 +1231,7 @@ async def evaluation_export_csv(
         for row in rows:
             session_hours = sum(t["hours"]["session_hours"] for t in row["tenant_details"])
             sponsorship_hours = sum(t["hours"]["sponsorship_hours"] for t in row["tenant_details"])
+            transferred_net = sum(t["hours"]["transferred_net"] for t in row["tenant_details"])
             names = [t["member"].full_name for t in row["tenant_details"]]
             writer.writerow([
                 row["parcel"].plot_number,
@@ -1151,6 +1239,7 @@ async def evaluation_export_csv(
                 f"{row['required_hours']:.1f}",
                 f"{session_hours:.1f}",
                 f"{sponsorship_hours:.1f}",
+                f"{transferred_net:.1f}",
                 f"{row['total_hours']:.1f}",
                 f"{row['outstanding_hours']:.1f}",
                 f"{row['amount_due']:.2f}".replace(".", ","),

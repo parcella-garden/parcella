@@ -33,6 +33,7 @@ member_club_roles         – member -> club role assignment (year-based)
 work_sessions             – standard and special sessions
 session_participations    – who attended which session, with hours
 sponsorships              – area responsibilities (flat-rate credit)
+hours_transfers           – hours one member gives another for a year (issue #243)
 work_tasks                – task backlog, optionally scheduled/assigned
 ```
 
@@ -65,6 +66,28 @@ evaluating a past year now uses that year's tenants instead of today's.
 Invoicing's `WORK_HOURS_SHORTFALL` (`app/work_hours_evaluation.py`)
 takes its rows straight from `evaluate_year()`, so it follows the same
 rule.
+
+**Hours transfers: only the surplus, checked once (issue #243, ADR
+0094).** `/work-hours/transfers` (and `POST /api/v1/work-hours/transfers`)
+records that a member gives N hours of a year to another member, e.g.
+someone who already did more than required helps a neighbour. A transfer
+is just `+N` for the receiver and `−N` for the giver inside
+`calculate_hours_for_member()` (`transferred_in`/`_out`/`_net`), so
+both modes, the CSV and invoicing need no special case; the evaluation
+shows the net in its own column. What may be given is
+`transferable_hours()`: PER_MEMBER own total minus the requirement;
+PER_PARCEL the plot's surplus (pooled hours -- the giver's plot must stay
+fulfilled), capped at the giver's own hours (a co-tenant's hours aren't
+theirs); exempt members and helpers without a plot that year can give
+all of their own hours. The check runs when the transfer is created --
+a later correction (an attendance removed) can leave a giver short, and
+the evaluation simply shows that; the same goes for deleting a transfer
+another one was built on (A gives B, B passes it on to C, then A→B is
+deleted). Concurrent transfers from one giver are serialized by a row
+lock on the giver, so they can't jointly exceed the surplus. In
+PER_MEMBER mode a member without a lease that year owes nothing and can
+give all their hours, as in PER_PARCEL. Wrong entries are deleted (needs
+`work_hours` delete), not historized: a correction, not club history.
 
 **Club-role exemption applies to the whole parcel.** If a member is on the
 (extended) board and is therefore exempt from mandatory hours, that

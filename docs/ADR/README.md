@@ -97,3 +97,4 @@ in chronological order.
 91. [Applicants: hard delete as a deliberate GDPR exception to historization](./0091-applicants-hard-delete-gdpr-exception.md)
 92. [Work hours: who counts as a tenant follows the evaluated year, not today](./0092-work-hours-tenancy-follows-the-evaluated-year.md)
 93. [Member tags: free-form labels, not club roles](./0093-member-tags-free-form-labels-not-club-roles.md)
+94. [Work hours: members give surplus hours to other members](./0094-work-hours-transfers-between-members.md)

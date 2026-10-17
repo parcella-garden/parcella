@@ -48,7 +48,8 @@
     "finances_reminders": "Upomínky",
     "finances_incoming_invoices": "Přijaté faktury",
     "freescout_bridge": "Podpora",
-    "applicants": "Uchazeči"
+    "applicants": "Uchazeči",
+    "work_hours_transfers": "Převod hodin"
   },
   "errors": {
     "user_not_found": "Uživatel nebyl nalezen",
@@ -1451,7 +1452,9 @@
       "status_open": "Otevřeno",
       "not_yet_assigned": "zatím nepřiděleno",
       "no_data": "Nejsou k dispozici žádné údaje – byly vytvořeny parcely a členové?",
-      "lease_ended_badge": "pacht ukončen {date}"
+      "lease_ended_badge": "pacht ukončen {date}",
+      "col_transfers": "Převedeno",
+      "col_transfers_hint": "Hodiny přijaté od jiných členů (+) nebo jim předané (−)"
     },
     "member_club_role_form": {
       "title": "Upravit přiřazení",
@@ -1625,6 +1628,35 @@
       "not_yet_assigned": "Zatím nepřiděleno",
       "toggle_done_tooltip": "Označit jako hotové / nehotové",
       "assign_hint": "Přiřaďte každý úkol výše jednomu z přihlášených účastníků této směny."
+    },
+    "transfers": {
+      "title": "Převody hodin {year}",
+      "page_title": "Převody hodin",
+      "year_label": "Rok",
+      "to_evaluation": "Vyhodnocení",
+      "intro": "Členové, kteří odpracovali víc, než musí, mohou předat hodiny jiným, např. na pomoc sousedovi. Předat lze jen přebytek daného roku; členové bez parcely nebo osvobození členové mohou předat všechny své hodiny.",
+      "create_card_title": "Převést hodiny ({year})",
+      "giver_member_id_label": "Od (předává)",
+      "receiver_member_id_label": "Komu (přijímá)",
+      "hours_label": "Hodiny",
+      "hours_hint": "Nejvýše přebytek předávajícího v tomto roce.",
+      "note_label": "Poznámka",
+      "save_button": "Převést hodiny",
+      "list_title": "Převody v roce {year}",
+      "col_giver": "Od",
+      "col_receiver": "Komu",
+      "col_hours": "Hodiny",
+      "col_note": "Poznámka",
+      "delete_confirm": "Smazat tento převod? Hodiny se vrátí předávajícímu.",
+      "delete_button": "Smazat převod",
+      "empty": "V roce {year} zatím nebyly převedeny žádné hodiny.",
+      "errors": {
+        "members_required": "Vyberte, kdo předává a kdo přijímá.",
+        "same_member": "Člen nemůže převést hodiny sám sobě.",
+        "hours_positive": "Zadejte kladný počet hodin.",
+        "member_not_found": "Člen nenalezen.",
+        "exceeds_surplus": "Převést lze jen {available} h -- to je přebytek předávajícího v tomto roce."
+      }
     }
   },
   "dashboard": {
