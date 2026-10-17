@@ -10,22 +10,26 @@ response serialization.
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
-from app.models import Member, MemberParcel, User
+from app.member_filters import has_tag_condition
+from app.models import Member, MemberParcel, MemberTag, User
 from app.api_auth import require_api_permission
+from app.i18n import t_for
+from app.services.errors import ServiceError
 from app.services.members import (
     active_members_query, create_member, update_member,
     add_phone, remove_phone, add_email, remove_email,
+    list_tags, tag_member, untag_member, rename_tag, delete_tag,
 )
 from app.schemas import (
     MemberOut, MemberDetailOut, MemberCreate, MemberUpdate,
     PhoneOut, PhoneCreate, EmailAddressOut, EmailAddressCreate,
-    MemberAssignmentBrief,
+    MemberAssignmentBrief, MemberTagOut, MemberTagAssign, MemberTagRename,
 )
 
 router = APIRouter(prefix="/api/v1/members", tags=["API: Members"])
@@ -38,6 +42,7 @@ async def _get_member_or_404(db: AsyncSession, member_id: str, with_details: boo
             selectinload(Member.phone_numbers),
             selectinload(Member.email_addresses),
             selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel),
+            selectinload(Member.tags),
         )
     else:
         query = query.options(
@@ -73,6 +78,7 @@ def _to_detail_schema(member: Member) -> MemberDetailOut:
 async def members_list(
     search: Optional[str] = Query(None, description="Search in first/last name and city"),
     active_only: bool = Query(False, description="Only active memberships (member_since already started, member_until in the future or empty)"),
+    tag: Optional[str] = Query(None, description="Only members carrying this tag (MemberTag id, see GET /members/tags)"),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
@@ -98,10 +104,94 @@ async def members_list(
     # which rows the page happened to land on.
     if active_only:
         query = active_members_query(query)
+    if tag:
+        query = query.where(has_tag_condition(tag))
     query = query.order_by(Member.last_name, Member.first_name).limit(limit).offset(offset)
 
     result = await db.execute(query)
     return result.scalars().all()
+
+
+# ---------------------------------------------------------------------------
+# Tags (issue #241, ADR 0093) -- /tags registered before /{member_id}.
+# ---------------------------------------------------------------------------
+
+def _service_error(request: Request, error: ServiceError) -> HTTPException:
+    code = status.HTTP_404_NOT_FOUND if error.http_status == 404 else (
+        status.HTTP_409_CONFLICT if error.http_status == 409 else status.HTTP_422_UNPROCESSABLE_ENTITY
+    )
+    return HTTPException(status_code=code, detail=t_for(request, error.key, **error.params))
+
+
+async def _get_tag_or_404(db: AsyncSession, tag_id: str) -> MemberTag:
+    tag = await db.get(MemberTag, tag_id)
+    if tag is None:
+        raise HTTPException(status_code=404, detail="Tag not found")
+    return tag
+
+
+@router.get("/tags", response_model=List[MemberTagOut], summary="List member tags")
+async def tags_list(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_api_permission("members_parcels", "read")),
+):
+    return await list_tags(db)
+
+
+@router.patch("/tags/{tag_id}", response_model=MemberTagOut, summary="Rename a member tag")
+async def tag_rename(
+    tag_id: str, data: MemberTagRename, request: Request,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_api_permission("members_parcels", "write")),
+):
+    tag = await _get_tag_or_404(db, tag_id)
+    try:
+        await rename_tag(db, tag, data.name)
+    except ServiceError as e:
+        raise _service_error(request, e)
+    await db.commit()
+    return tag
+
+
+@router.delete("/tags/{tag_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a member tag (removes it from every member)")
+async def tag_delete(
+    tag_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_api_permission("members_parcels", "delete")),
+):
+    await delete_tag(db, await _get_tag_or_404(db, tag_id))
+    await db.commit()
+
+
+@router.post(
+    "/{member_id}/tags", response_model=MemberTagOut, status_code=status.HTTP_201_CREATED,
+    summary="Tag a member", description="By `tag_id`, or by `name` (reuses a tag of that name, any case, or creates it).",
+)
+async def member_tag_add(
+    member_id: str, data: MemberTagAssign, request: Request,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_api_permission("members_parcels", "write")),
+):
+    if bool(data.tag_id) == bool(data.name):
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Pass exactly one of tag_id and name")
+    await _get_member_or_404(db, member_id)
+    try:
+        tag = await tag_member(db, member_id, tag_id=data.tag_id, name=data.name)
+    except ServiceError as e:
+        raise _service_error(request, e)
+    await db.commit()
+    return tag
+
+
+@router.delete("/{member_id}/tags/{tag_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Remove a tag from a member")
+async def member_tag_remove(
+    member_id: str, tag_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_api_permission("members_parcels", "write")),
+):
+    if not await untag_member(db, member_id, tag_id):
+        raise HTTPException(status_code=404, detail="Member doesn't carry this tag")
+    await db.commit()
 
 
 @router.get(

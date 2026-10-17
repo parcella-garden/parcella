@@ -686,6 +686,31 @@
       "col_parcel": "Parcelle",
       "col_name": "Nom",
       "col_signature": "Signature"
+    },
+    "tags": {
+      "card_header": "Étiquettes",
+      "manage_link": "Gérer les étiquettes",
+      "remove_tooltip": "Retirer l'étiquette",
+      "none": "Aucune étiquette.",
+      "add_placeholder": "Ajouter une étiquette, p. ex. responsable de l'eau",
+      "add_button": "Ajouter l'étiquette",
+      "filter_label": "Filtrer par étiquette",
+      "filter_any": "Toutes les étiquettes",
+      "page_title": "Étiquettes des membres",
+      "back_to_members": "Retour aux membres",
+      "page_hint": "Les étiquettes sont des libellés libres pour retrouver des membres, p. ex. « responsable de l'eau » ou « équipe haies ». Ajoutez-les sur la page d'un membre ; renommez-les ou supprimez-les ici.",
+      "name_label": "Nom de l'étiquette",
+      "rename_button": "Renommer",
+      "member_count": "{count} membre(s)",
+      "delete_confirm": "Supprimer l'étiquette « {name} » ? Elle sera retirée de tous les membres.",
+      "delete_button": "Supprimer l'étiquette",
+      "empty": "Aucune étiquette -- ajoutez la première sur la page d'un membre.",
+      "errors": {
+        "name_required": "Veuillez saisir un nom d'étiquette.",
+        "name_too_long": "Un nom d'étiquette peut compter au maximum {max} caractères.",
+        "not_found": "Cette étiquette n'existe plus.",
+        "name_taken": "Une étiquette « {name} » existe déjà."
+      }
     }
   },
   "parcels": {

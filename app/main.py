@@ -517,7 +517,7 @@ async def startseite(request: Request):
         # members with a confirmed member_since, i.e. exactly the rows
         # /members/?active_only=true returns and the "active" (not
         # "pending") badge shows. Keep this in sync with the
-        # active_only branch of _filtered_members_query().
+        # active_only branch of MemberListFilter.apply() (app/member_filters.py).
         members_active = await db.scalar(
             select(func.count()).where(active_member_filter(), Member.member_since.is_not(None))
         )

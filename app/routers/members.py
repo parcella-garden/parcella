@@ -5,15 +5,15 @@ import base64
 import csv
 import io
 import itertools
+import urllib.parse
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
-from urllib.parse import urlencode
 
 from fastapi import APIRouter, Request, Form, Depends, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, and_
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db, active_member_filter, current_tenant_filter
@@ -25,7 +25,9 @@ from app.csv_utils import (
     parse_column_mapping,
     parse_mapped_csv_rows,
 )
-from app.models import Member, MemberPhone, MemberEmail, MemberParcel, Parcel
+from app.member_filters import MemberListFilter
+from app.models import Member, MemberPhone, MemberEmail, MemberParcel, MemberTag, Parcel
+from app.services.errors import ServiceError
 from app.permissions import require_permission
 from app.i18n import t_for, load_current_language
 from app.branding import load_branding
@@ -34,6 +36,7 @@ from app.meeting_signin_sheet import render_meeting_signin_sheet_pdf
 from app.services.members import (
     create_member, update_member, soft_delete_member,
     add_phone, remove_phone, add_email, remove_email,
+    list_tags, tag_member, untag_member, rename_tag, delete_tag, count_tag_members,
 )
 
 router = APIRouter(prefix="/members", tags=["members"])
@@ -47,166 +50,30 @@ async def _get_member_with_details(db: AsyncSession, member_id: str) -> Optional
             selectinload(Member.phone_numbers),
             selectinload(Member.email_addresses),
             selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel),
+            selectinload(Member.tags),
         )
         .where(Member.id == member_id, Member.deleted_at.is_(None))
     )
     return result.scalar_one_or_none()
 
 
-def _filtered_members_query(search: str, include_inactive: bool, pending_only: bool, active_only: bool = False, email_info_only: bool = False):
-    """WHERE/ORDER BY for the member list, shared with its CSV export
-    (issue #198) so an export always matches what's currently on screen
-    instead of drifting into its own copy of this filtering logic.
-    Callers still add their own `.options(...)` eager-loads, since the
-    list and the export don't need exactly the same relationships."""
-    query = select(Member)
-
-    if pending_only:
-        # Issue #167 follow-up: a dedicated view for pending
-        # applications -- member_since in the future, OR blank (a
-        # member entered into the system with no confirmed start date
-        # at all is just as much "not actually a member yet" as one
-        # with a future date, per the reporter). Deliberately narrower
-        # than active_member_filter(), which still treats a blank
-        # member_since as already-started everywhere else (invoices,
-        # meetings, dashboard counts, etc.) -- only this review view
-        # widens to catch incomplete records too. Sorted oldest-entered
-        # first (by created_at, the "entered into the system" timestamp
-        # the reporter asked for), since that's the order a board
-        # actually works through a queue of applications in -- takes
-        # precedence over include_inactive, which is meaningless here.
-        #
-        # Also requires zero parcel assignments at all (issue #167,
-        # second follow-up): a member who already has a parcel is
-        # clearly an actual resident, not a pending application -- most
-        # likely just missing member_since data entry, not someone
-        # still waiting to be let in. Confirmed trade-off, accepted for
-        # now: this also hides a member pre-assigned a parcel ahead of a
-        # future start date (e.g. approved today, moves in next month)
-        # -- a real but rarer case, left as a follow-up.
-        no_parcel_assigned = Member.id.not_in(select(MemberParcel.member_id))
-        query = query.where(
-            Member.deleted_at.is_(None),
-            (Member.member_since.is_(None)) | (Member.member_since > date.today()),
-            no_parcel_assigned,
-        )
-        query = query.order_by(Member.created_at.asc())
-    else:
-        query = query.order_by(Member.last_name, Member.first_name)
-        if include_inactive:
-            # Issue #169: this must show ONLY inactive members (expired
-            # OR not-yet-started), not every non-deleted member
-            # regardless of status -- previously this was the plain
-            # complement of active_member_filter() done wrong (just
-            # deleted_at IS NULL), which meant active members showed up
-            # here too. The actual complement of active_member_filter()
-            # is an OR (a member is inactive if EITHER half fails), not
-            # an AND. Doesn't widen to blank member_since the way
-            # pending_only does above -- that's still "active" per
-            # active_member_filter() itself, unchanged.
-            query = query.where(
-                Member.deleted_at.is_(None),
-                or_(
-                    and_(Member.member_since.is_not(None), Member.member_since > date.today()),
-                    and_(Member.member_until.is_not(None), Member.member_until < date.today()),
-                ),
-            )
-        elif active_only:
-            # Issue #200: active_member_filter() alone still counts a
-            # blank member_since as active (deliberate, issue #167 --
-            # keeps invoices/sign-in/dashboard totals unaffected for
-            # pre-existing members without the field set). The list's
-            # own status badge already treats that same blank case as
-            # "pending" for display (issue #170). This filter makes the
-            # two agree: a member only counts as active_only if they
-            # also have a confirmed member_since, i.e. exactly the rows
-            # that render the "active" (not "pending") badge.
-            query = query.where(active_member_filter(), Member.member_since.is_not(None))
-        else:
-            query = query.where(active_member_filter())
-
-    if search:
-        # Searches by first/last name, parcel number, email, or phone.
-        # For the parcel search: by default only current assignments (who
-        # lives there NOW); with "include_inactive" also already-ended
-        # assignments (who used to live there) -- the same toggle logic as
-        # for active/inactive members, just applied to the parcel's tenant
-        # history. "City" was deliberately removed, since searching by it
-        # wasn't used in practice.
-        parcel_condition = Parcel.plot_number.ilike(f"%{search}%")
-        if not include_inactive:
-            parcel_condition = and_(
-                parcel_condition, current_tenant_filter()
-            )
-        parcel_matches = (
-            select(MemberParcel.member_id)
-            .join(Parcel, MemberParcel.parcel_id == Parcel.id)
-            .where(parcel_condition)
-        )
-        # Matches any of a member's emails/phones (both are one-to-many,
-        # app/models.py), not just the primary one -- same "find this
-        # member no matter which record matches" logic as parcel number
-        # above. No phone-number normalization (no precedent for that
-        # anywhere in this app) -- a plain substring match, same as
-        # everything else here.
-        email_matches = select(MemberEmail.member_id).where(MemberEmail.address.ilike(f"%{search}%"))
-        phone_matches = select(MemberPhone.member_id).where(MemberPhone.number.ilike(f"%{search}%"))
-        query = query.where(
-            or_(
-                Member.first_name.ilike(f"%{search}%"),
-                Member.last_name.ilike(f"%{search}%"),
-                Member.id.in_(parcel_matches),
-                Member.id.in_(email_matches),
-                Member.id.in_(phone_matches),
-            )
-        )
-
-    if email_info_only:
-        query = query.where(Member.email_notifications.is_(True))
-
-    return query
-
-
-def _members_list_query_string(search: str, include_inactive: bool, pending_only: bool, active_only: bool, email_info_only: bool = False) -> str:
-    """The current /members/ list filter as a query string (no leading
-    '?', empty if nothing is set). Issue #202: carried from each list
-    row onto its detail page, and back out again via the detail page's
-    Previous/Next buttons, so paging through a filtered view (e.g.
-    pending applications) doesn't silently fall back to the full,
-    unfiltered member list."""
-    params = {}
-    if search:
-        params["search"] = search
-    if include_inactive:
-        params["include_inactive"] = "true"
-    if pending_only:
-        params["pending_only"] = "true"
-    if active_only:
-        params["active_only"] = "true"
-    if email_info_only:
-        params["email_info_only"] = "true"
-    return urlencode(params)
-
-
 @router.get("/", response_class=HTMLResponse)
 async def members_list(
     request: Request,
-    search: str = "",
-    include_inactive: bool = False,
-    pending_only: bool = False,
-    active_only: bool = False,
-    email_info_only: bool = False,
+    filters: MemberListFilter = Depends(MemberListFilter.from_query),
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "read")
 
-    query = _filtered_members_query(search, include_inactive, pending_only, active_only, email_info_only).options(
+    query = filters.apply().options(
         selectinload(Member.email_addresses),
         selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel),
+        selectinload(Member.tags),
     )
 
     result = await db.execute(query)
     members = result.scalars().all()
+    all_tags = await list_tags(db)
 
     return templates.TemplateResponse(
         "members/list.html",
@@ -214,12 +81,14 @@ async def members_list(
             "request": request,
             "user": user,
             "members": members,
-            "search": search,
-            "include_inactive": include_inactive,
-            "pending_only": pending_only,
-            "active_only": active_only,
-            "email_info_only": email_info_only,
-            "list_query_string": _members_list_query_string(search, include_inactive, pending_only, active_only, email_info_only),
+            "search": filters.search,
+            "include_inactive": filters.include_inactive,
+            "pending_only": filters.pending_only,
+            "active_only": filters.active_only,
+            "email_info_only": filters.email_info_only,
+            "tag": filters.tag,
+            "all_tags": all_tags,
+            "list_query_string": filters.query_string(),
         },
     )
 
@@ -335,15 +204,90 @@ async def member_create(
     return RedirectResponse(f"/members/{member.id}", status_code=302)
 
 
+# ---------------------------------------------------------------------------
+# Tags (issue #241, ADR 0093): free-form labels on members, filterable on
+# the list. The management page is registered before /{member_id} so
+# "/members/tags" isn't taken for a member id.
+# ---------------------------------------------------------------------------
+
+def _redirect_with_error(request: Request, url: str, error: ServiceError) -> RedirectResponse:
+    message = t_for(request, error.key, **error.params)
+    return RedirectResponse(f"{url}?error={urllib.parse.quote(message)}", status_code=303)
+
+
+async def _get_tag_or_404(db: AsyncSession, tag_id: str) -> MemberTag:
+    tag = await db.get(MemberTag, tag_id)
+    if tag is None:
+        raise HTTPException(status_code=404)
+    return tag
+
+
+@router.get("/tags", response_class=HTMLResponse)
+async def tags_page(request: Request, db: AsyncSession = Depends(get_db)):
+    user = await require_permission(request, db, "members_parcels", "read")
+    return templates.TemplateResponse("members/tags.html", {
+        "request": request, "user": user,
+        "tags": await list_tags(db), "member_counts": await count_tag_members(db),
+    })
+
+
+@router.post("/tags/{tag_id}/rename")
+async def tag_rename(tag_id: str, request: Request, name: str = Form(""), db: AsyncSession = Depends(get_db)):
+    await require_permission(request, db, "members_parcels", "write")
+    tag = await _get_tag_or_404(db, tag_id)
+    try:
+        await rename_tag(db, tag, name)
+    except ServiceError as e:
+        await db.rollback()
+        return _redirect_with_error(request, "/members/tags", e)
+    await db.commit()
+    return RedirectResponse("/members/tags", status_code=303)
+
+
+@router.post("/tags/{tag_id}/delete")
+async def tag_delete(tag_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    await require_permission(request, db, "members_parcels", "delete")
+    await delete_tag(db, await _get_tag_or_404(db, tag_id))
+    await db.commit()
+    return RedirectResponse("/members/tags", status_code=303)
+
+
+@router.post("/{member_id}/tags/add")
+async def member_tag_add(
+    member_id: str, request: Request,
+    tag_id: str = Form(""), name: str = Form(""),
+    db: AsyncSession = Depends(get_db),
+):
+    """Either pick an existing tag (tag_id) or type a name -- a new
+    name creates the tag. A typed name wins over the dropdown."""
+    await require_permission(request, db, "members_parcels", "write")
+    if not await _get_member_with_details(db, member_id):
+        raise HTTPException(status_code=404, detail=t_for(request, "members.errors.member_not_found"))
+    try:
+        if name.strip():
+            await tag_member(db, member_id, name=name)
+        else:
+            await tag_member(db, member_id, tag_id=tag_id or None, name=name)
+    except ServiceError as e:
+        await db.rollback()
+        return _redirect_with_error(request, f"/members/{member_id}", e)
+    await db.commit()
+    return RedirectResponse(f"/members/{member_id}", status_code=303)
+
+
+@router.post("/{member_id}/tags/{tag_id}/remove")
+async def member_tag_remove(member_id: str, tag_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    await require_permission(request, db, "members_parcels", "write")
+    await untag_member(db, member_id, tag_id)
+    await db.commit()
+    return RedirectResponse(f"/members/{member_id}", status_code=303)
+
+
 @router.get("/{member_id}", response_class=HTMLResponse)
 async def member_detail(
     member_id: str,
     request: Request,
-    search: str = "",
-    include_inactive: bool = False,
-    pending_only: bool = False,
-    active_only: bool = False,
-    email_info_only: bool = False,
+    filters: MemberListFilter = Depends(MemberListFilter.from_query),
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "read")
@@ -367,8 +311,7 @@ async def member_detail(
     # guessing.
     ordered_ids = (
         await db.scalars(
-            _filtered_members_query(search, include_inactive, pending_only, active_only, email_info_only)
-            .with_only_columns(Member.id)
+            filters.apply().with_only_columns(Member.id)
         )
     ).all()
     prev_member_id = None
@@ -379,7 +322,8 @@ async def member_detail(
             prev_member_id = ordered_ids[idx - 1]
         if idx < len(ordered_ids) - 1:
             next_member_id = ordered_ids[idx + 1]
-    list_query_string = _members_list_query_string(search, include_inactive, pending_only, active_only, email_info_only)
+    list_query_string = filters.query_string()
+    all_tags = await list_tags(db)
 
     return templates.TemplateResponse(
         "members/detail.html",
@@ -388,6 +332,7 @@ async def member_detail(
             "user": user,
             "member": member,
             "all_parcels": all_parcels,
+            "all_tags": all_tags,
             "prev_member_id": prev_member_id,
             "next_member_id": next_member_id,
             "nav_query_suffix": f"?{list_query_string}" if list_query_string else "",
@@ -549,22 +494,19 @@ async def email_delete(
 @router.get("/export/csv")
 async def members_export_csv(
     request: Request,
-    search: str = "",
-    include_inactive: bool = False,
-    pending_only: bool = False,
-    active_only: bool = False,
-    email_info_only: bool = False,
+    filters: MemberListFilter = Depends(MemberListFilter.from_query),
     db: AsyncSession = Depends(get_db),
 ):
     await require_permission(request, db, "members_parcels", "read")
 
     # Issue #198: exports whatever the list page is currently showing,
     # not always every active member -- same filters, same query, via
-    # _filtered_members_query() so the two can't drift apart.
-    query = _filtered_members_query(search, include_inactive, pending_only, active_only, email_info_only).options(
+    # MemberListFilter.apply() so the two can't drift apart.
+    query = filters.apply().options(
         selectinload(Member.email_addresses),
         selectinload(Member.phone_numbers),
         selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel),
+        selectinload(Member.tags),
     )
     result = await db.execute(query)
     members = result.scalars().all()
@@ -575,7 +517,7 @@ async def members_export_csv(
         "Vorname", "Nachname", "Strasse", "PLZ", "Ort",
         "Geburtsdatum", "IBAN", "Member seit", "Member bis",
         "E-Mail-Benachrichtigungen", "E-Mail-Adressen", "Telefonnummern",
-        "Parzellen", "Notizen"
+        "Parzellen", "Notizen", "Tags"
     ])
 
     for m in members:
@@ -592,6 +534,7 @@ async def members_export_csv(
             "Ja" if m.email_notifications else "Nein",
             csv_safe(emails), csv_safe(phones), parcels,
             csv_safe(m.notes or ""),
+            csv_safe("; ".join(tag.name for tag in m.tags)),
         ])
 
     output.seek(0)

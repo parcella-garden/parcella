@@ -686,6 +686,31 @@
       "col_parcel": "Działka",
       "col_name": "Imię i nazwisko",
       "col_signature": "Podpis"
+    },
+    "tags": {
+      "card_header": "Tagi",
+      "manage_link": "Zarządzaj tagami",
+      "remove_tooltip": "Usuń tag",
+      "none": "Brak tagów.",
+      "add_placeholder": "Dodaj tag, np. odpowiedzialny za wodę",
+      "add_button": "Dodaj tag",
+      "filter_label": "Filtruj według tagu",
+      "filter_any": "Wszystkie tagi",
+      "page_title": "Tagi członków",
+      "back_to_members": "Powrót do członków",
+      "page_hint": "Tagi to dowolne etykiety ułatwiające odnajdywanie członków, np. „odpowiedzialny za wodę” lub „ekipa od żywopłotu”. Dodawaj je na stronie członka, a tutaj zmieniaj nazwy lub usuwaj.",
+      "name_label": "Nazwa tagu",
+      "rename_button": "Zmień nazwę",
+      "member_count": "Członkowie: {count}",
+      "delete_confirm": "Usunąć tag „{name}”? Zostanie usunięty u wszystkich członków.",
+      "delete_button": "Usuń tag",
+      "empty": "Brak tagów -- dodaj pierwszy na stronie członka.",
+      "errors": {
+        "name_required": "Podaj nazwę tagu.",
+        "name_too_long": "Nazwa tagu może mieć maksymalnie {max} znaków.",
+        "not_found": "Ten tag już nie istnieje.",
+        "name_taken": "Tag o nazwie „{name}” już istnieje."
+      }
     }
   },
   "parcels": {

@@ -686,6 +686,31 @@
       "col_parcel": "Parcel",
       "col_name": "Name",
       "col_signature": "Signature"
+    },
+    "tags": {
+      "card_header": "Tags",
+      "manage_link": "Manage tags",
+      "remove_tooltip": "Remove tag",
+      "none": "No tags yet.",
+      "add_placeholder": "Add a tag, e.g. water responsible",
+      "add_button": "Add tag",
+      "filter_label": "Filter by tag",
+      "filter_any": "All tags",
+      "page_title": "Member tags",
+      "back_to_members": "Back to members",
+      "page_hint": "Tags are free-form labels for finding members, e.g. \"water responsible\" or \"hedge team\". Add them on a member's page; rename or delete them here.",
+      "name_label": "Tag name",
+      "rename_button": "Rename",
+      "member_count": "{count} member(s)",
+      "delete_confirm": "Delete the tag \"{name}\"? It is removed from every member.",
+      "delete_button": "Delete tag",
+      "empty": "No tags yet -- add the first one on a member's page.",
+      "errors": {
+        "name_required": "Please enter a tag name.",
+        "name_too_long": "A tag name can have at most {max} characters.",
+        "not_found": "This tag no longer exists.",
+        "name_taken": "A tag called \"{name}\" already exists."
+      }
     }
   },
   "parcels": {

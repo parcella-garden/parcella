@@ -17,11 +17,13 @@ import logging
 from datetime import date, datetime, timezone
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import delete, func, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import active_member_filter
-from app.models import Member, MemberEmail, MemberPhone
+from app.models import Member, MemberEmail, MemberPhone, MemberTag, member_tag_links
+from app.services.errors import ServiceError
 from app.freescout_client import FreeScoutError, get_freescout_client
 
 logger = logging.getLogger(__name__)
@@ -162,3 +164,93 @@ async def remove_email(db: AsyncSession, member_id: str, email_id: str) -> bool:
     await db.delete(email_obj)
     await db.flush()
     return True
+
+
+# ---------------------------------------------------------------------------
+# Tags (issue #241, ADR 0093): free-form labels, created on first use.
+# Names are unique ignoring case -- typing "water team" on one member
+# and "Water team" on the next must land on the same tag, or the
+# filter would silently split the group in two.
+# ---------------------------------------------------------------------------
+
+TAG_NAME_MAX_LENGTH = 100
+
+
+async def list_tags(db: AsyncSession) -> list[MemberTag]:
+    return list((await db.scalars(select(MemberTag).order_by(func.lower(MemberTag.name)))).all())
+
+
+def _clean_tag_name(name: Optional[str]) -> str:
+    name = " ".join((name or "").split())
+    if not name:
+        raise ServiceError("members.tags.errors.name_required")
+    if len(name) > TAG_NAME_MAX_LENGTH:
+        raise ServiceError("members.tags.errors.name_too_long", max=TAG_NAME_MAX_LENGTH)
+    return name
+
+
+async def _tag_by_name(db: AsyncSession, name: str) -> Optional[MemberTag]:
+    return await db.scalar(select(MemberTag).where(func.lower(MemberTag.name) == name.lower()))
+
+
+async def tag_member(
+    db: AsyncSession, member_id: str, *, tag_id: Optional[str] = None, name: Optional[str] = None,
+) -> MemberTag:
+    """Puts a tag on a member: an existing one by id, or by name --
+    reusing a tag of that name (any case) or creating it. Tagging twice
+    is a no-op."""
+    if tag_id:
+        tag = await db.get(MemberTag, tag_id)
+        if tag is None:
+            raise ServiceError("members.tags.errors.not_found", http_status=404)
+    else:
+        clean = _clean_tag_name(name)
+        tag = await _tag_by_name(db, clean)
+        if tag is None:
+            tag = MemberTag(name=clean)
+            db.add(tag)
+            await db.flush()
+    await db.execute(
+        pg_insert(member_tag_links).values(member_id=member_id, tag_id=tag.id).on_conflict_do_nothing()
+    )
+    await db.flush()
+    return tag
+
+
+async def untag_member(db: AsyncSession, member_id: str, tag_id: str) -> bool:
+    """Deletes the link row (no historization for labels, ADR 0093).
+    The tag itself stays, even if no member carries it any more."""
+    result = await db.execute(
+        delete(member_tag_links).where(
+            member_tag_links.c.member_id == member_id, member_tag_links.c.tag_id == tag_id,
+        )
+    )
+    await db.flush()
+    return result.rowcount > 0
+
+
+async def rename_tag(db: AsyncSession, tag: MemberTag, name: str) -> MemberTag:
+    clean = _clean_tag_name(name)
+    existing = await _tag_by_name(db, clean)
+    if existing is not None and existing.id != tag.id:
+        raise ServiceError("members.tags.errors.name_taken", http_status=409, name=existing.name)
+    tag.name = clean
+    await db.flush()
+    return tag
+
+
+async def delete_tag(db: AsyncSession, tag: MemberTag) -> None:
+    """Removes the tag from every member (links cascade) and the tag."""
+    await db.delete(tag)
+    await db.flush()
+
+
+async def count_tag_members(db: AsyncSession) -> dict[str, int]:
+    """Tag id -> how many non-deleted members carry it (tags page)."""
+    rows = await db.execute(
+        select(member_tag_links.c.tag_id, func.count())
+        .join(Member, Member.id == member_tag_links.c.member_id)
+        .where(Member.deleted_at.is_(None))
+        .group_by(member_tag_links.c.tag_id)
+    )
+    return dict(rows.all())

@@ -12,7 +12,8 @@ from datetime import datetime, date, timedelta
 from typing import Optional, List
 from sqlalchemy import (
     String, Integer, Boolean, Date, DateTime, Text, Numeric,
-    ForeignKey, Enum as SAEnum, UniqueConstraint, Index, CheckConstraint
+    ForeignKey, Enum as SAEnum, UniqueConstraint, Index, CheckConstraint,
+    Column, Table,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
@@ -305,6 +306,12 @@ class Member(Base):
     parcel_assignments: Mapped[List["MemberParcel"]] = relationship(
         "MemberParcel", back_populates="member"
     )
+    # Free-form labels (issue #241) -- see MemberTag. Not lazy-loadable
+    # under asyncio: selectinload(Member.tags) wherever it's read.
+    tags: Mapped[List["MemberTag"]] = relationship(
+        "MemberTag", secondary="member_tag_links", back_populates="members",
+        order_by="MemberTag.name",
+    )
 
     @property
     def full_name(self) -> str:
@@ -325,6 +332,40 @@ class Member(Base):
 
     def __repr__(self) -> str:
         return f"<Member {self.full_name}>"
+
+
+class MemberTag(Base):
+    """
+    A free-form label on members ("water responsible", "extended
+    board", "hedge team" ...), issue #241 -- for finding and filtering
+    people, nothing else. Deliberately not ClubRole: that one is a
+    per-year office that can exempt from work hours (see
+    docs/ADR/0093); a tag carries no meaning the app acts on and no
+    history. Removing a tag from a member deletes the link row -- a
+    label isn't club history, so ADR 0005's historization doesn't apply.
+    """
+    __tablename__ = "member_tags"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    members: Mapped[List["Member"]] = relationship(
+        "Member", secondary="member_tag_links", back_populates="tags"
+    )
+
+    def __repr__(self) -> str:
+        return f"<MemberTag {self.name}>"
+
+
+member_tag_links = Table(
+    "member_tag_links",
+    Base.metadata,
+    Column("member_id", String(36), ForeignKey("members.id", ondelete="CASCADE"), primary_key=True),
+    Column("tag_id", String(36), ForeignKey("member_tags.id", ondelete="CASCADE"), primary_key=True, index=True),
+)
 
 
 class MemberPhone(Base):

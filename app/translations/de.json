@@ -686,6 +686,31 @@
       "col_parcel": "Parzelle",
       "col_name": "Name",
       "col_signature": "Unterschrift"
+    },
+    "tags": {
+      "card_header": "Tags",
+      "manage_link": "Tags verwalten",
+      "remove_tooltip": "Tag entfernen",
+      "none": "Noch keine Tags.",
+      "add_placeholder": "Tag hinzufügen, z. B. Wasserverantwortlicher",
+      "add_button": "Tag hinzufügen",
+      "filter_label": "Nach Tag filtern",
+      "filter_any": "Alle Tags",
+      "page_title": "Mitglieder-Tags",
+      "back_to_members": "Zurück zu den Mitgliedern",
+      "page_hint": "Tags sind frei wählbare Merkmale, um Mitglieder wiederzufinden, z. B. „Wasserverantwortlicher“ oder „Heckenteam“. Hinzufügen auf der Seite eines Mitglieds, umbenennen oder löschen hier.",
+      "name_label": "Tag-Name",
+      "rename_button": "Umbenennen",
+      "member_count": "{count} Mitglied(er)",
+      "delete_confirm": "Tag „{name}“ löschen? Er wird bei allen Mitgliedern entfernt.",
+      "delete_button": "Tag löschen",
+      "empty": "Noch keine Tags -- den ersten auf der Seite eines Mitglieds hinzufügen.",
+      "errors": {
+        "name_required": "Bitte einen Tag-Namen eingeben.",
+        "name_too_long": "Ein Tag-Name darf höchstens {max} Zeichen lang sein.",
+        "not_found": "Diesen Tag gibt es nicht mehr.",
+        "name_taken": "Es gibt bereits einen Tag „{name}“."
+      }
     }
   },
   "parcels": {

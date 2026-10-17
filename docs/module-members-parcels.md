@@ -11,6 +11,8 @@ member_phones          – n phone numbers per member
 member_emails          – n email addresses per member
 parcels                – garden parcels
 member_parcels          – m:n member <-> parcel assignment
+member_tags             – free-form labels (issue #241, see below)
+member_tag_links        – m:n member <-> tag
 change_history          – generic audit log (see below)
 ```
 
@@ -149,6 +151,43 @@ actually on screen. The CSV import modal's "here's the expected format"
 template link is intentionally left pointing at the plain unfiltered
 export -- a full example is more useful as an import template than
 whatever subset happens to be filtered at the time.
+
+## Member tags (issue #241)
+
+Free-form labels on members -- "water responsible", "extended board",
+"hedge team" -- to find people again and filter the member list.
+`member_tags` (name, unique ignoring case) plus `member_tag_links`
+(member ↔ tag); see ADR 0093 for why this isn't `ClubRole`.
+
+- **Tagging**: the Tags card on the member detail page. Type a name --
+  an existing tag of that name (any case, spacing collapsed) is reused,
+  otherwise a new one is created. The datalist offers the existing ones.
+  Removing a tag from a member deletes the link row: labels aren't
+  club history, so ADR 0005's historization doesn't apply.
+- **Managing**: `/members/tags` lists every tag with its member count;
+  rename (refused if it would collide with another tag) or delete
+  (removes it from every member; needs `members_parcels` delete).
+- **Filtering**: the tag dropdown on `/members/` (shown once a tag
+  exists). Like every list filter it travels through the row links, the
+  CSV export and the detail page's Previous/Next (ADR 0075). The CSV
+  has a "Tags" column.
+- **API**: `GET /api/v1/members/tags`, `PATCH`/`DELETE
+  /api/v1/members/tags/{id}`, `POST /api/v1/members/{id}/tags` (by
+  `tag_id` or `name`), `DELETE /api/v1/members/{id}/tags/{tag_id}`,
+  `?tag=` on `GET /api/v1/members`, `tags` on the member detail.
+
+**One filter object (`app/member_filters.py`).** The list's filters
+(search, the four checkboxes, now the tag) used to be five loose
+parameters threaded by hand through the list, the CSV export, the
+detail page's Previous/Next and the query-string builder. They're one
+`MemberListFilter` now -- a FastAPI dependency
+(`Depends(MemberListFilter.from_query)`), `apply()` for the query,
+`query_string()` for links, and `to_dict()`/`from_dict()` so a filter
+can be stored (messages to filtered members, issue #242). A new filter
+is one field plus a clause in `apply()`.
+
+Known gaps: no colors, no tag on the member edit form or CSV *import*,
+the filter takes one tag at a time (no "A and B").
 
 ## General-meeting sign-in sheet
 

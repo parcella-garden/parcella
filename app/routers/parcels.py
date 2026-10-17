@@ -59,7 +59,7 @@ async def _get_parcel_with_details(db: AsyncSession, parcel_id: str) -> Optional
 def _filtered_parcels_query(search: str, status_filter: str):
     """WHERE/ORDER BY for the parcel list, shared with the detail page's
     Previous/Next lookup (issue #202) so the two can't drift apart --
-    same reasoning as _filtered_members_query in app/routers/members.py."""
+    same reasoning as MemberListFilter.apply() in app/member_filters.py."""
     query = select(Parcel).order_by(Parcel.plot_number)
 
     if search:

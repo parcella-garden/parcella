@@ -686,6 +686,31 @@
       "col_parcel": "Parcela",
       "col_name": "Jméno",
       "col_signature": "Podpis"
+    },
+    "tags": {
+      "card_header": "Štítky",
+      "manage_link": "Spravovat štítky",
+      "remove_tooltip": "Odebrat štítek",
+      "none": "Zatím žádné štítky.",
+      "add_placeholder": "Přidat štítek, např. odpovědný za vodu",
+      "add_button": "Přidat štítek",
+      "filter_label": "Filtrovat podle štítku",
+      "filter_any": "Všechny štítky",
+      "page_title": "Štítky členů",
+      "back_to_members": "Zpět na členy",
+      "page_hint": "Štítky jsou volné popisky pro snadné hledání členů, např. „odpovědný za vodu“ nebo „tým živého plotu“. Přidávejte je na stránce člena, zde je přejmenujte nebo smažte.",
+      "name_label": "Název štítku",
+      "rename_button": "Přejmenovat",
+      "member_count": "Členů: {count}",
+      "delete_confirm": "Smazat štítek „{name}“? Bude odebrán všem členům.",
+      "delete_button": "Smazat štítek",
+      "empty": "Zatím žádné štítky -- první přidejte na stránce člena.",
+      "errors": {
+        "name_required": "Zadejte název štítku.",
+        "name_too_long": "Název štítku může mít nejvýše {max} znaků.",
+        "not_found": "Tento štítek již neexistuje.",
+        "name_taken": "Štítek „{name}“ již existuje."
+      }
     }
   },
   "parcels": {

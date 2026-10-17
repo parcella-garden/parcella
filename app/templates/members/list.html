@@ -9,9 +9,12 @@
         <i class="bi bi-upload me-1"></i>{{ t('members.list.csv_import') }}
     </button>
     {% endif %}
-    <a href="/members/export/csv?search={{ search|urlencode }}&include_inactive={{ 'true' if include_inactive else 'false' }}&pending_only={{ 'true' if pending_only else 'false' }}&active_only={{ 'true' if active_only else 'false' }}&email_info_only={{ 'true' if email_info_only else 'false' }}"
+    <a href="/members/export/csv{% if list_query_string %}?{{ list_query_string }}{% endif %}"
        class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-download me-1"></i>{{ t('members.list.csv_export') }}
+    </a>
+    <a href="/members/tags" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-tags me-1"></i>{{ t('members.tags.manage_link') }}
     </a>
     <a href="/members/signin-sheet" class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-file-earmark-pdf me-1"></i>{{ t('members.list.signin_sheet_link') }}
@@ -75,8 +78,17 @@
                     {{ t('members.list.show_email_info_only') }}
                 </label>
             </div>
+            {% if all_tags %}
+            <select name="tag" class="form-select form-select-sm" style="max-width: 200px;"
+                    aria-label="{{ t('members.tags.filter_label') }}" onchange="this.form.submit()">
+                <option value="">{{ t('members.tags.filter_any') }}</option>
+                {% for option in all_tags %}
+                <option value="{{ option.id }}" {% if option.id == tag %}selected{% endif %}>{{ option.name }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
             <button type="submit" class="btn btn-sm btn-primary">{{ t('members.list.search_button') }}</button>
-            {% if search or include_inactive or pending_only or active_only or email_info_only %}
+            {% if list_query_string %}
             <a href="/members/" class="btn btn-sm btn-outline-secondary">{{ t('members.list.reset_button') }}</a>
             {% endif %}
         </form>
@@ -127,6 +139,10 @@
                                style="color: var(--gv-gruen);">
                                 {{ m.last_name }}, {{ m.first_name }}
                             </a>
+                            {% for member_tag in m.tags %}
+                            <a href="/members/?tag={{ member_tag.id }}" class="badge text-decoration-none ms-1"
+                               style="background: #f3f4f6; color: #374151; font-size: 0.7rem;">{{ member_tag.name }}</a>
+                            {% endfor %}
                         </td>
                         <td class="text-muted">
                             {{ m.member_since.strftime('%d.%m.%Y') if m.member_since else '–' }}

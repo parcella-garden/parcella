@@ -135,9 +135,28 @@ class MemberOut(MemberBase):
     email_addresses: List[EmailAddressOut] = []
 
 
+class MemberTagOut(BaseModel):
+    """A free-form member label (issue #241, ADR 0093)."""
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    name: str
+
+
+class MemberTagAssign(BaseModel):
+    """Tag a member: an existing tag by id, or by name (reuses a tag of
+    that name, any case, or creates it). Exactly one of the two."""
+    tag_id: Optional[str] = None
+    name: Optional[str] = Field(None, max_length=100)
+
+
+class MemberTagRename(BaseModel):
+    name: str = Field(..., max_length=100)
+
+
 class MemberDetailOut(MemberOut):
-    """Extended view including assigned parcels, for GET /members/{id}."""
+    """Extended view including assigned parcels and tags, for GET /members/{id}."""
     parcels: List[MemberAssignmentBrief] = []
+    tags: List[MemberTagOut] = []
 
 
 # ---------------------------------------------------------------------------
