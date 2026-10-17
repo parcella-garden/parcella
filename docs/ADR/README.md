@@ -95,3 +95,4 @@ in chronological order.
 89. [ALTCHA proof of work for the plain-HTML-form endpoints](./0089-altcha-proof-of-work-for-plain-html-forms.md)
 90. [One form contract for every website; the WordPress plugin posts plain forms](./0090-one-form-contract-wordpress-via-plain-forms.md)
 91. [Applicants: hard delete as a deliberate GDPR exception to historization](./0091-applicants-hard-delete-gdpr-exception.md)
+92. [Work hours: who counts as a tenant follows the evaluated year, not today](./0092-work-hours-tenancy-follows-the-evaluated-year.md)

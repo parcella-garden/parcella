@@ -747,3 +747,119 @@ async def test_session_detail_signup_search_includes_name_and_plot_number(client
     assert '"plots": "T001"' in detail.text
     assert 'id="add-participant-search"' in detail.text
     assert '<select name="member_id"' not in detail.text
+
+
+async def test_lease_cancelled_during_the_year_still_counts_in_evaluation(client, admin_user):
+    """Issue #239: cancelling a lease doesn't cancel that year's work
+    hours. A tenancy that ended in June 2026 must still appear in the
+    2026 evaluation with the full requirement (pooled on the parcel in
+    PER_PARCEL mode), marked "lease ended". Leases that ended before the
+    year (issue #206) or start after it stay out."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _erstelle_configuration(client, headers, year=2026, mode="PER_PARCEL")
+
+    async def member(last_name):
+        return (await client.post(
+            "/api/v1/members", json={"first_name": "Test", "last_name": last_name}, headers=headers
+        )).json()
+
+    async def parcel_with(plot_number, *tenancies):
+        parcel = (await client.post("/api/v1/parcels", json={"plot_number": plot_number}, headers=headers)).json()
+        for m, extra in tenancies:
+            response = await client.post(
+                f"/api/v1/parcels/{parcel['id']}/assignments",
+                json={"member_id": m["id"], "parcel_id": parcel["id"], **extra}, headers=headers,
+            )
+            assert response.status_code in (200, 201), response.text
+        return parcel
+
+    leaver = await member("Gekuendigt")
+    successor = await member("Nachfolger")
+    future = await member("Zukunft")
+    await parcel_with("G239A", (leaver, {"assigned_until": "2026-06-30"}))
+    await parcel_with(
+        "G239B",
+        (await member("Vorgaenger"), {"assigned_until": "2026-07-01"}),
+        (successor, {"assigned_from": "2026-07-01"}),
+    )
+    await parcel_with("G239C", (future, {"assigned_from": "2027-01-01"}))
+
+    rows = {row["label"]: row for row in (await client.get("/api/v1/work-hours/evaluation/2026", headers=headers)).json()}
+    assert "G239A" in rows, "a lease cancelled during the year still owes that year's hours"
+    assert float(rows["G239A"]["hours_required"]) == 5.0 and float(rows["G239A"]["hours_open"]) == 5.0
+    assert "G239B" in rows
+    assert "G239C" not in rows, "a lease starting next year owes nothing this year"
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    page = await client.get("/work-hours/evaluation", params={"year": 2026})
+    assert page.status_code == 200
+    assert "Gekuendigt" in page.text and "30.06.2026" in page.text
+    assert "Vorgaenger" in page.text and "Nachfolger" in page.text
+
+
+async def test_lease_cancelled_during_the_year_counts_per_member_and_is_billed(client, admin_user):
+    """Issue #239 in PER_MEMBER mode: the ex-tenant gets their own row,
+    and invoicing (which reads the same evaluation) bills their
+    shortfall. For the year before they left they are an ordinary
+    full-year tenant -- no "lease ended" mark there."""
+    from app.work_hours_evaluation import compute_work_hours_shortfalls
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _erstelle_configuration(client, headers, year=2026, mode="PER_MEMBER")
+    await _erstelle_configuration(client, headers, year=2025, mode="PER_MEMBER")
+
+    leaver = (await client.post(
+        "/api/v1/members", json={"first_name": "Test", "last_name": "Weggezogen"}, headers=headers
+    )).json()
+    parcel = (await client.post("/api/v1/parcels", json={"plot_number": "G239M"}, headers=headers)).json()
+    await client.post(
+        f"/api/v1/parcels/{parcel['id']}/assignments",
+        json={"member_id": leaver["id"], "parcel_id": parcel["id"], "assigned_until": "2026-05-15"},
+        headers=headers,
+    )
+
+    labels = {row["label"] for row in (await client.get("/api/v1/work-hours/evaluation/2026", headers=headers)).json()}
+    assert "Test Weggezogen" in labels
+
+    async with AsyncSessionLocal() as db:
+        mode, _, by_member = await compute_work_hours_shortfalls(db, 2026)
+    assert mode == WorkHoursMode.PER_MEMBER
+    assert by_member[leaver["id"]] == 5.0 * 25.0
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    page_2026 = await client.get("/work-hours/evaluation", params={"year": 2026})
+    assert "15.05.2026" in page_2026.text
+    page_2025 = await client.get("/work-hours/evaluation", params={"year": 2025})
+    assert "Weggezogen" in page_2025.text and "15.05.2026" not in page_2025.text
+
+
+async def test_member_who_moved_plots_mid_year_counts_once(client, admin_user):
+    """Review finding on issue #239: a member who moves from plot A to
+    plot B within the club during the year is a tenant of both for that
+    year, but their hours (and an exemption) are per member -- they must
+    count on B only, not fulfil both plots with one person-year."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _erstelle_configuration(client, headers, year=2026, mode="PER_PARCEL")
+
+    mover = (await client.post(
+        "/api/v1/members", json={"first_name": "Test", "last_name": "Umzug"}, headers=headers
+    )).json()
+    old_plot = (await client.post("/api/v1/parcels", json={"plot_number": "G239X"}, headers=headers)).json()
+    new_plot = (await client.post("/api/v1/parcels", json={"plot_number": "G239Y"}, headers=headers)).json()
+    await client.post(
+        f"/api/v1/parcels/{old_plot['id']}/assignments",
+        json={"member_id": mover["id"], "parcel_id": old_plot["id"], "assigned_until": "2026-06-30"},
+        headers=headers,
+    )
+    await client.post(
+        f"/api/v1/parcels/{new_plot['id']}/assignments",
+        json={"member_id": mover["id"], "parcel_id": new_plot["id"], "assigned_from": "2026-07-01"},
+        headers=headers,
+    )
+
+    labels = {row["label"] for row in (await client.get("/api/v1/work-hours/evaluation/2026", headers=headers)).json()}
+    assert "G239Y" in labels
+    assert "G239X" not in labels, "the plot they left has no other tenant in the year"

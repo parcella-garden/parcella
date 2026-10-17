@@ -1425,7 +1425,8 @@
       "status_fulfilled": "Fulfilled",
       "status_open": "Open",
       "not_yet_assigned": "not yet assigned",
-      "no_data": "No data available – have parcels and members been created?"
+      "no_data": "No data available – have parcels and members been created?",
+      "lease_ended_badge": "lease ended {date}"
     },
     "member_club_role_form": {
       "title": "Edit Assignment",

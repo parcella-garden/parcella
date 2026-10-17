@@ -28,7 +28,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.config import settings
-from app.database import current_tenant_filter
+from app.database import tenant_in_year_filter
 from app.email_service import send_email
 from app.i18n import translate
 from app.models import (
@@ -105,26 +105,77 @@ async def is_exempt(db: AsyncSession, member_id: str, year: int) -> bool:
     return result.scalar_one_or_none() is not None
 
 
+# Parcel statuses the evaluation looks at. TERMINATED is included so a
+# plot given up during the year still shows (and owes) that year's hours
+# (issue #239) -- a parcel with no tenancy in the year is skipped anyway.
+EVALUATED_PARCEL_STATUSES = (ParcelStatus.ACTIVE, ParcelStatus.TERMINATED)
+
+
+def _member_in_year(member: Member, year: int) -> bool:
+    """Not soft-deleted, membership not over before the year began."""
+    return member.deleted_at is None and (
+        member.member_until is None or member.member_until >= date(year, 1, 1)
+    )
+
+
+def _moved_on(assignment: MemberParcel, year: int) -> bool:
+    """Whether this tenancy ended because its member moved to another
+    plot of the club: a later tenancy of theirs on a different parcel
+    also falls in `year`. They owe the year once, on the plot they moved
+    to -- otherwise PER_PARCEL would credit their (per-member) hours and
+    exemption to both plots (review finding on issue #239). Needs the
+    member's parcel_assignments loaded."""
+    if assignment.assigned_until is None:
+        return False
+    return any(
+        other.parcel_id != assignment.parcel_id
+        and other.overlaps_year(year)
+        and (other.assigned_until is None or other.assigned_until > assignment.assigned_until)
+        for other in assignment.member.parcel_assignments
+    )
+
+
+def _lease_ended_on(assignments, year: int) -> Optional[date]:
+    """The day a tenant's lease ended, if it ended within `year` and by
+    today -- the evaluation page marks them "lease ended" (issue #239).
+    None while any of their tenancies in that year is still current or
+    ran past the end of the year (a full-year tenant for that year)."""
+    in_year = [a for a in assignments if a.overlaps_year(year)]
+    cutoff = min(date.today(), date(year, 12, 31))
+    if not in_year or any(a.assigned_until is None or a.assigned_until > cutoff for a in in_year):
+        return None
+    return max(a.assigned_until for a in in_year)
+
+
 async def evaluate_parcel(db: AsyncSession, parcel: Parcel, year: int, *, config: WorkHoursConfiguration) -> Optional[dict]:
     """Evaluates one parcel's standing for PER_PARCEL mode. Returns None
-    if the parcel has no active tenants (vacant, or every tenant
-    inactive) -- skip it, same as every caller always did."""
-    tenants = [
-        z.member for z in parcel.member_assignments
-        if z.is_current
-        and z.member.deleted_at is None
-        and (z.member.member_until is None or z.member.member_until >= date.today())
+    if the parcel had no tenants in `year` -- skip it, same as every
+    caller always did.
+
+    "Tenant" means the tenancy overlaps the evaluated year
+    (MemberParcel.overlaps_year), not "current today" (issue #239): a
+    lease cancelled in June still owes the full year, pooled on the
+    parcel with whoever took it over. A lease that ended before the
+    year began doesn't count (issue #206), nor one its member left for
+    another plot of the club during the year (_moved_on)."""
+    assignments = [
+        z for z in parcel.member_assignments
+        if z.overlaps_year(year) and _member_in_year(z.member, year) and not _moved_on(z, year)
     ]
-    if not tenants:
+    if not assignments:
         return None
 
     total_hours = 0.0
     tenant_details = []
-    for m in tenants:
+    for z in assignments:
+        m = z.member
         hours = await calculate_hours_for_member(db, m.id, year)
         exempt = await is_exempt(db, m.id, year)
         total_hours += hours["total"]
-        tenant_details.append({"member": m, "hours": hours, "exempt": exempt})
+        tenant_details.append({
+            "member": m, "hours": hours, "exempt": exempt,
+            "lease_ended_on": _lease_ended_on([z], year),
+        })
 
     required = float(config.hours_required)
     # Exempt if AT LEAST ONE tenant is exempt (any(), not all() -- see
@@ -159,6 +210,7 @@ async def evaluate_member(db: AsyncSession, member: Member, year: int, *, config
         "member": member,
         "hours": hours,
         "exempt": exempt_flag,
+        "lease_ended_on": _lease_ended_on(member.parcel_assignments, year),
         "required_hours": required,
         "outstanding_hours": outstanding,
         "amount_due": amount_due,
@@ -180,8 +232,12 @@ async def evaluate_year(db: AsyncSession, year: int) -> tuple:
     if config.mode == WorkHoursMode.PER_PARCEL:
         result = await db.execute(
             select(Parcel)
-            .options(selectinload(Parcel.member_assignments).selectinload(MemberParcel.member))
-            .where(Parcel.status == ParcelStatus.ACTIVE)
+            .options(
+                selectinload(Parcel.member_assignments)
+                .selectinload(MemberParcel.member)
+                .selectinload(Member.parcel_assignments)
+            )
+            .where(Parcel.status.in_(EVALUATED_PARCEL_STATUSES))
             .order_by(Parcel.plot_number)
         )
         for parcel in result.scalars().all():
@@ -192,7 +248,11 @@ async def evaluate_year(db: AsyncSession, year: int) -> tuple:
         result = await db.execute(
             select(Member)
             .options(selectinload(Member.parcel_assignments))
-            .where(Member.deleted_at.is_(None), Member.parcel_assignments.any(current_tenant_filter()))
+            .where(
+                Member.deleted_at.is_(None),
+                (Member.member_until.is_(None)) | (Member.member_until >= date(year, 1, 1)),
+                Member.parcel_assignments.any(tenant_in_year_filter(year)),
+            )
             .order_by(Member.last_name, Member.first_name)
         )
         for m in result.scalars().all():

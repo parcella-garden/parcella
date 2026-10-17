@@ -104,6 +104,7 @@
                                 <a href="/members/{{ pd.member.id }}" class="text-decoration-none"
                                    style="color: var(--gv-gruen);">{{ pd.member.full_name }}</a>
                                 {% if pd.exempt %}<span class="badge ms-1" style="background: #dbeafe; color: #1e40af; font-size: 0.7rem;">{{ t('work_hours.evaluation.exempt_badge') }}</span>{% endif %}
+                                {% if pd.lease_ended_on %}<span class="badge ms-1 text-bg-light border" style="font-size: 0.7rem;">{{ t('work_hours.evaluation.lease_ended_badge', date=pd.lease_ended_on.strftime('%d.%m.%Y')) }}</span>{% endif %}
                                 <span class="text-muted">({{ pd.hours.total|number(1) }}h)</span>
                             </div>
                             {% endfor %}
@@ -119,6 +120,7 @@
                         <td>
                             <a href="/members/{{ z.member.id }}" class="text-decoration-none fw-semibold"
                                style="color: var(--gv-gruen);">{{ z.member.full_name }}</a>
+                            {% if z.lease_ended_on %}<span class="badge ms-1 text-bg-light border" style="font-size: 0.7rem;">{{ t('work_hours.evaluation.lease_ended_badge', date=z.lease_ended_on.strftime('%d.%m.%Y')) }}</span>{% endif %}
                         </td>
                         <td>{{ z.required_hours | number(1) }} h</td>
                         <td>{{ z.hours.session_hours|number(1) }} h</td>

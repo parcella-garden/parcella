@@ -1425,7 +1425,8 @@
       "status_fulfilled": "Réalisé",
       "status_open": "Ouvert",
       "not_yet_assigned": "pas encore attribué",
-      "no_data": "Aucune donnée disponible – des parcelles et des membres ont-ils été créés ?"
+      "no_data": "Aucune donnée disponible – des parcelles et des membres ont-ils été créés ?",
+      "lease_ended_badge": "bail terminé le {date}"
     },
     "member_club_role_form": {
       "title": "Modifier l'attribution",

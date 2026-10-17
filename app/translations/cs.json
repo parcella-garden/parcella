@@ -1425,7 +1425,8 @@
       "status_fulfilled": "Splněno",
       "status_open": "Otevřeno",
       "not_yet_assigned": "zatím nepřiděleno",
-      "no_data": "Nejsou k dispozici žádné údaje – byly vytvořeny parcely a členové?"
+      "no_data": "Nejsou k dispozici žádné údaje – byly vytvořeny parcely a členové?",
+      "lease_ended_badge": "pacht ukončen {date}"
     },
     "member_club_role_form": {
       "title": "Upravit přiřazení",

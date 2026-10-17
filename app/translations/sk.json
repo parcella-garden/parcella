@@ -1425,7 +1425,8 @@
       "status_fulfilled": "Splnené",
       "status_open": "Otvorené",
       "not_yet_assigned": "zatiaľ nepriradené",
-      "no_data": "Nie sú k dispozícii žiadne údaje – boli vytvorené parcely a členovia?"
+      "no_data": "Nie sú k dispozícii žiadne údaje – boli vytvorené parcely a členovia?",
+      "lease_ended_badge": "nájom ukončený {date}"
     },
     "member_club_role_form": {
       "title": "Upraviť priradenie",

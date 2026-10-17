@@ -1425,7 +1425,8 @@
       "status_fulfilled": "Voldaan",
       "status_open": "Open",
       "not_yet_assigned": "nog niet toegewezen",
-      "no_data": "Geen gegevens beschikbaar – zijn er percelen en leden aangemaakt?"
+      "no_data": "Geen gegevens beschikbaar – zijn er percelen en leden aangemaakt?",
+      "lease_ended_badge": "pacht beëindigd {date}"
     },
     "member_club_role_form": {
       "title": "Koppeling bewerken",

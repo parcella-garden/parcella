@@ -1425,7 +1425,8 @@
       "status_fulfilled": "Zrealizowane",
       "status_open": "Otwarte",
       "not_yet_assigned": "jeszcze nie przydzielone",
-      "no_data": "Brak danych – czy utworzono działki i członków?"
+      "no_data": "Brak danych – czy utworzono działki i członków?",
+      "lease_ended_badge": "dzierżawa zakończona {date}"
     },
     "member_club_role_form": {
       "title": "Edytuj przypisanie",

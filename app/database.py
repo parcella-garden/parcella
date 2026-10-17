@@ -78,3 +78,20 @@ def current_tenant_filter():
     """
     from app.models import MemberParcel
     return (MemberParcel.assigned_until.is_(None)) | (MemberParcel.assigned_until > _date.today())
+
+
+def tenant_in_year_filter(year: int):
+    """
+    MemberParcel rows that were in effect on at least one day of `year`
+    -- SQL twin of MemberParcel.overlaps_year(), used by the work-hours
+    evaluation (issue #239): a lease cancelled partway through the year
+    still owes that year's hours, so "current today" is the wrong test
+    there.
+
+    Usage: .where(tenant_in_year_filter(2026))
+    """
+    from app.models import MemberParcel
+    return _and_(
+        (MemberParcel.assigned_from.is_(None)) | (MemberParcel.assigned_from <= _date(year, 12, 31)),
+        (MemberParcel.assigned_until.is_(None)) | (MemberParcel.assigned_until > _date(year, 1, 1)),
+    )

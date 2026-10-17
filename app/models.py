@@ -460,6 +460,21 @@ class MemberParcel(Base):
         """
         return self.assigned_until is None or self.assigned_until > date.today()
 
+    def overlaps_year(self, year: int) -> bool:
+        """
+        Whether this tenancy was in effect on at least one day of
+        `year` -- the work-hours evaluation's notion of "tenant"
+        (issue #239): a lease that ends partway through the year still
+        owes that year's hours, unlike is_current, which only knows
+        about today. Same strict ">" for assigned_until as is_current
+        (an assigned_until of Jan 1 means the tenancy was already over
+        on Jan 1). SQL twin: app.database.tenant_in_year_filter().
+        """
+        return (
+            (self.assigned_from is None or self.assigned_from <= date(year, 12, 31))
+            and (self.assigned_until is None or self.assigned_until > date(year, 1, 1))
+        )
+
     __table_args__ = (
         UniqueConstraint("member_id", "parcel_id", name="uq_member_parcel"),
         # ADR 0035's original DB-level backstop here (dropped in

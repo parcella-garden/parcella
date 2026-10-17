@@ -1425,7 +1425,8 @@
       "status_fulfilled": "Erfüllt",
       "status_open": "Offen",
       "not_yet_assigned": "noch nicht vergeben",
-      "no_data": "Keine Daten vorhanden – sind Parzellen und Mitglieder angelegt?"
+      "no_data": "Keine Daten vorhanden – sind Parzellen und Mitglieder angelegt?",
+      "lease_ended_badge": "Pacht beendet {date}"
     },
     "member_club_role_form": {
       "title": "Zuordnung bearbeiten",

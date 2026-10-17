@@ -13,15 +13,12 @@ the result entirely -- see app/invoice_generation.py's
 WORK_HOURS_SHORTFALL pricing mode, which bills exactly this,
 automatically, with no manual scoping).
 """
-from datetime import date
 from typing import Dict, Optional, Tuple
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from app.models import Parcel, ParcelStatus, Member, MemberParcel, WorkHoursMode
-from app.services.work_hours import get_config_for_year, evaluate_parcel, evaluate_member
+from app.models import WorkHoursMode
+from app.services.work_hours import evaluate_year
 
 
 async def compute_work_hours_shortfalls(
@@ -34,35 +31,21 @@ async def compute_work_hours_shortfalls(
     populated, matching whichever mode that year is configured for --
     the other pricing family gets nothing to bill, same as
     /work-hours/evaluation itself only ever shows one table shape per
-    year."""
-    config = await get_config_for_year(db, year)
+    year.
+
+    Takes its rows straight from evaluate_year() -- the exact rows the
+    evaluation page shows -- instead of selecting parcels/members on its
+    own. It used to, and the two selections had drifted (PER_MEMBER here
+    took anyone who ever held a lease); issue #239 then changed who
+    counts as a tenant for a year, which would have had to be repeated
+    here by hand."""
+    config, rows = await evaluate_year(db, year)
     if not config:
         return None, {}, {}
 
+    # Exempt or fully-fulfilled rows are dropped, not billed at 0 --
+    # same rule /work-hours/evaluation itself applies.
+    billable = [row for row in rows if not row["exempt"] and row["amount_due"] > 0]
     if config.mode == WorkHoursMode.PER_PARCEL:
-        result = await db.execute(
-            select(Parcel)
-            .options(selectinload(Parcel.member_assignments).selectinload(MemberParcel.member))
-            .where(Parcel.status == ParcelStatus.ACTIVE)
-        )
-        amounts_by_parcel: Dict[str, float] = {}
-        for parcel in result.scalars().all():
-            row = await evaluate_parcel(db, parcel, year, config=config)
-            # row is None for a vacant parcel (no active tenants); exempt
-            # or fully-fulfilled parcels are dropped, not billed at 0 --
-            # same rule /work-hours/evaluation itself applies.
-            if row is None or row["exempt"] or row["amount_due"] <= 0:
-                continue
-            amounts_by_parcel[parcel.id] = row["amount_due"]
-        return WorkHoursMode.PER_PARCEL, amounts_by_parcel, {}
-
-    result = await db.execute(
-        select(Member).where(Member.deleted_at.is_(None), Member.parcel_assignments.any())
-    )
-    amounts_by_member: Dict[str, float] = {}
-    for member in result.scalars().all():
-        row = await evaluate_member(db, member, year, config=config)
-        if row["exempt"] or row["amount_due"] <= 0:
-            continue
-        amounts_by_member[member.id] = row["amount_due"]
-    return WorkHoursMode.PER_MEMBER, {}, amounts_by_member
+        return WorkHoursMode.PER_PARCEL, {row["parcel"].id: row["amount_due"] for row in billable}, {}
+    return WorkHoursMode.PER_MEMBER, {}, {row["member"].id: row["amount_due"] for row in billable}

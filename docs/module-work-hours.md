@@ -49,6 +49,23 @@ parcel, their hours are added together against the parcel's single
 requirement (not counted individually per person). One tenant might
 contribute 2 hours, the other 3 -- together the 5 hours are fulfilled.
 
+**Who counts as a tenant: the evaluated year, not today (issue #239,
+ADR 0092).** The evaluation counts every tenancy that was in effect on
+at least one day of the evaluated year (`MemberParcel.overlaps_year()`,
+SQL twin `tenant_in_year_filter()` in `app/database.py`) -- not
+`is_current`, which only knows about today. Cancelling a lease doesn't
+cancel that year's hours: a tenant who leaves in June still owes the
+full year. Under PER_PARCEL they stay on the parcel's row, pooled with
+whoever took the plot over (one requirement for the parcel, as always);
+under PER_MEMBER they keep their own row. Either way they get a "lease
+ended dd.mm.yyyy" badge. A lease that ended before the year began
+(issue #206) or starts after it doesn't count; `TERMINATED` parcels are
+evaluated too, as long as some tenancy overlaps the year. Side effect:
+evaluating a past year now uses that year's tenants instead of today's.
+Invoicing's `WORK_HOURS_SHORTFALL` (`app/work_hours_evaluation.py`)
+takes its rows straight from `evaluate_year()`, so it follows the same
+rule.
+
 **Club-role exemption applies to the whole parcel.** If a member is on the
 (extended) board and is therefore exempt from mandatory hours, that
 exemption applies to the **entire parcel**, not just to the exempt
@@ -148,6 +165,20 @@ for the full design, including why it's deliberately scoped to public
 signup only and not staff adding a participant in Parcella itself.
 
 ## Known pitfalls
+
+- **Year-based tenancy, known gaps (ADR 0092).** (1) A member who moved
+  from one plot to another *within the club* during the year counts
+  only on the plot they moved to (`_moved_on()`), but a member holding
+  two plots at once still counts on both, as always. (2) A parcel whose
+  only tenancies in the year have all ended (left, plot not re-let)
+  still shows its shortfall, but PER_PARCEL invoicing can't bill it:
+  parcel invoices go to the *current* invoice-address tenants, and
+  there are none. Bill such a leaver by hand. Re-let plots bill the
+  pooled shortfall to the successor -- the parcel owes the hours once
+  (kermie's call). (3) Soft-deleted members drop out of every
+  evaluation, including years they were tenants in -- end a leaver's
+  membership with `member_until`, don't delete them, if their hours
+  should still be billed.
 
 - `SessionType` and `ParticipationStatus` had to be corrected to uppercase
   after the fact (like several other enums) -- see

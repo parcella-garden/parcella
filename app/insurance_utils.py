@@ -41,8 +41,9 @@ def household_grouping(assignments: List[MemberParcel]) -> dict:
     NOT form a shared household group.
 
     Filters on Member.deleted_at/member_until in addition to
-    MemberParcel.is_current, same as evaluate_parcel() in
-    app/services/work_hours.py -- this used to only feed an
+    MemberParcel.is_current -- deliberately "current today", unlike the
+    work-hours evaluation, which counts every tenancy in the evaluated
+    year (ADR 0092; don't align the two). This used to only feed an
     informational display list, where a stale soft-deleted/departed
     member showing up was cosmetic; now get_or_create_parcel_insurance()
     (app/services/insurance.py) also uses this to seed real
