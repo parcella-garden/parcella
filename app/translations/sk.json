@@ -712,7 +712,9 @@
         "name_too_long": "Názov štítku môže mať najviac {max} znakov.",
         "not_found": "Tento štítok už neexistuje.",
         "name_taken": "Štítok „{name}“ už existuje."
-      }
+      },
+      "new_tags_placeholder": "Nové štítky oddelené čiarkou",
+      "new_tags_hint": "Zaškrtnite existujúce štítky alebo napíšte nové, napr. „zodpovedný za vodu, tím živého plota“."
     }
   },
   "parcels": {

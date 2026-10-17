@@ -712,7 +712,9 @@
         "name_too_long": "Nazwa tagu może mieć maksymalnie {max} znaków.",
         "not_found": "Ten tag już nie istnieje.",
         "name_taken": "Tag o nazwie „{name}” już istnieje."
-      }
+      },
+      "new_tags_placeholder": "Nowe tagi, oddzielone przecinkami",
+      "new_tags_hint": "Zaznacz istniejące tagi lub wpisz nowe, np. „odpowiedzialny za wodę, ekipa od żywopłotu”."
     }
   },
   "parcels": {

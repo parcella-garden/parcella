@@ -36,7 +36,7 @@ from app.meeting_signin_sheet import render_meeting_signin_sheet_pdf
 from app.services.members import (
     create_member, update_member, soft_delete_member,
     add_phone, remove_phone, add_email, remove_email,
-    list_tags, tag_member, untag_member, rename_tag, delete_tag, count_tag_members,
+    list_tags, tag_member, untag_member, rename_tag, delete_tag, count_tag_members, set_member_tags,
 )
 
 router = APIRouter(prefix="/members", tags=["members"])
@@ -151,12 +151,28 @@ async def signin_sheet_generate(request: Request, db: AsyncSession = Depends(get
     )
 
 
+async def _sync_form_tags(request: Request, db: AsyncSession, member_id: str) -> bool:
+    """Applies the member form's tag section, if the form had one
+    (hidden tags_present marker -- a post without it leaves tags alone).
+    Returns False on an invalid new tag name; the caller then saves the
+    rest and sends the user back to the form."""
+    form = await request.form()
+    if form.get("tags_present") != "1":
+        return True
+    try:
+        await set_member_tags(db, member_id, tag_ids=form.getlist("tag_ids"), new_names=form.get("new_tags", ""))
+    except ServiceError:
+        await db.commit()
+        return False
+    return True
+
+
 @router.get("/new", response_class=HTMLResponse)
 async def member_new_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "members_parcels", "write")
     return templates.TemplateResponse(
         "members/form.html",
-        {"request": request, "user": user, "member": None},
+        {"request": request, "user": user, "member": None, "all_tags": await list_tags(db)},
     )
 
 
@@ -199,6 +215,8 @@ async def member_create(
         await add_email(db, member.id, address=email.strip(), is_primary=True)
     if phone.strip():
         await add_phone(db, member.id, number=phone.strip(), is_primary=True)
+    if not await _sync_form_tags(request, db, member.id):
+        return RedirectResponse(f"/members/{member.id}/edit", status_code=303)
     await db.commit()
 
     return RedirectResponse(f"/members/{member.id}", status_code=302)
@@ -354,7 +372,7 @@ async def member_edit_page(
 
     return templates.TemplateResponse(
         "members/form.html",
-        {"request": request, "user": user, "member": member},
+        {"request": request, "user": user, "member": member, "all_tags": await list_tags(db)},
     )
 
 
@@ -396,6 +414,8 @@ async def member_update(
         iban=iban, member_since=parse_date(member_since), member_until=parse_date(member_until),
         email_notifications=email_notifications, notes=notes,
     )
+    if not await _sync_form_tags(request, db, member_id):
+        return RedirectResponse(f"/members/{member_id}/edit", status_code=303)
     await db.commit()
     return RedirectResponse(f"/members/{member_id}", status_code=302)
 

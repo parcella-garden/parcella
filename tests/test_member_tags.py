@@ -126,3 +126,33 @@ def test_member_list_filter_round_trips():
     assert MemberListFilter.from_dict({**f.to_dict(), "gone_field": 1}) == f
     assert f.query_string() == "search=Aal&active_only=true&tag=abc"
     assert MemberListFilter().is_empty() and not f.is_empty()
+
+
+async def test_tags_on_the_member_create_and_edit_forms(client, admin_user):
+    """Follow-up to #241: the edit form is where people look for tags."""
+    await web_login(client, "admin@example.com")
+    [anna] = await _members(("Anna", "Aal"))
+    await client.post(f"/members/{anna}/tags/add", data={"name": "Vorstand"})
+    async with AsyncSessionLocal() as db:
+        board = (await db.scalars(select(MemberTag))).one().id
+
+    edit = await client.get(f"/members/{anna}/edit")
+    assert edit.status_code == 200 and f'value="{board}"' in edit.text
+
+    base = {"first_name": "Anna", "last_name": "Aal", "tags_present": "1"}
+    # Untick "Vorstand", add two new ones; one reuses a name in other case.
+    response = await client.post(f"/members/{anna}/edit", data={**base, "new_tags": "Wasser, hecke ,"})
+    assert response.status_code == 302
+    assert sorted(await _tags_of(anna)) == ["Wasser", "hecke"]
+
+    # A post without the tag section (no marker) leaves tags alone.
+    await client.post(f"/members/{anna}/edit", data={"first_name": "Anna", "last_name": "Aal"})
+    assert len(await _tags_of(anna)) == 2
+
+    created = await client.post("/members/new", data={
+        "first_name": "Neu", "last_name": "Mitglied", "tags_present": "1", "tag_ids": board, "new_tags": "WASSER",
+    })
+    assert created.status_code == 302
+    new_id = created.headers["location"].rsplit("/", 1)[1]
+    assert sorted(await _tags_of(new_id)) == ["Vorstand", "Wasser"]
+    assert (await client.get("/members/new")).status_code == 200

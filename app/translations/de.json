@@ -712,7 +712,9 @@
         "name_too_long": "Ein Tag-Name darf höchstens {max} Zeichen lang sein.",
         "not_found": "Diesen Tag gibt es nicht mehr.",
         "name_taken": "Es gibt bereits einen Tag „{name}“."
-      }
+      },
+      "new_tags_placeholder": "Neue Tags, durch Komma getrennt",
+      "new_tags_hint": "Vorhandene Tags anhaken oder neue eintippen, z. B. „Wasserverantwortlicher, Heckenteam“."
     }
   },
   "parcels": {

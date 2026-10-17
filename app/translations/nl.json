@@ -712,7 +712,9 @@
         "name_too_long": "Een tagnaam mag maximaal {max} tekens hebben.",
         "not_found": "Deze tag bestaat niet meer.",
         "name_taken": "Er bestaat al een tag \"{name}\"."
-      }
+      },
+      "new_tags_placeholder": "Nieuwe tags, gescheiden door komma's",
+      "new_tags_hint": "Vink bestaande tags aan of typ nieuwe, bijv. \"waterverantwoordelijke, hagenteam\"."
     }
   },
   "parcels": {

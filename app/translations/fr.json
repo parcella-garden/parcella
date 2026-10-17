@@ -712,7 +712,9 @@
         "name_too_long": "Un nom d'étiquette peut compter au maximum {max} caractères.",
         "not_found": "Cette étiquette n'existe plus.",
         "name_taken": "Une étiquette « {name} » existe déjà."
-      }
+      },
+      "new_tags_placeholder": "Nouvelles étiquettes, séparées par des virgules",
+      "new_tags_hint": "Cochez des étiquettes existantes ou saisissez-en de nouvelles, p. ex. « responsable de l'eau, équipe haies »."
     }
   },
   "parcels": {

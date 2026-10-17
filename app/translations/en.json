@@ -712,7 +712,9 @@
         "name_too_long": "A tag name can have at most {max} characters.",
         "not_found": "This tag no longer exists.",
         "name_taken": "A tag called \"{name}\" already exists."
-      }
+      },
+      "new_tags_placeholder": "New tags, comma-separated",
+      "new_tags_hint": "Tick existing tags or type new ones, e.g. \"water responsible, hedge team\"."
     }
   },
   "parcels": {

@@ -217,6 +217,30 @@ async def tag_member(
     return tag
 
 
+async def set_member_tags(
+    db: AsyncSession, member_id: str, *, tag_ids: list[str], new_names: str = "",
+) -> None:
+    """The member form's tag section (issue #241 follow-up): the member
+    ends up with exactly the ticked existing tags plus the typed new
+    ones (comma-separated; an existing name, any case, is reused)."""
+    wanted = {tag_id for tag_id in tag_ids if tag_id}
+    for name in (new_names or "").split(","):
+        if name.strip():
+            tag = await _tag_by_name(db, _clean_tag_name(name))
+            if tag is None:
+                tag = MemberTag(name=_clean_tag_name(name))
+                db.add(tag)
+                await db.flush()
+            wanted.add(tag.id)
+    existing = set((await db.scalars(
+        select(member_tag_links.c.tag_id).where(member_tag_links.c.member_id == member_id)
+    )).all())
+    for tag_id in existing - wanted:
+        await untag_member(db, member_id, tag_id)
+    for tag_id in wanted - existing:
+        await tag_member(db, member_id, tag_id=tag_id)
+
+
 async def untag_member(db: AsyncSession, member_id: str, tag_id: str) -> bool:
     """Deletes the link row (no historization for labels, ADR 0093).
     The tag itself stays, even if no member carries it any more."""

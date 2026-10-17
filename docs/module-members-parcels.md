@@ -164,6 +164,10 @@ Free-form labels on members -- "water responsible", "extended board",
   otherwise a new one is created. The datalist offers the existing ones.
   Removing a tag from a member deletes the link row: labels aren't
   club history, so ADR 0005's historization doesn't apply.
+- **On the member forms** (new and edit): existing tags as checkboxes
+  plus a comma-separated field for new ones; saving syncs the member's
+  tags to that selection (`set_member_tags()`). A hidden `tags_present`
+  marker guards it, so a post without the tag section never clears tags.
 - **Managing**: `/members/tags` lists every tag with its member count;
   rename (refused if it would collide with another tag) or delete
   (removes it from every member; needs `members_parcels` delete).
@@ -186,7 +190,7 @@ detail page's Previous/Next and the query-string builder. They're one
 can be stored (messages to filtered members, issue #242). A new filter
 is one field plus a clause in `apply()`.
 
-Known gaps: no colors, no tag on the member edit form or CSV *import*,
+Known gaps: no colors, no tags in the CSV *import*,
 the filter takes one tag at a time (no "A and B").
 
 ## General-meeting sign-in sheet
