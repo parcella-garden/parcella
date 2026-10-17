@@ -2615,7 +2615,8 @@
       "applied_at": "Aangemeld op",
       "source": "Bron",
       "consent_at": "Toestemming gegeven",
-      "status_changed_at": "Status gewijzigd"
+      "status_changed_at": "Status gewijzigd",
+      "applied_at_hint": "Leeg laten voor vandaag. Pas aan om een oudere aanmelding in te voeren, bijv. van een papieren wachtlijst -- die bepaalt de volgorde."
     },
     "status": {
       "NEW": "Nieuw",
@@ -2646,7 +2647,9 @@
       "delete_confirm": "Deze aanmelder definitief verwijderen? Dit kan niet ongedaan worden gemaakt."
     },
     "errors": {
-      "invalid_email": "Vul een geldig e-mailadres in."
+      "invalid_email": "Vul een geldig e-mailadres in.",
+      "invalid_applied_at": "Voer een geldige aanmeldingsdatum in.",
+      "applied_at_in_future": "De aanmeldingsdatum kan niet in de toekomst liggen."
     }
   }
 }

@@ -2615,7 +2615,8 @@
       "applied_at": "Data zgłoszenia",
       "source": "Źródło",
       "consent_at": "Zgoda udzielona",
-      "status_changed_at": "Zmiana statusu"
+      "status_changed_at": "Zmiana statusu",
+      "applied_at_hint": "Pozostaw puste, aby użyć dzisiejszej daty. Zmień ją, aby wprowadzić starsze zgłoszenie, np. z papierowej listy oczekujących -- decyduje o kolejności."
     },
     "status": {
       "NEW": "Nowe",
@@ -2646,7 +2647,9 @@
       "delete_confirm": "Trwale usunąć tego kandydata? Tego nie można cofnąć."
     },
     "errors": {
-      "invalid_email": "Podaj prawidłowy adres e-mail."
+      "invalid_email": "Podaj prawidłowy adres e-mail.",
+      "invalid_applied_at": "Podaj prawidłową datę zgłoszenia.",
+      "applied_at_in_future": "Data zgłoszenia nie może być w przyszłości."
     }
   }
 }

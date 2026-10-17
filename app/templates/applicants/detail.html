@@ -84,9 +84,18 @@
                 {% for entry in history %}
                 <li class="list-group-item" style="font-size: 0.85rem;">
                     <span class="text-muted">{{ entry.changed_at.strftime('%d.%m.%Y %H:%M') }}{% if entry.changed_by %} · {{ entry.changed_by.name }}{% endif %}</span><br>
+                    {% if entry.field_name == 'applied_at' %}
+                    {#- Stored as str(datetime): "YYYY-MM-DD HH:MM:SS+00:00". -#}
+                    {{ t('applicants.fields.applied_at') }}:
+                    {% for value in (entry.old_value, entry.new_value) %}
+                    {%- if value %}{{ value[8:10] }}.{{ value[5:7] }}.{{ value[0:4] }}{% else %}–{% endif %}
+                    {%- if loop.first %} <i class="bi bi-arrow-right mx-1"></i> {% endif %}
+                    {%- endfor %}
+                    {% else %}
                     {{ t('applicants.status.' ~ entry.old_value) if entry.old_value else '–' }}
                     <i class="bi bi-arrow-right mx-1"></i>
                     {{ t('applicants.status.' ~ entry.new_value) if entry.new_value else '–' }}
+                    {% endif %}
                 </li>
                 {% else %}
                 <li class="list-group-item text-muted" style="font-size: 0.85rem;">{{ t('applicants.detail.history_empty') }}</li>

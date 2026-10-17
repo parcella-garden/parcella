@@ -87,8 +87,8 @@ async def applicant_update(
 ):
     applicant = await _get_or_404(db, applicant_id)
     changes = payload.model_dump(exclude_unset=True)
-    if changes.get("email", "") is None or changes.get("status", "") is None:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="email and status can't be null")
+    if any(changes.get(field, "") is None for field in ("email", "status", "applied_at")):
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="email, status and applied_at can't be null")
     try:
         return await update_applicant(db, applicant, changed_by_id=user.id, **changes)
     except ServiceError as e:

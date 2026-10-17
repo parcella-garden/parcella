@@ -36,13 +36,22 @@ applicants   – one row per application: contact data, status, board note, time
 - `consent_at` -- when the applicant ticked the data-protection box.
   Set for every public submission (consent is required there); empty
   for manual entries.
-- `applied_at`, `status_changed_at`, `updated_at`, `created_by_id`
-  (manual entries).
+- `applied_at` -- decides the waiting-list order. Set to "now" on
+  creation, but the board can set or correct it by hand (issue #240),
+  both on the "new" form and on the detail page, and through the API --
+  needed to enter older applications from a paper waiting list. The
+  HTML form only carries a date: re-saving the same day keeps the
+  original time of a web application, a different day is stored as
+  midnight UTC (the zone every `applied_at` is displayed in). Future
+  dates are refused. Logic in `parse_applied_at()`,
+  `app/services/applicants.py`.
+- `status_changed_at`, `updated_at`, `created_by_id` (manual entries).
 
-Status changes go to the generic `change_history` table
-(`entity_type="Applicant"`) and show up on the detail page. Contact data
-and the board note aren't tracked -- they're edited freely and would only
-add noise.
+Status and application-date changes go to the generic `change_history`
+table (`entity_type="Applicant"`) and show up on the detail page -- the
+date because it moves someone up or down the queue. Contact data and the
+board note aren't tracked -- they're edited freely and would only add
+noise.
 
 ## Key decisions
 

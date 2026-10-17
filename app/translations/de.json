@@ -2615,7 +2615,8 @@
       "applied_at": "Beworben am",
       "source": "Herkunft",
       "consent_at": "Einwilligung erteilt",
-      "status_changed_at": "Status geändert"
+      "status_changed_at": "Status geändert",
+      "applied_at_hint": "Leer lassen für heute. Für ältere Bewerbungen, z. B. von einer Warteliste auf Papier, hier das ursprüngliche Datum eintragen -- es bestimmt die Reihenfolge."
     },
     "status": {
       "NEW": "Neu",
@@ -2646,7 +2647,9 @@
       "delete_confirm": "Diesen Bewerber endgültig löschen? Das lässt sich nicht rückgängig machen."
     },
     "errors": {
-      "invalid_email": "Bitte eine gültige E-Mail-Adresse eingeben."
+      "invalid_email": "Bitte eine gültige E-Mail-Adresse eingeben.",
+      "invalid_applied_at": "Bitte ein gültiges Bewerbungsdatum eingeben.",
+      "applied_at_in_future": "Das Bewerbungsdatum darf nicht in der Zukunft liegen."
     }
   }
 }

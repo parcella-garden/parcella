@@ -807,6 +807,9 @@ class ApplicantCreate(BaseModel):
     phone: Optional[str] = None
     message: Optional[str] = None
     board_note: Optional[str] = None
+    # Defaults to now; set it when entering an older application from a
+    # paper waiting list (issue #240). Not in the future.
+    applied_at: Optional[datetime] = None
 
 
 class ApplicantUpdate(BaseModel):
@@ -818,6 +821,7 @@ class ApplicantUpdate(BaseModel):
     message: Optional[str] = None
     board_note: Optional[str] = None
     status: Optional[ApplicantStatus] = None
+    applied_at: Optional[datetime] = None
 
 
 class ApplicantOut(BaseModel):

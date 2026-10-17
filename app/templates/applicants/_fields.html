@@ -16,6 +16,16 @@
         <label class="form-label fw-semibold" for="applicant-phone">{{ t('applicants.fields.phone') }}</label>
         <input type="tel" id="applicant-phone" name="phone" class="form-control" value="{{ values.phone or '' }}">
     </div>
+    <div class="col-sm-6">
+        {#- The detail page passes the Applicant itself (a datetime), the
+            "new" form a dict of what was typed (a string or nothing). -#}
+        {%- set applied = values.applied_at -%}
+        <label class="form-label fw-semibold" for="applicant-applied-at">{{ t('applicants.fields.applied_at') }}</label>
+        <input type="date" id="applicant-applied-at" name="applied_at" class="form-control"
+               max="{{ today.isoformat() }}"
+               value="{{ applied.strftime('%Y-%m-%d') if applied and applied.strftime is defined else (applied or '') }}">
+        <div class="form-text">{{ t('applicants.fields.applied_at_hint') }}</div>
+    </div>
     <div class="col-12">
         <label class="form-label fw-semibold" for="applicant-message">{{ t('applicants.fields.message') }}</label>
         <textarea id="applicant-message" name="message" class="form-control" rows="3">{{ values.message or '' }}</textarea>

@@ -2615,7 +2615,8 @@
       "applied_at": "Přihlášeno",
       "source": "Zdroj",
       "consent_at": "Souhlas udělen",
-      "status_changed_at": "Stav změněn"
+      "status_changed_at": "Stav změněn",
+      "applied_at_hint": "Ponechte prázdné pro dnešní datum. Změňte ho při zadávání starší žádosti, např. z papírového pořadníku -- určuje pořadí."
     },
     "status": {
       "NEW": "Nová",
@@ -2646,7 +2647,9 @@
       "delete_confirm": "Trvale smazat tohoto uchazeče? Nelze vrátit zpět."
     },
     "errors": {
-      "invalid_email": "Zadejte prosím platnou e-mailovou adresu."
+      "invalid_email": "Zadejte prosím platnou e-mailovou adresu.",
+      "invalid_applied_at": "Zadejte platné datum žádosti.",
+      "applied_at_in_future": "Datum žádosti nesmí být v budoucnosti."
     }
   }
 }

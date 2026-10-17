@@ -2615,7 +2615,8 @@
       "applied_at": "Prihlásené",
       "source": "Zdroj",
       "consent_at": "Súhlas udelený",
-      "status_changed_at": "Stav zmenený"
+      "status_changed_at": "Stav zmenený",
+      "applied_at_hint": "Nechajte prázdne pre dnešný dátum. Zmeňte ho pri zadávaní staršej žiadosti, napr. z papierového poradovníka -- určuje poradie."
     },
     "status": {
       "NEW": "Nová",
@@ -2646,7 +2647,9 @@
       "delete_confirm": "Natrvalo zmazať tohto uchádzača? Nedá sa vrátiť späť."
     },
     "errors": {
-      "invalid_email": "Zadajte, prosím, platnú e-mailovú adresu."
+      "invalid_email": "Zadajte, prosím, platnú e-mailovú adresu.",
+      "invalid_applied_at": "Zadajte platný dátum žiadosti.",
+      "applied_at_in_future": "Dátum žiadosti nesmie byť v budúcnosti."
     }
   }
 }

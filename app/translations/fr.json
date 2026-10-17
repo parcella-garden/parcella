@@ -2615,7 +2615,8 @@
       "applied_at": "Candidature",
       "source": "Origine",
       "consent_at": "Consentement donné",
-      "status_changed_at": "Statut modifié"
+      "status_changed_at": "Statut modifié",
+      "applied_at_hint": "Laisser vide pour aujourd'hui. Modifiez-la pour saisir une candidature plus ancienne, p. ex. d'une liste d'attente papier -- elle détermine l'ordre."
     },
     "status": {
       "NEW": "Nouvelle",
@@ -2646,7 +2647,9 @@
       "delete_confirm": "Supprimer définitivement ce candidat ? Action irréversible."
     },
     "errors": {
-      "invalid_email": "Veuillez saisir une adresse e-mail valide."
+      "invalid_email": "Veuillez saisir une adresse e-mail valide.",
+      "invalid_applied_at": "Veuillez saisir une date de candidature valide.",
+      "applied_at_in_future": "La date de candidature ne peut pas être dans le futur."
     }
   }
 }

@@ -287,3 +287,63 @@ async def test_rest_api_crud(client, admin_user):
     assert (await client.get(f"/api/v1/applicants/{applicant_id}", headers=headers)).json()["board_note"] == "Garten 62"
     assert (await client.delete(f"/api/v1/applicants/{applicant_id}", headers=headers)).status_code == 204
     assert (await client.get(f"/api/v1/applicants/{applicant_id}", headers=headers)).status_code == 404
+
+
+async def test_board_can_adapt_the_application_date(client, admin_user):
+    """Issue #240: the board enters older applications from a paper
+    waiting list, so the application date -- which decides the order --
+    must be editable, on creation and afterwards."""
+    from datetime import date, datetime, timedelta, timezone
+
+    await web_login(client)
+    response = await client.post("/applicants/new", data={"email": "paper@example.org", "applied_at": "2024-03-15"})
+    assert response.status_code == 303
+    [applicant] = await _applicants()
+    assert applicant.applied_at == datetime(2024, 3, 15, tzinfo=timezone.utc)
+
+    # A web application keeps its exact time when the form is re-saved
+    # unchanged (the date input only carries the day).
+    web_time = datetime(2025, 6, 1, 14, 37, tzinfo=timezone.utc)
+    web_id = await _create_applicant(email="web@example.org", applied_at=web_time)
+    base = {"email": "web@example.org", "first_name": "", "last_name": "", "phone": "", "message": "", "board_note": ""}
+    assert (await client.post(f"/applicants/{web_id}/edit", data={**base, "applied_at": "2025-06-01"})).status_code == 303
+    async with AsyncSessionLocal() as db:
+        assert (await db.get(Applicant, web_id)).applied_at == web_time
+
+    assert (await client.post(f"/applicants/{web_id}/edit", data={**base, "applied_at": "2023-01-10"})).status_code == 303
+    async with AsyncSessionLocal() as db:
+        assert (await db.get(Applicant, web_id)).applied_at == datetime(2023, 1, 10, tzinfo=timezone.utc)
+        history = (await db.execute(select(ChangeHistory).where(ChangeHistory.entity_id == web_id))).scalars().all()
+    assert [h.field_name for h in history] == ["applied_at"]
+    detail = await client.get(f"/applicants/{web_id}")
+    assert detail.status_code == 200 and "01.06.2025" in detail.text and "10.01.2023" in detail.text
+
+    # The corrected date moves the applicant to the front of the queue.
+    assert [a.email for a in await _applicants()] == ["web@example.org", "paper@example.org"]
+
+    tomorrow = (date.today() + timedelta(days=1)).isoformat()
+    assert (await client.post(f"/applicants/{web_id}/edit", data={**base, "applied_at": tomorrow})).status_code == 400
+    assert (await client.post("/applicants/new", data={"email": "x@example.org", "applied_at": "15.03.2024"})).status_code == 400
+
+
+async def test_rest_api_sets_the_application_date(client, admin_user):
+    headers = auth_header(await login(client, "admin@example.com"))
+    created = await client.post(
+        "/api/v1/applicants", json={"email": "api@example.org", "applied_at": "2022-05-04T09:30:00+00:00"}, headers=headers,
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["applied_at"].startswith("2022-05-04T09:30:00")
+
+    applicant_id = created.json()["id"]
+    updated = await client.patch(f"/api/v1/applicants/{applicant_id}", json={"applied_at": "2021-01-02T00:00:00Z"}, headers=headers)
+    assert updated.status_code == 200, updated.text
+    assert updated.json()["applied_at"].startswith("2021-01-02T00:00:00")
+
+    # Same instant with another offset: no change, so no audit entry.
+    same = await client.patch(f"/api/v1/applicants/{applicant_id}", json={"applied_at": "2021-01-02T02:00:00+02:00"}, headers=headers)
+    assert same.status_code == 200, same.text
+    async with AsyncSessionLocal() as db:
+        history = (await db.execute(select(ChangeHistory).where(ChangeHistory.entity_id == applicant_id))).scalars().all()
+    assert len(history) == 1
+
+    assert (await client.patch(f"/api/v1/applicants/{applicant_id}", json={"applied_at": None}, headers=headers)).status_code == 422

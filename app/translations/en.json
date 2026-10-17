@@ -2615,7 +2615,8 @@
       "applied_at": "Applied",
       "source": "Source",
       "consent_at": "Consent given",
-      "status_changed_at": "Status changed"
+      "status_changed_at": "Status changed",
+      "applied_at_hint": "Leave blank for today. Change it to enter an older application, e.g. from a paper waiting list -- it decides the order."
     },
     "status": {
       "NEW": "New",
@@ -2646,7 +2647,9 @@
       "delete_confirm": "Delete this applicant for good? This can't be undone."
     },
     "errors": {
-      "invalid_email": "Please enter a valid email address."
+      "invalid_email": "Please enter a valid email address.",
+      "invalid_applied_at": "Please enter a valid application date.",
+      "applied_at_in_future": "The application date can't be in the future."
     }
   }
 }

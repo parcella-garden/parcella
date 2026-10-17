@@ -12,6 +12,8 @@ historization).
 The public side -- the application form on the club website -- lives in
 app/routers/api_public.py, behind its own module flag.
 """
+from datetime import date
+
 from fastapi import APIRouter, Request, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -55,7 +57,7 @@ async def _get_or_404(db: AsyncSession, applicant_id: str) -> Applicant:
 
 
 def _form_values(form) -> dict:
-    return {field: form.get(field) for field in ("email", "first_name", "last_name", "phone", "message", "board_note")}
+    return {field: form.get(field) for field in ("email", "first_name", "last_name", "phone", "message", "board_note", "applied_at")}
 
 
 # ---------------------------------------------------------------------------
@@ -99,7 +101,7 @@ async def applicants_list(request: Request, filter: str = "open", db: AsyncSessi
 async def applicant_new_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "applicants", "write")
     return templates.TemplateResponse("applicants/form.html", {
-        "request": request, "user": user, "values": {},
+        "request": request, "user": user, "values": {}, "today": date.today(),
     })
 
 
@@ -113,7 +115,7 @@ async def applicant_create(request: Request, db: AsyncSession = Depends(get_db))
         )
     except ServiceError as e:
         return templates.TemplateResponse("applicants/form.html", {
-            "request": request, "user": user, "values": values, "error": e.key,
+            "request": request, "user": user, "values": values, "error": e.key, "today": date.today(),
         }, status_code=e.http_status)
     return RedirectResponse(url=f"/applicants/{applicant.id}", status_code=303)
 
@@ -137,7 +139,7 @@ async def _detail_context(request, db, user, applicant, error=None) -> dict:
     return {
         "request": request, "user": user, "applicant": applicant,
         "other_applications": others, "history": history,
-        "statuses": list(ApplicantStatus), "error": error,
+        "statuses": list(ApplicantStatus), "error": error, "today": date.today(),
     }
 
 
