@@ -605,7 +605,8 @@
       "map_field_phone_numbers": "Telefónne čísla",
       "map_field_notes": "Poznámky",
       "csv_mapping_required_error": "Pred importom prosím priraďte stĺpce mena a priezviska.",
-      "csv_empty_error": "Tento súbor CSV sa zdá byť prázdny."
+      "csv_empty_error": "Tento súbor CSV sa zdá byť prázdny.",
+      "write_to_members": "Napísať týmto členom ({count})"
     },
     "form": {
       "title_edit": "Upraviť {name}",
@@ -1849,7 +1850,24 @@
       "update_blog_button": "Aktualizovať príspevok WordPress",
       "update_blog_confirm": "Prepísať názov, text a obrázok existujúceho príspevku WordPress? Úpravy textu vykonané priamo vo WordPresse sa stratia; nastavenia SEO, kategórie a stav publikovania zostanú zachované.",
       "print_download_link": "Stiahnuť",
-      "print_qr_pending_hint": "Text bol skrátený bez QR kódu, pretože príspevok na blogu ešte nebol verejný. Keď bude vo WordPresse publikovaný, vytvorte PDF znova a QR kód sa pridá."
+      "print_qr_pending_hint": "Text bol skrátený bez QR kódu, pretože príspevok na blogu ešte nebol verejný. Keď bude vo WordPresse publikovaný, vytvorte PDF znova a QR kód sa pridá.",
+      "channel_letter": "Listy"
+    },
+    "audience": {
+      "header": "Správa pre členov: {count}",
+      "show_list": "Zobraziť týchto členov",
+      "filter_label": "Výber:",
+      "filter_none": "všetci aktívni členovia",
+      "by_email": "E-mailom: {count}",
+      "by_letter": "Listom: {count}",
+      "unreachable": "Nedosiahnuteľní: {count} (bez e-mailu aj poštovej adresy)",
+      "letters_for_all": "Poslať list aj členom, ktorí dostanú e-mail",
+      "hint": "Príjemcovia sa určia znova pri odoslaní podľa vyššie zobrazeného filtra zoznamu členov. Nastavenie „e-mailové informácie“ členov sa na takúto správu nevzťahuje.",
+      "send_email_confirm": "Odoslať túto správu teraz e-mailom členom ({count})? Nedá sa to vrátiť späť.",
+      "channel_letter": "Listy",
+      "letter_hint": "Jedno PDF s listom pre každého príjemcu, do obálok s okienkom. Vytvorí sa po kliknutí, neukladá sa.",
+      "letter_button": "Vytvoriť listy ({count})",
+      "list_badge": "Vybraní členovia"
     }
   },
   "inventory": {

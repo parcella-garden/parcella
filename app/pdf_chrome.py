@@ -178,6 +178,34 @@ body {{ margin: 0; font-family: 'DejaVu Sans', sans-serif; color: #1f2937; font-
 """
 
 
+# DIN 5008 Form A address window, shared by every document that goes out
+# in a windowed envelope (invoices, reminders, announcement letters --
+# issue #242). Append to a document's extra_css. Page margin-top is
+# 2.2cm, so the 0.5cm padding-top here lands the sender line at 2.7cm
+# from the page edge and the 1.8cm sender-line box ends exactly at
+# 4.5cm, where the Anschriftzone (recipient address) must start;
+# padding-left 0.5cm plus the 1.5cm page margin lands the whole
+# window's left edge at the standard 2.0cm.
+ADDRESS_WINDOW_CSS = """
+.address-window { width: 8.5cm; padding-top: 0.5cm; padding-left: 0.5cm; box-sizing: content-box; }
+.sender-line {
+    height: 1.8cm; display: flex; align-items: flex-end;
+    font-size: 7.5pt; color: #4b5563; border-bottom: 0.5pt solid #9ca3af;
+    margin-bottom: 2pt;
+}
+.recipient { white-space: pre-line; line-height: 1.5; }
+"""
+
+
+def sender_line(club_name: str, club_address_lines: List[str]) -> str:
+    """The DIN 5008 Form A "Einzeilige Rücksendeangabe" -- the club's
+    own name/address compressed onto one small line, printed directly
+    above the recipient's address so it stays visible through a
+    windowed envelope (and tells the recipient/post office who to
+    return the letter to)."""
+    return " · ".join(filter(None, [club_name, *club_address_lines]))
+
+
 def header_html(club_name: str, logo_path: Optional[Path]) -> str:
     logo_data_uri = file_to_data_uri(logo_path)
     logo_block = f'<img src="{logo_data_uri}">' if logo_data_uri else ""

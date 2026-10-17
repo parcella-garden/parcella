@@ -13,6 +13,12 @@
        class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-download me-1"></i>{{ t('members.list.csv_export') }}
     </a>
+    {#- Only for a filtered list: "everyone" is club news, which honours the email-info opt-out. -#}
+    {% if request.state.module_flags.announcements and is_full_access(request) and members and list_query_string %}
+    <a href="/announcements/new?audience=1&amp;audience_query={{ list_query_string|urlencode }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-envelope-paper me-1"></i>{{ t('members.list.write_to_members', count=members|length) }}
+    </a>
+    {% endif %}
     <a href="/members/tags" class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-tags me-1"></i>{{ t('members.tags.manage_link') }}
     </a>

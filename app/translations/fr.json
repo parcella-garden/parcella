@@ -605,7 +605,8 @@
       "map_field_phone_numbers": "Numéros de téléphone",
       "map_field_notes": "Notes",
       "csv_mapping_required_error": "Veuillez associer les colonnes du prénom et du nom avant d'importer.",
-      "csv_empty_error": "Ce fichier CSV semble vide."
+      "csv_empty_error": "Ce fichier CSV semble vide.",
+      "write_to_members": "Écrire à ces {count} membres"
     },
     "form": {
       "title_edit": "Modifier {name}",
@@ -1849,7 +1850,24 @@
       "update_blog_button": "Mettre à jour l'article WordPress",
       "update_blog_confirm": "Écraser le titre, le texte et l'image de l'article WordPress existant ? Les modifications de texte faites directement dans WordPress seront perdues ; les réglages SEO, les catégories et le statut de publication sont conservés.",
       "print_download_link": "Télécharger",
-      "print_qr_pending_hint": "Le texte a été raccourci sans code QR car l'article de blog n'était pas encore public. Une fois publié dans WordPress, générez à nouveau le PDF pour ajouter le code QR."
+      "print_qr_pending_hint": "Le texte a été raccourci sans code QR car l'article de blog n'était pas encore public. Une fois publié dans WordPress, générez à nouveau le PDF pour ajouter le code QR.",
+      "channel_letter": "Courriers"
+    },
+    "audience": {
+      "header": "Message à {count} membre(s)",
+      "show_list": "Afficher ces membres",
+      "filter_label": "Sélection :",
+      "filter_none": "tous les membres actifs",
+      "by_email": "{count} par e-mail",
+      "by_letter": "{count} par courrier",
+      "unreachable": "{count} injoignable(s) (ni adresse e-mail ni adresse postale)",
+      "letters_for_all": "Envoyer aussi un courrier aux membres qui reçoivent l'e-mail",
+      "hint": "Les destinataires sont recalculés à l'envoi, d'après le filtre de la liste des membres affiché ci-dessus. Le réglage « info par e-mail » des membres ne s'applique pas à ce type de message.",
+      "send_email_confirm": "Envoyer maintenant ce message par e-mail à {count} membre(s) ? C'est irréversible.",
+      "channel_letter": "Courriers",
+      "letter_hint": "Un PDF avec un courrier par destinataire, pour enveloppes à fenêtre. Créé au clic, jamais enregistré.",
+      "letter_button": "Créer {count} courrier(s)",
+      "list_badge": "Membres filtrés"
     }
   },
   "inventory": {

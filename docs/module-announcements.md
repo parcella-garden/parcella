@@ -14,6 +14,10 @@ announcement_deliveries   -- one row per (announcement, channel) send attempt
 
 `Announcement` fields worth calling out:
 
+- `audience_filter` / `letters_for_all` -- set only for a message to
+  filtered members (issue #242); see "Messages to filtered members"
+  below. NULL means classic club news.
+
 - `body_markdown` is the single canonical source text. It is used
   as-is for **both** the blog draft and the email -- there is
   deliberately no separate per-channel text override for those two,
@@ -295,6 +299,52 @@ valid outcomes for the same button).
 OS level (added to `Dockerfile`), not just the `weasyprint` Python
 package -- see `requirements.txt` / `Dockerfile` for the exact
 packages.
+
+## Messages to filtered members (issue #242, ADR 0095)
+
+The same authoring and email machinery, aimed at exactly the members on
+a filtered `/members/` list -- "everyone tagged *water responsible*",
+"all pending members" -- instead of the whole club.
+
+- **Start**: the "Write to these N members" button on a *filtered*
+  `/members/` list (announcements module on, board/admin only) opens
+  `/announcements/new?audience=1&audience_query=<the list's filter>`.
+  The new announcement stores that filter as
+  `Announcement.audience_filter` (a `MemberListFilter.to_dict()`, see
+  `app/member_filters.py`); `audience_filter IS NULL` is classic club
+  news, unchanged. An empty filter (the unfiltered list) is refused as a
+  targeted message and becomes club news: otherwise one click would
+  mail every member while bypassing the email-info opt-out.
+- **Who gets what** -- `resolve_audience()` in
+  `app/announcement_mailer.py`, re-run every time the page is shown and
+  at send time (the filter is stored, not a frozen list): email to each
+  member with an address, **ignoring the email-info opt-out** (an
+  operational message to the water team isn't a newsletter); a letter
+  to each member without one who has a postal address -- or to every
+  member with an address when "letters for everyone" is ticked;
+  members with neither are listed by name as unreachable so the board
+  can fix the record. The page shows all three groups.
+- **Channels**: EMAIL (unchanged paced send, once) and LETTER. BLOG and
+  PRINT are hidden and refused with 409 -- a message to some members is
+  no blog post and no notice-board page. Classic announcements never
+  get LETTER.
+- **Letters** (`app/announcement_letters.py`): one PDF, one DIN 5008
+  letter per recipient (address window shared with invoices via
+  `app/pdf_chrome.py`'s `ADDRESS_WINDOW_CSS`/`sender_line`), title and
+  body as in the email, no added salutation, no image, no "Page X of Y"
+  (it would count across the bundle). **Generated on click and never
+  stored**: unlike the print notice it holds names and addresses, and
+  `app/static/uploads/` is publicly served. So the LETTER action is
+  always available; its delivery row records only when, how many and
+  for which content (no names), so the page can say "changed since".
+- Download file names (print and letters) are ASCII-only slugs of the
+  title -- a quote or a non-latin-1 character in a Content-Disposition
+  header breaks the response.
+
+Known gaps: no per-recipient delivery log (channel-level, as for club
+news); the audience isn't frozen at send time -- someone tagged between
+sending the email and generating the letters is included in the
+letters; no attachment support.
 
 ## What's not built yet
 

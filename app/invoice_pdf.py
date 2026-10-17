@@ -20,28 +20,15 @@ from typing import List, Optional
 
 from weasyprint import HTML
 
-from app.pdf_chrome import wrap_document, org_footer_html, OrgFooterContext
+from app.pdf_chrome import ADDRESS_WINDOW_CSS, wrap_document, org_footer_html, sender_line, OrgFooterContext
 from app.l10n import format_money
 from app.i18n import translate
 
 # Invoice/reminder-specific CSS, appended after app/pdf_chrome.py's
 # shared page chrome (@page, body, #header, #footer base rules -- the
 # three-column footer layout itself is shared now, not invoice-only).
-EXTRA_CSS = """
+EXTRA_CSS = ADDRESS_WINDOW_CSS + """
 .meta-block { display: flex; justify-content: space-between; margin-bottom: 0.8cm; }
-/* DIN 5008 Form A address window: page margin-top is 2.2cm, so the
-   0.5cm padding-top here lands the sender line at 2.7cm from the page
-   edge and the 1.8cm sender-line box ends exactly at 4.5cm, where the
-   Anschriftzone (recipient address) must start; padding-left 0.5cm
-   plus the 1.5cm page margin lands the whole window's left edge at
-   the standard 2.0cm. */
-.address-window { width: 8.5cm; padding-top: 0.5cm; padding-left: 0.5cm; box-sizing: content-box; }
-.sender-line {
-    height: 1.8cm; display: flex; align-items: flex-end;
-    font-size: 7.5pt; color: #4b5563; border-bottom: 0.5pt solid #9ca3af;
-    margin-bottom: 2pt;
-}
-.recipient { white-space: pre-line; line-height: 1.5; }
 .invoice-meta td { padding: 1px 6px; }
 .invoice-meta td:first-child { color: #6b7280; }
 .invoice-meta td:last-child { font-weight: bold; text-align: right; }
@@ -201,13 +188,7 @@ def _substitute_placeholders(text: Optional[str], data: InvoicePdfData) -> str:
         return text
 
 
-def _sender_line(club_name: str, club_address_lines: List[str]) -> str:
-    """The DIN 5008 Form A "Einzeilige Rücksendeangabe" -- the club's
-    own name/address compressed onto one small line, printed directly
-    above the recipient's address so it stays visible through a
-    windowed envelope (and tells the recipient/post office who to
-    return the letter to)."""
-    return " · ".join(filter(None, [club_name, *club_address_lines]))
+_sender_line = sender_line  # moved to app/pdf_chrome.py, shared with announcement letters
 
 
 def _invoice_body_html(data: InvoicePdfData, region: str, currency: str, language: str, sender_line: str) -> str:

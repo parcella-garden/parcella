@@ -13,7 +13,7 @@ from typing import Optional, List
 from sqlalchemy import (
     String, Integer, Boolean, Date, DateTime, Text, Numeric,
     ForeignKey, Enum as SAEnum, UniqueConstraint, Index, CheckConstraint,
-    Column, Table,
+    Column, Table, JSON,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
@@ -1716,6 +1716,9 @@ class AnnouncementChannel(str, enum.Enum):
     BLOG = "BLOG"
     EMAIL = "EMAIL"
     PRINT = "PRINT"
+    # One addressed letter per recipient without email (issue #242) --
+    # only for announcements to filtered members, see Announcement.
+    LETTER = "LETTER"
 
 
 class AnnouncementDeliveryStatus(str, enum.Enum):
@@ -1757,6 +1760,16 @@ class Announcement(Base):
     body_html: Mapped[str] = mapped_column(Text, nullable=False, default="")
     image_filename: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     print_text_override: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    # Issue #242: a message to filtered members instead of club news.
+    # NULL = the classic announcement to every active member with
+    # "email info" (blog/email/print channels). Otherwise a stored
+    # app.member_filters.MemberListFilter (to_dict()), resolved to
+    # recipients each time it's shown or sent; channels are then EMAIL
+    # (everyone in the filter with an address, ignoring the email-info
+    # opt-out) and LETTER (those without one, or everyone with
+    # letters_for_all). See docs/ADR/0095.
+    audience_filter: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    letters_for_all: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
     created_by_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
@@ -1779,6 +1792,11 @@ class Announcement(Base):
         # club logo (served straight from /static/uploads/), each
         # announcement's image lives in its own subfolder.
         return f"/static/uploads/announcements/{self.image_filename}" if self.image_filename else None
+
+    @property
+    def is_targeted(self) -> bool:
+        """A message to filtered members (issue #242), not club news."""
+        return self.audience_filter is not None
 
     def delivery_for(self, channel: "AnnouncementChannel") -> Optional["AnnouncementDelivery"]:
         return next((d for d in self.deliveries if d.channel == channel), None)

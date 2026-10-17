@@ -34,9 +34,11 @@
                         </td>
                         <td>
                             <a href="/announcements/{{ a.id }}/edit" class="text-decoration-none fw-semibold" style="color: var(--gv-gruen);">{{ a.title }}</a>
+                            {% if a.is_targeted %}<span class="badge ms-1 text-bg-light border" style="font-size: 0.7rem;"><i class="bi bi-people"></i> {{ t('announcements.audience.list_badge') }}</span>{% endif %}
                         </td>
                         <td>
-                            {% for channel, icon in [('EMAIL', 'bi-envelope'), ('BLOG', 'bi-wordpress'), ('PRINT', 'bi-printer')] %}
+                            {% set channel_icons = [('EMAIL', 'bi-envelope'), ('LETTER', 'bi-mailbox')] if a.is_targeted else [('EMAIL', 'bi-envelope'), ('BLOG', 'bi-wordpress'), ('PRINT', 'bi-printer')] %}
+                            {% for channel, icon in channel_icons %}
                             {% set d = a.deliveries | selectattr('channel.name', 'equalto', channel) | first %}
                             {% set state = d.status.value if d else 'NONE' %}
                             <i class="bi {{ icon }} me-2 {% if state == 'SENT' %}text-success{% elif state == 'FAILED' %}text-danger{% elif state == 'SENDING' %}text-primary{% else %}text-muted opacity-50{% endif %}"

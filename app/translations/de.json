@@ -605,7 +605,8 @@
       "map_field_phone_numbers": "Telefonnummern",
       "map_field_notes": "Notizen",
       "csv_mapping_required_error": "Bitte ordnen Sie vor dem Import sowohl Vorname als auch Nachname zu.",
-      "csv_empty_error": "Diese CSV-Datei scheint leer zu sein."
+      "csv_empty_error": "Diese CSV-Datei scheint leer zu sein.",
+      "write_to_members": "Diesen {count} Mitgliedern schreiben"
     },
     "form": {
       "title_edit": "{name} bearbeiten",
@@ -1849,7 +1850,24 @@
       "update_blog_button": "WordPress-Beitrag aktualisieren",
       "update_blog_confirm": "Titel, Text und Bild des bestehenden WordPress-Beitrags überschreiben? Direkt in WordPress vorgenommene Textänderungen gehen verloren; SEO-Einstellungen, Kategorien und der Veröffentlichungsstatus bleiben erhalten.",
       "print_download_link": "Herunterladen",
-      "print_qr_pending_hint": "Der Text wurde ohne QR-Code gekürzt, weil der Blogbeitrag noch nicht öffentlich war. Sobald er in WordPress veröffentlicht ist, das PDF erneut erstellen, um den QR-Code hinzuzufügen."
+      "print_qr_pending_hint": "Der Text wurde ohne QR-Code gekürzt, weil der Blogbeitrag noch nicht öffentlich war. Sobald er in WordPress veröffentlicht ist, das PDF erneut erstellen, um den QR-Code hinzuzufügen.",
+      "channel_letter": "Briefe"
+    },
+    "audience": {
+      "header": "Nachricht an {count} Mitglied(er)",
+      "show_list": "Diese Mitglieder anzeigen",
+      "filter_label": "Auswahl:",
+      "filter_none": "alle aktiven Mitglieder",
+      "by_email": "{count} per E-Mail",
+      "by_letter": "{count} per Brief",
+      "unreachable": "{count} nicht erreichbar (keine E-Mail-Adresse, keine Postanschrift)",
+      "letters_for_all": "Auch Mitgliedern mit E-Mail zusätzlich einen Brief schicken",
+      "hint": "Die Empfänger werden beim Versand neu ermittelt, nach dem oben gezeigten Filter der Mitgliederliste. Die Einstellung „E-Mail-Info“ der Mitglieder gilt für solche Nachrichten nicht.",
+      "send_email_confirm": "Diese Nachricht jetzt per E-Mail an {count} Mitglied(er) senden? Das lässt sich nicht rückgängig machen.",
+      "channel_letter": "Briefe",
+      "letter_hint": "Ein PDF mit einem Brief je Empfänger, für Fensterumschläge. Wird beim Klick erzeugt und nicht gespeichert.",
+      "letter_button": "{count} Brief(e) erzeugen",
+      "list_badge": "Gefilterte Mitglieder"
     }
   },
   "inventory": {

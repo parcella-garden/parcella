@@ -605,7 +605,8 @@
       "map_field_phone_numbers": "Telefonní čísla",
       "map_field_notes": "Poznámky",
       "csv_mapping_required_error": "Před importem prosím přiřaďte sloupce jména a příjmení.",
-      "csv_empty_error": "Tento soubor CSV se zdá být prázdný."
+      "csv_empty_error": "Tento soubor CSV se zdá být prázdný.",
+      "write_to_members": "Napsat těmto členům ({count})"
     },
     "form": {
       "title_edit": "Upravit {name}",
@@ -1849,7 +1850,24 @@
       "update_blog_button": "Aktualizovat příspěvek WordPress",
       "update_blog_confirm": "Přepsat název, text a obrázek stávajícího příspěvku WordPress? Úpravy textu provedené přímo ve WordPressu budou ztraceny; nastavení SEO, kategorie a stav publikace zůstanou zachovány.",
       "print_download_link": "Stáhnout",
-      "print_qr_pending_hint": "Text byl zkrácen bez QR kódu, protože příspěvek na blogu ještě nebyl veřejný. Jakmile bude ve WordPressu publikován, vytvořte PDF znovu a QR kód se přidá."
+      "print_qr_pending_hint": "Text byl zkrácen bez QR kódu, protože příspěvek na blogu ještě nebyl veřejný. Jakmile bude ve WordPressu publikován, vytvořte PDF znovu a QR kód se přidá.",
+      "channel_letter": "Dopisy"
+    },
+    "audience": {
+      "header": "Zpráva pro členy: {count}",
+      "show_list": "Zobrazit tyto členy",
+      "filter_label": "Výběr:",
+      "filter_none": "všichni aktivní členové",
+      "by_email": "E-mailem: {count}",
+      "by_letter": "Dopisem: {count}",
+      "unreachable": "Nedosažitelní: {count} (bez e-mailu i poštovní adresy)",
+      "letters_for_all": "Poslat dopis i členům, kteří dostanou e-mail",
+      "hint": "Příjemci se určí znovu při odeslání podle výše zobrazeného filtru seznamu členů. Nastavení „e-mailové informace“ členů se na takovou zprávu nevztahuje.",
+      "send_email_confirm": "Odeslat tuto zprávu nyní e-mailem členům ({count})? Nelze vrátit zpět.",
+      "channel_letter": "Dopisy",
+      "letter_hint": "Jedno PDF s dopisem pro každého příjemce, do obálek s okénkem. Vytvoří se po kliknutí, neukládá se.",
+      "letter_button": "Vytvořit dopisy ({count})",
+      "list_badge": "Vybraní členové"
     }
   },
   "inventory": {

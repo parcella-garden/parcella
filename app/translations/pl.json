@@ -605,7 +605,8 @@
       "map_field_phone_numbers": "Numery telefonów",
       "map_field_notes": "Notatki",
       "csv_mapping_required_error": "Przed importem przypisz kolumny imienia i nazwiska.",
-      "csv_empty_error": "Ten plik CSV wydaje się być pusty."
+      "csv_empty_error": "Ten plik CSV wydaje się być pusty.",
+      "write_to_members": "Napisz do tych członków ({count})"
     },
     "form": {
       "title_edit": "Edytuj {name}",
@@ -1849,7 +1850,24 @@
       "update_blog_button": "Zaktualizuj wpis WordPress",
       "update_blog_confirm": "Nadpisać tytuł, tekst i obraz istniejącego wpisu WordPress? Zmiany tekstu wprowadzone bezpośrednio w WordPress zostaną utracone; ustawienia SEO, kategorie i status publikacji zostaną zachowane.",
       "print_download_link": "Pobierz",
-      "print_qr_pending_hint": "Tekst skrócono bez kodu QR, ponieważ wpis na blogu nie był jeszcze publiczny. Po opublikowaniu go w WordPress utwórz PDF ponownie, aby dodać kod QR."
+      "print_qr_pending_hint": "Tekst skrócono bez kodu QR, ponieważ wpis na blogu nie był jeszcze publiczny. Po opublikowaniu go w WordPress utwórz PDF ponownie, aby dodać kod QR.",
+      "channel_letter": "Listy"
+    },
+    "audience": {
+      "header": "Wiadomość do członków: {count}",
+      "show_list": "Pokaż tych członków",
+      "filter_label": "Wybór:",
+      "filter_none": "wszyscy aktywni członkowie",
+      "by_email": "E-mailem: {count}",
+      "by_letter": "Listownie: {count}",
+      "unreachable": "Nieosiągalni: {count} (brak adresu e-mail i adresu pocztowego)",
+      "letters_for_all": "Wyślij list także członkom, którzy dostaną e-mail",
+      "hint": "Odbiorcy są ustalani ponownie przy wysyłce, według pokazanego wyżej filtra listy członków. Ustawienie „informacje e-mail” członków nie dotyczy takiej wiadomości.",
+      "send_email_confirm": "Wysłać teraz tę wiadomość e-mailem do członków: {count}? Tego nie można cofnąć.",
+      "channel_letter": "Listy",
+      "letter_hint": "Jeden PDF z listem dla każdego odbiorcy, do kopert z okienkiem. Tworzony po kliknięciu, nigdy nie zapisywany.",
+      "letter_button": "Utwórz listy: {count}",
+      "list_badge": "Wybrani członkowie"
     }
   },
   "inventory": {

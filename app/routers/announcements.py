@@ -18,12 +18,23 @@ something new to do (see _channel_action_available, ADR 0087):
 - print: renders a one-page branded PDF (app.print_publisher),
   auto-shortening the text and adding a QR code if it doesn't fit as-is
   -- see app.print_publisher's module docstring for the full logic.
+- letter (messages to filtered members only, issue #242): one addressed
+  letter per member who can't be reached by email
+  (app.announcement_letters). Generated on demand and never stored --
+  unlike the print notice it holds names and addresses, and the only
+  persisted upload directory is publicly served under /static.
+
+A message to filtered members (Announcement.audience_filter, started
+from /members/ -- see ADR 0095) uses EMAIL and LETTER only; club news
+uses EMAIL, BLOG and PRINT.
 
 Restricted to board/admin (require_admin), same reasoning as the
 public_signup_api's Integrations page: this creates content that will
 be pushed to a public blog and to every member's inbox, so authoring
 it isn't a general member-facing feature.
 """
+import re
+import urllib.parse
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -36,16 +47,19 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
-from app.models import Announcement, AnnouncementDelivery, AnnouncementChannel, AnnouncementDeliveryStatus
+from app.models import Announcement, AnnouncementDelivery, AnnouncementChannel, AnnouncementDeliveryStatus, MemberTag
+from app.member_filters import MemberListFilter
 from app.auth import require_admin
 from app.module_flags import require_module
 from app.announcement_utils import render_markdown_to_html, likely_fits_one_print_page, channel_fingerprint
-from app.announcement_mailer import start_paced_email_send, run_paced_email_send, send_test_email
+from app.announcement_mailer import start_paced_email_send, run_paced_email_send, send_test_email, resolve_audience
+from app.announcement_letters import render_announcement_letters_pdf
 from app.blog_publisher import get_wordpress_publisher, BlogPublishError, BlogPostNotFoundError
 from app.print_publisher import render_announcement_print_pdf, PrintTooLongError
 from app.branding import load_branding
 from app.pdf_chrome import load_org_footer_context
 from app.i18n import load_current_language
+from app.l10n import load_current_region
 from app.templating import templates
 
 router = APIRouter(
@@ -142,6 +156,15 @@ def _channel_action_available(announcement: Announcement, channel: AnnouncementC
       when the stored PDF is gone, or when it was shortened without a
       QR code and a blog post exists that may since have been published.
     """
+    # Issue #242: a message to filtered members is no blog post or
+    # notice-board page; letters exist only for those messages.
+    if announcement.is_targeted and channel in (AnnouncementChannel.BLOG, AnnouncementChannel.PRINT):
+        return False
+    if channel == AnnouncementChannel.LETTER:
+        # Generated on demand, never stored (names and addresses) --
+        # so it can always be generated again.
+        return announcement.is_targeted
+
     delivery = announcement.delivery_for(channel)
     if delivery is None or delivery.status == AnnouncementDeliveryStatus.FAILED:
         return True
@@ -188,6 +211,41 @@ def _form_context(announcement: Optional[Announcement]) -> dict:
     }
 
 
+def _filter_from_query_string(query_string: str) -> MemberListFilter:
+    """The /members/ filter as carried over in a query string (the list
+    page's own MemberListFilter.query_string())."""
+    params = {k: v[-1] for k, v in urllib.parse.parse_qs(query_string or "").items()}
+    return MemberListFilter.from_query(
+        search=params.get("search", ""),
+        include_inactive=params.get("include_inactive") == "true",
+        pending_only=params.get("pending_only") == "true",
+        active_only=params.get("active_only") == "true",
+        email_info_only=params.get("email_info_only") == "true",
+        tag=params.get("tag", ""),
+    )
+
+
+async def _audience_context(db: AsyncSession, announcement: Announcement) -> dict:
+    """Template context for a message to filtered members: who it
+    reaches by email/letter, who not at all, and a link back to the
+    member list showing the same filter. Empty for club news."""
+    if not announcement.is_targeted:
+        return {}
+    audience_filter = MemberListFilter.from_dict(announcement.audience_filter)
+    tag_name = None
+    if audience_filter.tag:
+        tag = await db.get(MemberTag, audience_filter.tag)
+        tag_name = tag.name if tag else None
+    query_string = audience_filter.query_string()
+    return {
+        "audience": await resolve_audience(db, announcement),
+        "audience_filter": audience_filter,
+        "audience_tag_name": tag_name,
+        "audience_query": query_string,
+        "audience_list_url": "/members/" + (f"?{query_string}" if query_string else ""),
+    }
+
+
 async def _get_announcement_or_404(db: AsyncSession, announcement_id: str) -> Announcement:
     result = await db.execute(
         select(Announcement)
@@ -221,11 +279,35 @@ async def announcement_list(request: Request, db: AsyncSession = Depends(get_db)
 # Create
 # ---------------------------------------------------------------------------
 
+def _targeted_audience_query(params) -> Optional[str]:
+    """The /members/ filter a new message was started from, or None for
+    club news. An *empty* filter (the unfiltered list) is club news too:
+    as a targeted message it would reach every active member while
+    ignoring their email-info opt-out (review finding on issue #242)."""
+    if params.get("audience") != "1":
+        return None
+    query = params.get("audience_query", "") or ""
+    return None if _filter_from_query_string(query).is_empty() else query
+
+
+async def _new_form_context(db: AsyncSession, audience_query: Optional[str]) -> dict:
+    """For "write to these members" (issue #242): audience_query is the
+    /members/ filter it was started from, None for club news. The
+    preview uses a transient Announcement that's never added to the
+    session."""
+    if audience_query is None:
+        return {}
+    preview = Announcement(audience_filter=_filter_from_query_string(audience_query).to_dict())
+    return await _audience_context(db, preview)
+
+
 @router.get("/new", response_class=HTMLResponse)
 async def announcement_new_form(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_admin(request, db)
+    audience_query = _targeted_audience_query(request.query_params)
     return templates.TemplateResponse("announcements/form.html", {
         "request": request, "user": user, "announcement": None, "error": None,
+        **await _new_form_context(db, audience_query),
     })
 
 
@@ -240,11 +322,12 @@ async def announcement_create(
     title = (form.get("title") or "").strip()
     body_markdown = (form.get("body_markdown") or "").strip()
     image_upload = form.get("image")
+    audience_query = _targeted_audience_query(form)
 
     if not title or not body_markdown:
         return templates.TemplateResponse("announcements/form.html", {
             "request": request, "user": user, "announcement": None,
-            "error": "missing_fields",
+            "error": "missing_fields", **await _new_form_context(db, audience_query),
         }, status_code=400)
 
     image_filename = None
@@ -254,7 +337,7 @@ async def announcement_create(
         except ValueError as e:
             return templates.TemplateResponse("announcements/form.html", {
                 "request": request, "user": user, "announcement": None,
-                "error": str(e),
+                "error": str(e), **await _new_form_context(db, audience_query),
             }, status_code=400)
 
     announcement = Announcement(
@@ -264,6 +347,9 @@ async def announcement_create(
         image_filename=image_filename,
         created_by_id=user.id,
     )
+    if audience_query is not None:
+        announcement.audience_filter = _filter_from_query_string(audience_query).to_dict()
+        announcement.letters_for_all = form.get("letters_for_all") == "true"
     db.add(announcement)
     await db.commit()
 
@@ -282,7 +368,7 @@ async def announcement_edit_form(
     announcement = await _get_announcement_or_404(db, announcement_id)
     return templates.TemplateResponse("announcements/form.html", {
         "request": request, "user": user, "announcement": announcement, "error": None,
-        **_form_context(announcement),
+        **_form_context(announcement), **await _audience_context(db, announcement),
         "test_email_result": request.query_params.get("test_email_result"),
         "test_email_address": request.query_params.get("test_email_address"),
     })
@@ -305,7 +391,7 @@ async def announcement_update(
     if not title or not body_markdown:
         return templates.TemplateResponse("announcements/form.html", {
             "request": request, "user": user, "announcement": announcement,
-            "error": "missing_fields", **_form_context(announcement),
+            "error": "missing_fields", **_form_context(announcement), **await _audience_context(db, announcement),
         }, status_code=400)
 
     if remove_image:
@@ -319,13 +405,15 @@ async def announcement_update(
         except ValueError as e:
             return templates.TemplateResponse("announcements/form.html", {
                 "request": request, "user": user, "announcement": announcement,
-                "error": str(e), **_form_context(announcement),
+                "error": str(e), **_form_context(announcement), **await _audience_context(db, announcement),
             }, status_code=400)
 
     announcement.title = title
     announcement.body_markdown = body_markdown
     announcement.body_html = render_markdown_to_html(body_markdown)
     announcement.print_text_override = print_text_override
+    if announcement.is_targeted:
+        announcement.letters_for_all = form.get("letters_for_all") == "true"
 
     await db.commit()
     return RedirectResponse(url=f"/announcements/{announcement.id}/edit", status_code=303)
@@ -544,8 +632,17 @@ async def announcement_generate_print_pdf(
     )
 
 
+def _download_name(announcement: Announcement, suffix: str = "") -> str:
+    """ASCII-only file name from the title: it goes into a
+    Content-Disposition header, where a quote, CR/LF or a character
+    outside latin-1 ("—", "€") breaks the response (see the header
+    sharp edge in CLAUDE.md)."""
+    slug = re.sub(r"[^A-Za-z0-9._-]+", "_", announcement.title[:50]).strip("._") or "announcement"
+    return f"{slug}{suffix}.pdf"
+
+
 def _print_pdf_download_name(announcement: Announcement) -> str:
-    return f"{announcement.title[:50].strip().replace(' ', '_') or 'announcement'}.pdf"
+    return _download_name(announcement)
 
 
 @router.get("/{announcement_id}/print/download")
@@ -562,6 +659,53 @@ async def announcement_download_print_pdf(
     return FileResponse(
         PRINT_PDF_DIR / delivery.pdf_filename, media_type="application/pdf",
         filename=_print_pdf_download_name(announcement),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Channel: letter (messages to filtered members only, issue #242)
+# ---------------------------------------------------------------------------
+
+@router.post("/{announcement_id}/letters")
+async def announcement_generate_letters(
+    announcement_id: str, request: Request, db: AsyncSession = Depends(get_db),
+):
+    """One PDF with an addressed letter per member who gets one (no
+    email address, or everyone with letters_for_all). Returned straight
+    away and not stored (see the module docstring); the LETTER delivery
+    row only records when, for how many, and which content."""
+    await require_admin(request, db)
+    announcement = await _get_announcement_or_404(db, announcement_id)
+    _require_channel_action_available(announcement, AnnouncementChannel.LETTER)
+
+    delivery = announcement.delivery_for(AnnouncementChannel.LETTER)
+    if delivery is None:
+        delivery = AnnouncementDelivery(announcement_id=announcement.id, channel=AnnouncementChannel.LETTER)
+        db.add(delivery)
+
+    recipients = (await resolve_audience(db, announcement)).letter
+    delivery.sent_at = datetime.now(timezone.utc)
+    if not recipients:
+        delivery.status = AnnouncementDeliveryStatus.FAILED
+        delivery.error_message = "No letters to generate: nobody in the selection both lacks an email address and has a postal address."
+        await db.commit()
+        return RedirectResponse(url=f"/announcements/{announcement.id}/edit", status_code=303)
+
+    branding = await load_branding(db)
+    logo_path = Path("app" + branding["logo_url"]) if branding["logo_url"] else None
+    pdf_bytes = render_announcement_letters_pdf(
+        announcement, recipients, await load_org_footer_context(db, branding["club_name"]),
+        logo_path, await load_current_region(db), await load_current_language(db),
+    )
+    delivery.status = AnnouncementDeliveryStatus.SENT
+    # Only the count -- names stay out of the database like the PDF itself.
+    delivery.error_message = f"{len(recipients)} letter(s) generated."
+    _record_delivered_content(announcement, delivery)
+    await db.commit()
+
+    return Response(
+        content=pdf_bytes, media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{_download_name(announcement, "_letters")}"'},
     )
 
 

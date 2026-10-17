@@ -33,6 +33,46 @@
 <form method="post" enctype="multipart/form-data"
       action="{% if announcement %}/announcements/{{ announcement.id }}/edit{% else %}/announcements/new{% endif %}">
     {{ csrf_field() }}
+    {% if audience %}
+    {#- Issue #242: a message to filtered members, started from /members/. -#}
+    {% if not announcement %}
+    <input type="hidden" name="audience" value="1">
+    <input type="hidden" name="audience_query" value="{{ audience_query }}">
+    {% endif %}
+    <div class="card mb-3 border-primary-subtle">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span><i class="bi bi-people me-2"></i>{{ t('announcements.audience.header', count=audience.member_count) }}</span>
+            <a href="{{ audience_list_url }}" class="small text-decoration-none">{{ t('announcements.audience.show_list') }}</a>
+        </div>
+        <div class="card-body" style="font-size: 0.9rem;">
+            <div class="mb-2">
+                <span class="text-muted">{{ t('announcements.audience.filter_label') }}</span>
+                {% if audience_filter.is_empty() %}{{ t('announcements.audience.filter_none') }}{% endif %}
+                {% if audience_tag_name %}<span class="badge ms-1" style="background: var(--gv-gruen-blass); color: var(--gv-gruen);"><i class="bi bi-tag"></i> {{ audience_tag_name }}</span>{% endif %}
+                {% if audience_filter.search %}<span class="badge ms-1 text-bg-light border">“{{ audience_filter.search }}”</span>{% endif %}
+                {% if audience_filter.include_inactive %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_inactive') }}</span>{% endif %}
+                {% if audience_filter.pending_only %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_pending_only') }}</span>{% endif %}
+                {% if audience_filter.active_only %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_active_only') }}</span>{% endif %}
+                {% if audience_filter.email_info_only %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_email_info_only') }}</span>{% endif %}
+            </div>
+            <ul class="list-unstyled mb-2">
+                <li><i class="bi bi-envelope me-1"></i>{{ t('announcements.audience.by_email', count=audience.email|length) }}</li>
+                <li><i class="bi bi-mailbox me-1"></i>{{ t('announcements.audience.by_letter', count=audience.letter|length) }}
+                    {% if audience.letter %}<span class="text-muted">({{ audience.letter | map(attribute='full_name') | join(', ') }})</span>{% endif %}</li>
+                {% if audience.unreachable %}
+                <li class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>{{ t('announcements.audience.unreachable', count=audience.unreachable|length) }}:
+                    {% for m in audience.unreachable %}<a href="/members/{{ m.id }}" class="text-danger">{{ m.full_name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</li>
+                {% endif %}
+            </ul>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="letters_for_all" value="true" id="letters_for_all"
+                       {% if announcement and announcement.letters_for_all %}checked{% endif %}>
+                <label class="form-check-label" for="letters_for_all">{{ t('announcements.audience.letters_for_all') }}</label>
+            </div>
+            <div class="form-text">{{ t('announcements.audience.hint') }}</div>
+        </div>
+    </div>
+    {% endif %}
     <div class="card mb-3">
         <div class="card-body">
             <div class="mb-3">
@@ -62,7 +102,7 @@
                 <div class="form-text">{{ t('announcements.form.body_hint') }}</div>
             </div>
 
-            {% if announcement %}
+            {% if announcement and not announcement.is_targeted %}
             <div class="mb-3">
                 <label class="form-label">{{ t('announcements.form.label_print_override') }}</label>
                 <textarea name="print_text_override" class="form-control" rows="6">{{ announcement.print_text_override or '' }}</textarea>
@@ -147,12 +187,13 @@
             <span class="text-muted" style="font-size: 0.8rem;">{{ t('announcements.form.sending_refresh_hint') }}</span>
             {% elif email.available %}
             <form method="post" action="/announcements/{{ announcement.id }}/send/email"
-                  onsubmit="return confirm({{ t('announcements.form.send_email_confirm')|tojson|forceescape }});">
+                  onsubmit="return confirm({{ (t('announcements.audience.send_email_confirm', count=audience.email|length) if audience else t('announcements.form.send_email_confirm'))|tojson|forceescape }});">
                 {{ csrf_field() }}
                 <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('announcements.form.send_email_button') }}</button>
             </form>
             {% endif %}
         </div>
+        {% if not announcement.is_targeted %}
         {% set blog = channels.BLOG %}
         {% set blog_delivery = blog.delivery %}
         <div class="d-flex align-items-center justify-content-between py-2 border-bottom gap-2 flex-wrap">
@@ -224,6 +265,38 @@
             </form>
             {% endif %}
         </div>
+        {% else %}
+        {% set letter = channels.LETTER %}
+        {% set letter_delivery = letter.delivery %}
+        <div class="d-flex align-items-center justify-content-between py-2 gap-2 flex-wrap">
+            <div>
+                <i class="bi bi-mailbox me-2"></i>{{ t('announcements.audience.channel_letter') }}
+                {% if letter_delivery %}
+                    {% if letter_delivery.status.value == 'SENT' %}
+                    <span class="badge badge-aktiv ms-2">{{ t('announcements.form.print_generated') }}</span>
+                    <span class="text-muted ms-1" style="font-size: 0.85rem;">{{ letter_delivery.sent_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    {% else %}
+                    <span class="badge ms-2" style="background: #fee2e2; color: #991b1b;">{{ t('announcements.form.delivery_failed') }}</span>
+                    {% endif %}
+                    {% if letter_delivery.error_message %}
+                    <div class="text-muted" style="font-size: 0.8rem;">{{ letter_delivery.error_message }}</div>
+                    {% endif %}
+                    {% if letter.changed %}
+                    <div class="text-muted" style="font-size: 0.8rem;"><i class="bi bi-pencil"></i> {{ t('announcements.form.changed_since_delivery') }}</div>
+                    {% endif %}
+                {% else %}
+                <span class="badge ms-2" style="background: #e5e7eb; color: #4b5563;">{{ t('announcements.form.delivery_not_sent') }}</span>
+                {% endif %}
+                <div class="text-muted" style="font-size: 0.8rem;">{{ t('announcements.audience.letter_hint') }}</div>
+            </div>
+            {% if letter.available and audience.letter %}
+            <form method="post" action="/announcements/{{ announcement.id }}/letters">
+                {{ csrf_field() }}
+                <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('announcements.audience.letter_button', count=audience.letter|length) }}</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 </div>
 

@@ -605,7 +605,8 @@
       "map_field_phone_numbers": "Phone numbers",
       "map_field_notes": "Notes",
       "csv_mapping_required_error": "Please map both the first name and last name columns before importing.",
-      "csv_empty_error": "That CSV file appears to be empty."
+      "csv_empty_error": "That CSV file appears to be empty.",
+      "write_to_members": "Write to these {count} members"
     },
     "form": {
       "title_edit": "Edit {name}",
@@ -1849,7 +1850,24 @@
       "update_blog_button": "Update WordPress post",
       "update_blog_confirm": "Overwrite title, text and image of the existing WordPress post? Text edits made directly in WordPress will be lost; SEO settings, categories and the publish status are kept.",
       "print_download_link": "Download",
-      "print_qr_pending_hint": "The text was shortened without a QR code because the blog post wasn't public yet. Once it's published in WordPress, create the PDF again to add the QR code."
+      "print_qr_pending_hint": "The text was shortened without a QR code because the blog post wasn't public yet. Once it's published in WordPress, create the PDF again to add the QR code.",
+      "channel_letter": "Letters"
+    },
+    "audience": {
+      "header": "Message to {count} member(s)",
+      "show_list": "Show these members",
+      "filter_label": "Selection:",
+      "filter_none": "all active members",
+      "by_email": "{count} by email",
+      "by_letter": "{count} by letter",
+      "unreachable": "{count} can't be reached (no email address, no postal address)",
+      "letters_for_all": "Also send a letter to members who get the email",
+      "hint": "Recipients are worked out again when you send, from the member list filter shown above. The members' \"email info\" setting doesn't apply to a message like this.",
+      "send_email_confirm": "Send this message by email to {count} member(s) now? This can't be undone.",
+      "channel_letter": "Letters",
+      "letter_hint": "One PDF with a letter per recipient, for windowed envelopes. Generated when you click, never stored.",
+      "letter_button": "Generate {count} letter(s)",
+      "list_badge": "Filtered members"
     }
   },
   "inventory": {

@@ -42,9 +42,17 @@ AnnouncementDelivery row as it progresses and again when it finishes.
 The background task opens its own DB session (AsyncSessionLocal),
 since the request-scoped session closes once the response has been
 sent -- same pattern as app.main's ticket-inbox polling loop.
+
+Issue #242 added messages to *filtered* members (Announcement.
+audience_filter, created from /members/): resolve_audience() splits
+whoever the stored member-list filter matches into email recipients,
+letter recipients (app/announcement_letters.py) and unreachable ones.
+The email-info opt-out doesn't apply there -- a message to the water
+team is operational, not a newsletter (kermie's call, ADR 0095).
 """
 import asyncio
 import logging
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import List, Optional, Tuple
 
@@ -58,6 +66,7 @@ from app.models import (
     AnnouncementDeliveryStatus, Member,
 )
 from app.email_service import send_email
+from app.member_filters import MemberListFilter
 from app.branding import load_branding
 from app.i18n import t_for
 
@@ -86,12 +95,67 @@ async def get_active_recipient_emails(db: AsyncSession) -> List[Tuple[Member, st
 
     recipients: List[Tuple[Member, str]] = []
     for member in members:
-        emails = member.email_addresses
-        if not emails:
-            continue
-        primary = next((e for e in emails if e.is_primary), emails[0])
-        recipients.append((member, primary.address))
+        address = primary_email(member)
+        if address:
+            recipients.append((member, address))
     return recipients
+
+
+def primary_email(member: Member) -> Optional[str]:
+    """The member's primary email if marked, otherwise the first one on
+    file (email_addresses must be loaded)."""
+    emails = member.email_addresses
+    if not emails:
+        return None
+    return next((e for e in emails if e.is_primary), emails[0]).address
+
+
+def has_postal_address(member: Member) -> bool:
+    """Enough of an address to put on an envelope."""
+    return bool((member.street or "").strip() and ((member.city or "").strip() or (member.postal_code or "").strip()))
+
+
+@dataclass
+class Audience:
+    """Who a (targeted) announcement reaches, and how. A member can be
+    in both `email` and `letter` (letters_for_all)."""
+    email: List[Tuple[Member, str]] = field(default_factory=list)
+    letter: List[Member] = field(default_factory=list)
+    unreachable: List[Member] = field(default_factory=list)
+
+    @property
+    def member_count(self) -> int:
+        ids = {m.id for m, _ in self.email} | {m.id for m in self.letter} | {m.id for m in self.unreachable}
+        return len(ids)
+
+
+async def resolve_audience(db: AsyncSession, announcement: Announcement) -> Audience:
+    """Recipients of `announcement`, resolved now (the filter is stored,
+    the people behind it can change until the message is sent).
+
+    Classic announcement (no audience_filter): email only, to
+    get_active_recipient_emails(). Targeted (issue #242): everyone the
+    stored MemberListFilter matches -- email to each who has an address
+    (email-info flag ignored), a letter to each who hasn't (or to
+    everyone with letters_for_all) and has a postal address; whoever
+    gets neither is unreachable."""
+    if not announcement.is_targeted:
+        return Audience(email=await get_active_recipient_emails(db))
+
+    members = (await db.scalars(
+        MemberListFilter.from_dict(announcement.audience_filter).apply()
+        .options(selectinload(Member.email_addresses))
+    )).all()
+    audience = Audience()
+    for member in members:
+        address = primary_email(member)
+        if address:
+            audience.email.append((member, address))
+        if (address is None or announcement.letters_for_all) and has_postal_address(member):
+            audience.letter.append(member)
+        elif address is None:
+            audience.unreachable.append(member)
+    return audience
 
 
 async def _resolve_image_url(announcement: Announcement, base_url: str) -> Optional[str]:
@@ -148,7 +212,7 @@ async def start_paced_email_send(announcement: Announcement, db: AsyncSession) -
     immediately if there's no one to send to). Returns the delivery row
     and recipient count so the router can decide whether to schedule
     the background task at all. Caller commits."""
-    recipients = await get_active_recipient_emails(db)
+    recipients = (await resolve_audience(db, announcement)).email
 
     delivery = announcement.delivery_for(AnnouncementChannel.EMAIL)
     if delivery is None:
@@ -157,7 +221,11 @@ async def start_paced_email_send(announcement: Announcement, db: AsyncSession) -
 
     if not recipients:
         delivery.status = AnnouncementDeliveryStatus.FAILED
-        delivery.error_message = "No recipients found (no current residents with email notifications enabled and a stored email address)."
+        delivery.error_message = (
+            "No recipients found (nobody in the selected members has a stored email address)."
+            if announcement.is_targeted else
+            "No recipients found (no current members with email notifications enabled and a stored email address)."
+        )
         delivery.sent_at = datetime.now(timezone.utc)
         return delivery, 0
 
@@ -186,7 +254,7 @@ async def run_paced_email_send(announcement_id: str, base_url: str) -> None:
             image_url = await _resolve_image_url(announcement, base_url)
             html_body = build_announcement_email_html(announcement, branding["club_name"], image_url)
 
-            recipients = await get_active_recipient_emails(db)
+            recipients = (await resolve_audience(db, announcement)).email
 
             delivery_result = await db.execute(
                 select(AnnouncementDelivery).where(
