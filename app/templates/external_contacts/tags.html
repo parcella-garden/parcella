@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ t('external_contacts.tags.page_title') }}{% endblock %}
+{% block page_title %}{{ t('external_contacts.tags.page_title') }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="/contacts/" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>{{ t('external_contacts.tags.back_to_contacts') }}
+</a>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 720px;">
+    {% if request.query_params.get('error') %}
+    <div class="alert alert-danger d-flex gap-2 align-items-center" style="font-size: 0.875rem;">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ request.query_params.get('error') }}
+    </div>
+    {% endif %}
+    <p class="text-muted" style="font-size: 0.875rem;">{{ t('external_contacts.tags.page_hint') }}</p>
+
+    <div class="card">
+        <ul class="list-group list-group-flush">
+            {% for tag in tags %}
+            <li class="list-group-item d-flex flex-wrap gap-2 align-items-center">
+                {% if has_perm(request, 'external_contacts', 'write') %}
+                <form method="post" action="/contacts/tags/{{ tag.id }}/rename" class="d-flex gap-2 flex-grow-1 m-0">
+                    {{ csrf_field() }}
+                    <input type="text" name="name" value="{{ tag.name }}" class="form-control form-control-sm"
+                           maxlength="100" required aria-label="{{ t('external_contacts.tags.name_label') }}">
+                    <button type="submit" class="btn btn-sm btn-outline-primary" title="{{ t('external_contacts.tags.rename_button') }}">
+                        <i class="bi bi-check-lg"></i>
+                    </button>
+                </form>
+                {% else %}
+                <span class="flex-grow-1 fw-semibold">{{ tag.name }}</span>
+                {% endif %}
+                <a href="/contacts/?tag={{ tag.id }}" class="btn btn-sm btn-outline-secondary">
+                    {{ t('external_contacts.tags.contact_count', count=contact_counts.get(tag.id, 0)) }}
+                </a>
+                {% if has_perm(request, 'external_contacts', 'delete') %}
+                <form method="post" action="/contacts/tags/{{ tag.id }}/delete" class="m-0"
+                      onsubmit="return confirm({{ t('external_contacts.tags.delete_confirm', name=tag.name)|tojson|forceescape }})">
+                    {{ csrf_field() }}
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ t('external_contacts.tags.delete_button') }}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+                {% endif %}
+            </li>
+            {% else %}
+            <li class="list-group-item text-muted">{{ t('external_contacts.tags.empty') }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

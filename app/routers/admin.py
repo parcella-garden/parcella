@@ -56,6 +56,7 @@ from app.backup import (
     RESTORE_CONFIRM_PHRASE, MAX_RESTORE_UPLOAD_BYTES,
 )
 from app.parcel_cloud_folders import sanitize_relative_path, InvalidCloudPathError
+from app.contact_documents import EXTERNAL_CONTACTS_FOLDER_SETTING, load_base_folder as load_contacts_base_folder
 from app.cloud_backup import (
     get_cloud_backup_settings, save_cloud_backup_settings, run_cloud_backup_now,
     is_backup_filename, FREQUENCY_CHOICES,
@@ -867,6 +868,7 @@ MODULE_FIELDS = [
     ("modul_inventory", "admin.settings.modules.inventory_name", "admin.settings.modules.inventory_desc"),
     ("modul_tasks", "admin.settings.modules.tasks_name", "admin.settings.modules.tasks_desc"),
     ("modul_applicants", "admin.settings.modules.applicants_name", "admin.settings.modules.applicants_desc"),
+    ("modul_external_contacts", "admin.settings.modules.external_contacts_name", "admin.settings.modules.external_contacts_desc"),
     ("modul_public_signup_api", "admin.settings.modules.public_signup_api_name", "admin.settings.modules.public_signup_api_desc"),
     ("modul_public_contact_api", "admin.settings.modules.public_contact_api_name", "admin.settings.modules.public_contact_api_desc"),
     ("modul_public_applicant_api", "admin.settings.modules.public_applicant_api_name", "admin.settings.modules.public_applicant_api_desc"),
@@ -914,6 +916,7 @@ NAV_ORDER_FIELDS = [
     ("tasks", "nav.tasks"),
     ("finances", "nav.finances_group"),
     ("applicants", "nav.applicants"),
+    ("external_contacts", "nav.external_contacts"),
 ]
 
 
@@ -1242,6 +1245,7 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
     )
     incoming_invoices_folder_entry = incoming_invoices_folder_result.scalar_one_or_none()
     incoming_invoices_folder_path = incoming_invoices_folder_entry.value if incoming_invoices_folder_entry else None
+    external_contacts_folder_path = await load_contacts_base_folder(db)
 
     freescout_result = await db.execute(
         select(ClubSetting).where(ClubSetting.key.in_(["freescout_base_url", "freescout_api_key", "freescout_mailbox_id"]))
@@ -1291,6 +1295,9 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
         "incoming_invoices_folder_path": incoming_invoices_folder_path,
         "incoming_invoices_folder_saved": request.query_params.get("incoming_invoices_folder_saved"),
         "incoming_invoices_folder_error": request.query_params.get("incoming_invoices_folder_error"),
+        "external_contacts_folder_path": external_contacts_folder_path,
+        "external_contacts_folder_saved": request.query_params.get("external_contacts_folder_saved"),
+        "external_contacts_folder_error": request.query_params.get("external_contacts_folder_error"),
         "freescout_base_url": freescout_stored.get("freescout_base_url", ""),
         "freescout_mailbox_id": freescout_stored.get("freescout_mailbox_id", "1"),
         "freescout_api_key_set": bool(freescout_stored.get("freescout_api_key")),
@@ -1512,6 +1519,39 @@ async def integrations_incoming_invoices_folder_save(
         ))
     await db.commit()
     return RedirectResponse("/admin/integrations?incoming_invoices_folder_saved=1", status_code=303)
+
+
+@router.post("/integrations/nextcloud/external-contacts-folder")
+async def integrations_external_contacts_folder_save(
+    request: Request, relative_path: str = Form(""), db: AsyncSession = Depends(get_db),
+):
+    """Base folder for external contacts' documents (ADR 0097): one
+    subfolder per contact below it, created by hand in the cloud. Blank
+    clears the setting (the documents card then disappears)."""
+    await require_system_admin(request, db)
+    from urllib.parse import quote
+
+    entry = await db.scalar(select(ClubSetting).where(ClubSetting.key == EXTERNAL_CONTACTS_FOLDER_SETTING))
+    if not relative_path.strip():
+        if entry:
+            await db.delete(entry)
+            await db.commit()
+        return RedirectResponse("/admin/integrations?external_contacts_folder_saved=1", status_code=303)
+    try:
+        sanitized = sanitize_relative_path(relative_path)
+    except InvalidCloudPathError as e:
+        return RedirectResponse(
+            f"/admin/integrations?external_contacts_folder_error={quote(str(e))}", status_code=303,
+        )
+    if entry:
+        entry.value = sanitized
+    else:
+        db.add(ClubSetting(
+            key=EXTERNAL_CONTACTS_FOLDER_SETTING, value=sanitized,
+            description="Cloud base folder for external contacts' documents",
+        ))
+    await db.commit()
+    return RedirectResponse("/admin/integrations?external_contacts_folder_saved=1", status_code=303)
 
 
 @router.post("/integrations/freescout")

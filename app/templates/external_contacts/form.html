@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}{% if contact %}{{ t('external_contacts.form.title_edit', name=(contact.display_name or t('external_contacts.unnamed'))) }}{% else %}{{ t('external_contacts.form.title_new') }}{% endif %}{% endblock %}
+{% block page_title %}{% if contact %}{{ t('external_contacts.form.heading_edit') }}{% else %}{{ t('external_contacts.form.heading_new') }}{% endif %}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% if contact %}/contacts/{{ contact.id }}{% else %}/contacts/{% endif %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>{{ t('external_contacts.form.cancel') }}
+</a>
+{% endblock %}
+
+{% block content %}
+{# values: what was just submitted, when the form comes back with an error -- wins over the saved contact. #}
+{% macro field(name) %}{{ values[name] if name in values else (contact[name] if contact and contact[name] else '') }}{% endmacro %}
+{% if fehler %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-circle-fill"></i> {{ fehler }}
+</div>
+{% endif %}
+
+<form method="post" action="{% if contact %}/contacts/{{ contact.id }}/edit{% else %}/contacts/new{% endif %}">
+    {{ csrf_field() }}
+<div class="row g-3">
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-building me-2"></i>{{ t('external_contacts.form.company_header') }}</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_company_name') }}</label>
+                        <input type="text" name="company_name" class="form-control" maxlength="255" value="{{ field('company_name') }}" autofocus>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_street') }}</label>
+                        <input type="text" name="street" class="form-control" maxlength="255" value="{{ field('street') }}">
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_postal_code') }}</label>
+                        <input type="text" name="postal_code" class="form-control" maxlength="10" value="{{ field('postal_code') }}">
+                    </div>
+                    <div class="col-sm-8">
+                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_city') }}</label>
+                        <input type="text" name="city" class="form-control" maxlength="100" value="{{ field('city') }}">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_iban') }}</label>
+                        <input type="text" name="iban" class="form-control font-monospace" maxlength="34"
+                               placeholder="DE00 0000 0000 0000 0000 00" value="{{ field('iban') }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-person me-2"></i>{{ t('external_contacts.form.person_header') }}</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_first_name') }}</label>
+                        <input type="text" name="first_name" class="form-control" maxlength="100" value="{{ field('first_name') }}">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_last_name') }}</label>
+                        <input type="text" name="last_name" class="form-control" maxlength="100" value="{{ field('last_name') }}">
+                    </div>
+                    <div class="col-12 form-text mt-1">{{ t('external_contacts.form.name_unique_help') }}</div>
+                    {% if not contact %}
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_email') }}</label>
+                        <input type="email" name="email" class="form-control" value="{{ field('email') }}">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_phone') }}</label>
+                        <input type="tel" name="phone" class="form-control" value="{{ field('phone') }}">
+                    </div>
+                    <div class="col-12 form-text mt-1">{{ t('external_contacts.form.more_later_help') }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-sticky me-2"></i>{{ t('external_contacts.form.notes_header') }}</div>
+            <div class="card-body">
+                <textarea name="notes" class="form-control" rows="5">{{ field('notes') }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-tags me-2"></i>{{ t('external_contacts.tags.card_header') }}</div>
+            <div class="card-body">
+                <input type="hidden" name="tags_present" value="1">
+                {% set contact_tag_ids = contact.tags | map(attribute='id') | list if contact else [] %}
+                {% if all_tags %}
+                <div class="d-flex flex-wrap gap-3 mb-2">
+                    {% for tag in all_tags %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="tag_ids" value="{{ tag.id }}" id="tag-{{ tag.id }}"
+                               {% if tag.id in contact_tag_ids %}checked{% endif %}>
+                        <label class="form-check-label" for="tag-{{ tag.id }}">{{ tag.name }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <input type="text" name="new_tags" class="form-control form-control-sm"
+                       placeholder="{{ t('external_contacts.tags.new_tags_placeholder') }}">
+                <div class="form-text">{{ t('external_contacts.tags.new_tags_hint') }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="d-flex gap-2 justify-content-end">
+            <a href="{% if contact %}/contacts/{{ contact.id }}{% else %}/contacts/{% endif %}"
+               class="btn btn-outline-secondary">{{ t('external_contacts.form.cancel') }}</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i>
+                {% if contact %}{{ t('external_contacts.form.button_save') }}{% else %}{{ t('external_contacts.form.button_create') }}{% endif %}
+            </button>
+        </div>
+    </div>
+
+</div>
+</form>
+{% endblock %}

@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+{% block title %}{{ (contact.display_name or t('external_contacts.unnamed')) }}{% endblock %}
+{% block page_title %}{{ (contact.display_name or t('external_contacts.unnamed')) }}{% endblock %}
+
+{% block topbar_actions %}
+<div class="d-flex gap-2">
+    {% if has_perm(request, 'external_contacts', 'write') %}
+    <a href="/contacts/{{ contact.id }}/edit" class="btn btn-sm btn-primary">
+        <i class="bi bi-pencil me-1"></i>{{ t('external_contacts.detail.button_edit') }}
+    </a>
+    {% endif %}
+    <a id="nav-prev-link"
+       href="{{ '/contacts/' ~ prev_contact_id ~ nav_query_suffix if prev_contact_id else '#' }}"
+       class="btn btn-sm btn-outline-secondary{% if not prev_contact_id %} disabled{% endif %}"
+       {% if not prev_contact_id %}aria-disabled="true" tabindex="-1"{% endif %}
+       title="{{ t('external_contacts.detail.button_previous') }} (Ctrl+←)">
+        <i class="bi bi-chevron-left me-1"></i>{{ t('external_contacts.detail.button_previous') }}
+    </a>
+    <a id="nav-next-link"
+       href="{{ '/contacts/' ~ next_contact_id ~ nav_query_suffix if next_contact_id else '#' }}"
+       class="btn btn-sm btn-outline-secondary{% if not next_contact_id %} disabled{% endif %}"
+       {% if not next_contact_id %}aria-disabled="true" tabindex="-1"{% endif %}
+       title="{{ t('external_contacts.detail.button_next') }} (Ctrl+→)">
+        {{ t('external_contacts.detail.button_next') }}<i class="bi bi-chevron-right ms-1"></i>
+    </a>
+    <a href="/contacts/{{ nav_query_suffix }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>{{ t('external_contacts.detail.button_back') }}
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-building me-2"></i>{{ t('external_contacts.detail.master_data_header') }}</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-muted">{{ t('external_contacts.detail.label_company') }}</dt>
+                    <dd class="col-sm-7 fw-semibold">{{ contact.company_name or '–' }}</dd>
+
+                    <dt class="col-sm-5 text-muted">{{ t('external_contacts.detail.label_contact_person') }}</dt>
+                    <dd class="col-sm-7">{{ contact.full_name or '–' }}</dd>
+
+                    <dt class="col-sm-5 text-muted">{{ t('external_contacts.detail.label_address') }}</dt>
+                    <dd class="col-sm-7">
+                        {% set addr_html = address_html(contact.street, contact.postal_code, contact.city) %}
+                        {% if addr_html %}{{ addr_html }}{% else %}–{% endif %}
+                    </dd>
+
+                    <dt class="col-sm-5 text-muted">{{ t('external_contacts.detail.label_iban') }}</dt>
+                    <dd class="col-sm-7">{% if contact.iban %}<code>{{ contact.iban }}</code>{% else %}–{% endif %}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        {% if request.query_params.get('error') %}
+        <div class="alert alert-danger d-flex gap-2 align-items-center" style="font-size: 0.875rem;">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ request.query_params.get('error') }}
+        </div>
+        {% endif %}
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-tags me-2"></i>{{ t('external_contacts.tags.card_header') }}</span>
+                <a href="/contacts/tags" class="small text-decoration-none">{{ t('external_contacts.tags.manage_link') }}</a>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-1">
+                    {% for tag in contact.tags %}
+                    <span class="badge d-inline-flex align-items-center gap-1" style="background: var(--gv-gruen-blass); color: var(--gv-gruen); font-size: 0.8rem;">
+                        <a href="/contacts/?tag={{ tag.id }}" class="text-decoration-none" style="color: inherit;">{{ tag.name }}</a>
+                        {% if has_perm(request, 'external_contacts', 'write') %}
+                        <form method="post" action="/contacts/{{ contact.id }}/tags/{{ tag.id }}/remove" class="d-inline m-0">
+                            {{ csrf_field() }}
+                            <button type="submit" class="btn btn-link p-0 border-0 lh-1" style="color: inherit; font-size: 0.9rem;"
+                                    title="{{ t('external_contacts.tags.remove_tooltip') }}" aria-label="{{ t('external_contacts.tags.remove_tooltip') }}">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </span>
+                    {% else %}
+                    <span class="text-muted">{{ t('external_contacts.tags.none') }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% if has_perm(request, 'external_contacts', 'write') %}
+            {% set contact_tag_ids = contact.tags | map(attribute='id') | list %}
+            <div class="card-footer">
+                <form method="post" action="/contacts/{{ contact.id }}/tags/add" class="d-flex gap-2 flex-wrap">
+                    {{ csrf_field() }}
+                    <input type="text" name="name" class="form-control form-control-sm" list="contact-tag-options"
+                           maxlength="100" placeholder="{{ t('external_contacts.tags.add_placeholder') }}" style="min-width: 180px; flex: 1;" required>
+                    <datalist id="contact-tag-options">
+                        {% for tag in all_tags if tag.id not in contact_tag_ids %}
+                        <option value="{{ tag.name }}"></option>
+                        {% endfor %}
+                    </datalist>
+                    <button type="submit" class="btn btn-sm btn-primary" title="{{ t('external_contacts.tags.add_button') }}"><i class="bi bi-plus-lg"></i></button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-telephone me-2"></i>{{ t('external_contacts.detail.phones_header') }}</div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for phone in contact.phone_numbers %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><a href="tel:{{ phone.number }}" class="text-decoration-none">{{ phone.number }}</a>
+                            {% if phone.label %}<span class="text-muted small ms-1">({{ phone.label }})</span>{% endif %}</span>
+                        {% if has_perm(request, 'external_contacts', 'delete') %}
+                        <form method="post" action="/contacts/{{ contact.id }}/phone/{{ phone.id }}/delete" class="d-inline">
+                            {{ csrf_field() }}
+                            <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="{{ t('external_contacts.detail.remove_tooltip') }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-muted">{{ t('external_contacts.detail.no_phones') }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% if has_perm(request, 'external_contacts', 'write') %}
+            <div class="card-footer">
+                <form method="post" action="/contacts/{{ contact.id }}/phone/add" class="d-flex gap-2 flex-wrap">
+                    {{ csrf_field() }}
+                    <input type="text" name="number" class="form-control form-control-sm" placeholder="+49 123 456789" required style="min-width: 160px; flex: 2;">
+                    <input type="text" name="label" class="form-control form-control-sm" maxlength="50" placeholder="{{ t('external_contacts.detail.label_placeholder') }}" style="min-width: 100px; flex: 1;">
+                    <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i></button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-header"><i class="bi bi-envelope me-2"></i>{{ t('external_contacts.detail.emails_header') }}</div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for e in contact.email_addresses %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><a href="mailto:{{ e.address }}">{{ e.address }}</a>
+                            {% if e.label %}<span class="text-muted small ms-1">({{ e.label }})</span>{% endif %}</span>
+                        {% if has_perm(request, 'external_contacts', 'delete') %}
+                        <form method="post" action="/contacts/{{ contact.id }}/email/{{ e.id }}/delete" class="d-inline">
+                            {{ csrf_field() }}
+                            <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="{{ t('external_contacts.detail.remove_tooltip') }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-muted">{{ t('external_contacts.detail.no_emails') }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% if has_perm(request, 'external_contacts', 'write') %}
+            <div class="card-footer">
+                <form method="post" action="/contacts/{{ contact.id }}/email/add" class="d-flex gap-2 flex-wrap">
+                    {{ csrf_field() }}
+                    <input type="email" name="address" class="form-control form-control-sm" placeholder="name@firma.de" required style="min-width: 180px; flex: 2;">
+                    <input type="text" name="label" class="form-control form-control-sm" maxlength="50" placeholder="{{ t('external_contacts.detail.label_placeholder') }}" style="min-width: 100px; flex: 1;">
+                    <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i></button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if incoming_invoices is not none %}
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-receipt me-2"></i>{{ t('external_contacts.detail.incoming_invoices_header') }}</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <tbody>
+                            {% for invoice in incoming_invoices %}
+                            <tr>
+                                <td class="text-muted">{{ invoice.invoice_date.strftime('%d.%m.%Y') }}</td>
+                                <td><a href="/finances/incoming-invoices/{{ invoice.id }}">{{ invoice.invoice_number or invoice.sender }}</a></td>
+                                <td class="text-end">{{ invoice.total_amount|float|money }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td class="text-muted">{{ t('external_contacts.detail.no_incoming_invoices') }}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if purchase_requests is not none %}
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-cart me-2"></i>{{ t('external_contacts.detail.purchase_requests_header') }}</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <tbody>
+                            {% for pr in purchase_requests %}
+                            <tr>
+                                <td class="text-muted">{{ pr.created_at.strftime('%d.%m.%Y') }}</td>
+                                <td><a href="/purchase-requests/{{ pr.id }}">{{ pr.title }}</a></td>
+                                <td class="text-end">{{ pr.estimated_cost_eur|float|money if pr.estimated_cost_eur else '–' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td class="text-muted">{{ t('external_contacts.detail.no_purchase_requests') }}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if documents is not none %}
+    {% set may_write = has_perm(request, 'external_contacts', 'write') %}
+    <div class="col-12">
+        <div class="card" id="documents">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-folder2-open me-2"></i>{{ t('external_contacts.documents.header') }}</span>
+                {% if may_write and contact.cloud_folder and documents.folder_options is none and documents.base_folder %}
+                <a href="/contacts/{{ contact.id }}?docs_pick=1#documents" class="small text-decoration-none">{{ t('external_contacts.documents.change_folder') }}</a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if request.query_params.get('docs_saved') %}
+                <div class="alert alert-success py-2">{{ t('external_contacts.documents.folder_saved') }}</div>
+                {% elif request.query_params.get('docs_uploaded') %}
+                <div class="alert alert-success py-2">{{ t('external_contacts.documents.upload_ok') }}</div>
+                {% elif request.query_params.get('docs_error') %}
+                <div class="alert alert-danger py-2">{{ request.query_params.get('docs_error') }}</div>
+                {% endif %}
+                {% if documents.error %}
+                <div class="alert alert-danger py-2">{{ documents.error }}</div>
+                {% endif %}
+
+                {% if not documents.base_folder %}
+                <p class="text-muted mb-0">{{ t('external_contacts.documents.no_base_folder') }}</p>
+
+                {% elif documents.folder_options is not none %}
+                {# Picking (or re-picking) the contact's subfolder of the base folder. #}
+                <p class="text-muted" style="font-size: 0.875rem;">{{ t('external_contacts.documents.pick_help', base=documents.base_folder) }}</p>
+                {% if documents.folder_options %}
+                <form method="post" action="/contacts/{{ contact.id }}/documents/folder" class="d-flex gap-2 flex-wrap">
+                    {{ csrf_field() }}
+                    <select name="folder_name" class="form-select form-select-sm" style="max-width: 360px;" aria-label="{{ t('external_contacts.documents.folder_label') }}">
+                        <option value="">{{ t('external_contacts.documents.no_folder_option') }}</option>
+                        {% for name in documents.folder_options %}
+                        <option value="{{ name }}" {% if name == contact.cloud_folder %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary">{{ t('external_contacts.documents.save_folder') }}</button>
+                    {% if contact.cloud_folder %}
+                    <a href="/contacts/{{ contact.id }}#documents" class="btn btn-sm btn-outline-secondary">{{ t('external_contacts.form.cancel') }}</a>
+                    {% endif %}
+                </form>
+                {% elif not documents.error %}
+                <p class="text-muted mb-0">{{ t('external_contacts.documents.no_subfolders', base=documents.base_folder) }}</p>
+                {% endif %}
+
+                {% elif not contact.cloud_folder %}
+                <p class="text-muted mb-0">{{ t('external_contacts.documents.no_folder') }}</p>
+
+                {% else %}
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2" style="font-size: 0.875rem;">
+                        <li class="breadcrumb-item text-muted"><i class="bi bi-cloud"></i> {{ documents.base_folder }}</li>
+                        {% for crumb in documents.breadcrumbs %}
+                        {% if loop.last %}
+                        <li class="breadcrumb-item active">{{ crumb.name }}</li>
+                        {% else %}
+                        <li class="breadcrumb-item"><a href="/contacts/{{ contact.id }}{% if crumb.path %}?docs_path={{ crumb.path | urlencode }}{% endif %}#documents">{{ crumb.name }}</a></li>
+                        {% endif %}
+                        {% endfor %}
+                    </ol>
+                </nav>
+                {% if documents.files is not none %}
+                <ul class="list-group list-group-flush mb-3">
+                    {% for entry in documents.files | sort(attribute='name') | sort(attribute='is_directory', reverse=true) %}
+                    {% set entry_path = (documents.browse_path ~ '/' ~ entry.name) if documents.browse_path else entry.name %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        {% if entry.is_directory %}
+                        <a href="/contacts/{{ contact.id }}?docs_path={{ entry_path | urlencode }}#documents" class="text-decoration-none">
+                            <i class="bi bi-folder me-1"></i>{{ entry.name }}
+                        </a>
+                        {% else %}
+                        <a href="/contacts/{{ contact.id }}/documents/download?filename={{ entry.name | urlencode }}{% if documents.browse_path %}&amp;docs_path={{ documents.browse_path | urlencode }}{% endif %}" class="text-decoration-none">
+                            <i class="bi bi-file-earmark me-1"></i>{{ entry.name }}
+                        </a>
+                        <span class="text-muted small">{{ entry.last_modified or '' }}</span>
+                        {% endif %}
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-muted px-0">{{ t('external_contacts.documents.empty') }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% if may_write %}
+                <form method="post" action="/contacts/{{ contact.id }}/documents/upload" enctype="multipart/form-data" class="d-flex gap-2 flex-wrap">
+                    {{ csrf_field() }}
+                    <input type="hidden" name="docs_path" value="{{ documents.browse_path }}">
+                    <input type="file" name="file" class="form-control form-control-sm" required style="max-width: 360px;">
+                    <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-upload me-1"></i>{{ t('external_contacts.documents.upload_button') }}</button>
+                </form>
+                <div class="form-text">{{ t('external_contacts.documents.upload_help') }}</div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if contact.notes %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-sticky me-2"></i>{{ t('external_contacts.detail.notes_header') }}</div>
+            <div class="card-body" style="white-space: pre-wrap;">{{ contact.notes }}</div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if has_perm(request, 'external_contacts', 'delete') %}
+    <div class="col-12">
+        <div class="card border-danger">
+            <div class="card-header text-danger"><i class="bi bi-exclamation-triangle me-2"></i>{{ t('external_contacts.detail.danger_zone_header') }}</div>
+            <div class="card-body">
+                <p class="text-muted mb-3" style="font-size: 0.88rem;">{{ t('external_contacts.detail.danger_zone_text') }}</p>
+                <form method="post" action="/contacts/{{ contact.id }}/delete"
+                      onsubmit="return confirm({{ t('external_contacts.detail.delete_confirm', name=(contact.display_name or t('external_contacts.unnamed')))|tojson|forceescape }})">
+                    {{ csrf_field() }}
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="bi bi-trash me-1"></i>{{ t('external_contacts.detail.button_delete') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

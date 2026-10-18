@@ -17,7 +17,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, text
 import enum
 
 from app.database import Base
@@ -396,6 +396,168 @@ class MemberEmail(Base):
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     member: Mapped["Member"] = relationship("Member", back_populates="email_addresses")
+
+
+# ---------------------------------------------------------------------------
+# External contacts (suppliers, craftsmen, authorities ...)
+# ---------------------------------------------------------------------------
+
+class ExternalContact(Base):
+    """
+    Someone the club deals with who isn't a member: a company plus the
+    person to talk to there (see docs/module-external-contacts.md, ADR
+    0096). Deliberately its own table rather than a Member with a flag
+    -- no parcels, work hours, invoices or email_info for anything to
+    accidentally pull a contact into.
+
+    Every field is optional, names included (migration 0098). Duplicates
+    among non-deleted contacts, ignoring case: a given person name
+    (first and/or last) is unique; a contact without a person is unique
+    by company name, which otherwise may repeat (two people at the same
+    firm). Enforced by the partial indexes uq_external_contacts_person
+    and uq_external_contacts_company, checked up front in
+    app/services/external_contacts.py for a readable error.
+    """
+    __tablename__ = "external_contacts"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+
+    company_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
+    first_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    last_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+
+    # Company address
+    street: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    postal_code: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
+    city: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+
+    iban: Mapped[Optional[str]] = mapped_column(String(34), nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    # Documents received from / sent to this contact: the name of one
+    # subfolder of the club-wide base folder (ClubSetting
+    # "external_contacts_cloud_folder", e.g. kgv_dokumente/extern) in the
+    # connected cloud storage. The folders are created by hand in the
+    # cloud and picked here; NULL = no documents folder. See ADR 0097.
+    cloud_folder: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    phone_numbers: Mapped[List["ExternalContactPhone"]] = relationship(
+        "ExternalContactPhone", back_populates="contact", cascade="all, delete-orphan"
+    )
+    email_addresses: Mapped[List["ExternalContactEmail"]] = relationship(
+        "ExternalContactEmail", back_populates="contact", cascade="all, delete-orphan"
+    )
+    # Own tag pool, separate from MemberTag. Not lazy-loadable under
+    # asyncio: selectinload(ExternalContact.tags) wherever it's read.
+    tags: Mapped[List["ExternalContactTag"]] = relationship(
+        "ExternalContactTag", secondary="external_contact_tag_links", back_populates="contacts",
+        order_by="ExternalContactTag.name",
+    )
+
+    __table_args__ = (
+        Index(
+            "uq_external_contacts_person",
+            text("lower(coalesce(first_name, ''))"), text("lower(coalesce(last_name, ''))"), unique=True,
+            postgresql_where=text("deleted_at IS NULL AND (first_name IS NOT NULL OR last_name IS NOT NULL)"),
+        ),
+        Index(
+            "uq_external_contacts_company",
+            text("lower(company_name)"), unique=True,
+            postgresql_where=text(
+                "deleted_at IS NULL AND first_name IS NULL AND last_name IS NULL AND company_name IS NOT NULL"
+            ),
+        ),
+    )
+
+    @property
+    def has_person(self) -> bool:
+        return bool(self.first_name or self.last_name)
+
+    @property
+    def full_name(self) -> str:
+        """"First Last", or whichever part is set; "" without a person."""
+        return " ".join(part for part in (self.first_name, self.last_name) if part)
+
+    @property
+    def sort_name(self) -> str:
+        """"Last, First" for the list, or whichever part is set."""
+        return ", ".join(part for part in (self.last_name, self.first_name) if part)
+
+    @property
+    def display_name(self) -> str:
+        """"Company (First Last)", or just one of the two; "" for a
+        contact with neither -- templates fall back to
+        external_contacts.unnamed."""
+        if self.company_name and self.has_person:
+            return f"{self.company_name} ({self.full_name})"
+        return self.company_name or self.full_name
+
+    def __repr__(self) -> str:
+        return f"<ExternalContact {self.display_name}>"
+
+
+class ExternalContactTag(Base):
+    """A free-form label on external contacts -- same idea as MemberTag
+    (ADR 0093), but its own pool: "supplier" or "electrician" has no
+    business in the member tag filter."""
+    __tablename__ = "external_contact_tags"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    contacts: Mapped[List["ExternalContact"]] = relationship(
+        "ExternalContact", secondary="external_contact_tag_links", back_populates="tags"
+    )
+
+    def __repr__(self) -> str:
+        return f"<ExternalContactTag {self.name}>"
+
+
+external_contact_tag_links = Table(
+    "external_contact_tag_links",
+    Base.metadata,
+    Column("contact_id", String(36), ForeignKey("external_contacts.id", ondelete="CASCADE"), primary_key=True),
+    Column("tag_id", String(36), ForeignKey("external_contact_tags.id", ondelete="CASCADE"), primary_key=True, index=True),
+)
+
+
+class ExternalContactPhone(Base):
+    __tablename__ = "external_contact_phones"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    contact_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("external_contacts.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    number: Mapped[str] = mapped_column(String(50), nullable=False)
+    label: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    contact: Mapped["ExternalContact"] = relationship("ExternalContact", back_populates="phone_numbers")
+
+
+class ExternalContactEmail(Base):
+    __tablename__ = "external_contact_emails"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    contact_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("external_contacts.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    address: Mapped[str] = mapped_column(String(255), nullable=False)
+    label: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    contact: Mapped["ExternalContact"] = relationship("ExternalContact", back_populates="email_addresses")
 
 
 # ---------------------------------------------------------------------------
@@ -1568,9 +1730,15 @@ class PurchaseRequest(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
 
+    # Optional supplier from the external contacts module (ADR 0096).
+    external_contact_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("external_contacts.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+
     requested_by: Mapped[Optional["User"]] = relationship("User", foreign_keys=[requested_by_id])
     created_by: Mapped[Optional["User"]] = relationship("User", foreign_keys=[created_by_id])
     rejected_by: Mapped[Optional["User"]] = relationship("User", foreign_keys=[rejected_by_id])
+    external_contact: Mapped[Optional["ExternalContact"]] = relationship("ExternalContact")
     approvals: Mapped[List["PurchaseRequestApproval"]] = relationship(
         "PurchaseRequestApproval", back_populates="purchase_request", cascade="all, delete-orphan"
     )
@@ -2845,6 +3013,12 @@ class IncomingInvoice(Base):
     invoice_date: Mapped[date] = mapped_column(Date, nullable=False)
     note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     cloud_filename: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    # Optional link to the external contact who sent it (ADR 0096) --
+    # alongside `sender`, not instead of it: search, the accounting
+    # statement and bank matching all read the free-text sender.
+    external_contact_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("external_contacts.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     created_by_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
@@ -2852,6 +3026,7 @@ class IncomingInvoice(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
+    external_contact: Mapped[Optional["ExternalContact"]] = relationship("ExternalContact")
     line_items: Mapped[List["IncomingInvoiceLineItem"]] = relationship(
         "IncomingInvoiceLineItem", back_populates="incoming_invoice",
         cascade="all, delete-orphan", order_by="IncomingInvoiceLineItem.created_at",

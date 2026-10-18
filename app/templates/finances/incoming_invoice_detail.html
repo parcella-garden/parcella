@@ -24,6 +24,30 @@
                 <dl class="row mb-0">
                     <dt class="col-sm-5">{{ t('finances.incoming_invoices.col_sender') }}</dt>
                     <dd class="col-sm-7">{{ invoice.sender }}</dd>
+                    {% if invoice.external_contact or contacts is not none %}
+                    <dt class="col-sm-5">{{ t('external_contacts.picker.label') }}</dt>
+                    <dd class="col-sm-7">
+                        {% if invoice.external_contact %}
+                        {% if contacts is not none and not invoice.external_contact.deleted_at %}
+                        <a href="/contacts/{{ invoice.external_contact.id }}">{{ (invoice.external_contact.display_name or t('external_contacts.unnamed')) }}</a>
+                        {% else %}
+                        {{ (invoice.external_contact.display_name or t('external_contacts.unnamed')) }}{% if invoice.external_contact.deleted_at %} <span class="text-muted small">({{ t('external_contacts.picker.deleted') }})</span>{% endif %}
+                        {% endif %}
+                        {% else %}–{% endif %}
+                        {% if contacts is not none and has_perm(request, 'finances', 'write') %}
+                        <form method="post" action="/finances/incoming-invoices/{{ invoice.id }}/contact" class="d-flex gap-2 mt-1">
+                            {{ csrf_field() }}
+                            <select name="external_contact_id" class="form-select form-select-sm" aria-label="{{ t('external_contacts.picker.label') }}">
+                                <option value="">{{ t('external_contacts.picker.none') }}</option>
+                                {% for c in contacts %}
+                                <option value="{{ c.id }}" {% if c.id == invoice.external_contact_id %}selected{% endif %}>{{ (c.display_name or t('external_contacts.unnamed')) }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('external_contacts.picker.save') }}</button>
+                        </form>
+                        {% endif %}
+                    </dd>
+                    {% endif %}
                     <dt class="col-sm-5">{{ t('finances.incoming_invoices.col_invoice_number') }}</dt>
                     <dd class="col-sm-7">{{ invoice.invoice_number or '—' }}</dd>
                     <dt class="col-sm-5">{{ t('finances.incoming_invoices.col_date') }}</dt>

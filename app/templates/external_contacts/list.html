@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}{{ t('external_contacts.list.title') }}{% endblock %}
+{% block page_title %}{{ t('external_contacts.list.title') }}{% endblock %}
+
+{% block topbar_actions %}
+<div class="d-flex gap-2 flex-wrap">
+    {% if has_perm(request, 'external_contacts', 'write') %}
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#csvImportModal">
+        <i class="bi bi-upload me-1"></i>{{ t('external_contacts.list.csv_import') }}
+    </button>
+    {% endif %}
+    <a href="/contacts/export/csv{% if list_query_string %}?{{ list_query_string }}{% endif %}"
+       class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-download me-1"></i>{{ t('external_contacts.list.csv_export') }}
+    </a>
+    <a href="/contacts/tags" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-tags me-1"></i>{{ t('external_contacts.tags.manage_link') }}
+    </a>
+    {% if has_perm(request, 'external_contacts', 'write') %}
+    <a href="/contacts/new" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>{{ t('external_contacts.list.new_contact') }}
+    </a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% if request.query_params.get('message') %}
+<div class="alert alert-success d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-check-circle-fill"></i> {{ request.query_params.get('message') }}
+</div>
+{% elif request.query_params.get('error') %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ request.query_params.get('error') }}
+</div>
+{% endif %}
+
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+            <i class="bi bi-search text-muted"></i>
+            <input type="text" name="search" value="{{ search }}" class="form-control form-control-sm border-0"
+                   placeholder="{{ t('external_contacts.list.search_placeholder') }}" style="box-shadow: none; max-width: 260px;">
+            {% if all_tags %}
+            <select name="tag" class="form-select form-select-sm" style="max-width: 200px;"
+                    aria-label="{{ t('external_contacts.tags.filter_label') }}" onchange="this.form.submit()">
+                <option value="">{{ t('external_contacts.tags.filter_any') }}</option>
+                {% for option in all_tags %}
+                <option value="{{ option.id }}" {% if option.id == tag %}selected{% endif %}>{{ option.name }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            <button type="submit" class="btn btn-sm btn-primary">{{ t('external_contacts.list.search_button') }}</button>
+            {% if list_query_string %}
+            <a href="/contacts/" class="btn btn-sm btn-outline-secondary">{{ t('external_contacts.list.reset_button') }}</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{{ t('external_contacts.list.col_company') }}</th>
+                        <th>{{ t('external_contacts.list.col_contact_person') }}</th>
+                        <th>{{ t('external_contacts.list.col_phone') }}</th>
+                        <th>{{ t('external_contacts.list.col_email') }}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in contacts %}
+                    {% set detail_url = '/contacts/' ~ c.id ~ ('?' ~ list_query_string if list_query_string else '') %}
+                    <tr>
+                        <td>
+                            <a href="{{ detail_url }}" class="text-decoration-none fw-semibold" style="color: var(--gv-gruen);">
+                                {{ c.company_name or '–' }}
+                            </a>
+                            {% for contact_tag in c.tags %}
+                            <a href="/contacts/?tag={{ contact_tag.id }}" class="badge text-decoration-none ms-1"
+                               style="background: #f3f4f6; color: #374151; font-size: 0.7rem;">{{ contact_tag.name }}</a>
+                            {% endfor %}
+                        </td>
+                        <td>{{ c.sort_name or '–' }}</td>
+                        <td class="text-muted">{{ c.phone_numbers[0].number if c.phone_numbers else '–' }}</td>
+                        <td class="text-muted">
+                            {% if c.email_addresses %}<a href="mailto:{{ c.email_addresses[0].address }}">{{ c.email_addresses[0].address }}</a>{% else %}–{% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ detail_url }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            {% if search %}
+                            <i class="bi bi-search d-block mb-2" style="font-size: 1.5rem;"></i>
+                            {{ t('external_contacts.list.empty_search', query=search) }}
+                            {% else %}
+                            <i class="bi bi-person-vcard d-block mb-2" style="font-size: 1.5rem;"></i>
+                            {{ t('external_contacts.list.empty_none') }}<br>
+                            {% if has_perm(request, 'external_contacts', 'write') %}
+                            <a href="/contacts/new" class="btn btn-sm btn-primary mt-2">{{ t('external_contacts.list.create_first') }}</a>
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if contacts %}
+    <div class="card-footer text-muted" style="font-size: 0.82rem;">
+        {{ t('external_contacts.list.count', count=contacts | length) }}
+    </div>
+    {% endif %}
+</div>
+
+{% if has_perm(request, 'external_contacts', 'write') %}
+<div class="modal fade" id="csvImportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-upload me-2"></i>{{ t('external_contacts.list.csv_import_modal_title') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="/contacts/import/preview" enctype="multipart/form-data"
+                      class="d-flex gap-2 align-items-center flex-wrap">
+                    {{ csrf_field() }}
+                    <input type="file" name="file" accept=".csv" class="form-control form-control-sm"
+                           required style="max-width: 300px;">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-upload me-1"></i>{{ t('external_contacts.list.csv_import_button') }}
+                    </button>
+                </form>
+                <div class="form-text mt-2">
+                    {{ t('external_contacts.list.csv_format_help') }}
+                    <code>Firma; Vorname; Nachname; Strasse; PLZ; Ort; IBAN; E-Mail-Adressen; Telefonnummern; Tags; Notizen</code><br>
+                    {{ t('external_contacts.list.csv_multi_help') }}<br>
+                    {{ t('external_contacts.list.csv_match_help') }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

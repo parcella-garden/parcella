@@ -148,6 +148,15 @@ Deliberately still server-rendered (full page reload), not a JSON/AJAX
 modal, to stay consistent with the browsing pattern above and match
 implementation surface to what was actually asked for.
 
+## External contacts' documents (ADR 0097)
+
+A second, simpler consumer of the same connector: a club-wide base
+folder (`ClubSetting` `external_contacts_cloud_folder`, set on the
+integrations page) holds one hand-made subfolder per external contact.
+Each contact picks its subfolder by name. Unlike parcel folders, access
+follows the `external_contacts` permission row, not full access only.
+See docs/module-external-contacts.md.
+
 ## Scheduled cloud backups (`app/cloud_backup.py`, issue #141)
 
 A second, independent consumer of this connector: `Admin -> System ->

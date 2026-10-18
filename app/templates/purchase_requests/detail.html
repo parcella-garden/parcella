@@ -47,6 +47,31 @@
                     <dd class="col-sm-8"><a href="{{ pr.link }}" target="_blank" rel="noopener">{{ pr.link }}</a></dd>
                     {% endif %}
 
+                    {% if pr.external_contact or contacts is not none %}
+                    <dt class="col-sm-4 text-muted">{{ t('external_contacts.picker.supplier_label') }}</dt>
+                    <dd class="col-sm-8">
+                        {% if pr.external_contact %}
+                        {% if contacts is not none and not pr.external_contact.deleted_at %}
+                        <a href="/contacts/{{ pr.external_contact.id }}">{{ (pr.external_contact.display_name or t('external_contacts.unnamed')) }}</a>
+                        {% else %}
+                        {{ (pr.external_contact.display_name or t('external_contacts.unnamed')) }}{% if pr.external_contact.deleted_at %} <span class="text-muted small">({{ t('external_contacts.picker.deleted') }})</span>{% endif %}
+                        {% endif %}
+                        {% else %}–{% endif %}
+                        {% if contacts is not none and has_perm(request, 'purchase_requests', 'write') %}
+                        <form method="post" action="/purchase-requests/{{ pr.id }}/contact" class="d-flex gap-2 mt-1">
+                            {{ csrf_field() }}
+                            <select name="external_contact_id" class="form-select form-select-sm" aria-label="{{ t('external_contacts.picker.supplier_label') }}">
+                                <option value="">{{ t('external_contacts.picker.none') }}</option>
+                                {% for c in contacts %}
+                                <option value="{{ c.id }}" {% if c.id == pr.external_contact_id %}selected{% endif %}>{{ (c.display_name or t('external_contacts.unnamed')) }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('external_contacts.picker.save') }}</button>
+                        </form>
+                        {% endif %}
+                    </dd>
+                    {% endif %}
+
                     {% if pr.estimated_cost_eur %}
                     <dt class="col-sm-4 text-muted">{{ t('purchase_requests.detail.label_estimated_cost') }}</dt>
                     <dd class="col-sm-8 fw-semibold">{{ pr.estimated_cost_eur|float|money }}</dd>

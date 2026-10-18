@@ -49,7 +49,8 @@
     "finances_incoming_invoices": "Factures reçues",
     "freescout_bridge": "Assistance",
     "applicants": "Candidats",
-    "work_hours_transfers": "Transferts d'heures"
+    "work_hours_transfers": "Transferts d'heures",
+    "external_contacts": "Contacts externes"
   },
   "errors": {
     "user_not_found": "Utilisateur non trouvé",
@@ -305,7 +306,9 @@
         "applicants_name": "Candidats",
         "applicants_desc": "Personnes candidates à une parcelle libre : coordonnées, date de candidature, statut et notes du bureau. Les candidatures du site web n'arrivent que si l'« API publique du formulaire de candidature » est activée.",
         "public_applicant_api_name": "API publique du formulaire de candidature",
-        "public_applicant_api_desc": "Permet au formulaire de candidature aux parcelles libres du site de l'association de créer directement des candidats. Désactivé par défaut car il ouvre un point d'écriture public ; voir la page « Intégrations » pour les points de terminaison."
+        "public_applicant_api_desc": "Permet au formulaire de candidature aux parcelles libres du site de l'association de créer directement des candidats. Désactivé par défaut car il ouvre un point d'écriture public ; voir la page « Intégrations » pour les points de terminaison.",
+        "external_contacts_name": "Contacts externes",
+        "external_contacts_desc": "Fournisseurs, artisans, administrations : une entreprise et un interlocuteur, avec adresse, IBAN, numéros de téléphone, e-mails, notes et étiquettes. Peuvent être liés aux factures reçues et aux demandes d'achat."
       },
       "region_header": "Région",
       "region_help": "Détermine le format des nombres et de l'adresse (par ex. séparateur de milliers, ordre du code postal et de la ville). Indépendant de la langue de l'interface.",
@@ -407,7 +410,11 @@
       "public_forms_saved": "Adresses de sites autorisées enregistrées.",
       "public_forms_ignored": "Ces entrées ne sont pas des adresses http(s) et ont été ignorées : {entries}",
       "public_forms_altcha_label": "Exiger ALTCHA (preuve de travail contre les robots de spam)",
-      "public_forms_altcha_hint": "Le navigateur du visiteur doit résoudre un petit calcul avant qu'un formulaire soit accepté -- pas de cookies, pas de tiers, rien à cliquer. Cela s'applique à tous les modes d'envoi : les formulaires HTML simples, l'extension WordPress (version 3.0 ou ultérieure) et les connecteurs utilisant le jeton d'API, qui doivent alors transmettre la solution du widget dans le champ \"altcha\". N'activez cette option qu'une fois que les formulaires de tous les sites intègrent le widget ALTCHA, qui récupère son calcul depuis {challenge_url} ; sinon, chaque envoi est refusé."
+      "public_forms_altcha_hint": "Le navigateur du visiteur doit résoudre un petit calcul avant qu'un formulaire soit accepté -- pas de cookies, pas de tiers, rien à cliquer. Cela s'applique à tous les modes d'envoi : les formulaires HTML simples, l'extension WordPress (version 3.0 ou ultérieure) et les connecteurs utilisant le jeton d'API, qui doivent alors transmettre la solution du widget dans le champ \"altcha\". N'activez cette option qu'une fois que les formulaires de tous les sites intègrent le widget ALTCHA, qui récupère son calcul depuis {challenge_url} ; sinon, chaque envoi est refusé.",
+      "external_contacts_folder_header": "Dossier des documents des contacts externes",
+      "external_contacts_folder_help": "Dossier de base dans le cloud, avec un sous-dossier par contact externe (créé à la main). Chaque contact choisit ensuite son sous-dossier sur sa propre page. Laissez vide pour désactiver la section documents.",
+      "external_contacts_folder_saved": "Dossier enregistré.",
+      "external_contacts_folder_label": "Dossier de base (chemin relatif)"
     },
     "system": {
       "page_title": "Système",
@@ -540,7 +547,8 @@
         "inventory": "Inventaire",
         "finances": "Finances",
         "freescout_bridge": "Intégration FreeScout",
-        "applicants": "Candidats"
+        "applicants": "Candidats",
+        "external_contacts": "Contacts externes"
       }
     }
   },
@@ -2728,6 +2736,164 @@
       "invalid_email": "Veuillez saisir une adresse e-mail valide.",
       "invalid_applied_at": "Veuillez saisir une date de candidature valide.",
       "applied_at_in_future": "La date de candidature ne peut pas être dans le futur."
+    }
+  },
+  "external_contacts": {
+    "list": {
+      "title": "Contacts externes",
+      "csv_import": "Import CSV",
+      "csv_export": "Export CSV",
+      "new_contact": "Nouveau contact",
+      "search_placeholder": "Entreprise, nom, ville, e-mail, téléphone…",
+      "search_button": "Rechercher",
+      "reset_button": "Réinitialiser",
+      "col_company": "Entreprise",
+      "col_contact_person": "Interlocuteur",
+      "col_phone": "Téléphone",
+      "col_email": "E-mail",
+      "empty_search": "Aucun contact trouvé pour « {query} ».",
+      "empty_none": "Aucun contact externe pour l'instant.",
+      "create_first": "Ajouter le premier contact",
+      "count": "{count} contact(s)",
+      "csv_import_modal_title": "Importer des contacts depuis un CSV",
+      "csv_import_button": "Importer",
+      "csv_format_help": "Séparé par des points-virgules ou des virgules, avec une ligne d'en-tête. Vous associerez les colonnes à l'étape suivante. Colonnes de l'export :",
+      "csv_multi_help": "Plusieurs e-mails, numéros ou étiquettes vont dans une même cellule, séparés par des points-virgules.",
+      "csv_match_help": "Une ligne correspond à un contact existant par le nom de la personne, ou par l'entreprise pour les contacts sans personne ; il est alors mis à jour, rien n'est supprimé."
+    },
+    "form": {
+      "title_new": "Nouveau contact externe",
+      "title_edit": "Modifier {name}",
+      "heading_new": "Nouveau contact externe",
+      "heading_edit": "Modifier le contact externe",
+      "cancel": "Annuler",
+      "company_header": "Entreprise",
+      "label_company_name": "Nom de l'entreprise",
+      "label_street": "Rue",
+      "label_postal_code": "Code postal",
+      "label_city": "Ville",
+      "label_iban": "IBAN",
+      "person_header": "Interlocuteur",
+      "label_first_name": "Prénom",
+      "label_last_name": "Nom",
+      "name_unique_help": "Tous les champs sont facultatifs. Le nom d'une personne ne peut exister qu'une fois ; un contact sans personne, une seule fois par entreprise.",
+      "label_email": "E-mail",
+      "label_phone": "Téléphone",
+      "more_later_help": "Vous pourrez ajouter d'autres numéros et adresses sur la page de détail.",
+      "notes_header": "Notes",
+      "button_save": "Enregistrer",
+      "button_create": "Créer le contact"
+    },
+    "detail": {
+      "button_edit": "Modifier",
+      "button_previous": "Précédent",
+      "button_next": "Suivant",
+      "button_back": "Retour à la liste",
+      "master_data_header": "Entreprise et interlocuteur",
+      "label_company": "Entreprise",
+      "label_contact_person": "Interlocuteur",
+      "label_address": "Adresse",
+      "label_iban": "IBAN",
+      "phones_header": "Numéros de téléphone",
+      "no_phones": "Aucun numéro de téléphone.",
+      "emails_header": "Adresses e-mail",
+      "no_emails": "Aucune adresse e-mail.",
+      "remove_tooltip": "Retirer",
+      "label_placeholder": "Libellé (facultatif)",
+      "incoming_invoices_header": "Factures reçues",
+      "no_incoming_invoices": "Aucune facture reçue liée.",
+      "purchase_requests_header": "Demandes d'achat",
+      "no_purchase_requests": "Aucune demande d'achat liée.",
+      "notes_header": "Notes",
+      "danger_zone_header": "Zone de danger",
+      "danger_zone_text": "La suppression retire le contact des listes et des sélecteurs. Les factures reçues et demandes d'achat liées continuent de l'afficher.",
+      "delete_confirm": "Vraiment supprimer {name} ?",
+      "button_delete": "Supprimer le contact",
+      "deleted_message": "{name} a été supprimé."
+    },
+    "tags": {
+      "manage_link": "Gérer les étiquettes",
+      "filter_label": "Filtrer par étiquette",
+      "filter_any": "Toutes les étiquettes",
+      "card_header": "Étiquettes",
+      "new_tags_placeholder": "Nouvelles étiquettes, séparées par des virgules",
+      "new_tags_hint": "Cochez des étiquettes existantes ou saisissez-en de nouvelles.",
+      "remove_tooltip": "Retirer l'étiquette",
+      "none": "Aucune étiquette.",
+      "add_placeholder": "Ajouter une étiquette…",
+      "add_button": "Ajouter l'étiquette",
+      "page_title": "Étiquettes des contacts",
+      "back_to_contacts": "Retour aux contacts",
+      "page_hint": "Les étiquettes des contacts externes sont distinctes de celles des membres. Renommer modifie l'étiquette sur tous les contacts ; supprimer la retire partout.",
+      "name_label": "Nom de l'étiquette",
+      "rename_button": "Renommer",
+      "contact_count": "{count} contact(s)",
+      "delete_confirm": "Supprimer l'étiquette « {name} » de tous les contacts ?",
+      "delete_button": "Supprimer l'étiquette",
+      "empty": "Aucune étiquette pour l'instant. Ajoutez-en une sur un contact.",
+      "errors": {
+        "name_required": "Veuillez saisir un nom d'étiquette.",
+        "name_too_long": "Un nom d'étiquette peut compter au plus {max} caractères.",
+        "not_found": "Étiquette introuvable.",
+        "name_taken": "L'étiquette « {name} » existe déjà."
+      }
+    },
+    "errors": {
+      "not_found": "Contact externe introuvable.",
+      "name_taken": "Un interlocuteur nommé {name} existe déjà ({company}).",
+      "company_taken": "Un contact sans personne pour {company} existe déjà."
+    },
+    "import": {
+      "empty_error": "Le fichier CSV est vide.",
+      "mapping_required_error": "Associez au moins une colonne à un champ.",
+      "row_error": "Ligne {row} : {error}",
+      "summary": "{created} contact(s) créé(s), {updated} mis à jour.",
+      "errors_suffix": "{count} ligne(s) ignorée(s)",
+      "more_errors": "(et {count} de plus)",
+      "preview_title": "Importer des contacts",
+      "preview_header": "Associer les colonnes",
+      "preview_help": "Choisissez le champ de chaque colonne du CSV. Les premières lignes du fichier sont affichées ci-dessous.",
+      "map_ignore": "— ignorer —",
+      "required_help": "Aucun champ n'est obligatoire ; les lignes entièrement vides sont ignorées.",
+      "map_field_company_name": "Nom de l'entreprise",
+      "map_field_first_name": "Prénom",
+      "map_field_last_name": "Nom",
+      "map_field_street": "Rue",
+      "map_field_postal_code": "Code postal",
+      "map_field_city": "Ville",
+      "map_field_iban": "IBAN",
+      "map_field_email_addresses": "Adresses e-mail",
+      "map_field_phone_numbers": "Numéros de téléphone",
+      "map_field_tags": "Étiquettes",
+      "map_field_notes": "Notes"
+    },
+    "picker": {
+      "label": "Contact",
+      "supplier_label": "Fournisseur (contact)",
+      "none": "— aucun —",
+      "sender_help": "Choisir un contact remplit l'expéditeur.",
+      "deleted": "supprimé",
+      "save": "Enregistrer"
+    },
+    "unnamed": "Contact sans nom",
+    "documents": {
+      "header": "Documents",
+      "change_folder": "Changer de dossier",
+      "folder_saved": "Dossier enregistré.",
+      "upload_ok": "Fichier envoyé.",
+      "no_base_folder": "Aucun dossier de base pour les documents des contacts n'est encore défini. Un administrateur peut le définir sous Administration → Intégrations (Nextcloud).",
+      "pick_help": "Choisissez le dossier de ce contact dans {base}. Les nouveaux dossiers se créent directement dans le cloud.",
+      "folder_label": "Dossier",
+      "no_folder_option": "— aucun dossier —",
+      "save_folder": "Enregistrer le dossier",
+      "no_subfolders": "Il n'y a encore aucun dossier dans {base}. Créez-en un pour ce contact dans le cloud, puis choisissez-le ici.",
+      "no_folder": "Aucun dossier de documents n'a été choisi pour ce contact.",
+      "empty": "Ce dossier est vide.",
+      "upload_button": "Envoyer",
+      "upload_help": "Le fichier est envoyé dans le dossier affiché ci-dessus. Les fichiers se suppriment ou se déplacent directement dans le cloud.",
+      "cloud_not_configured": "La connexion au cloud n'est pas configurée.",
+      "invalid_folder": "Nom de dossier invalide.",
+      "invalid_file": "Nom de fichier invalide."
     }
   }
 }

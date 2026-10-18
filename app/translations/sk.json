@@ -49,7 +49,8 @@
     "finances_incoming_invoices": "Prijaté faktúry",
     "freescout_bridge": "Podpora",
     "applicants": "Uchádzači",
-    "work_hours_transfers": "Prevod hodín"
+    "work_hours_transfers": "Prevod hodín",
+    "external_contacts": "Externé kontakty"
   },
   "errors": {
     "user_not_found": "Používateľ nebol nájdený",
@@ -305,7 +306,9 @@
         "applicants_name": "Uchádzači",
         "applicants_desc": "Ľudia, ktorí sa uchádzajú o voľnú záhradu: kontaktné údaje, dátum prihlášky, stav a poznámky výboru. Prihlášky z webu prichádzajú len so zapnutým \"Verejným API formulára prihlášok\".",
         "public_applicant_api_name": "Verejné API formulára prihlášok",
-        "public_applicant_api_desc": "Umožní formuláru prihlášok o voľné záhrady na webe spolku priamo zakladať uchádzačov. Predvolene vypnuté, pretože otvára verejný zápisový koncový bod; koncové body nájdete na stránke \"Integrácie\"."
+        "public_applicant_api_desc": "Umožní formuláru prihlášok o voľné záhrady na webe spolku priamo zakladať uchádzačov. Predvolene vypnuté, pretože otvára verejný zápisový koncový bod; koncové body nájdete na stránke \"Integrácie\".",
+        "external_contacts_name": "Externé kontakty",
+        "external_contacts_desc": "Dodávatelia, remeselníci, úrady: firma a kontaktná osoba, s adresou, IBAN, telefónnymi číslami, e-mailmi, poznámkami a štítkami. Dajú sa prepojiť s prijatými faktúrami a požiadavkami na nákup."
       },
       "region_header": "Región",
       "region_help": "Určuje formát čísel a adresy (napr. oddeľovač tisícov, poradie PSČ a mesta). Nezávisle od jazyka rozhrania.",
@@ -407,7 +410,11 @@
       "public_forms_saved": "Povolené adresy webov boli uložené.",
       "public_forms_ignored": "Tieto položky nie sú adresy http(s) a boli ignorované: {entries}",
       "public_forms_altcha_label": "Vyžadovať ALTCHA (výpočtová úloha proti spamovým botom)",
-      "public_forms_altcha_hint": "Prehliadač návštevníka musí vyriešiť malú výpočtovú úlohu, kým je formulár prijatý -- žiadne cookies, žiadna tretia strana, nič na klikanie. Platí to pre každý spôsob odoslania: jednoduché HTML formuláre, plugin pre WordPress (od verzie 3.0) aj napojenia cez API token, ktoré potom musia posielať riešenie widgetu v poli \"altcha\". Zapnite to až vtedy, keď formuláre všetkých webov obsahujú widget ALTCHA, ktorý si úlohu sťahuje z {challenge_url}; inak bude každé odoslanie odmietnuté."
+      "public_forms_altcha_hint": "Prehliadač návštevníka musí vyriešiť malú výpočtovú úlohu, kým je formulár prijatý -- žiadne cookies, žiadna tretia strana, nič na klikanie. Platí to pre každý spôsob odoslania: jednoduché HTML formuláre, plugin pre WordPress (od verzie 3.0) aj napojenia cez API token, ktoré potom musia posielať riešenie widgetu v poli \"altcha\". Zapnite to až vtedy, keď formuláre všetkých webov obsahujú widget ALTCHA, ktorý si úlohu sťahuje z {challenge_url}; inak bude každé odoslanie odmietnuté.",
+      "external_contacts_folder_header": "Priečinok pre dokumenty externých kontaktov",
+      "external_contacts_folder_help": "Základný priečinok v cloude s jedným podpriečinkom pre každý externý kontakt (zakladaným ručne). Každý kontakt si potom na svojej stránke vyberie svoj podpriečinok. Nechajte prázdne pre vypnutie sekcie dokumentov.",
+      "external_contacts_folder_saved": "Priečinok uložený.",
+      "external_contacts_folder_label": "Základný priečinok (relatívna cesta)"
     },
     "system": {
       "page_title": "Systém",
@@ -540,7 +547,8 @@
         "inventory": "Inventár",
         "finances": "Financie",
         "freescout_bridge": "Prepojenie s FreeScout",
-        "applicants": "Uchádzači"
+        "applicants": "Uchádzači",
+        "external_contacts": "Externé kontakty"
       }
     }
   },
@@ -2728,6 +2736,164 @@
       "invalid_email": "Zadajte, prosím, platnú e-mailovú adresu.",
       "invalid_applied_at": "Zadajte platný dátum žiadosti.",
       "applied_at_in_future": "Dátum žiadosti nesmie byť v budúcnosti."
+    }
+  },
+  "external_contacts": {
+    "list": {
+      "title": "Externé kontakty",
+      "csv_import": "Import CSV",
+      "csv_export": "Export CSV",
+      "new_contact": "Nový kontakt",
+      "search_placeholder": "Firma, meno, mesto, e-mail, telefón…",
+      "search_button": "Hľadať",
+      "reset_button": "Zrušiť filter",
+      "col_company": "Firma",
+      "col_contact_person": "Kontaktná osoba",
+      "col_phone": "Telefón",
+      "col_email": "E-mail",
+      "empty_search": "Pre „{query}“ sa nenašli žiadne kontakty.",
+      "empty_none": "Zatiaľ žiadne externé kontakty.",
+      "create_first": "Pridať prvý kontakt",
+      "count": "Kontakty: {count}",
+      "csv_import_modal_title": "Import kontaktov z CSV",
+      "csv_import_button": "Importovať",
+      "csv_format_help": "Oddelené bodkočiarkou alebo čiarkou, s riadkom hlavičky. Stĺpce priradíte v ďalšom kroku. Stĺpce exportu:",
+      "csv_multi_help": "Viac e-mailov, telefónnych čísel alebo štítkov patrí do jednej bunky, oddelených bodkočiarkou.",
+      "csv_match_help": "Riadok sa priradí k existujúcemu kontaktu podľa mena osoby, pri kontaktoch bez osoby podľa firmy; nájdený kontakt sa aktualizuje, nič sa neodstráni."
+    },
+    "form": {
+      "title_new": "Nový externý kontakt",
+      "title_edit": "Upraviť {name}",
+      "heading_new": "Nový externý kontakt",
+      "heading_edit": "Upraviť externý kontakt",
+      "cancel": "Zrušiť",
+      "company_header": "Firma",
+      "label_company_name": "Názov firmy",
+      "label_street": "Ulica",
+      "label_postal_code": "PSČ",
+      "label_city": "Mesto",
+      "label_iban": "IBAN",
+      "person_header": "Kontaktná osoba",
+      "label_first_name": "Meno",
+      "label_last_name": "Priezvisko",
+      "name_unique_help": "Všetky polia sú nepovinné. Meno osoby smie existovať len raz; kontakt bez osoby len raz na firmu.",
+      "label_email": "E-mail",
+      "label_phone": "Telefón",
+      "more_later_help": "Ďalšie čísla a adresy môžete pridať na stránke detailu.",
+      "notes_header": "Poznámky",
+      "button_save": "Uložiť zmeny",
+      "button_create": "Vytvoriť kontakt"
+    },
+    "detail": {
+      "button_edit": "Upraviť",
+      "button_previous": "Predchádzajúci",
+      "button_next": "Ďalší",
+      "button_back": "Späť na zoznam",
+      "master_data_header": "Firma a kontaktná osoba",
+      "label_company": "Firma",
+      "label_contact_person": "Kontaktná osoba",
+      "label_address": "Adresa",
+      "label_iban": "IBAN",
+      "phones_header": "Telefónne čísla",
+      "no_phones": "Žiadne telefónne čísla.",
+      "emails_header": "E-mailové adresy",
+      "no_emails": "Žiadne e-mailové adresy.",
+      "remove_tooltip": "Odstrániť",
+      "label_placeholder": "Popis (nepovinné)",
+      "incoming_invoices_header": "Prijaté faktúry",
+      "no_incoming_invoices": "Žiadne prepojené prijaté faktúry.",
+      "purchase_requests_header": "Požiadavky na nákup",
+      "no_purchase_requests": "Žiadne prepojené požiadavky na nákup.",
+      "notes_header": "Poznámky",
+      "danger_zone_header": "Nebezpečná zóna",
+      "danger_zone_text": "Zmazaním kontakt zmizne zo zoznamov a výberových polí. Prepojené prijaté faktúry a požiadavky na nákup ho naďalej zobrazujú.",
+      "delete_confirm": "Naozaj zmazať {name}?",
+      "button_delete": "Zmazať kontakt",
+      "deleted_message": "{name} bol zmazaný."
+    },
+    "tags": {
+      "manage_link": "Spravovať štítky",
+      "filter_label": "Filtrovať podľa štítku",
+      "filter_any": "Všetky štítky",
+      "card_header": "Štítky",
+      "new_tags_placeholder": "Nové štítky, oddelené čiarkou",
+      "new_tags_hint": "Zaškrtnite existujúce štítky alebo napíšte nové.",
+      "remove_tooltip": "Odstrániť štítok",
+      "none": "Žiadne štítky.",
+      "add_placeholder": "Pridať štítok…",
+      "add_button": "Pridať štítok",
+      "page_title": "Štítky kontaktov",
+      "back_to_contacts": "Späť na kontakty",
+      "page_hint": "Štítky externých kontaktov sú oddelené od štítkov členov. Premenovanie zmení štítok pri všetkých kontaktoch, zmazanie ho odstráni zo všetkých.",
+      "name_label": "Názov štítku",
+      "rename_button": "Premenovať",
+      "contact_count": "Kontakty: {count}",
+      "delete_confirm": "Zmazať štítok „{name}“ pri všetkých kontaktoch?",
+      "delete_button": "Zmazať štítok",
+      "empty": "Zatiaľ žiadne štítky. Pridajte štítok pri kontakte.",
+      "errors": {
+        "name_required": "Zadajte názov štítku.",
+        "name_too_long": "Názov štítku môže mať najviac {max} znakov.",
+        "not_found": "Štítok sa nenašiel.",
+        "name_taken": "Štítok „{name}“ už existuje."
+      }
+    },
+    "errors": {
+      "not_found": "Externý kontakt sa nenašiel.",
+      "name_taken": "Kontaktná osoba {name} už existuje ({company}).",
+      "company_taken": "Kontakt bez osoby pre {company} už existuje."
+    },
+    "import": {
+      "empty_error": "Súbor CSV je prázdny.",
+      "mapping_required_error": "Priraďte aspoň jeden stĺpec k poľu.",
+      "row_error": "Riadok {row}: {error}",
+      "summary": "Vytvorené kontakty: {created}, aktualizované: {updated}.",
+      "errors_suffix": "Preskočené riadky: {count}",
+      "more_errors": "(a {count} ďalších)",
+      "preview_title": "Import kontaktov",
+      "preview_header": "Priradiť stĺpce",
+      "preview_help": "Vyberte, do ktorého poľa patrí každý stĺpec CSV. Nižšie sú prvé riadky súboru.",
+      "map_ignore": "— ignorovať —",
+      "required_help": "Žiadne pole nie je povinné; úplne prázdne riadky sa preskočia.",
+      "map_field_company_name": "Názov firmy",
+      "map_field_first_name": "Meno",
+      "map_field_last_name": "Priezvisko",
+      "map_field_street": "Ulica",
+      "map_field_postal_code": "PSČ",
+      "map_field_city": "Mesto",
+      "map_field_iban": "IBAN",
+      "map_field_email_addresses": "E-mailové adresy",
+      "map_field_phone_numbers": "Telefónne čísla",
+      "map_field_tags": "Štítky",
+      "map_field_notes": "Poznámky"
+    },
+    "picker": {
+      "label": "Kontakt",
+      "supplier_label": "Dodávateľ (kontakt)",
+      "none": "— žiadny —",
+      "sender_help": "Výber kontaktu vyplní odosielateľa.",
+      "deleted": "zmazaný",
+      "save": "Uložiť"
+    },
+    "unnamed": "Kontakt bez názvu",
+    "documents": {
+      "header": "Dokumenty",
+      "change_folder": "Zmeniť priečinok",
+      "folder_saved": "Priečinok uložený.",
+      "upload_ok": "Súbor nahraný.",
+      "no_base_folder": "Základný priečinok pre dokumenty kontaktov ešte nie je nastavený. Administrátor ho môže nastaviť v Administrácia → Integrácie (Nextcloud).",
+      "pick_help": "Vyberte priečinok tohto kontaktu v {base}. Nové priečinky sa zakladajú priamo v cloude.",
+      "folder_label": "Priečinok",
+      "no_folder_option": "— žiadny priečinok —",
+      "save_folder": "Uložiť priečinok",
+      "no_subfolders": "V {base} zatiaľ nie sú žiadne priečinky. Založte v cloude priečinok pre tento kontakt a potom ho tu vyberte.",
+      "no_folder": "Pre tento kontakt nie je vybraný priečinok dokumentov.",
+      "empty": "Tento priečinok je prázdny.",
+      "upload_button": "Nahrať",
+      "upload_help": "Súbor sa nahrá do priečinka zobrazeného vyššie. Mazanie alebo presúvanie súborov prebieha priamo v cloude.",
+      "cloud_not_configured": "Pripojenie ku cloudu nie je nastavené.",
+      "invalid_folder": "Neplatný názov priečinka.",
+      "invalid_file": "Neplatný názov súboru."
     }
   }
 }

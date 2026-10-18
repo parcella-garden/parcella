@@ -356,6 +356,13 @@ incoming invoices don't have. Recorded directly on the incoming
 invoice's own detail page (there's no "run" grouping several incoming
 invoices together the way outgoing invoices have).
 
+`external_contact_id` (optional, `ON DELETE SET NULL`) links the
+invoice to the supplier in the external contacts module
+(docs/module-external-contacts.md). It sits *alongside* the free-text
+`sender` and doesn't replace it: search, the accounting statement and
+bank matching keep reading `sender`. Picking a contact on the form
+only fills in `sender` for you (ADR 0096).
+
 ## Cash-based accounting statement
 
 `/finances/accounting-statement` (issue #179) is a per-calendar-year

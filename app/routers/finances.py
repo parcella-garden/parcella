@@ -77,6 +77,7 @@ router = APIRouter(
     tags=["finances"],
     dependencies=[Depends(require_module("finances"))],
 )
+from app.routers.external_contacts import picker_contacts, resolve_picked_contact
 from app.templating import templates
 
 
@@ -381,7 +382,7 @@ async def incoming_invoices_list(
     return templates.TemplateResponse("finances/incoming_invoices_list.html", {
         "request": request, "user": user, "invoices": invoices, "categories": categories,
         "cloud_storage_enabled": cloud_storage_enabled, "folder_path": folder_path,
-        "today": date.today().isoformat(),
+        "today": date.today().isoformat(), "contacts": await picker_contacts(request, db),
         "filter_invoice_number": invoice_number, "filter_sender": sender,
         "filter_amount_min": amount_min, "filter_amount_max": amount_max, "filter_status": status,
     })
@@ -391,6 +392,7 @@ async def incoming_invoices_list(
 async def incoming_invoice_create(
     request: Request,
     sender: str = Form(...), invoice_number: str = Form(""), invoice_date: str = Form(...), note: str = Form(""),
+    external_contact_id: str = Form(""),
     category_id: list[str] = Form([]), description: list[str] = Form([]), amount: list[str] = Form([]),
     file: Optional[UploadFile] = File(None),
     db: AsyncSession = Depends(get_db),
@@ -409,6 +411,7 @@ async def incoming_invoice_create(
     invoice = IncomingInvoice(
         sender=sender.strip(), invoice_number=invoice_number.strip() or None,
         invoice_date=parsed_date, note=note.strip() or None, created_by_id=user.id,
+        external_contact_id=await resolve_picked_contact(request, db, external_contact_id),
     )
     db.add(invoice)
     await db.flush()
@@ -452,6 +455,7 @@ async def incoming_invoice_detail(invoice_id: str, request: Request, db: AsyncSe
         .options(
             selectinload(IncomingInvoice.line_items).selectinload(IncomingInvoiceLineItem.category),
             selectinload(IncomingInvoice.payments).selectinload(IncomingInvoicePayment.account),
+            selectinload(IncomingInvoice.external_contact),
         )
         .where(IncomingInvoice.id == invoice_id)
     )
@@ -467,8 +471,24 @@ async def incoming_invoice_detail(invoice_id: str, request: Request, db: AsyncSe
     return templates.TemplateResponse("finances/incoming_invoice_detail.html", {
         "request": request, "user": user, "invoice": invoice, "accounts": accounts,
         "cloud_storage_enabled": _cloud_storage_enabled(request),
-        "today": date.today().isoformat(),
+        "today": date.today().isoformat(), "contacts": await picker_contacts(request, db),
     })
+
+
+@router.post("/incoming-invoices/{invoice_id}/contact")
+async def incoming_invoice_set_contact(
+    invoice_id: str, request: Request, external_contact_id: str = Form(""), db: AsyncSession = Depends(get_db),
+):
+    """Links (or unlinks, with "") the external contact who sent the
+    invoice (ADR 0096). Leaves `sender` alone -- that's what search,
+    the accounting statement and bank matching read."""
+    await require_permission(request, db, "finances", "write")
+    invoice = await db.get(IncomingInvoice, invoice_id)
+    if invoice is None:
+        raise HTTPException(status_code=404)
+    invoice.external_contact_id = await resolve_picked_contact(request, db, external_contact_id)
+    await db.commit()
+    return RedirectResponse(f"/finances/incoming-invoices/{invoice_id}", status_code=303)
 
 
 @router.post("/incoming-invoices/{invoice_id}/delete")

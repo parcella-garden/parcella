@@ -44,11 +44,15 @@ REQUIRED_APPROVALS = 2
 async def create_purchase_request(
     db, *, title: str, justification: str, link: Optional[str], estimated_cost_eur,
     created_by_id: str, requester_name: Optional[str] = None, requester_email: Optional[str] = None,
+    external_contact_id: Optional[str] = None,
 ) -> PurchaseRequest:
+    """external_contact_id: an optional supplier, already validated by
+    the caller (app/routers/external_contacts.py's resolve_picked_contact
+    or the API's own check)."""
     pr = PurchaseRequest(
         title=title.strip(), justification=justification.strip(),
         link=(link or "").strip() or None, estimated_cost_eur=estimated_cost_eur,
-        created_by_id=created_by_id,
+        created_by_id=created_by_id, external_contact_id=external_contact_id,
     )
 
     if requester_email:

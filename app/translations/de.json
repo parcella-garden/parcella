@@ -49,7 +49,8 @@
     "finances_incoming_invoices": "Eingangsrechnungen",
     "freescout_bridge": "Support",
     "applicants": "Bewerber",
-    "work_hours_transfers": "Stundenübertragung"
+    "work_hours_transfers": "Stundenübertragung",
+    "external_contacts": "Externe Kontakte"
   },
   "errors": {
     "user_not_found": "Benutzer nicht gefunden",
@@ -305,7 +306,9 @@
         "applicants_name": "Bewerber",
         "applicants_desc": "Personen, die sich um einen freien Garten beworben haben: Kontaktdaten, Bewerbungsdatum, Status und Notizen des Vorstands. Bewerbungen von der Website kommen nur mit eingeschalteter \"Öffentliche Bewerbungsformular-API\" an.",
         "public_applicant_api_name": "Öffentliche Bewerbungsformular-API",
-        "public_applicant_api_desc": "Lässt das Bewerbungsformular für freie Gärten auf der Vereins-Website direkt Bewerber anlegen. Standardmäßig aus, da es einen öffentlichen Schreib-Endpunkt öffnet; die Endpunkte stehen auf der Seite \"Integrationen\"."
+        "public_applicant_api_desc": "Lässt das Bewerbungsformular für freie Gärten auf der Vereins-Website direkt Bewerber anlegen. Standardmäßig aus, da es einen öffentlichen Schreib-Endpunkt öffnet; die Endpunkte stehen auf der Seite \"Integrationen\".",
+        "external_contacts_name": "Externe Kontakte",
+        "external_contacts_desc": "Lieferanten, Handwerker, Behörden: eine Firma plus Ansprechpartner, mit Adresse, IBAN, Telefonnummern, E-Mails, Notizen und Tags. Lässt sich mit Eingangsrechnungen und Einkaufswünschen verknüpfen."
       },
       "region_header": "Region",
       "region_help": "Bestimmt Zahlen- und Adressformat (z.B. Tausendertrennzeichen, Reihenfolge von PLZ und Ort). Unabhängig von der Oberflächensprache.",
@@ -407,7 +410,11 @@
       "public_forms_saved": "Erlaubte Website-Adressen gespeichert.",
       "public_forms_ignored": "Diese Einträge sind keine http(s)-Adressen und wurden ignoriert: {entries}",
       "public_forms_altcha_label": "ALTCHA verlangen (Rechenaufgabe gegen Spam-Bots)",
-      "public_forms_altcha_hint": "Der Browser des Besuchers muss eine kleine Rechenaufgabe lösen, bevor ein Formular angenommen wird -- keine Cookies, kein Drittanbieter, nichts anzuklicken. Das gilt für jeden Übermittlungsweg: die einfachen HTML-Formulare, das WordPress-Plugin (ab Version 3.0) und Anbindungen über den API-Token, die dann die Lösung des Widgets im Feld \"altcha\" mitschicken müssen. Erst einschalten, wenn die Formulare aller Websites das ALTCHA-Widget enthalten, das seine Aufgabe von {challenge_url} abruft -- sonst wird jede Übermittlung abgelehnt."
+      "public_forms_altcha_hint": "Der Browser des Besuchers muss eine kleine Rechenaufgabe lösen, bevor ein Formular angenommen wird -- keine Cookies, kein Drittanbieter, nichts anzuklicken. Das gilt für jeden Übermittlungsweg: die einfachen HTML-Formulare, das WordPress-Plugin (ab Version 3.0) und Anbindungen über den API-Token, die dann die Lösung des Widgets im Feld \"altcha\" mitschicken müssen. Erst einschalten, wenn die Formulare aller Websites das ALTCHA-Widget enthalten, das seine Aufgabe von {challenge_url} abruft -- sonst wird jede Übermittlung abgelehnt.",
+      "external_contacts_folder_header": "Ordner für Dokumente externer Kontakte",
+      "external_contacts_folder_help": "Basisordner in der Cloud mit einem Unterordner pro externem Kontakt (von Hand angelegt). Jeder Kontakt wählt dann auf seiner Seite seinen Unterordner. Leer lassen, um den Dokumentenbereich auszuschalten.",
+      "external_contacts_folder_saved": "Ordner gespeichert.",
+      "external_contacts_folder_label": "Basisordner (relativer Pfad)"
     },
     "system": {
       "page_title": "System",
@@ -540,7 +547,8 @@
         "inventory": "Inventar",
         "finances": "Finanzen",
         "freescout_bridge": "FreeScout-Anbindung",
-        "applicants": "Bewerber"
+        "applicants": "Bewerber",
+        "external_contacts": "Externe Kontakte"
       }
     }
   },
@@ -2728,6 +2736,164 @@
       "invalid_email": "Bitte eine gültige E-Mail-Adresse eingeben.",
       "invalid_applied_at": "Bitte ein gültiges Bewerbungsdatum eingeben.",
       "applied_at_in_future": "Das Bewerbungsdatum darf nicht in der Zukunft liegen."
+    }
+  },
+  "external_contacts": {
+    "list": {
+      "title": "Externe Kontakte",
+      "csv_import": "CSV-Import",
+      "csv_export": "CSV-Export",
+      "new_contact": "Neuer Kontakt",
+      "search_placeholder": "Firma, Name, Ort, E-Mail, Telefon…",
+      "search_button": "Suchen",
+      "reset_button": "Zurücksetzen",
+      "col_company": "Firma",
+      "col_contact_person": "Ansprechpartner",
+      "col_phone": "Telefon",
+      "col_email": "E-Mail",
+      "empty_search": "Keine Kontakte zu „{query}“ gefunden.",
+      "empty_none": "Noch keine externen Kontakte.",
+      "create_first": "Ersten Kontakt anlegen",
+      "count": "{count} Kontakt(e)",
+      "csv_import_modal_title": "Kontakte aus CSV importieren",
+      "csv_import_button": "Importieren",
+      "csv_format_help": "Semikolon- oder kommagetrennt, mit Kopfzeile. Die Spalten ordnest du im nächsten Schritt zu. Spalten des Exports:",
+      "csv_multi_help": "Mehrere E-Mails, Telefonnummern oder Tags stehen in einer Zelle, getrennt durch Semikolon.",
+      "csv_match_help": "Eine Zeile passt zu einem vorhandenen Kontakt über den Personennamen, bei Kontakten ohne Person über die Firma; ein Treffer wird aktualisiert, entfernt wird nichts."
+    },
+    "form": {
+      "title_new": "Neuer externer Kontakt",
+      "title_edit": "{name} bearbeiten",
+      "heading_new": "Neuer externer Kontakt",
+      "heading_edit": "Externen Kontakt bearbeiten",
+      "cancel": "Abbrechen",
+      "company_header": "Firma",
+      "label_company_name": "Firmenname",
+      "label_street": "Straße",
+      "label_postal_code": "PLZ",
+      "label_city": "Ort",
+      "label_iban": "IBAN",
+      "person_header": "Ansprechpartner",
+      "label_first_name": "Vorname",
+      "label_last_name": "Nachname",
+      "name_unique_help": "Alle Felder sind optional. Ein Personenname darf nur einmal vorkommen, ein Kontakt ohne Person nur einmal pro Firma.",
+      "label_email": "E-Mail",
+      "label_phone": "Telefon",
+      "more_later_help": "Weitere Nummern und Adressen kannst du auf der Detailseite ergänzen.",
+      "notes_header": "Notizen",
+      "button_save": "Änderungen speichern",
+      "button_create": "Kontakt anlegen"
+    },
+    "detail": {
+      "button_edit": "Bearbeiten",
+      "button_previous": "Zurück",
+      "button_next": "Weiter",
+      "button_back": "Zur Liste",
+      "master_data_header": "Firma & Ansprechpartner",
+      "label_company": "Firma",
+      "label_contact_person": "Ansprechpartner",
+      "label_address": "Adresse",
+      "label_iban": "IBAN",
+      "phones_header": "Telefonnummern",
+      "no_phones": "Keine Telefonnummern.",
+      "emails_header": "E-Mail-Adressen",
+      "no_emails": "Keine E-Mail-Adressen.",
+      "remove_tooltip": "Entfernen",
+      "label_placeholder": "Bezeichnung (optional)",
+      "incoming_invoices_header": "Eingangsrechnungen",
+      "no_incoming_invoices": "Keine verknüpften Eingangsrechnungen.",
+      "purchase_requests_header": "Einkaufswünsche",
+      "no_purchase_requests": "Keine verknüpften Einkaufswünsche.",
+      "notes_header": "Notizen",
+      "danger_zone_header": "Gefahrenzone",
+      "danger_zone_text": "Beim Löschen verschwindet der Kontakt aus Listen und Auswahlfeldern. Verknüpfte Eingangsrechnungen und Einkaufswünsche zeigen ihn weiterhin an.",
+      "delete_confirm": "{name} wirklich löschen?",
+      "button_delete": "Kontakt löschen",
+      "deleted_message": "{name} wurde gelöscht."
+    },
+    "tags": {
+      "manage_link": "Tags verwalten",
+      "filter_label": "Nach Tag filtern",
+      "filter_any": "Alle Tags",
+      "card_header": "Tags",
+      "new_tags_placeholder": "Neue Tags, durch Komma getrennt",
+      "new_tags_hint": "Vorhandene Tags ankreuzen oder neue eintippen.",
+      "remove_tooltip": "Tag entfernen",
+      "none": "Keine Tags.",
+      "add_placeholder": "Tag hinzufügen…",
+      "add_button": "Tag hinzufügen",
+      "page_title": "Kontakt-Tags",
+      "back_to_contacts": "Zurück zu den Kontakten",
+      "page_hint": "Tags für externe Kontakte sind von den Mitglieder-Tags getrennt. Umbenennen ändert den Tag bei allen Kontakten, Löschen entfernt ihn überall.",
+      "name_label": "Tag-Name",
+      "rename_button": "Umbenennen",
+      "contact_count": "{count} Kontakt(e)",
+      "delete_confirm": "Den Tag „{name}“ bei allen Kontakten löschen?",
+      "delete_button": "Tag löschen",
+      "empty": "Noch keine Tags. Lege einen bei einem Kontakt an.",
+      "errors": {
+        "name_required": "Bitte einen Tag-Namen eingeben.",
+        "name_too_long": "Ein Tag-Name darf höchstens {max} Zeichen lang sein.",
+        "not_found": "Tag nicht gefunden.",
+        "name_taken": "Ein Tag „{name}“ gibt es schon."
+      }
+    },
+    "errors": {
+      "not_found": "Externer Kontakt nicht gefunden.",
+      "name_taken": "Einen Ansprechpartner {name} gibt es schon ({company}).",
+      "company_taken": "Einen Kontakt ohne Person für {company} gibt es schon."
+    },
+    "import": {
+      "empty_error": "Die CSV-Datei ist leer.",
+      "mapping_required_error": "Bitte mindestens eine Spalte einem Feld zuordnen.",
+      "row_error": "Zeile {row}: {error}",
+      "summary": "{created} Kontakt(e) angelegt, {updated} aktualisiert.",
+      "errors_suffix": "{count} Zeile(n) übersprungen",
+      "more_errors": "(und {count} weitere)",
+      "preview_title": "Kontakte importieren",
+      "preview_header": "Spalten zuordnen",
+      "preview_help": "Wähle für jede CSV-Spalte das Feld, in das sie gehört. Unten siehst du die ersten Zeilen der Datei.",
+      "map_ignore": "— ignorieren —",
+      "required_help": "Kein Feld ist Pflicht; komplett leere Zeilen werden übersprungen.",
+      "map_field_company_name": "Firmenname",
+      "map_field_first_name": "Vorname",
+      "map_field_last_name": "Nachname",
+      "map_field_street": "Straße",
+      "map_field_postal_code": "PLZ",
+      "map_field_city": "Ort",
+      "map_field_iban": "IBAN",
+      "map_field_email_addresses": "E-Mail-Adressen",
+      "map_field_phone_numbers": "Telefonnummern",
+      "map_field_tags": "Tags",
+      "map_field_notes": "Notizen"
+    },
+    "picker": {
+      "label": "Kontakt",
+      "supplier_label": "Lieferant (Kontakt)",
+      "none": "— keiner —",
+      "sender_help": "Die Auswahl eines Kontakts füllt den Absender aus.",
+      "deleted": "gelöscht",
+      "save": "Speichern"
+    },
+    "unnamed": "Kontakt ohne Namen",
+    "documents": {
+      "header": "Dokumente",
+      "change_folder": "Ordner ändern",
+      "folder_saved": "Ordner gespeichert.",
+      "upload_ok": "Datei hochgeladen.",
+      "no_base_folder": "Es ist noch kein Basisordner für Kontakt-Dokumente festgelegt. Ein Administrator kann ihn unter Administration → Integrationen (Nextcloud) setzen.",
+      "pick_help": "Wähle den Ordner dieses Kontakts in {base}. Neue Ordner legst du direkt in der Cloud an.",
+      "folder_label": "Ordner",
+      "no_folder_option": "— kein Ordner —",
+      "save_folder": "Ordner speichern",
+      "no_subfolders": "In {base} gibt es noch keine Ordner. Lege in der Cloud einen für diesen Kontakt an und wähle ihn dann hier aus.",
+      "no_folder": "Für diesen Kontakt ist kein Dokumentenordner ausgewählt.",
+      "empty": "Dieser Ordner ist leer.",
+      "upload_button": "Hochladen",
+      "upload_help": "Die Datei wird in den oben angezeigten Ordner hochgeladen. Löschen oder Verschieben geht direkt in der Cloud.",
+      "cloud_not_configured": "Die Cloud-Verbindung ist nicht eingerichtet.",
+      "invalid_folder": "Ungültiger Ordnername.",
+      "invalid_file": "Ungültiger Dateiname."
     }
   }
 }

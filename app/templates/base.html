@@ -292,6 +292,14 @@
         {% endif %}
         {% endmacro %}
 
+        {% macro nav_external_contacts(request) %}
+        {% if request.state.module_flags.external_contacts and has_perm(request, 'external_contacts') %}
+        <a href="/contacts/" class="nav-top-link {% if request.url.path.startswith('/contacts') %}aktiv{% endif %}">
+            <i class="bi bi-person-vcard"></i> {{ t('nav.external_contacts') }}
+        </a>
+        {% endif %}
+        {% endmacro %}
+
         {% macro nav_work_hours(request) %}
         {% if request.state.module_flags.work_hours and has_perm(request, 'work_hours') %}
         <div class="nav-group" data-group="work_hours">
@@ -471,6 +479,7 @@
             {% elif key == 'tasks' %}{{ nav_tasks(request) }}
             {% elif key == 'finances' %}{{ nav_finances(request) }}
             {% elif key == 'applicants' %}{{ nav_applicants(request) }}
+            {% elif key == 'external_contacts' %}{{ nav_external_contacts(request) }}
             {% endif %}
         {% endfor %}
 

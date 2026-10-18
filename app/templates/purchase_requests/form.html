@@ -31,6 +31,17 @@
                         <label class="form-label fw-semibold">{{ t('purchase_requests.form.label_link') }}</label>
                         <input type="url" name="link" class="form-control" placeholder="https://…">
                     </div>
+                    {% if contacts is not none %}
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">{{ t('external_contacts.picker.supplier_label') }}</label>
+                        <select name="external_contact_id" class="form-select">
+                            <option value="">{{ t('external_contacts.picker.none') }}</option>
+                            {% for c in contacts %}
+                            <option value="{{ c.id }}">{{ (c.display_name or t('external_contacts.unnamed')) }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
                     <div class="col-sm-4">
                         <label class="form-label fw-semibold">{{ t('purchase_requests.form.label_estimated_cost') }}</label>
                         <div class="input-group">

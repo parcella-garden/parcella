@@ -72,10 +72,24 @@
             <div class="card-body">
                 <form method="post" action="/finances/incoming-invoices" enctype="multipart/form-data" id="new-incoming-invoice-form">
                     {{ csrf_field() }}
+                    {% if contacts is not none %}
+                    <div class="row g-2 mb-2">
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold" style="font-size: 0.85rem;">{{ t('external_contacts.picker.label') }}</label>
+                            <select name="external_contact_id" class="form-select form-select-sm" id="incoming-invoice-contact">
+                                <option value="">{{ t('external_contacts.picker.none') }}</option>
+                                {% for c in contacts %}
+                                <option value="{{ c.id }}" data-sender="{{ c.company_name or c.full_name }}">{{ (c.display_name or t('external_contacts.unnamed')) }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">{{ t('external_contacts.picker.sender_help') }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
                     <div class="row g-2">
                         <div class="col-sm-3">
                             <label class="form-label fw-semibold" style="font-size: 0.85rem;">{{ t('finances.incoming_invoices.label_sender') }}</label>
-                            <input type="text" name="sender" class="form-control form-control-sm" required>
+                            <input type="text" name="sender" class="form-control form-control-sm" id="incoming-invoice-sender" required>
                         </div>
                         <div class="col-sm-3">
                             <label class="form-label fw-semibold" style="font-size: 0.85rem;">{{ t('finances.incoming_invoices.label_invoice_number') }}</label>
@@ -252,4 +266,21 @@ document.addEventListener('DOMContentLoaded', function () {
     syncRemoveButtons();
 });
 </script>
+{% if contacts is not none %}
+<script>
+// Picking a contact fills the sender, unless the user has typed their own.
+(function () {
+    const picker = document.getElementById('incoming-invoice-contact');
+    const sender = document.getElementById('incoming-invoice-sender');
+    let autoFilled = '';
+    picker.addEventListener('change', function () {
+        const option = picker.options[picker.selectedIndex];
+        if (sender.value === '' || sender.value === autoFilled) {
+            autoFilled = option.dataset.sender || '';
+            sender.value = autoFilled;
+        }
+    });
+})();
+</script>
+{% endif %}
 {% endblock %}

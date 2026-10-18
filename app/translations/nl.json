@@ -49,7 +49,8 @@
     "finances_incoming_invoices": "Inkomende facturen",
     "freescout_bridge": "Ondersteuning",
     "applicants": "Aanmelders",
-    "work_hours_transfers": "Uren overdragen"
+    "work_hours_transfers": "Uren overdragen",
+    "external_contacts": "Externe contacten"
   },
   "errors": {
     "user_not_found": "Gebruiker niet gevonden",
@@ -305,7 +306,9 @@
         "applicants_name": "Aanmelders",
         "applicants_desc": "Mensen die zich hebben aangemeld voor een vrije tuin: contactgegevens, aanmelddatum, status en notities van het bestuur. Aanmeldingen via de website komen alleen binnen als de \"Openbare aanmeldformulier-API\" aanstaat.",
         "public_applicant_api_name": "Openbare aanmeldformulier-API",
-        "public_applicant_api_desc": "Laat het aanmeldformulier voor vrije tuinen op de verenigingswebsite direct aanmelders aanmaken. Standaard uit omdat het een openbaar schrijf-eindpunt opent; zie de pagina \"Integraties\" voor de eindpunten."
+        "public_applicant_api_desc": "Laat het aanmeldformulier voor vrije tuinen op de verenigingswebsite direct aanmelders aanmaken. Standaard uit omdat het een openbaar schrijf-eindpunt opent; zie de pagina \"Integraties\" voor de eindpunten.",
+        "external_contacts_name": "Externe contacten",
+        "external_contacts_desc": "Leveranciers, vakmensen, instanties: een bedrijf plus contactpersoon, met adres, IBAN, telefoonnummers, e-mails, notities en labels. Te koppelen aan inkomende facturen en inkoopaanvragen."
       },
       "region_header": "Regio",
       "region_help": "Bepaalt het getal- en adresformaat (bijv. duizendtalscheidingsteken, volgorde van postcode en plaats). Onafhankelijk van de interfacetaal.",
@@ -407,7 +410,11 @@
       "public_forms_saved": "Toegestane websiteadressen opgeslagen.",
       "public_forms_ignored": "Deze vermeldingen zijn geen http(s)-adressen en zijn genegeerd: {entries}",
       "public_forms_altcha_label": "ALTCHA vereisen (rekenpuzzel tegen spambots)",
-      "public_forms_altcha_hint": "De browser van de bezoeker moet een kleine rekenpuzzel oplossen voordat een formulier wordt geaccepteerd -- geen cookies, geen derde partij, niets om aan te klikken. Dit geldt voor elke manier van verzenden: de eenvoudige HTML-formulieren, de WordPress-plugin (vanaf versie 3.0) en koppelingen via het API-token, die dan de oplossing van de widget in het veld \"altcha\" moeten meesturen. Zet dit pas aan als de formulieren van alle websites de ALTCHA-widget bevatten, die zijn puzzel ophaalt van {challenge_url}; anders wordt elke inzending geweigerd."
+      "public_forms_altcha_hint": "De browser van de bezoeker moet een kleine rekenpuzzel oplossen voordat een formulier wordt geaccepteerd -- geen cookies, geen derde partij, niets om aan te klikken. Dit geldt voor elke manier van verzenden: de eenvoudige HTML-formulieren, de WordPress-plugin (vanaf versie 3.0) en koppelingen via het API-token, die dan de oplossing van de widget in het veld \"altcha\" moeten meesturen. Zet dit pas aan als de formulieren van alle websites de ALTCHA-widget bevatten, die zijn puzzel ophaalt van {challenge_url}; anders wordt elke inzending geweigerd.",
+      "external_contacts_folder_header": "Map voor documenten van externe contacten",
+      "external_contacts_folder_help": "Basismap in de cloud met één submap per extern contact (met de hand aangemaakt). Elk contact kiest daarna op zijn eigen pagina zijn submap. Laat leeg om het documentengedeelte uit te zetten.",
+      "external_contacts_folder_saved": "Map opgeslagen.",
+      "external_contacts_folder_label": "Basismap (relatief pad)"
     },
     "system": {
       "page_title": "Systeem",
@@ -540,7 +547,8 @@
         "inventory": "Inventaris",
         "finances": "Financiën",
         "freescout_bridge": "FreeScout-koppeling",
-        "applicants": "Aanmelders"
+        "applicants": "Aanmelders",
+        "external_contacts": "Externe contacten"
       }
     }
   },
@@ -2728,6 +2736,164 @@
       "invalid_email": "Vul een geldig e-mailadres in.",
       "invalid_applied_at": "Voer een geldige aanmeldingsdatum in.",
       "applied_at_in_future": "De aanmeldingsdatum kan niet in de toekomst liggen."
+    }
+  },
+  "external_contacts": {
+    "list": {
+      "title": "Externe contacten",
+      "csv_import": "CSV-import",
+      "csv_export": "CSV-export",
+      "new_contact": "Nieuw contact",
+      "search_placeholder": "Bedrijf, naam, plaats, e-mail, telefoon…",
+      "search_button": "Zoeken",
+      "reset_button": "Wissen",
+      "col_company": "Bedrijf",
+      "col_contact_person": "Contactpersoon",
+      "col_phone": "Telefoon",
+      "col_email": "E-mail",
+      "empty_search": "Geen contacten gevonden voor \"{query}\".",
+      "empty_none": "Nog geen externe contacten.",
+      "create_first": "Eerste contact toevoegen",
+      "count": "{count} contact(en)",
+      "csv_import_modal_title": "Contacten importeren uit CSV",
+      "csv_import_button": "Importeren",
+      "csv_format_help": "Gescheiden door puntkomma of komma, met een kopregel. De kolommen koppel je in de volgende stap. Kolommen van de export:",
+      "csv_multi_help": "Meerdere e-mails, telefoonnummers of labels staan in één cel, gescheiden door puntkomma's.",
+      "csv_match_help": "Een regel hoort bij een bestaand contact via de persoonsnaam, of via het bedrijf bij contacten zonder persoon; dat contact wordt bijgewerkt, er wordt niets verwijderd."
+    },
+    "form": {
+      "title_new": "Nieuw extern contact",
+      "title_edit": "{name} bewerken",
+      "heading_new": "Nieuw extern contact",
+      "heading_edit": "Extern contact bewerken",
+      "cancel": "Annuleren",
+      "company_header": "Bedrijf",
+      "label_company_name": "Bedrijfsnaam",
+      "label_street": "Straat",
+      "label_postal_code": "Postcode",
+      "label_city": "Plaats",
+      "label_iban": "IBAN",
+      "person_header": "Contactpersoon",
+      "label_first_name": "Voornaam",
+      "label_last_name": "Achternaam",
+      "name_unique_help": "Alle velden zijn optioneel. Een persoonsnaam mag maar één keer voorkomen; een contact zonder persoon maar één keer per bedrijf.",
+      "label_email": "E-mail",
+      "label_phone": "Telefoon",
+      "more_later_help": "Meer nummers en adressen kun je op de detailpagina toevoegen.",
+      "notes_header": "Notities",
+      "button_save": "Wijzigingen opslaan",
+      "button_create": "Contact aanmaken"
+    },
+    "detail": {
+      "button_edit": "Bewerken",
+      "button_previous": "Vorige",
+      "button_next": "Volgende",
+      "button_back": "Naar de lijst",
+      "master_data_header": "Bedrijf & contactpersoon",
+      "label_company": "Bedrijf",
+      "label_contact_person": "Contactpersoon",
+      "label_address": "Adres",
+      "label_iban": "IBAN",
+      "phones_header": "Telefoonnummers",
+      "no_phones": "Geen telefoonnummers.",
+      "emails_header": "E-mailadressen",
+      "no_emails": "Geen e-mailadressen.",
+      "remove_tooltip": "Verwijderen",
+      "label_placeholder": "Omschrijving (optioneel)",
+      "incoming_invoices_header": "Inkomende facturen",
+      "no_incoming_invoices": "Geen gekoppelde inkomende facturen.",
+      "purchase_requests_header": "Inkoopaanvragen",
+      "no_purchase_requests": "Geen gekoppelde inkoopaanvragen.",
+      "notes_header": "Notities",
+      "danger_zone_header": "Gevarenzone",
+      "danger_zone_text": "Verwijderen haalt het contact uit lijsten en keuzevelden. Gekoppelde inkomende facturen en inkoopaanvragen blijven het tonen.",
+      "delete_confirm": "{name} echt verwijderen?",
+      "button_delete": "Contact verwijderen",
+      "deleted_message": "{name} is verwijderd."
+    },
+    "tags": {
+      "manage_link": "Labels beheren",
+      "filter_label": "Filteren op label",
+      "filter_any": "Alle labels",
+      "card_header": "Labels",
+      "new_tags_placeholder": "Nieuwe labels, gescheiden door komma's",
+      "new_tags_hint": "Vink bestaande labels aan of typ nieuwe.",
+      "remove_tooltip": "Label verwijderen",
+      "none": "Geen labels.",
+      "add_placeholder": "Label toevoegen…",
+      "add_button": "Label toevoegen",
+      "page_title": "Contactlabels",
+      "back_to_contacts": "Terug naar contacten",
+      "page_hint": "Labels voor externe contacten staan los van de ledenlabels. Hernoemen wijzigt het label bij alle contacten; verwijderen haalt het overal weg.",
+      "name_label": "Labelnaam",
+      "rename_button": "Hernoemen",
+      "contact_count": "{count} contact(en)",
+      "delete_confirm": "Het label \"{name}\" bij alle contacten verwijderen?",
+      "delete_button": "Label verwijderen",
+      "empty": "Nog geen labels. Voeg er een toe bij een contact.",
+      "errors": {
+        "name_required": "Vul een labelnaam in.",
+        "name_too_long": "Een labelnaam mag maximaal {max} tekens lang zijn.",
+        "not_found": "Label niet gevonden.",
+        "name_taken": "Er bestaat al een label \"{name}\"."
+      }
+    },
+    "errors": {
+      "not_found": "Extern contact niet gevonden.",
+      "name_taken": "Er bestaat al een contactpersoon {name} ({company}).",
+      "company_taken": "Er bestaat al een contact zonder persoon voor {company}."
+    },
+    "import": {
+      "empty_error": "Het CSV-bestand is leeg.",
+      "mapping_required_error": "Koppel ten minste één kolom aan een veld.",
+      "row_error": "Regel {row}: {error}",
+      "summary": "{created} contact(en) aangemaakt, {updated} bijgewerkt.",
+      "errors_suffix": "{count} regel(s) overgeslagen",
+      "more_errors": "(en nog {count})",
+      "preview_title": "Contacten importeren",
+      "preview_header": "Kolommen koppelen",
+      "preview_help": "Kies voor elke CSV-kolom het veld waar die in hoort. Hieronder de eerste regels van het bestand.",
+      "map_ignore": "— negeren —",
+      "required_help": "Geen enkel veld is verplicht; volledig lege regels worden overgeslagen.",
+      "map_field_company_name": "Bedrijfsnaam",
+      "map_field_first_name": "Voornaam",
+      "map_field_last_name": "Achternaam",
+      "map_field_street": "Straat",
+      "map_field_postal_code": "Postcode",
+      "map_field_city": "Plaats",
+      "map_field_iban": "IBAN",
+      "map_field_email_addresses": "E-mailadressen",
+      "map_field_phone_numbers": "Telefoonnummers",
+      "map_field_tags": "Labels",
+      "map_field_notes": "Notities"
+    },
+    "picker": {
+      "label": "Contact",
+      "supplier_label": "Leverancier (contact)",
+      "none": "— geen —",
+      "sender_help": "Een contact kiezen vult de afzender in.",
+      "deleted": "verwijderd",
+      "save": "Opslaan"
+    },
+    "unnamed": "Naamloos contact",
+    "documents": {
+      "header": "Documenten",
+      "change_folder": "Map wijzigen",
+      "folder_saved": "Map opgeslagen.",
+      "upload_ok": "Bestand geüpload.",
+      "no_base_folder": "Er is nog geen basismap voor contactdocumenten ingesteld. Een beheerder kan die instellen onder Beheer → Integraties (Nextcloud).",
+      "pick_help": "Kies de map van dit contact in {base}. Nieuwe mappen maak je direct in de cloud aan.",
+      "folder_label": "Map",
+      "no_folder_option": "— geen map —",
+      "save_folder": "Map opslaan",
+      "no_subfolders": "Er zijn nog geen mappen in {base}. Maak in de cloud een map voor dit contact aan en kies die dan hier.",
+      "no_folder": "Voor dit contact is geen documentenmap gekozen.",
+      "empty": "Deze map is leeg.",
+      "upload_button": "Uploaden",
+      "upload_help": "Het bestand wordt geüpload naar de map hierboven. Bestanden verwijderen of verplaatsen doe je direct in de cloud.",
+      "cloud_not_configured": "De cloudverbinding is niet ingesteld.",
+      "invalid_folder": "Ongeldige mapnaam.",
+      "invalid_file": "Ongeldige bestandsnaam."
     }
   }
 }

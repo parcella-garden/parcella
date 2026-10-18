@@ -14,6 +14,10 @@ purchase_requests          – the request: title, justification, link, cost, st
 purchase_request_approvals – individual approvals (who, when) -- needs 2 per request
 ```
 
+`purchase_requests.external_contact_id` is an optional supplier from
+the external contacts module (docs/module-external-contacts.md, ADR
+0096). It isn't part of the approval and stays editable in every status.
+
 ## Key decisions
 
 **Who can do what.** Any logged-in user can create a purchase request --

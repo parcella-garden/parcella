@@ -160,6 +160,53 @@ class MemberDetailOut(MemberOut):
 
 
 # ---------------------------------------------------------------------------
+# External contacts (docs/module-external-contacts.md, ADR 0096)
+# ---------------------------------------------------------------------------
+
+class ExternalContactBase(BaseModel):
+    company_name: Optional[str] = Field(None, max_length=255)
+    first_name: Optional[str] = Field(None, max_length=100)
+    last_name: Optional[str] = Field(None, max_length=100)
+    street: Optional[str] = Field(None, max_length=255)
+    postal_code: Optional[str] = Field(None, max_length=10)
+    city: Optional[str] = Field(None, max_length=100)
+    iban: Optional[str] = Field(None, max_length=34)
+    notes: Optional[str] = None
+
+
+class ExternalContactCreate(ExternalContactBase):
+    pass
+
+
+class ExternalContactUpdate(BaseModel):
+    """All fields optional -- partial update."""
+    company_name: Optional[str] = Field(None, max_length=255)
+    first_name: Optional[str] = Field(None, max_length=100)
+    last_name: Optional[str] = Field(None, max_length=100)
+    street: Optional[str] = Field(None, max_length=255)
+    postal_code: Optional[str] = Field(None, max_length=10)
+    city: Optional[str] = Field(None, max_length=100)
+    iban: Optional[str] = Field(None, max_length=34)
+    notes: Optional[str] = None
+
+
+class ExternalContactTagOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    name: str
+
+
+class ExternalContactOut(ExternalContactBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    created_at: datetime
+    updated_at: datetime
+    phone_numbers: List[PhoneOut] = []
+    email_addresses: List[EmailAddressOut] = []
+    tags: List[ExternalContactTagOut] = []
+
+
+# ---------------------------------------------------------------------------
 # Parcel
 # ---------------------------------------------------------------------------
 
@@ -679,6 +726,7 @@ class PurchaseRequestCreate(BaseModel):
     estimated_cost_eur: Optional[Decimal] = None
     requester_name: Optional[str] = Field(None, description="Only when created for an external person")
     requester_email: Optional[EmailStr] = Field(None, description="Only when created for an external person")
+    external_contact_id: Optional[str] = Field(None, description="Supplier from the external contacts module")
 
 
 class PurchaseRequestRejectRequest(BaseModel):
@@ -709,6 +757,7 @@ class PurchaseRequestOut(BaseModel):
     rejected_by_id: Optional[str] = None
     rejected_at: Optional[datetime] = None
     approved_at: Optional[datetime] = None
+    external_contact_id: Optional[str] = None
     created_at: datetime
 
 

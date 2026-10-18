@@ -80,6 +80,10 @@ MODULE_DEFAULTS: Dict[str, bool] = {
     # task board automatically via a background poller -- a club must opt
     # in deliberately.
     "deck_sync": False,
+    # Suppliers, craftsmen, authorities (docs/module-external-contacts.md).
+    # On by default: internal data only, no public endpoint, no outbound
+    # credentials.
+    "external_contacts": True,
 }
 
 

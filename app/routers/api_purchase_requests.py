@@ -28,6 +28,7 @@ from app.services.errors import ServiceError
 from app.services.purchase_requests import (
     create_purchase_request, send_confirmation_email, approve_purchase_request, reject_purchase_request,
 )
+from app.services.external_contacts import get_contact
 from app.schemas import (
     PurchaseRequestCreate, PurchaseRequestOut, PurchaseRequestDetailOut, PurchaseRequestRejectRequest,
 )
@@ -88,12 +89,15 @@ async def purchase_request_create(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission("purchase_requests", "write")),
 ):
+    if daten.external_contact_id and await get_contact(db, daten.external_contact_id) is None:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="External contact not found")
     pr = await create_purchase_request(
         db,
         title=daten.title, justification=daten.justification, link=daten.link,
         estimated_cost_eur=daten.estimated_cost_eur, created_by_id=user.id,
         requester_name=daten.requester_name,
         requester_email=(str(daten.requester_email) if daten.requester_email else None),
+        external_contact_id=daten.external_contact_id or None,
     )
     await db.commit()
     await db.refresh(pr)

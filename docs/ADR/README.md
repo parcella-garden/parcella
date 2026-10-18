@@ -99,3 +99,5 @@ in chronological order.
 93. [Member tags: free-form labels, not club roles](./0093-member-tags-free-form-labels-not-club-roles.md)
 94. [Work hours: members give surplus hours to other members](./0094-work-hours-transfers-between-members.md)
 95. [Announcements to filtered members: same module, stored filter, email + letter](./0095-announcements-to-filtered-members-email-and-letter.md)
+96. [External contacts: a separate entity, not members with a flag](./0096-external-contacts-separate-entity.md)
+97. [External contacts' documents: one picked subfolder of a shared cloud base folder](./0097-external-contact-documents-in-cloud-folders.md)

@@ -17,6 +17,7 @@ decisions and reasoning are still fresh.
 - [Public Signup API](./module-public-api.md) -- CMS-agnostic public API for external site connectors (WordPress plugin included)
 - [Finances](./module-finances.md) -- annual invoicing, payments, dunning reminders, bookkeeping categories
 - [Applicants](./module-applicants.md) -- applications for free garden plots, from the website form or entered by hand
+- [External contacts](./module-external-contacts.md) -- suppliers, craftsmen, authorities; linkable from incoming invoices and purchase requests
 
 ## Cross-cutting topics
 

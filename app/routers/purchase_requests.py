@@ -24,6 +24,7 @@ from app.permissions import require_permission
 from app.i18n import t_for, DEFAULT_LANGUAGE
 from app.module_flags import require_module
 from app.services.errors import ServiceError
+from app.routers.external_contacts import picker_contacts, resolve_picked_contact
 from app.services.purchase_requests import (
     REQUIRED_APPROVALS, create_purchase_request, send_confirmation_email,
     approve_purchase_request, reject_purchase_request,
@@ -55,6 +56,7 @@ async def _load_with_details(db: AsyncSession, request_id: str) -> Optional[Purc
             selectinload(PurchaseRequest.created_by),
             selectinload(PurchaseRequest.rejected_by),
             selectinload(PurchaseRequest.approvals).selectinload(PurchaseRequestApproval.user),
+            selectinload(PurchaseRequest.external_contact),
         )
         .where(PurchaseRequest.id == request_id)
     )
@@ -108,7 +110,7 @@ async def purchase_requests_overview(
 async def purchase_request_new_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "purchase_requests", "write")
     return templates.TemplateResponse("purchase_requests/form.html", {
-        "request": request, "user": user,
+        "request": request, "user": user, "contacts": await picker_contacts(request, db),
     })
 
 
@@ -122,9 +124,11 @@ async def purchase_request_create(
     for_other_person: bool = Form(False),
     requester_name: str = Form(""),
     requester_email: str = Form(""),
+    external_contact_id: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "purchase_requests", "write")
+    contact_id = await resolve_picked_contact(request, db, external_contact_id)
 
     estimated_cost = None
     if estimated_cost_eur.strip():
@@ -139,6 +143,7 @@ async def purchase_request_create(
         created_by_id=user.id,
         requester_name=(requester_name if for_other_person else None),
         requester_email=(requester_email if for_other_person and requester_email.strip() else None),
+        external_contact_id=contact_id,
     )
 
     if purchase_request.confirmation_token:
@@ -175,7 +180,24 @@ async def purchase_request_detail(request_id: str, request: Request, db: AsyncSe
         "has_already_approved": has_already_approved,
         "is_requester": is_requester,
         "PurchaseRequestStatus": PurchaseRequestStatus,
+        "contacts": await picker_contacts(request, db),
     })
+
+
+@router.post("/{request_id}/contact")
+async def purchase_request_set_contact(
+    request_id: str, request: Request, external_contact_id: str = Form(""), db: AsyncSession = Depends(get_db),
+):
+    """Links (or unlinks, with "") a supplier from the external contacts
+    module (ADR 0096). Not an approval-relevant field, so it stays
+    editable in every status."""
+    await require_permission(request, db, "purchase_requests", "write")
+    pr = await db.get(PurchaseRequest, request_id)
+    if pr is None:
+        raise HTTPException(status_code=404, detail=t_for(request, "errors.purchase_request_not_found"))
+    pr.external_contact_id = await resolve_picked_contact(request, db, external_contact_id)
+    await db.commit()
+    return RedirectResponse(f"/purchase-requests/{request_id}", status_code=303)
 
 
 # ---------------------------------------------------------------------------
