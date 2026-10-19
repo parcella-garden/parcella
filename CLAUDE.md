@@ -55,6 +55,17 @@ Always trigger a database backup before changing anything.
 
 You never ever expose your user name to Github. Use my handle instead!
 
+**Security review before push, for security-relevant changes.** Before
+pushing changes that add or change routes, forms, permission checks,
+file/URL/header handling, public endpoints, or rendering of
+user-entered data, run `/security-review` on the unpushed commits and
+fix -- or explicitly accept, with a reason -- each finding before the
+push. Order: tests green -> security review -> kermie's smoke test ->
+push. Skip it for pure docs/translation/styling changes. The skill
+diffs against `origin/HEAD`; in a fresh clone run
+`git remote set-head origin --auto` once, or it fails with "ambiguous
+argument 'origin/HEAD...'".
+
 ## Releases
 
 Bump `app_version` in `app/config.py`, commit ("Bump app_version to
