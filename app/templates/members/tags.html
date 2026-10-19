@@ -45,6 +45,7 @@
                     </button>
                 </form>
                 {% endif %}
+                {% with tags_url="/members/tags", can_write=has_perm(request, 'members_parcels', 'write') %}{% include "_tag_translations.html" %}{% endwith %}
             </li>
             {% else %}
             <li class="list-group-item text-muted">{{ t('members.tags.empty') }}</li>

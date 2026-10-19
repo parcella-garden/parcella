@@ -93,7 +93,7 @@
                 <div class="d-flex flex-wrap gap-1">
                     {% for tag in member.tags %}
                     <span class="badge d-inline-flex align-items-center gap-1" style="background: var(--gv-gruen-blass); color: var(--gv-gruen); font-size: 0.8rem;">
-                        <a href="/members/?tag={{ tag.id }}" class="text-decoration-none" style="color: inherit;">{{ tag.name }}</a>
+                        <a href="/members/?tag={{ tag.id }}" class="text-decoration-none" style="color: inherit;">{{ tag_name(tag) }}</a>
                         {% if has_perm(request, 'members_parcels', 'write') %}
                         <form method="post" action="/members/{{ member.id }}/tags/{{ tag.id }}/remove" class="d-inline m-0">
                             {{ csrf_field() }}
@@ -118,7 +118,7 @@
                            maxlength="100" placeholder="{{ t('members.tags.add_placeholder') }}" style="min-width: 180px; flex: 1;" required>
                     <datalist id="member-tag-options">
                         {% for tag in all_tags if tag.id not in member_tag_ids %}
-                        <option value="{{ tag.name }}"></option>
+                        <option value="{{ tag_name(tag) }}"></option>
                         {% endfor %}
                     </datalist>
                     <button type="submit" class="btn btn-sm btn-primary" title="{{ t('members.tags.add_button') }}"><i class="bi bi-plus-lg"></i></button>

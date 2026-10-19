@@ -100,6 +100,19 @@ connected cloud storage, not in Parcella (ADR 0097). This needs the
 - Code: `app/contact_documents.py` (setting, path rules) and the
   "Documents" section of `app/routers/external_contacts.py`.
 
+## Tags: translations and the applicant red flag
+
+Same per-language tag names as member tags (ADR 0098): set on
+`/contacts/tags`, stored in `external_contact_tags.translations`, shown via
+`tag_name()`.
+
+The same page picks the **red-flag tag** (`ClubSetting`
+`applicant_red_flag_tag_id`, shown while the applicants module is on).
+An applicant whose name, email or phone matches a non-deleted contact
+with that tag gets a red badge on `/applicants/` and a warning on their
+detail page. It's computed live in `find_red_flags()`
+(`app/services/applicants.py`); see `docs/module-applicants.md`.
+
 ## Links from other modules
 
 - **Incoming invoices** (finances): an optional "Contact" picker on the

@@ -7,14 +7,20 @@ Small on purpose: normalize what an applicant typed, record status
 changes in the audit log, and the one deliberate exception to
 historization -- applicants can be hard-deleted (ADR 0091).
 """
+import re
+from dataclasses import dataclass, field
 from datetime import date, datetime, time, timezone
-from typing import Optional, Union
+from typing import Optional, Sequence, Union
 
 from email_validator import EmailNotValidError, validate_email
-from sqlalchemy import delete
+from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.change_tracker import ChangeTracker
-from app.models import Applicant, ApplicantSource, ApplicantStatus, ChangeHistory
+from app.models import (
+    Applicant, ApplicantSource, ApplicantStatus, ChangeHistory, ClubSetting, ExternalContact, ExternalContactTag,
+)
 from app.services.errors import ServiceError
 
 # Fields whose changes are worth an audit-log entry. Contact data and
@@ -135,3 +141,91 @@ async def delete_applicant(db, applicant: Applicant) -> None:
     ))
     await db.delete(applicant)
     await db.commit()
+
+
+# ---------------------------------------------------------------------------
+# Red flag (ADR 0098): an applicant who matches an external contact that
+# carries the club's chosen "red flag" tag -- by name, email or phone,
+# any one is enough. Computed live on every list/detail view, never
+# stored: applicants get hard-deleted (ADR 0091), and a contact flagged
+# later must still show up on an older application.
+# ---------------------------------------------------------------------------
+
+RED_FLAG_TAG_SETTING = "applicant_red_flag_tag_id"
+
+
+@dataclass
+class RedFlagMatch:
+    contact: ExternalContact
+    fields: list[str] = field(default_factory=list)  # "name", "email", "phone"
+
+
+def _name_key(first: Optional[str], last: Optional[str]) -> Optional[str]:
+    if not (first or "").strip() or not (last or "").strip():
+        return None
+    return " ".join(f"{first} {last}".lower().split())
+
+
+def _phone_key(number: Optional[str]) -> Optional[str]:
+    """Digits only, so "0170 999" and "0170-999" match -- a normalization
+    used for this check only; the search elsewhere stays plain text."""
+    digits = re.sub(r"\D", "", number or "")
+    return digits or None
+
+
+async def load_red_flag_tag(db: AsyncSession) -> Optional[ExternalContactTag]:
+    """The chosen tag, or None if none is chosen or it was deleted since."""
+    tag_id = await db.scalar(select(ClubSetting.value).where(ClubSetting.key == RED_FLAG_TAG_SETTING))
+    return await db.get(ExternalContactTag, tag_id) if tag_id else None
+
+
+async def save_red_flag_tag(db: AsyncSession, tag_id: Optional[str]) -> None:
+    if tag_id and await db.get(ExternalContactTag, tag_id) is None:
+        raise ServiceError("external_contacts.tags.errors.not_found", http_status=404)
+    entry = await db.scalar(select(ClubSetting).where(ClubSetting.key == RED_FLAG_TAG_SETTING))
+    if entry is None:
+        entry = ClubSetting(key=RED_FLAG_TAG_SETTING, description="External-contact tag that flags matching applicants")
+        db.add(entry)
+    entry.value = tag_id or ""
+    await db.flush()
+
+
+async def find_red_flags(db: AsyncSession, applicants: Sequence[Applicant]) -> dict[str, list[RedFlagMatch]]:
+    """Applicant id -> the flagged contacts it matches (only applicants
+    with at least one match appear)."""
+    tag = await load_red_flag_tag(db)
+    if tag is None or not applicants:
+        return {}
+    contacts = (await db.scalars(
+        select(ExternalContact)
+        .options(selectinload(ExternalContact.email_addresses), selectinload(ExternalContact.phone_numbers))
+        .where(ExternalContact.deleted_at.is_(None), ExternalContact.tags.any(ExternalContactTag.id == tag.id))
+    )).all()
+    if not contacts:
+        return {}
+
+    keyed = []
+    for contact in contacts:
+        keyed.append((
+            contact,
+            _name_key(contact.first_name, contact.last_name),
+            {e.address.lower() for e in contact.email_addresses if e.address},
+            {key for key in (_phone_key(p.number) for p in contact.phone_numbers) if key},
+        ))
+
+    flags: dict[str, list[RedFlagMatch]] = {}
+    for applicant in applicants:
+        name = _name_key(applicant.first_name, applicant.last_name)
+        email = (applicant.email or "").lower()
+        phone = _phone_key(applicant.phone)
+        for contact, contact_name, contact_emails, contact_phones in keyed:
+            fields = [
+                label for label, hit in (
+                    ("name", name is not None and name == contact_name),
+                    ("email", bool(email) and email in contact_emails),
+                    ("phone", phone is not None and phone in contact_phones),
+                ) if hit
+            ]
+            if fields:
+                flags.setdefault(applicant.id, []).append(RedFlagMatch(contact, fields))
+    return flags

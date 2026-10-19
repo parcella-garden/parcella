@@ -101,3 +101,4 @@ in chronological order.
 95. [Announcements to filtered members: same module, stored filter, email + letter](./0095-announcements-to-filtered-members-email-and-letter.md)
 96. [External contacts: a separate entity, not members with a flag](./0096-external-contacts-separate-entity.md)
 97. [External contacts' documents: one picked subfolder of a shared cloud base folder](./0097-external-contact-documents-in-cloud-folders.md)
+98. [Tags: per-language names; applicants: a live red flag from a contact tag](./0098-tag-translations-and-applicant-red-flag.md)

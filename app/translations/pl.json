@@ -2,7 +2,13 @@
   "common": {
     "save": "Zapisz",
     "cancel": "Anuluj",
-    "back": "Wstecz"
+    "back": "Wstecz",
+    "tag_translations": {
+      "toggle": "Tłumaczenia",
+      "hint": "Nazwa tego tagu w każdym języku. Puste pola pokazują „{name}”.",
+      "save": "Zapisz tłumaczenia",
+      "none": "Brak tłumaczeń."
+    }
   },
   "nav": {
     "brand_subtitle": "Zarządzanie",
@@ -2739,6 +2745,15 @@
       "invalid_email": "Podaj prawidłowy adres e-mail.",
       "invalid_applied_at": "Podaj prawidłową datę zgłoszenia.",
       "applied_at_in_future": "Data zgłoszenia nie może być w przyszłości."
+    },
+    "red_flag": {
+      "badge": "Czerwona flaga",
+      "badge_hint": "Pasuje do {contact} ({fields})",
+      "alert_title": "Czerwona flaga",
+      "alert_text": "Ten kandydat pasuje do oznaczonego kontaktu zewnętrznego ({fields}):",
+      "field_name": "imię i nazwisko",
+      "field_email": "e-mail",
+      "field_phone": "telefon"
     }
   },
   "external_contacts": {
@@ -2840,7 +2855,11 @@
         "name_too_long": "Nazwa tagu może mieć maksymalnie {max} znaków.",
         "not_found": "Nie znaleziono tagu.",
         "name_taken": "Tag „{name}” już istnieje."
-      }
+      },
+      "red_flag_label": "Oznacza kandydatów:",
+      "red_flag_none": "— brak —",
+      "red_flag_save": "Zapisz",
+      "red_flag_hint": "Kandydaci, których imię i nazwisko, e-mail lub telefon pasuje do kontaktu z tym tagiem, otrzymują czerwoną flagę."
     },
     "errors": {
       "not_found": "Nie znaleziono kontaktu zewnętrznego.",

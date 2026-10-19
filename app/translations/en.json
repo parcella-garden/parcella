@@ -2,7 +2,13 @@
   "common": {
     "save": "Save",
     "cancel": "Cancel",
-    "back": "Back"
+    "back": "Back",
+    "tag_translations": {
+      "toggle": "Translations",
+      "hint": "Name of this tag per language. Empty fields show \"{name}\".",
+      "save": "Save translations",
+      "none": "No translations."
+    }
   },
   "nav": {
     "brand_subtitle": "Management",
@@ -2739,6 +2745,15 @@
       "invalid_email": "Please enter a valid email address.",
       "invalid_applied_at": "Please enter a valid application date.",
       "applied_at_in_future": "The application date can't be in the future."
+    },
+    "red_flag": {
+      "badge": "Red flag",
+      "badge_hint": "Matches {contact} ({fields})",
+      "alert_title": "Red flag",
+      "alert_text": "This applicant matches a flagged external contact ({fields}):",
+      "field_name": "name",
+      "field_email": "email",
+      "field_phone": "phone"
     }
   },
   "external_contacts": {
@@ -2840,7 +2855,11 @@
         "name_too_long": "A tag name can be at most {max} characters.",
         "not_found": "Tag not found.",
         "name_taken": "A tag called \"{name}\" already exists."
-      }
+      },
+      "red_flag_label": "Flags applicants:",
+      "red_flag_none": "— none —",
+      "red_flag_save": "Save",
+      "red_flag_hint": "Applicants whose name, email or phone matches a contact with this tag are marked with a red flag."
     },
     "errors": {
       "not_found": "External contact not found.",

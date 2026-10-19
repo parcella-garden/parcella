@@ -17,6 +17,28 @@
     {% endif %}
     <p class="text-muted" style="font-size: 0.875rem;">{{ t('external_contacts.tags.page_hint') }}</p>
 
+    {% if request.state.module_flags.get('applicants') and tags %}
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <form method="post" action="/contacts/tags/red-flag" class="d-flex gap-2 align-items-center flex-wrap m-0">
+                {{ csrf_field() }}
+                <label for="red-flag-tag" class="fw-semibold mb-0"><i class="bi bi-flag-fill text-danger me-1"></i>{{ t('external_contacts.tags.red_flag_label') }}</label>
+                <select id="red-flag-tag" name="tag_id" class="form-select form-select-sm" style="max-width: 220px;"
+                        {% if not has_perm(request, 'external_contacts', 'write') %}disabled{% endif %}>
+                    <option value="">{{ t('external_contacts.tags.red_flag_none') }}</option>
+                    {% for tag in tags %}
+                    <option value="{{ tag.id }}" {% if red_flag_tag and red_flag_tag.id == tag.id %}selected{% endif %}>{{ tag_name(tag) }}</option>
+                    {% endfor %}
+                </select>
+                {% if has_perm(request, 'external_contacts', 'write') %}
+                <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('external_contacts.tags.red_flag_save') }}</button>
+                {% endif %}
+            </form>
+            <div class="form-text">{{ t('external_contacts.tags.red_flag_hint') }}</div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="card">
         <ul class="list-group list-group-flush">
             {% for tag in tags %}
@@ -45,6 +67,7 @@
                     </button>
                 </form>
                 {% endif %}
+                {% with tags_url="/contacts/tags", can_write=has_perm(request, 'external_contacts', 'write') %}{% include "_tag_translations.html" %}{% endwith %}
             </li>
             {% else %}
             <li class="list-group-item text-muted">{{ t('external_contacts.tags.empty') }}</li>

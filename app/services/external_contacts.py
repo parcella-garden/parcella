@@ -25,6 +25,7 @@ from app.models import (
     external_contact_tag_links,
 )
 from app.services.errors import ServiceError
+from app.tag_translations import clean_translations, find_tag_by_name
 
 STRING_FIELDS = ("company_name", "first_name", "last_name", "street", "postal_code", "city", "iban", "notes")
 
@@ -239,7 +240,8 @@ def _clean_tag_name(name: Optional[str]) -> str:
 
 
 async def _tag_by_name(db: AsyncSession, name: str) -> Optional[ExternalContactTag]:
-    return await db.scalar(select(ExternalContactTag).where(func.lower(ExternalContactTag.name) == name.lower()))
+    """By name or any of its translations, ignoring case (ADR 0098)."""
+    return find_tag_by_name(await list_tags(db), name)
 
 
 async def _get_or_create_tag(db: AsyncSession, name: str) -> ExternalContactTag:
@@ -296,6 +298,15 @@ async def untag_contact(db: AsyncSession, contact_id: str, tag_id: str) -> bool:
     )
     await db.flush()
     return result.rowcount > 0
+
+
+async def set_tag_translations(db: AsyncSession, tag: ExternalContactTag, values: dict) -> ExternalContactTag:
+    """Per-language names (ADR 0098); an empty field removes that language."""
+    tag.translations = clean_translations(
+        tag, values, await list_tags(db), max_length=TAG_NAME_MAX_LENGTH, error_prefix="external_contacts.tags.errors",
+    ) or None
+    await db.flush()
+    return tag
 
 
 async def rename_tag(db: AsyncSession, tag: ExternalContactTag, name: str) -> ExternalContactTag:

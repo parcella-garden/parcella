@@ -19,6 +19,7 @@ from app.permissions import jinja_has_perm, jinja_is_full_access, jinja_is_syste
 from app.services.work_hours import jinja_new_participations_count
 from app.avatars import avatar_url
 from app.csrf import jinja_csrf_field, jinja_csrf_token
+from app.tag_translations import jinja_tag_name
 
 templates = Jinja2Templates(directory="app/templates")
 templates.env.globals["t"] = jinja_t
@@ -31,6 +32,8 @@ templates.env.globals["is_full_access"] = jinja_is_full_access
 templates.env.globals["is_system_admin"] = jinja_is_system_admin
 templates.env.globals["new_participations_count"] = jinja_new_participations_count
 templates.env.globals["avatar_url"] = avatar_url
+# A member/contact tag in the club language, falling back to its typed name.
+templates.env.globals["tag_name"] = jinja_tag_name
 # Every state-changing <form> needs {{ csrf_field() }}; the fetch()-based
 # actions read {{ csrf_token() }} from the <meta> tag in base.html.
 templates.env.globals["csrf_field"] = jinja_csrf_field

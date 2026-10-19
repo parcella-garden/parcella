@@ -6,7 +6,7 @@ us keep API contracts stable even as internal models change, and have
 different fields for creation vs. response.
 """
 from datetime import date, datetime
-from typing import Optional, List
+from typing import Dict, Optional, List
 from decimal import Decimal
 
 from pydantic import BaseModel, EmailStr, ConfigDict, Field, field_validator
@@ -140,6 +140,8 @@ class MemberTagOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: str
     name: str
+    # {language code: name}, ADR 0098; None without translations.
+    translations: Optional[Dict[str, str]] = None
 
 
 class MemberTagAssign(BaseModel):
@@ -194,6 +196,8 @@ class ExternalContactTagOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: str
     name: str
+    # {language code: name}, ADR 0098; None without translations.
+    translations: Optional[Dict[str, str]] = None
 
 
 class ExternalContactOut(ExternalContactBase):

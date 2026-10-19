@@ -139,7 +139,7 @@
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="tag_ids" value="{{ tag.id }}" id="tag-{{ tag.id }}"
                                {% if tag.id in member_tag_ids %}checked{% endif %}>
-                        <label class="form-check-label" for="tag-{{ tag.id }}">{{ tag.name }}</label>
+                        <label class="form-check-label" for="tag-{{ tag.id }}">{{ tag_name(tag) }}</label>
                     </div>
                     {% endfor %}
                 </div>

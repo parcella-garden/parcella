@@ -1,0 +1,36 @@
+{# One tag row's per-language names (ADR 0098), shared by /members/tags and
+   /contacts/tags. Expects: tag, languages, tags_url, can_write. #}
+{% set translated = tag.translations or {} %}
+<button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse"
+        data-bs-target="#translations-{{ tag.id }}" aria-expanded="false"
+        title="{{ t('common.tag_translations.toggle') }}">
+    <i class="bi bi-translate"></i>{% if translated %} <span class="small">{{ translated | length }}</span>{% endif %}
+</button>
+<div class="collapse w-100" id="translations-{{ tag.id }}">
+    {% if can_write %}
+    <form method="post" action="{{ tags_url }}/{{ tag.id }}/translations" class="pt-2">
+        {{ csrf_field() }}
+        <div class="form-text mb-2">{{ t('common.tag_translations.hint', name=tag.name) }}</div>
+        <div class="row g-2">
+            {% for code, label in languages.items() %}
+            <div class="col-12 col-sm-6">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text" style="min-width: 7.5rem;">{{ label }}</span>
+                    <input type="text" name="name_{{ code }}" value="{{ translated.get(code, '') }}"
+                           class="form-control" maxlength="100" placeholder="{{ tag.name }}">
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-sm btn-outline-primary mt-2">{{ t('common.tag_translations.save') }}</button>
+    </form>
+    {% else %}
+    <ul class="list-unstyled small text-muted pt-2 mb-0">
+        {% for code, label in languages.items() if translated.get(code) %}
+        <li>{{ label }}: {{ translated[code] }}</li>
+        {% else %}
+        <li>{{ t('common.tag_translations.none') }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>

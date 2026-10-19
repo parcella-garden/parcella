@@ -24,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import active_member_filter
 from app.models import Member, MemberEmail, MemberPhone, MemberTag, member_tag_links
 from app.services.errors import ServiceError
+from app.tag_translations import clean_translations, find_tag_by_name
 from app.freescout_client import FreeScoutError, get_freescout_client
 
 logger = logging.getLogger(__name__)
@@ -190,7 +191,8 @@ def _clean_tag_name(name: Optional[str]) -> str:
 
 
 async def _tag_by_name(db: AsyncSession, name: str) -> Optional[MemberTag]:
-    return await db.scalar(select(MemberTag).where(func.lower(MemberTag.name) == name.lower()))
+    """By name or any of its translations, ignoring case (ADR 0098)."""
+    return find_tag_by_name(await list_tags(db), name)
 
 
 async def tag_member(
@@ -251,6 +253,15 @@ async def untag_member(db: AsyncSession, member_id: str, tag_id: str) -> bool:
     )
     await db.flush()
     return result.rowcount > 0
+
+
+async def set_tag_translations(db: AsyncSession, tag: MemberTag, values: dict) -> MemberTag:
+    """Per-language names (ADR 0098); an empty field removes that language."""
+    tag.translations = clean_translations(
+        tag, values, await list_tags(db), max_length=TAG_NAME_MAX_LENGTH, error_prefix="members.tags.errors",
+    ) or None
+    await db.flush()
+    return tag
 
 
 async def rename_tag(db: AsyncSession, tag: MemberTag, name: str) -> MemberTag:

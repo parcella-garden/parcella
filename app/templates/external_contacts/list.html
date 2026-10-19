@@ -47,7 +47,7 @@
                     aria-label="{{ t('external_contacts.tags.filter_label') }}" onchange="this.form.submit()">
                 <option value="">{{ t('external_contacts.tags.filter_any') }}</option>
                 {% for option in all_tags %}
-                <option value="{{ option.id }}" {% if option.id == tag %}selected{% endif %}>{{ option.name }}</option>
+                <option value="{{ option.id }}" {% if option.id == tag %}selected{% endif %}>{{ tag_name(option) }}</option>
                 {% endfor %}
             </select>
             {% endif %}
@@ -90,7 +90,7 @@
                         <td>
                             {% for contact_tag in c.tags %}
                             <a href="/contacts/?tag={{ contact_tag.id }}" class="badge text-decoration-none me-1"
-                               style="background: #f3f4f6; color: #374151; font-size: 0.7rem;">{{ contact_tag.name }}</a>
+                               style="background: #f3f4f6; color: #374151; font-size: 0.7rem;">{{ tag_name(contact_tag) }}</a>
                             {% else %}<span class="text-muted">–</span>{% endfor %}
                         </td>
                         <td class="text-muted">{{ c.phone_numbers[0].number if c.phone_numbers else '–' }}</td>

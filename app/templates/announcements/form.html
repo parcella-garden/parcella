@@ -48,7 +48,7 @@
             <div class="mb-2">
                 <span class="text-muted">{{ t('announcements.audience.filter_label') }}</span>
                 {% if audience_filter.is_empty() %}{{ t('announcements.audience.filter_none') }}{% endif %}
-                {% if audience_tag_name %}<span class="badge ms-1" style="background: var(--gv-gruen-blass); color: var(--gv-gruen);"><i class="bi bi-tag"></i> {{ audience_tag_name }}</span>{% endif %}
+                {% if audience_tag %}<span class="badge ms-1" style="background: var(--gv-gruen-blass); color: var(--gv-gruen);"><i class="bi bi-tag"></i> {{ tag_name(audience_tag) }}</span>{% endif %}
                 {% if audience_filter.search %}<span class="badge ms-1 text-bg-light border">“{{ audience_filter.search }}”</span>{% endif %}
                 {% if audience_filter.include_inactive %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_inactive') }}</span>{% endif %}
                 {% if audience_filter.pending_only %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_pending_only') }}</span>{% endif %}

@@ -2,7 +2,13 @@
   "common": {
     "save": "Speichern",
     "cancel": "Abbrechen",
-    "back": "Zurück"
+    "back": "Zurück",
+    "tag_translations": {
+      "toggle": "Übersetzungen",
+      "hint": "Name dieses Tags je Sprache. Leere Felder zeigen „{name}“.",
+      "save": "Übersetzungen speichern",
+      "none": "Keine Übersetzungen."
+    }
   },
   "nav": {
     "brand_subtitle": "Verwaltung",
@@ -2739,6 +2745,15 @@
       "invalid_email": "Bitte eine gültige E-Mail-Adresse eingeben.",
       "invalid_applied_at": "Bitte ein gültiges Bewerbungsdatum eingeben.",
       "applied_at_in_future": "Das Bewerbungsdatum darf nicht in der Zukunft liegen."
+    },
+    "red_flag": {
+      "badge": "Rote Liste",
+      "badge_hint": "Passt zu {contact} ({fields})",
+      "alert_title": "Rote Liste",
+      "alert_text": "Diese Bewerbung passt zu einem markierten externen Kontakt ({fields}):",
+      "field_name": "Name",
+      "field_email": "E-Mail",
+      "field_phone": "Telefon"
     }
   },
   "external_contacts": {
@@ -2840,7 +2855,11 @@
         "name_too_long": "Ein Tag-Name darf höchstens {max} Zeichen lang sein.",
         "not_found": "Tag nicht gefunden.",
         "name_taken": "Ein Tag „{name}“ gibt es schon."
-      }
+      },
+      "red_flag_label": "Markiert Bewerbungen:",
+      "red_flag_none": "— keiner —",
+      "red_flag_save": "Speichern",
+      "red_flag_hint": "Bewerbungen, deren Name, E-Mail oder Telefon zu einem Kontakt mit diesem Tag passt, werden rot markiert."
     },
     "errors": {
       "not_found": "Externer Kontakt nicht gefunden.",

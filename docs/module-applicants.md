@@ -85,6 +85,20 @@ would lose the second message.
 **Dashboard card counts `NEW` only** and links to `?filter=new`, so the
 number and the list it opens always match (ADR 0019).
 
+## Search and red flag
+
+- **Search** on `/applicants/` covers name, email, phone, message and the
+  board note, so a FreeScout ticket number noted there finds the
+  applicant. It combines with the status filter buttons.
+- **Red flag** (ADR 0098): if the applicant's name (first + last),
+  email or phone (digits only) matches an external contact that carries
+  the tag chosen on `/contacts/tags`, the list shows a red badge and the
+  detail page a warning linking that contact (the link only for users
+  who may read external contacts). `find_red_flags()` in
+  `app/services/applicants.py` computes it live on every view; nothing
+  is stored on the applicant. There are no flags while the external
+  contacts module is off.
+
 ## Where the form lives
 
 - **Static website** (kgv-goldene-hoehe.de): `::: parcella applicant` in a

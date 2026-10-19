@@ -89,7 +89,7 @@
                     aria-label="{{ t('members.tags.filter_label') }}" onchange="this.form.submit()">
                 <option value="">{{ t('members.tags.filter_any') }}</option>
                 {% for option in all_tags %}
-                <option value="{{ option.id }}" {% if option.id == tag %}selected{% endif %}>{{ option.name }}</option>
+                <option value="{{ option.id }}" {% if option.id == tag %}selected{% endif %}>{{ tag_name(option) }}</option>
                 {% endfor %}
             </select>
             {% endif %}
@@ -147,7 +147,7 @@
                             </a>
                             {% for member_tag in m.tags %}
                             <a href="/members/?tag={{ member_tag.id }}" class="badge text-decoration-none ms-1"
-                               style="background: #f3f4f6; color: #374151; font-size: 0.7rem;">{{ member_tag.name }}</a>
+                               style="background: #f3f4f6; color: #374151; font-size: 0.7rem;">{{ tag_name(member_tag) }}</a>
                             {% endfor %}
                         </td>
                         <td class="text-muted">

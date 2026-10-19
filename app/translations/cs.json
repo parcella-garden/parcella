@@ -2,7 +2,13 @@
   "common": {
     "save": "Uložit",
     "cancel": "Zrušit",
-    "back": "Zpět"
+    "back": "Zpět",
+    "tag_translations": {
+      "toggle": "Překlady",
+      "hint": "Název tohoto štítku v jednotlivých jazycích. Prázdná pole zobrazí „{name}“.",
+      "save": "Uložit překlady",
+      "none": "Žádné překlady."
+    }
   },
   "nav": {
     "brand_subtitle": "Správa",
@@ -2739,6 +2745,15 @@
       "invalid_email": "Zadejte prosím platnou e-mailovou adresu.",
       "invalid_applied_at": "Zadejte platné datum žádosti.",
       "applied_at_in_future": "Datum žádosti nesmí být v budoucnosti."
+    },
+    "red_flag": {
+      "badge": "Červená vlajka",
+      "badge_hint": "Shoda s {contact} ({fields})",
+      "alert_title": "Červená vlajka",
+      "alert_text": "Tento uchazeč se shoduje s označeným externím kontaktem ({fields}):",
+      "field_name": "jméno",
+      "field_email": "e-mail",
+      "field_phone": "telefon"
     }
   },
   "external_contacts": {
@@ -2840,7 +2855,11 @@
         "name_too_long": "Název štítku může mít nejvýše {max} znaků.",
         "not_found": "Štítek nenalezen.",
         "name_taken": "Štítek „{name}“ už existuje."
-      }
+      },
+      "red_flag_label": "Označuje uchazeče:",
+      "red_flag_none": "— žádný —",
+      "red_flag_save": "Uložit",
+      "red_flag_hint": "Uchazeči, jejichž jméno, e-mail nebo telefon se shoduje s kontaktem s tímto štítkem, dostanou červenou vlajku."
     },
     "errors": {
       "not_found": "Externí kontakt nenalezen.",

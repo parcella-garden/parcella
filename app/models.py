@@ -348,6 +348,9 @@ class MemberTag(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
     name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    # {language code: name shown in that language}, e.g. {"en": "red flag"}
+    # for "Rote Liste" -- see app/tag_translations.py, ADR 0098.
+    translations: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -512,6 +515,9 @@ class ExternalContactTag(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
     name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    # {language code: name shown in that language}, e.g. {"en": "red flag"}
+    # for "Rote Liste" -- see app/tag_translations.py, ADR 0098.
+    translations: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

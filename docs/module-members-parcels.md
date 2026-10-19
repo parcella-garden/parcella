@@ -171,6 +171,11 @@ Free-form labels on members -- "water responsible", "extended board",
 - **Managing**: `/members/tags` lists every tag with its member count;
   rename (refused if it would collide with another tag) or delete
   (removes it from every member; needs `members_parcels` delete).
+- **Translations** (ADR 0098): on `/members/tags`, each tag can get a name
+  per language (`member_tags.translations`). Lists, forms and filters show
+  it while the club runs in that language and fall back to the typed
+  name otherwise. Typing a translated name reuses the tag; CSV export
+  keeps the typed name.
 - **Filtering**: the tag dropdown on `/members/` (shown once a tag
   exists). Like every list filter it travels through the row links, the
   CSV export and the detail page's Previous/Next (ADR 0075). The CSV

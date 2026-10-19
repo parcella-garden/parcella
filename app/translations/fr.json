@@ -2,7 +2,13 @@
   "common": {
     "save": "Enregistrer",
     "cancel": "Annuler",
-    "back": "Retour"
+    "back": "Retour",
+    "tag_translations": {
+      "toggle": "Traductions",
+      "hint": "Nom de cette étiquette par langue. Les champs vides affichent « {name} ».",
+      "save": "Enregistrer les traductions",
+      "none": "Aucune traduction."
+    }
   },
   "nav": {
     "brand_subtitle": "Gestion",
@@ -2739,6 +2745,15 @@
       "invalid_email": "Veuillez saisir une adresse e-mail valide.",
       "invalid_applied_at": "Veuillez saisir une date de candidature valide.",
       "applied_at_in_future": "La date de candidature ne peut pas être dans le futur."
+    },
+    "red_flag": {
+      "badge": "Alerte",
+      "badge_hint": "Correspond à {contact} ({fields})",
+      "alert_title": "Alerte",
+      "alert_text": "Ce candidat correspond à un contact externe signalé ({fields}) :",
+      "field_name": "nom",
+      "field_email": "e-mail",
+      "field_phone": "téléphone"
     }
   },
   "external_contacts": {
@@ -2840,7 +2855,11 @@
         "name_too_long": "Un nom d'étiquette peut compter au plus {max} caractères.",
         "not_found": "Étiquette introuvable.",
         "name_taken": "L'étiquette « {name} » existe déjà."
-      }
+      },
+      "red_flag_label": "Signale les candidats :",
+      "red_flag_none": "— aucune —",
+      "red_flag_save": "Enregistrer",
+      "red_flag_hint": "Les candidats dont le nom, l'e-mail ou le téléphone correspond à un contact portant cette étiquette sont signalés en rouge."
     },
     "errors": {
       "not_found": "Contact externe introuvable.",

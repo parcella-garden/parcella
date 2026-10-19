@@ -51,6 +51,13 @@
                         <td>
                             <a href="/applicants/{{ applicant.id }}" class="text-decoration-none fw-semibold"
                                style="color: var(--gv-gruen);">{{ applicant.display_name }}</a>
+                            {% for match in red_flags.get(applicant.id, []) %}
+                            {% set field_labels %}{% for f in match.fields %}{{ t('applicants.red_flag.field_' ~ f) }}{% if not loop.last %}, {% endif %}{% endfor %}{% endset %}
+                            <span class="badge bg-danger ms-1"
+                                  title="{{ t('applicants.red_flag.badge_hint', contact=match.contact.display_name or t('external_contacts.unnamed'), fields=field_labels) }}">
+                                <i class="bi bi-flag-fill"></i> {{ t('applicants.red_flag.badge') }}
+                            </span>
+                            {% endfor %}
                             {% if application_counts.get(applicant.email, 1) > 1 %}
                             <span class="badge bg-light text-dark ms-1" title="{{ t('applicants.list.repeat_hint') }}">
                                 {{ t('applicants.list.repeat_badge', count=application_counts[applicant.email]) }}

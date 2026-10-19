@@ -27,7 +27,7 @@ from app.csv_utils import (
     sniff_csv_delimiter,
 )
 from app.database import get_db
-from app.i18n import t_for
+from app.i18n import AVAILABLE_LANGUAGES, t_for
 from app.cloud_storage import CloudStorageError, get_nextcloud_provider
 from app.contact_documents import contact_folder_path, load_base_folder, sanitize_folder_name, upload_filename
 from app.contact_filters import ContactListFilter
@@ -36,10 +36,11 @@ from app.models import ExternalContact, ExternalContactTag, IncomingInvoice, Pur
 from app.module_flags import require_module
 from app.permissions import has_permission, require_permission
 from app.services.errors import ServiceError
+from app.services.applicants import load_red_flag_tag, save_red_flag_tag
 from app.services.external_contacts import (
     add_email, add_phone, count_tag_contacts, create_contact, delete_tag, find_duplicate, get_contact,
     list_active_contacts, list_tags, merge_phones_and_emails, remove_email, remove_phone, rename_tag, set_contact_tags,
-    soft_delete_contact, tag_contact, untag_contact, update_contact,
+    set_tag_translations, soft_delete_contact, tag_contact, untag_contact, update_contact,
 )
 from app.templating import templates
 
@@ -190,7 +191,22 @@ async def tags_page(request: Request, db: AsyncSession = Depends(get_db)):
     return templates.TemplateResponse("external_contacts/tags.html", {
         "request": request, "user": user,
         "tags": await list_tags(db), "contact_counts": await count_tag_contacts(db),
+        "languages": AVAILABLE_LANGUAGES, "red_flag_tag": await load_red_flag_tag(db),
     })
+
+
+@router.post("/tags/red-flag")
+async def tag_red_flag(request: Request, tag_id: str = Form(""), db: AsyncSession = Depends(get_db)):
+    """Which tag marks contacts whose name/email/phone flags a matching
+    applicant (ADR 0098); empty = none."""
+    await require_permission(request, db, MODULE, "write")
+    try:
+        await save_red_flag_tag(db, tag_id.strip() or None)
+    except ServiceError as e:
+        await db.rollback()
+        return _redirect_with_error(request, "/contacts/tags", e)
+    await db.commit()
+    return RedirectResponse("/contacts/tags", status_code=303)
 
 
 @router.post("/tags/{tag_id}/rename")
@@ -199,6 +215,20 @@ async def tag_rename(tag_id: str, request: Request, name: str = Form(""), db: As
     tag = await _get_tag_or_404(db, tag_id)
     try:
         await rename_tag(db, tag, name)
+    except ServiceError as e:
+        await db.rollback()
+        return _redirect_with_error(request, "/contacts/tags", e)
+    await db.commit()
+    return RedirectResponse("/contacts/tags", status_code=303)
+
+
+@router.post("/tags/{tag_id}/translations")
+async def tag_translations(tag_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    await require_permission(request, db, MODULE, "write")
+    tag = await _get_tag_or_404(db, tag_id)
+    form = await request.form()
+    try:
+        await set_tag_translations(db, tag, {lang: form.get(f"name_{lang}", "") for lang in AVAILABLE_LANGUAGES})
     except ServiceError as e:
         await db.rollback()
         return _redirect_with_error(request, "/contacts/tags", e)

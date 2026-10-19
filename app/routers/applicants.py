@@ -28,7 +28,7 @@ from app.permissions import require_permission
 from app.module_flags import require_module
 from app.templating import templates
 from app.services.errors import ServiceError
-from app.services.applicants import create_applicant, delete_applicant, update_applicant
+from app.services.applicants import create_applicant, delete_applicant, find_red_flags, update_applicant
 
 router = APIRouter(
     prefix="/applicants",
@@ -100,6 +100,7 @@ async def applicants_list(request: Request, filter: str = "open", search: str = 
     return templates.TemplateResponse("applicants/list.html", {
         "request": request, "user": user, "applicants": applicants,
         "filter": filter, "search": search, "application_counts": counts,
+        "red_flags": await _red_flags(request, db, applicants),
     })
 
 
@@ -134,6 +135,14 @@ async def applicant_create(request: Request, db: AsyncSession = Depends(get_db))
 # Detail / edit / delete
 # ---------------------------------------------------------------------------
 
+async def _red_flags(request: Request, db: AsyncSession, applicants) -> dict:
+    """Matches against red-flagged external contacts (ADR 0098) -- none
+    while the external contacts module is switched off."""
+    if not getattr(request.state, "module_flags", {}).get("external_contacts", True):
+        return {}
+    return await find_red_flags(db, applicants)
+
+
 async def _detail_context(request, db, user, applicant, error=None) -> dict:
     others = (await db.execute(
         select(Applicant)
@@ -150,6 +159,7 @@ async def _detail_context(request, db, user, applicant, error=None) -> dict:
         "request": request, "user": user, "applicant": applicant,
         "other_applications": others, "history": history,
         "statuses": list(ApplicantStatus), "error": error, "today": date.today(),
+        "red_flags": (await _red_flags(request, db, [applicant])).get(applicant.id, []),
     }
 
 

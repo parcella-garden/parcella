@@ -2,7 +2,13 @@
   "common": {
     "save": "Opslaan",
     "cancel": "Annuleren",
-    "back": "Terug"
+    "back": "Terug",
+    "tag_translations": {
+      "toggle": "Vertalingen",
+      "hint": "Naam van deze tag per taal. Lege velden tonen \"{name}\".",
+      "save": "Vertalingen opslaan",
+      "none": "Geen vertalingen."
+    }
   },
   "nav": {
     "brand_subtitle": "Beheer",
@@ -2739,6 +2745,15 @@
       "invalid_email": "Vul een geldig e-mailadres in.",
       "invalid_applied_at": "Voer een geldige aanmeldingsdatum in.",
       "applied_at_in_future": "De aanmeldingsdatum kan niet in de toekomst liggen."
+    },
+    "red_flag": {
+      "badge": "Rode vlag",
+      "badge_hint": "Komt overeen met {contact} ({fields})",
+      "alert_title": "Rode vlag",
+      "alert_text": "Deze aanvrager komt overeen met een gemarkeerd extern contact ({fields}):",
+      "field_name": "naam",
+      "field_email": "e-mail",
+      "field_phone": "telefoon"
     }
   },
   "external_contacts": {
@@ -2840,7 +2855,11 @@
         "name_too_long": "Een labelnaam mag maximaal {max} tekens lang zijn.",
         "not_found": "Label niet gevonden.",
         "name_taken": "Er bestaat al een label \"{name}\"."
-      }
+      },
+      "red_flag_label": "Markeert aanvragers:",
+      "red_flag_none": "— geen —",
+      "red_flag_save": "Opslaan",
+      "red_flag_hint": "Aanvragers van wie naam, e-mail of telefoon overeenkomt met een contact met deze tag krijgen een rode vlag."
     },
     "errors": {
       "not_found": "Extern contact niet gevonden.",

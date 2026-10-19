@@ -232,15 +232,12 @@ async def _audience_context(db: AsyncSession, announcement: Announcement) -> dic
     if not announcement.is_targeted:
         return {}
     audience_filter = MemberListFilter.from_dict(announcement.audience_filter)
-    tag_name = None
-    if audience_filter.tag:
-        tag = await db.get(MemberTag, audience_filter.tag)
-        tag_name = tag.name if tag else None
+    tag = await db.get(MemberTag, audience_filter.tag) if audience_filter.tag else None
     query_string = audience_filter.query_string()
     return {
         "audience": await resolve_audience(db, announcement),
         "audience_filter": audience_filter,
-        "audience_tag_name": tag_name,
+        "audience_tag": tag,
         "audience_query": query_string,
         "audience_list_url": "/members/" + (f"?{query_string}" if query_string else ""),
     }

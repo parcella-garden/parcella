@@ -20,6 +20,22 @@
 <div class="row g-3">
     <div class="col-lg-7">
         {% if error %}<div class="alert alert-danger">{{ t(error) }}</div>{% endif %}
+        {% for match in red_flags %}
+        {% set field_labels %}{% for f in match.fields %}{{ t('applicants.red_flag.field_' ~ f) }}{% if not loop.last %}, {% endif %}{% endfor %}{% endset %}
+        {% set contact_name = match.contact.display_name or t('external_contacts.unnamed') %}
+        <div class="alert alert-danger d-flex gap-2 align-items-start">
+            <i class="bi bi-flag-fill mt-1"></i>
+            <div>
+                <strong>{{ t('applicants.red_flag.alert_title') }}</strong><br>
+                {{ t('applicants.red_flag.alert_text', fields=field_labels) }}
+                {% if has_perm(request, 'external_contacts', 'read') %}
+                <a href="/contacts/{{ match.contact.id }}" class="alert-link">{{ contact_name }}</a>
+                {% else %}
+                <strong>{{ contact_name }}</strong>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
         <form method="post" action="/applicants/{{ applicant.id }}/edit">
             {{ csrf_field() }}
             <div class="card">

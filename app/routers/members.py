@@ -29,14 +29,14 @@ from app.member_filters import MemberListFilter
 from app.models import Member, MemberPhone, MemberEmail, MemberParcel, MemberTag, Parcel
 from app.services.errors import ServiceError
 from app.permissions import require_permission
-from app.i18n import t_for, load_current_language
+from app.i18n import AVAILABLE_LANGUAGES, t_for, load_current_language
 from app.branding import load_branding
 from app.pdf_chrome import load_org_footer_context
 from app.meeting_signin_sheet import render_meeting_signin_sheet_pdf
 from app.services.members import (
     create_member, update_member, soft_delete_member,
     add_phone, remove_phone, add_email, remove_email,
-    list_tags, tag_member, untag_member, rename_tag, delete_tag, count_tag_members, set_member_tags,
+    list_tags, tag_member, untag_member, rename_tag, delete_tag, count_tag_members, set_member_tags, set_tag_translations,
 )
 
 router = APIRouter(prefix="/members", tags=["members"])
@@ -246,6 +246,7 @@ async def tags_page(request: Request, db: AsyncSession = Depends(get_db)):
     return templates.TemplateResponse("members/tags.html", {
         "request": request, "user": user,
         "tags": await list_tags(db), "member_counts": await count_tag_members(db),
+        "languages": AVAILABLE_LANGUAGES,
     })
 
 
@@ -255,6 +256,20 @@ async def tag_rename(tag_id: str, request: Request, name: str = Form(""), db: As
     tag = await _get_tag_or_404(db, tag_id)
     try:
         await rename_tag(db, tag, name)
+    except ServiceError as e:
+        await db.rollback()
+        return _redirect_with_error(request, "/members/tags", e)
+    await db.commit()
+    return RedirectResponse("/members/tags", status_code=303)
+
+
+@router.post("/tags/{tag_id}/translations")
+async def tag_translations(tag_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    await require_permission(request, db, "members_parcels", "write")
+    tag = await _get_tag_or_404(db, tag_id)
+    form = await request.form()
+    try:
+        await set_tag_translations(db, tag, {lang: form.get(f"name_{lang}", "") for lang in AVAILABLE_LANGUAGES})
     except ServiceError as e:
         await db.rollback()
         return _redirect_with_error(request, "/members/tags", e)
