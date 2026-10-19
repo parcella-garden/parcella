@@ -17,7 +17,7 @@ from datetime import date
 from fastapi import APIRouter, Request, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
@@ -65,7 +65,7 @@ def _form_values(form) -> dict:
 # ---------------------------------------------------------------------------
 
 @router.get("/", response_class=HTMLResponse)
-async def applicants_list(request: Request, filter: str = "open", db: AsyncSession = Depends(get_db)):
+async def applicants_list(request: Request, filter: str = "open", search: str = "", db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "applicants", "read")
     if filter not in _FILTERS:
         filter = "open"
@@ -74,6 +74,16 @@ async def applicants_list(request: Request, filter: str = "open", db: AsyncSessi
     statuses = _FILTERS[filter]
     if statuses is not None:
         query = query.where(Applicant.status.in_(statuses))
+    search = search.strip()
+    if search:
+        # Every text field, the board note included -- so a FreeScout
+        # ticket number noted down there finds the applicant.
+        pattern = f"%{search}%"
+        query = query.where(or_(
+            Applicant.first_name.ilike(pattern), Applicant.last_name.ilike(pattern),
+            Applicant.email.ilike(pattern), Applicant.phone.ilike(pattern),
+            Applicant.message.ilike(pattern), Applicant.board_note.ilike(pattern),
+        ))
     applicants = (await db.execute(query)).scalars().all()
 
     # How often each listed address has applied in total -- a hint for
@@ -89,7 +99,7 @@ async def applicants_list(request: Request, filter: str = "open", db: AsyncSessi
 
     return templates.TemplateResponse("applicants/list.html", {
         "request": request, "user": user, "applicants": applicants,
-        "filter": filter, "application_counts": counts,
+        "filter": filter, "search": search, "application_counts": counts,
     })
 
 

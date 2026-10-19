@@ -12,12 +12,22 @@
 
 {% block content %}
 <div class="card mb-3">
-    <div class="card-body py-2">
+    <div class="card-body py-2 d-flex gap-3 align-items-center flex-wrap">
         <div class="btn-group btn-group-sm flex-wrap" role="group">
             {% for key in ('open', 'new', 'closed', 'all') %}
-            <a href="/applicants/?filter={{ key }}" class="btn btn-{{ 'primary' if filter == key else 'outline-secondary' }}">{{ t('applicants.list.filter_' ~ key) }}</a>
+            <a href="/applicants/?filter={{ key }}{% if search %}&search={{ search | urlencode }}{% endif %}" class="btn btn-{{ 'primary' if filter == key else 'outline-secondary' }}">{{ t('applicants.list.filter_' ~ key) }}</a>
             {% endfor %}
         </div>
+        <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+            <input type="hidden" name="filter" value="{{ filter }}">
+            <i class="bi bi-search text-muted"></i>
+            <input type="text" name="search" value="{{ search }}" class="form-control form-control-sm border-0"
+                   placeholder="{{ t('applicants.list.search_placeholder') }}" style="box-shadow: none; max-width: 260px;">
+            <button type="submit" class="btn btn-sm btn-primary">{{ t('applicants.list.search_button') }}</button>
+            {% if search %}
+            <a href="/applicants/?filter={{ filter }}" class="btn btn-sm btn-outline-secondary">{{ t('applicants.list.reset_button') }}</a>
+            {% endif %}
+        </form>
     </div>
 </div>
 

@@ -347,3 +347,17 @@ async def test_rest_api_sets_the_application_date(client, admin_user):
     assert len(history) == 1
 
     assert (await client.patch(f"/api/v1/applicants/{applicant_id}", json={"applied_at": None}, headers=headers)).status_code == 422
+
+
+async def test_list_search_covers_board_note(client, admin_user):
+    """The applicants list searches every text field, the board note
+    included -- a ticket number noted there finds the applicant."""
+    await _create_applicant(email="noted@example.org", first_name="Noted", board_note="Ticket #4711")
+    await _create_applicant(email="other@example.org", first_name="Other")
+    await web_login(client)
+
+    page = await client.get("/applicants/?filter=all&search=4711")
+    assert page.status_code == 200
+    assert "noted@example.org" in page.text
+    assert "other@example.org" not in page.text
+    assert "other@example.org" in (await client.get("/applicants/?filter=all&search=Other")).text

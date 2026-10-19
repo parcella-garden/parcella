@@ -152,13 +152,14 @@ class MemberListFilter:
                 query = query.where(active_member_filter())
 
         if self.search:
-            # Searches by first/last name, parcel number, email, or phone.
+            # Searches every text field of the member (name, address, IBAN,
+            # notes -- so a FreeScout ticket number noted down there finds
+            # the member), plus parcel number, email and phone.
             # For the parcel search: by default only current assignments (who
             # lives there NOW); with "include_inactive" also already-ended
             # assignments (who used to live there) -- the same toggle logic as
             # for active/inactive members, just applied to the parcel's tenant
-            # history. "City" was deliberately removed, since searching by it
-            # wasn't used in practice.
+            # history.
             parcel_condition = Parcel.plot_number.ilike(f"%{self.search}%")
             if not self.include_inactive:
                 parcel_condition = and_(
@@ -181,6 +182,11 @@ class MemberListFilter:
                 or_(
                     Member.first_name.ilike(f"%{self.search}%"),
                     Member.last_name.ilike(f"%{self.search}%"),
+                    Member.street.ilike(f"%{self.search}%"),
+                    Member.postal_code.ilike(f"%{self.search}%"),
+                    Member.city.ilike(f"%{self.search}%"),
+                    Member.iban.ilike(f"%{self.search}%"),
+                    Member.notes.ilike(f"%{self.search}%"),
                     Member.id.in_(parcel_matches),
                     Member.id.in_(email_matches),
                     Member.id.in_(phone_matches),

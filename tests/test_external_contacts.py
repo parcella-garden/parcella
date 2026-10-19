@@ -460,3 +460,20 @@ async def test_documents_need_the_cloud_module_and_respect_permissions(client, a
     assert (await client.get(f"/contacts/{contact_id}/documents/download?filename=a.pdf")).status_code == 200
     assert (await client.post(f"/contacts/{contact_id}/documents/upload", files={"file": ("a.pdf", b"x")})).status_code == 403
     assert (await client.post(f"/contacts/{contact_id}/documents/folder", data={"folder_name": ""})).status_code == 403
+
+
+async def test_list_search_covers_notes_and_links_name_and_organisation(client, admin_user):
+    """A ticket number in a contact's notes finds it; the list shows the
+    contact person before the organisation and links both to the detail
+    page."""
+    async with AsyncSessionLocal() as db:
+        noted = ExternalContact(company_name="Notiz GmbH", first_name="Nora", last_name="Notiz", notes="Ticket #4711")
+        db.add_all([noted, ExternalContact(company_name="Andere AG")])
+        await db.commit()
+        noted_id = noted.id
+    await web_login(client, "admin@example.com")
+
+    page = (await client.get("/contacts/?search=4711")).text
+    assert "Notiz GmbH" in page and "Andere AG" not in page
+    assert page.count(f'href="/contacts/{noted_id}?search=4711"') == 3  # name, organisation, eye button
+    assert page.index("Notiz, Nora") < page.index("Notiz GmbH")

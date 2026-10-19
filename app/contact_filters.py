@@ -41,7 +41,11 @@ class ContactListFilter:
                 ExternalContact.company_name.ilike(pattern),
                 ExternalContact.first_name.ilike(pattern),
                 ExternalContact.last_name.ilike(pattern),
+                ExternalContact.street.ilike(pattern),
+                ExternalContact.postal_code.ilike(pattern),
                 ExternalContact.city.ilike(pattern),
+                ExternalContact.iban.ilike(pattern),
+                ExternalContact.notes.ilike(pattern),
                 ExternalContact.id.in_(email_matches),
                 ExternalContact.id.in_(phone_matches),
             ))

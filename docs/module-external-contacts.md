@@ -49,7 +49,10 @@ purchase_requests.external_contact_id   – optional link (SET NULL)
 - `app/services/external_contacts.py` -- create, update, delete, phones,
   emails and tags. Shared by the web UI and the API (ADR 0070).
 - `app/contact_filters.py` -- `ContactListFilter` (search + tag), shared
-  by the list, CSV export, Previous/Next and the API list.
+  by the list, CSV export, Previous/Next and the API list. The search
+  covers every text field, notes included, so a FreeScout ticket number
+  noted there finds the contact (members and applicants search the same
+  way).
 - `app/routers/external_contacts.py` -- web UI under `/contacts/`, plus
   `picker_contacts()` / `resolve_picked_contact()` for other modules'
   forms.

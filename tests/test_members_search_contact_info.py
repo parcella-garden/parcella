@@ -77,3 +77,20 @@ async def test_csv_export_respects_search_by_email(client, admin_user):
     assert r.status_code == 200
     assert "Exported" in r.text
     assert "Excluded" not in r.text
+
+
+async def test_search_matches_notes(client, admin_user):
+    """A ticket number noted down in the member's notes finds the member."""
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+
+    async with AsyncSessionLocal() as session:
+        session.add_all([
+            Member(first_name="Noted", last_name="Person", notes="See FreeScout ticket #4711"),
+            Member(first_name="Other", last_name="Person"),
+        ])
+        await session.commit()
+
+    r = await client.get("/members/?search=4711")
+    assert r.status_code == 200
+    assert "Person, Noted" in r.text
+    assert "Person, Other" not in r.text
