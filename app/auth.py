@@ -23,7 +23,16 @@ def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
-def verify_password(password: str, hashed: str) -> bool:
+# Checked instead when there is no hash to check against (unknown email,
+# account without a password), so a failed login takes as long either way
+# and its timing doesn't reveal which addresses have an account.
+_DUMMY_HASH = bcrypt.hashpw(b"no-such-account", bcrypt.gensalt()).decode()
+
+
+def verify_password(password: str, hashed: Optional[str]) -> bool:
+    if not hashed:
+        bcrypt.checkpw(password.encode(), _DUMMY_HASH.encode())
+        return False
     return bcrypt.checkpw(password.encode(), hashed.encode())
 
 
@@ -45,17 +54,24 @@ def verify_invitation_token(token: str, max_age: int = INVITATION_VALID_DAYS * 8
         return None
 
 
-def create_session_token(user_id: str) -> str:
-    return serializer.dumps(user_id, salt="session")
+def create_session_token(user_id: str, session_version: int = 0) -> str:
+    return serializer.dumps(f"{user_id}:{session_version}", salt="session")
 
 
-def verify_session_token(token: str) -> Optional[str]:
+def verify_session_token(token: str) -> Optional[tuple[str, int]]:
+    """(user_id, session_version), or None. A cookie from before session
+    versions existed holds the bare user id and counts as version 0, so
+    deploying this didn't log everyone out."""
     try:
-        user_id = serializer.loads(
+        payload = serializer.loads(
             token, salt="session", max_age=settings.session_max_age
         )
-        return user_id
     except (BadSignature, SignatureExpired):
+        return None
+    user_id, _, version = payload.partition(":")
+    try:
+        return user_id, int(version or 0)
+    except ValueError:
         return None
 
 
@@ -63,12 +79,13 @@ async def get_current_user(request: Request, db: AsyncSession) -> Optional[User]
     token = request.cookies.get("session")
     if not token:
         return None
-    user_id = verify_session_token(token)
-    if not user_id:
+    verified = verify_session_token(token)
+    if not verified:
         return None
+    user_id, session_version = verified
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    if user and not user.is_active:
+    if user and (not user.is_active or user.session_version != session_version):
         return None
     return user
 

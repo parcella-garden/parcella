@@ -25,6 +25,9 @@ separate, much larger change. What the policy DOES buy today:
 HSTS is only sent outside development: sending it from a local http://
 instance would pin the browser to https://localhost for months.
 """
+import re
+from urllib.parse import quote
+
 from app.config import settings
 
 CDN_ORIGIN = "https://cdn.jsdelivr.net"
@@ -62,3 +65,14 @@ def security_headers() -> dict:
     if not settings.is_development:
         headers["Strict-Transport-Security"] = HSTS_VALUE
     return headers
+
+
+def content_disposition(filename: str, disposition: str = "attachment") -> str:
+    """Content-Disposition value for a filename that holds user data (an
+    uploaded file's name, a member's last name, an account name). A quote,
+    CR/LF or a character outside latin-1 ("Ł", "ř") written straight into
+    the header either breaks the response with a 500 or splits it (see
+    the header sharp edge in CLAUDE.md). The plain `filename` is an ASCII
+    fallback; browsers use the exact, percent-encoded `filename*`."""
+    fallback = re.sub(r"[^A-Za-z0-9._ -]+", "_", filename).strip(" ._") or "download"
+    return f"{disposition}; filename=\"{fallback}\"; filename*=UTF-8''{quote(filename, safe='')}"

@@ -420,7 +420,11 @@
       "external_contacts_folder_header": "Složka pro dokumenty externích kontaktů",
       "external_contacts_folder_help": "Základní složka v cloudu s jednou podsložkou pro každý externí kontakt (zakládanou ručně). Každý kontakt si pak na své stránce vybere svou podsložku. Ponechte prázdné pro vypnutí sekce dokumentů.",
       "external_contacts_folder_saved": "Složka uložena.",
-      "external_contacts_folder_label": "Základní složka (relativní cesta)"
+      "external_contacts_folder_label": "Základní složka (relativní cesta)",
+      "ics_title": "Soukromé kalendářové kanály",
+      "ics_desc": "Kanály narozenin a přítomnosti/nepřítomnosti výboru jsou chráněny jedním sdíleným tajemstvím v adrese odběru. Nikdy nevyprší – vygenerujte jej znovu, pokud mohl odkaz uniknout nebo výbor opustil někdo s přístupem.",
+      "ics_regenerate_confirm": "Nové vygenerování ukončí všechny stávající odběry kanálů narozenin a výboru; odběratelé musí zkopírovat novou adresu ze stránek kalendáře. Pokračovat?",
+      "ics_token_regenerated": "Token kalendářových kanálů byl znovu vygenerován. Stávající odběry fungují až s novou adresou."
     },
     "system": {
       "page_title": "Systém",

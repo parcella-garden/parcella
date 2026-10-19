@@ -130,7 +130,11 @@ silently continuing.
   did (a member's address, joined with `<br>`) was a stored XSS: Jinja's
   `join` returns a plain `str` for plain-str items, so `|safe` marked
   the raw input as trusted. Build markup in Python with `Markup`/
-  `escape` instead -- see `address_html` in `app/l10n.py`.
+  `escape` instead -- see `address_html` in `app/l10n.py`. The same goes
+  for client-side JS: never concatenate user data (member names, ...)
+  into an `innerHTML` string -- build elements and set `textContent`.
+  The member-search dropdowns did this until the 2026-10 audit (ADR
+  0099), and the CSP's `'unsafe-inline'` doesn't catch it.
 
 ## Sharp edges (things that have already caused real bugs)
 

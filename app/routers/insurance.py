@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from app.csv_utils import csv_safe
 from app.database import get_db
 from app.i18n import t_for
 from app.models import (
@@ -478,9 +479,9 @@ async def insurance_evaluation_csv(
         pi = entry
         cost = calculate_insurance_cost(pi, configuration)
         writer.writerow([
-            pi.parcel.plot_number if pi.parcel else "",
+            csv_safe(pi.parcel.plot_number if pi.parcel else ""),
             "Ja" if pi.has_property_insurance else "Nein",
-            pi.property_package.name if pi.property_package else "",
+            csv_safe(pi.property_package.name if pi.property_package else ""),
             f"{cost['property_cost']:.2f}".replace(".", ","),
             "Ja" if pi.has_accident_insurance else "Nein",
             len(pi.additional_persons),

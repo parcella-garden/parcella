@@ -420,7 +420,11 @@
       "external_contacts_folder_header": "Ordner für Dokumente externer Kontakte",
       "external_contacts_folder_help": "Basisordner in der Cloud mit einem Unterordner pro externem Kontakt (von Hand angelegt). Jeder Kontakt wählt dann auf seiner Seite seinen Unterordner. Leer lassen, um den Dokumentenbereich auszuschalten.",
       "external_contacts_folder_saved": "Ordner gespeichert.",
-      "external_contacts_folder_label": "Basisordner (relativer Pfad)"
+      "external_contacts_folder_label": "Basisordner (relativer Pfad)",
+      "ics_title": "Private Kalender-Feeds",
+      "ics_desc": "Der Geburtstags- sowie der Vorstands-Anwesenheits- und Abwesenheits-Feed sind durch ein gemeinsames Geheimnis in der Abo-URL geschützt. Es läuft nie ab – erzeuge es neu, wenn ein Link nach außen gelangt sein könnte oder jemand mit Zugriff den Vorstand verlassen hat.",
+      "ics_regenerate_confirm": "Das Neuerzeugen beendet jedes bestehende Kalender-Abo der Geburtstags- und Vorstands-Feeds; Abonnenten müssen die neue URL von den Kalenderseiten kopieren. Fortfahren?",
+      "ics_token_regenerated": "Kalender-Feed-Token neu erzeugt. Bestehende Abos funktionieren erst mit der neuen URL wieder."
     },
     "system": {
       "page_title": "System",

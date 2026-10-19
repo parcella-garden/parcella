@@ -36,12 +36,19 @@ async def _enable_contact_module(client, headers):
 
 
 async def _set_api_token(client, headers) -> str:
-    response = await client.put(
-        "/api/v1/club-settings/public_signup_api_token",
-        json={"value": "test-public-api-token"},
-        headers=headers,
-    )
-    assert response.status_code == 200, response.text
+    """Written straight to the database: the settings API refuses to
+    touch tokens and credentials (ADR 0099)."""
+    from sqlalchemy import select
+    from app.database import AsyncSessionLocal
+    from app.models import ClubSetting
+
+    async with AsyncSessionLocal() as db:
+        entry = await db.scalar(select(ClubSetting).where(ClubSetting.key == "public_signup_api_token"))
+        if entry is None:
+            db.add(ClubSetting(key="public_signup_api_token", value="test-public-api-token", description="test"))
+        else:
+            entry.value = "test-public-api-token"
+        await db.commit()
     return "test-public-api-token"
 
 

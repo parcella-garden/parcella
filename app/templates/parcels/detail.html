@@ -216,11 +216,18 @@
                 return;
             }
 
-            resultsBox.innerHTML = matches.map(function (m) {
-                return '<button type="button" class="list-group-item list-group-item-action" ' +
-                       'style="font-size: 0.88rem;" data-id="' + m.id + '" data-name="' +
-                       m.name.replace(/"/g, '&quot;') + '">' + m.name + '</button>';
-            }).join('');
+            // Built as DOM nodes with textContent, never as an HTML string:
+            // member names are user data (stored XSS, security audit 2026-10-19).
+            resultsBox.replaceChildren.apply(resultsBox, matches.map(function (m) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'list-group-item list-group-item-action';
+                btn.style.fontSize = '0.88rem';
+                btn.setAttribute('data-id', m.id);
+                btn.setAttribute('data-name', m.name);
+                btn.textContent = m.name;
+                return btn;
+            }));
             resultsBox.style.display = 'block';
         }
 

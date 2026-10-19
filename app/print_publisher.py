@@ -45,7 +45,7 @@ from weasyprint import HTML
 from app.models import Announcement
 from app.announcement_utils import render_markdown_to_html
 from app.pdf_chrome import wrap_document, org_footer_html, OrgFooterContext
-from app.pdf_utils import file_to_data_uri
+from app.pdf_utils import data_uri_only_fetcher, file_to_data_uri
 
 # Flyer-specific rules only -- @page/body/#header/#footer chrome now
 # comes from app/pdf_chrome.py's page_css(). font-size/line-height stay
@@ -134,7 +134,7 @@ def render_announcement_print_pdf(
             announcement.title, render_markdown_to_html(body_markdown),
             image_data_uri, logo_path, footer_context, language, online_note_html,
         )
-        return HTML(string=html_doc).render()
+        return HTML(string=html_doc, url_fetcher=data_uri_only_fetcher()).render()
 
     source_markdown = announcement.print_text_override or announcement.body_markdown
 

@@ -53,7 +53,7 @@ async def login(
     result = await db.execute(select(User).where(User.email == email.lower()))
     user = result.scalar_one_or_none()
 
-    if not user or not user.password_hash or not verify_password(password, user.password_hash):
+    if not verify_password(password, user.password_hash if user else None) or not user:
         record_failed_login(request, email)
         return templates.TemplateResponse(
             "auth/login.html",
@@ -74,7 +74,7 @@ async def login(
     user.last_login = datetime.now(timezone.utc)
     await db.commit()
 
-    token = create_session_token(user.id)
+    token = create_session_token(user.id, user.session_version)
     response = RedirectResponse("/", status_code=302)
     response.set_cookie(
         "session",
@@ -139,12 +139,24 @@ async def change_password(
     # password) is now resolved -- see app/main.py's
     # password_change_middleware.
     user.must_change_password = False
+    # Ends every other session of this account (a stolen cookie included);
+    # this browser gets a fresh cookie below so it stays logged in.
+    user.session_version += 1
     await db.commit()
 
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         "auth/change_password.html",
         {"request": request, "user": user, "success": True},
     )
+    response.set_cookie(
+        "session",
+        create_session_token(user.id, user.session_version),
+        max_age=settings.session_max_age,
+        httponly=True,
+        samesite="lax",
+        secure=not settings.is_development,
+    )
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -276,7 +288,7 @@ async def invitation_accept(
     invitation.status = InvitationStatus.ACCEPTED
     await db.commit()
 
-    session_token = create_session_token(user.id)
+    session_token = create_session_token(user.id, user.session_version)
     response = RedirectResponse("/", status_code=302)
     response.set_cookie(
         "session",

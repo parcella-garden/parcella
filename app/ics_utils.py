@@ -49,6 +49,22 @@ async def get_or_create_ics_token(db: AsyncSession) -> str:
     return token
 
 
+async def regenerate_ics_token(db: AsyncSession) -> str:
+    """Invalidates every subscribed private feed URL at once -- the way to
+    cut off a leaked link or a board member who left (the token never
+    expires on its own). Subscribers re-copy the URL from the calendar
+    pages afterwards."""
+    token = secrets.token_urlsafe(32)
+    result = await db.execute(select(ClubSetting).where(ClubSetting.key == ICS_TOKEN_SETTING_KEY))
+    entry = result.scalar_one_or_none()
+    if entry:
+        entry.value = token
+    else:
+        db.add(ClubSetting(key=ICS_TOKEN_SETTING_KEY, value=token, description="Secret token for private ICS calendar feeds"))
+    await db.commit()
+    return token
+
+
 def verify_ics_token(provided: Optional[str], actual: str) -> bool:
     if not provided:
         return False

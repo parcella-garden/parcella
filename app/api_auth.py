@@ -61,9 +61,7 @@ def decode_access_token(token: str) -> Optional[dict]:
 async def authenticate_user(db: AsyncSession, email: str, password: str) -> Optional[User]:
     result = await db.execute(select(User).where(User.email == email.lower()))
     user = result.scalar_one_or_none()
-    if not user or not user.password_hash:
-        return None
-    if not verify_password(password, user.password_hash):
+    if not verify_password(password, user.password_hash if user else None) or not user:
         return None
     if not user.is_active:
         return None

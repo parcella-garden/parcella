@@ -56,6 +56,7 @@ from app.backup import (
     RESTORE_CONFIRM_PHRASE, MAX_RESTORE_UPLOAD_BYTES,
 )
 from app.parcel_cloud_folders import sanitize_relative_path, InvalidCloudPathError
+from app.ics_utils import regenerate_ics_token
 from app.contact_documents import EXTERNAL_CONTACTS_FOLDER_SETTING, load_base_folder as load_contacts_base_folder
 from app.cloud_backup import (
     get_cloud_backup_settings, save_cloud_backup_settings, run_cloud_backup_now,
@@ -1322,6 +1323,13 @@ async def integrations_token_regenerate(request: Request, db: AsyncSession = Dep
     await require_system_admin(request, db)
     await regenerate_public_api_token(db)
     return RedirectResponse("/admin/integrations?success=1", status_code=302)
+
+
+@router.post("/integrations/regenerate-ics-token")
+async def integrations_ics_token_regenerate(request: Request, db: AsyncSession = Depends(get_db)):
+    await require_system_admin(request, db)
+    await regenerate_ics_token(db)
+    return RedirectResponse("/admin/integrations?ics_rotated=1", status_code=302)
 
 
 @router.post("/integrations/public-forms")

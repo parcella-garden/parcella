@@ -84,6 +84,10 @@ class User(Base):
         Boolean, default=False, server_default="false", nullable=False
     )
     last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Baked into the session cookie (app/auth.py); bumping it ends every
+    # session issued before -- done on a password change, so a stolen
+    # cookie dies with the old password (security audit 2026-10-19).
+    session_version: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
     # Just the filename under app/static/uploads/avatars/, not the image
     # itself -- same "store filename, not URL" convention as ClubSetting's
     # logo_filename (app/branding.py). See app/avatars.py.

@@ -1234,7 +1234,7 @@ async def evaluation_export_csv(
             transferred_net = sum(t["hours"]["transferred_net"] for t in row["tenant_details"])
             names = [t["member"].full_name for t in row["tenant_details"]]
             writer.writerow([
-                row["parcel"].plot_number,
+                csv_safe(row["parcel"].plot_number),
                 csv_safe("; ".join(names)),
                 f"{row['required_hours']:.1f}",
                 f"{session_hours:.1f}",

@@ -209,8 +209,22 @@ the account in that state as well -- see
   proxy_set_header X-Forwarded-Proto $scheme;
   ```
 
-  Only enable `--proxy-headers` when a trusted proxy really is in front:
+  `--proxy-headers` alone only trusts forwarded headers from
+  127.0.0.1. A proxy on the Docker host connects through the Docker
+  network gateway (e.g. `172.19.0.1`), so uvicorn also needs
+  `--forwarded-allow-ips` -- otherwise every visitor shares the
+  gateway's address and the throttles become one global bucket: 30
+  failed logins from anyone block all logins, 10 against one address
+  lock that account for everybody (security audit 2026-10-19, hit on the
+  reference installation). Check with
+  `docker compose logs web | grep -oE '[0-9.]+:[0-9]+ - "' | sort | uniq -c`:
+  real client addresses should show up, not just the gateway.
+
+  Only trust forwarded headers when a trusted proxy really is in front:
   a directly-exposed app would then believe whatever IP a client claims.
+  `--forwarded-allow-ips=*` is fine when the port is published on
+  `127.0.0.1` only (as in the README's override example); otherwise
+  list the proxy's address.
 
 - **Content Security Policy.** Bootstrap and Bootstrap Icons load from
   `cdn.jsdelivr.net`, which is pinned in the policy

@@ -45,6 +45,7 @@ from app.csv_utils import (
     parse_mapped_csv_rows,
 )
 from app.i18n import t_for, load_current_language
+from app.security_headers import content_disposition
 from app.models import (
     InvoiceRun, InvoiceRunStatus, InvoiceItemDefinition, InvoiceItemDefinitionParcel, InvoiceItemDefinitionMember,
     InvoiceItemTemplate, InvoiceItemTemplateParcel, InvoiceItemTemplateMember,
@@ -318,7 +319,7 @@ async def reminder_pdf(reminder_id: str, request: Request, db: AsyncSession = De
     pdf_bytes = render_reminder_pdf(data, **ctx)
     return Response(
         content=pdf_bytes, media_type="application/pdf",
-        headers={"Content-Disposition": f'inline; filename="{reminder_pdf_filename(reminder, invoice, run)}"'},
+        headers={"Content-Disposition": content_disposition(reminder_pdf_filename(reminder, invoice, run), "inline")},
     )
 
 
@@ -585,7 +586,7 @@ async def incoming_invoice_download(invoice_id: str, request: Request, db: Async
 
     return Response(
         content=content, media_type="application/octet-stream",
-        headers={"Content-Disposition": f'attachment; filename="{invoice.cloud_filename}"'},
+        headers={"Content-Disposition": content_disposition(invoice.cloud_filename)},
     )
 
 
@@ -1131,7 +1132,7 @@ async def invoice_pdf(invoice_id: str, request: Request, db: AsyncSession = Depe
     pdf_bytes = render_invoice_pdf(data, **ctx)
     return Response(
         content=pdf_bytes, media_type="application/pdf",
-        headers={"Content-Disposition": f'inline; filename="{invoice_pdf_filename(invoice, run)}"'},
+        headers={"Content-Disposition": content_disposition(invoice_pdf_filename(invoice, run), "inline")},
     )
 
 
@@ -1843,7 +1844,7 @@ async def account_bookings_export_csv(account_id: str, request: Request, db: Asy
     filename = f"{account.name.replace(' ', '_')}_bookings.csv"
     return Response(
         content=output.getvalue(), media_type="text/csv",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={"Content-Disposition": content_disposition(filename)},
     )
 
 

@@ -420,7 +420,11 @@
       "external_contacts_folder_header": "Map voor documenten van externe contacten",
       "external_contacts_folder_help": "Basismap in de cloud met één submap per extern contact (met de hand aangemaakt). Elk contact kiest daarna op zijn eigen pagina zijn submap. Laat leeg om het documentengedeelte uit te zetten.",
       "external_contacts_folder_saved": "Map opgeslagen.",
-      "external_contacts_folder_label": "Basismap (relatief pad)"
+      "external_contacts_folder_label": "Basismap (relatief pad)",
+      "ics_title": "Privé-agendafeeds",
+      "ics_desc": "De feeds voor verjaardagen en aanwezigheid/afwezigheid van het bestuur worden beschermd door één gedeeld geheim in hun abonnements-URL. Het verloopt nooit; genereer het opnieuw als een link kan zijn uitgelekt of iemand met toegang het bestuur heeft verlaten.",
+      "ics_regenerate_confirm": "Opnieuw genereren verbreekt alle bestaande agenda-abonnementen op de verjaardags- en bestuursfeeds; abonnees moeten de nieuwe URL van de agendapagina's kopiëren. Doorgaan?",
+      "ics_token_regenerated": "Token voor agendafeeds opnieuw gegenereerd. Bestaande abonnementen werken pas weer met de nieuwe URL."
     },
     "system": {
       "page_title": "Systeem",

@@ -26,6 +26,7 @@ from typing import List, Optional
 from markupsafe import escape
 from weasyprint import HTML
 
+from app.pdf_utils import data_uri_only_fetcher
 from app.l10n import format_address_lines
 from app.models import Announcement, Member
 from app.pdf_chrome import ADDRESS_WINDOW_CSS, OrgFooterContext, org_footer_html, sender_line, wrap_document
@@ -72,4 +73,4 @@ def render_announcement_letters_pdf(
         body, footer_context.club_name, logo_path, org_footer_html(footer_context, language),
         language, extra_css=LETTER_CSS,
     )
-    return HTML(string=html_doc).write_pdf()
+    return HTML(string=html_doc, url_fetcher=data_uri_only_fetcher()).write_pdf()

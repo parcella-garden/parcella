@@ -420,7 +420,11 @@
       "external_contacts_folder_header": "Folder for external contacts' documents",
       "external_contacts_folder_help": "Base folder in the cloud with one subfolder per external contact (created by hand). Each contact then picks its subfolder on its own page. Leave empty to turn the documents section off.",
       "external_contacts_folder_saved": "Folder saved.",
-      "external_contacts_folder_label": "Base folder (relative path)"
+      "external_contacts_folder_label": "Base folder (relative path)",
+      "ics_title": "Private calendar feeds",
+      "ics_desc": "The birthday and council presence/absence feeds are protected by one shared secret in their subscription URLs. It never expires, so regenerate it when a link may have leaked or someone with access has left the board.",
+      "ics_regenerate_confirm": "Regenerating breaks every existing calendar subscription of the birthday and council feeds; subscribers must copy the new URL from the calendar pages. Continue?",
+      "ics_token_regenerated": "Calendar feed token regenerated. Existing subscriptions stop working until they use the new URL."
     },
     "system": {
       "page_title": "System",

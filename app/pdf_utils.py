@@ -11,6 +11,8 @@ import base64
 from pathlib import Path
 from typing import Optional
 
+from weasyprint import URLFetcher
+
 IMAGE_MIME_BY_EXTENSION = {
     ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp",
 }
@@ -29,3 +31,14 @@ def file_to_data_uri(path: Optional[Path], mime: Optional[str] = None) -> Option
     resolved_mime = mime or image_mime_for(path)
     encoded = base64.b64encode(path.read_bytes()).decode("ascii")
     return f"data:{resolved_mime};base64,{encoded}"
+
+
+
+def data_uri_only_fetcher() -> URLFetcher:
+    """url_fetcher for every WeasyPrint render: everything the app puts
+    into a PDF is a data: URI (see file_to_data_uri), so anything else
+    can only come from user-written HTML -- an announcement's
+    <img src="http://..."> would otherwise make the server fetch
+    arbitrary URLs, internal ones included (blind SSRF, security audit
+    2026-10-19). WeasyPrint logs the refusal and skips the resource."""
+    return URLFetcher(allowed_protocols=["data"])

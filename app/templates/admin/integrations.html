@@ -7,6 +7,9 @@
 {% if request.query_params.get('success') %}
 <div class="alert alert-success">{{ t('admin.integrations.token_regenerated') }}</div>
 {% endif %}
+{% if request.query_params.get('ics_rotated') %}
+<div class="alert alert-success">{{ t('admin.integrations.ics_token_regenerated') }}</div>
+{% endif %}
 
 {% if not module_active %}
 <div class="alert alert-warning">
@@ -16,6 +19,24 @@
 {% endif %}
 
 <div id="integrations-accordion">
+
+<div class="card mb-3">
+    <div class="card-header settings-card-toggle collapsed" role="button" data-bs-toggle="collapse"
+         data-bs-target="#integration-card-ics-feeds" aria-expanded="false">
+        <span><i class="bi bi-calendar-week me-2"></i>{{ t('admin.integrations.ics_title') }}</span>
+        <i class="bi bi-chevron-down settings-card-chevron"></i>
+    </div>
+    <div class="collapse" id="integration-card-ics-feeds" data-bs-parent="#integrations-accordion">
+    <div class="card-body">
+        <p class="text-muted">{{ t('admin.integrations.ics_desc') }}</p>
+        <form method="post" action="/admin/integrations/regenerate-ics-token"
+              onsubmit="return confirm({{ t('admin.integrations.ics_regenerate_confirm')|tojson|forceescape }});">
+            {{ csrf_field() }}
+            <button type="submit" class="btn btn-outline-danger">{{ t('admin.integrations.regenerate_button') }}</button>
+        </form>
+    </div>
+    </div>
+</div>
 
 <div class="card mb-3">
     <div class="card-header settings-card-toggle collapsed" role="button" data-bs-toggle="collapse"

@@ -311,9 +311,10 @@ for the one-time manual migration -- back up first.
 ### Customizing your deployment: use an override file, not local edits
 
 If your setup needs anything `docker-compose.yml` doesn't already cover
--- most commonly running behind a reverse proxy (add `--proxy-headers`
-to uvicorn's command so it trusts `X-Forwarded-*` and reports the right
-client IP/scheme) or a different port -- put that in a
+-- most commonly running behind a reverse proxy (add `--proxy-headers
+--forwarded-allow-ips=*` to uvicorn's command so it trusts
+`X-Forwarded-*` and reports the right client IP/scheme) or a different
+port -- put that in a
 **`docker-compose.override.yml`** next to `docker-compose.yml`, not by
 editing `docker-compose.yml` itself.
 
@@ -335,10 +336,19 @@ replacing** -- if you just restate `ports:` in the override, you get
 # docker-compose.override.yml
 services:
   web:
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips=*
     ports: !override
       - "127.0.0.1:8082:8000"
 ```
+
+`--proxy-headers` alone is not enough: uvicorn then only trusts
+forwarded headers from 127.0.0.1, but a host nginx reaches the container
+through the Docker network gateway (e.g. `172.19.0.1`). Without
+`--forwarded-allow-ips`, every visitor looks like that one address, so
+the login throttle and the public form rate limits collapse into a
+single bucket -- a handful of failed logins from anywhere locks everyone
+out. `*` is safe here **only** because the port is bound to `127.0.0.1`,
+so nothing but the local proxy can reach the app.
 
 (A custom Postgres data path is no longer a common reason to need an
 override -- the base file already bind-mounts it under `./data/postgres`

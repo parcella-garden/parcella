@@ -1,6 +1,13 @@
 """
 API router: club settings (club master data, area sizes, etc.).
+
+Secrets stored in ClubSetting (integration passwords and API keys,
+encrypted; the ICS feed and public form tokens, plaintext) are never
+served or written here: any API account could read this list, and a
+leaked feed token exposes every member's birthday. Integrations are
+configured on the admin pages only.
 """
+import re
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -15,6 +22,15 @@ from app.schemas import ClubSettingOut, ClubSettingUpdate, BoardMemberOut
 
 router = APIRouter(prefix="/api/v1/club-settings", tags=["API: Club Settings"])
 
+# Matches every credential key in use (smtp_password, nextcloud_app_password,
+# freescout_api_key, spam_api_key, ics_secret_token, public_signup_api_token,
+# ...) and any new one named the same way.
+_SECRET_KEY_RE = re.compile(r"(password|token|secret|api_key)$")
+
+
+def is_secret_setting(key: str) -> bool:
+    return bool(_SECRET_KEY_RE.search(key.lower()))
+
 
 @router.get(
     "",
@@ -27,7 +43,7 @@ async def settings_list(
     user: User = Depends(get_current_api_user),
 ):
     result = await db.execute(select(ClubSetting))
-    return result.scalars().all()
+    return [entry for entry in result.scalars().all() if not is_secret_setting(entry.key)]
 
 
 @router.get(
@@ -59,6 +75,8 @@ async def setting_get(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_api_user),
 ):
+    if is_secret_setting(key):
+        raise HTTPException(status_code=404, detail="Setting not found")
     result = await db.execute(
         select(ClubSetting).where(ClubSetting.key == key)
     )
@@ -80,6 +98,11 @@ async def setting_set(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_admin_api),
 ):
+    if is_secret_setting(key):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Credentials and tokens can only be set on the admin pages",
+        )
     result = await db.execute(
         select(ClubSetting).where(ClubSetting.key == key)
     )

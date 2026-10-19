@@ -420,7 +420,11 @@
       "external_contacts_folder_header": "Priečinok pre dokumenty externých kontaktov",
       "external_contacts_folder_help": "Základný priečinok v cloude s jedným podpriečinkom pre každý externý kontakt (zakladaným ručne). Každý kontakt si potom na svojej stránke vyberie svoj podpriečinok. Nechajte prázdne pre vypnutie sekcie dokumentov.",
       "external_contacts_folder_saved": "Priečinok uložený.",
-      "external_contacts_folder_label": "Základný priečinok (relatívna cesta)"
+      "external_contacts_folder_label": "Základný priečinok (relatívna cesta)",
+      "ics_title": "Súkromné kalendárové kanály",
+      "ics_desc": "Kanály narodenín a prítomnosti/neprítomnosti výboru sú chránené jedným zdieľaným tajomstvom v adrese odberu. Nikdy nevyprší – vygenerujte ho znova, ak mohol odkaz uniknúť alebo výbor opustil niekto s prístupom.",
+      "ics_regenerate_confirm": "Nové vygenerovanie ukončí všetky existujúce odbery kanálov narodenín a výboru; odberatelia musia skopírovať novú adresu zo stránok kalendára. Pokračovať?",
+      "ics_token_regenerated": "Token kalendárových kanálov bol znova vygenerovaný. Existujúce odbery fungujú až s novou adresou."
     },
     "system": {
       "page_title": "Systém",

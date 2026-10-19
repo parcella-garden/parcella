@@ -14,6 +14,7 @@ from datetime import date, datetime, timedelta, timezone
 from app.database import AsyncSessionLocal
 from app.models import Member, SessionParticipation, WorkSession, SessionType, ParticipationStatus
 from tests.conftest import login, auth_header
+from tests.test_public_api import _set_api_token
 
 
 async def web_login(client, email: str, password: str = "testpasswort123") -> None:
@@ -115,10 +116,7 @@ async def test_public_signup_sends_one_digest_email_not_per_row(client, admin_us
     await client.put(
         "/api/v1/club-settings/modul_public_signup_api", json={"value": "true"}, headers=headers,
     )
-    await client.put(
-        "/api/v1/club-settings/public_signup_api_token",
-        json={"value": "test-public-api-token"}, headers=headers,
-    )
+    await _set_api_token(client, headers)
     parcel = (await client.post("/api/v1/parcels", json={"plot_number": "G042"}, headers=headers)).json()
     resident_a = (await client.post(
         "/api/v1/members", json={"first_name": "Gerd", "last_name": "Mustergaertner"}, headers=headers,

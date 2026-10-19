@@ -20,6 +20,7 @@ from typing import List, Optional
 
 from weasyprint import HTML
 
+from app.pdf_utils import data_uri_only_fetcher
 from app.pdf_chrome import ADDRESS_WINDOW_CSS, wrap_document, org_footer_html, sender_line, OrgFooterContext
 from app.l10n import format_money
 from app.i18n import translate
@@ -332,7 +333,7 @@ def render_invoice_pdf(
         _invoice_body_html(data, region, currency, language, sender_line),
         footer_context.club_name, logo_path, footer_html, language, extra_css=EXTRA_CSS,
     )
-    return HTML(string=html_doc).write_pdf()
+    return HTML(string=html_doc, url_fetcher=data_uri_only_fetcher()).write_pdf()
 
 
 def render_invoice_bundle_pdf(
@@ -351,7 +352,7 @@ def render_invoice_bundle_pdf(
     html_doc = wrap_document(
         body_html, footer_context.club_name, logo_path, footer_html, language, extra_css=EXTRA_CSS,
     )
-    return HTML(string=html_doc).write_pdf()
+    return HTML(string=html_doc, url_fetcher=data_uri_only_fetcher()).write_pdf()
 
 
 def render_reminder_pdf(
@@ -366,4 +367,4 @@ def render_reminder_pdf(
         _reminder_body_html(data, region, currency, language, sender_line),
         footer_context.club_name, logo_path, footer_html, language, extra_css=EXTRA_CSS,
     )
-    return HTML(string=html_doc).write_pdf()
+    return HTML(string=html_doc, url_fetcher=data_uri_only_fetcher()).write_pdf()

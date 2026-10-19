@@ -9,6 +9,7 @@ from typing import List, Optional
 
 from weasyprint import HTML
 
+from app.pdf_utils import data_uri_only_fetcher
 from app.accounting_statement import CashAccountingStatement, CategoryAmount
 from app.i18n import translate
 from app.l10n import format_money
@@ -86,4 +87,4 @@ def render_accounting_statement_pdf(
         body_html, footer_context.club_name, logo_path, org_footer_html(footer_context, language), language,
         extra_css=EXTRA_CSS,
     )
-    return HTML(string=html_doc).write_pdf()
+    return HTML(string=html_doc, url_fetcher=data_uri_only_fetcher()).write_pdf()
