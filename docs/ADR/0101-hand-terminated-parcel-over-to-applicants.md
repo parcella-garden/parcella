@@ -26,8 +26,8 @@ another parcel.
   Half a handover (old tenants gone, no new ones) would be worse than
   none.
 
-For a handover date **D** (defaults to today; may be in the past, never in
-the future -- see below):
+For a handover date **D** (defaults to today; past and future both work --
+see below and ADR 0102):
 
 | Who | What changes |
 |---|---|
@@ -45,20 +45,15 @@ fields have different boundary semantics that already exist.
 (`member_until` is the last day *as* a member). D − 1 makes both turn
 over on the same day.
 
-**No future handover dates.** `MemberParcel.is_current` looks only at
-`assigned_until`, never at `assigned_from`. With a future D, the new
-tenants would count as current right away, including as invoice
-recipients, while the old tenants are still current through their
-notice period. A parcel invoice would then go to both households. ADR
-0058 says a tenant in their notice period must keep being billed, so
-the old tenants' flag can't simply be cleared early either. Recording
-the handover on or after the real day avoids the overlap entirely:
-from D on, the old tenancies are former and their invoice flag is
-cleared (allowed, since they're no longer current). The new tenants
-are then the only current tenants and invoice recipients. Teaching
-`is_current` about `assigned_from` would lift this restriction, but
-that changes every consumer of "current tenant" and is a separate
-decision.
+**Future handover dates (amended by ADR 0102):** the first version
+refused them, because `MemberParcel.is_current` ignored `assigned_from`.
+With a future D, old and new tenants would both have counted as current
+and both been billed. ADR 0102 made `is_current` respect the start date.
+Now the old tenants stay current tenants, members and invoice recipients
+until D (their flag is kept, ADR 0058), the new ones are *upcoming*
+until then, and from D on only the new ones count. A pending membership
+(`member_since = D`) works the same way through `Member.is_active`. The
+parcel's cloud folder switches on D too (ADR 0102).
 
 **An applicant who is already an active member** (matched by email
 address, ignoring case) is reused instead of duplicated, e.g. a member
@@ -82,5 +77,5 @@ vacant `ACTIVE` parcel is assigned the usual way on the parcel page.
   it, the member gets no invoices or announcements by email.
 - **No address or IBAN** -- the application form doesn't ask for them.
   The board adds them on the member page.
-- **The parcel's metering points, insurance and cloud folder** belong to
-  the parcel and are left as they are.
+- **The parcel's metering points and insurance** belong to the parcel
+  and are left as they are. The cloud folder is not: see ADR 0102.

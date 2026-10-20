@@ -114,13 +114,20 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for z in parcel.member_assignments if z.is_current %}
+                            {# Current and upcoming tenants (ADR 0102) -- an upcoming one
+                               starts on a future handover date. #}
+                            {% for z in parcel.member_assignments if not z.is_former %}
                             <tr>
                                 <td>
                                     <a href="/members/{{ z.member.id }}" class="text-decoration-none fw-semibold"
                                        style="color: var(--gv-gruen);">
                                         {{ z.member.full_name }}
                                     </a>
+                                    {% if z.is_upcoming %}
+                                    <span class="badge bg-info text-dark ms-1">{{ t('parcels.detail.upcoming_badge', date=z.assigned_from.strftime('%d.%m.%Y')) }}</span>
+                                    {% elif z.assigned_until %}
+                                    <span class="badge badge-gekuendigt ms-1">{{ t('parcels.detail.leaving_badge', date=z.assigned_until.strftime('%d.%m.%Y')) }}</span>
+                                    {% endif %}
                                 </td>
                                 <td>
                                     {% if z.is_invoice_address %}
@@ -271,7 +278,7 @@
     </script>
 
     <!-- Pächter-Historie -->
-    {% set fruehere = parcel.member_assignments | rejectattr('is_current') | list %}
+    {% set fruehere = parcel.member_assignments | selectattr('is_former') | list %}
     {% if fruehere %}
     <div class="col-12">
         <div class="card">
@@ -345,6 +352,18 @@
                 {% endif %}
                 {% if cloud_error %}
                 <div class="alert alert-danger">{{ cloud_error }}</div>
+                {% endif %}
+                {# A handover on a future date switches folders on that date (ADR 0102). #}
+                {% if (cloud_folder and cloud_folder.active_until) or cloud_scheduled_folder %}
+                <div class="alert alert-info" style="font-size: 0.9rem;">
+                    <i class="bi bi-calendar-event me-1"></i>
+                    {% if cloud_folder and cloud_folder.active_until %}
+                    {{ t('parcels.detail.cloud_folder_retires', date=cloud_folder.active_until.strftime('%d.%m.%Y')) }}
+                    {% endif %}
+                    {% if cloud_scheduled_folder %}
+                    {{ t('parcels.detail.cloud_folder_scheduled', path=cloud_scheduled_folder.relative_path, date=cloud_scheduled_folder.active_from.strftime('%d.%m.%Y')) }}
+                    {% endif %}
+                </div>
                 {% endif %}
 
                 <form method="post" action="/parcels/{{ parcel.id }}/cloud-folder" class="mb-3">

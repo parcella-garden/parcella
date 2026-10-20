@@ -41,6 +41,7 @@ from app.templating import templates
 from app.freescout_client import get_freescout_client, load_freescout_base_url
 from app.freescout_sync import sync_freescout_conversations
 from app.deck_sync import sync_deck_tasks
+from app.parcel_cloud_folders import apply_scheduled_folder_switches
 from app.routers import auth, members, parcels, admin as admin_router, admin_groups as admin_groups_router, work_hours, insurance, freescout as freescout_router, purchase_requests, calendar as calendar_router, announcements as announcements_router, inventory as inventory_router, tasks as tasks_router, finances as finances_router
 from app.routers.metering import create_metering_router
 from app.models import MeteringMedium
@@ -146,6 +147,26 @@ async def _deck_sync_polling_loop():
         await asyncio.sleep(15 * 60)  # 15 minutes
 
 
+async def _cloud_folder_schedule_loop():
+    """
+    Hourly: carries out parcel cloud-folder switches whose date has come
+    -- a parcel handed over on a future date retires the old tenants'
+    folder and activates the new tenants' one on the handover date
+    itself (app/parcel_cloud_folders.py, ADR 0102). A no-op when
+    nothing is scheduled, so no module-flag check needed.
+    """
+    while True:
+        try:
+            async with AsyncSessionLocal() as db:
+                switched = await apply_scheduled_folder_switches(db)
+                if switched:
+                    logger.info(f"Cloud folders: {switched} scheduled switch(es) applied.")
+        except Exception as e:
+            logger.error(f"Cloud folder schedule failed: {e}")
+
+        await asyncio.sleep(60 * 60)  # 1 hour
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup: create the first admin if the users table is empty."""
@@ -173,11 +194,13 @@ async def lifespan(app: FastAPI):
     update_check_task = asyncio.create_task(_update_check_polling_loop())
     cloud_backup_task = asyncio.create_task(_cloud_backup_polling_loop())
     deck_sync_task = asyncio.create_task(_deck_sync_polling_loop())
+    folder_schedule_task = asyncio.create_task(_cloud_folder_schedule_loop())
     yield
     polling_task.cancel()
     update_check_task.cancel()
     cloud_backup_task.cancel()
     deck_sync_task.cancel()
+    folder_schedule_task.cancel()
 
 
 app = FastAPI(

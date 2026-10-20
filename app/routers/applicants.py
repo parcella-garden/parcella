@@ -31,6 +31,8 @@ from app.templating import templates
 from app.services.errors import ServiceError
 from app.services.applicants import create_applicant, delete_applicant, find_red_flags, update_applicant
 from app.services.parcel_handover import hand_over_parcel, plan_handover, terminated_parcels
+from app.parcel_cloud_folders import browse_folder_picker
+from app.i18n import t_for
 
 router = APIRouter(
     prefix="/applicants",
@@ -221,10 +223,20 @@ async def _handover_permission(request: Request, db: AsyncSession):
     return user
 
 
+def _can_manage_folders(request: Request) -> bool:
+    """Parcel cloud folders are full-access only (docs/module-cloud-storage.md);
+    the old folder is retired on a handover regardless."""
+    return bool(getattr(request.state, "module_flags", {}).get("cloud_storage")) and getattr(
+        request.state, "is_full_access", False,
+    )
+
+
 async def _handover_context(
     request: Request, db: AsyncSession, user, applicant: Applicant, *,
-    parcel_id: str, handover_date: date, co_applicant_ids: list[str], error=None,
+    parcel_id: str, handover_date: date, co_applicant_ids: list[str],
+    new_folder_path: str = "", pick_path: Optional[str] = None, error=None,
 ) -> dict:
+    can_manage_folders = _can_manage_folders(request)
     result = await db.execute(
         select(Applicant)
         .where(Applicant.id != applicant.id, Applicant.status.in_(APPLICANT_OPEN_STATUSES))
@@ -235,15 +247,23 @@ async def _handover_context(
         try:
             plan = await plan_handover(
                 db, parcel_id=parcel_id, applicant_ids=[applicant.id, *co_applicant_ids],
-                handover_date=handover_date,
+                handover_date=handover_date, new_folder_path=new_folder_path if can_manage_folders else None,
             )
         except ServiceError as e:
             error = e
+    picker = None
+    if can_manage_folders and pick_path is not None:
+        picker = await browse_folder_picker(
+            db, pick_path,
+            root_label=t_for(request, "parcels.detail.cloud_picker_root_label"),
+            not_configured_message=t_for(request, "parcels.cloud_storage.not_configured"),
+        )
     return {
         "request": request, "user": user, "applicant": applicant,
         "parcels": await terminated_parcels(db), "co_applicant_candidates": result.scalars().all(),
         "parcel_id": parcel_id, "handover_date": handover_date, "co_applicant_ids": co_applicant_ids,
-        "plan": plan, "error": error, "today": date.today(),
+        "can_manage_folders": can_manage_folders, "new_folder_path": new_folder_path, "picker": picker,
+        "plan": plan, "error": error,
     }
 
 
@@ -251,6 +271,7 @@ async def _handover_context(
 async def applicant_assign_parcel_page(
     applicant_id: str, request: Request,
     parcel_id: str = "", handover_date: str = "", co_applicant_ids: List[str] = Query([]),
+    new_folder_path: str = "", cloud_pick: str = "", pick_path: str = "",
     db: AsyncSession = Depends(get_db),
 ):
     user = await _handover_permission(request, db)
@@ -260,6 +281,7 @@ async def applicant_assign_parcel_page(
         await _handover_context(
             request, db, user, applicant, parcel_id=parcel_id,
             handover_date=_parse_handover_date(handover_date), co_applicant_ids=co_applicant_ids,
+            new_folder_path=new_folder_path, pick_path=pick_path if cloud_pick == "1" else None,
         ),
     )
 
@@ -272,10 +294,11 @@ async def applicant_assign_parcel(applicant_id: str, request: Request, db: Async
     parcel_id = form.get("parcel_id") or ""
     handover_date = _parse_handover_date(form.get("handover_date"))
     co_applicant_ids = form.getlist("co_applicant_ids")
+    new_folder_path = (form.get("new_folder_path") or "") if _can_manage_folders(request) else ""
     try:
         plan = await plan_handover(
             db, parcel_id=parcel_id, applicant_ids=[applicant.id, *co_applicant_ids],
-            handover_date=handover_date,
+            handover_date=handover_date, new_folder_path=new_folder_path,
         )
     except ServiceError as e:
         # plan_handover() validates before anything is changed -- no rollback needed.
@@ -283,7 +306,7 @@ async def applicant_assign_parcel(applicant_id: str, request: Request, db: Async
             "applicants/assign_parcel.html",
             await _handover_context(
                 request, db, user, applicant, parcel_id=parcel_id, handover_date=handover_date,
-                co_applicant_ids=co_applicant_ids, error=e,
+                co_applicant_ids=co_applicant_ids, new_folder_path=new_folder_path, error=e,
             ),
             status_code=e.http_status,
         )

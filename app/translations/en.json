@@ -873,7 +873,11 @@
       "cloud_upload_button": "Upload",
       "cloud_not_configured": "Nextcloud is not configured yet. Set it up under Admin -> Integrations.",
       "cloud_no_active_folder": "No active folder is configured for this parcel.",
-      "page_title": "Parcel {plot_number}"
+      "page_title": "Parcel {plot_number}",
+      "upcoming_badge": "from {date}",
+      "leaving_badge": "until {date}",
+      "cloud_folder_retires": "The current folder is retired on {date}.",
+      "cloud_folder_scheduled": "From {date} on, {path} becomes the documents folder."
     },
     "errors": {
       "parcel_not_found": "Parcel not found",
@@ -2794,8 +2798,16 @@
         "applicant_not_found": "Applicant not found.",
         "applicant_closed": "The application of {name} is already closed.",
         "name_missing": "{name} has no first and last name yet – add them to the application first.",
-        "future_date": "The handover date can't be in the future – record the handover on the day the parcel actually changes hands."
-      }
+        "invalid_folder_path": "The folder path isn't valid."
+      },
+      "new_folder": "Documents folder for the new tenants",
+      "browse_folder": "Browse Nextcloud",
+      "new_folder_hint": "Optional. The old tenants' folder is retired on the handover date either way; this folder takes over on that day. Create and share it in Nextcloud yourself.",
+      "folder": "Documents folder",
+      "folder_old": "{path} – retired on the handover date",
+      "folder_new": "{path} – active from the handover date",
+      "folder_none": "No new folder – set one on the parcel page later.",
+      "folder_old_only": "The old tenants' documents folder is retired on the handover date. Someone with full access sets the new one on the parcel page."
     }
   },
   "external_contacts": {

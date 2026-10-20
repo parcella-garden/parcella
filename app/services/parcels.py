@@ -140,8 +140,9 @@ async def assign_member(
     assignment.assigned_until = assigned_until
     # A former tenant can never be the invoice address -- but a future-
     # dated assigned_until (notice given, not yet moved out -- ADR 0052)
-    # doesn't make them former yet (issue #172).
-    assignment.is_invoice_address = is_invoice_address if assignment.is_current else False
+    # doesn't make them former yet (issue #172), and an upcoming tenant
+    # (future assigned_from, ADR 0102) is the next invoice recipient.
+    assignment.is_invoice_address = is_invoice_address and not assignment.is_former
 
     await db.flush()
     return assignment, created
@@ -155,7 +156,7 @@ async def update_assignment(
     afterward -- see end_assignment()'s docstring for why."""
     assignment.assigned_from = assigned_from
     assignment.assigned_until = assigned_until
-    assignment.is_invoice_address = is_invoice_address if assignment.is_current else False
+    assignment.is_invoice_address = is_invoice_address and not assignment.is_former
     await db.flush()
     return assignment
 

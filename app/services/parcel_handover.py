@@ -13,7 +13,9 @@ Dates, for a handover date D:
   member_until = D - 1 day, their last day as a member (member_until is
   inclusive, Member.is_active uses ">=");
 - new tenancies and memberships start on D.
-D can't be in the future -- see plan_handover().
+D may lie in the future (ADR 0102): the old tenants stay current tenants,
+members and invoice recipients until D, the new ones are upcoming until
+then and take over on D -- MemberParcel.is_current checks both dates.
 """
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
@@ -27,7 +29,10 @@ from app.change_tracker import ChangeTracker
 from app.database import active_member_filter
 from app.models import (
     APPLICANT_OPEN_STATUSES, Applicant, ApplicantStatus, Member, MemberEmail, MemberParcel,
-    Parcel, ParcelStatus, User,
+    Parcel, ParcelCloudFolder, ParcelStatus, User,
+)
+from app.parcel_cloud_folders import (
+    InvalidCloudPathError, get_active_folder, sanitize_relative_path, schedule_handover_folders,
 )
 from app.services.errors import ServiceError
 from app.services.members import add_email, add_phone, create_member
@@ -61,6 +66,10 @@ class HandoverPlan:
     handover_date: date
     outgoing: list[OutgoingTenant]
     incoming: list[IncomingTenant]
+    # The old tenants' documents folder (retired on the handover date)
+    # and the one picked for the new tenants, if any (ADR 0102).
+    current_folder: Optional[ParcelCloudFolder] = None
+    new_folder_path: Optional[str] = None
 
     @property
     def last_member_day(self) -> date:
@@ -97,16 +106,21 @@ async def _member_by_email(db: AsyncSession, email: str) -> Optional[Member]:
 
 async def plan_handover(
     db: AsyncSession, *, parcel_id: str, applicant_ids: Sequence[str], handover_date: date,
+    new_folder_path: Optional[str] = None,
 ) -> HandoverPlan:
     """Validates and works out what hand_over_parcel() will do, without
     changing anything -- the HTML form shows this as its preview.
     `applicant_ids[0]` is the applicant the handover started from; the
-    rest become co-tenants."""
-    if handover_date > date.today():
-        # MemberParcel.is_current ignores assigned_from: with a future D
-        # the new tenants would count as current (and billable) right
-        # away, alongside the old ones still in their notice period.
-        raise ServiceError("applicants.handover.errors.future_date", http_status=400)
+    rest become co-tenants. `new_folder_path` is the new tenants' cloud
+    folder -- the caller only passes it for a user allowed to manage
+    cloud folders."""
+    if new_folder_path and new_folder_path.strip():
+        try:
+            new_folder_path = sanitize_relative_path(new_folder_path)
+        except InvalidCloudPathError:
+            raise ServiceError("applicants.handover.errors.invalid_folder_path", http_status=400)
+    else:
+        new_folder_path = None
     result = await db.execute(
         select(Parcel)
         .options(selectinload(Parcel.member_assignments).selectinload(MemberParcel.member))
@@ -155,7 +169,10 @@ async def plan_handover(
         outgoing.append(OutgoingTenant(assignment, list(result.scalars().all())))
     outgoing.sort(key=lambda t: (t.assignment.member.last_name, t.assignment.member.first_name))
 
-    return HandoverPlan(parcel=parcel, handover_date=handover_date, outgoing=outgoing, incoming=incoming)
+    return HandoverPlan(
+        parcel=parcel, handover_date=handover_date, outgoing=outgoing, incoming=incoming,
+        current_folder=await get_active_folder(db, parcel.id), new_folder_path=new_folder_path,
+    )
 
 
 async def hand_over_parcel(db: AsyncSession, plan: HandoverPlan, *, acting_user: User) -> list[Member]:
@@ -165,7 +182,9 @@ async def hand_over_parcel(db: AsyncSession, plan: HandoverPlan, *, acting_user:
 
     for tenant in plan.outgoing:
         tenant.assignment.assigned_until = day
-        tenant.assignment.is_invoice_address = False
+        # Still billed until they actually leave (ADR 0058) -- read paths
+        # check is_current, so the flag stops mattering on D by itself.
+        tenant.assignment.is_invoice_address = tenant.assignment.is_invoice_address and not tenant.assignment.is_former
         member = tenant.assignment.member
         if tenant.membership_ends and (member.member_until is None or member.member_until > plan.last_member_day):
             member.member_until = plan.last_member_day
@@ -201,6 +220,12 @@ async def hand_over_parcel(db: AsyncSession, plan: HandoverPlan, *, acting_user:
             applicant.status_changed_at = datetime.now(timezone.utc)
         await tracker.commit(db, acting_user.id)
 
+    # Never vacant in between, so deactivate_if_vacant() can't catch this
+    # turnover -- the new tenants must not inherit the old folder.
+    await schedule_handover_folders(
+        db, plan.parcel.id, handover_date=day,
+        new_relative_path=plan.new_folder_path, set_by_user_id=acting_user.id,
+    )
     await update_parcel(db, plan.parcel, acting_user=acting_user, status=ParcelStatus.ACTIVE)
     await db.commit()
     return new_tenants

@@ -516,6 +516,8 @@ async def _setup_folder_with_recording_provider(client, admin_user, monkeypatch,
         return provider
 
     monkeypatch.setattr("app.routers.parcels.get_nextcloud_provider", fake_get_nextcloud_provider)
+    # The folder picker gets its provider via app.parcel_cloud_folders (shared with the handover page).
+    monkeypatch.setattr("app.parcel_cloud_folders.get_nextcloud_provider", fake_get_nextcloud_provider)
     return parcel, provider
 
 
@@ -692,6 +694,7 @@ async def test_picker_mode_cloud_storage_error_shows_alert(client, admin_user, m
         return _FailingProvider()
 
     monkeypatch.setattr("app.routers.parcels.get_nextcloud_provider", fake_get_nextcloud_provider)
+    monkeypatch.setattr("app.parcel_cloud_folders.get_nextcloud_provider", fake_get_nextcloud_provider)
 
     await web_login(client, "admin@example.com")
     response = await client.get(f"/parcels/{parcel['id']}", params={"cloud_pick": "1"})

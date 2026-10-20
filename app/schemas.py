@@ -941,6 +941,9 @@ class ApplicantParcelHandover(BaseModel):
     # Defaults to today. Old tenancies end and new ones start on this day.
     handover_date: Optional[date] = None
     co_applicant_ids: List[str] = []
+    # The new tenants' cloud folder (ADR 0102) -- needs full access and the
+    # cloud_storage module. The old folder is retired either way.
+    new_folder_path: Optional[str] = None
 
 
 class ApplicantParcelHandoverOut(BaseModel):

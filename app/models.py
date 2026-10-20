@@ -670,8 +670,34 @@ class MemberParcel(Base):
         tests/test_members_signin_sheet.py::test_signin_sheet_excludes_former_residents).
         A future assigned_until (termination recorded, not yet in
         effect -- issue #130) still counts as current.
+
+        A future assigned_from doesn't yet (ADR 0102): a parcel handed
+        over ahead of time has its old tenants current until the
+        handover date and the new ones only from then on -- otherwise
+        both households would be billed in between. Such a tenancy is
+        is_upcoming instead. SQL twin: app.database.current_tenant_filter().
         """
-        return self.assigned_until is None or self.assigned_until > date.today()
+        today = date.today()
+        return (
+            (self.assigned_from is None or self.assigned_from <= today)
+            and (self.assigned_until is None or self.assigned_until > today)
+        )
+
+    @property
+    def is_upcoming(self) -> bool:
+        """Starts in the future and hasn't been ended before it began."""
+        return (
+            self.assigned_from is not None and self.assigned_from > date.today()
+            and not self.is_former
+        )
+
+    @property
+    def is_former(self) -> bool:
+        """Has actually ended (same strict boundary as is_current). The
+        test for "may this tenancy hold is_invoice_address": an upcoming
+        tenant must be able to (they're the next invoice recipient),
+        a former one never (ADR 0058)."""
+        return self.assigned_until is not None and self.assigned_until <= date.today()
 
     def overlaps_year(self, year: int) -> bool:
         """
@@ -745,6 +771,13 @@ class ParcelCloudFolder(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     deactivated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Scheduled switch for a parcel handed over on a future date (ADR
+    # 0102): the active folder retires on active_until; a not-yet-active
+    # row (is_active False, deactivated_at NULL) takes over on
+    # active_from. app.parcel_cloud_folders.apply_scheduled_folder_switches
+    # carries both out.
+    active_from: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    active_until: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
 
     parcel: Mapped["Parcel"] = relationship("Parcel", back_populates="cloud_folders")
     set_by_user: Mapped[Optional["User"]] = relationship("User")

@@ -105,3 +105,4 @@ in chronological order.
 99. [Security audit 2026-10: fixes and the decisions behind them](./0099-security-audit-2026-10.md)
 100. [Nav badges for the dashboard's "needs attention" counts](./0100-nav-badges-for-needs-attention-counts.md)
 101. [Handing a terminated parcel over to applicants: one step, from the application](./0101-hand-terminated-parcel-over-to-applicants.md)
+102. [Upcoming tenancies, and the cloud folder switching on the handover date](./0102-upcoming-tenancies-and-scheduled-folder-switch.md)

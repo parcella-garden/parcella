@@ -88,6 +88,17 @@ inherits the departing tenants' folder path. Re-configuring the folder
 for the new tenancy is a **separate, deliberate action** a board member
 takes afterwards; nothing points a new tenant at a folder automatically.
 
+**Handover to applicants ([ADR 0102](./ADR/0102-upcoming-tenancies-and-scheduled-folder-switch.md)).**
+A handover never leaves the parcel vacant, so the check above can't see
+that turnover. The handover therefore retires the old folder itself, on
+the handover date: right away for a date today or earlier, otherwise via
+`active_until` and the hourly `apply_scheduled_folder_switches()` loop.
+The board can pick the new tenants' folder in the same form (the same
+picker, through `browse_folder_picker()`). It is stored as a scheduled
+row (`active_from`) and takes over on that date. The vacancy check
+itself now counts upcoming tenants as residents too
+(`current_or_upcoming_tenant_filter()`).
+
 ## Web UI and permissions
 
 Viewing and mutating are both board/admin-only (`require_admin`, which

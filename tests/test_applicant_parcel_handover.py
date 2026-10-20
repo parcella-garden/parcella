@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from tests.conftest import login, auth_header
-from app.database import AsyncSessionLocal
+from app.database import AsyncSessionLocal, current_tenant_filter
 from app.models import (
     Applicant, ApplicantStatus, ChangeHistory, Member, MemberEmail, MemberParcel, Parcel, ParcelStatus,
 )
@@ -132,21 +132,13 @@ async def test_handover_rejects_active_parcel(client, admin_user):
         assert (await db.get(Applicant, ids["xaver"])).status == ApplicantStatus.NEW
 
 
-async def test_handover_via_api(client, admin_user):
+async def test_handover_via_api_with_future_date(client, admin_user):
+    """ADR 0102: a handover recorded ahead of time. Until the date the
+    old tenants stay current (and billed), the new ones are upcoming;
+    nobody is current twice over."""
     ids = await _setup()
     token = await login(client, "admin@example.com")
-
-    # Not in the future: is_current ignores assigned_from, so old and new
-    # tenants would both count as current until then (ADR 0101).
-    future = await client.post(
-        f"/api/v1/applicants/{ids['xaver']}/assign-parcel",
-        json={"parcel_id": ids["parcel"], "handover_date": (date.today() + timedelta(days=1)).isoformat()},
-        headers=auth_header(token),
-    )
-    assert future.status_code == 422
-
-    # Recorded after the fact: everything is dated to the real handover day.
-    day = date.today() - timedelta(days=10)
+    day = date.today() + timedelta(days=30)
     response = await client.post(
         f"/api/v1/applicants/{ids['xaver']}/assign-parcel",
         json={"parcel_id": ids["parcel"], "handover_date": day.isoformat()},
@@ -159,13 +151,30 @@ async def test_handover_via_api(client, admin_user):
     assert body["membership_ended_member_ids"] == [ids["anna"]]
 
     async with AsyncSessionLocal() as db:
-        anna_tenancy = (await db.execute(select(MemberParcel).where(
-            MemberParcel.member_id == ids["anna"], MemberParcel.parcel_id == ids["parcel"],
-        ))).scalar_one()
+        tenancies = {
+            a.member_id: a for a in (await db.execute(
+                select(MemberParcel).where(MemberParcel.parcel_id == ids["parcel"])
+            )).scalars().all()
+        }
+        anna_tenancy = tenancies[ids["anna"]]
         assert anna_tenancy.assigned_until == day
-        assert not anna_tenancy.is_current
+        assert anna_tenancy.is_current and not anna_tenancy.is_former
+        assert anna_tenancy.is_invoice_address is True  # still billed until she leaves (ADR 0058)
         anna = await db.get(Member, ids["anna"])
         assert anna.member_until == day - timedelta(days=1)
-        assert not anna.is_active
-        new_member = await db.get(Member, body["member_ids"][0])
-        assert new_member.member_since == day
+        assert anna.is_active
+
+        new_tenancy = tenancies[body["member_ids"][0]]
+        assert new_tenancy.is_upcoming and not new_tenancy.is_current
+        assert new_tenancy.is_invoice_address is True
+        assert not (await db.get(Member, body["member_ids"][0])).is_active  # member from `day` on
+
+        current = (await db.execute(
+            select(MemberParcel.member_id).where(MemberParcel.parcel_id == ids["parcel"], current_tenant_filter())
+        )).scalars().all()
+        assert sorted(current) == sorted([ids["anna"], ids["bernd"]])
+
+    await web_login(client, "admin@example.com")
+    page = await client.get(f"/parcels/{ids['parcel']}")
+    assert f"from {day.strftime('%d.%m.%Y')}" in page.text
+    assert f"until {day.strftime('%d.%m.%Y')}" in page.text

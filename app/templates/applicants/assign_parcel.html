@@ -36,7 +36,7 @@
                     </div>
                     <div class="col-md-5">
                         <label class="form-label fw-semibold" for="handover-date">{{ t('applicants.handover.date') }}</label>
-                        <input id="handover-date" type="date" name="handover_date" class="form-control" value="{{ handover_date.isoformat() }}" max="{{ today.isoformat() }}" required>
+                        <input id="handover-date" type="date" name="handover_date" class="form-control" value="{{ handover_date.isoformat() }}" required>
                     </div>
                 </div>
                 {% if co_applicant_candidates %}
@@ -56,6 +56,48 @@
                     </div>
                 </div>
                 {% endif %}
+                {% if can_manage_folders %}
+                <div class="mt-3">
+                    <label class="form-label fw-semibold" for="handover-folder">{{ t('applicants.handover.new_folder') }}</label>
+                    <div class="input-group">
+                        <input id="handover-folder" type="text" name="new_folder_path" class="form-control"
+                               value="{{ new_folder_path }}" placeholder="{{ t('parcels.detail.cloud_folder_path_placeholder') }}">
+                        <button type="submit" name="cloud_pick" value="1" class="btn btn-outline-secondary" formnovalidate>
+                            <i class="bi bi-folder2-open me-1"></i>{{ t('applicants.handover.browse_folder') }}
+                        </button>
+                    </div>
+                    <div class="form-text">{{ t('applicants.handover.new_folder_hint') }}</div>
+                    {% if picker %}
+                    <div class="border rounded p-2 mt-2">
+                        {% if picker.error %}<div class="alert alert-danger mb-2">{{ picker.error }}</div>{% endif %}
+                        <nav style="font-size: 0.85rem;" class="mb-2">
+                            {% for crumb in picker.breadcrumbs %}
+                            {% if not loop.first %} / {% endif %}
+                            <a href="{{ request.url.include_query_params(pick_path=crumb.pick_path) }}">{{ crumb.name }}</a>
+                            {% endfor %}
+                        </nav>
+                        {% if picker.entries is not none %}
+                        <ul class="list-unstyled mb-2" style="max-height: 12rem; overflow-y: auto;">
+                            {% for entry in picker.entries %}
+                            {% set entry_path = (picker.path ~ '/' ~ entry.name) if picker.path else entry.name %}
+                            <li><i class="bi bi-folder me-1"></i><a href="{{ request.url.include_query_params(pick_path=entry_path) }}">{{ entry.name }}</a></li>
+                            {% else %}
+                            <li class="text-muted">{{ t('parcels.detail.cloud_picker_empty') }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        {% if picker.path %}
+                        <a class="btn btn-sm btn-primary" href="{{ request.url.include_query_params(new_folder_path=picker.path).remove_query_params(['cloud_pick', 'pick_path']) }}">
+                            {{ t('parcels.detail.cloud_picker_use_folder_button') }}
+                        </a>
+                        {% endif %}
+                        <a class="btn btn-sm btn-outline-secondary" href="{{ request.url.remove_query_params(['cloud_pick', 'pick_path']) }}">
+                            {{ t('parcels.detail.cloud_picker_cancel_button') }}
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
                 {% endif %}
             </div>
             {% if parcels %}
@@ -73,6 +115,7 @@
         {{ csrf_field() }}
         <input type="hidden" name="parcel_id" value="{{ plan.parcel.id }}">
         <input type="hidden" name="handover_date" value="{{ plan.handover_date.isoformat() }}">
+        <input type="hidden" name="new_folder_path" value="{{ plan.new_folder_path or '' }}">
         {% for incoming in plan.incoming[1:] %}
         <input type="hidden" name="co_applicant_ids" value="{{ incoming.applicant.id }}">
         {% endfor %}
@@ -109,6 +152,23 @@
                     </li>
                     {% endfor %}
                 </ul>
+                {% if can_manage_folders %}
+                <h6 class="fw-semibold">{{ t('applicants.handover.folder') }}</h6>
+                <ul class="mb-3">
+                    {% if plan.current_folder %}
+                    <li>{{ t('applicants.handover.folder_old', path=plan.current_folder.relative_path) }}</li>
+                    {% endif %}
+                    <li>
+                        {% if plan.new_folder_path %}
+                        {{ t('applicants.handover.folder_new', path=plan.new_folder_path) }}
+                        {% else %}
+                        <span class="text-muted">{{ t('applicants.handover.folder_none') }}</span>
+                        {% endif %}
+                    </li>
+                </ul>
+                {% elif plan.current_folder %}
+                <p style="font-size: 0.85rem;">{{ t('applicants.handover.folder_old_only') }}</p>
+                {% endif %}
                 <p class="text-muted mb-0" style="font-size: 0.85rem;">{{ t('applicants.handover.summary_rest') }}</p>
             </div>
             <div class="card-footer">

@@ -22,11 +22,11 @@ from app.database import get_db
 from app.models import Applicant, ApplicantSource, ApplicantStatus, User
 from app.api_auth import require_api_permission
 from app.i18n import t_for
-from app.module_flags import require_module
+from app.module_flags import load_module_flags, require_module
 from app.services.errors import ServiceError
 from app.services.applicants import create_applicant, delete_applicant, update_applicant
 from app.services.parcel_handover import hand_over_parcel, plan_handover
-from app.permissions import get_user_permissions, has_permission
+from app.permissions import get_user_permissions, has_permission, is_full_access_user
 from app.schemas import (
     ApplicantCreate, ApplicantOut, ApplicantParcelHandover, ApplicantParcelHandoverOut, ApplicantUpdate,
 )
@@ -122,11 +122,16 @@ async def applicant_assign_parcel(
     # Changes members and parcels too -- needs write there as well.
     if not has_permission(await get_user_permissions(db, user), "members_parcels", "write"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=t_for(request, "errors.no_permission"))
+    if payload.new_folder_path and not (
+        (await load_module_flags(db)).get("cloud_storage") and await is_full_access_user(db, user)
+    ):
+        # Parcel cloud folders are full-access only (docs/module-cloud-storage.md).
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=t_for(request, "errors.no_permission"))
     applicant = await _get_or_404(db, applicant_id)
     try:
         plan = await plan_handover(
             db, parcel_id=payload.parcel_id, applicant_ids=[applicant.id, *payload.co_applicant_ids],
-            handover_date=payload.handover_date or date.today(),
+            handover_date=payload.handover_date or date.today(), new_folder_path=payload.new_folder_path,
         )
     except ServiceError as e:
         if e.http_status == status.HTTP_404_NOT_FOUND:

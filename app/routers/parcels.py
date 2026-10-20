@@ -33,7 +33,7 @@ from app.module_flags import require_module
 from app.cloud_storage import get_nextcloud_provider, CloudStorageError
 from app.parcel_cloud_folders import (
     get_active_folder, set_active_folder, deactivate_if_vacant, InvalidCloudPathError,
-    sanitize_browse_subpath,
+    sanitize_browse_subpath, browse_folder_picker, get_scheduled_folder,
 )
 from app.services.errors import ServiceError
 from app.services.parcels import (
@@ -243,33 +243,21 @@ async def parcel_detail(
     # pick the parcel's *initial* relative_path, kept fully separate from
     # cloud_path/cloud_files above (which browse *within* an already-saved
     # folder) -- see docs/module-cloud-storage.md.
-    cloud_picker_path = sanitize_browse_subpath(pick_path)
-    cloud_picker_entries = None
-    cloud_picker_breadcrumbs = []
-    cloud_picker_error = None
+    picker = {"path": sanitize_browse_subpath(pick_path), "breadcrumbs": [], "entries": None, "error": None}
     picking = cloud_pick == "1"
+    cloud_scheduled_folder = None
     if cloud_storage_enabled:
         cloud_folder = await get_active_folder(db, parcel_id)
-        provider = await get_nextcloud_provider(db)
+        cloud_scheduled_folder = await get_scheduled_folder(db, parcel_id)
+        if picking:
+            picker = await browse_folder_picker(
+                db, pick_path,
+                root_label=t_for(request, "parcels.detail.cloud_picker_root_label"),
+                not_configured_message=t_for(request, "parcels.cloud_storage.not_configured"),
+            )
+        provider = None if picking else await get_nextcloud_provider(db)
         try:
-            if picking:
-                cloud_picker_breadcrumbs = [
-                    {"name": t_for(request, "parcels.detail.cloud_picker_root_label"), "pick_path": ""}
-                ]
-                accumulated = []
-                for segment in cloud_picker_path.split("/") if cloud_picker_path else []:
-                    accumulated.append(segment)
-                    cloud_picker_breadcrumbs.append({"name": segment, "pick_path": "/".join(accumulated)})
-
-                if provider is None:
-                    cloud_picker_error = t_for(request, "parcels.cloud_storage.not_configured")
-                else:
-                    try:
-                        entries = await provider.list_files(cloud_picker_path)
-                        cloud_picker_entries = [e for e in entries if e.is_directory]
-                    except CloudStorageError as e:
-                        cloud_picker_error = str(e)
-            elif cloud_folder:
+            if cloud_folder and not picking:
                 cloud_breadcrumbs = [{"name": cloud_folder.relative_path.rsplit("/", 1)[-1], "cloud_path": ""}]
                 accumulated = []
                 for segment in cloud_browse_path.split("/") if cloud_browse_path else []:
@@ -308,10 +296,11 @@ async def parcel_detail(
             "cloud_browse_path": cloud_browse_path,
             "cloud_breadcrumbs": cloud_breadcrumbs,
             "cloud_picking": picking,
-            "cloud_picker_path": cloud_picker_path,
-            "cloud_picker_entries": cloud_picker_entries,
-            "cloud_picker_breadcrumbs": cloud_picker_breadcrumbs,
-            "cloud_picker_error": cloud_picker_error,
+            "cloud_picker_path": picker["path"],
+            "cloud_picker_entries": picker["entries"],
+            "cloud_picker_breadcrumbs": picker["breadcrumbs"],
+            "cloud_picker_error": picker["error"],
+            "cloud_scheduled_folder": cloud_scheduled_folder,
             "prev_parcel_id": prev_parcel_id,
             "next_parcel_id": next_parcel_id,
             "nav_query_suffix": f"?{list_query_string}" if list_query_string else "",

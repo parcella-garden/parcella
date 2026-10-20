@@ -873,7 +873,11 @@
       "cloud_upload_button": "Uploaden",
       "cloud_not_configured": "Nextcloud is nog niet geconfigureerd. Stel dit in onder Admin -> Integraties.",
       "cloud_no_active_folder": "Voor dit perceel is geen actieve map geconfigureerd.",
-      "page_title": "Perceel {plot_number}"
+      "page_title": "Perceel {plot_number}",
+      "upcoming_badge": "vanaf {date}",
+      "leaving_badge": "tot {date}",
+      "cloud_folder_retires": "De huidige map wordt op {date} buiten gebruik gesteld.",
+      "cloud_folder_scheduled": "Vanaf {date} is {path} de documentenmap."
     },
     "errors": {
       "parcel_not_found": "Perceel niet gevonden",
@@ -2794,8 +2798,16 @@
         "applicant_not_found": "Kandidaat niet gevonden.",
         "applicant_closed": "De aanvraag van {name} is al afgesloten.",
         "name_missing": "Voor {name} ontbreken nog voor- en achternaam – vul die eerst in de aanvraag aan.",
-        "future_date": "De overdrachtsdatum mag niet in de toekomst liggen – registreer de overdracht op de dag waarop het perceel echt van pachter wisselt."
-      }
+        "invalid_folder_path": "Het mappad is ongeldig."
+      },
+      "new_folder": "Documentenmap voor de nieuwe pachters",
+      "browse_folder": "Nextcloud doorbladeren",
+      "new_folder_hint": "Optioneel. De map van de huidige pachters wordt op de overdrachtsdatum hoe dan ook buiten gebruik gesteld; deze map neemt die dag over. Maak en deel hem zelf in Nextcloud.",
+      "folder": "Documentenmap",
+      "folder_old": "{path} – buiten gebruik op de overdrachtsdatum",
+      "folder_new": "{path} – actief vanaf de overdrachtsdatum",
+      "folder_none": "Geen nieuwe map – stel er later een in op de perceelpagina.",
+      "folder_old_only": "De documentenmap van de huidige pachters wordt op de overdrachtsdatum buiten gebruik gesteld. Iemand met volledige toegang stelt de nieuwe in op de perceelpagina."
     }
   },
   "external_contacts": {

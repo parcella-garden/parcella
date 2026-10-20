@@ -64,8 +64,9 @@ member once they actually get a plot -- see "Assigning a parcel" below.
 The "Assign a parcel" button on an open application
 (`/applicants/{id}/assign-parcel`, needs write on `applicants` *and*
 `members_parcels`) hands a `TERMINATED` parcel over in one step. You
-pick the parcel, the handover date (today or earlier, never in the
-future) and optionally co-applicants, check
+pick the parcel, the handover date (also in the future -- the switch
+then happens on that day, ADR 0102), optionally co-applicants and the
+new tenants' cloud folder, check
 the preview, then confirm. The old tenants become former tenants and
 leave the club unless they hold another parcel. The applicants become
 members (or an existing member with the same email is reused), tenants

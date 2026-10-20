@@ -873,7 +873,11 @@
       "cloud_upload_button": "Hochladen",
       "cloud_not_configured": "Nextcloud ist noch nicht konfiguriert. Richten Sie es unter Admin -> Integrationen ein.",
       "cloud_no_active_folder": "Für diese Parzelle ist kein aktiver Ordner konfiguriert.",
-      "page_title": "Parzelle {plot_number}"
+      "page_title": "Parzelle {plot_number}",
+      "upcoming_badge": "ab {date}",
+      "leaving_badge": "bis {date}",
+      "cloud_folder_retires": "Der aktuelle Ordner wird am {date} stillgelegt.",
+      "cloud_folder_scheduled": "Ab dem {date} ist {path} der Dokumentenordner."
     },
     "errors": {
       "parcel_not_found": "Parcel nicht gefunden",
@@ -2794,8 +2798,16 @@
         "applicant_not_found": "Bewerber nicht gefunden.",
         "applicant_closed": "Die Bewerbung von {name} ist bereits abgeschlossen.",
         "name_missing": "Für {name} fehlen noch Vor- und Nachname – bitte zuerst in der Bewerbung ergänzen.",
-        "future_date": "Das Übergabedatum darf nicht in der Zukunft liegen – erfassen Sie die Übergabe an dem Tag, an dem die Parzelle tatsächlich übergeben wird."
-      }
+        "invalid_folder_path": "Der Ordnerpfad ist ungültig."
+      },
+      "new_folder": "Dokumentenordner für die neuen Pächter",
+      "browse_folder": "Nextcloud durchsuchen",
+      "new_folder_hint": "Optional. Der Ordner der bisherigen Pächter wird am Übergabedatum in jedem Fall stillgelegt; dieser Ordner übernimmt an dem Tag. Anlegen und freigeben müssen Sie ihn selbst in Nextcloud.",
+      "folder": "Dokumentenordner",
+      "folder_old": "{path} – wird am Übergabedatum stillgelegt",
+      "folder_new": "{path} – aktiv ab dem Übergabedatum",
+      "folder_none": "Kein neuer Ordner – später auf der Parzellenseite festlegen.",
+      "folder_old_only": "Der Dokumentenordner der bisherigen Pächter wird am Übergabedatum stillgelegt. Den neuen legt jemand mit Vollzugriff auf der Parzellenseite fest."
     }
   },
   "external_contacts": {

@@ -873,7 +873,11 @@
       "cloud_upload_button": "Nahrát",
       "cloud_not_configured": "Nextcloud ještě není nakonfigurován. Nastavte jej v Admin -> Integrace.",
       "cloud_no_active_folder": "Pro tuto zahrádku není nakonfigurována žádná aktivní složka.",
-      "page_title": "Zahrádka {plot_number}"
+      "page_title": "Zahrádka {plot_number}",
+      "upcoming_badge": "od {date}",
+      "leaving_badge": "do {date}",
+      "cloud_folder_retires": "Aktuální složka bude vyřazena {date}.",
+      "cloud_folder_scheduled": "Od {date} bude složkou dokumentů {path}."
     },
     "errors": {
       "parcel_not_found": "Zahrádka nenalezena",
@@ -2794,8 +2798,16 @@
         "applicant_not_found": "Uchazeč nenalezen.",
         "applicant_closed": "Přihláška uchazeče {name} je již uzavřena.",
         "name_missing": "U uchazeče {name} chybí jméno a příjmení – nejprve je doplňte v přihlášce.",
-        "future_date": "Datum předání nesmí být v budoucnosti – zaznamenejte předání v den, kdy parcela skutečně přechází na nového nájemce."
-      }
+        "invalid_folder_path": "Cesta ke složce není platná."
+      },
+      "new_folder": "Složka dokumentů pro nové nájemce",
+      "browse_folder": "Procházet Nextcloud",
+      "new_folder_hint": "Volitelné. Složka dosavadních nájemců bude v den předání v každém případě vyřazena; tato složka ji ten den nahradí. Vytvořte a sdílejte ji sami v Nextcloudu.",
+      "folder": "Složka dokumentů",
+      "folder_old": "{path} – vyřazena v den předání",
+      "folder_new": "{path} – aktivní ode dne předání",
+      "folder_none": "Žádná nová složka – nastavte ji později na stránce parcely.",
+      "folder_old_only": "Složka dokumentů dosavadních nájemců bude v den předání vyřazena. Novou nastaví někdo s plným přístupem na stránce parcely."
     }
   },
   "external_contacts": {

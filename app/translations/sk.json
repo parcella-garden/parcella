@@ -873,7 +873,11 @@
       "cloud_upload_button": "Nahrať",
       "cloud_not_configured": "Nextcloud ešte nie je nakonfigurovaný. Nastavte ho v Admin -> Integrácie.",
       "cloud_no_active_folder": "Pre túto záhradku nie je nakonfigurovaný žiadny aktívny priečinok.",
-      "page_title": "Záhradka {plot_number}"
+      "page_title": "Záhradka {plot_number}",
+      "upcoming_badge": "od {date}",
+      "leaving_badge": "do {date}",
+      "cloud_folder_retires": "Aktuálny priečinok bude vyradený {date}.",
+      "cloud_folder_scheduled": "Od {date} bude priečinkom dokumentov {path}."
     },
     "errors": {
       "parcel_not_found": "Záhradka nenájdená",
@@ -2794,8 +2798,16 @@
         "applicant_not_found": "Uchádzač sa nenašiel.",
         "applicant_closed": "Prihláška uchádzača {name} je už uzavretá.",
         "name_missing": "Uchádzačovi {name} chýba meno a priezvisko – najprv ich doplňte v prihláške.",
-        "future_date": "Dátum odovzdania nesmie byť v budúcnosti – zaznamenajte odovzdanie v deň, keď parcela skutočne prechádza na nového nájomcu."
-      }
+        "invalid_folder_path": "Cesta k priečinku nie je platná."
+      },
+      "new_folder": "Priečinok dokumentov pre nových nájomcov",
+      "browse_folder": "Prehľadávať Nextcloud",
+      "new_folder_hint": "Voliteľné. Priečinok doterajších nájomcov bude v deň odovzdania v každom prípade vyradený; tento priečinok ho v ten deň nahradí. Vytvorte a zdieľajte ho sami v Nextcloude.",
+      "folder": "Priečinok dokumentov",
+      "folder_old": "{path} – vyradený v deň odovzdania",
+      "folder_new": "{path} – aktívny odo dňa odovzdania",
+      "folder_none": "Žiadny nový priečinok – nastavte ho neskôr na stránke parcely.",
+      "folder_old_only": "Priečinok dokumentov doterajších nájomcov bude v deň odovzdania vyradený. Nový nastaví niekto s plným prístupom na stránke parcely."
     }
   },
   "external_contacts": {

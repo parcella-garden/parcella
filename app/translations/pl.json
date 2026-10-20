@@ -873,7 +873,11 @@
       "cloud_upload_button": "Prześlij",
       "cloud_not_configured": "Nextcloud nie jest jeszcze skonfigurowany. Skonfiguruj go w Admin -> Integracje.",
       "cloud_no_active_folder": "Dla tej działki nie skonfigurowano aktywnego folderu.",
-      "page_title": "Działka {plot_number}"
+      "page_title": "Działka {plot_number}",
+      "upcoming_badge": "od {date}",
+      "leaving_badge": "do {date}",
+      "cloud_folder_retires": "Bieżący folder zostanie wycofany {date}.",
+      "cloud_folder_scheduled": "Od {date} folderem dokumentów będzie {path}."
     },
     "errors": {
       "parcel_not_found": "Nie znaleziono działki",
@@ -2794,8 +2798,16 @@
         "applicant_not_found": "Nie znaleziono kandydata.",
         "applicant_closed": "Zgłoszenie osoby {name} jest już zamknięte.",
         "name_missing": "Brakuje imienia i nazwiska dla {name} – najpierw uzupełnij je w zgłoszeniu.",
-        "future_date": "Data przekazania nie może być w przyszłości – zarejestruj przekazanie w dniu, w którym działka faktycznie zmienia dzierżawcę."
-      }
+        "invalid_folder_path": "Ścieżka folderu jest nieprawidłowa."
+      },
+      "new_folder": "Folder dokumentów dla nowych dzierżawców",
+      "browse_folder": "Przeglądaj Nextcloud",
+      "new_folder_hint": "Opcjonalnie. Folder dotychczasowych dzierżawców zostanie w każdym razie wycofany w dniu przekazania; ten folder przejmie jego rolę tego dnia. Utwórz go i udostępnij samodzielnie w Nextcloud.",
+      "folder": "Folder dokumentów",
+      "folder_old": "{path} – wycofany w dniu przekazania",
+      "folder_new": "{path} – aktywny od dnia przekazania",
+      "folder_none": "Brak nowego folderu – ustaw go później na stronie działki.",
+      "folder_old_only": "Folder dokumentów dotychczasowych dzierżawców zostanie wycofany w dniu przekazania. Nowy ustawia osoba z pełnym dostępem na stronie działki."
     }
   },
   "external_contacts": {

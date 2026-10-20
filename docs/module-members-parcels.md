@@ -67,9 +67,17 @@ dropped for exactly this reason -- see
 [ADR 0058](./ADR/0058-invoice-address-check-constraint-dropped-for-future-terminations.md).
 Handing a terminated parcel over to applicants
 ([ADR 0101](./ADR/0101-hand-terminated-parcel-over-to-applicants.md),
-`app/services/parcel_handover.py`) is one of these paths. It only takes
-handover dates up to today, so the old tenancies it ends are never
-current any more, and clearing their flag is always correct.
+`app/services/parcel_handover.py`) is one of these paths. For a future
+handover date it keeps the old tenants' flag until they leave, as this
+rule requires.
+
+**Current, upcoming, former** ([ADR 0102](./ADR/0102-upcoming-tenancies-and-scheduled-folder-switch.md)):
+a tenancy is `is_current` only once it has started *and* while it hasn't
+ended. With a future `assigned_from` it is `is_upcoming` instead, and once
+`assigned_until` has passed it is `is_former`. Only a former tenancy loses
+the invoice-address flag. An upcoming one may hold it, since it's the next
+recipient. The parcel page lists current and upcoming tenants together,
+with "from …" / "until …" badges.
 Households (e.g. a couple who should both appear on the invoice letter)
 are resolved at document-generation time by matching addresses among
 current residents, the same way `household_grouping()` in

@@ -71,10 +71,30 @@ def current_tenant_filter():
     - terminated with a future end date (assigned_until in the future --
       the termination hasn't taken effect yet, see issue #130)
 
+    - and already started (assigned_from IS NULL or today or earlier --
+      an upcoming tenancy isn't current yet, ADR 0102)
+
     Strict ">" (not ">="), matching MemberParcel.is_current: a tenancy
     becomes former on its assigned_until date itself, not the day before.
 
     Usage: .where(current_tenant_filter())
+    """
+    from app.models import MemberParcel
+    today = _date.today()
+    return _and_(
+        (MemberParcel.assigned_from.is_(None)) | (MemberParcel.assigned_from <= today),
+        (MemberParcel.assigned_until.is_(None)) | (MemberParcel.assigned_until > today),
+    )
+
+
+def current_or_upcoming_tenant_filter():
+    """
+    MemberParcel rows that haven't ended (not MemberParcel.is_former):
+    current plus upcoming tenancies. For "does this parcel still have
+    someone": a parcel whose old tenants left today and whose new ones
+    start next week isn't vacant (ADR 0102).
+
+    Usage: .where(current_or_upcoming_tenant_filter())
     """
     from app.models import MemberParcel
     return (MemberParcel.assigned_until.is_(None)) | (MemberParcel.assigned_until > _date.today())
