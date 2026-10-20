@@ -15,8 +15,9 @@ Four feeds, with two different privacy postures:
   reachable without it.
 """
 import secrets
-from datetime import date, datetime, timezone, timedelta
+from datetime import date, datetime, time, timezone, timedelta
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 from icalendar import Calendar, Event
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,6 +26,7 @@ from sqlalchemy.orm import selectinload
 
 from app.models import ClubSetting, CalendarEvent, CalendarEventType, WorkSession, SessionType, CouncilPresence, CouncilAbsence
 from app.birthdays import all_birthdays_for_calendar
+from app.l10n import DEFAULT_REGION, REGION_TIMEZONES, load_current_region
 
 ICS_TOKEN_SETTING_KEY = "ics_secret_token"
 
@@ -80,19 +82,34 @@ def _new_calendar(name: str) -> Calendar:
 
 
 def _add_event(cal: Calendar, uid: str, summary: str, start, end=None, description: Optional[str] = None,
-                location: Optional[str] = None, rrule_yearly: bool = False) -> None:
+                location: Optional[str] = None, rrule_yearly: bool = False,
+                start_time: Optional[str] = None, end_time: Optional[str] = None,
+                tz: Optional[ZoneInfo] = None) -> None:
     """Adds an all-day VEVENT. Per RFC 5545, DTEND for a DATE-value event
     is EXCLUSIVE (the day itself is not part of the event) -- a single-day
     event needs DTEND = start + 1 day, not DTEND = start, or most calendar
     apps will render it as zero-length / one day short. `end` here is the
     LAST DAY the event should visibly cover (inclusive), matching how a
-    human reads a date range; this function does the +1 day conversion."""
+    human reads a date range; this function does the +1 day conversion.
+
+    With `start_time` ("HH:MM") and `tz` it's a timed event instead:
+    DTSTART/DTEND carry the time in the club's zone, and DTEND is the
+    actual end (no +1 day). Without an `end_time` there's no DTEND, which
+    RFC 5545 reads as "starts then". The caller adds the VTIMEZONE
+    (cal.add_missing_timezones()) once all events are in."""
     event = Event()
     event.add("uid", uid)
     event.add("summary", summary)
-    event.add("dtstart", start)
     inclusive_end = end or start
-    event.add("dtend", inclusive_end + timedelta(days=1))
+    timed_start = _at(start, start_time, tz)
+    if timed_start:
+        event.add("dtstart", timed_start)
+        timed_end = _at(inclusive_end, end_time, tz)
+        if timed_end and timed_end > timed_start:
+            event.add("dtend", timed_end)
+    else:
+        event.add("dtstart", start)
+        event.add("dtend", inclusive_end + timedelta(days=1))
     event.add("dtstamp", datetime.now(timezone.utc))
     if description:
         event.add("description", description)
@@ -103,21 +120,42 @@ def _add_event(cal: Calendar, uid: str, summary: str, start, end=None, descripti
     cal.add_component(event)
 
 
+def _at(day: date, hhmm: Optional[str], tz: Optional[ZoneInfo]) -> Optional[datetime]:
+    """day + "HH:MM" in tz, or None (no time, no zone, or not a valid
+    time -- the event then stays all-day rather than failing the feed)."""
+    if not hhmm or tz is None:
+        return None
+    try:
+        return datetime.combine(day, time.fromisoformat(hhmm), tzinfo=tz)
+    except ValueError:
+        return None
+
+
+async def _club_timezone(db: AsyncSession) -> ZoneInfo:
+    region = await load_current_region(db)
+    return ZoneInfo(REGION_TIMEZONES.get(region, REGION_TIMEZONES[DEFAULT_REGION]))
+
+
 async def build_community_calendar(db: AsyncSession, base_url: str) -> Calendar:
     """Member meetings, parcel inspections, and work sessions, merged
     into one public feed. Only present/future entries -- a feed that
     accumulates every past meeting forever would just get noisier every
     year, and nobody subscribing wants history, they want what's next."""
     cal = _new_calendar("Community Calendar")
+    tz = await _club_timezone(db)
 
     events_result = await db.execute(
         select(CalendarEvent).where(CalendarEvent.start_date >= date.today()).order_by(CalendarEvent.start_date)
     )
     for e in events_result.scalars().all():
+        # Times entered for an event (e.g. 10:00-12:00) make it a timed
+        # event; up to 3.18.0 they were dropped and every event showed up
+        # as all-day in subscribers' calendar apps.
         _add_event(
             cal, uid=f"calendar-event-{e.id}@{base_url}",
             summary=e.title, start=e.start_date, end=e.end_date or e.start_date,
             description=e.description, location=e.location,
+            start_time=e.start_time, end_time=e.end_time, tz=tz,
         )
 
     # STANDARD only -- SPECIAL sessions are spontaneous/unplanned work
@@ -140,6 +178,7 @@ async def build_community_calendar(db: AsyncSession, base_url: str) -> Calendar:
             summary=summary, start=s.date, description=description,
         )
 
+    cal.add_missing_timezones()  # VTIMEZONE for the timed events' TZID
     return cal
 
 

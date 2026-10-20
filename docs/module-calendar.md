@@ -198,6 +198,17 @@ Calendar all follow the spec here) -- easy mistake to reintroduce if
 this function gets refactored, so it's called out explicitly in its own
 docstring too.
 
+**Timed events (since 3.18.1).** A community-calendar event with a
+start time is written as a timed event: `DTSTART;TZID=Europe/Berlin:
+20261024T100000` and, with an end time, a `DTEND` that is the real end
+(no +1 day -- that rule is only for `VALUE=DATE`). The zone comes from
+the club's region setting (`REGION_TIMEZONES` in `app/l10n.py`, one per
+supported country), and `build_community_calendar()` adds the matching
+`VTIMEZONE` via `cal.add_missing_timezones()`. Up to 3.18.0 the times
+were dropped, so every event showed up as all-day in subscribers'
+calendar apps although `community.json` had them. Work sessions are
+still all-day with their time in `DESCRIPTION` -- unchanged so far.
+
 ## REST API
 
 **No conventional CRUD API for this module**, unlike every other module

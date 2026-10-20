@@ -56,6 +56,19 @@ AVAILABLE_REGIONS = {
     "sk_SK": "Slovakia",
 }
 
+# IANA time zone per region -- every supported country has exactly one.
+# Used by the ICS feeds: an event's "HH:MM" is the club's local
+# wall-clock time, so a calendar app in another zone still shows it right.
+REGION_TIMEZONES = {
+    "de_DE": "Europe/Berlin",
+    "en_GB": "Europe/London",
+    "fr_FR": "Europe/Paris",
+    "nl_NL": "Europe/Amsterdam",
+    "pl_PL": "Europe/Warsaw",
+    "cs_CZ": "Europe/Prague",
+    "sk_SK": "Europe/Bratislava",
+}
+
 # Currency choices. Deliberately not coupled 1:1 to AVAILABLE_REGIONS --
 # e.g. a French-speaking club in Switzerland might use CHF. Both
 # settings stay independently selectable.

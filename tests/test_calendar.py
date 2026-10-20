@@ -61,6 +61,37 @@ async def test_community_calendar_and_public_ics(client, admin_user):
         assert any(item["kind"] == "event" and item["title"] == "Annual General Meeting" for item in items)
 
 
+async def test_community_ics_keeps_event_times(client, admin_user):
+    """Regression: up to 3.18.0 the ICS feed dropped an event's start and
+    end time, so "Board office hours, 10:00-12:00" showed up as an
+    all-day event in subscribers' calendar apps (the JSON twin had the
+    times all along). Timed events carry the club's zone (region de_DE
+    -> Europe/Berlin) plus its VTIMEZONE; events without a time stay
+    all-day with the exclusive DTEND = day + 1."""
+    await web_login(client, "admin@example.com")
+    day = date.today() + timedelta(days=12)
+    await client.post("/calendar/community/new", data={
+        "title": "Board Office Hours", "event_type": "OTHER",
+        "start_date": day.isoformat(), "start_time": "10:00", "end_time": "12:00",
+    })
+    await client.post("/calendar/community/new", data={
+        "title": "Allotment Inspection", "event_type": "OTHER", "start_date": day.isoformat(),
+    })
+
+    from icalendar import Calendar
+
+    ics = (await client.get("/calendar/community.ics")).text
+    stamp = day.strftime("%Y%m%d")
+    assert f"DTSTART;TZID=Europe/Berlin:{stamp}T100000" in ics
+    assert f"DTEND;TZID=Europe/Berlin:{stamp}T120000" in ics
+    assert "BEGIN:VTIMEZONE" in ics and "TZID:Europe/Berlin" in ics
+
+    events = {str(e["summary"]): e for e in Calendar.from_ical(ics).walk("VEVENT")}
+    all_day = events["Allotment Inspection"]
+    assert all_day.decoded("dtstart") == day
+    assert all_day.decoded("dtend") == day + timedelta(days=1)
+
+
 async def test_community_calendar_excludes_special_sessions(client, admin_user):
     """Only STANDARD work sessions belong on the community calendar --
     SPECIAL (spontaneous/unplanned) ones shouldn't appear in the list
