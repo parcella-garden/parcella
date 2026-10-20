@@ -103,3 +103,4 @@ in chronological order.
 97. [External contacts' documents: one picked subfolder of a shared cloud base folder](./0097-external-contact-documents-in-cloud-folders.md)
 98. [Tags: per-language names; applicants: a live red flag from a contact tag](./0098-tag-translations-and-applicant-red-flag.md)
 99. [Security audit 2026-10: fixes and the decisions behind them](./0099-security-audit-2026-10.md)
+100. [Nav badges for the dashboard's "needs attention" counts](./0100-nav-badges-for-needs-attention-counts.md)

@@ -240,6 +240,8 @@ Tasks" count (gated on `module_flags.tasks`) linking to
 filter checkbox -- same `data-overdue="1"` attribute and definition of
 "overdue" (`due_date` in the past, any list) the board already used to
 color a card red. See [ADR 0051](./ADR/0051-dashboard-overdue-tasks-card.md).
+The Tasks nav entry shows the same count as a red badge
+(`app/nav_counts.py`, [ADR 0100](./ADR/0100-nav-badges-for-needs-attention-counts.md)).
 
 Lists themselves are managed inline on the board (rename/delete via the
 column header's dropdown), since there's no other data to edit on a

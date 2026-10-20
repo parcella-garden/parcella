@@ -17,6 +17,7 @@ from app.l10n import (
 from app.html_sanitizer import sanitize_email_html
 from app.permissions import jinja_has_perm, jinja_is_full_access, jinja_is_system_admin
 from app.services.work_hours import jinja_new_participations_count
+from app.nav_counts import jinja_nav_count
 from app.avatars import avatar_url
 from app.csrf import jinja_csrf_field, jinja_csrf_token
 from app.tag_translations import jinja_tag_name
@@ -31,6 +32,7 @@ templates.env.globals["has_perm"] = jinja_has_perm
 templates.env.globals["is_full_access"] = jinja_is_full_access
 templates.env.globals["is_system_admin"] = jinja_is_system_admin
 templates.env.globals["new_participations_count"] = jinja_new_participations_count
+templates.env.globals["nav_count"] = jinja_nav_count
 templates.env.globals["avatar_url"] = avatar_url
 # A member/contact tag in the club language, falling back to its typed name.
 templates.env.globals["tag_name"] = jinja_tag_name

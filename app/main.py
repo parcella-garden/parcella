@@ -16,10 +16,6 @@ from sqlalchemy.orm import selectinload
 from app.config import settings
 from app.database import get_db, AsyncSessionLocal, active_member_filter
 from app.models import User, UserRole, Member, Parcel, ParcelStatus, MemberParcel, Group, GroupMembership
-from app.models import PurchaseRequest, PurchaseRequestStatus
-from app.models import Applicant, ApplicantStatus
-from app.models import Task
-from app.models import FreescoutConversationLink
 from app.birthdays import upcoming_birthdays
 from app.auth import hash_password, get_current_user
 from app.module_flags import load_module_flags
@@ -34,6 +30,7 @@ from app.cloud_backup import get_cloud_backup_settings, is_backup_due, run_cloud
 from app.area_utils import compute_area_a_sqm
 from app.permissions import get_user_permissions, is_full_access_user, is_system_admin_user
 from app.services.work_hours import count_new_participations
+from app.nav_counts import NAV_COUNT_KEYS, load_nav_counts
 
 # Loaded at module import time (not only in the lifespan startup
 # event), since ASGI test clients (e.g. httpx with ASGITransport) don't
@@ -42,7 +39,7 @@ from app.services.work_hours import count_new_participations
 load_translations()
 from app.templating import templates
 from app.freescout_client import get_freescout_client, load_freescout_base_url
-from app.freescout_sync import sync_freescout_conversations, HIDDEN_STATUSES
+from app.freescout_sync import sync_freescout_conversations
 from app.deck_sync import sync_deck_tasks
 from app.routers import auth, members, parcels, admin as admin_router, admin_groups as admin_groups_router, work_hours, insurance, freescout as freescout_router, purchase_requests, calendar as calendar_router, announcements as announcements_router, inventory as inventory_router, tasks as tasks_router, finances as finances_router
 from app.routers.metering import create_metering_router
@@ -305,21 +302,24 @@ async def permissions_middleware(request: Request, call_next):
 
 
 @app.middleware("http")
-async def new_participations_count_middleware(request: Request, call_next):
+async def nav_counts_middleware(request: Request, call_next):
     """
-    Issue #217: loads the "N work-session sign-ups in the last
-    NEW_PARTICIPATION_WINDOW_DAYS days" count once per request and
-    stores it under request.state.new_participations_count, driving the
-    /work-hours/ nav badge (base.html) and the dashboard tile. Only
-    queried for a logged-in user -- anonymous requests (public ICS
-    feeds, login page) get 0 without a DB round-trip, since nothing
-    anonymous-facing reads this. See docs/ADR/0079.
+    Loads the nav badge counts once per request: the "N work-session
+    sign-ups in the last NEW_PARTICIPATION_WINDOW_DAYS days" count
+    (issue #217, request.state.new_participations_count, ADR 0079) and
+    the "needs attention" counts in app/nav_counts.py
+    (request.state.nav_counts, ADR 0100) -- driving both the nav badges
+    (base.html) and the dashboard tiles. Only queried for a logged-in
+    user -- anonymous requests (public ICS feeds, login page) get zeros
+    without a DB round-trip, since nothing anonymous-facing reads these.
     """
     request.state.new_participations_count = 0
+    request.state.nav_counts = dict.fromkeys(NAV_COUNT_KEYS, 0)
     async with AsyncSessionLocal() as db:
         user = await get_current_user(request, db)
         if user is not None:
             request.state.new_participations_count = await count_new_participations(db)
+            request.state.nav_counts = await load_nav_counts(db)
     response = await call_next(request)
     return response
 
@@ -557,43 +557,6 @@ async def startseite(request: Request):
         )
         recent_members = neueste_result.scalars().all()
 
-        # For the dashboard tile "Open purchase requests" -- only relevant
-        # when the module is active (see request.state.module_flags in
-        # the template), but the query costs nothing when empty/disabled.
-        # "New applications" tile -- counts exactly what the card's link
-        # (/applicants/?filter=new) lists (ADR 0019).
-        applicants_new_count = await db.scalar(
-            select(func.count()).select_from(Applicant).where(Applicant.status == ApplicantStatus.NEW)
-        )
-        purchase_requests_open_count = await db.scalar(
-            select(func.count()).select_from(PurchaseRequest).where(
-                PurchaseRequest.status == PurchaseRequestStatus.OPEN
-            )
-        )
-
-        # For the dashboard tile "Open support conversations" (issue #231) --
-        # a plain count of currently active/pending conversations,
-        # regardless of member association: an unmatched conversation is
-        # normal and expected (many inbound emails are from non-members),
-        # not something staff necessarily needs to act on, so this no
-        # longer singles those out. Same HIDDEN_STATUSES exclusion as the
-        # /freescout/ list itself (app/freescout_sync.py).
-        freescout_open_count = await db.scalar(
-            select(func.count()).select_from(FreescoutConversationLink).where(
-                FreescoutConversationLink.freescout_status.notin_(HIDDEN_STATUSES),
-            )
-        )
-
-        # For the dashboard tile "Overdue tasks" (issue #127) -- "overdue"
-        # here means exactly what the board already shows in red
-        # (app/templates/tasks/board.html's kanban-card-overdue class):
-        # a due_date in the past, regardless of which list the card is
-        # currently in (there's no separate "done" flag to exclude by,
-        # see docs/module-tasks.md -- lists are just free-text columns).
-        tasks_overdue_count = await db.scalar(
-            select(func.count()).select_from(Task).where(Task.due_date < date.today())
-        )
-
     # Dashboard tile "Birthdays this week" -- independent of the Calendar
     # module flag, since birthdays are shown here purely for information
     # (no link/dependency on the calendar routes).
@@ -606,12 +569,10 @@ async def startseite(request: Request):
         "parcels_terminated": parcels_terminated or 0,
         "parcels_vacant": parcels_vacant or 0,
         "area_total_sqm": float(area_total or 0),
-        "purchase_requests_open": purchase_requests_open_count or 0,
-        "applicants_new": applicants_new_count or 0,
-        "freescout_open": freescout_open_count or 0,
-        "tasks_overdue": tasks_overdue_count or 0,
-        # Reuses the count new_participations_count_middleware already
-        # computed for this request (nav badge) instead of querying again.
+        # The "needs attention" tiles reuse the counts nav_counts_middleware
+        # already computed for this request (nav badges) instead of querying
+        # again -- one source, so badge and tile can't disagree (ADR 0100).
+        **request.state.nav_counts,
         "new_participations": getattr(request.state, "new_participations_count", 0),
     }
 

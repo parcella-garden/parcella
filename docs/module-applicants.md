@@ -83,7 +83,9 @@ other applications -- the board decides what to do; silently merging
 would lose the second message.
 
 **Dashboard card counts `NEW` only** and links to `?filter=new`, so the
-number and the list it opens always match (ADR 0019).
+number and the list it opens always match (ADR 0019). The Applicants nav
+entry shows the same count as a badge (`app/nav_counts.py`, ADR 0100),
+which disappears once every new application has been moved on.
 
 ## Search and red flag
 

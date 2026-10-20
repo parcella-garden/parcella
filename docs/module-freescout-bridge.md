@@ -136,7 +136,8 @@ page. The poll loop always calls `list_all_conversations()`, never
 from display.** `app/freescout_sync.py`'s `HIDDEN_STATUSES` (`"closed"`,
 `"deleted"`, `"spam"` -- issue #230) is excluded from the `/freescout/`
 list, the `/api/v1/freescout/conversations` list, and the dashboard's
-"Open support conversations" stat -- but the poller keeps updating
+"Open support conversations" stat and the matching badge on the
+`/freescout/` nav entry (ADR 0100) -- but the poller keeps updating
 those rows normally, so a conversation that gets reopened in FreeScout
 still has an accurate, already-matched `member_id` waiting for it
 rather than a stale row nobody bothered to keep in sync.

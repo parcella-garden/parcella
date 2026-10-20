@@ -59,6 +59,11 @@ required field (some purchases don't have a known price yet), but it's an
 obvious fit for an expense-approval process -- hence built into the data
 model from the start instead of retrofitted later.
 
+**Nav badge counts `OPEN` requests** -- the same number as the
+dashboard's "Open purchase requests" tile (`app/nav_counts.py`, ADR
+0100). It counts every open request, including ones the current user
+has already approved and that are waiting for a second approver.
+
 ## REST API
 
 Complete from the start (`/api/v1/purchase-requests`), following the same
