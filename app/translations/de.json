@@ -2762,6 +2762,40 @@
       "field_name": "Name",
       "field_email": "E-Mail",
       "field_phone": "Telefon"
+    },
+    "handover": {
+      "title": "Parzelle zuweisen",
+      "choose_header": "Parzelle und Übergabedatum",
+      "intro": "Eine gekündigte Parzelle an {name} übergeben. Die bisherigen Pächter werden ehemalige Pächter; die Bewerber werden Mitglieder, Pächter und Rechnungsempfänger der Parzelle.",
+      "no_terminated_parcels": "Zurzeit gibt es keine gekündigte Parzelle. Kündigen Sie die Parzelle zuerst (Status „gekündigt“) und kehren Sie dann hierher zurück.",
+      "parcel": "Gekündigte Parzelle",
+      "choose_parcel": "– Parzelle wählen –",
+      "date": "Übergabedatum",
+      "co_applicants": "Weitere Bewerber (Mitpächter)",
+      "co_applicants_hint": "Optional: weitere Bewerber, die die Parzelle gemeinsam mit diesem übernehmen, z. B. ein Paar.",
+      "preview": "Vorschau",
+      "confirm": "Parzelle {plot_number} jetzt übergeben? Das ändert Pachtverhältnisse, Mitgliedschaften und den Rechnungsempfänger.",
+      "preview_header": "Übergabe der Parzelle {plot_number} am {date}",
+      "outgoing": "Bisherige Pächter",
+      "outgoing_tenancy_ends": "Pacht endet am Übergabedatum,",
+      "outgoing_membership_ends": "Mitgliedschaft endet nach dem {date}.",
+      "outgoing_keeps_membership": "bleibt Mitglied (weiterhin Pächter von {parcels}).",
+      "outgoing_none": "Niemand – die Parzelle hat keinen aktuellen Pächter.",
+      "incoming": "Neue Pächter und Rechnungsempfänger",
+      "incoming_existing_member": "bereits Mitglied:",
+      "incoming_new_member": "wird neues Mitglied (Name, E-Mail und Telefon aus der Bewerbung).",
+      "summary_rest": "Die Parzelle wird wieder aktiv und die Bewerbungen werden auf „Angenommen“ gesetzt.",
+      "submit": "Parzelle übergeben",
+      "button": "Parzelle zuweisen",
+      "button_hint": "Eine gekündigte Parzelle an diesen Bewerber übergeben.",
+      "errors": {
+        "parcel_not_found": "Parzelle nicht gefunden.",
+        "parcel_not_terminated": "Parzelle {plot_number} ist nicht gekündigt – nur gekündigte Parzellen können übergeben werden.",
+        "applicant_not_found": "Bewerber nicht gefunden.",
+        "applicant_closed": "Die Bewerbung von {name} ist bereits abgeschlossen.",
+        "name_missing": "Für {name} fehlen noch Vor- und Nachname – bitte zuerst in der Bewerbung ergänzen.",
+        "future_date": "Das Übergabedatum darf nicht in der Zukunft liegen – erfassen Sie die Übergabe an dem Tag, an dem die Parzelle tatsächlich übergeben wird."
+      }
     }
   },
   "external_contacts": {

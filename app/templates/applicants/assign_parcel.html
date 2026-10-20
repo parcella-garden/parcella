@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}{{ t('applicants.handover.title') }}{% endblock %}
+{% block page_title %}{{ t('applicants.handover.title') }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="/applicants/{{ applicant.id }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>{{ applicant.display_name }}
+</a>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 760px;">
+    {% if error %}<div class="alert alert-danger">{{ t(error.key, **error.params) }}</div>{% endif %}
+
+    {# Step 1: choose -- a GET form, so changing the choice just reloads the preview. #}
+    <form method="get" action="/applicants/{{ applicant.id }}/assign-parcel">
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-grid-3x3 me-2"></i>{{ t('applicants.handover.choose_header') }}</div>
+            <div class="card-body">
+                <p class="text-muted" style="font-size: 0.85rem;">{{ t('applicants.handover.intro', name=applicant.display_name) }}</p>
+                {% if not parcels %}
+                <div class="alert alert-info mb-0">{{ t('applicants.handover.no_terminated_parcels') }}</div>
+                {% else %}
+                <div class="row g-3">
+                    <div class="col-md-7">
+                        <label class="form-label fw-semibold" for="handover-parcel">{{ t('applicants.handover.parcel') }}</label>
+                        <select id="handover-parcel" name="parcel_id" class="form-select" required>
+                            <option value="">{{ t('applicants.handover.choose_parcel') }}</option>
+                            {% for p in parcels %}
+                            {% set tenants = p.member_assignments|selectattr('is_current')|map(attribute='member')|map(attribute='full_name')|join(', ') %}
+                            <option value="{{ p.id }}" {% if p.id == parcel_id %}selected{% endif %}>
+                                {{ p.plot_number }}{% if tenants %} – {{ tenants }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label fw-semibold" for="handover-date">{{ t('applicants.handover.date') }}</label>
+                        <input id="handover-date" type="date" name="handover_date" class="form-control" value="{{ handover_date.isoformat() }}" max="{{ today.isoformat() }}" required>
+                    </div>
+                </div>
+                {% if co_applicant_candidates %}
+                <div class="mt-3">
+                    <div class="form-label fw-semibold mb-1">{{ t('applicants.handover.co_applicants') }}</div>
+                    <div class="text-muted mb-2" style="font-size: 0.8rem;">{{ t('applicants.handover.co_applicants_hint') }}</div>
+                    <div class="border rounded p-2" style="max-height: 14rem; overflow-y: auto;">
+                        {% for other in co_applicant_candidates %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="co_applicant_ids" value="{{ other.id }}" id="co-{{ other.id }}"
+                                   {% if other.id in co_applicant_ids %}checked{% endif %}>
+                            <label class="form-check-label" for="co-{{ other.id }}">
+                                {{ other.display_name }} <span class="text-muted" style="font-size: 0.8rem;">· {{ other.email }} · {{ other.applied_at.strftime('%d.%m.%Y') }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+            {% if parcels %}
+            <div class="card-footer">
+                <button type="submit" class="btn btn-outline-primary"><i class="bi bi-eye me-1"></i>{{ t('applicants.handover.preview') }}</button>
+            </div>
+            {% endif %}
+        </div>
+    </form>
+
+    {# Step 2: what will happen, and the actual (POST) handover. #}
+    {% if plan %}
+    <form method="post" action="/applicants/{{ applicant.id }}/assign-parcel"
+          onsubmit="return confirm({{ t('applicants.handover.confirm', plot_number=plan.parcel.plot_number)|tojson|forceescape }});">
+        {{ csrf_field() }}
+        <input type="hidden" name="parcel_id" value="{{ plan.parcel.id }}">
+        <input type="hidden" name="handover_date" value="{{ plan.handover_date.isoformat() }}">
+        {% for incoming in plan.incoming[1:] %}
+        <input type="hidden" name="co_applicant_ids" value="{{ incoming.applicant.id }}">
+        {% endfor %}
+        <div class="card">
+            <div class="card-header"><i class="bi bi-arrow-left-right me-2"></i>{{ t('applicants.handover.preview_header', plot_number=plan.parcel.plot_number, date=plan.handover_date.strftime('%d.%m.%Y')) }}</div>
+            <div class="card-body">
+                <h6 class="fw-semibold">{{ t('applicants.handover.outgoing') }}</h6>
+                <ul class="mb-3">
+                    {% for tenant in plan.outgoing %}
+                    <li>
+                        <a href="/members/{{ tenant.assignment.member.id }}">{{ tenant.assignment.member.full_name }}</a> –
+                        {{ t('applicants.handover.outgoing_tenancy_ends') }}
+                        {% if tenant.membership_ends %}
+                        {{ t('applicants.handover.outgoing_membership_ends', date=plan.last_member_day.strftime('%d.%m.%Y')) }}
+                        {% else %}
+                        <span class="text-muted">{{ t('applicants.handover.outgoing_keeps_membership', parcels=tenant.other_parcels|join(', ')) }}</span>
+                        {% endif %}
+                    </li>
+                    {% else %}
+                    <li class="text-muted">{{ t('applicants.handover.outgoing_none') }}</li>
+                    {% endfor %}
+                </ul>
+                <h6 class="fw-semibold">{{ t('applicants.handover.incoming') }}</h6>
+                <ul class="mb-3">
+                    {% for incoming in plan.incoming %}
+                    <li>
+                        {{ incoming.applicant.display_name }} –
+                        {% if incoming.existing_member %}
+                        {{ t('applicants.handover.incoming_existing_member') }}
+                        <a href="/members/{{ incoming.existing_member.id }}">{{ incoming.existing_member.full_name }}</a>
+                        {% else %}
+                        {{ t('applicants.handover.incoming_new_member') }}
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                <p class="text-muted mb-0" style="font-size: 0.85rem;">{{ t('applicants.handover.summary_rest') }}</p>
+            </div>
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>{{ t('applicants.handover.submit') }}</button>
+            </div>
+        </div>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

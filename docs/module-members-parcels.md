@@ -65,6 +65,11 @@ until they actually leave. The original DB-level backstop
 (`ck_invoice_address_only_for_current_tenants` CHECK constraint) was
 dropped for exactly this reason -- see
 [ADR 0058](./ADR/0058-invoice-address-check-constraint-dropped-for-future-terminations.md).
+Handing a terminated parcel over to applicants
+([ADR 0101](./ADR/0101-hand-terminated-parcel-over-to-applicants.md),
+`app/services/parcel_handover.py`) is one of these paths. It only takes
+handover dates up to today, so the old tenancies it ends are never
+current any more, and clearing their flag is always correct.
 Households (e.g. a couple who should both appear on the invoice letter)
 are resolved at document-generation time by matching addresses among
 current residents, the same way `household_grouping()` in

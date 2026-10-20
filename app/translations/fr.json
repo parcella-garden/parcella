@@ -2762,6 +2762,40 @@
       "field_name": "nom",
       "field_email": "e-mail",
       "field_phone": "téléphone"
+    },
+    "handover": {
+      "title": "Attribuer une parcelle",
+      "choose_header": "Parcelle et date de remise",
+      "intro": "Remettre une parcelle résiliée à {name}. Ses locataires actuels deviennent d'anciens locataires ; les candidats deviennent membres, locataires et destinataires des factures de la parcelle.",
+      "no_terminated_parcels": "Aucune parcelle résiliée pour le moment. Résiliez d'abord la parcelle (statut « résilié »), puis revenez ici.",
+      "parcel": "Parcelle résiliée",
+      "choose_parcel": "– choisir une parcelle –",
+      "date": "Date de remise",
+      "co_applicants": "Autres candidats (co-locataires)",
+      "co_applicants_hint": "Facultatif : d'autres candidats qui reprennent la parcelle avec celui-ci, par ex. un couple.",
+      "preview": "Aperçu",
+      "confirm": "Remettre la parcelle {plot_number} maintenant ? Cela modifie les locations, les adhésions et le destinataire des factures.",
+      "preview_header": "Remise de la parcelle {plot_number} le {date}",
+      "outgoing": "Anciens locataires",
+      "outgoing_tenancy_ends": "la location prend fin à la date de remise,",
+      "outgoing_membership_ends": "l'adhésion prend fin après le {date}.",
+      "outgoing_keeps_membership": "reste membre (toujours locataire de {parcels}).",
+      "outgoing_none": "Personne – la parcelle n'a pas de locataire actuel.",
+      "incoming": "Nouveaux locataires et destinataires des factures",
+      "incoming_existing_member": "déjà membre :",
+      "incoming_new_member": "devient un nouveau membre (nom, e-mail et téléphone repris de la candidature).",
+      "summary_rest": "La parcelle redevient active et les candidatures passent à « Acceptée ».",
+      "submit": "Remettre la parcelle",
+      "button": "Attribuer une parcelle",
+      "button_hint": "Remettre une parcelle résiliée à ce candidat.",
+      "errors": {
+        "parcel_not_found": "Parcelle introuvable.",
+        "parcel_not_terminated": "La parcelle {plot_number} n'est pas résiliée – seules les parcelles résiliées peuvent être remises.",
+        "applicant_not_found": "Candidat introuvable.",
+        "applicant_closed": "La candidature de {name} est déjà clôturée.",
+        "name_missing": "Il manque le prénom et le nom de {name} – complétez-les d'abord dans la candidature.",
+        "future_date": "La date de remise ne peut pas être dans le futur – enregistrez la remise le jour où la parcelle change réellement de mains."
+      }
     }
   },
   "external_contacts": {

@@ -57,9 +57,21 @@ noise.
 
 **Its own table, not Member.** Most applicants never get a plot, and
 their data must not mingle with the member list (member counts, invoices,
-work hours, mailings all read `members`). When someone does get a plot,
-the board creates the member the usual way and sets the application to
-`ACCEPTED`.
+work hours, mailings all read `members`). An applicant only becomes a
+member once they actually get a plot -- see "Assigning a parcel" below.
+
+**Assigning a parcel** ([ADR 0101](./ADR/0101-hand-terminated-parcel-over-to-applicants.md)).
+The "Assign a parcel" button on an open application
+(`/applicants/{id}/assign-parcel`, needs write on `applicants` *and*
+`members_parcels`) hands a `TERMINATED` parcel over in one step. You
+pick the parcel, the handover date (today or earlier, never in the
+future) and optionally co-applicants, check
+the preview, then confirm. The old tenants become former tenants and
+leave the club unless they hold another parcel. The applicants become
+members (or an existing member with the same email is reused), tenants
+and invoice recipients. The parcel turns `ACTIVE` and the applications
+`ACCEPTED`. Logic: `app/services/parcel_handover.py`; API:
+`POST /api/v1/applicants/{id}/assign-parcel`.
 
 **Hard delete, deliberately** ([ADR 0091](./ADR/0091-applicants-hard-delete-gdpr-exception.md)).
 The one place in Parcella that removes rows instead of historizing them
@@ -112,8 +124,9 @@ which disappears once every new application has been moved on.
 
 ## Known gaps
 
-- No "create member from applicant" button -- the board creates the
-  member by hand.
+- Handing over a parcel copies only name, email and phone. Address, IBAN
+  and the email-notification consent are filled in on the member page
+  afterwards (ADR 0101).
 - No email to the board on a new application; the dashboard card and the
   nav entry are the signal.
 - No email to the applicant either (confirmation, status updates).

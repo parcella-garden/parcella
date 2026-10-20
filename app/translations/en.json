@@ -2762,6 +2762,40 @@
       "field_name": "name",
       "field_email": "email",
       "field_phone": "phone"
+    },
+    "handover": {
+      "title": "Assign a parcel",
+      "choose_header": "Parcel and handover date",
+      "intro": "Hand a terminated parcel over to {name}. Its current tenants become former tenants; the applicants become members, tenants and invoice recipients of the parcel.",
+      "no_terminated_parcels": "There's no terminated parcel at the moment. Terminate the parcel first (set its status to “terminated”), then come back here.",
+      "parcel": "Terminated parcel",
+      "choose_parcel": "– choose a parcel –",
+      "date": "Handover date",
+      "co_applicants": "Further applicants (co-tenants)",
+      "co_applicants_hint": "Optional: other applicants who take over the parcel together with this one, e.g. a couple.",
+      "preview": "Preview",
+      "confirm": "Hand parcel {plot_number} over now? This changes tenancies, memberships and the invoice recipient.",
+      "preview_header": "Handover of parcel {plot_number} on {date}",
+      "outgoing": "Old tenants",
+      "outgoing_tenancy_ends": "tenancy ends on the handover date,",
+      "outgoing_membership_ends": "membership ends after {date}.",
+      "outgoing_keeps_membership": "keeps membership (still tenant of {parcels}).",
+      "outgoing_none": "Nobody – the parcel has no current tenant.",
+      "incoming": "New tenants and invoice recipients",
+      "incoming_existing_member": "already a member:",
+      "incoming_new_member": "becomes a new member (name, email and phone taken from the application).",
+      "summary_rest": "The parcel becomes active again and the applications are set to “Accepted”.",
+      "submit": "Hand over parcel",
+      "button": "Assign a parcel",
+      "button_hint": "Hand a terminated parcel over to this applicant.",
+      "errors": {
+        "parcel_not_found": "Parcel not found.",
+        "parcel_not_terminated": "Parcel {plot_number} isn't terminated – only terminated parcels can be handed over.",
+        "applicant_not_found": "Applicant not found.",
+        "applicant_closed": "The application of {name} is already closed.",
+        "name_missing": "{name} has no first and last name yet – add them to the application first.",
+        "future_date": "The handover date can't be in the future – record the handover on the day the parcel actually changes hands."
+      }
     }
   },
   "external_contacts": {

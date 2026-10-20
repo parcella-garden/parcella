@@ -13,8 +13,9 @@ The public side -- the application form on the club website -- lives in
 app/routers/api_public.py, behind its own module flag.
 """
 from datetime import date
+from typing import List, Optional
 
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, or_, select
@@ -29,6 +30,7 @@ from app.module_flags import require_module
 from app.templating import templates
 from app.services.errors import ServiceError
 from app.services.applicants import create_applicant, delete_applicant, find_red_flags, update_applicant
+from app.services.parcel_handover import hand_over_parcel, plan_handover, terminated_parcels
 
 router = APIRouter(
     prefix="/applicants",
@@ -159,6 +161,7 @@ async def _detail_context(request, db, user, applicant, error=None) -> dict:
         "request": request, "user": user, "applicant": applicant,
         "other_applications": others, "history": history,
         "statuses": list(ApplicantStatus), "error": error, "today": date.today(),
+        "is_open": applicant.status in APPLICANT_OPEN_STATUSES,
         "red_flags": (await _red_flags(request, db, [applicant])).get(applicant.id, []),
     }
 
@@ -198,3 +201,91 @@ async def applicant_delete(applicant_id: str, request: Request, db: AsyncSession
     applicant = await _get_or_404(db, applicant_id)
     await delete_applicant(db, applicant)
     return RedirectResponse(url="/applicants/", status_code=303)
+
+
+# ---------------------------------------------------------------------------
+# Handing a terminated parcel over (ADR 0101)
+# ---------------------------------------------------------------------------
+
+def _parse_handover_date(value: Optional[str]) -> date:
+    try:
+        return date.fromisoformat(value) if value else date.today()
+    except ValueError:
+        return date.today()
+
+
+async def _handover_permission(request: Request, db: AsyncSession):
+    """Touches applicants and members/parcels alike -- needs write on both."""
+    user = await require_permission(request, db, "applicants", "write")
+    await require_permission(request, db, "members_parcels", "write")
+    return user
+
+
+async def _handover_context(
+    request: Request, db: AsyncSession, user, applicant: Applicant, *,
+    parcel_id: str, handover_date: date, co_applicant_ids: list[str], error=None,
+) -> dict:
+    result = await db.execute(
+        select(Applicant)
+        .where(Applicant.id != applicant.id, Applicant.status.in_(APPLICANT_OPEN_STATUSES))
+        .order_by(Applicant.last_name, Applicant.first_name, Applicant.applied_at)
+    )
+    plan = None
+    if parcel_id and error is None:
+        try:
+            plan = await plan_handover(
+                db, parcel_id=parcel_id, applicant_ids=[applicant.id, *co_applicant_ids],
+                handover_date=handover_date,
+            )
+        except ServiceError as e:
+            error = e
+    return {
+        "request": request, "user": user, "applicant": applicant,
+        "parcels": await terminated_parcels(db), "co_applicant_candidates": result.scalars().all(),
+        "parcel_id": parcel_id, "handover_date": handover_date, "co_applicant_ids": co_applicant_ids,
+        "plan": plan, "error": error, "today": date.today(),
+    }
+
+
+@router.get("/{applicant_id}/assign-parcel", response_class=HTMLResponse)
+async def applicant_assign_parcel_page(
+    applicant_id: str, request: Request,
+    parcel_id: str = "", handover_date: str = "", co_applicant_ids: List[str] = Query([]),
+    db: AsyncSession = Depends(get_db),
+):
+    user = await _handover_permission(request, db)
+    applicant = await _get_or_404(db, applicant_id)
+    return templates.TemplateResponse(
+        "applicants/assign_parcel.html",
+        await _handover_context(
+            request, db, user, applicant, parcel_id=parcel_id,
+            handover_date=_parse_handover_date(handover_date), co_applicant_ids=co_applicant_ids,
+        ),
+    )
+
+
+@router.post("/{applicant_id}/assign-parcel")
+async def applicant_assign_parcel(applicant_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    user = await _handover_permission(request, db)
+    applicant = await _get_or_404(db, applicant_id)
+    form = await request.form()
+    parcel_id = form.get("parcel_id") or ""
+    handover_date = _parse_handover_date(form.get("handover_date"))
+    co_applicant_ids = form.getlist("co_applicant_ids")
+    try:
+        plan = await plan_handover(
+            db, parcel_id=parcel_id, applicant_ids=[applicant.id, *co_applicant_ids],
+            handover_date=handover_date,
+        )
+    except ServiceError as e:
+        # plan_handover() validates before anything is changed -- no rollback needed.
+        return templates.TemplateResponse(
+            "applicants/assign_parcel.html",
+            await _handover_context(
+                request, db, user, applicant, parcel_id=parcel_id, handover_date=handover_date,
+                co_applicant_ids=co_applicant_ids, error=e,
+            ),
+            status_code=e.http_status,
+        )
+    await hand_over_parcel(db, plan, acting_user=user)
+    return RedirectResponse(url=f"/parcels/{parcel_id}", status_code=303)

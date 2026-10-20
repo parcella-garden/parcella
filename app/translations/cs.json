@@ -2762,6 +2762,40 @@
       "field_name": "jméno",
       "field_email": "e-mail",
       "field_phone": "telefon"
+    },
+    "handover": {
+      "title": "Přidělit parcelu",
+      "choose_header": "Parcela a datum předání",
+      "intro": "Předat ukončenou parcelu uchazeči {name}. Dosavadní nájemci se stanou bývalými nájemci; uchazeči se stanou členy, nájemci a příjemci faktur za parcelu.",
+      "no_terminated_parcels": "Momentálně není žádná ukončená parcela. Nejprve parcelu ukončete (stav „ukončená“) a pak se sem vraťte.",
+      "parcel": "Ukončená parcela",
+      "choose_parcel": "– vyberte parcelu –",
+      "date": "Datum předání",
+      "co_applicants": "Další uchazeči (spolunájemci)",
+      "co_applicants_hint": "Volitelné: další uchazeči, kteří parcelu přebírají společně s tímto, např. pár.",
+      "preview": "Náhled",
+      "confirm": "Předat parcelu {plot_number} nyní? Změní se nájmy, členství a příjemce faktur.",
+      "preview_header": "Předání parcely {plot_number} dne {date}",
+      "outgoing": "Dosavadní nájemci",
+      "outgoing_tenancy_ends": "nájem končí dnem předání,",
+      "outgoing_membership_ends": "členství končí po {date}.",
+      "outgoing_keeps_membership": "zůstává členem (stále nájemce {parcels}).",
+      "outgoing_none": "Nikdo – parcela nemá aktuálního nájemce.",
+      "incoming": "Noví nájemci a příjemci faktur",
+      "incoming_existing_member": "již člen:",
+      "incoming_new_member": "stane se novým členem (jméno, e-mail a telefon z přihlášky).",
+      "summary_rest": "Parcela bude opět aktivní a přihlášky budou nastaveny na „Přijato“.",
+      "submit": "Předat parcelu",
+      "button": "Přidělit parcelu",
+      "button_hint": "Předat ukončenou parcelu tomuto uchazeči.",
+      "errors": {
+        "parcel_not_found": "Parcela nenalezena.",
+        "parcel_not_terminated": "Parcela {plot_number} není ukončená – předat lze jen ukončené parcely.",
+        "applicant_not_found": "Uchazeč nenalezen.",
+        "applicant_closed": "Přihláška uchazeče {name} je již uzavřena.",
+        "name_missing": "U uchazeče {name} chybí jméno a příjmení – nejprve je doplňte v přihlášce.",
+        "future_date": "Datum předání nesmí být v budoucnosti – zaznamenejte předání v den, kdy parcela skutečně přechází na nového nájemce."
+      }
     }
   },
   "external_contacts": {

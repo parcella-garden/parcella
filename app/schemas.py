@@ -934,6 +934,24 @@ class ApplicantOut(BaseModel):
     updated_at: datetime
 
 
+class ApplicantParcelHandover(BaseModel):
+    """Hands a TERMINATED parcel over to this applicant (and optional
+    co-applicants) -- ADR 0101."""
+    parcel_id: str
+    # Defaults to today. Old tenancies end and new ones start on this day.
+    handover_date: Optional[date] = None
+    co_applicant_ids: List[str] = []
+
+
+class ApplicantParcelHandoverOut(BaseModel):
+    parcel_id: str
+    # The parcel's new tenants -- newly created or reused (matched by email) members.
+    member_ids: List[str]
+    # Old tenants whose tenancy ended, and those of them whose membership ended too.
+    former_tenant_member_ids: List[str]
+    membership_ended_member_ids: List[str]
+
+
 # ---------------------------------------------------------------------------
 # Inventory
 # ---------------------------------------------------------------------------

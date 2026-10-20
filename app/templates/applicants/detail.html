@@ -61,6 +61,16 @@
     </div>
 
     <div class="col-lg-5">
+        {% if can_write and has_perm(request, 'members_parcels', 'write') and is_open %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <a href="/applicants/{{ applicant.id }}/assign-parcel" class="btn btn-success w-100">
+                    <i class="bi bi-key me-1"></i>{{ t('applicants.handover.button') }}
+                </a>
+                <div class="text-muted mt-2" style="font-size: 0.8rem;">{{ t('applicants.handover.button_hint') }}</div>
+            </div>
+        </div>
+        {% endif %}
         <div class="card mb-3">
             <div class="card-header"><i class="bi bi-info-circle me-2"></i>{{ t('applicants.detail.facts_header') }}</div>
             <div class="card-body" style="font-size: 0.9rem;">

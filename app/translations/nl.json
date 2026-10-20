@@ -2762,6 +2762,40 @@
       "field_name": "naam",
       "field_email": "e-mail",
       "field_phone": "telefoon"
+    },
+    "handover": {
+      "title": "Perceel toewijzen",
+      "choose_header": "Perceel en overdrachtsdatum",
+      "intro": "Een beëindigd perceel overdragen aan {name}. De huidige pachters worden voormalige pachters; de kandidaten worden leden, pachters en factuurontvangers van het perceel.",
+      "no_terminated_parcels": "Er is momenteel geen beëindigd perceel. Beëindig het perceel eerst (status „beëindigd”) en kom dan hier terug.",
+      "parcel": "Beëindigd perceel",
+      "choose_parcel": "– kies een perceel –",
+      "date": "Overdrachtsdatum",
+      "co_applicants": "Verdere kandidaten (medepachters)",
+      "co_applicants_hint": "Optioneel: andere kandidaten die het perceel samen met deze overnemen, bijv. een stel.",
+      "preview": "Voorbeeld",
+      "confirm": "Perceel {plot_number} nu overdragen? Dit wijzigt pachtovereenkomsten, lidmaatschappen en de factuurontvanger.",
+      "preview_header": "Overdracht van perceel {plot_number} op {date}",
+      "outgoing": "Huidige pachters",
+      "outgoing_tenancy_ends": "pacht eindigt op de overdrachtsdatum,",
+      "outgoing_membership_ends": "lidmaatschap eindigt na {date}.",
+      "outgoing_keeps_membership": "blijft lid (nog steeds pachter van {parcels}).",
+      "outgoing_none": "Niemand – het perceel heeft geen huidige pachter.",
+      "incoming": "Nieuwe pachters en factuurontvangers",
+      "incoming_existing_member": "al lid:",
+      "incoming_new_member": "wordt nieuw lid (naam, e-mail en telefoon uit de aanvraag).",
+      "summary_rest": "Het perceel wordt weer actief en de aanvragen worden op „Geaccepteerd” gezet.",
+      "submit": "Perceel overdragen",
+      "button": "Perceel toewijzen",
+      "button_hint": "Een beëindigd perceel aan deze kandidaat overdragen.",
+      "errors": {
+        "parcel_not_found": "Perceel niet gevonden.",
+        "parcel_not_terminated": "Perceel {plot_number} is niet beëindigd – alleen beëindigde percelen kunnen worden overgedragen.",
+        "applicant_not_found": "Kandidaat niet gevonden.",
+        "applicant_closed": "De aanvraag van {name} is al afgesloten.",
+        "name_missing": "Voor {name} ontbreken nog voor- en achternaam – vul die eerst in de aanvraag aan.",
+        "future_date": "De overdrachtsdatum mag niet in de toekomst liggen – registreer de overdracht op de dag waarop het perceel echt van pachter wisselt."
+      }
     }
   },
   "external_contacts": {

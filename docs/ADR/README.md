@@ -104,3 +104,4 @@ in chronological order.
 98. [Tags: per-language names; applicants: a live red flag from a contact tag](./0098-tag-translations-and-applicant-red-flag.md)
 99. [Security audit 2026-10: fixes and the decisions behind them](./0099-security-audit-2026-10.md)
 100. [Nav badges for the dashboard's "needs attention" counts](./0100-nav-badges-for-needs-attention-counts.md)
+101. [Handing a terminated parcel over to applicants: one step, from the application](./0101-hand-terminated-parcel-over-to-applicants.md)

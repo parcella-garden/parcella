@@ -2762,6 +2762,40 @@
       "field_name": "imię i nazwisko",
       "field_email": "e-mail",
       "field_phone": "telefon"
+    },
+    "handover": {
+      "title": "Przydziel działkę",
+      "choose_header": "Działka i data przekazania",
+      "intro": "Przekaż wypowiedzianą działkę osobie {name}. Obecni dzierżawcy stają się byłymi dzierżawcami; kandydaci zostają członkami, dzierżawcami i odbiorcami faktur za działkę.",
+      "no_terminated_parcels": "Obecnie nie ma wypowiedzianej działki. Najpierw wypowiedz działkę (status „Wypowiedziana”), a potem wróć tutaj.",
+      "parcel": "Wypowiedziana działka",
+      "choose_parcel": "– wybierz działkę –",
+      "date": "Data przekazania",
+      "co_applicants": "Kolejni kandydaci (współdzierżawcy)",
+      "co_applicants_hint": "Opcjonalnie: inni kandydaci, którzy przejmują działkę razem z tym, np. para.",
+      "preview": "Podgląd",
+      "confirm": "Przekazać teraz działkę {plot_number}? Zmienia to dzierżawy, członkostwa i odbiorcę faktur.",
+      "preview_header": "Przekazanie działki {plot_number} w dniu {date}",
+      "outgoing": "Dotychczasowi dzierżawcy",
+      "outgoing_tenancy_ends": "dzierżawa kończy się w dniu przekazania,",
+      "outgoing_membership_ends": "członkostwo kończy się po {date}.",
+      "outgoing_keeps_membership": "pozostaje członkiem (nadal dzierżawca {parcels}).",
+      "outgoing_none": "Nikt – działka nie ma obecnego dzierżawcy.",
+      "incoming": "Nowi dzierżawcy i odbiorcy faktur",
+      "incoming_existing_member": "już członek:",
+      "incoming_new_member": "zostaje nowym członkiem (imię, e-mail i telefon ze zgłoszenia).",
+      "summary_rest": "Działka znów staje się aktywna, a zgłoszenia otrzymują status „Przyjęte”.",
+      "submit": "Przekaż działkę",
+      "button": "Przydziel działkę",
+      "button_hint": "Przekaż wypowiedzianą działkę temu kandydatowi.",
+      "errors": {
+        "parcel_not_found": "Nie znaleziono działki.",
+        "parcel_not_terminated": "Działka {plot_number} nie jest wypowiedziana – przekazać można tylko wypowiedziane działki.",
+        "applicant_not_found": "Nie znaleziono kandydata.",
+        "applicant_closed": "Zgłoszenie osoby {name} jest już zamknięte.",
+        "name_missing": "Brakuje imienia i nazwiska dla {name} – najpierw uzupełnij je w zgłoszeniu.",
+        "future_date": "Data przekazania nie może być w przyszłości – zarejestruj przekazanie w dniu, w którym działka faktycznie zmienia dzierżawcę."
+      }
     }
   },
   "external_contacts": {

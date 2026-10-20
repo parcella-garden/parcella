@@ -11,6 +11,7 @@ UI; DELETE removes the applicant for good (ADR 0091).
 The public submit endpoint (the website's application form) is not
 here -- see app/routers/api_public.py.
 """
+from datetime import date
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
@@ -24,7 +25,11 @@ from app.i18n import t_for
 from app.module_flags import require_module
 from app.services.errors import ServiceError
 from app.services.applicants import create_applicant, delete_applicant, update_applicant
-from app.schemas import ApplicantCreate, ApplicantOut, ApplicantUpdate
+from app.services.parcel_handover import hand_over_parcel, plan_handover
+from app.permissions import get_user_permissions, has_permission
+from app.schemas import (
+    ApplicantCreate, ApplicantOut, ApplicantParcelHandover, ApplicantParcelHandoverOut, ApplicantUpdate,
+)
 
 router = APIRouter(
     prefix="/api/v1/applicants",
@@ -103,3 +108,35 @@ async def applicant_delete(
 ):
     await delete_applicant(db, await _get_or_404(db, applicant_id))
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/{applicant_id}/assign-parcel", response_model=ApplicantParcelHandoverOut,
+    summary="Hand a terminated parcel over to this applicant (ADR 0101)",
+)
+async def applicant_assign_parcel(
+    applicant_id: str, payload: ApplicantParcelHandover, request: Request,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_api_permission("applicants", "write")),
+):
+    # Changes members and parcels too -- needs write there as well.
+    if not has_permission(await get_user_permissions(db, user), "members_parcels", "write"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=t_for(request, "errors.no_permission"))
+    applicant = await _get_or_404(db, applicant_id)
+    try:
+        plan = await plan_handover(
+            db, parcel_id=payload.parcel_id, applicant_ids=[applicant.id, *payload.co_applicant_ids],
+            handover_date=payload.handover_date or date.today(),
+        )
+    except ServiceError as e:
+        if e.http_status == status.HTTP_404_NOT_FOUND:
+            raise HTTPException(status_code=e.http_status, detail=t_for(request, e.key, **e.params))
+        raise _service_error(request, e)
+    outgoing = [(t.assignment.member_id, t.membership_ends) for t in plan.outgoing]
+    members = await hand_over_parcel(db, plan, acting_user=user)
+    return ApplicantParcelHandoverOut(
+        parcel_id=payload.parcel_id,
+        member_ids=[m.id for m in members],
+        former_tenant_member_ids=[member_id for member_id, _ in outgoing],
+        membership_ended_member_ids=[member_id for member_id, ends in outgoing if ends],
+    )
