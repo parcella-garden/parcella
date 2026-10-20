@@ -192,7 +192,8 @@ async def test_dashboard_tile_nav_badge_and_session_new_badge(client, admin_user
     # render on this same page.
     overview = await client.get(f"/work-hours/?year={date.today().year}")
     assert overview.status_code == 200
-    assert overview.text.count("rounded-pill bg-info text-dark ms-1") == 3
+    assert overview.text.count("rounded-pill bg-info text-dark ms-1") == 1
+    assert overview.text.count("1 new work-session sign-up(s) recently") == 2
     assert "1 new sign-up(s) for this session" in overview.text
 
 
@@ -222,7 +223,7 @@ async def test_new_participation_count_excludes_special_and_past_sessions(client
     assert dashboard.status_code == 200
     # Neither nav badge (group toggle nor /work-hours/ link) should
     # render at all -- both are conditional on count > 0.
-    assert "rounded-pill bg-info text-dark" not in dashboard.text
+    assert "new work-session sign-up(s) recently" not in dashboard.text
 
     special_detail = await client.get(f"/work-hours/sessions/{special_id}")
     assert 'badge bg-info text-dark ms-1">New</span>' not in special_detail.text
@@ -258,7 +259,7 @@ async def test_mark_reviewed_clears_new_badges_but_not_future_signups(client, ad
     assert f'/work-hours/sessions/{session_id}/mark-signups-reviewed' not in reviewed_detail.text
 
     dashboard = await client.get("/")
-    assert "rounded-pill bg-info text-dark" not in dashboard.text
+    assert "new work-session sign-up(s) recently" not in dashboard.text
 
     # A member signing up afterward still counts as new.
     async with AsyncSessionLocal() as db:

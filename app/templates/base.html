@@ -265,7 +265,7 @@
         <a href="/freescout/" class="nav-top-link {% if '/freescout' in request.url.path %}aktiv{% endif %}">
             <i class="bi bi-headset"></i> {{ t('nav.freescout_bridge') }}
             {% if nav_count(request, 'freescout_open') > 0 %}
-            <span class="badge rounded-pill bg-info text-dark ms-1" title="{{ t('nav.freescout_open_badge_title', count=nav_count(request, 'freescout_open')) }}">{{ nav_count(request, 'freescout_open') }}</span>
+            <span class="badge rounded-pill bg-danger ms-1" title="{{ t('nav.freescout_open_badge_title', count=nav_count(request, 'freescout_open')) }}">{{ nav_count(request, 'freescout_open') }}</span>
             {% endif %}
         </a>
         {% elif request.state.freescout_base_url %}
@@ -284,7 +284,7 @@
         <a href="/purchase-requests/" class="nav-top-link {% if '/purchase-requests' in request.url.path %}aktiv{% endif %}">
             <i class="bi bi-cart"></i> {{ t('nav.purchase_requests') }}
             {% if nav_count(request, 'purchase_requests_open') > 0 %}
-            <span class="badge rounded-pill bg-info text-dark ms-1" title="{{ t('nav.purchase_requests_open_badge_title', count=nav_count(request, 'purchase_requests_open')) }}">{{ nav_count(request, 'purchase_requests_open') }}</span>
+            <span class="badge rounded-pill bg-danger ms-1" title="{{ t('nav.purchase_requests_open_badge_title', count=nav_count(request, 'purchase_requests_open')) }}">{{ nav_count(request, 'purchase_requests_open') }}</span>
             {% endif %}
         </a>
         {% endif %}
@@ -295,7 +295,7 @@
         <a href="/applicants/" class="nav-top-link {% if request.url.path.startswith('/applicants') %}aktiv{% endif %}">
             <i class="bi bi-person-raised-hand"></i> {{ t('nav.applicants') }}
             {% if nav_count(request, 'applicants_new') > 0 %}
-            <span class="badge rounded-pill bg-info text-dark ms-1" title="{{ t('nav.applicants_new_badge_title', count=nav_count(request, 'applicants_new')) }}">{{ nav_count(request, 'applicants_new') }}</span>
+            <span class="badge rounded-pill bg-danger ms-1" title="{{ t('nav.applicants_new_badge_title', count=nav_count(request, 'applicants_new')) }}">{{ nav_count(request, 'applicants_new') }}</span>
             {% endif %}
         </a>
         {% endif %}
@@ -317,7 +317,7 @@
                 <i class="bi bi-hammer"></i>
                 <span>{{ t('nav.work_hours_group') }}</span>
                 {% if new_participations_count(request) > 0 %}
-                <span class="badge rounded-pill bg-info text-dark ms-1" title="{{ t('nav.new_participations_badge_title', count=new_participations_count(request)) }}">
+                <span class="badge rounded-pill bg-danger ms-1" title="{{ t('nav.new_participations_badge_title', count=new_participations_count(request)) }}">
                     {{ new_participations_count(request) }}
                 </span>
                 {% endif %}
@@ -327,7 +327,7 @@
                 <a href="/work-hours/" class="{% if '/work-hours' in request.url.path and '/evaluation' not in request.url.path %}aktiv{% endif %}">
                     {{ t('nav.work_hours_overview') }}
                     {% if new_participations_count(request) > 0 %}
-                    <span class="badge rounded-pill bg-info text-dark ms-1" title="{{ t('nav.new_participations_badge_title', count=new_participations_count(request)) }}">
+                    <span class="badge rounded-pill bg-danger ms-1" title="{{ t('nav.new_participations_badge_title', count=new_participations_count(request)) }}">
                         {{ new_participations_count(request) }}
                     </span>
                     {% endif %}
@@ -447,8 +447,6 @@
         {% if request.state.module_flags.tasks and is_full_access(request) %}
         <a href="/tasks/" class="nav-top-link {% if '/tasks' in request.url.path %}aktiv{% endif %}">
             <i class="bi bi-kanban"></i> {{ t('nav.tasks') }}
-            {# Red, not the info-blue of the other badges: overdue is a
-               problem, not just something new to look at. #}
             {% if nav_count(request, 'tasks_overdue') > 0 %}
             <span class="badge rounded-pill bg-danger ms-1" title="{{ t('nav.tasks_overdue_badge_title', count=nav_count(request, 'tasks_overdue')) }}">{{ nav_count(request, 'tasks_overdue') }}</span>
             {% endif %}

@@ -47,9 +47,12 @@ enough that skipping them per module isn't worth the extra code.
 
 ## Colour
 
-Info-blue (`bg-info text-dark`) is used for "something new to look at",
-the same as the work-sessions badge. Overdue tasks get red
-(`bg-danger`) because they're already a problem, not just new.
+All nav badges are red (`bg-danger`), the work-sessions badge from ADR
+0079 included. kermie asked for one colour for all of them, so a badge
+always means "something here needs attention", whatever the module. The
+"New" markers inside the work-hours pages (the session list and the
+participant table) stay info-blue, because they're page content, not
+nav notifications.
 
 ## Not included
 
