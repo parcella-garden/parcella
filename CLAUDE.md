@@ -5,7 +5,7 @@ Guidance for Claude Code (or any AI coding agent) working in this repository. Th
 ## What this project is
 
 Parcella: an open-source web app for allotment garden associations
-("Kleingartenverein" / "Schrebergarten"). Members, parcels/leases, work hours, metering, insurance, tickets, purchase requests, finances/invoicing, and more, each as an independently toggleable module. AGPL-3.0-licensed, public repo - see [CONTRIBUTING.md](./CONTRIBUTING.md) for the license implications before assuming anything here is private.
+("Kleingartenverein" / "Schrebergarten"). Members, parcels/leases, work hours, metering, insurance, a FreeScout support bridge, purchase requests, finances/invoicing, and more, each as an independently toggleable module. AGPL-3.0-licensed, public repo - see [CONTRIBUTING.md](./CONTRIBUTING.md) for the license implications before assuming anything here is private.
 
 Stack: Python 3.12 + FastAPI, Jinja2 (server-rendered, Bootstrap 5), PostgreSQL 16 + SQLAlchemy (async) + Alembic, Docker Compose. Full table in [README.md](./README.md#tech-stack).
 
@@ -196,23 +196,26 @@ silently continuing.
   translation key, double-check every placeholder in the template
   string has a matching kwarg at every call site, not just the ones
   that happen to render during a quick manual check.
-- **Never put a raw email-header-derived string straight into an HTTP
-  response header.** `email.message.Message.get_filename()` returns
-  whatever the sender's mail client sent -- an unencoded header fold
-  can leave a literal `\r\n` in the decoded filename. Putting that
-  straight into a `Content-Disposition` header (ticket attachment
-  downloads, `app/routers/tickets.py`) isn't just a display glitch,
-  it's a header-injection shape and crashes the response outright
-  (uvicorn: `RuntimeError: Invalid HTTP header value`) -- hit for real
-  the first time a member's mail client folded a screenshot's filename.
-  Fixed via `sanitize_attachment_filename()` in `app/ticket_mailer.py`,
-  applied once at ingestion **and** again defensively where the header
-  is built (same "sanitize at ingestion + defensive pass at render
-  time" pattern `sanitize_email_html`/`sanitize_html` already use for
-  ticket HTML content) -- don't assume that pattern only applies to
-  HTML; any externally-sourced string heading for a header, path, or
-  shell argument needs the same treatment, not just the field that
-  happened to get sanitized first.
+- **Never put a user- or externally-derived string straight into an
+  HTTP header.** A quote, a literal `\r\n` or a character outside
+  latin-1 ("Ł", "€") in a `Content-Disposition` filename isn't just a
+  display glitch: it's a header-injection shape, and it crashes the
+  response outright (uvicorn: `RuntimeError: Invalid HTTP header
+  value`). This was hit for real in the old ticket module: a member's
+  mail client folded a screenshot's filename, and the raw
+  `get_filename()` value went into the attachment download header.
+  Build the header with `content_disposition()` from
+  `app/security_headers.py` (an ASCII fallback plus a percent-encoded
+  `filename*`; see `app/routers/finances.py` for its callers), or use a
+  name the code generates itself (a uuid, a fixed name, or an ASCII
+  slug like `_download_name()` in `app/routers/announcements.py`).
+  The rule isn't limited to HTML or to response headers: any
+  externally-sourced string heading for a header (outbound ones too,
+  e.g. the WordPress media upload in `app/blog_publisher.py`), a path,
+  or a shell argument needs the same treatment. Sanitize at ingestion
+  and again where the value is used, the same pattern
+  `sanitize_email_html`/`sanitize_html` (`app/html_sanitizer.py`) use
+  for HTML.
 - **Jinja scans a template's raw text for `{% %}`/`{{ }}` everywhere,
   including inside `<script>` comments -- it has no idea those are JS
   comments.** Writing the literal syntax `{% block content %}` inside a
