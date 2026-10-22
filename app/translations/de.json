@@ -294,7 +294,7 @@
         "inventory_name": "Inventar",
         "inventory_desc": "Erfasst alles, was der Verein besitzt (sowie persönliche Gegenstände, die Mitglieder auf dem Vereinsgelände lagern), gruppiert in eigene Kategorien, mit optionalem Verleihsystem für ausleihbare Gegenstände.",
         "cloud_storage_name": "Cloud-Speicher",
-        "cloud_storage_desc": "Ermöglicht Vorstand/Admin, für jede Parzelle einen Nextcloud-Ordner zu durchsuchen, hochzuladen und herunterzuladen -- Pachtverträge, Mitgliedsanträge, Ticket-Korrespondenz. Die Verbindung zuerst unter Admin -> Integrationen einrichten.",
+        "cloud_storage_desc": "Ermöglicht Vorstand/Admin, für jede Parzelle einen Cloud-Ordner zu durchsuchen, hochzuladen und herunterzuladen – Pachtverträge, Mitgliedsunterlagen. Den Speicher zuerst unter Admin -> Integrationen wählen.",
         "tasks_name": "Aufgabenboard",
         "tasks_desc": "Ein allgemeines Kanban-Board (Zu erledigen / In Bearbeitung / Erledigt) für Vereinsangelegenheiten, die nicht an einen Arbeitseinsatz gebunden sind -- z.B. \"Versicherung erneuern\", \"Elektriker anrufen\". Nur für Vorstand/Admin.",
         "finances_name": "Finanzen",
@@ -346,17 +346,7 @@
       "endpoint_auth": "Authentifizierung",
       "auth_none": "Keine (öffentlich lesbar)",
       "wordpress_hint": "Ein Referenz-WordPress-Connector-Plugin liegt im Ordner integrations/wordpress des Projekts.",
-      "nextcloud_title": "Nextcloud (Parzellen-Dokumente & Eingangsrechnungen)",
-      "nextcloud_desc": "Ermöglicht Vorstandsmitgliedern, einen Ordner in der Nextcloud-Instanz des Vereins pro Parzelle zu durchsuchen, hoch- und herunterzuladen -- Pachtverträge, Mitgliedsunterlagen, Ticket-Korrespondenz -- und konfiguriert den einzelnen gemeinsamen Ordner für Anhänge von Eingangsrechnungen. Erstellen Sie ein App-Passwort unter den Sicherheitseinstellungen Ihres Nextcloud-Benutzers (Einstellungen -> Sicherheit -> Geräte & Sitzungen) -- verwenden Sie hier nicht Ihr reguläres Nextcloud-Anmeldepasswort.",
       "cloud_storage_module_disabled_notice": "Der Cloud-Speicher-Connector ist derzeit deaktiviert, daher werden Parzellen-Dokumente nicht angezeigt.",
-      "nextcloud_saved": "Nextcloud-Einstellungen gespeichert",
-      "nextcloud_base_url_label": "Nextcloud-URL",
-      "nextcloud_username_label": "Nextcloud-Benutzername",
-      "nextcloud_app_password_label": "App-Passwort",
-      "nextcloud_app_password_hint": "Nicht Ihr reguläres Nextcloud-Login-Passwort -- erstellen Sie eines unter den Sicherheitseinstellungen Ihres Nextcloud-Benutzers.",
-      "nextcloud_save_button": "Speichern",
-      "nextcloud_test_button": "Verbindung testen",
-      "nextcloud_test_success": "Verbindung erfolgreich",
       "incoming_invoices_folder_header": "Ordner für Eingangsrechnungen",
       "incoming_invoices_folder_help": "Anhänge, die beim Erfassen einer Eingangsrechnung (/finances/incoming-invoices) hochgeladen werden, landen in diesem einen gemeinsamen Ordner.",
       "incoming_invoices_folder_label": "Ordnerpfad",
@@ -410,14 +400,20 @@
       "ics_regenerate_confirm": "Das Neuerzeugen beendet jedes bestehende Kalender-Abo der Geburtstags- und Vorstands-Feeds; Abonnenten müssen die neue URL von den Kalenderseiten kopieren. Fortfahren?",
       "ics_token_regenerated": "Kalender-Feed-Token neu erzeugt. Bestehende Abos funktionieren erst mit der neuen URL wieder.",
       "website_title": "Webseite (Entwürfe aus Mitteilungen)",
-      "website_desc": "Wähle das System, auf dem eure Vereinswebseite läuft. Mitteilungen legen dort dann mit einem Klick Entwürfe an. Es ist immer nur ein Webseiten-Typ aktiv: Wählst du einen anderen, wird der bisherige abgeschaltet, seine Einstellungen bleiben aber erhalten.",
+      "website_desc": "Wählen Sie das System, auf dem Ihre Vereinswebseite läuft. Mitteilungen legen dort dann mit einem Klick Entwürfe an. Es ist immer nur ein Webseiten-Typ aktiv: Wählen Sie einen anderen, wird der bisherige abgeschaltet, seine Einstellungen bleiben aber erhalten.",
       "website_type_label": "Webseiten-Typ",
       "website_type_none": "Keiner (keine Webseiten-Entwürfe)",
-      "website_type_hint": "Parcella legt immer nur Entwürfe an. Veröffentlichen bleibt deine Entscheidung im Webseiten-System.",
+      "website_type_hint": "Parcella legt immer nur Entwürfe an. Veröffentlichen bleibt Ihre Entscheidung im Webseiten-System.",
       "website_saved": "Webseiten-Einstellungen gespeichert",
       "website_save_button": "Speichern",
       "website_test_button": "Verbindung testen",
-      "website_test_success": "Verbindung erfolgreich"
+      "website_test_success": "Verbindung erfolgreich",
+      "cloud_storage_title": "Cloud-Speicher (Parzellendokumente, Rechnungen, Sicherungen)",
+      "cloud_storage_desc": "Wählen Sie, wo Parcella seine Dateien ablegt: den Ordner pro Parzelle (Pachtverträge, Mitgliedsunterlagen), Eingangsrechnungen, Kontaktdokumente, Sicherungen und die Markdown-Webseite. Es ist immer nur ein Speicher aktiv: Wählen Sie einen anderen, wird der bisherige abgeschaltet, seine Einstellungen bleiben aber erhalten. Wer einen Ordner außerdem sehen darf, regeln Sie im Speicher selbst, nicht in Parcella.",
+      "cloud_storage_saved": "Einstellungen für den Cloud-Speicher gespeichert",
+      "cloud_storage_type_label": "Speicher-Typ",
+      "cloud_storage_type_none": "Keiner (kein Cloud-Speicher)",
+      "cloud_storage_type_hint": "Ordnerpfade, die an anderer Stelle eingetragen werden (Parzellen, Rechnungen, Kontakte), beziehen sich auf den gewählten Speicher."
     },
     "system": {
       "page_title": "System",
@@ -446,7 +442,7 @@
       "success_message": "Gespeichert.",
       "module_disabled_notice": "Cloud-Sicherungen benötigen das Modul Cloud-Speicher.",
       "module_disabled_link": "Unter Einstellungen aktivieren.",
-      "not_configured_notice": "Das Modul Cloud-Speicher ist aktiv, aber es ist noch keine Nextcloud-Verbindung eingerichtet.",
+      "not_configured_notice": "Das Modul Cloud-Speicher ist aktiv, aber es ist noch kein Speicher eingerichtet.",
       "not_configured_link": "Unter Integrationen einrichten.",
       "settings_header": "Zeitplan",
       "enabled_label": "Automatisch in die Cloud sichern",
@@ -474,7 +470,7 @@
       "error_invalid_frequency": "Bitte eine gültige Häufigkeit wählen.",
       "error_invalid_retention": "Bitte eine Zahl von mindestens 1 eingeben.",
       "error_invalid_filename": "Das sieht nicht nach einer Parcella-Sicherungsdatei aus.",
-      "error_not_configured": "Nextcloud ist unter Admin -> Integrationen nicht eingerichtet."
+      "error_not_configured": "Unter Admin -> Integrationen ist kein Cloud-Speicher eingerichtet."
     },
     "sample_data": {
       "title": "Beispieldaten",
@@ -843,7 +839,7 @@
       "delete_history_tooltip": "Eintrag löschen",
       "delete_history_confirm": "Diesen Eintrag wirklich endgültig löschen? Das kann nicht rückgängig gemacht werden.",
       "cannot_delete_active_assignment": "Eine aktive Zuordnung kann nicht gelöscht werden -- bitte zuerst die Pacht beenden.",
-      "cloud_documents_header": "Dokumente (Nextcloud)",
+      "cloud_documents_header": "Dokumente (Cloud-Speicher)",
       "cloud_folder_saved": "Ordnerpfad gespeichert",
       "cloud_upload_ok": "Datei hochgeladen",
       "cloud_folder_path_label": "Ordnerpfad",
@@ -851,7 +847,7 @@
       "cloud_folder_save_button": "Speichern",
       "cloud_no_folder_hint": "Für die aktuelle Pacht ist noch kein Ordner konfiguriert. Geben Sie den Pfad zu dem Ordner an, der in Nextcloud bereits mit diesen Pächtern geteilt wurde.",
       "cloud_browse_folder_button": "Durchsuchen…",
-      "cloud_picker_root_label": "Nextcloud-Stammverzeichnis",
+      "cloud_picker_root_label": "Stammverzeichnis des Speichers",
       "cloud_picker_use_folder_button": "Diesen Ordner verwenden",
       "cloud_picker_root_hint": "Öffnen Sie zuerst einen Ordner, bevor Sie ihn auswählen.",
       "cloud_picker_empty": "Dieser Ordner enthält keine Unterordner.",
@@ -860,7 +856,7 @@
       "cloud_col_modified": "Zuletzt geändert",
       "cloud_folder_empty": "Dieser Ordner ist leer.",
       "cloud_upload_button": "Hochladen",
-      "cloud_not_configured": "Nextcloud ist noch nicht konfiguriert. Richten Sie es unter Admin -> Integrationen ein.",
+      "cloud_not_configured": "Es ist noch kein Cloud-Speicher eingerichtet. Wählen Sie einen unter Admin -> Integrationen.",
       "cloud_no_active_folder": "Für diese Parzelle ist kein aktiver Ordner konfiguriert.",
       "page_title": "Parzelle {plot_number}",
       "upcoming_badge": "ab {date}",
@@ -2790,7 +2786,7 @@
         "invalid_folder_path": "Der Ordnerpfad ist ungültig."
       },
       "new_folder": "Dokumentenordner für die neuen Pächter",
-      "browse_folder": "Nextcloud durchsuchen",
+      "browse_folder": "Cloud-Speicher durchsuchen",
       "new_folder_hint": "Optional. Der Ordner der bisherigen Pächter wird am Übergabedatum in jedem Fall stillgelegt; dieser Ordner übernimmt an dem Tag. Anlegen und freigeben müssen Sie ihn selbst in Nextcloud.",
       "folder": "Dokumentenordner",
       "folder_old": "{path} – wird am Übergabedatum stillgelegt",
@@ -2966,14 +2962,14 @@
     "connectors": {
       "wordpress": {
         "name": "WordPress",
-        "desc": "Entwürfe werden über die eingebaute REST-API von WordPress angelegt. Lege im WordPress-Benutzerprofil ein Anwendungspasswort an (Benutzer -> Profil -> Anwendungspasswörter) – nicht dein normales Login-Passwort verwenden.",
+        "desc": "Entwürfe werden über die eingebaute REST-API von WordPress angelegt. Erstellen Sie im WordPress-Benutzerprofil ein Anwendungspasswort (Benutzer -> Profil -> Anwendungspasswörter) – nicht Ihr normales Anmeldepasswort verwenden.",
         "fields": {
           "site_url": "WordPress-Adresse",
           "username": "WordPress-Benutzername",
           "app_password": "Anwendungspasswort"
         },
         "hints": {
-          "app_password": "Nicht dein normales WordPress-Passwort – lege eins in deinem WordPress-Benutzerprofil an."
+          "app_password": "Nicht Ihr normales WordPress-Passwort – erstellen Sie eines in Ihrem WordPress-Benutzerprofil."
         }
       },
       "markdown_folder": {
@@ -2996,7 +2992,7 @@
           "site_url": "Wird für den QR-Code auf dem Aushang genutzt, sobald ein Beitrag veröffentlicht ist.",
           "filename_pattern": "{date} wird zu JJJJMMTT, {slug} zum Titel ohne Umlaute und Leerzeichen.",
           "url_pattern": "Wird als \"url\" in den Beitragskopf geschrieben. Leer lassen, wenn die Webseite die Adresse selbst bildet.",
-          "categories": "Kommagetrennt, so wie eure Webseite sie benennt."
+          "categories": "Kommagetrennt, so wie Ihre Webseite sie benennt."
         }
       },
       "parcella_plugin": {
@@ -3009,6 +3005,51 @@
         "hints": {
           "endpoint_url": "Steht in den Plugin-Einstellungen, z. B. https://example.org/parcella/v1.",
           "shared_secret": "Wird vom Plugin erzeugt. Parcella signiert damit jede Anfrage."
+        }
+      }
+    }
+  },
+  "cloud_storage": {
+    "providers": {
+      "nextcloud": {
+        "name": "Nextcloud",
+        "desc": "Die Nextcloud Ihres Vereins. Erstellen Sie ein App-Passwort in den Sicherheitseinstellungen Ihres Nextcloud-Benutzers (Einstellungen -> Sicherheit -> Geräte & Sitzungen) – nicht Ihr normales Anmeldepasswort verwenden.",
+        "fields": {
+          "base_url": "Nextcloud-Adresse",
+          "username": "Nextcloud-Benutzername",
+          "app_password": "App-Passwort"
+        },
+        "hints": {
+          "app_password": "Nicht Ihr normales Nextcloud-Passwort – erstellen Sie eines in den Sicherheitseinstellungen Ihres Nextcloud-Benutzers."
+        }
+      },
+      "webdav": {
+        "name": "WebDAV (ownCloud, Seafile, HiDrive, Storage Box, ...)",
+        "desc": "Jeder Speicher mit WebDAV-Zugang, z. B. ownCloud, Seafile, Strato HiDrive, eine Hetzner Storage Box oder MagentaCLOUD.",
+        "fields": {
+          "root_url": "WebDAV-Adresse",
+          "username": "Benutzername",
+          "password": "Passwort"
+        },
+        "hints": {
+          "root_url": "Die vollständige WebDAV-Adresse des Ordners, in dem Parcella arbeiten soll, so wie Ihr Anbieter sie angibt. Alle Pfade in Parcella beziehen sich darauf."
+        }
+      },
+      "s3": {
+        "name": "S3-kompatibel (AWS, Hetzner, MinIO, Wasabi, ...)",
+        "desc": "Objektspeicher, der das S3-Protokoll spricht. Legen Sie vorher einen Bucket und einen Zugangsschlüssel mit Lese- und Schreibrechten dafür an.",
+        "fields": {
+          "endpoint_url": "Endpunkt",
+          "region": "Region",
+          "bucket": "Bucket",
+          "access_key_id": "Zugangsschlüssel-ID",
+          "secret_access_key": "Geheimer Zugangsschlüssel",
+          "path_prefix": "Pfad im Bucket"
+        },
+        "hints": {
+          "endpoint_url": "Z. B. https://s3.eu-central-1.amazonaws.com oder https://fsn1.your-objectstorage.com.",
+          "region": "So wie Ihr Anbieter sie nennt, z. B. eu-central-1 oder fsn1. us-east-1 stehen lassen, wenn Ihr Anbieter keine Regionen kennt.",
+          "path_prefix": "Optional. Die Ordner von Parcella werden unterhalb dieses Pfades angelegt, z. B. parcella."
         }
       }
     }

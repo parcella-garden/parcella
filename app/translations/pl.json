@@ -294,7 +294,7 @@
         "inventory_name": "Inwentarz",
         "inventory_desc": "Śledzi wszystko, co posiada klub (oraz przedmioty osobiste przechowywane przez członków na terenie klubu), pogrupowane we własne kategorie, z opcjonalnym systemem wypożyczeń.",
         "cloud_storage_name": "Magazyn w chmurze",
-        "cloud_storage_desc": "Umożliwia zarządowi/administratorowi przeglądanie, przesyłanie i pobieranie plików z folderu Nextcloud dla każdej działki -- umowy dzierżawy, wnioski członkowskie, korespondencję ze zgłoszeń. Najpierw skonfiguruj połączenie w Admin -> Integracje.",
+        "cloud_storage_desc": "Pozwala członkom zarządu przeglądać, wysyłać i pobierać pliki z folderu w chmurze dla każdej działki – umowy dzierżawy, dokumenty członkowskie. Najpierw wybierz chmurę w Admin -> Integracje.",
         "tasks_name": "Tablica zadań",
         "tasks_desc": "Ogólna tablica kanban (Do zrobienia / W trakcie / Zrobione) dla spraw stowarzyszenia niezwiązanych z sesją roboczą -- np. \"odnowić polisę ubezpieczeniową\", \"zadzwonić do elektryka\". Tylko dla zarządu/administratora.",
         "finances_name": "Finanse",
@@ -346,17 +346,7 @@
       "endpoint_auth": "Uwierzytelnianie",
       "auth_none": "Brak (publiczny odczyt)",
       "wordpress_hint": "Przykładowa wtyczka-łącznik WordPress znajduje się w folderze integrations/wordpress projektu.",
-      "nextcloud_title": "Nextcloud (dokumenty działek i faktury przychodzące)",
-      "nextcloud_desc": "Umożliwia zarządowi przeglądanie, przesyłanie i pobieranie plików z folderu w instancji Nextcloud klubu dla każdej działki -- umowy dzierżawy, dokumenty członkowskie, korespondencja zgłoszeń -- oraz konfiguruje jeden wspólny folder używany dla załączników faktur przychodzących. Utwórz hasło aplikacji w ustawieniach bezpieczeństwa użytkownika Nextcloud (Ustawienia -> Bezpieczeństwo -> Urządzenia i sesje) -- nie używaj tutaj zwykłego hasła logowania do Nextcloud.",
       "cloud_storage_module_disabled_notice": "Konektor pamięci w chmurze jest obecnie wyłączony, dlatego dokumenty działek nie będą wyświetlane.",
-      "nextcloud_saved": "Ustawienia Nextcloud zapisane",
-      "nextcloud_base_url_label": "Adres URL Nextcloud",
-      "nextcloud_username_label": "Nazwa użytkownika Nextcloud",
-      "nextcloud_app_password_label": "Hasło aplikacji",
-      "nextcloud_app_password_hint": "Nie Twoje zwykłe hasło logowania do Nextcloud -- wygeneruj je w ustawieniach bezpieczeństwa swojego konta Nextcloud.",
-      "nextcloud_save_button": "Zapisz",
-      "nextcloud_test_button": "Testuj połączenie",
-      "nextcloud_test_success": "Połączenie udane",
       "incoming_invoices_folder_header": "Folder faktur przychodzących",
       "incoming_invoices_folder_help": "Załączniki przesyłane podczas rejestrowania faktury przychodzącej (/finances/incoming-invoices) są przechowywane w tym jednym wspólnym folderze.",
       "incoming_invoices_folder_label": "Ścieżka folderu",
@@ -417,7 +407,13 @@
       "website_saved": "Ustawienia strony zapisane",
       "website_save_button": "Zapisz",
       "website_test_button": "Testuj połączenie",
-      "website_test_success": "Połączenie udane"
+      "website_test_success": "Połączenie udane",
+      "cloud_storage_title": "Chmura (dokumenty działek, faktury, kopie zapasowe)",
+      "cloud_storage_desc": "Wybierz, gdzie Parcella przechowuje pliki: folder dla każdej działki (umowy dzierżawy, dokumenty członkowskie), faktury przychodzące, dokumenty kontaktów, kopie zapasowe i stronę Markdown. Aktywna jest zawsze tylko jedna chmura: wybranie innej wyłącza poprzednią, ale zachowuje jej ustawienia. To, kto jeszcze widzi folder, ustawia się w samej chmurze, nie w Parcelli.",
+      "cloud_storage_saved": "Ustawienia chmury zapisane",
+      "cloud_storage_type_label": "Typ chmury",
+      "cloud_storage_type_none": "Brak (bez chmury)",
+      "cloud_storage_type_hint": "Ścieżki folderów wpisywane w innych miejscach (działki, faktury, kontakty) odnoszą się do wybranej chmury."
     },
     "system": {
       "page_title": "System",
@@ -446,7 +442,7 @@
       "success_message": "Zapisano.",
       "module_disabled_notice": "Kopie zapasowe w chmurze wymagają modułu Przechowywanie w chmurze.",
       "module_disabled_link": "Włącz go w Ustawieniach.",
-      "not_configured_notice": "Moduł Przechowywanie w chmurze jest włączony, ale nie skonfigurowano jeszcze połączenia z Nextcloud.",
+      "not_configured_notice": "Moduł chmury jest włączony, ale żadna chmura nie jest jeszcze skonfigurowana.",
       "not_configured_link": "Połącz je w Integracjach.",
       "settings_header": "Harmonogram",
       "enabled_label": "Automatycznie twórz kopie zapasowe w chmurze",
@@ -474,7 +470,7 @@
       "error_invalid_frequency": "Wybierz prawidłową częstotliwość.",
       "error_invalid_retention": "Wprowadź liczbę co najmniej 1.",
       "error_invalid_filename": "To nie wygląda na plik kopii zapasowej Parcella.",
-      "error_not_configured": "Nextcloud nie jest skonfigurowany w Admin -> Integracje."
+      "error_not_configured": "W Admin -> Integracje nie skonfigurowano chmury."
     },
     "sample_data": {
       "title": "Dane przykładowe",
@@ -843,7 +839,7 @@
       "delete_history_tooltip": "Usuń wpis",
       "delete_history_confirm": "Czy na pewno trwale usunąć ten wpis? Tej czynności nie można cofnąć.",
       "cannot_delete_active_assignment": "Nie można usunąć aktywnego przypisania -- najpierw zakończ dzierżawę.",
-      "cloud_documents_header": "Dokumenty (Nextcloud)",
+      "cloud_documents_header": "Dokumenty (chmura)",
       "cloud_folder_saved": "Ścieżka folderu zapisana",
       "cloud_upload_ok": "Plik przesłany",
       "cloud_folder_path_label": "Ścieżka folderu",
@@ -851,7 +847,7 @@
       "cloud_folder_save_button": "Zapisz",
       "cloud_no_folder_hint": "Dla obecnej dzierżawy nie skonfigurowano jeszcze folderu. Podaj ścieżkę do folderu już udostępnionego tym dzierżawcom w Nextcloud.",
       "cloud_browse_folder_button": "Przeglądaj…",
-      "cloud_picker_root_label": "Katalog główny Nextcloud",
+      "cloud_picker_root_label": "Katalog główny chmury",
       "cloud_picker_use_folder_button": "Użyj tego folderu",
       "cloud_picker_root_hint": "Najpierw otwórz folder, zanim go wybierzesz.",
       "cloud_picker_empty": "Ten folder nie ma podfolderów.",
@@ -860,7 +856,7 @@
       "cloud_col_modified": "Ostatnia modyfikacja",
       "cloud_folder_empty": "Ten folder jest pusty.",
       "cloud_upload_button": "Prześlij",
-      "cloud_not_configured": "Nextcloud nie jest jeszcze skonfigurowany. Skonfiguruj go w Admin -> Integracje.",
+      "cloud_not_configured": "Chmura nie jest jeszcze skonfigurowana. Wybierz ją w Admin -> Integracje.",
       "cloud_no_active_folder": "Dla tej działki nie skonfigurowano aktywnego folderu.",
       "page_title": "Działka {plot_number}",
       "upcoming_badge": "od {date}",
@@ -2790,7 +2786,7 @@
         "invalid_folder_path": "Ścieżka folderu jest nieprawidłowa."
       },
       "new_folder": "Folder dokumentów dla nowych dzierżawców",
-      "browse_folder": "Przeglądaj Nextcloud",
+      "browse_folder": "Przeglądaj chmurę",
       "new_folder_hint": "Opcjonalnie. Folder dotychczasowych dzierżawców zostanie w każdym razie wycofany w dniu przekazania; ten folder przejmie jego rolę tego dnia. Utwórz go i udostępnij samodzielnie w Nextcloud.",
       "folder": "Folder dokumentów",
       "folder_old": "{path} – wycofany w dniu przekazania",
@@ -3009,6 +3005,51 @@
         "hints": {
           "endpoint_url": "Widoczny w ustawieniach wtyczki, np. https://example.org/parcella/v1.",
           "shared_secret": "Generowany przez wtyczkę. Parcella podpisuje nim każde żądanie."
+        }
+      }
+    }
+  },
+  "cloud_storage": {
+    "providers": {
+      "nextcloud": {
+        "name": "Nextcloud",
+        "desc": "Nextcloud waszego stowarzyszenia. Utwórz hasło aplikacji w ustawieniach bezpieczeństwa użytkownika Nextcloud (Ustawienia -> Bezpieczeństwo -> Urządzenia i sesje) – nie używaj zwykłego hasła logowania.",
+        "fields": {
+          "base_url": "Adres Nextcloud",
+          "username": "Nazwa użytkownika Nextcloud",
+          "app_password": "Hasło aplikacji"
+        },
+        "hints": {
+          "app_password": "To nie jest zwykłe hasło do Nextcloud – wygeneruj je w ustawieniach bezpieczeństwa swojego użytkownika."
+        }
+      },
+      "webdav": {
+        "name": "WebDAV (ownCloud, Seafile, HiDrive, Storage Box, ...)",
+        "desc": "Każda chmura z dostępem WebDAV, np. ownCloud, Seafile, Strato HiDrive, Hetzner Storage Box lub MagentaCLOUD.",
+        "fields": {
+          "root_url": "Adres WebDAV",
+          "username": "Nazwa użytkownika",
+          "password": "Hasło"
+        },
+        "hints": {
+          "root_url": "Pełny adres WebDAV folderu, w którym Parcella ma pracować, zgodnie z dokumentacją dostawcy. Wszystkie ścieżki w Parcelli odnoszą się do niego."
+        }
+      },
+      "s3": {
+        "name": "Zgodna z S3 (AWS, Hetzner, MinIO, Wasabi, ...)",
+        "desc": "Magazyn obiektowy obsługujący protokół S3. Najpierw utwórz bucket i klucz dostępu z prawem odczytu i zapisu.",
+        "fields": {
+          "endpoint_url": "Endpoint",
+          "region": "Region",
+          "bucket": "Bucket",
+          "access_key_id": "ID klucza dostępu",
+          "secret_access_key": "Tajny klucz dostępu",
+          "path_prefix": "Ścieżka w buckecie"
+        },
+        "hints": {
+          "endpoint_url": "Np. https://s3.eu-central-1.amazonaws.com lub https://fsn1.your-objectstorage.com.",
+          "region": "Tak jak nazywa go dostawca, np. eu-central-1 lub fsn1. Zostaw us-east-1, jeśli dostawca nie używa regionów.",
+          "path_prefix": "Opcjonalnie. Foldery Parcelli są tworzone poniżej tej ścieżki, np. parcella."
         }
       }
     }

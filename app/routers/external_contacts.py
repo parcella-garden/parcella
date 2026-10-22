@@ -28,7 +28,7 @@ from app.csv_utils import (
 )
 from app.database import get_db
 from app.i18n import AVAILABLE_LANGUAGES, t_for
-from app.cloud_storage import CloudStorageError, get_nextcloud_provider
+from app.cloud_storage import CloudStorageError, get_cloud_storage_provider
 from app.contact_documents import contact_folder_path, load_base_folder, sanitize_folder_name, upload_filename
 from app.contact_filters import ContactListFilter
 from app.parcel_cloud_folders import InvalidCloudPathError, sanitize_browse_subpath
@@ -486,7 +486,7 @@ async def _documents_context(
     may_pick = has_permission(getattr(request.state, "permissions", {}), MODULE, "write")
     if not docs["base_folder"] or not (listing or may_pick):
         return docs
-    provider = await get_nextcloud_provider(db)
+    provider = await get_cloud_storage_provider(db)
     if provider is None:
         docs["error"] = t_for(request, "external_contacts.documents.cloud_not_configured")
         return docs
@@ -563,7 +563,7 @@ async def documents_upload(
         return _documents_redirect(
             contact_id, browse_path, docs_error=t_for(request, "external_contacts.documents.invalid_file"),
         )
-    provider = await get_nextcloud_provider(db)
+    provider = await get_cloud_storage_provider(db)
     if provider is None:
         raise HTTPException(status_code=400, detail=t_for(request, "external_contacts.documents.cloud_not_configured"))
     try:
@@ -585,7 +585,7 @@ async def documents_download(
     await require_permission(request, db, MODULE, "read")
     contact = await _get_contact_or_404(request, db, contact_id)
     base_folder = await _documents_folder_or_404(request, db, contact)
-    provider = await get_nextcloud_provider(db)
+    provider = await get_cloud_storage_provider(db)
     if provider is None:
         raise HTTPException(status_code=400, detail=t_for(request, "external_contacts.documents.cloud_not_configured"))
     try:

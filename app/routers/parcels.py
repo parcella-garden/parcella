@@ -30,7 +30,7 @@ from app.auth import require_admin
 from app.permissions import require_permission
 from app.i18n import t_for
 from app.module_flags import require_module
-from app.cloud_storage import get_nextcloud_provider, CloudStorageError
+from app.cloud_storage import get_cloud_storage_provider, CloudStorageError
 from app.parcel_cloud_folders import (
     get_active_folder, set_active_folder, deactivate_if_vacant, InvalidCloudPathError,
     sanitize_browse_subpath, browse_folder_picker, get_scheduled_folder,
@@ -255,7 +255,7 @@ async def parcel_detail(
                 root_label=t_for(request, "parcels.detail.cloud_picker_root_label"),
                 not_configured_message=t_for(request, "parcels.cloud_storage.not_configured"),
             )
-        provider = None if picking else await get_nextcloud_provider(db)
+        provider = None if picking else await get_cloud_storage_provider(db)
         try:
             if cloud_folder and not picking:
                 cloud_breadcrumbs = [{"name": cloud_folder.relative_path.rsplit("/", 1)[-1], "cloud_path": ""}]
@@ -600,7 +600,7 @@ async def parcel_cloud_file_upload(
     if not folder:
         raise HTTPException(status_code=404, detail=t_for(request, "parcels.detail.cloud_no_active_folder"))
 
-    provider = await get_nextcloud_provider(db)
+    provider = await get_cloud_storage_provider(db)
     if provider is None:
         raise HTTPException(status_code=400, detail=t_for(request, "parcels.detail.cloud_not_configured"))
 
@@ -636,7 +636,7 @@ async def parcel_cloud_file_download(
     if not folder:
         raise HTTPException(status_code=404, detail=t_for(request, "parcels.detail.cloud_no_active_folder"))
 
-    provider = await get_nextcloud_provider(db)
+    provider = await get_cloud_storage_provider(db)
     if provider is None:
         raise HTTPException(status_code=400, detail=t_for(request, "parcels.detail.cloud_not_configured"))
 

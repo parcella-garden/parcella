@@ -389,7 +389,7 @@ async def _setup_documents(client, monkeypatch, files_by_path):
     async def fake_provider(db, client=None):
         return cloud
 
-    monkeypatch.setattr("app.routers.external_contacts.get_nextcloud_provider", fake_provider)
+    monkeypatch.setattr("app.routers.external_contacts.get_cloud_storage_provider", fake_provider)
     return cloud
 
 

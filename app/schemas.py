@@ -1118,10 +1118,11 @@ class KanbanTaskCommentOut(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Website connectors (ADR 0104) -- one active CMS at a time
+# "One dropdown, one provider at a time" integrations (website ADR 0104,
+# cloud storage ADR 0106) -- app/provider_registry.py
 # ---------------------------------------------------------------------------
 
-class WebsiteConnectorFieldOut(BaseModel):
+class ProviderFieldOut(BaseModel):
     key: str
     kind: str
     required: bool
@@ -1129,14 +1130,14 @@ class WebsiteConnectorFieldOut(BaseModel):
     label: str
 
 
-class WebsiteConnectorTypeOut(BaseModel):
+class ProviderTypeOut(BaseModel):
     type: str
     name: str
     description: str
-    fields: List[WebsiteConnectorFieldOut]
+    fields: List[ProviderFieldOut]
 
 
-class WebsiteSettingsOut(BaseModel):
+class ProviderSettingsOut(BaseModel):
     """Secrets are never returned: a secret field shows up in
     `secrets_set` (true/false) instead of `values`."""
     active: Optional[str] = None
@@ -1144,15 +1145,15 @@ class WebsiteSettingsOut(BaseModel):
     secrets_set: Dict[str, Dict[str, bool]]
 
 
-class WebsiteSettingsUpdate(BaseModel):
-    """Sets the active CMS (null = none) and its non-secret fields.
-    Secrets (passwords, shared secrets) can only be entered on Admin ->
+class ProviderSettingsUpdate(BaseModel):
+    """Sets the active provider (null = none) and its non-secret fields.
+    Secrets (passwords, keys) can only be entered on Admin ->
     Integrations, same rule as /api/v1/club-settings."""
     active: Optional[str] = None
     values: Dict[str, Optional[str]] = Field(default_factory=dict)
 
 
-class WebsiteTestResult(BaseModel):
+class ProviderTestResult(BaseModel):
     ok: bool
     message: str = ""
 

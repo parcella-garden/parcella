@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import ClubSetting
 from app.backup import build_backup_zip, BackupError
-from app.cloud_storage import get_nextcloud_provider, CloudStorageError, CloudFileEntry
+from app.cloud_storage import get_cloud_storage_provider, CloudStorageError, CloudFileEntry
 
 KEY_ENABLED = "cloud_backup_enabled"
 KEY_FOLDER = "cloud_backup_folder"
@@ -183,9 +183,9 @@ async def run_cloud_backup_now(db: AsyncSession) -> None:
     rather than two error-reporting paths that could disagree."""
     cfg = await get_cloud_backup_settings(db)
 
-    provider = await get_nextcloud_provider(db)
+    provider = await get_cloud_storage_provider(db)
     if provider is None:
-        await _record_run(db, "error", "Nextcloud is not configured under Admin -> Integrations.")
+        await _record_run(db, "error", "No cloud storage is set up under Admin -> Integrations.")
         return
 
     try:

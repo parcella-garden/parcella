@@ -214,7 +214,7 @@ async def test_run_cloud_backup_now_uploads_real_dump_and_records_success(monkey
     async def fake_get_nextcloud_provider(db, client=None):
         return provider
 
-    monkeypatch.setattr("app.cloud_backup.get_nextcloud_provider", fake_get_nextcloud_provider)
+    monkeypatch.setattr("app.cloud_backup.get_cloud_storage_provider", fake_get_nextcloud_provider)
 
     async with AsyncSessionLocal() as db:
         await run_cloud_backup_now(db)
@@ -236,7 +236,7 @@ async def test_run_cloud_backup_now_records_error_when_upload_fails(monkeypatch)
     async def fake_get_nextcloud_provider(db, client=None):
         return provider
 
-    monkeypatch.setattr("app.cloud_backup.get_nextcloud_provider", fake_get_nextcloud_provider)
+    monkeypatch.setattr("app.cloud_backup.get_cloud_storage_provider", fake_get_nextcloud_provider)
 
     async with AsyncSessionLocal() as db:
         await run_cloud_backup_now(db)  # must not raise
@@ -275,7 +275,7 @@ async def test_run_cloud_backup_now_still_works_when_automatic_schedule_disabled
     async def fake_get_nextcloud_provider(db, client=None):
         return provider
 
-    monkeypatch.setattr("app.cloud_backup.get_nextcloud_provider", fake_get_nextcloud_provider)
+    monkeypatch.setattr("app.cloud_backup.get_cloud_storage_provider", fake_get_nextcloud_provider)
 
     async with AsyncSessionLocal() as db:
         await run_cloud_backup_now(db)
@@ -292,7 +292,7 @@ async def test_run_cloud_backup_now_records_error_when_not_configured(monkeypatc
     async def fake_get_nextcloud_provider(db, client=None):
         return None
 
-    monkeypatch.setattr("app.cloud_backup.get_nextcloud_provider", fake_get_nextcloud_provider)
+    monkeypatch.setattr("app.cloud_backup.get_cloud_storage_provider", fake_get_nextcloud_provider)
 
     async with AsyncSessionLocal() as db:
         await run_cloud_backup_now(db)
@@ -339,7 +339,7 @@ async def test_retention_sweep_deletes_oldest_beyond_count(monkeypatch):
     async def fake_get_nextcloud_provider(db, client=None):
         return provider
 
-    monkeypatch.setattr("app.cloud_backup.get_nextcloud_provider", fake_get_nextcloud_provider)
+    monkeypatch.setattr("app.cloud_backup.get_cloud_storage_provider", fake_get_nextcloud_provider)
 
     async with AsyncSessionLocal() as db:
         await run_cloud_backup_now(db)
@@ -377,7 +377,7 @@ async def test_restore_from_cloud_round_trip(client, admin_user, monkeypatch):
     async def fake_get_nextcloud_provider(db, client=None):
         return provider
 
-    monkeypatch.setattr("app.routers.admin.get_nextcloud_provider", fake_get_nextcloud_provider)
+    monkeypatch.setattr("app.routers.admin.get_cloud_storage_provider", fake_get_nextcloud_provider)
 
     resp = await client.post(
         "/admin/backup/restore-from-cloud",

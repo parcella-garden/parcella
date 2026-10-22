@@ -109,3 +109,4 @@ in chronological order.
 103. [Spam filter and IMAP leftovers removed](./0103-spam-filter-leftovers-removed.md)
 104. [Website connectors: one dropdown, one CMS at a time](./0104-website-connectors-one-cms-at-a-time.md)
 105. [Website plugin protocol: one open contract instead of one client per CMS](./0105-website-plugin-protocol-and-cms-plugins.md)
+106. [Cloud storage: one dropdown, one provider at a time](./0106-cloud-storage-one-provider-at-a-time.md)

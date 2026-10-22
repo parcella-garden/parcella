@@ -783,7 +783,7 @@ def _patch_admin_wordpress(monkeypatch, transport):
             config["site_url"], config["username"], config["app_password"], client=mock_client,
         )
 
-    monkeypatch.setattr("app.routers.admin.build_connector", fake_build_connector)
+    monkeypatch.setattr("app.routers.admin.WEBSITE.build", fake_build_connector)
     return mock_client
 
 

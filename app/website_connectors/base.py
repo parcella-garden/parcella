@@ -16,6 +16,8 @@ from typing import List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.provider_registry import ConfigField  # noqa: F401  (re-exported for connectors)
+
 
 class BlogPublishError(Exception):
     """Raised for any failure talking to the website -- network, auth,
@@ -53,23 +55,6 @@ class DraftResult:
     post_id: str
     edit_url: Optional[str] = None
     location: Optional[str] = None
-
-
-@dataclass
-class ConfigField:
-    """One setting a connector needs, rendered generically on Admin ->
-    Integrations and in the REST API. Stored as the ClubSetting
-    `website_<connector type>_<key>`. `kind` is one of text, url, path,
-    secret, list (comma-separated). Secrets are encrypted at rest and
-    never shown or returned again. Labels come from the translation key
-    `website.connectors.<type>.fields.<key>`; with `hint=True` also
-    `website.connectors.<type>.hints.<key>`."""
-    key: str
-    kind: str = "text"
-    required: bool = False
-    default: str = ""
-    placeholder: str = ""
-    hint: bool = False
 
 
 class WebsiteConnector:

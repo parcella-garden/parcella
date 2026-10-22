@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "admin/_provider_form.html" import provider_form with context %}
 {% block title %}{{ t('admin.integrations.title') }}{% endblock %}
 {% block page_title %}{{ t('admin.integrations.title') }}{% endblock %}
 
@@ -173,55 +174,11 @@
         <div class="alert alert-danger">{{ website_error }}</div>
         {% endif %}
 
-        <form method="post" action="/admin/integrations/website">
-            {{ csrf_field() }}
-            <div class="mb-3">
-                <label class="form-label fw-semibold" for="website-connector-select">{{ t('admin.integrations.website_type_label') }}</label>
-                <select name="website_connector" id="website-connector-select" class="form-select">
-                    <option value="" {% if not website_active_type %}selected{% endif %}>{{ t('admin.integrations.website_type_none') }}</option>
-                    {% for connector in website_connectors %}
-                    <option value="{{ connector.type }}" {% if website_active_type == connector.type %}selected{% endif %}>{{ t('website.connectors.' ~ connector.type ~ '.name') }}</option>
-                    {% endfor %}
-                </select>
-                <div class="form-text">{{ t('admin.integrations.website_type_hint') }}</div>
-            </div>
-
-            {% for connector in website_connectors %}
-            <fieldset class="website-connector-fields" data-website-type="{{ connector.type }}" {% if website_active_type != connector.type %}hidden{% endif %}>
-                <p class="text-muted" style="font-size: 0.85rem;">{{ t('website.connectors.' ~ connector.type ~ '.desc') }}</p>
-                {% for item in connector.fields %}
-                {% set f = item.field %}
-                <div class="mb-3">
-                    <label class="form-label fw-semibold" for="{{ item.name }}">
-                        {{ t('website.connectors.' ~ connector.type ~ '.fields.' ~ f.key) }}{% if f.required %} *{% endif %}
-                    </label>
-                    {% if f.kind == 'secret' %}
-                    <input type="password" name="{{ item.name }}" id="{{ item.name }}" class="form-control" autocomplete="off"
-                           placeholder="{% if item.is_set %}{{ t('admin.settings.password_set_placeholder') }}{% else %}{{ t('admin.settings.password_unset_placeholder') }}{% endif %}">
-                    {% else %}
-                    <input type="{{ 'url' if f.kind == 'url' else 'text' }}" name="{{ item.name }}" id="{{ item.name }}" class="form-control"
-                           value="{{ item.value }}" placeholder="{{ f.placeholder }}">
-                    {% endif %}
-                    {% if f.hint %}
-                    <div class="form-text">{{ t('website.connectors.' ~ connector.type ~ '.hints.' ~ f.key) }}</div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </fieldset>
-            {% endfor %}
-
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-lg me-1"></i>{{ t('admin.integrations.website_save_button') }}
-            </button>
-            <button type="submit" formaction="/admin/integrations/website/test" formmethod="post" class="btn btn-outline-secondary" id="website-test-button">
-                {{ t('admin.integrations.website_test_button') }}
-            </button>
-            {% if website_test_result == 'success' %}
-            <span class="text-success ms-2"><i class="bi bi-check-circle"></i> {{ t('admin.integrations.website_test_success') }}</span>
-            {% elif website_test_result == 'failed' %}
-            <div class="text-danger mt-2"><i class="bi bi-x-circle"></i> {{ website_test_message }}</div>
-            {% endif %}
-        </form>
+        {{ provider_form(website, 'website', '/admin/integrations/website', '/admin/integrations/website/test',
+                         t('admin.integrations.website_type_none'), t('admin.integrations.website_type_label'),
+                         t('admin.integrations.website_type_hint'), t('admin.integrations.website_save_button'),
+                         t('admin.integrations.website_test_button'), t('admin.integrations.website_test_success'),
+                         website_test_result, website_test_message) }}
     </div>
     </div>
 </div>
@@ -229,47 +186,25 @@
 <div class="card mb-3">
     <div class="card-header settings-card-toggle collapsed" role="button" data-bs-toggle="collapse"
          data-bs-target="#integration-card-nextcloud" aria-expanded="false">
-        <span><i class="bi bi-cloud me-2"></i>{{ t('admin.integrations.nextcloud_title') }}</span>
+        <span><i class="bi bi-cloud me-2"></i>{{ t('admin.integrations.cloud_storage_title') }}</span>
         <i class="bi bi-chevron-down settings-card-chevron"></i>
     </div>
     <div class="collapse" id="integration-card-nextcloud" data-bs-parent="#integrations-accordion">
     <div class="card-body">
-        <p class="text-muted">{{ t('admin.integrations.nextcloud_desc') }}</p>
+        <p class="text-muted">{{ t('admin.integrations.cloud_storage_desc') }}</p>
 
-        {% if nextcloud_saved %}
-        <div class="alert alert-success">{{ t('admin.integrations.nextcloud_saved') }}</div>
+        {% if cloud_storage_saved %}
+        <div class="alert alert-success">{{ t('admin.integrations.cloud_storage_saved') }}</div>
+        {% endif %}
+        {% if cloud_storage_error %}
+        <div class="alert alert-danger">{{ cloud_storage_error }}</div>
         {% endif %}
 
-        <form method="post" action="/admin/integrations/nextcloud">
-            {{ csrf_field() }}
-            <div class="mb-3">
-                <label class="form-label fw-semibold">{{ t('admin.integrations.nextcloud_base_url_label') }}</label>
-                <input type="url" name="nextcloud_base_url" class="form-control"
-                       value="{{ nextcloud_base_url }}" placeholder="https://cloud.example.com">
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-semibold">{{ t('admin.integrations.nextcloud_username_label') }}</label>
-                <input type="text" name="nextcloud_username" class="form-control" value="{{ nextcloud_username }}">
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-semibold">{{ t('admin.integrations.nextcloud_app_password_label') }}</label>
-                <input type="password" name="nextcloud_app_password" class="form-control" autocomplete="off"
-                       placeholder="{% if nextcloud_app_password_set %}{{ t('admin.settings.password_set_placeholder') }}{% else %}{{ t('admin.settings.password_unset_placeholder') }}{% endif %}">
-                <div class="form-text">{{ t('admin.integrations.nextcloud_app_password_hint') }}</div>
-            </div>
-
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-lg me-1"></i>{{ t('admin.integrations.nextcloud_save_button') }}
-            </button>
-            <button type="submit" formaction="/admin/integrations/nextcloud/test" formmethod="post" class="btn btn-outline-secondary">
-                {{ t('admin.integrations.nextcloud_test_button') }}
-            </button>
-            {% if nextcloud_test_result == 'success' %}
-            <span class="text-success ms-2"><i class="bi bi-check-circle"></i> {{ t('admin.integrations.nextcloud_test_success') }}</span>
-            {% elif nextcloud_test_result == 'failed' %}
-            <div class="text-danger mt-2"><i class="bi bi-x-circle"></i> {{ nextcloud_test_message }}</div>
-            {% endif %}
-        </form>
+        {{ provider_form(cloud_storage, 'cloud-storage', '/admin/integrations/cloud-storage', '/admin/integrations/cloud-storage/test',
+                         t('admin.integrations.cloud_storage_type_none'), t('admin.integrations.cloud_storage_type_label'),
+                         t('admin.integrations.cloud_storage_type_hint'), t('admin.integrations.website_save_button'),
+                         t('admin.integrations.website_test_button'), t('admin.integrations.website_test_success'),
+                         cloud_storage_test_result, cloud_storage_test_message) }}
 
         {% if cloud_storage_active %}
         <hr class="my-3">
@@ -451,17 +386,20 @@
 {% block extra_scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    var select = document.getElementById('website-connector-select');
-    var testButton = document.getElementById('website-test-button');
-    if (!select) { return; }
-    function sync() {
-        document.querySelectorAll('.website-connector-fields').forEach(function (fieldset) {
-            fieldset.hidden = fieldset.getAttribute('data-website-type') !== select.value;
-        });
-        if (testButton) { testButton.disabled = select.value === ''; }
-    }
-    select.addEventListener('change', sync);
-    sync();
+    // One dropdown, one provider at a time: show only the chosen
+    // provider's fields (see admin/_provider_form.html).
+    document.querySelectorAll('[data-provider-select]').forEach(function (select) {
+        var group = select.getAttribute('data-provider-select');
+        var testButton = document.querySelector('[data-provider-test="' + group + '"]');
+        function sync() {
+            document.querySelectorAll('[data-provider-group="' + group + '"]').forEach(function (fieldset) {
+                fieldset.hidden = fieldset.getAttribute('data-provider-type') !== select.value;
+            });
+            if (testButton) { testButton.disabled = select.value === ''; }
+        }
+        select.addEventListener('change', sync);
+        sync();
+    });
 });
 </script>
 {% endblock %}

@@ -59,7 +59,7 @@ from app.module_flags import require_module
 from app.branding import load_branding
 from app.pdf_chrome import load_org_footer_context
 from app.l10n import load_current_region, load_current_currency
-from app.cloud_storage import get_nextcloud_provider, CloudStorageError
+from app.cloud_storage import get_cloud_storage_provider, CloudStorageError
 from app.invoice_generation import compute_invoices_for_run, finalize_run, SequenceCollisionError
 from app.invoice_pdf import (
     InvoicePdfData, InvoicePdfLineItem, render_invoice_pdf, invoice_pdf_data_from_invoice, invoice_pdf_filename,
@@ -429,7 +429,7 @@ async def incoming_invoice_create(
     if file is not None and file.filename and _cloud_storage_enabled(request):
         folder_path = await _get_incoming_invoices_folder(db)
         if folder_path:
-            provider = await get_nextcloud_provider(db)
+            provider = await get_cloud_storage_provider(db)
             if provider is not None:
                 try:
                     content = await file.read()
@@ -573,7 +573,7 @@ async def incoming_invoice_download(invoice_id: str, request: Request, db: Async
     if not folder_path:
         raise HTTPException(status_code=400, detail=t_for(request, "finances.incoming_invoices.cloud_not_configured"))
 
-    provider = await get_nextcloud_provider(db)
+    provider = await get_cloud_storage_provider(db)
     if provider is None:
         raise HTTPException(status_code=400, detail=t_for(request, "finances.incoming_invoices.cloud_not_configured"))
 
@@ -1167,7 +1167,7 @@ async def run_deliver(run_id: str, request: Request, db: AsyncSession = Depends(
 
     invoices = await _run_invoices(db, run_id)
     ctx = await _pdf_context(db)
-    provider = await get_nextcloud_provider(db)
+    provider = await get_cloud_storage_provider(db)
 
     emailed_count = 0
     uploaded_count = 0

@@ -21,7 +21,7 @@ from typing import List, Optional, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.cloud_storage import CloudStorageError, CloudStorageProvider, get_nextcloud_provider
+from app.cloud_storage import CloudStorageError, CloudStorageProvider, get_cloud_storage_provider
 from app.parcel_cloud_folders import InvalidCloudPathError, sanitize_relative_path
 from app.website_connectors.base import (
     BlogPostNotFoundError, BlogPublishError, ConfigField, DraftContent, DraftResult, WebsiteConnector,
@@ -307,7 +307,7 @@ class MarkdownFolderPublisher(WebsiteConnector):
 async def get_storage_provider(db: AsyncSession) -> Optional[CloudStorageProvider]:
     """The club's cloud storage. Nextcloud is the only provider today;
     a module-level function so tests can swap in an in-memory one."""
-    return await get_nextcloud_provider(db)
+    return await get_cloud_storage_provider(db)
 
 
 def validate_path(value: str) -> str:

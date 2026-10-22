@@ -1,0 +1,56 @@
+{#- The "one dropdown, one provider at a time" form shared by the
+    Website, Cloud storage and Helpdesk cards (app/provider_registry.py).
+    `ctx` is ProviderRegistry.admin_context(); `group` names the card so
+    the page script only toggles that card's fieldsets. Import it
+    "with context" so t() and csrf_field() are available. -#}
+{% macro provider_form(ctx, group, action, test_action, none_label, type_label, type_hint, save_label, test_label, test_success_label, test_result=None, test_message=None) %}
+<form method="post" action="{{ action }}">
+    {{ csrf_field() }}
+    <div class="mb-3">
+        <label class="form-label fw-semibold" for="{{ group }}-provider-select">{{ type_label }}</label>
+        <select name="{{ ctx.active_key }}" id="{{ group }}-provider-select" class="form-select" data-provider-select="{{ group }}">
+            <option value="" {% if not ctx.active_type %}selected{% endif %}>{{ none_label }}</option>
+            {% for provider in ctx.providers %}
+            <option value="{{ provider.type }}" {% if ctx.active_type == provider.type %}selected{% endif %}>{{ t(ctx.i18n_prefix ~ '.' ~ provider.type ~ '.name') }}</option>
+            {% endfor %}
+        </select>
+        <div class="form-text">{{ type_hint }}</div>
+    </div>
+
+    {% for provider in ctx.providers %}
+    <fieldset data-provider-group="{{ group }}" data-provider-type="{{ provider.type }}" {% if ctx.active_type != provider.type %}hidden{% endif %}>
+        <p class="text-muted" style="font-size: 0.85rem;">{{ t(ctx.i18n_prefix ~ '.' ~ provider.type ~ '.desc') }}</p>
+        {% for item in provider.fields %}
+        {% set f = item.field %}
+        <div class="mb-3">
+            <label class="form-label fw-semibold" for="{{ item.name }}">
+                {{ t(ctx.i18n_prefix ~ '.' ~ provider.type ~ '.fields.' ~ f.key) }}{% if f.required %} *{% endif %}
+            </label>
+            {% if f.kind == 'secret' %}
+            <input type="password" name="{{ item.name }}" id="{{ item.name }}" class="form-control" autocomplete="off"
+                   placeholder="{% if item.is_set %}{{ t('admin.settings.password_set_placeholder') }}{% else %}{{ t('admin.settings.password_unset_placeholder') }}{% endif %}">
+            {% else %}
+            <input type="{{ 'url' if f.kind == 'url' else 'text' }}" name="{{ item.name }}" id="{{ item.name }}" class="form-control"
+                   value="{{ item.value }}" placeholder="{{ f.placeholder }}">
+            {% endif %}
+            {% if f.hint %}
+            <div class="form-text">{{ t(ctx.i18n_prefix ~ '.' ~ provider.type ~ '.hints.' ~ f.key) }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </fieldset>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-lg me-1"></i>{{ save_label }}
+    </button>
+    <button type="submit" formaction="{{ test_action }}" formmethod="post" class="btn btn-outline-secondary" data-provider-test="{{ group }}">
+        {{ test_label }}
+    </button>
+    {% if test_result == 'success' %}
+    <span class="text-success ms-2"><i class="bi bi-check-circle"></i> {{ test_success_label }}</span>
+    {% elif test_result == 'failed' %}
+    <div class="text-danger mt-2"><i class="bi bi-x-circle"></i> {{ test_message }}</div>
+    {% endif %}
+</form>
+{% endmacro %}

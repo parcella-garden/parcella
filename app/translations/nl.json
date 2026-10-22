@@ -294,7 +294,7 @@
         "inventory_name": "Inventaris",
         "inventory_desc": "Houdt alles bij wat de vereniging bezit (en persoonlijke spullen die leden op het verenigingsterrein opslaan), gegroepeerd in eigen categorieën, met een optioneel uitleensysteem.",
         "cloud_storage_name": "Cloudopslag",
-        "cloud_storage_desc": "Hiermee kan het bestuur/de beheerder voor elk perceel bestanden doorzoeken, uploaden en downloaden vanuit een Nextcloud-map -- pachtcontracten, lidmaatschapsaanvragen, ticketcorrespondentie. Configureer eerst de verbinding onder Admin -> Integraties.",
+        "cloud_storage_desc": "Laat bestuursleden per perceel bestanden in een cloudmap bekijken, uploaden en downloaden -- huurcontracten, lidmaatschapsdocumenten. Kies eerst de opslag onder Admin -> Integraties.",
         "tasks_name": "Takenbord",
         "tasks_desc": "Een algemeen kanbanbord (Te doen / Mee bezig / Klaar) voor verenigingszaken die niet aan een werkbeurt gekoppeld zijn -- bijv. \"verzekering verlengen\", \"elektricien bellen\". Alleen voor bestuur/beheerder.",
         "finances_name": "Financiën",
@@ -346,17 +346,7 @@
       "endpoint_auth": "Authenticatie",
       "auth_none": "Geen (publiek leesbaar)",
       "wordpress_hint": "Een referentie-WordPress-connectorplugin staat in de map integrations/wordpress van het project.",
-      "nextcloud_title": "Nextcloud (perceeldocumenten & inkomende facturen)",
-      "nextcloud_desc": "Hiermee kunnen bestuursleden een map in de Nextcloud-omgeving van de vereniging per perceel doorbladeren, uploaden en downloaden -- pachtovereenkomsten, lidmaatschapsdocumenten, ticketcorrespondentie -- en wordt de ene gedeelde map voor bijlagen van inkomende facturen ingesteld. Maak een app-wachtwoord aan bij de beveiligingsinstellingen van uw Nextcloud-gebruiker (Instellingen -> Beveiliging -> Apparaten & sessies) -- gebruik hier niet uw normale Nextcloud-inlogwachtwoord.",
       "cloud_storage_module_disabled_notice": "De cloudopslag-connector is momenteel uitgeschakeld, dus perceeldocumenten worden niet getoond.",
-      "nextcloud_saved": "Nextcloud-instellingen opgeslagen",
-      "nextcloud_base_url_label": "Nextcloud-URL",
-      "nextcloud_username_label": "Nextcloud-gebruikersnaam",
-      "nextcloud_app_password_label": "App-wachtwoord",
-      "nextcloud_app_password_hint": "Niet uw gewone Nextcloud-inlogwachtwoord -- genereer er een bij de beveiligingsinstellingen van uw Nextcloud-gebruiker.",
-      "nextcloud_save_button": "Opslaan",
-      "nextcloud_test_button": "Verbinding testen",
-      "nextcloud_test_success": "Verbinding geslaagd",
       "incoming_invoices_folder_header": "Map voor inkomende facturen",
       "incoming_invoices_folder_help": "Bijlagen die worden geüpload bij het vastleggen van een inkomende factuur (/finances/incoming-invoices) worden opgeslagen in deze ene gedeelde map.",
       "incoming_invoices_folder_label": "Mappad",
@@ -417,7 +407,13 @@
       "website_saved": "Website-instellingen opgeslagen",
       "website_save_button": "Opslaan",
       "website_test_button": "Verbinding testen",
-      "website_test_success": "Verbinding geslaagd"
+      "website_test_success": "Verbinding geslaagd",
+      "cloud_storage_title": "Cloudopslag (perceeldocumenten, facturen, back-ups)",
+      "cloud_storage_desc": "Kies waar Parcella zijn bestanden bewaart: de map per perceel (huurcontracten, lidmaatschapsdocumenten), inkomende facturen, contactdocumenten, back-ups en de Markdown-website. Er is altijd maar één opslag actief: kies je een andere, dan wordt de vorige uitgeschakeld, maar blijven de instellingen bewaard. Wie een map verder mag zien, regel je in de opslag zelf, niet in Parcella.",
+      "cloud_storage_saved": "Instellingen voor cloudopslag opgeslagen",
+      "cloud_storage_type_label": "Type opslag",
+      "cloud_storage_type_none": "Geen (geen cloudopslag)",
+      "cloud_storage_type_hint": "Mappaden die elders worden ingevuld (percelen, facturen, contacten) zijn relatief ten opzichte van de gekozen opslag."
     },
     "system": {
       "page_title": "Systeem",
@@ -446,7 +442,7 @@
       "success_message": "Opgeslagen.",
       "module_disabled_notice": "Cloudback-ups vereisen de module Cloudopslag.",
       "module_disabled_link": "Schakel deze in bij Instellingen.",
-      "not_configured_notice": "De module Cloudopslag staat aan, maar er is nog geen Nextcloud-verbinding geconfigureerd.",
+      "not_configured_notice": "De module Cloudopslag staat aan, maar er is nog geen opslag ingesteld.",
       "not_configured_link": "Verbind er een bij Integraties.",
       "settings_header": "Schema",
       "enabled_label": "Automatisch back-uppen naar de cloud",
@@ -474,7 +470,7 @@
       "error_invalid_frequency": "Kies een geldige frequentie.",
       "error_invalid_retention": "Voer een getal van minstens 1 in.",
       "error_invalid_filename": "Dit lijkt geen Parcella-back-upbestand te zijn.",
-      "error_not_configured": "Nextcloud is niet geconfigureerd onder Admin -> Integraties."
+      "error_not_configured": "Onder Admin -> Integraties is geen cloudopslag ingesteld."
     },
     "sample_data": {
       "title": "Voorbeeldgegevens",
@@ -843,7 +839,7 @@
       "delete_history_tooltip": "Item verwijderen",
       "delete_history_confirm": "Dit item echt permanent verwijderen? Dit kan niet ongedaan worden gemaakt.",
       "cannot_delete_active_assignment": "Een actieve toewijzing kan niet worden verwijderd -- beëindig eerst de huur.",
-      "cloud_documents_header": "Documenten (Nextcloud)",
+      "cloud_documents_header": "Documenten (cloudopslag)",
       "cloud_folder_saved": "Mappad opgeslagen",
       "cloud_upload_ok": "Bestand geüpload",
       "cloud_folder_path_label": "Mappad",
@@ -851,7 +847,7 @@
       "cloud_folder_save_button": "Opslaan",
       "cloud_no_folder_hint": "Voor de huidige pacht is nog geen map geconfigureerd. Geef het pad op naar de map die al met deze pachters is gedeeld in Nextcloud.",
       "cloud_browse_folder_button": "Bladeren…",
-      "cloud_picker_root_label": "Nextcloud-basismap",
+      "cloud_picker_root_label": "Hoofdmap van de opslag",
       "cloud_picker_use_folder_button": "Deze map gebruiken",
       "cloud_picker_root_hint": "Open eerst een map voordat u deze selecteert.",
       "cloud_picker_empty": "Deze map heeft geen submappen.",
@@ -860,7 +856,7 @@
       "cloud_col_modified": "Laatst gewijzigd",
       "cloud_folder_empty": "Deze map is leeg.",
       "cloud_upload_button": "Uploaden",
-      "cloud_not_configured": "Nextcloud is nog niet geconfigureerd. Stel dit in onder Admin -> Integraties.",
+      "cloud_not_configured": "Er is nog geen cloudopslag ingesteld. Kies er een onder Admin -> Integraties.",
       "cloud_no_active_folder": "Voor dit perceel is geen actieve map geconfigureerd.",
       "page_title": "Perceel {plot_number}",
       "upcoming_badge": "vanaf {date}",
@@ -2790,7 +2786,7 @@
         "invalid_folder_path": "Het mappad is ongeldig."
       },
       "new_folder": "Documentenmap voor de nieuwe pachters",
-      "browse_folder": "Nextcloud doorbladeren",
+      "browse_folder": "Cloudopslag doorbladeren",
       "new_folder_hint": "Optioneel. De map van de huidige pachters wordt op de overdrachtsdatum hoe dan ook buiten gebruik gesteld; deze map neemt die dag over. Maak en deel hem zelf in Nextcloud.",
       "folder": "Documentenmap",
       "folder_old": "{path} – buiten gebruik op de overdrachtsdatum",
@@ -3009,6 +3005,51 @@
         "hints": {
           "endpoint_url": "Staat in de instellingen van de plugin, bijv. https://example.org/parcella/v1.",
           "shared_secret": "Wordt door de plugin aangemaakt. Parcella ondertekent er elk verzoek mee."
+        }
+      }
+    }
+  },
+  "cloud_storage": {
+    "providers": {
+      "nextcloud": {
+        "name": "Nextcloud",
+        "desc": "De Nextcloud van jullie vereniging. Maak een app-wachtwoord aan in de beveiligingsinstellingen van je Nextcloud-gebruiker (Instellingen -> Beveiliging -> Apparaten & sessies) -- gebruik niet je gewone inlogwachtwoord.",
+        "fields": {
+          "base_url": "Nextcloud-adres",
+          "username": "Nextcloud-gebruikersnaam",
+          "app_password": "App-wachtwoord"
+        },
+        "hints": {
+          "app_password": "Niet je gewone Nextcloud-wachtwoord -- maak er een aan in de beveiligingsinstellingen van je gebruiker."
+        }
+      },
+      "webdav": {
+        "name": "WebDAV (ownCloud, Seafile, HiDrive, Storage Box, ...)",
+        "desc": "Elke opslag met WebDAV-toegang, bijv. ownCloud, Seafile, Strato HiDrive, een Hetzner Storage Box of MagentaCLOUD.",
+        "fields": {
+          "root_url": "WebDAV-adres",
+          "username": "Gebruikersnaam",
+          "password": "Wachtwoord"
+        },
+        "hints": {
+          "root_url": "Het volledige WebDAV-adres van de map waarin Parcella moet werken, zoals je aanbieder het opgeeft. Alle paden in Parcella zijn daar relatief aan."
+        }
+      },
+      "s3": {
+        "name": "S3-compatibel (AWS, Hetzner, MinIO, Wasabi, ...)",
+        "desc": "Objectopslag die het S3-protocol spreekt. Maak eerst een bucket en een toegangssleutel met lees- en schrijfrechten aan.",
+        "fields": {
+          "endpoint_url": "Endpoint",
+          "region": "Regio",
+          "bucket": "Bucket",
+          "access_key_id": "Toegangssleutel-ID",
+          "secret_access_key": "Geheime toegangssleutel",
+          "path_prefix": "Pad in de bucket"
+        },
+        "hints": {
+          "endpoint_url": "Bijv. https://s3.eu-central-1.amazonaws.com of https://fsn1.your-objectstorage.com.",
+          "region": "Zoals je aanbieder hem noemt, bijv. eu-central-1 of fsn1. Laat us-east-1 staan als je aanbieder geen regio's kent.",
+          "path_prefix": "Optioneel. De mappen van Parcella worden onder dit pad aangemaakt, bijv. parcella."
         }
       }
     }

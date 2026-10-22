@@ -24,9 +24,10 @@ from app.auth import require_system_admin, create_invitation_token, hash_passwor
 from app.permissions import is_last_admin
 from app.email_service import send_email
 from app.crypto_utils import encrypt
-from app.website_connectors import BlogPublishError, CONNECTORS, InvalidConnectorConfig, get_active_type
-from app.website_connectors.registry import build_connector, load_stored_values, merged_config, save_config
-from app.cloud_storage import load_nextcloud_configuration, get_nextcloud_provider, NextcloudProvider, CloudStorageError
+from app.provider_registry import InvalidConnectorConfig, ProviderRegistry
+from app.website_connectors import BlogPublishError
+from app.website_connectors.registry import WEBSITE
+from app.cloud_storage import CLOUD_STORAGE, CloudStorageError, get_cloud_storage_provider
 from app.task_sync import (
     load_deck_configuration, load_deck_board_id, normalize_deck_board_id, DeckTaskProvider, DeckError,
 )
@@ -293,7 +294,7 @@ async def backup_cloud_page(request: Request, db: AsyncSession = Depends(get_db)
     module_enabled = request.state.module_flags.get("cloud_storage", False)
     cfg = await get_cloud_backup_settings(db)
 
-    provider = await get_nextcloud_provider(db) if module_enabled else None
+    provider = await get_cloud_storage_provider(db) if module_enabled else None
     backups = []
     if provider is not None:
         backups = await _list_cloud_backups(provider, cfg.folder)
@@ -377,7 +378,7 @@ async def backup_restore_from_cloud(
         return _err("admin.cloud_backup.error_invalid_filename")
 
     cfg = await get_cloud_backup_settings(db)
-    provider = await get_nextcloud_provider(db)
+    provider = await get_cloud_storage_provider(db)
     if provider is None:
         return _err("admin.cloud_backup.error_not_configured")
 
@@ -389,7 +390,7 @@ async def backup_restore_from_cloud(
         await provider.aclose()
 
     # Same self-deadlock guard as the manual-upload restore -- this
-    # handler holds the session (needed it above for get_nextcloud_provider),
+    # handler holds the session (needed it above for get_cloud_storage_provider),
     # restore_from_zip_bytes doesn't take one at all.
     await db.close()
 
@@ -1226,27 +1227,6 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
     contact_entry = contact_result.scalar_one_or_none()
     contact_module_active = (contact_entry.value.strip().lower() in ("true", "1", "ja", "an")) if contact_entry else False
 
-    website_connectors = []
-    for connector_type, connector_cls in CONNECTORS.items():
-        stored = await load_stored_values(db, connector_type)
-        website_connectors.append({
-            "type": connector_type,
-            "fields": [
-                {
-                    "field": f,
-                    "name": f"website_{connector_type}_{f.key}",
-                    "value": "" if f.kind == "secret" else (stored.get(f.key) or f.default),
-                    "is_set": bool(stored.get(f.key)),
-                }
-                for f in connector_cls.config_fields
-            ],
-        })
-
-    nextcloud_result = await db.execute(
-        select(ClubSetting).where(ClubSetting.key.in_(["nextcloud_base_url", "nextcloud_username", "nextcloud_app_password"]))
-    )
-    nextcloud_stored = {e.key: e.value for e in nextcloud_result.scalars().all()}
-
     cloud_storage_entry_result = await db.execute(select(ClubSetting).where(ClubSetting.key == "modul_cloud_storage"))
     cloud_storage_entry = cloud_storage_entry_result.scalar_one_or_none()
     cloud_storage_active = (
@@ -1292,18 +1272,16 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
         "module_active": module_active,
         "contact_module_active": contact_module_active,
         "base_url": str(request.base_url).rstrip("/"),
-        "website_connectors": website_connectors,
-        "website_active_type": await get_active_type(db),
+        "website": await WEBSITE.admin_context(db),
         "website_saved": request.query_params.get("website_saved"),
         "website_error": request.query_params.get("website_error"),
         "website_test_result": request.query_params.get("website_test"),
         "website_test_message": request.query_params.get("website_test_message"),
-        "nextcloud_base_url": nextcloud_stored.get("nextcloud_base_url", ""),
-        "nextcloud_username": nextcloud_stored.get("nextcloud_username", ""),
-        "nextcloud_app_password_set": bool(nextcloud_stored.get("nextcloud_app_password")),
-        "nextcloud_saved": request.query_params.get("nextcloud_saved"),
-        "nextcloud_test_result": request.query_params.get("nextcloud_test"),
-        "nextcloud_test_message": request.query_params.get("nextcloud_test_message"),
+        "cloud_storage": await CLOUD_STORAGE.admin_context(db),
+        "cloud_storage_saved": request.query_params.get("cloud_storage_saved"),
+        "cloud_storage_error": request.query_params.get("cloud_storage_error"),
+        "cloud_storage_test_result": request.query_params.get("cloud_storage_test"),
+        "cloud_storage_test_message": request.query_params.get("cloud_storage_test_message"),
         "cloud_storage_active": cloud_storage_active,
         "incoming_invoices_folder_path": incoming_invoices_folder_path,
         "incoming_invoices_folder_saved": request.query_params.get("incoming_invoices_folder_saved"),
@@ -1381,133 +1359,79 @@ async def _upsert_club_setting(db: AsyncSession, key: str, value: Optional[str],
         db.add(ClubSetting(key=key, value=value, description=description))
 
 
-def _website_form_values(form, connector_type: str) -> dict:
-    """The submitted fields of one connector, keyed by field key."""
-    prefix = f"website_{connector_type}_"
-    return {
-        f.key: form.get(prefix + f.key)
-        for f in CONNECTORS[connector_type].config_fields
-        if prefix + f.key in form
-    }
-
-
-@router.post("/integrations/website")
-async def integrations_website_save(request: Request, db: AsyncSession = Depends(get_db)):
-    """Saves the Website card: which CMS is active (one at a time --
-    choosing one switches the others off, ADR 0104) and that CMS's
-    fields. Other connectors' stored settings stay as they are, so
-    switching back needs no retyping. A blank secret keeps the stored
-    one, same convention as SMTP."""
+async def _save_provider_card(request: Request, db: AsyncSession, registry: ProviderRegistry, param: str):
+    """Saves a "one dropdown, one provider at a time" card (Website,
+    Cloud storage): which provider is active -- choosing one switches the
+    others off -- and that provider's fields. Other providers' stored
+    settings stay as they are, so switching back needs no retyping. A
+    blank secret keeps the stored one, same convention as SMTP."""
     await require_system_admin(request, db)
     form = await request.form()
 
-    connector_type = (form.get("website_connector") or "").strip() or None
-    if connector_type is not None and connector_type not in CONNECTORS:
-        return RedirectResponse(f"/admin/integrations?website_error={urllib.parse.quote('Unknown website type.')}", status_code=303)
-
+    provider_type = (form.get(registry.active_key) or "").strip() or None
     try:
-        await save_config(
-            db, connector_type, _website_form_values(form, connector_type) if connector_type else {},
+        await registry.save_config(
+            db, provider_type, registry.form_values(form, provider_type) if provider_type in registry.providers else {},
         )
     except InvalidConnectorConfig as e:
         await db.rollback()
-        return RedirectResponse(f"/admin/integrations?website_error={urllib.parse.quote(str(e))}", status_code=303)
+        return RedirectResponse(f"/admin/integrations?{param}_error={urllib.parse.quote(str(e))}", status_code=303)
 
     await db.commit()
-    return RedirectResponse("/admin/integrations?website_saved=1", status_code=303)
+    return RedirectResponse(f"/admin/integrations?{param}_saved=1", status_code=303)
 
 
-@router.post("/integrations/website/test")
-async def integrations_website_test(request: Request, db: AsyncSession = Depends(get_db)):
-    """Tests the CMS chosen in the dropdown with whatever is currently in
-    the form -- freshly typed values, falling back to the saved ones for
+async def _test_provider_card(
+    request: Request, db: AsyncSession, registry: ProviderRegistry, param: str, errors: tuple,
+):
+    """Tests the provider chosen in the dropdown with whatever is in the
+    form -- freshly typed values, falling back to the saved ones for
     blank fields. Saves nothing: it's a check before committing."""
     await require_system_admin(request, db)
     form = await request.form()
 
-    connector_type = (form.get("website_connector") or "").strip()
-    if connector_type not in CONNECTORS:
-        message = urllib.parse.quote("Choose a website type first.")
-        return RedirectResponse(f"/admin/integrations?website_test=failed&website_test_message={message}", status_code=303)
+    provider_type = (form.get(registry.active_key) or "").strip()
+    if provider_type not in registry.providers:
+        message = urllib.parse.quote("Choose a type first.")
+        return RedirectResponse(f"/admin/integrations?{param}_test=failed&{param}_test_message={message}", status_code=303)
 
-    connector = None
+    provider = None
     try:
-        config = await merged_config(db, connector_type, _website_form_values(form, connector_type))
-        connector = await build_connector(db, connector_type, config)
-        await connector.test_connection()
+        config = await registry.merged_config(db, provider_type, registry.form_values(form, provider_type))
+        provider = await registry.build(db, provider_type, config)
+        await provider.test_connection()
         result, message = "success", ""
-    except (InvalidConnectorConfig, BlogPublishError) as e:
+    except (InvalidConnectorConfig,) + errors as e:
         result, message = "failed", str(e)
     finally:
-        if connector is not None:
-            await connector.aclose()
+        if provider is not None:
+            await provider.aclose()
 
     return RedirectResponse(
-        f"/admin/integrations?website_test={result}&website_test_message={urllib.parse.quote(message)}", status_code=303,
+        f"/admin/integrations?{param}_test={result}&{param}_test_message={urllib.parse.quote(message)}", status_code=303,
     )
 
 
-@router.post("/integrations/nextcloud")
-async def integrations_nextcloud_save(request: Request, db: AsyncSession = Depends(get_db)):
-    """Saves the Nextcloud cloud-storage credentials. Same "blank
-    Application Password field = leave the existing one unchanged"
-    convention as SMTP and WordPress -- base URL and username are
-    always overwritten with whatever's submitted (they're not secret,
-    so there's no "leave unchanged" case worth supporting for them)."""
-    await require_system_admin(request, db)
-    form = await request.form()
-
-    base_url = (form.get("nextcloud_base_url") or "").strip() or None
-    username = (form.get("nextcloud_username") or "").strip() or None
-    app_password = (form.get("nextcloud_app_password") or "").strip()
-
-    await _upsert_club_setting(db, "nextcloud_base_url", base_url, "Nextcloud server URL for cloud storage")
-    await _upsert_club_setting(db, "nextcloud_username", username, "Nextcloud username for cloud storage")
-    if app_password:
-        await _upsert_club_setting(
-            db, "nextcloud_app_password", encrypt(app_password), "Nextcloud Application Password (encrypted)",
-        )
-
-    await db.commit()
-    return RedirectResponse("/admin/integrations?nextcloud_saved=1", status_code=303)
+@router.post("/integrations/website")
+async def integrations_website_save(request: Request, db: AsyncSession = Depends(get_db)):
+    """The Website card (ADR 0104)."""
+    return await _save_provider_card(request, db, WEBSITE, "website")
 
 
-@router.post("/integrations/nextcloud/test")
-async def integrations_nextcloud_test(request: Request, db: AsyncSession = Depends(get_db)):
-    """Tests Nextcloud connectivity using whatever is currently in the
-    form -- freshly typed values if provided, falling back to the
-    already-saved configuration for any field left blank (same
-    convention as saving). Doesn't persist anything; this is purely a
-    connectivity check, usable before committing to save."""
-    await require_system_admin(request, db)
-    form = await request.form()
+@router.post("/integrations/website/test")
+async def integrations_website_test(request: Request, db: AsyncSession = Depends(get_db)):
+    return await _test_provider_card(request, db, WEBSITE, "website", (BlogPublishError,))
 
-    saved_config = await load_nextcloud_configuration(db)
 
-    base_url = (form.get("nextcloud_base_url") or "").strip() or (saved_config["base_url"] if saved_config else None)
-    username = (form.get("nextcloud_username") or "").strip() or (saved_config["username"] if saved_config else None)
-    app_password = (form.get("nextcloud_app_password") or "").strip() or (saved_config["app_password"] if saved_config else None)
+@router.post("/integrations/cloud-storage")
+async def integrations_cloud_storage_save(request: Request, db: AsyncSession = Depends(get_db)):
+    """The Cloud storage card (ADR 0106)."""
+    return await _save_provider_card(request, db, CLOUD_STORAGE, "cloud_storage")
 
-    from urllib.parse import quote
 
-    if not base_url or not username or not app_password:
-        message = quote("Please fill in all three fields first.")
-        return RedirectResponse(f"/admin/integrations?nextcloud_test=failed&nextcloud_test_message={message}", status_code=303)
-
-    provider = NextcloudProvider(base_url=base_url, username=username, app_password=app_password)
-    try:
-        await provider.test_connection()
-        result = "success"
-        message = ""
-    except CloudStorageError as e:
-        result = "failed"
-        message = str(e)
-    finally:
-        await provider.aclose()
-
-    return RedirectResponse(
-        f"/admin/integrations?nextcloud_test={result}&nextcloud_test_message={quote(message)}", status_code=303,
-    )
+@router.post("/integrations/cloud-storage/test")
+async def integrations_cloud_storage_test(request: Request, db: AsyncSession = Depends(get_db)):
+    return await _test_provider_card(request, db, CLOUD_STORAGE, "cloud_storage", (CloudStorageError,))
 
 
 @router.post("/integrations/nextcloud/incoming-invoices-folder")

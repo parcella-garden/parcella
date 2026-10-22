@@ -19,7 +19,7 @@ Started as a vibe-coding project for we became sick of these ill-architectured p
 - ✅ REST API with JWT authentication and Swagger documentation
 - ✅ Database migrations via Alembic
 - ✅ a certain testing suite
-- ✅ an integration with Nextcloud for file dropping (other clouds can be done within a wink of an eye)
+- ✅ cloud storage of your choice for file dropping: Nextcloud, WebDAV or S3-compatible
 - ✅ CMS integrations for your beloved website
 - ✅ bullet proof runs against shannon and strix (for now)
 - ✅ switch off and sort modules like "electricity" as you like it
@@ -103,7 +103,7 @@ postcode-before-city vs. UK-style postcode-last).
 
 #### Cloud storage module
 
-- ✅ Lets board/admin browse, upload to, and download from a per-parcel document folder in the club's own Nextcloud instance (lease agreements, membership paperwork). Off by default, admin/board only; who can see a folder's contents is managed directly in Nextcloud, not by Parcella. See `docs/module-cloud-storage.md`.
+- ✅ Lets board/admin browse, upload to, and download from a per-parcel document folder in the club's own cloud storage (lease agreements, membership paperwork); the same storage holds incoming invoices, contact documents, backups and the Markdown website. Choose it from a dropdown on Admin -> Integrations, one at a time: Nextcloud, any WebDAV server (ownCloud, Seafile, HiDrive, Hetzner Storage Box, ...) or S3-compatible storage (AWS, Hetzner Object Storage, MinIO, Wasabi, ...). Off by default, admin/board only; who can see a folder's contents is managed directly in the storage, not by Parcella. See `docs/module-cloud-storage.md`.
 
 #### Task board module
 

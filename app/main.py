@@ -50,7 +50,7 @@ from app.routers import api_work_hours, api_insurance, api_freescout, api_purcha
 from app.routers import applicants as applicants_router, api_applicants
 from app.routers import external_contacts as external_contacts_router, api_external_contacts
 from app.routers import api_public
-from app.routers import api_website
+from app.routers import api_website, api_cloud_storage
 from app.routers.api_metering import create_metering_api_router
 
 logging.basicConfig(level=logging.INFO)
@@ -521,6 +521,7 @@ app.include_router(api_purchase_requests.router)
 app.include_router(api_public.router)
 app.include_router(api_website.router)
 app.include_router(api_website.announcement_router)
+app.include_router(api_cloud_storage.router)
 
 api_water_router = create_metering_api_router(MeteringMedium.WATER, "/water", "water")
 api_electricity_router = create_metering_api_router(MeteringMedium.ELECTRICITY, "/electricity", "electricity")

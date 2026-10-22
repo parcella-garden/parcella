@@ -223,7 +223,7 @@ async def test_incoming_invoice_upload_and_download_use_configured_folder(client
             client=mock_client,
         )
 
-    monkeypatch.setattr("app.routers.finances.get_nextcloud_provider", fake_get_nextcloud_provider)
+    monkeypatch.setattr("app.routers.finances.get_cloud_storage_provider", fake_get_nextcloud_provider)
 
     r_create = await client.post(
         "/finances/incoming-invoices",

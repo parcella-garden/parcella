@@ -25,7 +25,7 @@ from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.cloud_storage import CloudStorageError, get_nextcloud_provider
+from app.cloud_storage import CloudStorageError, get_cloud_storage_provider
 from app.database import current_or_upcoming_tenant_filter
 from app.models import MemberParcel, ParcelCloudFolder
 
@@ -234,7 +234,7 @@ async def browse_folder_picker(
         breadcrumbs.append({"name": segment, "pick_path": "/".join(accumulated)})
 
     entries, error = None, None
-    provider = await get_nextcloud_provider(db)
+    provider = await get_cloud_storage_provider(db)
     if provider is None:
         error = not_configured_message
     else:

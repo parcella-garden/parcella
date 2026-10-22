@@ -8,7 +8,7 @@ TaskSyncProvider interface, not a change to this one -- see
 docs/ADR/0086.
 
 Structured the same way as app/cloud_storage.py's CloudStorageProvider/
-NextcloudProvider: an injectable httpx.AsyncClient (tests use
+NextcloudProvider (app/cloud_storage.py): an injectable httpx.AsyncClient (tests use
 httpx.MockTransport), a domain-specific error type, and a
 load_configuration()/get_client() factory pair. Credentials (base URL,
 username, app password) are stored per club in ClubSettings, configured
@@ -215,7 +215,7 @@ async def load_deck_configuration(db: AsyncSession) -> Optional[dict]:
     None if not (fully) configured yet. All three are required -- a
     partially-filled-in configuration is treated as "not configured"
     rather than attempted and failing confusingly (same convention as
-    load_nextcloud_configuration)."""
+    the cloud storage and website settings)."""
     result = await db.execute(
         select(ClubSetting).where(
             ClubSetting.key.in_(["deck_base_url", "deck_username", "deck_app_password"])
@@ -273,7 +273,7 @@ async def get_deck_client(
     """Returns a configured DeckTaskProvider, or None if the club hasn't
     set up Deck credentials yet -- callers check for None rather than
     catching an exception for "not set up" (same convention as
-    get_nextcloud_provider/get_freescout_client)."""
+    get_cloud_storage_provider/get_freescout_client)."""
     config = await load_deck_configuration(db)
     if config is None:
         return None

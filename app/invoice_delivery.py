@@ -20,7 +20,7 @@ from app.database import current_tenant_filter
 from app.models import Invoice, InvoiceRun, InvoiceReminder, MemberParcel, Member
 from app.email_service import send_email
 from app.parcel_cloud_folders import get_active_folder
-from app.cloud_storage import CloudStorageError, NextcloudProvider
+from app.cloud_storage import CloudStorageError, CloudStorageProvider
 from app.i18n import t_for
 from app.invoice_pdf import (
     InvoicePdfData, render_invoice_pdf, render_invoice_bundle_pdf, invoice_pdf_data_from_invoice,
@@ -159,11 +159,11 @@ async def deliver_reminder(
 
 
 async def upload_invoice_to_cloud(
-    db: AsyncSession, invoice: Invoice, run: InvoiceRun, pdf_context: dict, provider: Optional[NextcloudProvider],
+    db: AsyncSession, invoice: Invoice, run: InvoiceRun, pdf_context: dict, provider: Optional[CloudStorageProvider],
 ) -> bool:
     """Uploads `invoice`'s PDF to its parcel's active cloud-storage
     folder, if one is configured. `provider` is resolved once by the
-    caller (app.cloud_storage.get_nextcloud_provider) and reused across
+    caller (app.cloud_storage.get_cloud_storage_provider) and reused across
     every invoice in a run, rather than reconnecting per invoice.
     Returns whether it was actually uploaded (silently skipped -- not
     an error -- if cloud storage isn't configured, the parcel has no

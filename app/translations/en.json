@@ -294,7 +294,7 @@
         "inventory_name": "Inventory",
         "inventory_desc": "Track everything the club owns (and personal items members store on club property), grouped into your own categories, with an optional lending system for borrowable items.",
         "cloud_storage_name": "Cloud storage",
-        "cloud_storage_desc": "Let board members browse, upload to, and download from a Nextcloud folder per parcel -- lease agreements, membership paperwork, ticket correspondence. Configure the connection under Admin -> Integrations first.",
+        "cloud_storage_desc": "Let board members browse, upload to, and download from a cloud folder per parcel -- lease agreements, membership paperwork. Choose the storage under Admin -> Integrations first.",
         "tasks_name": "Task board",
         "tasks_desc": "A general-purpose kanban board (To Do / In Progress / Done) for club business that isn't tied to a work session -- e.g. \"renew the insurance policy\", \"call the electrician\". Admin/board only.",
         "finances_name": "Finances",
@@ -346,17 +346,7 @@
       "endpoint_auth": "Authentication",
       "auth_none": "None (public read)",
       "wordpress_hint": "A reference WordPress connector plugin is included in the project's integrations/wordpress folder.",
-      "nextcloud_title": "Nextcloud (parcel documents & incoming invoices)",
-      "nextcloud_desc": "Lets board members browse, upload to, and download from a folder in your club's Nextcloud instance for each parcel -- lease agreements, membership paperwork, ticket correspondence -- and configures the single shared folder used for incoming invoice attachments. Create an app password under your Nextcloud user's Security settings (Settings -> Security -> Devices & sessions) -- don't use your regular Nextcloud login password here.",
       "cloud_storage_module_disabled_notice": "The cloud storage connector is currently disabled, so parcel documents won't be shown.",
-      "nextcloud_saved": "Nextcloud settings saved",
-      "nextcloud_base_url_label": "Nextcloud URL",
-      "nextcloud_username_label": "Nextcloud username",
-      "nextcloud_app_password_label": "App password",
-      "nextcloud_app_password_hint": "Not your regular Nextcloud login password -- generate one under your Nextcloud user's Security settings.",
-      "nextcloud_save_button": "Save",
-      "nextcloud_test_button": "Test connection",
-      "nextcloud_test_success": "Connection successful",
       "incoming_invoices_folder_header": "Incoming invoices folder",
       "incoming_invoices_folder_help": "Attachments uploaded when recording an incoming invoice (/finances/incoming-invoices) are stored in this single shared folder.",
       "incoming_invoices_folder_label": "Folder path",
@@ -417,7 +407,13 @@
       "website_saved": "Website settings saved",
       "website_save_button": "Save",
       "website_test_button": "Test connection",
-      "website_test_success": "Connection successful"
+      "website_test_success": "Connection successful",
+      "cloud_storage_title": "Cloud storage (parcel documents, invoices, backups)",
+      "cloud_storage_desc": "Choose where Parcella keeps its files: the folder per parcel (lease agreements, membership paperwork), incoming invoices, contact documents, backups and the Markdown website. Only one storage is active at a time: choosing another one switches the previous one off but keeps its settings. Who else can see a folder is managed in the storage itself, not in Parcella.",
+      "cloud_storage_saved": "Cloud storage settings saved",
+      "cloud_storage_type_label": "Storage type",
+      "cloud_storage_type_none": "None (no cloud storage)",
+      "cloud_storage_type_hint": "Folder paths entered elsewhere (parcels, invoices, contacts) are relative to the chosen storage."
     },
     "system": {
       "page_title": "System",
@@ -446,7 +442,7 @@
       "success_message": "Saved.",
       "module_disabled_notice": "Cloud backups require the Cloud storage module.",
       "module_disabled_link": "Enable it under Settings.",
-      "not_configured_notice": "The Cloud storage module is on, but no Nextcloud connection is configured yet.",
+      "not_configured_notice": "The Cloud storage module is on, but no storage is set up yet.",
       "not_configured_link": "Connect one under Integrations.",
       "settings_header": "Schedule",
       "enabled_label": "Automatically back up to the cloud",
@@ -474,7 +470,7 @@
       "error_invalid_frequency": "Please choose a valid frequency.",
       "error_invalid_retention": "Please enter a number of at least 1.",
       "error_invalid_filename": "That doesn't look like a Parcella backup file.",
-      "error_not_configured": "Nextcloud is not configured under Admin -> Integrations."
+      "error_not_configured": "No cloud storage is set up under Admin -> Integrations."
     },
     "sample_data": {
       "title": "Sample data",
@@ -843,7 +839,7 @@
       "delete_history_tooltip": "Delete entry",
       "delete_history_confirm": "Really delete this entry permanently? This cannot be undone.",
       "cannot_delete_active_assignment": "An active assignment cannot be deleted -- please end the tenancy first.",
-      "cloud_documents_header": "Documents (Nextcloud)",
+      "cloud_documents_header": "Documents (cloud storage)",
       "cloud_folder_saved": "Folder path saved",
       "cloud_upload_ok": "File uploaded",
       "cloud_folder_path_label": "Folder path",
@@ -851,7 +847,7 @@
       "cloud_folder_save_button": "Save",
       "cloud_no_folder_hint": "No folder configured yet for the current tenancy. Set the path to the folder already shared with these tenants in Nextcloud.",
       "cloud_browse_folder_button": "Browse…",
-      "cloud_picker_root_label": "Nextcloud root",
+      "cloud_picker_root_label": "Storage root",
       "cloud_picker_use_folder_button": "Use this folder",
       "cloud_picker_root_hint": "Open a folder first before selecting it.",
       "cloud_picker_empty": "This folder has no subfolders.",
@@ -860,7 +856,7 @@
       "cloud_col_modified": "Last modified",
       "cloud_folder_empty": "This folder is empty.",
       "cloud_upload_button": "Upload",
-      "cloud_not_configured": "Nextcloud is not configured yet. Set it up under Admin -> Integrations.",
+      "cloud_not_configured": "No cloud storage is set up yet. Choose one under Admin -> Integrations.",
       "cloud_no_active_folder": "No active folder is configured for this parcel.",
       "page_title": "Parcel {plot_number}",
       "upcoming_badge": "from {date}",
@@ -2790,7 +2786,7 @@
         "invalid_folder_path": "The folder path isn't valid."
       },
       "new_folder": "Documents folder for the new tenants",
-      "browse_folder": "Browse Nextcloud",
+      "browse_folder": "Browse cloud storage",
       "new_folder_hint": "Optional. The old tenants' folder is retired on the handover date either way; this folder takes over on that day. Create and share it in Nextcloud yourself.",
       "folder": "Documents folder",
       "folder_old": "{path} – retired on the handover date",
@@ -3009,6 +3005,51 @@
         "hints": {
           "endpoint_url": "Shown in the plugin's settings, e.g. https://example.org/parcella/v1.",
           "shared_secret": "Generated by the plugin. Parcella signs every request with it."
+        }
+      }
+    }
+  },
+  "cloud_storage": {
+    "providers": {
+      "nextcloud": {
+        "name": "Nextcloud",
+        "desc": "Your club's Nextcloud. Create an app password under your Nextcloud user's security settings (Settings -> Security -> Devices & sessions) -- don't use your regular login password.",
+        "fields": {
+          "base_url": "Nextcloud URL",
+          "username": "Nextcloud username",
+          "app_password": "App password"
+        },
+        "hints": {
+          "app_password": "Not your regular Nextcloud login password -- generate one under your Nextcloud user's security settings."
+        }
+      },
+      "webdav": {
+        "name": "WebDAV (ownCloud, Seafile, HiDrive, Storage Box, ...)",
+        "desc": "Any storage that offers WebDAV access, e.g. ownCloud, Seafile, Strato HiDrive, a Hetzner Storage Box or MagentaCLOUD.",
+        "fields": {
+          "root_url": "WebDAV address",
+          "username": "Username",
+          "password": "Password"
+        },
+        "hints": {
+          "root_url": "The full WebDAV address of the folder Parcella should work in, as your provider documents it. All paths in Parcella are relative to it."
+        }
+      },
+      "s3": {
+        "name": "S3-compatible (AWS, Hetzner, MinIO, Wasabi, ...)",
+        "desc": "Object storage that speaks the S3 protocol. Create a bucket and an access key with read and write rights for it first.",
+        "fields": {
+          "endpoint_url": "Endpoint",
+          "region": "Region",
+          "bucket": "Bucket",
+          "access_key_id": "Access key ID",
+          "secret_access_key": "Secret access key",
+          "path_prefix": "Path inside the bucket"
+        },
+        "hints": {
+          "endpoint_url": "E.g. https://s3.eu-central-1.amazonaws.com or https://fsn1.your-objectstorage.com.",
+          "region": "As your provider names it, e.g. eu-central-1 or fsn1. Leave us-east-1 if your provider doesn't use regions.",
+          "path_prefix": "Optional. Parcella's folders are created below this path, e.g. parcella."
         }
       }
     }

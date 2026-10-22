@@ -294,7 +294,7 @@
         "inventory_name": "Inventár",
         "inventory_desc": "Eviduje všetko, čo klub vlastní (aj osobné veci, ktoré si členovia ukladajú na pozemku klubu), rozdelené do vlastných kategórií, s voliteľným systémom požičiavania.",
         "cloud_storage_name": "Cloudové úložisko",
-        "cloud_storage_desc": "Umožňuje výboru/administrátorovi prehliadať, nahrávať a sťahovať súbory zo zložky Nextcloud pre každú záhradku -- nájomné zmluvy, členské žiadosti, korešpondenciu z ticketov. Najprv nastavte pripojenie v Admin -> Integrácie.",
+        "cloud_storage_desc": "Umožňuje členom výboru prehliadať, nahrávať a sťahovať súbory z priečinka v cloude pre každú parcelu – nájomné zmluvy, členské dokumenty. Úložisko najprv vyberte v Admin -> Integrácie.",
         "tasks_name": "Nástenka úloh",
         "tasks_desc": "Všeobecná kanban nástenka (Na vybavenie / Prebieha / Hotovo) pre záležitosti spolku, ktoré nie sú viazané na pracovnú zmenu -- napr. \"obnoviť poistku\", \"zavolať elektrikára\". Len pre výbor/administrátora.",
         "finances_name": "Financie",
@@ -346,17 +346,7 @@
       "endpoint_auth": "Autentifikácia",
       "auth_none": "Žiadna (verejné čítanie)",
       "wordpress_hint": "Referenčný konektorový plugin pre WordPress nájdete v priečinku integrations/wordpress projektu.",
-      "nextcloud_title": "Nextcloud (dokumenty záhradiek a prijaté faktúry)",
-      "nextcloud_desc": "Umožňuje členom výboru prehliadať, nahrávať a sťahovať súbory z priečinka v inštancii Nextcloud klubu pre každú záhradku -- nájomné zmluvy, členské dokumenty, korešpondenciu k požiadavkám -- a nastavuje jeden zdieľaný priečinok pre prílohy prijatých faktúr. Vytvorte heslo aplikácie v nastaveniach zabezpečenia používateľa Nextcloud (Nastavenia -> Zabezpečenie -> Zariadenia a relácie) -- nepoužívajte tu svoje bežné prihlasovacie heslo do Nextcloud.",
       "cloud_storage_module_disabled_notice": "Konektor cloudového úložiska je momentálne vypnutý, preto sa dokumenty záhradiek nezobrazia.",
-      "nextcloud_saved": "Nastavenia Nextcloud uložené",
-      "nextcloud_base_url_label": "URL adresa Nextcloud",
-      "nextcloud_username_label": "Používateľské meno Nextcloud",
-      "nextcloud_app_password_label": "Heslo aplikácie",
-      "nextcloud_app_password_hint": "Nie vaše bežné prihlasovacie heslo Nextcloud -- vygenerujte ho v nastaveniach zabezpečenia svojho konta Nextcloud.",
-      "nextcloud_save_button": "Uložiť",
-      "nextcloud_test_button": "Otestovať pripojenie",
-      "nextcloud_test_success": "Pripojenie úspešné",
       "incoming_invoices_folder_header": "Priečinok pre prijaté faktúry",
       "incoming_invoices_folder_help": "Prílohy nahrané pri zaznamenávaní prijatej faktúry (/finances/incoming-invoices) sa ukladajú do tohto jedného zdieľaného priečinka.",
       "incoming_invoices_folder_label": "Cesta k priečinku",
@@ -417,7 +407,13 @@
       "website_saved": "Nastavenia webu uložené",
       "website_save_button": "Uložiť",
       "website_test_button": "Otestovať pripojenie",
-      "website_test_success": "Pripojenie úspešné"
+      "website_test_success": "Pripojenie úspešné",
+      "cloud_storage_title": "Cloudové úložisko (dokumenty parciel, faktúry, zálohy)",
+      "cloud_storage_desc": "Vyberte, kam Parcella ukladá súbory: priečinok pre každú parcelu (nájomné zmluvy, členské dokumenty), prijaté faktúry, dokumenty kontaktov, zálohy a web v Markdowne. Aktívne je vždy len jedno úložisko: výberom iného sa predchádzajúce vypne, jeho nastavenia sa však zachovajú. Kto ďalší priečinok vidí, sa nastavuje priamo v úložisku, nie v Parcelle.",
+      "cloud_storage_saved": "Nastavenia cloudového úložiska uložené",
+      "cloud_storage_type_label": "Typ úložiska",
+      "cloud_storage_type_none": "Žiadne (bez cloudového úložiska)",
+      "cloud_storage_type_hint": "Cesty k priečinkom zadávané inde (parcely, faktúry, kontakty) sa vzťahujú na vybrané úložisko."
     },
     "system": {
       "page_title": "Systém",
@@ -446,7 +442,7 @@
       "success_message": "Uložené.",
       "module_disabled_notice": "Zálohy v cloude vyžadujú modul Cloudové úložisko.",
       "module_disabled_link": "Povoľte ho v Nastaveniach.",
-      "not_configured_notice": "Modul Cloudové úložisko je zapnutý, ale zatiaľ nie je nastavené pripojenie k Nextcloudu.",
+      "not_configured_notice": "Modul cloudového úložiska je zapnutý, ale zatiaľ nie je nastavené žiadne úložisko.",
       "not_configured_link": "Pripojte ho v Integráciách.",
       "settings_header": "Plán",
       "enabled_label": "Automaticky zálohovať do cloudu",
@@ -474,7 +470,7 @@
       "error_invalid_frequency": "Vyberte prosím platnú frekvenciu.",
       "error_invalid_retention": "Zadajte prosím číslo aspoň 1.",
       "error_invalid_filename": "Toto nevyzerá ako súbor zálohy Parcella.",
-      "error_not_configured": "Nextcloud nie je nastavený v Admin -> Integrácie."
+      "error_not_configured": "V Admin -> Integrácie nie je nastavené žiadne cloudové úložisko."
     },
     "sample_data": {
       "title": "Ukážkové dáta",
@@ -843,7 +839,7 @@
       "delete_history_tooltip": "Zmazať záznam",
       "delete_history_confirm": "Naozaj natrvalo zmazať tento záznam? Túto akciu nie je možné vrátiť späť.",
       "cannot_delete_active_assignment": "Aktívne priradenie nie je možné zmazať -- najprv ukončite nájom.",
-      "cloud_documents_header": "Dokumenty (Nextcloud)",
+      "cloud_documents_header": "Dokumenty (cloudové úložisko)",
       "cloud_folder_saved": "Cesta k priečinku uložená",
       "cloud_upload_ok": "Súbor nahraný",
       "cloud_folder_path_label": "Cesta k priečinku",
@@ -851,7 +847,7 @@
       "cloud_folder_save_button": "Uložiť",
       "cloud_no_folder_hint": "Pre aktuálny nájom ešte nie je nakonfigurovaný žiadny priečinok. Zadajte cestu k priečinku, ktorý je už v Nextcloud zdieľaný s týmito nájomcami.",
       "cloud_browse_folder_button": "Prehľadávať…",
-      "cloud_picker_root_label": "Koreňový priečinok Nextcloud",
+      "cloud_picker_root_label": "Koreň úložiska",
       "cloud_picker_use_folder_button": "Použiť tento priečinok",
       "cloud_picker_root_hint": "Najskôr otvorte priečinok, než ho vyberiete.",
       "cloud_picker_empty": "Tento priečinok nemá žiadne podpriečinky.",
@@ -860,7 +856,7 @@
       "cloud_col_modified": "Naposledy zmenené",
       "cloud_folder_empty": "Tento priečinok je prázdny.",
       "cloud_upload_button": "Nahrať",
-      "cloud_not_configured": "Nextcloud ešte nie je nakonfigurovaný. Nastavte ho v Admin -> Integrácie.",
+      "cloud_not_configured": "Zatiaľ nie je nastavené žiadne cloudové úložisko. Vyberte ho v Admin -> Integrácie.",
       "cloud_no_active_folder": "Pre túto záhradku nie je nakonfigurovaný žiadny aktívny priečinok.",
       "page_title": "Záhradka {plot_number}",
       "upcoming_badge": "od {date}",
@@ -2790,7 +2786,7 @@
         "invalid_folder_path": "Cesta k priečinku nie je platná."
       },
       "new_folder": "Priečinok dokumentov pre nových nájomcov",
-      "browse_folder": "Prehľadávať Nextcloud",
+      "browse_folder": "Prehliadať cloudové úložisko",
       "new_folder_hint": "Voliteľné. Priečinok doterajších nájomcov bude v deň odovzdania v každom prípade vyradený; tento priečinok ho v ten deň nahradí. Vytvorte a zdieľajte ho sami v Nextcloude.",
       "folder": "Priečinok dokumentov",
       "folder_old": "{path} – vyradený v deň odovzdania",
@@ -3009,6 +3005,51 @@
         "hints": {
           "endpoint_url": "Uvedená v nastaveniach pluginu, napr. https://example.org/parcella/v1.",
           "shared_secret": "Generuje ho plugin. Parcella ním podpisuje každú požiadavku."
+        }
+      }
+    }
+  },
+  "cloud_storage": {
+    "providers": {
+      "nextcloud": {
+        "name": "Nextcloud",
+        "desc": "Nextcloud vášho spolku. Vytvorte heslo aplikácie v nastaveniach zabezpečenia svojho používateľa Nextcloud (Nastavenia -> Zabezpečenie -> Zariadenia a relácie) – nepoužívajte bežné prihlasovacie heslo.",
+        "fields": {
+          "base_url": "Adresa Nextcloud",
+          "username": "Používateľské meno Nextcloud",
+          "app_password": "Heslo aplikácie"
+        },
+        "hints": {
+          "app_password": "Nejde o bežné heslo do Nextcloud – vygenerujte ho v nastaveniach zabezpečenia svojho používateľa."
+        }
+      },
+      "webdav": {
+        "name": "WebDAV (ownCloud, Seafile, HiDrive, Storage Box, ...)",
+        "desc": "Akékoľvek úložisko s prístupom cez WebDAV, napr. ownCloud, Seafile, Strato HiDrive, Hetzner Storage Box alebo MagentaCLOUD.",
+        "fields": {
+          "root_url": "Adresa WebDAV",
+          "username": "Používateľské meno",
+          "password": "Heslo"
+        },
+        "hints": {
+          "root_url": "Úplná adresa WebDAV priečinka, v ktorom má Parcella pracovať, podľa dokumentácie poskytovateľa. Všetky cesty v Parcelle sa k nej vzťahujú."
+        }
+      },
+      "s3": {
+        "name": "Kompatibilné s S3 (AWS, Hetzner, MinIO, Wasabi, ...)",
+        "desc": "Objektové úložisko s protokolom S3. Najprv vytvorte bucket a prístupový kľúč s právami na čítanie a zápis.",
+        "fields": {
+          "endpoint_url": "Endpoint",
+          "region": "Región",
+          "bucket": "Bucket",
+          "access_key_id": "ID prístupového kľúča",
+          "secret_access_key": "Tajný prístupový kľúč",
+          "path_prefix": "Cesta v buckete"
+        },
+        "hints": {
+          "endpoint_url": "Napr. https://s3.eu-central-1.amazonaws.com alebo https://fsn1.your-objectstorage.com.",
+          "region": "Tak, ako ho nazýva poskytovateľ, napr. eu-central-1 alebo fsn1. Ponechajte us-east-1, ak poskytovateľ regióny nepoužíva.",
+          "path_prefix": "Voliteľné. Priečinky Parcelly sa vytvárajú pod touto cestou, napr. parcella."
         }
       }
     }

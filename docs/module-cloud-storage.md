@@ -1,6 +1,7 @@
-# Cloud storage module (Nextcloud)
+# Cloud storage module
 
-Connects Parcella to a club's existing Nextcloud instance so board/admin
+Connects Parcella to a club's existing file storage (Nextcloud, any WebDAV
+server, or S3-compatible object storage; one at a time, ADR 0106) so board/admin
 users can browse, upload to, and download from a per-parcel document
 folder without leaving Parcella -- lease agreements, membership
 paperwork, ticket correspondence. Off by default (`cloud_storage`
@@ -33,12 +34,29 @@ WordPress blog integrations.
 
 ## The connector: `app/cloud_storage.py`
 
-Structured like `app/website_connectors/`: a small `CloudStorageProvider`
-interface with one concrete implementation, `NextcloudProvider`, talking
-WebDAV (`PROPFIND` to list, `PUT` to upload, `GET` to download, against
-`{base_url}/remote.php/dav/files/{username}/...`). A future backend
-(Google Drive, S3-compatible storage) would be a new class implementing
-the same interface, not a change to this one.
+A small `CloudStorageProvider` interface and three backends, chosen from
+the dropdown on Admin -> Integrations -> Cloud storage (ADR 0106, same
+`ProviderRegistry` as the website connectors in `app/provider_registry.py`):
+
+- `WebDAVProvider`: any WebDAV server (`PROPFIND` to list, `PUT`/`GET`/
+  `DELETE` for files, `MKCOL` for folders) below a configured root URL.
+  It compares the decoded `<href>` paths, so servers that answer with a
+  full URL or a path, encoded their own way, all work.
+- `NextcloudProvider`: a `WebDAVProvider` whose root is
+  `{base_url}/remote.php/dav/files/{username}`, with an app password.
+- `S3Provider`: S3-compatible object storage, path-style addressing,
+  SigV4-signed with the standard library (`sigv4_headers`, tested against
+  AWS's documented example). A "folder" is a key prefix; `create_folder`
+  writes an empty `<folder>/` marker, and a prefix with neither marker
+  nor content counts as missing, like WebDAV's 404. An optional path
+  prefix keeps Parcella's files under one sub-path of the bucket.
+
+Every feature calls `get_cloud_storage_provider(db)` and only uses the
+interface. Settings: `cloud_storage_provider` (active type) and
+`cloud_storage_<type>_<field>`; migration 0106 moved the old
+`nextcloud_*` keys over. Nextcloud Deck sync keeps its own `deck_*`
+settings (ADR 0086). Not built yet: Google Drive, OneDrive and Dropbox,
+which need an OAuth login flow instead of stored credentials.
 
 Originally list/upload/download only, deliberately narrow for v1 -- no
 delete, no folder creation. The folder a club points Parcella at is
@@ -70,7 +88,7 @@ confusingly.
 `sanitize_relative_path()` normalizes a board-entered path and rejects
 anything containing a `..` segment -- the path is later joined onto a
 WebDAV URL, so path traversal here isn't just a UI nuisance, it could
-reach outside the intended folder tree on the Nextcloud side. That
+reach outside the intended folder tree on the storage side. That
 covers the folder path, but not the `filename` that
 `download_file`/`upload_file` take directly from a query parameter /
 uploaded filename with no equivalent check -- so `_join_dav_path()`

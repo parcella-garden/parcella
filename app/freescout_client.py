@@ -293,7 +293,7 @@ async def get_freescout_client(
     """Returns a configured FreeScoutClient, or None if the club hasn't
     set up FreeScout credentials yet -- callers check for None rather
     than catching an exception for "not set up" (same convention as
-    get_active_connector/get_nextcloud_provider)."""
+    get_active_connector/get_cloud_storage_provider)."""
     config = await load_freescout_configuration(db)
     if config is None:
         return None

@@ -29,7 +29,7 @@ the problem: other clubs run TYPO3, Contao, Drupal, Joomla or WordPress.
    announcement data model stays unchanged, and the print QR code always
    has one unambiguous post to point at.
 
-3. **One interface, a registry, generic UI.** `app/website_connectors/`:
+3. **One interface, a registry, generic UI.** `app/website_connectors/` (the registry itself was later shared with cloud storage as `app/provider_registry.py`, ADR 0106):
    `WebsiteConnector` in `base.py` (`test_connection`, `publish_draft`,
    `update_post`, `get_public_url_if_published`, plus `config_fields`
    metadata), `registry.py` mapping type to class and handling storage,

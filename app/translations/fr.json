@@ -294,7 +294,7 @@
         "inventory_name": "Inventaire",
         "inventory_desc": "Suit tout ce que le club possède (ainsi que les objets personnels que les membres entreposent sur le terrain du club), regroupés selon vos propres catégories, avec un système de prêt facultatif.",
         "cloud_storage_name": "Stockage cloud",
-        "cloud_storage_desc": "Permet au conseil/à l'administrateur de parcourir, téléverser et télécharger des fichiers depuis un dossier Nextcloud pour chaque parcelle -- baux, demandes d'adhésion, correspondance des tickets. Configurez d'abord la connexion sous Admin -> Intégrations.",
+        "cloud_storage_desc": "Permet aux membres du bureau de parcourir, envoyer et télécharger les fichiers d'un dossier cloud par parcelle -- baux, documents d'adhésion. Choisissez d'abord le stockage dans Admin -> Intégrations.",
         "tasks_name": "Tableau des tâches",
         "tasks_desc": "Un tableau kanban général (À faire / En cours / Terminé) pour les affaires du club non liées à une session de travail -- p.ex. \"renouveler l'assurance\", \"appeler l'électricien\". Réservé au conseil/administrateur.",
         "finances_name": "Finances",
@@ -346,17 +346,7 @@
       "endpoint_auth": "Authentification",
       "auth_none": "Aucune (lecture publique)",
       "wordpress_hint": "Une extension WordPress connecteur de référence se trouve dans le dossier integrations/wordpress du projet.",
-      "nextcloud_title": "Nextcloud (documents de parcelle et factures reçues)",
-      "nextcloud_desc": "Permet aux membres du bureau de parcourir, téléverser et télécharger des fichiers d'un dossier dans l'instance Nextcloud du club pour chaque parcelle -- baux, documents d'adhésion, correspondance des tickets -- et configure le dossier unique partagé utilisé pour les pièces jointes des factures reçues. Créez un mot de passe d'application dans les paramètres de sécurité de votre utilisateur Nextcloud (Paramètres -> Sécurité -> Appareils et sessions) -- n'utilisez pas votre mot de passe de connexion Nextcloud habituel ici.",
       "cloud_storage_module_disabled_notice": "Le connecteur de stockage cloud est actuellement désactivé, les documents de parcelle ne seront donc pas affichés.",
-      "nextcloud_saved": "Paramètres Nextcloud enregistrés",
-      "nextcloud_base_url_label": "URL Nextcloud",
-      "nextcloud_username_label": "Nom d'utilisateur Nextcloud",
-      "nextcloud_app_password_label": "Mot de passe d'application",
-      "nextcloud_app_password_hint": "Pas votre mot de passe de connexion Nextcloud habituel -- générez-en un dans les paramètres de sécurité de votre utilisateur Nextcloud.",
-      "nextcloud_save_button": "Enregistrer",
-      "nextcloud_test_button": "Tester la connexion",
-      "nextcloud_test_success": "Connexion réussie",
       "incoming_invoices_folder_header": "Dossier des factures reçues",
       "incoming_invoices_folder_help": "Les pièces jointes téléversées lors de l'enregistrement d'une facture reçue (/finances/incoming-invoices) sont stockées dans ce dossier unique partagé.",
       "incoming_invoices_folder_label": "Chemin du dossier",
@@ -417,7 +407,13 @@
       "website_saved": "Paramètres du site enregistrés",
       "website_save_button": "Enregistrer",
       "website_test_button": "Tester la connexion",
-      "website_test_success": "Connexion réussie"
+      "website_test_success": "Connexion réussie",
+      "cloud_storage_title": "Stockage cloud (documents des parcelles, factures, sauvegardes)",
+      "cloud_storage_desc": "Choisissez où Parcella range ses fichiers : le dossier de chaque parcelle (baux, documents d'adhésion), les factures entrantes, les documents des contacts, les sauvegardes et le site Markdown. Un seul stockage est actif à la fois : en choisir un autre désactive le précédent, mais conserve ses paramètres. Qui d'autre peut voir un dossier se règle dans le stockage lui-même, pas dans Parcella.",
+      "cloud_storage_saved": "Paramètres du stockage cloud enregistrés",
+      "cloud_storage_type_label": "Type de stockage",
+      "cloud_storage_type_none": "Aucun (pas de stockage cloud)",
+      "cloud_storage_type_hint": "Les chemins de dossiers saisis ailleurs (parcelles, factures, contacts) se rapportent au stockage choisi."
     },
     "system": {
       "page_title": "Système",
@@ -446,7 +442,7 @@
       "success_message": "Enregistré.",
       "module_disabled_notice": "Les sauvegardes cloud nécessitent le module Stockage cloud.",
       "module_disabled_link": "Activez-le dans Paramètres.",
-      "not_configured_notice": "Le module Stockage cloud est activé, mais aucune connexion Nextcloud n'est encore configurée.",
+      "not_configured_notice": "Le module Stockage cloud est activé, mais aucun stockage n'est encore configuré.",
       "not_configured_link": "Connectez-en une dans Intégrations.",
       "settings_header": "Planification",
       "enabled_label": "Sauvegarder automatiquement vers le cloud",
@@ -474,7 +470,7 @@
       "error_invalid_frequency": "Veuillez choisir une fréquence valide.",
       "error_invalid_retention": "Veuillez saisir un nombre d'au moins 1.",
       "error_invalid_filename": "Cela ne ressemble pas à un fichier de sauvegarde Parcella.",
-      "error_not_configured": "Nextcloud n'est pas configuré dans Admin -> Intégrations."
+      "error_not_configured": "Aucun stockage cloud n'est configuré dans Admin -> Intégrations."
     },
     "sample_data": {
       "title": "Données d'exemple",
@@ -843,7 +839,7 @@
       "delete_history_tooltip": "Supprimer l'entrée",
       "delete_history_confirm": "Vraiment supprimer définitivement cette entrée ? Cette action est irréversible.",
       "cannot_delete_active_assignment": "Une affectation active ne peut pas être supprimée -- veuillez d'abord mettre fin au bail.",
-      "cloud_documents_header": "Documents (Nextcloud)",
+      "cloud_documents_header": "Documents (stockage cloud)",
       "cloud_folder_saved": "Chemin du dossier enregistré",
       "cloud_upload_ok": "Fichier téléversé",
       "cloud_folder_path_label": "Chemin du dossier",
@@ -851,7 +847,7 @@
       "cloud_folder_save_button": "Enregistrer",
       "cloud_no_folder_hint": "Aucun dossier n'est encore configuré pour le bail actuel. Indiquez le chemin du dossier déjà partagé avec ces locataires dans Nextcloud.",
       "cloud_browse_folder_button": "Parcourir…",
-      "cloud_picker_root_label": "Racine Nextcloud",
+      "cloud_picker_root_label": "Racine du stockage",
       "cloud_picker_use_folder_button": "Utiliser ce dossier",
       "cloud_picker_root_hint": "Ouvrez d'abord un dossier avant de le sélectionner.",
       "cloud_picker_empty": "Ce dossier ne contient aucun sous-dossier.",
@@ -860,7 +856,7 @@
       "cloud_col_modified": "Dernière modification",
       "cloud_folder_empty": "Ce dossier est vide.",
       "cloud_upload_button": "Téléverser",
-      "cloud_not_configured": "Nextcloud n'est pas encore configuré. Configurez-le sous Admin -> Intégrations.",
+      "cloud_not_configured": "Aucun stockage cloud n'est encore configuré. Choisissez-en un dans Admin -> Intégrations.",
       "cloud_no_active_folder": "Aucun dossier actif n'est configuré pour cette parcelle.",
       "page_title": "Parcelle {plot_number}",
       "upcoming_badge": "à partir du {date}",
@@ -2790,7 +2786,7 @@
         "invalid_folder_path": "Le chemin du dossier n'est pas valide."
       },
       "new_folder": "Dossier de documents pour les nouveaux locataires",
-      "browse_folder": "Parcourir Nextcloud",
+      "browse_folder": "Parcourir le stockage cloud",
       "new_folder_hint": "Facultatif. Le dossier des anciens locataires est retiré à la date de remise dans tous les cas ; ce dossier prend le relais ce jour-là. Créez-le et partagez-le vous-même dans Nextcloud.",
       "folder": "Dossier de documents",
       "folder_old": "{path} – retiré à la date de remise",
@@ -3009,6 +3005,51 @@
         "hints": {
           "endpoint_url": "Indiquée dans les paramètres du plugin, p.ex. https://example.org/parcella/v1.",
           "shared_secret": "Générée par le plugin. Parcella signe chaque requête avec."
+        }
+      }
+    }
+  },
+  "cloud_storage": {
+    "providers": {
+      "nextcloud": {
+        "name": "Nextcloud",
+        "desc": "Le Nextcloud de votre association. Créez un mot de passe d'application dans les paramètres de sécurité de votre utilisateur Nextcloud (Paramètres -> Sécurité -> Appareils et sessions) -- n'utilisez pas votre mot de passe de connexion habituel.",
+        "fields": {
+          "base_url": "Adresse Nextcloud",
+          "username": "Nom d'utilisateur Nextcloud",
+          "app_password": "Mot de passe d'application"
+        },
+        "hints": {
+          "app_password": "Pas votre mot de passe Nextcloud habituel -- générez-en un dans les paramètres de sécurité de votre utilisateur."
+        }
+      },
+      "webdav": {
+        "name": "WebDAV (ownCloud, Seafile, HiDrive, Storage Box, ...)",
+        "desc": "Tout stockage avec accès WebDAV, p.ex. ownCloud, Seafile, Strato HiDrive, une Hetzner Storage Box ou MagentaCLOUD.",
+        "fields": {
+          "root_url": "Adresse WebDAV",
+          "username": "Nom d'utilisateur",
+          "password": "Mot de passe"
+        },
+        "hints": {
+          "root_url": "L'adresse WebDAV complète du dossier dans lequel Parcella doit travailler, telle que votre fournisseur l'indique. Tous les chemins dans Parcella s'y rapportent."
+        }
+      },
+      "s3": {
+        "name": "Compatible S3 (AWS, Hetzner, MinIO, Wasabi, ...)",
+        "desc": "Stockage objet utilisant le protocole S3. Créez d'abord un bucket et une clé d'accès avec droits de lecture et d'écriture.",
+        "fields": {
+          "endpoint_url": "Point de terminaison",
+          "region": "Région",
+          "bucket": "Bucket",
+          "access_key_id": "ID de clé d'accès",
+          "secret_access_key": "Clé d'accès secrète",
+          "path_prefix": "Chemin dans le bucket"
+        },
+        "hints": {
+          "endpoint_url": "P.ex. https://s3.eu-central-1.amazonaws.com ou https://fsn1.your-objectstorage.com.",
+          "region": "Telle que votre fournisseur la nomme, p.ex. eu-central-1 ou fsn1. Laissez us-east-1 si votre fournisseur n'utilise pas de régions.",
+          "path_prefix": "Facultatif. Les dossiers de Parcella sont créés sous ce chemin, p.ex. parcella."
         }
       }
     }
