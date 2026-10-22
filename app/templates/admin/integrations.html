@@ -157,47 +157,69 @@
 </div>
 
 <div class="card mb-3">
-    <div class="card-header settings-card-toggle collapsed" role="button" data-bs-toggle="collapse"
-         data-bs-target="#integration-card-wordpress" aria-expanded="false">
-        <span><i class="bi bi-wordpress me-2"></i>{{ t('admin.integrations.wordpress_blog_title') }}</span>
+    <div class="card-header settings-card-toggle{% if not (website_saved or website_error or website_test_result) %} collapsed{% endif %}" role="button" data-bs-toggle="collapse"
+         data-bs-target="#integration-card-website" aria-expanded="{{ 'true' if (website_saved or website_error or website_test_result) else 'false' }}">
+        <span><i class="bi bi-globe me-2"></i>{{ t('admin.integrations.website_title') }}</span>
         <i class="bi bi-chevron-down settings-card-chevron"></i>
     </div>
-    <div class="collapse" id="integration-card-wordpress" data-bs-parent="#integrations-accordion">
+    <div class="collapse{% if website_saved or website_error or website_test_result %} show{% endif %}" id="integration-card-website" data-bs-parent="#integrations-accordion">
     <div class="card-body">
-        <p class="text-muted">{{ t('admin.integrations.wordpress_blog_desc') }}</p>
+        <p class="text-muted">{{ t('admin.integrations.website_desc') }}</p>
 
-        {% if wordpress_saved %}
-        <div class="alert alert-success">{{ t('admin.integrations.wordpress_saved') }}</div>
+        {% if website_saved %}
+        <div class="alert alert-success">{{ t('admin.integrations.website_saved') }}</div>
+        {% endif %}
+        {% if website_error %}
+        <div class="alert alert-danger">{{ website_error }}</div>
         {% endif %}
 
-        <form method="post" action="/admin/integrations/wordpress">
+        <form method="post" action="/admin/integrations/website">
             {{ csrf_field() }}
             <div class="mb-3">
-                <label class="form-label fw-semibold">{{ t('admin.integrations.wordpress_site_url_label') }}</label>
-                <input type="url" name="wordpress_site_url" class="form-control"
-                       value="{{ wordpress_site_url }}" placeholder="https://example.com">
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-semibold">{{ t('admin.integrations.wordpress_username_label') }}</label>
-                <input type="text" name="wordpress_username" class="form-control" value="{{ wordpress_username }}">
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-semibold">{{ t('admin.integrations.wordpress_app_password_label') }}</label>
-                <input type="password" name="wordpress_app_password" class="form-control" autocomplete="off"
-                       placeholder="{% if wordpress_app_password_set %}{{ t('admin.settings.password_set_placeholder') }}{% else %}{{ t('admin.settings.password_unset_placeholder') }}{% endif %}">
-                <div class="form-text">{{ t('admin.integrations.wordpress_app_password_hint') }}</div>
+                <label class="form-label fw-semibold" for="website-connector-select">{{ t('admin.integrations.website_type_label') }}</label>
+                <select name="website_connector" id="website-connector-select" class="form-select">
+                    <option value="" {% if not website_active_type %}selected{% endif %}>{{ t('admin.integrations.website_type_none') }}</option>
+                    {% for connector in website_connectors %}
+                    <option value="{{ connector.type }}" {% if website_active_type == connector.type %}selected{% endif %}>{{ t('website.connectors.' ~ connector.type ~ '.name') }}</option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">{{ t('admin.integrations.website_type_hint') }}</div>
             </div>
 
+            {% for connector in website_connectors %}
+            <fieldset class="website-connector-fields" data-website-type="{{ connector.type }}" {% if website_active_type != connector.type %}hidden{% endif %}>
+                <p class="text-muted" style="font-size: 0.85rem;">{{ t('website.connectors.' ~ connector.type ~ '.desc') }}</p>
+                {% for item in connector.fields %}
+                {% set f = item.field %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="{{ item.name }}">
+                        {{ t('website.connectors.' ~ connector.type ~ '.fields.' ~ f.key) }}{% if f.required %} *{% endif %}
+                    </label>
+                    {% if f.kind == 'secret' %}
+                    <input type="password" name="{{ item.name }}" id="{{ item.name }}" class="form-control" autocomplete="off"
+                           placeholder="{% if item.is_set %}{{ t('admin.settings.password_set_placeholder') }}{% else %}{{ t('admin.settings.password_unset_placeholder') }}{% endif %}">
+                    {% else %}
+                    <input type="{{ 'url' if f.kind == 'url' else 'text' }}" name="{{ item.name }}" id="{{ item.name }}" class="form-control"
+                           value="{{ item.value }}" placeholder="{{ f.placeholder }}">
+                    {% endif %}
+                    {% if f.hint %}
+                    <div class="form-text">{{ t('website.connectors.' ~ connector.type ~ '.hints.' ~ f.key) }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </fieldset>
+            {% endfor %}
+
             <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-lg me-1"></i>{{ t('admin.integrations.wordpress_save_button') }}
+                <i class="bi bi-check-lg me-1"></i>{{ t('admin.integrations.website_save_button') }}
             </button>
-            <button type="submit" formaction="/admin/integrations/wordpress/test" formmethod="post" class="btn btn-outline-secondary">
-                {{ t('admin.integrations.wordpress_test_button') }}
+            <button type="submit" formaction="/admin/integrations/website/test" formmethod="post" class="btn btn-outline-secondary" id="website-test-button">
+                {{ t('admin.integrations.website_test_button') }}
             </button>
-            {% if wordpress_test_result == 'success' %}
-            <span class="text-success ms-2"><i class="bi bi-check-circle"></i> {{ t('admin.integrations.wordpress_test_success') }}</span>
-            {% elif wordpress_test_result == 'failed' %}
-            <div class="text-danger mt-2"><i class="bi bi-x-circle"></i> {{ wordpress_test_message }}</div>
+            {% if website_test_result == 'success' %}
+            <span class="text-success ms-2"><i class="bi bi-check-circle"></i> {{ t('admin.integrations.website_test_success') }}</span>
+            {% elif website_test_result == 'failed' %}
+            <div class="text-danger mt-2"><i class="bi bi-x-circle"></i> {{ website_test_message }}</div>
             {% endif %}
         </form>
     </div>
@@ -424,4 +446,22 @@
 
 </div>
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var select = document.getElementById('website-connector-select');
+    var testButton = document.getElementById('website-test-button');
+    if (!select) { return; }
+    function sync() {
+        document.querySelectorAll('.website-connector-fields').forEach(function (fieldset) {
+            fieldset.hidden = fieldset.getAttribute('data-website-type') !== select.value;
+        });
+        if (testButton) { testButton.disabled = select.value === ''; }
+    }
+    select.addEventListener('change', sync);
+    sync();
+});
+</script>
 {% endblock %}

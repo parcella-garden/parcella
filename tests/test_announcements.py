@@ -591,7 +591,7 @@ async def test_uploaded_image_is_saved_and_actually_servable(client, admin_user)
 
 
 # ---------------------------------------------------------------------------
-# Blog channel (WordPress)
+# Blog channel, WordPress connector (app/website_connectors/wordpress.py)
 #
 # No real WordPress site is reachable from this test environment, so
 # WordPressPublisher is exercised against an httpx.MockTransport
@@ -610,10 +610,11 @@ async def _configure_wordpress(client, headers):
     from app.crypto_utils import encrypt
 
     async with AsyncSessionLocal() as session:
-        session.add(ClubSetting(key="wordpress_site_url", value="https://blog.example.com", description="test"))
-        session.add(ClubSetting(key="wordpress_username", value="board", description="test"))
+        session.add(ClubSetting(key="website_connector", value="wordpress", description="test"))
+        session.add(ClubSetting(key="website_wordpress_site_url", value="https://blog.example.com", description="test"))
+        session.add(ClubSetting(key="website_wordpress_username", value="board", description="test"))
         session.add(ClubSetting(
-            key="wordpress_app_password", value=encrypt("abcd 1234 efgh 5678"), description="test",
+            key="website_wordpress_app_password", value=encrypt("abcd 1234 efgh 5678"), description="test",
         ))
         await session.commit()
 
@@ -656,14 +657,14 @@ async def test_send_blog_creates_wordpress_draft(client, admin_user, monkeypatch
     import httpx as httpx_module
     mock_client = httpx_module.AsyncClient(transport=_wordpress_mock_transport())
 
-    async def fake_get_wordpress_publisher(db, client=None):
-        from app.blog_publisher import WordPressPublisher
+    async def fake_get_active_connector(db):
+        from app.website_connectors.wordpress import WordPressPublisher
         return WordPressPublisher(
             site_url="https://blog.example.com", username="board",
             application_password="abcd 1234 efgh 5678", client=mock_client,
         )
 
-    monkeypatch.setattr("app.routers.announcements.get_wordpress_publisher", fake_get_wordpress_publisher)
+    monkeypatch.setattr("app.routers.announcements.get_active_connector", fake_get_active_connector)
 
     create = await client.post(
         "/announcements/new",
@@ -694,11 +695,11 @@ async def test_send_blog_creates_wordpress_draft(client, admin_user, monkeypatch
     await mock_client.aclose()
 
 
-async def test_send_blog_without_wordpress_configured_is_marked_failed(client, admin_user):
+async def test_send_blog_without_a_website_chosen_is_marked_failed(client, admin_user):
     token = await login(client, "admin@example.com")
     await _enable_module(client, auth_header(token))
     await web_login(client, "admin@example.com")
-    # Deliberately not configuring WordPress credentials.
+    # Deliberately not choosing a website on Admin -> Integrations.
 
     create = await client.post(
         "/announcements/new",
@@ -722,7 +723,7 @@ async def test_send_blog_without_wordpress_configured_is_marked_failed(client, a
         announcement = result.scalar_one()
         delivery = announcement.delivery_for(AnnouncementChannel.BLOG)
         assert delivery.status.value == "FAILED"
-        assert "isn't configured" in delivery.error_message.lower()
+        assert "no website is set up" in delivery.error_message.lower()
 
 
 async def test_send_blog_reports_wordpress_rejection(client, admin_user, monkeypatch):
@@ -734,14 +735,14 @@ async def test_send_blog_reports_wordpress_rejection(client, admin_user, monkeyp
     import httpx as httpx_module
     mock_client = httpx_module.AsyncClient(transport=_wordpress_mock_transport(post_status=401))
 
-    async def fake_get_wordpress_publisher(db, client=None):
-        from app.blog_publisher import WordPressPublisher
+    async def fake_get_active_connector(db):
+        from app.website_connectors.wordpress import WordPressPublisher
         return WordPressPublisher(
             site_url="https://blog.example.com", username="board",
             application_password="wrong", client=mock_client,
         )
 
-    monkeypatch.setattr("app.routers.announcements.get_wordpress_publisher", fake_get_wordpress_publisher)
+    monkeypatch.setattr("app.routers.announcements.get_active_connector", fake_get_active_connector)
 
     create = await client.post(
         "/announcements/new",
@@ -769,86 +770,76 @@ async def test_send_blog_reports_wordpress_rejection(client, admin_user, monkeyp
     await mock_client.aclose()
 
 
+def _patch_admin_wordpress(monkeypatch, transport):
+    """Makes the Website card's "Test connection" build its WordPress
+    connector on a mocked transport."""
+    import httpx as httpx_module
+    mock_client = httpx_module.AsyncClient(transport=transport)
+    from app.website_connectors.wordpress import WordPressPublisher as RealWordPressPublisher
+
+    async def fake_build_connector(db, connector_type, config):
+        assert connector_type == "wordpress"
+        return RealWordPressPublisher(
+            config["site_url"], config["username"], config["app_password"], client=mock_client,
+        )
+
+    monkeypatch.setattr("app.routers.admin.build_connector", fake_build_connector)
+    return mock_client
+
+
+def _wordpress_form(**overrides):
+    data = {
+        "website_connector": "wordpress",
+        "website_wordpress_site_url": "https://blog.example.com",
+        "website_wordpress_username": "board",
+        "website_wordpress_app_password": "abcd 1234 efgh 5678",
+    }
+    data.update(overrides)
+    return data
+
+
 async def test_wordpress_test_connection_endpoint(client, admin_user, monkeypatch):
     await web_login(client, "admin@example.com")
+    mock_client = _patch_admin_wordpress(monkeypatch, _wordpress_mock_transport(users_me_status=200))
 
-    import httpx as httpx_module
-    mock_client = httpx_module.AsyncClient(transport=_wordpress_mock_transport(users_me_status=200))
-
-    from app.blog_publisher import WordPressPublisher as RealWordPressPublisher
-
-    class MockedWordPressPublisher(RealWordPressPublisher):
-        def __init__(self, site_url, username, application_password, client=None):
-            super().__init__(site_url, username, application_password, client=mock_client)
-
-    monkeypatch.setattr("app.routers.admin.WordPressPublisher", MockedWordPressPublisher)
-
-    response = await client.post(
-        "/admin/integrations/wordpress/test",
-        data={
-            "wordpress_site_url": "https://blog.example.com",
-            "wordpress_username": "board",
-            "wordpress_app_password": "abcd 1234 efgh 5678",
-        },
-    )
+    response = await client.post("/admin/integrations/website/test", data=_wordpress_form())
     assert response.status_code == 303
-    assert "wordpress_test=success" in response.headers["location"]
+    assert "website_test=success" in response.headers["location"]
 
     await mock_client.aclose()
 
 
 async def test_wordpress_test_connection_reports_bad_credentials(client, admin_user, monkeypatch):
     await web_login(client, "admin@example.com")
-
-    import httpx as httpx_module
-    mock_client = httpx_module.AsyncClient(transport=_wordpress_mock_transport(users_me_status=401))
-
-    from app.blog_publisher import WordPressPublisher as RealWordPressPublisher
-
-    class MockedWordPressPublisher(RealWordPressPublisher):
-        def __init__(self, site_url, username, application_password, client=None):
-            super().__init__(site_url, username, application_password, client=mock_client)
-
-    monkeypatch.setattr("app.routers.admin.WordPressPublisher", MockedWordPressPublisher)
+    mock_client = _patch_admin_wordpress(monkeypatch, _wordpress_mock_transport(users_me_status=401))
 
     response = await client.post(
-        "/admin/integrations/wordpress/test",
-        data={
-            "wordpress_site_url": "https://blog.example.com",
-            "wordpress_username": "board",
-            "wordpress_app_password": "wrong-password",
-        },
+        "/admin/integrations/website/test", data=_wordpress_form(website_wordpress_app_password="wrong-password"),
     )
     assert response.status_code == 303
-    assert "wordpress_test=failed" in response.headers["location"]
+    assert "website_test=failed" in response.headers["location"]
 
     await mock_client.aclose()
 
 
 # ---------------------------------------------------------------------------
-# WordPress credentials live on the Integrations page, not Settings --
-# this is where they're saved (not just tested).
+# The Website card on Admin -> Integrations (ADR 0104): one dropdown, one
+# active CMS; WordPress credentials are saved there.
 # ---------------------------------------------------------------------------
 
 async def test_integrations_page_saves_wordpress_credentials(client, admin_user):
     await web_login(client, "admin@example.com")
 
-    response = await client.post(
-        "/admin/integrations/wordpress",
-        data={
-            "wordpress_site_url": "https://blog.example.com",
-            "wordpress_username": "board",
-            "wordpress_app_password": "abcd 1234 efgh 5678",
-        },
-    )
+    response = await client.post("/admin/integrations/website", data=_wordpress_form())
     assert response.status_code == 303
-    assert "wordpress_saved=1" in response.headers["location"]
+    assert "website_saved=1" in response.headers["location"]
 
     from app.database import AsyncSessionLocal
-    from app.blog_publisher import load_wordpress_configuration
+    from app.website_connectors.registry import get_active_type, load_config
 
     async with AsyncSessionLocal() as session:
-        config = await load_wordpress_configuration(session)
+        assert await get_active_type(session) == "wordpress"
+        config = await load_config(session, "wordpress")
         assert config == {
             "site_url": "https://blog.example.com",
             "username": "board",
@@ -859,33 +850,22 @@ async def test_integrations_page_saves_wordpress_credentials(client, admin_user)
 async def test_integrations_page_blank_password_leaves_existing_one_unchanged(client, admin_user):
     await web_login(client, "admin@example.com")
 
-    await client.post(
-        "/admin/integrations/wordpress",
-        data={
-            "wordpress_site_url": "https://blog.example.com",
-            "wordpress_username": "board",
-            "wordpress_app_password": "original-secret",
-        },
-    )
+    await client.post("/admin/integrations/website", data=_wordpress_form(website_wordpress_app_password="original-secret"))
 
     # Re-save with a new username but a blank Application Password
     # field -- the existing password must survive, same "blank = leave
     # unchanged" convention used for SMTP.
     response = await client.post(
-        "/admin/integrations/wordpress",
-        data={
-            "wordpress_site_url": "https://blog.example.com",
-            "wordpress_username": "new-board-username",
-            "wordpress_app_password": "",
-        },
+        "/admin/integrations/website",
+        data=_wordpress_form(website_wordpress_username="new-board-username", website_wordpress_app_password=""),
     )
     assert response.status_code == 303
 
     from app.database import AsyncSessionLocal
-    from app.blog_publisher import load_wordpress_configuration
+    from app.website_connectors.registry import load_config
 
     async with AsyncSessionLocal() as session:
-        config = await load_wordpress_configuration(session)
+        config = await load_config(session, "wordpress")
         assert config["username"] == "new-board-username"
         assert config["app_password"] == "original-secret"
 
@@ -893,14 +873,7 @@ async def test_integrations_page_blank_password_leaves_existing_one_unchanged(cl
 async def test_integrations_page_shows_wordpress_prefill_without_exposing_password(client, admin_user):
     await web_login(client, "admin@example.com")
 
-    await client.post(
-        "/admin/integrations/wordpress",
-        data={
-            "wordpress_site_url": "https://blog.example.com",
-            "wordpress_username": "board",
-            "wordpress_app_password": "super-secret-value",
-        },
-    )
+    await client.post("/admin/integrations/website", data=_wordpress_form(website_wordpress_app_password="super-secret-value"))
 
     page = await client.get("/admin/integrations")
     assert page.status_code == 200
@@ -1072,14 +1045,14 @@ async def test_generate_print_pdf_includes_qr_when_blog_post_is_published(client
 
     mock_client = httpx_module.AsyncClient(transport=httpx_module.MockTransport(handler))
 
-    async def fake_get_wordpress_publisher(db, client=None):
-        from app.blog_publisher import WordPressPublisher
+    async def fake_get_active_connector(db):
+        from app.website_connectors.wordpress import WordPressPublisher
         return WordPressPublisher(
             site_url="https://blog.example.com", username="board",
             application_password="abcd 1234 efgh 5678", client=mock_client,
         )
 
-    monkeypatch.setattr("app.routers.announcements.get_wordpress_publisher", fake_get_wordpress_publisher)
+    monkeypatch.setattr("app.routers.announcements.get_active_connector", fake_get_active_connector)
 
     response = await client.post(f"/announcements/{announcement_id}/print")
     assert response.status_code == 200
@@ -1190,14 +1163,14 @@ def _patch_wordpress(monkeypatch, transport):
     import httpx as httpx_module
     mock_client = httpx_module.AsyncClient(transport=transport)
 
-    async def fake_get_wordpress_publisher(db, client=None):
-        from app.blog_publisher import WordPressPublisher
+    async def fake_get_active_connector(db):
+        from app.website_connectors.wordpress import WordPressPublisher
         return WordPressPublisher(
             site_url="https://blog.example.com", username="board",
             application_password="abcd 1234 efgh 5678", client=mock_client,
         )
 
-    monkeypatch.setattr("app.routers.announcements.get_wordpress_publisher", fake_get_wordpress_publisher)
+    monkeypatch.setattr("app.routers.announcements.get_active_connector", fake_get_active_connector)
     return mock_client
 
 

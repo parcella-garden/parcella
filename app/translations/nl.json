@@ -290,7 +290,7 @@
         "public_contact_api_name": "Publieke contactformulier-API",
         "public_contact_api_desc": "Laat een externe website (bijv. een WordPress-plugin) een contactformulier rechtstreeks als Parcella-ticket indienen, in plaats van een e-mail te sturen. Standaard uitgeschakeld omdat dit een publiek schrijf-eindpunt opent; het toegangstoken staat op de pagina Integraties.",
         "announcements_name": "Mededelingen",
-        "announcements_desc": "Stel clubnieuws één keer op en bereid het voor op de blog, ledenmail en een gedrukte mededeling.",
+        "announcements_desc": "Schrijf verenigingsnieuws één keer en bereid het voor op de website, de e-mail aan leden en een afdrukbare mededeling.",
         "inventory_name": "Inventaris",
         "inventory_desc": "Houdt alles bij wat de vereniging bezit (en persoonlijke spullen die leden op het verenigingsterrein opslaan), gegroepeerd in eigen categorieën, met een optioneel uitleensysteem.",
         "cloud_storage_name": "Cloudopslag",
@@ -346,16 +346,6 @@
       "endpoint_auth": "Authenticatie",
       "auth_none": "Geen (publiek leesbaar)",
       "wordpress_hint": "Een referentie-WordPress-connectorplugin staat in de map integrations/wordpress van het project.",
-      "wordpress_blog_title": "WordPress (blogconcepten)",
-      "wordpress_blog_desc": "Wordt gebruikt door de module Mededelingen om blogconcepten te publiceren. Maak een toepassingswachtwoord aan in je WordPress-gebruikersprofiel (Gebruikers -> Profiel -> Toepassingswachtwoorden) -- gebruik hier niet je gewone WordPress-inlogwachtwoord.",
-      "wordpress_saved": "WordPress-instellingen opgeslagen",
-      "wordpress_site_url_label": "URL van de WordPress-site",
-      "wordpress_username_label": "WordPress-gebruikersnaam",
-      "wordpress_app_password_label": "Toepassingswachtwoord",
-      "wordpress_app_password_hint": "Niet je gewone WordPress-inlogwachtwoord -- genereer er een in je WordPress-gebruikersprofiel.",
-      "wordpress_save_button": "Opslaan",
-      "wordpress_test_button": "Verbinding testen",
-      "wordpress_test_success": "Verbinding geslaagd",
       "nextcloud_title": "Nextcloud (perceeldocumenten & inkomende facturen)",
       "nextcloud_desc": "Hiermee kunnen bestuursleden een map in de Nextcloud-omgeving van de vereniging per perceel doorbladeren, uploaden en downloaden -- pachtovereenkomsten, lidmaatschapsdocumenten, ticketcorrespondentie -- en wordt de ene gedeelde map voor bijlagen van inkomende facturen ingesteld. Maak een app-wachtwoord aan bij de beveiligingsinstellingen van uw Nextcloud-gebruiker (Instellingen -> Beveiliging -> Apparaten & sessies) -- gebruik hier niet uw normale Nextcloud-inlogwachtwoord.",
       "cloud_storage_module_disabled_notice": "De cloudopslag-connector is momenteel uitgeschakeld, dus perceeldocumenten worden niet getoond.",
@@ -418,7 +408,16 @@
       "ics_title": "Privé-agendafeeds",
       "ics_desc": "De feeds voor verjaardagen en aanwezigheid/afwezigheid van het bestuur worden beschermd door één gedeeld geheim in hun abonnements-URL. Het verloopt nooit; genereer het opnieuw als een link kan zijn uitgelekt of iemand met toegang het bestuur heeft verlaten.",
       "ics_regenerate_confirm": "Opnieuw genereren verbreekt alle bestaande agenda-abonnementen op de verjaardags- en bestuursfeeds; abonnees moeten de nieuwe URL van de agendapagina's kopiëren. Doorgaan?",
-      "ics_token_regenerated": "Token voor agendafeeds opnieuw gegenereerd. Bestaande abonnementen werken pas weer met de nieuwe URL."
+      "ics_token_regenerated": "Token voor agendafeeds opnieuw gegenereerd. Bestaande abonnementen werken pas weer met de nieuwe URL.",
+      "website_title": "Website (concepten vanuit mededelingen)",
+      "website_desc": "Kies het systeem waarop de website van jullie vereniging draait. Mededelingen maken daar dan met één klik concepten aan. Er is altijd maar één websitetype actief: kies je een ander, dan wordt het vorige uitgeschakeld, maar blijven de instellingen bewaard.",
+      "website_type_label": "Websitetype",
+      "website_type_none": "Geen (geen websiteconcepten)",
+      "website_type_hint": "Parcella maakt alleen concepten aan. Publiceren blijft jouw beslissing in het websitesysteem.",
+      "website_saved": "Website-instellingen opgeslagen",
+      "website_save_button": "Opslaan",
+      "website_test_button": "Verbinding testen",
+      "website_test_success": "Verbinding geslaagd"
     },
     "system": {
       "page_title": "Systeem",
@@ -1825,9 +1824,9 @@
       "label_title": "Titel",
       "label_image": "Afbeelding",
       "remove_image": "Afbeelding verwijderen",
-      "image_hint": "PNG, JPEG of WebP, tot 5 MB. Wordt gebruikt als uitgelichte afbeelding voor de blog en in de e-mail.",
+      "image_hint": "PNG, JPEG of WebP, tot 5 MB. Gebruikt als afbeelding van het websitebericht en getoond in de e-mail.",
       "label_body": "Tekst",
-      "body_hint": "Geschreven in Markdown. Dezelfde tekst wordt gebruikt voor zowel het blogconcept als de ledenmail.",
+      "body_hint": "Geschreven in Markdown. Dezelfde tekst wordt gebruikt voor het websiteconcept en de e-mail aan leden.",
       "body_placeholder": "Schrijf hier je mededeling...",
       "label_print_override": "Afdrukversie (optioneel)",
       "print_override_hint": "Laat leeg om de volledige tekst hierboven af te drukken. Past deze niet op één pagina, dan wordt hier een verkorte versie voorgesteld -- vrij te bewerken.",
@@ -1837,7 +1836,7 @@
       "cancel_button": "Annuleren",
       "channels_title": "Verspreidingskanalen",
       "channel_email": "Ledenmail",
-      "channel_blog": "Blogconcept",
+      "channel_blog": "Websiteconcept",
       "channel_print": "Afdrukbare PDF",
       "delivery_sent": "Verzonden",
       "delivery_failed": "Mislukt",
@@ -1853,7 +1852,7 @@
       "test_email_missing_address": "Voer een e-mailadres in.",
       "delivery_sending": "Bezig met verzenden...",
       "sending_refresh_hint": "Bezig -- laad deze pagina opnieuw voor de actuele stand.",
-      "blog_edit_draft_link": "Openen in WordPress",
+      "blog_edit_draft_link": "Concept openen",
       "send_blog_button": "Concept aanmaken",
       "print_generated": "PDF gegenereerd",
       "print_too_long_status": "Te lang voor één pagina",
@@ -1862,13 +1861,13 @@
       "delete_hint": "Verwijdert deze mededeling permanent. Kan verwijderd worden ongeacht status (concept, gepubliceerd of gearchiveerd) of verzendgeschiedenis.",
       "delete_confirm": "Deze mededeling echt verwijderen? Dit kan niet ongedaan worden gemaakt.",
       "button_delete": "Mededeling verwijderen",
-      "channels_hint": "Elk kanaal wordt één keer uitgevoerd. Na een inhoudelijke wijziging en opslaan kunnen het blogbericht en de PDF worden bijgewerkt; de e-mail wordt maar één keer verzonden.",
+      "channels_hint": "Elk kanaal wordt één keer uitgevoerd. Na het wijzigen en opslaan van de inhoud kunnen het websitebericht en de PDF worden bijgewerkt; de e-mail wordt maar één keer verstuurd.",
       "email_changed_after_send": "De inhoud is gewijzigd nadat de e-mail is verzonden. Leden hebben de eerdere versie ontvangen.",
       "changed_since_delivery": "Inhoud sindsdien gewijzigd.",
-      "update_blog_button": "WordPress-bericht bijwerken",
-      "update_blog_confirm": "Titel, tekst en afbeelding van het bestaande WordPress-bericht overschrijven? Tekstwijzigingen die rechtstreeks in WordPress zijn gemaakt gaan verloren; SEO-instellingen, categorieën en de publicatiestatus blijven behouden.",
+      "update_blog_button": "Websiteconcept bijwerken",
+      "update_blog_confirm": "Titel, tekst en afbeelding van het bestaande websiteconcept overschrijven? Tekstwijzigingen die direct op de website zijn gemaakt gaan verloren; de publicatiestatus blijft behouden.",
       "print_download_link": "Downloaden",
-      "print_qr_pending_hint": "De tekst is ingekort zonder QR-code omdat het blogbericht nog niet openbaar was. Zodra het in WordPress is gepubliceerd, maak de PDF opnieuw aan om de QR-code toe te voegen.",
+      "print_qr_pending_hint": "De tekst is ingekort zonder QR-code, omdat het websitebericht nog niet openbaar was. Maak de PDF opnieuw zodra het gepubliceerd is om de QR-code toe te voegen.",
       "channel_letter": "Brieven"
     },
     "audience": {
@@ -2961,6 +2960,57 @@
       "cloud_not_configured": "De cloudverbinding is niet ingesteld.",
       "invalid_folder": "Ongeldige mapnaam.",
       "invalid_file": "Ongeldige bestandsnaam."
+    }
+  },
+  "website": {
+    "connectors": {
+      "wordpress": {
+        "name": "WordPress",
+        "desc": "Concepten worden aangemaakt via de ingebouwde REST-API van WordPress. Maak een applicatiewachtwoord aan in je WordPress-gebruikersprofiel (Gebruikers -> Profiel -> Applicatiewachtwoorden) -- gebruik niet je gewone inlogwachtwoord.",
+        "fields": {
+          "site_url": "Adres van de WordPress-site",
+          "username": "WordPress-gebruikersnaam",
+          "app_password": "Applicatiewachtwoord"
+        },
+        "hints": {
+          "app_password": "Niet je gewone WordPress-wachtwoord -- maak er een aan in je WordPress-gebruikersprofiel."
+        }
+      },
+      "markdown_folder": {
+        "name": "Markdown-map (cloudopslag)",
+        "desc": "Voor statische websites die uit Markdown-bestanden worden gebouwd (Hugo, Jekyll, Eleventy, Astro of vergelijkbaar). Elk concept wordt een .md-bestand met \"draft: true\" in de kop, opgeslagen in een map in je cloudopslag. Verwijder die regel om het bericht te publiceren.",
+        "fields": {
+          "posts_path": "Map voor berichten",
+          "media_path": "Map voor afbeeldingen",
+          "media_url_prefix": "Webpad van de afbeeldingenmap",
+          "site_url": "Adres van de website",
+          "filename_pattern": "Patroon voor bestandsnamen",
+          "url_pattern": "Patroon voor berichtadressen",
+          "author": "Auteur",
+          "categories": "Categorieën"
+        },
+        "hints": {
+          "posts_path": "Map in je cloudopslag, bijv. website/content/posts. Die moet al bestaan.",
+          "media_path": "Afbeeldingen komen in submappen per jaar en maand. Laat leeg om berichten zonder afbeelding te sturen.",
+          "media_url_prefix": "Hoe de website de afbeeldingenmap aanspreekt, bijv. /media.",
+          "site_url": "Gebruikt voor de QR-code op de afgedrukte mededeling zodra een bericht gepubliceerd is.",
+          "filename_pattern": "{date} wordt JJJJMMDD, {slug} de titel zonder accenten en spaties.",
+          "url_pattern": "Wordt als \"url\" in de berichtkop geschreven. Laat leeg als de website het adres zelf bepaalt.",
+          "categories": "Gescheiden door komma's, zoals jullie website ze noemt."
+        }
+      },
+      "parcella_plugin": {
+        "name": "Parcella-plugin (TYPO3, Contao, Drupal, Joomla, ...)",
+        "desc": "Voor elk websitesysteem met een geïnstalleerde Parcella-plugin. De plugin toont het adres en de gedeelde sleutel die je hier invult.",
+        "fields": {
+          "endpoint_url": "Adres van de plugin",
+          "shared_secret": "Gedeelde sleutel"
+        },
+        "hints": {
+          "endpoint_url": "Staat in de instellingen van de plugin, bijv. https://example.org/parcella/v1.",
+          "shared_secret": "Wordt door de plugin aangemaakt. Parcella ondertekent er elk verzoek mee."
+        }
+      }
     }
   }
 }

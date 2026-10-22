@@ -11,7 +11,8 @@ something new to do (see _channel_action_available, ADR 0087):
   task so a large roster doesn't hold the request open) and a one-off
   test send to a single address for review before committing to the
   real thing.
-- blog: publishes a draft post to WordPress (app.blog_publisher),
+- blog: creates a draft on the club's website through the active
+  website connector (app.website_connectors, ADR 0104),
   using whatever credentials are configured under Admin -> Integrations;
   after a content change, updates that same post instead of creating
   a second one.
@@ -54,7 +55,9 @@ from app.module_flags import require_module
 from app.announcement_utils import render_markdown_to_html, likely_fits_one_print_page, channel_fingerprint
 from app.announcement_mailer import start_paced_email_send, run_paced_email_send, send_test_email, resolve_audience
 from app.announcement_letters import render_announcement_letters_pdf
-from app.blog_publisher import get_wordpress_publisher, BlogPublishError, BlogPostNotFoundError
+from app.website_connectors import (
+    BlogPostNotFoundError, BlogPublishError, DraftContent, get_active_connector, get_active_type,
+)
 from app.print_publisher import render_announcement_print_pdf, PrintTooLongError
 from app.branding import load_branding
 from app.pdf_chrome import load_org_footer_context
@@ -188,7 +191,7 @@ def _require_channel_action_available(announcement: Announcement, channel: Annou
         raise HTTPException(status_code=409, detail="Nothing new to deliver on this channel")
 
 
-def _form_context(announcement: Optional[Announcement]) -> dict:
+async def _form_context(db: AsyncSession, announcement: Optional[Announcement]) -> dict:
     """Template context for the edit form's channel section. Also used
     when re-rendering the form after a validation error, so the page
     looks the same either way."""
@@ -205,6 +208,7 @@ def _form_context(announcement: Optional[Announcement]) -> dict:
         }
     return {
         "channels": channels,
+        "website_connector_type": await get_active_type(db),
         "fits_one_page": likely_fits_one_print_page(
             announcement.print_text_override or announcement.body_markdown
         ),
@@ -365,7 +369,7 @@ async def announcement_edit_form(
     announcement = await _get_announcement_or_404(db, announcement_id)
     return templates.TemplateResponse("announcements/form.html", {
         "request": request, "user": user, "announcement": announcement, "error": None,
-        **_form_context(announcement), **await _audience_context(db, announcement),
+        **await _form_context(db, announcement), **await _audience_context(db, announcement),
         "test_email_result": request.query_params.get("test_email_result"),
         "test_email_address": request.query_params.get("test_email_address"),
     })
@@ -388,7 +392,7 @@ async def announcement_update(
     if not title or not body_markdown:
         return templates.TemplateResponse("announcements/form.html", {
             "request": request, "user": user, "announcement": announcement,
-            "error": "missing_fields", **_form_context(announcement), **await _audience_context(db, announcement),
+            "error": "missing_fields", **await _form_context(db, announcement), **await _audience_context(db, announcement),
         }, status_code=400)
 
     if remove_image:
@@ -402,7 +406,7 @@ async def announcement_update(
         except ValueError as e:
             return templates.TemplateResponse("announcements/form.html", {
                 "request": request, "user": user, "announcement": announcement,
-                "error": str(e), **_form_context(announcement), **await _audience_context(db, announcement),
+                "error": str(e), **await _form_context(db, announcement), **await _audience_context(db, announcement),
             }, status_code=400)
 
     announcement.title = title
@@ -467,7 +471,7 @@ async def announcement_send_test_email(
 
 
 # ---------------------------------------------------------------------------
-# Channel: blog (WordPress)
+# Channel: blog (the club's website, through the active connector)
 # ---------------------------------------------------------------------------
 
 _IMAGE_MIME_BY_EXTENSION = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
@@ -486,12 +490,11 @@ def _read_announcement_image(announcement: Announcement) -> tuple:
     return path.read_bytes(), announcement.image_filename, mime
 
 
-@router.post("/{announcement_id}/send/blog")
-async def announcement_send_blog(
-    announcement_id: str, request: Request, db: AsyncSession = Depends(get_db),
-):
-    await require_admin(request, db)
-    announcement = await _get_announcement_or_404(db, announcement_id)
+async def push_website_draft(db: AsyncSession, announcement: Announcement) -> AnnouncementDelivery:
+    """Creates the announcement's website draft, or updates the existing
+    one in place, through whichever connector is active on Admin ->
+    Integrations -> Website. Records the outcome on the BLOG delivery
+    and commits. Shared by the web button and the REST API."""
     _require_channel_action_available(announcement, AnnouncementChannel.BLOG)
 
     delivery = announcement.delivery_for(AnnouncementChannel.BLOG)
@@ -499,51 +502,65 @@ async def announcement_send_blog(
         delivery = AnnouncementDelivery(announcement_id=announcement.id, channel=AnnouncementChannel.BLOG)
         db.add(delivery)
 
-    publisher = await get_wordpress_publisher(db)
-    if publisher is None:
+    try:
+        connector = await get_active_connector(db)
+    except BlogPublishError as e:
+        connector, setup_error = None, str(e)
+    else:
+        setup_error = "No website is set up yet -- choose one under Admin -> Integrations -> Website."
+    if connector is None:
         delivery.status = AnnouncementDeliveryStatus.FAILED
-        delivery.error_message = "WordPress isn't configured yet -- add the site URL, username, and Application Password under Admin -> Settings."
+        delivery.error_message = setup_error
         delivery.sent_at = datetime.now(timezone.utc)
         await db.commit()
-        return RedirectResponse(url=f"/announcements/{announcement.id}/edit", status_code=303)
+        return delivery
 
     image_bytes, image_filename, image_mime = _read_announcement_image(announcement)
+    content = DraftContent(
+        title=announcement.title, markdown=announcement.body_markdown, html=announcement.body_html,
+        image_bytes=image_bytes, image_filename=image_filename, image_mime=image_mime,
+        language=await load_current_language(db), source_id=announcement.id,
+    )
 
     try:
         result = None
         if delivery.external_id:
-            # A post already exists: update it in place rather than
-            # leaving a duplicate behind in WordPress. The image is only
-            # re-uploaded if it changed, so an unchanged one doesn't pile
-            # up copies in the WordPress media library.
-            image_changed = delivery.image_filename != announcement.image_filename
+            # A draft already exists: update it in place rather than
+            # leaving a duplicate behind on the website. The image is
+            # only re-sent if it changed, so an unchanged one doesn't
+            # pile up copies in the website's media library.
             try:
-                result = await publisher.update_post(
-                    delivery.external_id, title=announcement.title, html_content=announcement.body_html,
-                    image_bytes=image_bytes if image_changed else None,
-                    image_filename=image_filename, image_mime=image_mime,
-                    clear_image=image_changed and image_bytes is None,
+                result = await connector.update_post(
+                    delivery.external_id, content,
+                    image_changed=delivery.image_filename != announcement.image_filename,
                 )
             except BlogPostNotFoundError:
-                result = None  # deleted in WordPress by hand -- start over below
+                result = None  # deleted on the website by hand -- start over below
         if result is None:
-            result = await publisher.publish_draft(
-                title=announcement.title, html_content=announcement.body_html,
-                image_bytes=image_bytes, image_filename=image_filename, image_mime=image_mime,
-            )
+            result = await connector.publish_draft(content)
         delivery.status = AnnouncementDeliveryStatus.SENT
-        delivery.external_reference = result.edit_url
-        delivery.external_id = str(result.post_id)
+        delivery.external_reference = result.edit_url or result.location
+        delivery.external_id = result.post_id
         delivery.error_message = None
         _record_delivered_content(announcement, delivery)
     except BlogPublishError as e:
         delivery.status = AnnouncementDeliveryStatus.FAILED
         delivery.error_message = str(e)
     finally:
-        await publisher.aclose()
+        await connector.aclose()
 
     delivery.sent_at = datetime.now(timezone.utc)
     await db.commit()
+    return delivery
+
+
+@router.post("/{announcement_id}/send/blog")
+async def announcement_send_blog(
+    announcement_id: str, request: Request, db: AsyncSession = Depends(get_db),
+):
+    await require_admin(request, db)
+    announcement = await _get_announcement_or_404(db, announcement_id)
+    await push_website_draft(db, announcement)
     return RedirectResponse(url=f"/announcements/{announcement.id}/edit", status_code=303)
 
 
@@ -552,22 +569,25 @@ async def announcement_send_blog(
 # ---------------------------------------------------------------------------
 
 async def _get_public_blog_url(db: AsyncSession, announcement: Announcement) -> Optional[str]:
-    """Returns the announcement's blog post's current public URL, or
-    None if there isn't one yet (never published to WordPress, or
-    published as a draft that hasn't since been made public). Always
-    asks WordPress live rather than trusting anything cached -- see
-    app.blog_publisher.WordPressPublisher.get_public_url_if_published."""
+    """Returns the public URL of the announcement's website post, or
+    None if there isn't one yet (never sent, or still a draft). Always
+    asks the website live through the active connector rather than
+    trusting anything cached -- see
+    WebsiteConnector.get_public_url_if_published."""
     blog_delivery = announcement.delivery_for(AnnouncementChannel.BLOG)
     if blog_delivery is None or blog_delivery.status != AnnouncementDeliveryStatus.SENT or not blog_delivery.external_id:
         return None
 
-    publisher = await get_wordpress_publisher(db)
-    if publisher is None:
+    try:
+        connector = await get_active_connector(db)
+    except BlogPublishError:
+        return None
+    if connector is None:
         return None
     try:
-        return await publisher.get_public_url_if_published(blog_delivery.external_id)
+        return await connector.get_public_url_if_published(blog_delivery.external_id)
     finally:
-        await publisher.aclose()
+        await connector.aclose()
 
 
 @router.post("/{announcement_id}/print")

@@ -1,8 +1,9 @@
 # Announcements module
 
 Lets a board member write a single piece of club news once and push it
-out to up to three channels: a blog draft on the club's CMS (e.g.
-WordPress), a member email, and a printable one-page PDF notice for the
+out to up to three channels: a draft on the club's website (WordPress,
+a Markdown-based static site, or any CMS with a Parcella plugin), a
+member email, and a printable one-page PDF notice for the
 allotment area. All three channels are built (see below).
 
 ## Data model
@@ -123,11 +124,11 @@ something new to do. The server enforces the same rule with a 409, via
 - **Email**: once sent successfully, never again, not even after an
   edit. The page notes when the content changed after sending. A
   FAILED send can be retried.
-- **Blog**: after a change to title/body/image, the button becomes
-  "Update WordPress post". It updates the **same** post
-  (`WordPressPublisher.update_post`) and never touches its publish
-  status, so a published post stays published and SEO fields survive. If
-  the post was deleted in WordPress, a new draft is created instead.
+- **Blog / website**: after a change to title/body/image, the button
+  becomes "Update website draft". It updates the **same** post
+  (`WebsiteConnector.update_post`) and never touches its publish
+  status, so a published post stays published. If the post was deleted
+  on the website, a new draft is created instead.
 - **Print**: the PDF is stored and offered as "Download" (no
   regeneration). "Generate PDF" comes back after a change to
   title/body/print text/image, or when the last PDF was shortened
@@ -195,42 +196,59 @@ itself carries a visible "this is a test" banner so it's never
 mistaken for the real thing if it lands in the same inbox as a
 previous real send.
 
-## Blog channel (built)
+## Website channel (built, ADR 0104/0105)
 
-`app/blog_publisher.py` defines a small `BlogPublisher` interface with
-one implementation so far, `WordPressPublisher`, using WordPress's own
-built-in REST API (`wp-json/wp/v2/posts`, `wp-json/wp/v2/media`) and
-its own built-in authentication (an Application Password, WP 5.6+) --
-no custom plugin needed on the WordPress side for this direction. This
-is the opposite direction from the public-signup connector: there, a
-WordPress plugin pushes data INTO Parcella; here, Parcella pushes a
-draft OUT to WordPress.
+The channel is still called BLOG in the data model, but it isn't tied to
+one CMS. `push_website_draft()` in `app/routers/announcements.py` sends
+the draft through whichever **website connector** is active on Admin ->
+Integrations -> Website: a dropdown, one CMS at a time. Choosing another
+one switches the previous one off but keeps its settings.
 
-Credentials (site URL, username, Application Password) are configured
-under Admin -> Integrations (alongside the public-signup API token --
-Integrations is the page for "how Parcella connects to other
-systems," in either direction), with the same encryption
-(`app.crypto_utils`) and "blank = keep existing" convention used
-elsewhere for secrets, hand-rolled for this page rather than reusing
-the generic Settings-field mechanism. A "Test connection" button calls
-`wp-json/wp/v2/users/me` to verify the credentials before you commit
-to using them for a real send.
+The connectors live in `app/website_connectors/` and all implement
+`WebsiteConnector` (`base.py`):
 
-Every post is created with `status="draft"` -- the publisher never
-decides to actually publish. Whether and when to make it public stays
-a human decision in the WordPress admin, which is also why
-`AnnouncementDelivery.external_reference` stores the **edit** URL
-(`wp-admin/post.php?post={id}&action=edit`), not a public post URL --
-there isn't a public one yet. This matters for the not-yet-built print
-channel: its QR code needs a URL that's actually public, so it can
-only be generated once a board member has published the WordPress
-draft themselves; nothing in Parcella currently blocks running print
-before that happens, since the QR code is just omitted if there's no
-public URL to point at yet (see "What's not built yet" below).
+- **WordPress** (`wordpress.py`): WordPress's own REST API
+  (`wp-json/wp/v2/posts`, `.../media`) with an Application Password
+  (WP 5.6+). No plugin is needed on the WordPress side for this
+  direction; the parcella-connector plugin in `integrations/wordpress/`
+  handles the other direction (forms posting INTO Parcella).
+  `external_reference` is the post's edit URL.
+- **Markdown folder** (`markdown_folder.py`): for static sites built from
+  Markdown (Hugo, Jekyll, Eleventy, Astro, kgv-goldene-hoehe's own
+  generator). Writes `{date}-{slug}.md` with a YAML header (title, date,
+  url, author, categories, summary, image, `parcella_announcement`,
+  `draft: true`) into a folder on cloud storage, and the image into
+  `<media>/YYYY/MM/<uuid>.<ext>`. A human publishes by deleting
+  `draft: true`. Updates rewrite only title, summary, the body and (if it
+  changed) the image line; every other header line is kept as the human
+  left it, and `draft: true` is never added back. `external_id` is the
+  file name; `external_reference` is the folder path shown on the page.
+- **Parcella plugin** (`parcella_plugin.py`): any CMS running a plugin
+  that implements docs/website-plugin-protocol.md (TYPO3, Contao, Drupal,
+  Joomla, ...). Requests are HMAC-signed with a secret the plugin
+  generates.
+
+Settings are ClubSettings: `website_connector` holds the active type,
+fields are `website_<type>_<field>`, secrets are encrypted with
+`app.crypto_utils` and a blank secret on save keeps the stored one.
+"Test connection" checks the typed values (blanks fall back to the saved
+ones) without saving.
+
+Every connector only creates **drafts**. Whether and when a post goes
+public stays a human decision in the CMS, which is also why the print
+channel asks the website live whether a post is published before it adds
+a QR code.
+
+REST API (`app/routers/api_website.py`): `GET /api/v1/website/connectors`
+(types and their fields), `GET`/`PUT /api/v1/website` (active type and
+non-secret fields; ADMIN only; secrets are never accepted or returned,
+same rule as `/api/v1/club-settings`), `POST /api/v1/website/test`, and
+`POST /api/v1/announcements/{id}/website-draft` (full access, same
+409 "nothing new" rule as the button).
 
 If the image can't be found on disk (unlikely, but possible if it was
 manually deleted outside the app), the draft is still created without
-a featured image rather than failing outright.
+an image rather than failing outright.
 
 ## Print channel (built)
 
@@ -270,14 +288,15 @@ and the full org/bank footer instead of just the club name.
    mid-sentence or producing a multi-page "one-pager".
 
 **The QR code only appears once, and only if, there's a genuinely
-public blog post to point at.** Since drafts aren't public,
-`app.blog_publisher.WordPressPublisher.get_public_url_if_published()`
-is called live, at print-generation time, using the BLOG delivery's
-stored `external_id` (the WordPress post ID) -- not a cached URL --
-and asks WordPress directly whether the post's `status` is now
-`publish` and, if so, what its current `link` is. If the post is still
-a draft (or was never sent to the blog at all), the QR code is simply
-omitted; nothing blocks generating the PDF anyway.
+public website post to point at.** Since drafts aren't public, the
+active connector's `get_public_url_if_published()` is called live, at
+print-generation time, using the BLOG delivery's stored `external_id`
+(WordPress post ID, Markdown file name, or plugin draft id) -- not a
+cached URL. WordPress is asked for the post's `status`/`link`, the
+Markdown connector checks the file for `draft: true` and builds the URL
+from the site address plus the header's `url`, a plugin answers
+`GET /drafts/{id}`. If the post is still a draft (or was never sent),
+the QR code is simply omitted; nothing blocks generating the PDF anyway.
 
 **Images and the logo are embedded as base64 data URIs**, not
 filesystem paths or HTTP URLs, so the PDF doesn't depend on WeasyPrint
@@ -350,6 +369,7 @@ letters; no attachment support.
 
 Nothing -- all three channels (email, blog, print) are now built. Any
 further refinement (e.g. admin-configurable pacing numbers for email,
-multi-CMS blog support, a "publish and print" one-click flow) would be
+sending one announcement to several websites at once, a "publish and
+print" one-click flow) would be
 a new, separate piece of work rather than something left over from the
 original scope.

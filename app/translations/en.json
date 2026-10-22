@@ -290,7 +290,7 @@
         "public_contact_api_name": "Public contact-form API",
         "public_contact_api_desc": "Lets an external website (e.g. a WordPress plugin) submit a contact form directly as a Parcella ticket, instead of sending an email. Off by default since it opens a public write endpoint; see the Integrations page for the access token.",
         "announcements_name": "Announcements",
-        "announcements_desc": "Author club news once and prepare it for the blog, member email, and a printable notice.",
+        "announcements_desc": "Author club news once and prepare it for the website, member email, and a printable notice.",
         "inventory_name": "Inventory",
         "inventory_desc": "Track everything the club owns (and personal items members store on club property), grouped into your own categories, with an optional lending system for borrowable items.",
         "cloud_storage_name": "Cloud storage",
@@ -346,16 +346,6 @@
       "endpoint_auth": "Authentication",
       "auth_none": "None (public read)",
       "wordpress_hint": "A reference WordPress connector plugin is included in the project's integrations/wordpress folder.",
-      "wordpress_blog_title": "WordPress (blog drafts)",
-      "wordpress_blog_desc": "Used by the Announcements module to publish blog drafts. Create an Application Password under your WordPress user profile (Users -> Profile -> Application Passwords) -- don't use your regular WordPress login password here.",
-      "wordpress_saved": "WordPress settings saved",
-      "wordpress_site_url_label": "WordPress site URL",
-      "wordpress_username_label": "WordPress username",
-      "wordpress_app_password_label": "Application Password",
-      "wordpress_app_password_hint": "Not your regular WordPress login password -- generate one under your WordPress user profile.",
-      "wordpress_save_button": "Save",
-      "wordpress_test_button": "Test connection",
-      "wordpress_test_success": "Connection successful",
       "nextcloud_title": "Nextcloud (parcel documents & incoming invoices)",
       "nextcloud_desc": "Lets board members browse, upload to, and download from a folder in your club's Nextcloud instance for each parcel -- lease agreements, membership paperwork, ticket correspondence -- and configures the single shared folder used for incoming invoice attachments. Create an app password under your Nextcloud user's Security settings (Settings -> Security -> Devices & sessions) -- don't use your regular Nextcloud login password here.",
       "cloud_storage_module_disabled_notice": "The cloud storage connector is currently disabled, so parcel documents won't be shown.",
@@ -418,7 +408,16 @@
       "ics_title": "Private calendar feeds",
       "ics_desc": "The birthday and council presence/absence feeds are protected by one shared secret in their subscription URLs. It never expires, so regenerate it when a link may have leaked or someone with access has left the board.",
       "ics_regenerate_confirm": "Regenerating breaks every existing calendar subscription of the birthday and council feeds; subscribers must copy the new URL from the calendar pages. Continue?",
-      "ics_token_regenerated": "Calendar feed token regenerated. Existing subscriptions stop working until they use the new URL."
+      "ics_token_regenerated": "Calendar feed token regenerated. Existing subscriptions stop working until they use the new URL.",
+      "website_title": "Website (drafts from announcements)",
+      "website_desc": "Choose the system your club website runs on. Announcements then create drafts there with one click. Only one website type is active at a time: choosing another one switches the previous one off but keeps its settings.",
+      "website_type_label": "Website type",
+      "website_type_none": "None (no website drafts)",
+      "website_type_hint": "Parcella only ever creates drafts. Publishing stays a decision you make in your website system.",
+      "website_saved": "Website settings saved",
+      "website_save_button": "Save",
+      "website_test_button": "Test connection",
+      "website_test_success": "Connection successful"
     },
     "system": {
       "page_title": "System",
@@ -1825,9 +1824,9 @@
       "label_title": "Title",
       "label_image": "Image",
       "remove_image": "Remove image",
-      "image_hint": "PNG, JPEG, or WebP, up to 5 MB. Used as the blog's featured image and shown in the email.",
+      "image_hint": "PNG, JPEG, or WebP, up to 5 MB. Used as the website post's image and shown in the email.",
       "label_body": "Body text",
-      "body_hint": "Written in Markdown. This same text is used for both the blog draft and the member email.",
+      "body_hint": "Written in Markdown. This same text is used for both the website draft and the member email.",
       "body_placeholder": "Write your announcement here...",
       "label_print_override": "Print version (optional)",
       "print_override_hint": "Leave empty to print the full text above. If it doesn't fit on one page, a shortened version will be suggested here -- feel free to edit it.",
@@ -1837,7 +1836,7 @@
       "cancel_button": "Cancel",
       "channels_title": "Delivery channels",
       "channel_email": "Member email",
-      "channel_blog": "Blog draft",
+      "channel_blog": "Website draft",
       "channel_print": "Printable PDF",
       "delivery_sent": "Sent",
       "delivery_failed": "Failed",
@@ -1853,7 +1852,7 @@
       "test_email_missing_address": "Please enter an email address.",
       "delivery_sending": "Sending...",
       "sending_refresh_hint": "In progress -- reload this page to see the latest count.",
-      "blog_edit_draft_link": "Open in WordPress",
+      "blog_edit_draft_link": "Open draft",
       "send_blog_button": "Create draft",
       "print_generated": "PDF generated",
       "print_too_long_status": "Too long for one page",
@@ -1862,13 +1861,13 @@
       "delete_hint": "Permanently removes this announcement. It stays deletable regardless of status (draft, published, or archived) or delivery history.",
       "delete_confirm": "Really delete this announcement? This cannot be undone.",
       "button_delete": "Delete announcement",
-      "channels_hint": "Each channel is done once. After you change the content and save, the blog post and the PDF can be updated; the email is only sent once.",
+      "channels_hint": "Each channel is done once. After you change the content and save, the website post and the PDF can be updated; the email is only sent once.",
       "email_changed_after_send": "The content was changed after the email went out. Members received the earlier version.",
       "changed_since_delivery": "Content changed since then.",
-      "update_blog_button": "Update WordPress post",
-      "update_blog_confirm": "Overwrite title, text and image of the existing WordPress post? Text edits made directly in WordPress will be lost; SEO settings, categories and the publish status are kept.",
+      "update_blog_button": "Update website draft",
+      "update_blog_confirm": "Overwrite title, text and image of the existing website draft? Text edits made directly on the website will be lost; the publish status is kept.",
       "print_download_link": "Download",
-      "print_qr_pending_hint": "The text was shortened without a QR code because the blog post wasn't public yet. Once it's published in WordPress, create the PDF again to add the QR code.",
+      "print_qr_pending_hint": "The text was shortened without a QR code because the website post wasn't public yet. Once it's published, create the PDF again to add the QR code.",
       "channel_letter": "Letters"
     },
     "audience": {
@@ -2961,6 +2960,57 @@
       "cloud_not_configured": "The cloud storage connection isn't set up.",
       "invalid_folder": "Invalid folder name.",
       "invalid_file": "Invalid file name."
+    }
+  },
+  "website": {
+    "connectors": {
+      "wordpress": {
+        "name": "WordPress",
+        "desc": "Drafts are created through WordPress's built-in REST API. Create an Application Password under your WordPress user profile (Users -> Profile -> Application Passwords) -- don't use your regular login password.",
+        "fields": {
+          "site_url": "WordPress site URL",
+          "username": "WordPress username",
+          "app_password": "Application Password"
+        },
+        "hints": {
+          "app_password": "Not your regular WordPress login password -- generate one under your WordPress user profile."
+        }
+      },
+      "markdown_folder": {
+        "name": "Markdown folder (cloud storage)",
+        "desc": "For static websites built from Markdown files (Hugo, Jekyll, Eleventy, Astro or similar). Each draft becomes a .md file with \"draft: true\" in its header, written into a folder on your cloud storage. Delete that line to publish the post.",
+        "fields": {
+          "posts_path": "Posts folder",
+          "media_path": "Images folder",
+          "media_url_prefix": "Web path of the images folder",
+          "site_url": "Website address",
+          "filename_pattern": "File name pattern",
+          "url_pattern": "Post address pattern",
+          "author": "Author",
+          "categories": "Categories"
+        },
+        "hints": {
+          "posts_path": "Folder on your cloud storage, e.g. website/content/posts. It must already exist.",
+          "media_path": "Images go into subfolders by year and month. Leave empty to send posts without images.",
+          "media_url_prefix": "How the website addresses the images folder, e.g. /media.",
+          "site_url": "Used for the QR code on the printed notice once a post is published.",
+          "filename_pattern": "{date} becomes YYYYMMDD, {slug} the title without umlauts or spaces.",
+          "url_pattern": "Written into the post header as \"url\". Leave empty if your website works the address out itself.",
+          "categories": "Comma-separated, as your website names them."
+        }
+      },
+      "parcella_plugin": {
+        "name": "Parcella plugin (TYPO3, Contao, Drupal, Joomla, ...)",
+        "desc": "For any website system with an installed Parcella plugin. The plugin shows the address and the shared secret to enter here.",
+        "fields": {
+          "endpoint_url": "Plugin address",
+          "shared_secret": "Shared secret"
+        },
+        "hints": {
+          "endpoint_url": "Shown in the plugin's settings, e.g. https://example.org/parcella/v1.",
+          "shared_secret": "Generated by the plugin. Parcella signs every request with it."
+        }
+      }
     }
   }
 }

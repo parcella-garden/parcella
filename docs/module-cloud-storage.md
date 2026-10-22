@@ -33,7 +33,7 @@ WordPress blog integrations.
 
 ## The connector: `app/cloud_storage.py`
 
-Structured like `app/blog_publisher.py`: a small `CloudStorageProvider`
+Structured like `app/website_connectors/`: a small `CloudStorageProvider`
 interface with one concrete implementation, `NextcloudProvider`, talking
 WebDAV (`PROPFIND` to list, `PUT` to upload, `GET` to download, against
 `{base_url}/remote.php/dav/files/{username}/...`). A future backend

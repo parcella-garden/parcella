@@ -290,7 +290,7 @@
         "public_contact_api_name": "Veřejné API kontaktního formuláře",
         "public_contact_api_desc": "Umožňuje externímu webu (např. pluginu WordPress) odeslat kontaktní formulář přímo jako tiket Parcella, místo odeslání e-mailu. Ve výchozím nastavení vypnuto, protože otevírá veřejný zapisovací endpoint; přístupový token najdete na stránce Integrace.",
         "announcements_name": "Oznámení",
-        "announcements_desc": "Napište zprávu pro klub jednou a připravte ji pro blog, e-mail členům a tištěné oznámení.",
+        "announcements_desc": "Napište zprávu spolku jednou a připravte ji pro web, e-mail členům a vytištěné oznámení.",
         "inventory_name": "Inventář",
         "inventory_desc": "Eviduje vše, co klub vlastní (i osobní věci, které si členové ukládají na pozemku klubu), rozdělené do vlastních kategorií, s volitelným systémem půjčování.",
         "cloud_storage_name": "Cloudové úložiště",
@@ -346,16 +346,6 @@
       "endpoint_auth": "Autentizace",
       "auth_none": "Žádná (veřejné čtení)",
       "wordpress_hint": "Referenční konektorový plugin pro WordPress najdete ve složce integrations/wordpress projektu.",
-      "wordpress_blog_title": "WordPress (koncepty blogu)",
-      "wordpress_blog_desc": "Používá modul Oznámení k publikování konceptů blogu. Vytvořte aplikační heslo ve svém uživatelském profilu WordPress (Uživatelé -> Profil -> Aplikační hesla) -- nepoužívejte zde běžné přihlašovací heslo WordPress.",
-      "wordpress_saved": "Nastavení WordPress uloženo",
-      "wordpress_site_url_label": "URL adresa webu WordPress",
-      "wordpress_username_label": "Uživatelské jméno WordPress",
-      "wordpress_app_password_label": "Aplikační heslo",
-      "wordpress_app_password_hint": "Nejde o běžné přihlašovací heslo WordPress -- vygenerujte ho ve svém uživatelském profilu WordPress.",
-      "wordpress_save_button": "Uložit",
-      "wordpress_test_button": "Otestovat připojení",
-      "wordpress_test_success": "Připojení úspěšné",
       "nextcloud_title": "Nextcloud (dokumenty zahrádek a přijaté faktury)",
       "nextcloud_desc": "Umožňuje členům výboru procházet, nahrávat a stahovat soubory ze složky v instanci Nextcloud spolku pro každou zahrádku -- nájemní smlouvy, členské dokumenty, korespondence k požadavkům -- a nastavuje jednu sdílenou složku pro přílohy přijatých faktur. Vytvořte heslo aplikace v nastavení zabezpečení uživatele Nextcloud (Nastavení -> Zabezpečení -> Zařízení a relace) -- nepoužívejte zde své běžné přihlašovací heslo k Nextcloud.",
       "cloud_storage_module_disabled_notice": "Konektor cloudového úložiště je momentálně vypnutý, proto se dokumenty zahrádek nezobrazí.",
@@ -418,7 +408,16 @@
       "ics_title": "Soukromé kalendářové kanály",
       "ics_desc": "Kanály narozenin a přítomnosti/nepřítomnosti výboru jsou chráněny jedním sdíleným tajemstvím v adrese odběru. Nikdy nevyprší – vygenerujte jej znovu, pokud mohl odkaz uniknout nebo výbor opustil někdo s přístupem.",
       "ics_regenerate_confirm": "Nové vygenerování ukončí všechny stávající odběry kanálů narozenin a výboru; odběratelé musí zkopírovat novou adresu ze stránek kalendáře. Pokračovat?",
-      "ics_token_regenerated": "Token kalendářových kanálů byl znovu vygenerován. Stávající odběry fungují až s novou adresou."
+      "ics_token_regenerated": "Token kalendářových kanálů byl znovu vygenerován. Stávající odběry fungují až s novou adresou.",
+      "website_title": "Webové stránky (koncepty z oznámení)",
+      "website_desc": "Vyberte systém, na kterém běží web vašeho spolku. Oznámení tam pak jedním kliknutím vytvoří koncepty. Aktivní je vždy jen jeden typ webu: výběrem jiného se předchozí vypne, jeho nastavení se ale zachová.",
+      "website_type_label": "Typ webu",
+      "website_type_none": "Žádný (bez konceptů na webu)",
+      "website_type_hint": "Parcella vytváří vždy jen koncepty. O zveřejnění rozhodujete ve svém webovém systému.",
+      "website_saved": "Nastavení webu uloženo",
+      "website_save_button": "Uložit",
+      "website_test_button": "Otestovat připojení",
+      "website_test_success": "Připojení úspěšné"
     },
     "system": {
       "page_title": "Systém",
@@ -1825,9 +1824,9 @@
       "label_title": "Název",
       "label_image": "Obrázek",
       "remove_image": "Odstranit obrázek",
-      "image_hint": "PNG, JPEG nebo WebP, max. 5 MB. Použije se jako hlavní obrázek blogu a v e-mailu.",
+      "image_hint": "PNG, JPEG nebo WebP, do 5 MB. Používá se jako obrázek příspěvku na webu a zobrazuje se v e-mailu.",
       "label_body": "Text",
-      "body_hint": "Napsáno v Markdownu. Stejný text se použije pro koncept blogu i e-mail členům.",
+      "body_hint": "Psáno v Markdownu. Stejný text se použije pro koncept na webu i pro e-mail členům.",
       "body_placeholder": "Napište zde text oznámení...",
       "label_print_override": "Tisková verze (volitelné)",
       "print_override_hint": "Ponechte prázdné pro tisk celého textu výše. Pokud se nevejde na jednu stránku, zde bude navržena zkrácená verze -- lze ji upravit.",
@@ -1837,7 +1836,7 @@
       "cancel_button": "Zrušit",
       "channels_title": "Distribuční kanály",
       "channel_email": "E-mail členům",
-      "channel_blog": "Koncept blogu",
+      "channel_blog": "Koncept na webu",
       "channel_print": "Tisknutelné PDF",
       "delivery_sent": "Odesláno",
       "delivery_failed": "Selhalo",
@@ -1853,7 +1852,7 @@
       "test_email_missing_address": "Zadejte prosím e-mailovou adresu.",
       "delivery_sending": "Odesílá se...",
       "sending_refresh_hint": "Probíhá -- načtěte stránku znovu, abyste viděli aktuální stav.",
-      "blog_edit_draft_link": "Otevřít ve WordPressu",
+      "blog_edit_draft_link": "Otevřít koncept",
       "send_blog_button": "Vytvořit koncept",
       "print_generated": "PDF vytvořeno",
       "print_too_long_status": "Příliš dlouhé na jednu stránku",
@@ -1862,13 +1861,13 @@
       "delete_hint": "Trvale odstraní toto oznámení. Lze smazat bez ohledu na stav (koncept, publikováno nebo archivováno) či historii odeslání.",
       "delete_confirm": "Opravdu smazat toto oznámení? Tuto akci nelze vrátit zpět.",
       "button_delete": "Smazat oznámení",
-      "channels_hint": "Každý kanál se provede jednou. Po změně obsahu a uložení lze aktualizovat příspěvek na blogu a PDF; e-mail se odesílá jen jednou.",
+      "channels_hint": "Každý kanál se provede jednou. Po změně obsahu a uložení lze příspěvek na webu a PDF aktualizovat; e-mail se odesílá jen jednou.",
       "email_changed_after_send": "Obsah byl změněn po odeslání e-mailu. Členové obdrželi dřívější verzi.",
       "changed_since_delivery": "Obsah se od té doby změnil.",
-      "update_blog_button": "Aktualizovat příspěvek WordPress",
-      "update_blog_confirm": "Přepsat název, text a obrázek stávajícího příspěvku WordPress? Úpravy textu provedené přímo ve WordPressu budou ztraceny; nastavení SEO, kategorie a stav publikace zůstanou zachovány.",
+      "update_blog_button": "Aktualizovat koncept na webu",
+      "update_blog_confirm": "Přepsat název, text a obrázek existujícího konceptu na webu? Úpravy textu provedené přímo na webu se ztratí; stav zveřejnění zůstane zachován.",
       "print_download_link": "Stáhnout",
-      "print_qr_pending_hint": "Text byl zkrácen bez QR kódu, protože příspěvek na blogu ještě nebyl veřejný. Jakmile bude ve WordPressu publikován, vytvořte PDF znovu a QR kód se přidá.",
+      "print_qr_pending_hint": "Text byl zkrácen bez QR kódu, protože příspěvek na webu ještě nebyl veřejný. Jakmile bude zveřejněn, vytvořte PDF znovu a QR kód se přidá.",
       "channel_letter": "Dopisy"
     },
     "audience": {
@@ -2961,6 +2960,57 @@
       "cloud_not_configured": "Připojení ke cloudu není nastaveno.",
       "invalid_folder": "Neplatný název složky.",
       "invalid_file": "Neplatný název souboru."
+    }
+  },
+  "website": {
+    "connectors": {
+      "wordpress": {
+        "name": "WordPress",
+        "desc": "Koncepty se vytvářejí přes vestavěné REST API WordPressu. V uživatelském profilu WordPressu vytvořte heslo aplikace (Uživatelé -> Profil -> Hesla aplikací) – nepoužívejte běžné přihlašovací heslo.",
+        "fields": {
+          "site_url": "Adresa webu WordPress",
+          "username": "Uživatelské jméno WordPress",
+          "app_password": "Heslo aplikace"
+        },
+        "hints": {
+          "app_password": "Nejde o běžné heslo do WordPressu – vygenerujte ho ve svém uživatelském profilu WordPressu."
+        }
+      },
+      "markdown_folder": {
+        "name": "Složka Markdown (cloudové úložiště)",
+        "desc": "Pro statické weby sestavené ze souborů Markdown (Hugo, Jekyll, Eleventy, Astro apod.). Každý koncept se stane souborem .md s \"draft: true\" v hlavičce, uloženým do složky v cloudovém úložišti. Pro zveřejnění příspěvku tento řádek smažte.",
+        "fields": {
+          "posts_path": "Složka příspěvků",
+          "media_path": "Složka obrázků",
+          "media_url_prefix": "Webová cesta ke složce obrázků",
+          "site_url": "Adresa webu",
+          "filename_pattern": "Vzor názvu souboru",
+          "url_pattern": "Vzor adresy příspěvku",
+          "author": "Autor",
+          "categories": "Kategorie"
+        },
+        "hints": {
+          "posts_path": "Složka v cloudovém úložišti, např. web/content/posts. Musí už existovat.",
+          "media_path": "Obrázky se ukládají do podsložek podle roku a měsíce. Ponechte prázdné pro příspěvky bez obrázků.",
+          "media_url_prefix": "Jak web oslovuje složku obrázků, např. /media.",
+          "site_url": "Používá se pro QR kód na vytištěném oznámení, jakmile je příspěvek zveřejněn.",
+          "filename_pattern": "{date} se změní na RRRRMMDD, {slug} na název bez diakritiky a mezer.",
+          "url_pattern": "Zapisuje se do hlavičky příspěvku jako \"url\". Ponechte prázdné, pokud si web adresu určuje sám.",
+          "categories": "Oddělené čárkami, tak jak je pojmenovává váš web."
+        }
+      },
+      "parcella_plugin": {
+        "name": "Plugin Parcella (TYPO3, Contao, Drupal, Joomla, ...)",
+        "desc": "Pro jakýkoli webový systém s nainstalovaným pluginem Parcella. Plugin zobrazí adresu a sdílený klíč, které sem zadáte.",
+        "fields": {
+          "endpoint_url": "Adresa pluginu",
+          "shared_secret": "Sdílený klíč"
+        },
+        "hints": {
+          "endpoint_url": "Uvedena v nastavení pluginu, např. https://example.org/parcella/v1.",
+          "shared_secret": "Generuje ho plugin. Parcella jím podepisuje každý požadavek."
+        }
+      }
     }
   }
 }

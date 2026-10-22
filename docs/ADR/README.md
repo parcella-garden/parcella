@@ -107,3 +107,5 @@ in chronological order.
 101. [Handing a terminated parcel over to applicants: one step, from the application](./0101-hand-terminated-parcel-over-to-applicants.md)
 102. [Upcoming tenancies, and the cloud folder switching on the handover date](./0102-upcoming-tenancies-and-scheduled-folder-switch.md)
 103. [Spam filter and IMAP leftovers removed](./0103-spam-filter-leftovers-removed.md)
+104. [Website connectors: one dropdown, one CMS at a time](./0104-website-connectors-one-cms-at-a-time.md)
+105. [Website plugin protocol: one open contract instead of one client per CMS](./0105-website-plugin-protocol-and-cms-plugins.md)

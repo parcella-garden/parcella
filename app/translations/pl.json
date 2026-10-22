@@ -290,7 +290,7 @@
         "public_contact_api_name": "Publiczne API formularza kontaktowego",
         "public_contact_api_desc": "Umożliwia zewnętrznej stronie (np. wtyczce WordPress) przesyłanie formularza kontaktowego bezpośrednio jako zgłoszenie Parcella, zamiast wysyłać e-mail. Domyślnie wyłączone, ponieważ otwiera publiczny punkt zapisu; token dostępu znajdziesz na stronie Integracje.",
         "announcements_name": "Ogłoszenia",
-        "announcements_desc": "Twórz wiadomości dla klubu raz i przygotuj je do bloga, e-maila do członków oraz wydruku.",
+        "announcements_desc": "Napisz wiadomość stowarzyszenia raz i przygotuj ją na stronę, e-mail do członków i ogłoszenie do druku.",
         "inventory_name": "Inwentarz",
         "inventory_desc": "Śledzi wszystko, co posiada klub (oraz przedmioty osobiste przechowywane przez członków na terenie klubu), pogrupowane we własne kategorie, z opcjonalnym systemem wypożyczeń.",
         "cloud_storage_name": "Magazyn w chmurze",
@@ -346,16 +346,6 @@
       "endpoint_auth": "Uwierzytelnianie",
       "auth_none": "Brak (publiczny odczyt)",
       "wordpress_hint": "Przykładowa wtyczka-łącznik WordPress znajduje się w folderze integrations/wordpress projektu.",
-      "wordpress_blog_title": "WordPress (szkice bloga)",
-      "wordpress_blog_desc": "Używane przez moduł Ogłoszenia do publikowania szkiców bloga. Utwórz hasło aplikacji w profilu użytkownika WordPress (Użytkownicy -> Profil -> Hasła aplikacji) -- nie używaj tutaj zwykłego hasła logowania WordPress.",
-      "wordpress_saved": "Zapisano ustawienia WordPress",
-      "wordpress_site_url_label": "Adres URL witryny WordPress",
-      "wordpress_username_label": "Nazwa użytkownika WordPress",
-      "wordpress_app_password_label": "Hasło aplikacji",
-      "wordpress_app_password_hint": "To nie jest zwykłe hasło logowania WordPress -- wygeneruj je w profilu użytkownika WordPress.",
-      "wordpress_save_button": "Zapisz",
-      "wordpress_test_button": "Testuj połączenie",
-      "wordpress_test_success": "Połączenie udane",
       "nextcloud_title": "Nextcloud (dokumenty działek i faktury przychodzące)",
       "nextcloud_desc": "Umożliwia zarządowi przeglądanie, przesyłanie i pobieranie plików z folderu w instancji Nextcloud klubu dla każdej działki -- umowy dzierżawy, dokumenty członkowskie, korespondencja zgłoszeń -- oraz konfiguruje jeden wspólny folder używany dla załączników faktur przychodzących. Utwórz hasło aplikacji w ustawieniach bezpieczeństwa użytkownika Nextcloud (Ustawienia -> Bezpieczeństwo -> Urządzenia i sesje) -- nie używaj tutaj zwykłego hasła logowania do Nextcloud.",
       "cloud_storage_module_disabled_notice": "Konektor pamięci w chmurze jest obecnie wyłączony, dlatego dokumenty działek nie będą wyświetlane.",
@@ -418,7 +408,16 @@
       "ics_title": "Prywatne kanały kalendarza",
       "ics_desc": "Kanały urodzin oraz obecności/nieobecności zarządu są chronione jednym wspólnym sekretem w adresie subskrypcji. Nigdy nie wygasa – wygeneruj go ponownie, jeśli link mógł wyciec lub ktoś z dostępem odszedł z zarządu.",
       "ics_regenerate_confirm": "Ponowne wygenerowanie przerywa wszystkie istniejące subskrypcje kanałów urodzin i zarządu; subskrybenci muszą skopiować nowy adres ze stron kalendarza. Kontynuować?",
-      "ics_token_regenerated": "Wygenerowano nowy token kanałów kalendarza. Istniejące subskrypcje działają dopiero z nowym adresem."
+      "ics_token_regenerated": "Wygenerowano nowy token kanałów kalendarza. Istniejące subskrypcje działają dopiero z nowym adresem.",
+      "website_title": "Strona internetowa (szkice z ogłoszeń)",
+      "website_desc": "Wybierz system, na którym działa strona waszego stowarzyszenia. Ogłoszenia tworzą tam wtedy szkice jednym kliknięciem. Aktywny jest zawsze tylko jeden typ strony: wybranie innego wyłącza poprzedni, ale zachowuje jego ustawienia.",
+      "website_type_label": "Typ strony",
+      "website_type_none": "Brak (bez szkiców na stronie)",
+      "website_type_hint": "Parcella tworzy wyłącznie szkice. O publikacji decydujesz w systemie strony.",
+      "website_saved": "Ustawienia strony zapisane",
+      "website_save_button": "Zapisz",
+      "website_test_button": "Testuj połączenie",
+      "website_test_success": "Połączenie udane"
     },
     "system": {
       "page_title": "System",
@@ -1825,9 +1824,9 @@
       "label_title": "Tytuł",
       "label_image": "Obraz",
       "remove_image": "Usuń obraz",
-      "image_hint": "PNG, JPEG lub WebP, do 5 MB. Używane jako obraz wyróżniający na blogu i w e-mailu.",
+      "image_hint": "PNG, JPEG lub WebP, do 5 MB. Używany jako obraz wpisu na stronie i pokazywany w e-mailu.",
       "label_body": "Treść",
-      "body_hint": "Napisane w Markdown. Ten sam tekst jest używany zarówno dla szkicu bloga, jak i e-maila do członków.",
+      "body_hint": "Pisany w Markdown. Ten sam tekst jest używany w szkicu na stronie i w e-mailu do członków.",
       "body_placeholder": "Napisz tutaj treść ogłoszenia...",
       "label_print_override": "Wersja do druku (opcjonalnie)",
       "print_override_hint": "Pozostaw puste, aby wydrukować pełny tekst powyżej. Jeśli nie zmieści się na jednej stronie, zostanie tu zaproponowana skrócona wersja -- można ją edytować.",
@@ -1837,7 +1836,7 @@
       "cancel_button": "Anuluj",
       "channels_title": "Kanały dystrybucji",
       "channel_email": "E-mail do członków",
-      "channel_blog": "Szkic bloga",
+      "channel_blog": "Szkic na stronie",
       "channel_print": "PDF do druku",
       "delivery_sent": "Wysłano",
       "delivery_failed": "Niepowodzenie",
@@ -1853,7 +1852,7 @@
       "test_email_missing_address": "Podaj adres e-mail.",
       "delivery_sending": "Wysyłanie...",
       "sending_refresh_hint": "W toku -- odśwież stronę, aby zobaczyć aktualny stan.",
-      "blog_edit_draft_link": "Otwórz w WordPress",
+      "blog_edit_draft_link": "Otwórz szkic",
       "send_blog_button": "Utwórz szkic",
       "print_generated": "PDF wygenerowany",
       "print_too_long_status": "Za długie na jedną stronę",
@@ -1862,13 +1861,13 @@
       "delete_hint": "Trwale usuwa to ogłoszenie. Można je usunąć niezależnie od statusu (szkic, opublikowane lub zarchiwizowane) czy historii wysyłki.",
       "delete_confirm": "Czy na pewno usunąć to ogłoszenie? Tej operacji nie można cofnąć.",
       "button_delete": "Usuń ogłoszenie",
-      "channels_hint": "Każdy kanał jest realizowany raz. Po zmianie treści i zapisaniu można zaktualizować wpis na blogu i PDF; e-mail wysyłany jest tylko raz.",
+      "channels_hint": "Każdy kanał jest wykonywany raz. Po zmianie treści i zapisaniu można zaktualizować wpis na stronie i PDF; e-mail jest wysyłany tylko raz.",
       "email_changed_after_send": "Treść zmieniono po wysłaniu e-maila. Członkowie otrzymali wcześniejszą wersję.",
       "changed_since_delivery": "Treść zmieniona od tego czasu.",
-      "update_blog_button": "Zaktualizuj wpis WordPress",
-      "update_blog_confirm": "Nadpisać tytuł, tekst i obraz istniejącego wpisu WordPress? Zmiany tekstu wprowadzone bezpośrednio w WordPress zostaną utracone; ustawienia SEO, kategorie i status publikacji zostaną zachowane.",
+      "update_blog_button": "Aktualizuj szkic na stronie",
+      "update_blog_confirm": "Nadpisać tytuł, tekst i obraz istniejącego szkicu na stronie? Zmiany tekstu wprowadzone bezpośrednio na stronie zostaną utracone; status publikacji zostanie zachowany.",
       "print_download_link": "Pobierz",
-      "print_qr_pending_hint": "Tekst skrócono bez kodu QR, ponieważ wpis na blogu nie był jeszcze publiczny. Po opublikowaniu go w WordPress utwórz PDF ponownie, aby dodać kod QR.",
+      "print_qr_pending_hint": "Tekst skrócono bez kodu QR, ponieważ wpis na stronie nie był jeszcze publiczny. Po jego opublikowaniu utwórz PDF ponownie, aby dodać kod QR.",
       "channel_letter": "Listy"
     },
     "audience": {
@@ -2961,6 +2960,57 @@
       "cloud_not_configured": "Połączenie z chmurą nie jest skonfigurowane.",
       "invalid_folder": "Nieprawidłowa nazwa folderu.",
       "invalid_file": "Nieprawidłowa nazwa pliku."
+    }
+  },
+  "website": {
+    "connectors": {
+      "wordpress": {
+        "name": "WordPress",
+        "desc": "Szkice są tworzone przez wbudowane REST API WordPressa. Utwórz hasło aplikacji w profilu użytkownika WordPress (Użytkownicy -> Profil -> Hasła aplikacji) – nie używaj zwykłego hasła logowania.",
+        "fields": {
+          "site_url": "Adres strony WordPress",
+          "username": "Nazwa użytkownika WordPress",
+          "app_password": "Hasło aplikacji"
+        },
+        "hints": {
+          "app_password": "To nie jest zwykłe hasło do WordPressa – wygeneruj je w swoim profilu użytkownika WordPress."
+        }
+      },
+      "markdown_folder": {
+        "name": "Folder Markdown (chmura)",
+        "desc": "Dla statycznych stron budowanych z plików Markdown (Hugo, Jekyll, Eleventy, Astro lub podobne). Każdy szkic staje się plikiem .md z \"draft: true\" w nagłówku, zapisanym w folderze w chmurze. Aby opublikować wpis, usuń tę linię.",
+        "fields": {
+          "posts_path": "Folder wpisów",
+          "media_path": "Folder obrazów",
+          "media_url_prefix": "Ścieżka www folderu obrazów",
+          "site_url": "Adres strony",
+          "filename_pattern": "Wzór nazwy pliku",
+          "url_pattern": "Wzór adresu wpisu",
+          "author": "Autor",
+          "categories": "Kategorie"
+        },
+        "hints": {
+          "posts_path": "Folder w chmurze, np. strona/content/posts. Musi już istnieć.",
+          "media_path": "Obrazy trafiają do podfolderów według roku i miesiąca. Zostaw puste, aby wysyłać wpisy bez obrazów.",
+          "media_url_prefix": "Jak strona odwołuje się do folderu obrazów, np. /media.",
+          "site_url": "Używany dla kodu QR na wydrukowanym ogłoszeniu po opublikowaniu wpisu.",
+          "filename_pattern": "{date} zamienia się w RRRRMMDD, {slug} w tytuł bez polskich znaków i spacji.",
+          "url_pattern": "Zapisywany w nagłówku wpisu jako \"url\". Zostaw puste, jeśli strona sama ustala adres.",
+          "categories": "Oddzielone przecinkami, tak jak nazywa je wasza strona."
+        }
+      },
+      "parcella_plugin": {
+        "name": "Wtyczka Parcella (TYPO3, Contao, Drupal, Joomla, ...)",
+        "desc": "Dla każdego systemu strony z zainstalowaną wtyczką Parcella. Wtyczka pokazuje adres i wspólny klucz, które należy tu wpisać.",
+        "fields": {
+          "endpoint_url": "Adres wtyczki",
+          "shared_secret": "Wspólny klucz"
+        },
+        "hints": {
+          "endpoint_url": "Widoczny w ustawieniach wtyczki, np. https://example.org/parcella/v1.",
+          "shared_secret": "Generowany przez wtyczkę. Parcella podpisuje nim każde żądanie."
+        }
+      }
     }
   }
 }

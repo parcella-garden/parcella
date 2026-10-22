@@ -37,7 +37,7 @@
                             {% if a.is_targeted %}<span class="badge ms-1 text-bg-light border" style="font-size: 0.7rem;"><i class="bi bi-people"></i> {{ t('announcements.audience.list_badge') }}</span>{% endif %}
                         </td>
                         <td>
-                            {% set channel_icons = [('EMAIL', 'bi-envelope'), ('LETTER', 'bi-mailbox')] if a.is_targeted else [('EMAIL', 'bi-envelope'), ('BLOG', 'bi-wordpress'), ('PRINT', 'bi-printer')] %}
+                            {% set channel_icons = [('EMAIL', 'bi-envelope'), ('LETTER', 'bi-mailbox')] if a.is_targeted else [('EMAIL', 'bi-envelope'), ('BLOG', 'bi-globe'), ('PRINT', 'bi-printer')] %}
                             {% for channel, icon in channel_icons %}
                             {% set d = a.deliveries | selectattr('channel.name', 'equalto', channel) | first %}
                             {% set state = d.status.value if d else 'NONE' %}

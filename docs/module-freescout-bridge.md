@@ -160,7 +160,7 @@ cheap regardless of how old/large the FreeScout mailbox itself is.
 ## FreeScout API client
 
 `app/freescout_client.py`'s `FreeScoutClient` follows the same shape as
-`app/blog_publisher.py`'s `WordPressPublisher` and `app/cloud_storage.py`'s
+`app/website_connectors/wordpress.py`'s `WordPressPublisher` and `app/cloud_storage.py`'s
 `NextcloudProvider`: an injectable `httpx.AsyncClient` (tests use
 `httpx.MockTransport`), a domain-specific `FreeScoutError`, and a
 `load_freescout_configuration()`/`get_freescout_client()` factory pair

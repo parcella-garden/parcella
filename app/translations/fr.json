@@ -290,7 +290,7 @@
         "public_contact_api_name": "API publique de formulaire de contact",
         "public_contact_api_desc": "Permet à un site externe (par ex. une extension WordPress) de soumettre un formulaire de contact directement comme ticket Parcella, au lieu d'envoyer un e-mail. Désactivé par défaut car cela ouvre un point d'accès public en écriture ; le jeton d'accès se trouve sur la page Intégrations.",
         "announcements_name": "Annonces",
-        "announcements_desc": "Rédigez une actualité du club une seule fois et préparez-la pour le blog, l'e-mail aux membres et une affiche imprimée.",
+        "announcements_desc": "Rédigez une fois les nouvelles de l'association et préparez-les pour le site, l'e-mail aux membres et une annonce imprimable.",
         "inventory_name": "Inventaire",
         "inventory_desc": "Suit tout ce que le club possède (ainsi que les objets personnels que les membres entreposent sur le terrain du club), regroupés selon vos propres catégories, avec un système de prêt facultatif.",
         "cloud_storage_name": "Stockage cloud",
@@ -346,16 +346,6 @@
       "endpoint_auth": "Authentification",
       "auth_none": "Aucune (lecture publique)",
       "wordpress_hint": "Une extension WordPress connecteur de référence se trouve dans le dossier integrations/wordpress du projet.",
-      "wordpress_blog_title": "WordPress (brouillons de blog)",
-      "wordpress_blog_desc": "Utilisé par le module Annonces pour publier des brouillons de blog. Créez un mot de passe d'application dans votre profil utilisateur WordPress (Utilisateurs -> Profil -> Mots de passe d'application) -- n'utilisez pas votre mot de passe de connexion WordPress habituel ici.",
-      "wordpress_saved": "Paramètres WordPress enregistrés",
-      "wordpress_site_url_label": "URL du site WordPress",
-      "wordpress_username_label": "Nom d'utilisateur WordPress",
-      "wordpress_app_password_label": "Mot de passe d'application",
-      "wordpress_app_password_hint": "Pas votre mot de passe de connexion WordPress habituel -- générez-en un dans votre profil utilisateur WordPress.",
-      "wordpress_save_button": "Enregistrer",
-      "wordpress_test_button": "Tester la connexion",
-      "wordpress_test_success": "Connexion réussie",
       "nextcloud_title": "Nextcloud (documents de parcelle et factures reçues)",
       "nextcloud_desc": "Permet aux membres du bureau de parcourir, téléverser et télécharger des fichiers d'un dossier dans l'instance Nextcloud du club pour chaque parcelle -- baux, documents d'adhésion, correspondance des tickets -- et configure le dossier unique partagé utilisé pour les pièces jointes des factures reçues. Créez un mot de passe d'application dans les paramètres de sécurité de votre utilisateur Nextcloud (Paramètres -> Sécurité -> Appareils et sessions) -- n'utilisez pas votre mot de passe de connexion Nextcloud habituel ici.",
       "cloud_storage_module_disabled_notice": "Le connecteur de stockage cloud est actuellement désactivé, les documents de parcelle ne seront donc pas affichés.",
@@ -418,7 +408,16 @@
       "ics_title": "Flux de calendrier privés",
       "ics_desc": "Les flux des anniversaires et des présences/absences du bureau sont protégés par un secret commun dans leur URL d'abonnement. Il n'expire jamais : régénérez-le si un lien a pu fuiter ou si une personne ayant accès a quitté le bureau.",
       "ics_regenerate_confirm": "La régénération interrompt tous les abonnements existants aux flux des anniversaires et du bureau ; les abonnés doivent copier la nouvelle URL depuis les pages du calendrier. Continuer ?",
-      "ics_token_regenerated": "Jeton des flux de calendrier régénéré. Les abonnements existants ne fonctionnent plus tant qu'ils n'utilisent pas la nouvelle URL."
+      "ics_token_regenerated": "Jeton des flux de calendrier régénéré. Les abonnements existants ne fonctionnent plus tant qu'ils n'utilisent pas la nouvelle URL.",
+      "website_title": "Site web (brouillons depuis les annonces)",
+      "website_desc": "Choisissez le système sur lequel tourne le site de votre association. Les annonces y créent alors des brouillons en un clic. Un seul type de site est actif à la fois : en choisir un autre désactive le précédent, mais conserve ses paramètres.",
+      "website_type_label": "Type de site",
+      "website_type_none": "Aucun (pas de brouillons sur le site)",
+      "website_type_hint": "Parcella ne crée que des brouillons. La publication reste votre décision dans le système du site.",
+      "website_saved": "Paramètres du site enregistrés",
+      "website_save_button": "Enregistrer",
+      "website_test_button": "Tester la connexion",
+      "website_test_success": "Connexion réussie"
     },
     "system": {
       "page_title": "Système",
@@ -1825,9 +1824,9 @@
       "label_title": "Titre",
       "label_image": "Image",
       "remove_image": "Supprimer l'image",
-      "image_hint": "PNG, JPEG ou WebP, jusqu'à 5 Mo. Utilisée comme image mise en avant du blog et dans l'e-mail.",
+      "image_hint": "PNG, JPEG ou WebP, jusqu'à 5 Mo. Utilisée comme image de l'article du site et affichée dans l'e-mail.",
       "label_body": "Texte",
-      "body_hint": "Rédigé en Markdown. Ce même texte est utilisé pour le brouillon du blog et l'e-mail aux membres.",
+      "body_hint": "Rédigé en Markdown. Ce même texte sert au brouillon du site et à l'e-mail aux membres.",
       "body_placeholder": "Rédigez votre annonce ici...",
       "label_print_override": "Version imprimée (optionnel)",
       "print_override_hint": "Laissez vide pour imprimer le texte complet ci-dessus. S'il ne tient pas sur une page, une version raccourcie sera proposée ici -- modifiable librement.",
@@ -1837,7 +1836,7 @@
       "cancel_button": "Annuler",
       "channels_title": "Canaux de diffusion",
       "channel_email": "E-mail aux membres",
-      "channel_blog": "Brouillon de blog",
+      "channel_blog": "Brouillon sur le site",
       "channel_print": "PDF imprimable",
       "delivery_sent": "Envoyé",
       "delivery_failed": "Échec",
@@ -1853,7 +1852,7 @@
       "test_email_missing_address": "Veuillez saisir une adresse e-mail.",
       "delivery_sending": "Envoi en cours...",
       "sending_refresh_hint": "En cours -- rechargez cette page pour voir l'état actuel.",
-      "blog_edit_draft_link": "Ouvrir dans WordPress",
+      "blog_edit_draft_link": "Ouvrir le brouillon",
       "send_blog_button": "Créer le brouillon",
       "print_generated": "PDF généré",
       "print_too_long_status": "Trop long pour une page",
@@ -1862,13 +1861,13 @@
       "delete_hint": "Supprime définitivement cette annonce. Elle reste supprimable quel que soit son statut (brouillon, publiée ou archivée) ou son historique d'envoi.",
       "delete_confirm": "Vraiment supprimer cette annonce ? Cette action est irréversible.",
       "button_delete": "Supprimer l'annonce",
-      "channels_hint": "Chaque canal n'est exécuté qu'une fois. Après avoir modifié et enregistré le contenu, l'article de blog et le PDF peuvent être mis à jour ; l'e-mail n'est envoyé qu'une seule fois.",
+      "channels_hint": "Chaque canal n'est exécuté qu'une fois. Après avoir modifié et enregistré le contenu, l'article du site et le PDF peuvent être mis à jour ; l'e-mail n'est envoyé qu'une seule fois.",
       "email_changed_after_send": "Le contenu a été modifié après l'envoi de l'e-mail. Les membres ont reçu la version précédente.",
       "changed_since_delivery": "Contenu modifié depuis.",
-      "update_blog_button": "Mettre à jour l'article WordPress",
-      "update_blog_confirm": "Écraser le titre, le texte et l'image de l'article WordPress existant ? Les modifications de texte faites directement dans WordPress seront perdues ; les réglages SEO, les catégories et le statut de publication sont conservés.",
+      "update_blog_button": "Mettre à jour le brouillon du site",
+      "update_blog_confirm": "Écraser le titre, le texte et l'image du brouillon existant sur le site ? Les modifications de texte faites directement sur le site seront perdues ; le statut de publication est conservé.",
       "print_download_link": "Télécharger",
-      "print_qr_pending_hint": "Le texte a été raccourci sans code QR car l'article de blog n'était pas encore public. Une fois publié dans WordPress, générez à nouveau le PDF pour ajouter le code QR.",
+      "print_qr_pending_hint": "Le texte a été raccourci sans code QR car l'article du site n'était pas encore public. Une fois publié, recréez le PDF pour ajouter le code QR.",
       "channel_letter": "Courriers"
     },
     "audience": {
@@ -2961,6 +2960,57 @@
       "cloud_not_configured": "La connexion au cloud n'est pas configurée.",
       "invalid_folder": "Nom de dossier invalide.",
       "invalid_file": "Nom de fichier invalide."
+    }
+  },
+  "website": {
+    "connectors": {
+      "wordpress": {
+        "name": "WordPress",
+        "desc": "Les brouillons sont créés via l'API REST intégrée de WordPress. Créez un mot de passe d'application dans votre profil WordPress (Utilisateurs -> Profil -> Mots de passe d'application) -- n'utilisez pas votre mot de passe de connexion habituel.",
+        "fields": {
+          "site_url": "Adresse du site WordPress",
+          "username": "Nom d'utilisateur WordPress",
+          "app_password": "Mot de passe d'application"
+        },
+        "hints": {
+          "app_password": "Pas votre mot de passe WordPress habituel -- générez-en un dans votre profil utilisateur WordPress."
+        }
+      },
+      "markdown_folder": {
+        "name": "Dossier Markdown (stockage cloud)",
+        "desc": "Pour les sites statiques construits à partir de fichiers Markdown (Hugo, Jekyll, Eleventy, Astro ou similaire). Chaque brouillon devient un fichier .md avec \"draft: true\" dans son en-tête, enregistré dans un dossier de votre stockage cloud. Supprimez cette ligne pour publier l'article.",
+        "fields": {
+          "posts_path": "Dossier des articles",
+          "media_path": "Dossier des images",
+          "media_url_prefix": "Chemin web du dossier des images",
+          "site_url": "Adresse du site",
+          "filename_pattern": "Modèle de nom de fichier",
+          "url_pattern": "Modèle d'adresse d'article",
+          "author": "Auteur",
+          "categories": "Catégories"
+        },
+        "hints": {
+          "posts_path": "Dossier de votre stockage cloud, p.ex. site/content/posts. Il doit déjà exister.",
+          "media_path": "Les images vont dans des sous-dossiers par année et par mois. Laissez vide pour envoyer les articles sans image.",
+          "media_url_prefix": "Comment le site désigne le dossier des images, p.ex. /media.",
+          "site_url": "Utilisée pour le code QR de l'annonce imprimée une fois l'article publié.",
+          "filename_pattern": "{date} devient AAAAMMJJ, {slug} le titre sans accents ni espaces.",
+          "url_pattern": "Écrit dans l'en-tête de l'article comme \"url\". Laissez vide si votre site détermine l'adresse lui-même.",
+          "categories": "Séparées par des virgules, comme votre site les nomme."
+        }
+      },
+      "parcella_plugin": {
+        "name": "Plugin Parcella (TYPO3, Contao, Drupal, Joomla, ...)",
+        "desc": "Pour tout système de site avec un plugin Parcella installé. Le plugin affiche l'adresse et la clé partagée à saisir ici.",
+        "fields": {
+          "endpoint_url": "Adresse du plugin",
+          "shared_secret": "Clé partagée"
+        },
+        "hints": {
+          "endpoint_url": "Indiquée dans les paramètres du plugin, p.ex. https://example.org/parcella/v1.",
+          "shared_secret": "Générée par le plugin. Parcella signe chaque requête avec."
+        }
+      }
     }
   }
 }

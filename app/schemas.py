@@ -1115,3 +1115,50 @@ class KanbanTaskCommentOut(BaseModel):
     content: str
     created_by_id: Optional[str] = None
     created_at: datetime
+
+
+# ---------------------------------------------------------------------------
+# Website connectors (ADR 0104) -- one active CMS at a time
+# ---------------------------------------------------------------------------
+
+class WebsiteConnectorFieldOut(BaseModel):
+    key: str
+    kind: str
+    required: bool
+    default: str = ""
+    label: str
+
+
+class WebsiteConnectorTypeOut(BaseModel):
+    type: str
+    name: str
+    description: str
+    fields: List[WebsiteConnectorFieldOut]
+
+
+class WebsiteSettingsOut(BaseModel):
+    """Secrets are never returned: a secret field shows up in
+    `secrets_set` (true/false) instead of `values`."""
+    active: Optional[str] = None
+    values: Dict[str, Dict[str, Optional[str]]]
+    secrets_set: Dict[str, Dict[str, bool]]
+
+
+class WebsiteSettingsUpdate(BaseModel):
+    """Sets the active CMS (null = none) and its non-secret fields.
+    Secrets (passwords, shared secrets) can only be entered on Admin ->
+    Integrations, same rule as /api/v1/club-settings."""
+    active: Optional[str] = None
+    values: Dict[str, Optional[str]] = Field(default_factory=dict)
+
+
+class WebsiteTestResult(BaseModel):
+    ok: bool
+    message: str = ""
+
+
+class WebsiteDraftOut(BaseModel):
+    status: str
+    external_id: Optional[str] = None
+    external_reference: Optional[str] = None
+    error_message: Optional[str] = None

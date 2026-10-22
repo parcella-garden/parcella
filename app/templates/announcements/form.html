@@ -198,11 +198,18 @@
         {% set blog_delivery = blog.delivery %}
         <div class="d-flex align-items-center justify-content-between py-2 border-bottom gap-2 flex-wrap">
             <div>
-                <i class="bi bi-wordpress me-2"></i>{{ t('announcements.form.channel_blog') }}
+                <i class="bi bi-globe me-2"></i>{{ t('announcements.form.channel_blog') }}
+                {% if website_connector_type %}
+                <span class="text-muted" style="font-size: 0.85rem;">({{ t('website.connectors.' ~ website_connector_type ~ '.name') }})</span>
+                {% endif %}
                 {% if blog_delivery %}
                     {% if blog_delivery.status.value == 'SENT' %}
                     <span class="badge badge-aktiv ms-2">{{ t('announcements.form.delivery_sent') }}</span>
+                    {% if blog_delivery.external_reference and blog_delivery.external_reference.startswith(('https://', 'http://')) %}
                     <a href="{{ blog_delivery.external_reference }}" target="_blank" rel="noopener noreferrer" class="ms-2" style="font-size: 0.85rem;">{{ t('announcements.form.blog_edit_draft_link') }}</a>
+                    {% elif blog_delivery.external_reference %}
+                    <code class="ms-2" style="font-size: 0.8rem; word-break: break-all;">{{ blog_delivery.external_reference }}</code>
+                    {% endif %}
                     {% else %}
                     <span class="badge ms-2" style="background: #fee2e2; color: #991b1b;">{{ t('announcements.form.delivery_failed') }}</span>
                     {% endif %}

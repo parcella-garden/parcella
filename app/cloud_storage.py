@@ -5,13 +5,13 @@ storage, or others could follow later as new classes) so board members
 can browse, upload to, and download from a per-parcel folder without
 leaving Parcella.
 
-Structured the same way as app/blog_publisher.py: a small
+Structured the same way as app/website_connectors/: a small
 CloudStorageProvider interface, one concrete implementation per
 backend, and credentials stored per club in ClubSettings (configured on
 Admin -> Integrations, alongside the other outbound connections). The
 Nextcloud application password is encrypted with app.crypto_utils, and
 an empty field on save means "leave the existing value unchanged" --
-same convention as SMTP and the WordPress blog credentials.
+same convention as SMTP and the website connector secrets.
 
 Scope, deliberately: this connects Parcella's board/admin users to
 files. It does NOT manage which individual members can see a given

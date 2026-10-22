@@ -24,7 +24,8 @@ from app.auth import require_system_admin, create_invitation_token, hash_passwor
 from app.permissions import is_last_admin
 from app.email_service import send_email
 from app.crypto_utils import encrypt
-from app.blog_publisher import load_wordpress_configuration, WordPressPublisher, BlogPublishError
+from app.website_connectors import BlogPublishError, CONNECTORS, InvalidConnectorConfig, get_active_type
+from app.website_connectors.registry import build_connector, load_stored_values, merged_config, save_config
 from app.cloud_storage import load_nextcloud_configuration, get_nextcloud_provider, NextcloudProvider, CloudStorageError
 from app.task_sync import (
     load_deck_configuration, load_deck_board_id, normalize_deck_board_id, DeckTaskProvider, DeckError,
@@ -1225,10 +1226,21 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
     contact_entry = contact_result.scalar_one_or_none()
     contact_module_active = (contact_entry.value.strip().lower() in ("true", "1", "ja", "an")) if contact_entry else False
 
-    wordpress_result = await db.execute(
-        select(ClubSetting).where(ClubSetting.key.in_(["wordpress_site_url", "wordpress_username", "wordpress_app_password"]))
-    )
-    wordpress_stored = {e.key: e.value for e in wordpress_result.scalars().all()}
+    website_connectors = []
+    for connector_type, connector_cls in CONNECTORS.items():
+        stored = await load_stored_values(db, connector_type)
+        website_connectors.append({
+            "type": connector_type,
+            "fields": [
+                {
+                    "field": f,
+                    "name": f"website_{connector_type}_{f.key}",
+                    "value": "" if f.kind == "secret" else (stored.get(f.key) or f.default),
+                    "is_set": bool(stored.get(f.key)),
+                }
+                for f in connector_cls.config_fields
+            ],
+        })
 
     nextcloud_result = await db.execute(
         select(ClubSetting).where(ClubSetting.key.in_(["nextcloud_base_url", "nextcloud_username", "nextcloud_app_password"]))
@@ -1280,12 +1292,12 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
         "module_active": module_active,
         "contact_module_active": contact_module_active,
         "base_url": str(request.base_url).rstrip("/"),
-        "wordpress_site_url": wordpress_stored.get("wordpress_site_url", ""),
-        "wordpress_username": wordpress_stored.get("wordpress_username", ""),
-        "wordpress_app_password_set": bool(wordpress_stored.get("wordpress_app_password")),
-        "wordpress_saved": request.query_params.get("wordpress_saved"),
-        "wordpress_test_result": request.query_params.get("wordpress_test"),
-        "wordpress_test_message": request.query_params.get("wordpress_test_message"),
+        "website_connectors": website_connectors,
+        "website_active_type": await get_active_type(db),
+        "website_saved": request.query_params.get("website_saved"),
+        "website_error": request.query_params.get("website_error"),
+        "website_test_result": request.query_params.get("website_test"),
+        "website_test_message": request.query_params.get("website_test_message"),
         "nextcloud_base_url": nextcloud_stored.get("nextcloud_base_url", ""),
         "nextcloud_username": nextcloud_stored.get("nextcloud_username", ""),
         "nextcloud_app_password_set": bool(nextcloud_stored.get("nextcloud_app_password")),
@@ -1369,66 +1381,69 @@ async def _upsert_club_setting(db: AsyncSession, key: str, value: Optional[str],
         db.add(ClubSetting(key=key, value=value, description=description))
 
 
-@router.post("/integrations/wordpress")
-async def integrations_wordpress_save(request: Request, db: AsyncSession = Depends(get_db)):
-    """Saves the WordPress blog-draft credentials. Same "blank
-    Application Password field = leave the existing one unchanged"
-    convention as SMTP -- site URL and username are always overwritten
-    with whatever's submitted (they're not secret, so there's no
-    "leave unchanged" case worth supporting for them)."""
+def _website_form_values(form, connector_type: str) -> dict:
+    """The submitted fields of one connector, keyed by field key."""
+    prefix = f"website_{connector_type}_"
+    return {
+        f.key: form.get(prefix + f.key)
+        for f in CONNECTORS[connector_type].config_fields
+        if prefix + f.key in form
+    }
+
+
+@router.post("/integrations/website")
+async def integrations_website_save(request: Request, db: AsyncSession = Depends(get_db)):
+    """Saves the Website card: which CMS is active (one at a time --
+    choosing one switches the others off, ADR 0104) and that CMS's
+    fields. Other connectors' stored settings stay as they are, so
+    switching back needs no retyping. A blank secret keeps the stored
+    one, same convention as SMTP."""
     await require_system_admin(request, db)
     form = await request.form()
 
-    site_url = (form.get("wordpress_site_url") or "").strip() or None
-    username = (form.get("wordpress_username") or "").strip() or None
-    app_password = (form.get("wordpress_app_password") or "").strip()
+    connector_type = (form.get("website_connector") or "").strip() or None
+    if connector_type is not None and connector_type not in CONNECTORS:
+        return RedirectResponse(f"/admin/integrations?website_error={urllib.parse.quote('Unknown website type.')}", status_code=303)
 
-    await _upsert_club_setting(db, "wordpress_site_url", site_url, "WordPress site URL for blog drafts")
-    await _upsert_club_setting(db, "wordpress_username", username, "WordPress username for blog drafts")
-    if app_password:
-        await _upsert_club_setting(
-            db, "wordpress_app_password", encrypt(app_password), "WordPress Application Password (encrypted)",
+    try:
+        await save_config(
+            db, connector_type, _website_form_values(form, connector_type) if connector_type else {},
         )
+    except InvalidConnectorConfig as e:
+        await db.rollback()
+        return RedirectResponse(f"/admin/integrations?website_error={urllib.parse.quote(str(e))}", status_code=303)
 
     await db.commit()
-    return RedirectResponse("/admin/integrations?wordpress_saved=1", status_code=303)
+    return RedirectResponse("/admin/integrations?website_saved=1", status_code=303)
 
 
-@router.post("/integrations/wordpress/test")
-async def integrations_wordpress_test(request: Request, db: AsyncSession = Depends(get_db)):
-    """Tests WordPress connectivity using whatever is currently in the
-    form -- freshly typed values if provided, falling back to the
-    already-saved configuration for any field left blank (same
-    convention as saving). Doesn't persist anything; this is purely a
-    connectivity check, usable before committing to save."""
+@router.post("/integrations/website/test")
+async def integrations_website_test(request: Request, db: AsyncSession = Depends(get_db)):
+    """Tests the CMS chosen in the dropdown with whatever is currently in
+    the form -- freshly typed values, falling back to the saved ones for
+    blank fields. Saves nothing: it's a check before committing."""
     await require_system_admin(request, db)
     form = await request.form()
 
-    saved_config = await load_wordpress_configuration(db)
+    connector_type = (form.get("website_connector") or "").strip()
+    if connector_type not in CONNECTORS:
+        message = urllib.parse.quote("Choose a website type first.")
+        return RedirectResponse(f"/admin/integrations?website_test=failed&website_test_message={message}", status_code=303)
 
-    site_url = (form.get("wordpress_site_url") or "").strip() or (saved_config["site_url"] if saved_config else None)
-    username = (form.get("wordpress_username") or "").strip() or (saved_config["username"] if saved_config else None)
-    app_password = (form.get("wordpress_app_password") or "").strip() or (saved_config["app_password"] if saved_config else None)
-
-    from urllib.parse import quote
-
-    if not site_url or not username or not app_password:
-        message = quote("Please fill in all three fields first.")
-        return RedirectResponse(f"/admin/integrations?wordpress_test=failed&wordpress_test_message={message}", status_code=303)
-
-    publisher = WordPressPublisher(site_url=site_url, username=username, application_password=app_password)
+    connector = None
     try:
-        await publisher.test_connection()
-        result = "success"
-        message = ""
-    except BlogPublishError as e:
-        result = "failed"
-        message = str(e)
+        config = await merged_config(db, connector_type, _website_form_values(form, connector_type))
+        connector = await build_connector(db, connector_type, config)
+        await connector.test_connection()
+        result, message = "success", ""
+    except (InvalidConnectorConfig, BlogPublishError) as e:
+        result, message = "failed", str(e)
     finally:
-        await publisher.aclose()
+        if connector is not None:
+            await connector.aclose()
 
     return RedirectResponse(
-        f"/admin/integrations?wordpress_test={result}&wordpress_test_message={quote(message)}", status_code=303,
+        f"/admin/integrations?website_test={result}&website_test_message={urllib.parse.quote(message)}", status_code=303,
     )
 
 

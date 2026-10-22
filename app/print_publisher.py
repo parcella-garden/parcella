@@ -17,8 +17,8 @@ done. If not, shortens paragraph-by-paragraph and re-renders each
 attempt, stopping at the first one that fits -- adding a "read the
 rest online" note with a QR code, but only once shortening actually
 happened (untouched text never gets a QR code slapped on it) and only
-if the WordPress draft has genuinely been published (see
-app.blog_publisher.WordPressPublisher.get_public_url_if_published --
+if the website draft has genuinely been published (see
+WebsiteConnector.get_public_url_if_published in app/website_connectors --
 there's nothing public to point a QR code at until then, so the note
 is simply omitted, not shown with a broken link).
 

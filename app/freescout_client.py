@@ -16,7 +16,7 @@ conversations and email communication. This client is used by:
 - app/routers/api_public.py's contact-form bridge -- creates a new
   FreeScout conversation directly from an external contact form.
 
-Same connector shape as app/blog_publisher.py's WordPressPublisher and
+Same connector shape as app/website_connectors/wordpress.py's WordPressPublisher and
 app/cloud_storage.py's NextcloudProvider: an injectable httpx.AsyncClient
 (tests use httpx.MockTransport), a domain-specific error type, and a
 load_configuration()/get_client() factory pair. Credentials (base URL,
@@ -293,7 +293,7 @@ async def get_freescout_client(
     """Returns a configured FreeScoutClient, or None if the club hasn't
     set up FreeScout credentials yet -- callers check for None rather
     than catching an exception for "not set up" (same convention as
-    get_wordpress_publisher/get_nextcloud_provider)."""
+    get_active_connector/get_nextcloud_provider)."""
     config = await load_freescout_configuration(db)
     if config is None:
         return None

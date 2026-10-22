@@ -290,7 +290,7 @@
         "public_contact_api_name": "Öffentliche Kontaktformular-API",
         "public_contact_api_desc": "Ermöglicht einer externen Website (z. B. einem WordPress-Plugin), ein Kontaktformular direkt als Parcella-Ticket einzureichen, statt eine E-Mail zu senden. Standardmäßig deaktiviert, da dies einen öffentlichen Schreib-Endpunkt öffnet; das Zugriffs-Token findest du auf der Seite Integrationen.",
         "announcements_name": "Mitteilungen",
-        "announcements_desc": "Vereinsnachrichten einmal verfassen und für Blog, Mitglieder-E-Mail und Aushang vorbereiten.",
+        "announcements_desc": "Vereinsnachrichten einmal verfassen und für die Webseite, die Mitglieder-E-Mail und einen Aushang aufbereiten.",
         "inventory_name": "Inventar",
         "inventory_desc": "Erfasst alles, was der Verein besitzt (sowie persönliche Gegenstände, die Mitglieder auf dem Vereinsgelände lagern), gruppiert in eigene Kategorien, mit optionalem Verleihsystem für ausleihbare Gegenstände.",
         "cloud_storage_name": "Cloud-Speicher",
@@ -346,16 +346,6 @@
       "endpoint_auth": "Authentifizierung",
       "auth_none": "Keine (öffentlich lesbar)",
       "wordpress_hint": "Ein Referenz-WordPress-Connector-Plugin liegt im Ordner integrations/wordpress des Projekts.",
-      "wordpress_blog_title": "WordPress (Blog-Entwürfe)",
-      "wordpress_blog_desc": "Wird vom Mitteilungen-Modul genutzt, um Blog-Entwürfe zu veröffentlichen. Erstellen Sie ein Anwendungspasswort in Ihrem WordPress-Benutzerprofil (Benutzer -> Profil -> Anwendungspasswörter) -- verwenden Sie hier nicht Ihr normales WordPress-Login-Passwort.",
-      "wordpress_saved": "WordPress-Einstellungen gespeichert",
-      "wordpress_site_url_label": "WordPress-Website-URL",
-      "wordpress_username_label": "WordPress-Benutzername",
-      "wordpress_app_password_label": "Anwendungspasswort",
-      "wordpress_app_password_hint": "Nicht Ihr normales WordPress-Login-Passwort -- erstellen Sie eines in Ihrem WordPress-Benutzerprofil.",
-      "wordpress_save_button": "Speichern",
-      "wordpress_test_button": "Verbindung testen",
-      "wordpress_test_success": "Verbindung erfolgreich",
       "nextcloud_title": "Nextcloud (Parzellen-Dokumente & Eingangsrechnungen)",
       "nextcloud_desc": "Ermöglicht Vorstandsmitgliedern, einen Ordner in der Nextcloud-Instanz des Vereins pro Parzelle zu durchsuchen, hoch- und herunterzuladen -- Pachtverträge, Mitgliedsunterlagen, Ticket-Korrespondenz -- und konfiguriert den einzelnen gemeinsamen Ordner für Anhänge von Eingangsrechnungen. Erstellen Sie ein App-Passwort unter den Sicherheitseinstellungen Ihres Nextcloud-Benutzers (Einstellungen -> Sicherheit -> Geräte & Sitzungen) -- verwenden Sie hier nicht Ihr reguläres Nextcloud-Anmeldepasswort.",
       "cloud_storage_module_disabled_notice": "Der Cloud-Speicher-Connector ist derzeit deaktiviert, daher werden Parzellen-Dokumente nicht angezeigt.",
@@ -418,7 +408,16 @@
       "ics_title": "Private Kalender-Feeds",
       "ics_desc": "Der Geburtstags- sowie der Vorstands-Anwesenheits- und Abwesenheits-Feed sind durch ein gemeinsames Geheimnis in der Abo-URL geschützt. Es läuft nie ab – erzeuge es neu, wenn ein Link nach außen gelangt sein könnte oder jemand mit Zugriff den Vorstand verlassen hat.",
       "ics_regenerate_confirm": "Das Neuerzeugen beendet jedes bestehende Kalender-Abo der Geburtstags- und Vorstands-Feeds; Abonnenten müssen die neue URL von den Kalenderseiten kopieren. Fortfahren?",
-      "ics_token_regenerated": "Kalender-Feed-Token neu erzeugt. Bestehende Abos funktionieren erst mit der neuen URL wieder."
+      "ics_token_regenerated": "Kalender-Feed-Token neu erzeugt. Bestehende Abos funktionieren erst mit der neuen URL wieder.",
+      "website_title": "Webseite (Entwürfe aus Mitteilungen)",
+      "website_desc": "Wähle das System, auf dem eure Vereinswebseite läuft. Mitteilungen legen dort dann mit einem Klick Entwürfe an. Es ist immer nur ein Webseiten-Typ aktiv: Wählst du einen anderen, wird der bisherige abgeschaltet, seine Einstellungen bleiben aber erhalten.",
+      "website_type_label": "Webseiten-Typ",
+      "website_type_none": "Keiner (keine Webseiten-Entwürfe)",
+      "website_type_hint": "Parcella legt immer nur Entwürfe an. Veröffentlichen bleibt deine Entscheidung im Webseiten-System.",
+      "website_saved": "Webseiten-Einstellungen gespeichert",
+      "website_save_button": "Speichern",
+      "website_test_button": "Verbindung testen",
+      "website_test_success": "Verbindung erfolgreich"
     },
     "system": {
       "page_title": "System",
@@ -1825,9 +1824,9 @@
       "label_title": "Titel",
       "label_image": "Bild",
       "remove_image": "Bild entfernen",
-      "image_hint": "PNG, JPEG oder WebP, bis 5 MB. Wird als Blog-Titelbild und in der E-Mail verwendet.",
+      "image_hint": "PNG, JPEG oder WebP, bis 5 MB. Wird als Bild des Webseiten-Beitrags verwendet und in der E-Mail gezeigt.",
       "label_body": "Text",
-      "body_hint": "In Markdown geschrieben. Derselbe Text wird für den Blog-Entwurf und die Mitglieder-E-Mail verwendet.",
+      "body_hint": "In Markdown geschrieben. Derselbe Text wird für den Webseiten-Entwurf und die Mitglieder-E-Mail verwendet.",
       "body_placeholder": "Hier die Mitteilung schreiben...",
       "label_print_override": "Druckversion (optional)",
       "print_override_hint": "Leer lassen, um den vollständigen Text oben zu drucken. Falls er nicht auf eine Seite passt, wird hier eine gekürzte Fassung vorgeschlagen -- frei bearbeitbar.",
@@ -1837,7 +1836,7 @@
       "cancel_button": "Abbrechen",
       "channels_title": "Versandkanäle",
       "channel_email": "Mitglieder-E-Mail",
-      "channel_blog": "Blog-Entwurf",
+      "channel_blog": "Webseiten-Entwurf",
       "channel_print": "Druckbares PDF",
       "delivery_sent": "Gesendet",
       "delivery_failed": "Fehlgeschlagen",
@@ -1853,7 +1852,7 @@
       "test_email_missing_address": "Bitte eine E-Mail-Adresse eingeben.",
       "delivery_sending": "Wird gesendet...",
       "sending_refresh_hint": "Läuft -- Seite neu laden, um den aktuellen Stand zu sehen.",
-      "blog_edit_draft_link": "In WordPress öffnen",
+      "blog_edit_draft_link": "Entwurf öffnen",
       "send_blog_button": "Entwurf erstellen",
       "print_generated": "PDF erstellt",
       "print_too_long_status": "Zu lang für eine Seite",
@@ -1862,13 +1861,13 @@
       "delete_hint": "Entfernt diese Ankündigung dauerhaft. Löschbar unabhängig von Status (Entwurf, veröffentlicht oder archiviert) oder Versandverlauf.",
       "delete_confirm": "Diese Ankündigung wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
       "button_delete": "Ankündigung löschen",
-      "channels_hint": "Jeder Kanal wird einmal ausgeführt. Nach einer inhaltlichen Änderung und Speichern können Blogbeitrag und PDF aktualisiert werden; die E-Mail wird nur einmal versendet.",
+      "channels_hint": "Jeder Kanal wird einmal ausgeführt. Nach Änderungen am Inhalt und Speichern können der Webseiten-Beitrag und das PDF aktualisiert werden; die E-Mail wird nur einmal versendet.",
       "email_changed_after_send": "Der Inhalt wurde nach dem E-Mail-Versand geändert. Die Mitglieder haben die frühere Fassung erhalten.",
       "changed_since_delivery": "Inhalt seitdem geändert.",
-      "update_blog_button": "WordPress-Beitrag aktualisieren",
-      "update_blog_confirm": "Titel, Text und Bild des bestehenden WordPress-Beitrags überschreiben? Direkt in WordPress vorgenommene Textänderungen gehen verloren; SEO-Einstellungen, Kategorien und der Veröffentlichungsstatus bleiben erhalten.",
+      "update_blog_button": "Webseiten-Entwurf aktualisieren",
+      "update_blog_confirm": "Titel, Text und Bild des vorhandenen Webseiten-Entwurfs überschreiben? Textänderungen, die direkt auf der Webseite gemacht wurden, gehen verloren; der Veröffentlichungsstatus bleibt erhalten.",
       "print_download_link": "Herunterladen",
-      "print_qr_pending_hint": "Der Text wurde ohne QR-Code gekürzt, weil der Blogbeitrag noch nicht öffentlich war. Sobald er in WordPress veröffentlicht ist, das PDF erneut erstellen, um den QR-Code hinzuzufügen.",
+      "print_qr_pending_hint": "Der Text wurde ohne QR-Code gekürzt, weil der Webseiten-Beitrag noch nicht öffentlich war. Sobald er veröffentlicht ist, das PDF neu erstellen, um den QR-Code hinzuzufügen.",
       "channel_letter": "Briefe"
     },
     "audience": {
@@ -2961,6 +2960,57 @@
       "cloud_not_configured": "Die Cloud-Verbindung ist nicht eingerichtet.",
       "invalid_folder": "Ungültiger Ordnername.",
       "invalid_file": "Ungültiger Dateiname."
+    }
+  },
+  "website": {
+    "connectors": {
+      "wordpress": {
+        "name": "WordPress",
+        "desc": "Entwürfe werden über die eingebaute REST-API von WordPress angelegt. Lege im WordPress-Benutzerprofil ein Anwendungspasswort an (Benutzer -> Profil -> Anwendungspasswörter) – nicht dein normales Login-Passwort verwenden.",
+        "fields": {
+          "site_url": "WordPress-Adresse",
+          "username": "WordPress-Benutzername",
+          "app_password": "Anwendungspasswort"
+        },
+        "hints": {
+          "app_password": "Nicht dein normales WordPress-Passwort – lege eins in deinem WordPress-Benutzerprofil an."
+        }
+      },
+      "markdown_folder": {
+        "name": "Markdown-Ordner (Cloud-Speicher)",
+        "desc": "Für statische Webseiten, die aus Markdown-Dateien gebaut werden (Hugo, Jekyll, Eleventy, Astro o. Ä.). Jeder Entwurf wird eine .md-Datei mit \"draft: true\" im Kopf, abgelegt in einem Ordner im Cloud-Speicher. Zum Veröffentlichen diese Zeile löschen.",
+        "fields": {
+          "posts_path": "Ordner für Beiträge",
+          "media_path": "Ordner für Bilder",
+          "media_url_prefix": "Web-Pfad des Bilderordners",
+          "site_url": "Adresse der Webseite",
+          "filename_pattern": "Muster für Dateinamen",
+          "url_pattern": "Muster für Beitragsadressen",
+          "author": "Autor",
+          "categories": "Kategorien"
+        },
+        "hints": {
+          "posts_path": "Ordner im Cloud-Speicher, z. B. webseite/content/posts. Er muss schon existieren.",
+          "media_path": "Bilder kommen in Unterordner nach Jahr und Monat. Leer lassen, um Beiträge ohne Bild zu senden.",
+          "media_url_prefix": "Wie die Webseite den Bilderordner anspricht, z. B. /media.",
+          "site_url": "Wird für den QR-Code auf dem Aushang genutzt, sobald ein Beitrag veröffentlicht ist.",
+          "filename_pattern": "{date} wird zu JJJJMMTT, {slug} zum Titel ohne Umlaute und Leerzeichen.",
+          "url_pattern": "Wird als \"url\" in den Beitragskopf geschrieben. Leer lassen, wenn die Webseite die Adresse selbst bildet.",
+          "categories": "Kommagetrennt, so wie eure Webseite sie benennt."
+        }
+      },
+      "parcella_plugin": {
+        "name": "Parcella-Plugin (TYPO3, Contao, Drupal, Joomla, ...)",
+        "desc": "Für jedes Webseiten-System mit installiertem Parcella-Plugin. Das Plugin zeigt die Adresse und den gemeinsamen Schlüssel an, die hier eingetragen werden.",
+        "fields": {
+          "endpoint_url": "Plugin-Adresse",
+          "shared_secret": "Gemeinsamer Schlüssel"
+        },
+        "hints": {
+          "endpoint_url": "Steht in den Plugin-Einstellungen, z. B. https://example.org/parcella/v1.",
+          "shared_secret": "Wird vom Plugin erzeugt. Parcella signiert damit jede Anfrage."
+        }
+      }
     }
   }
 }
