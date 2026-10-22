@@ -110,8 +110,8 @@ def _parse_deck_updated_at(raw: dict) -> datetime:
     integer, or an ISO-8601 string; both are documented as having been
     used across Deck API versions), since this hasn't been verified
     against a live instance yet. Falls back to now() if neither parses,
-    same defensive convention as app/freescout_sync.py's
-    _parse_datetime -- a card that can't be timestamped is still synced,
+    same defensive convention as the helpdesk providers'
+    timestamp parsing -- a card that can't be timestamped is still synced,
     just without a useful incremental-sync high-water-mark for itself
     until its next real change."""
     value = raw.get("lastModified")
@@ -273,7 +273,7 @@ async def get_deck_client(
     """Returns a configured DeckTaskProvider, or None if the club hasn't
     set up Deck credentials yet -- callers check for None rather than
     catching an exception for "not set up" (same convention as
-    get_cloud_storage_provider/get_freescout_client)."""
+    get_cloud_storage_provider/get_helpdesk)."""
     config = await load_deck_configuration(db)
     if config is None:
         return None

@@ -1,8 +1,8 @@
 """
 Sanitizes HTML from externally-sourced messages so it can be rendered
-safely in the browser -- currently used for FreeScout conversation
-threads (app/templates/freescout/detail.html), fetched live from
-FreeScout's API and rendered via the `sanitize_html` Jinja filter (see
+safely in the browser -- currently used for helpdesk conversation
+messages (app/templates/support/detail.html), fetched live from the
+active helpdesk's API and rendered via the `sanitize_html` Jinja filter (see
 app/templating.py).
 
 WHY THIS MATTERS: the content ultimately comes from whoever emailed the

@@ -299,8 +299,8 @@
         "tasks_desc": "A general-purpose kanban board (To Do / In Progress / Done) for club business that isn't tied to a work session -- e.g. \"renew the insurance policy\", \"call the electrician\". Admin/board only.",
         "finances_name": "Finances",
         "finances_desc": "Prepare and send annual invoices per parcel, with usage-based line items and payment tracking. Configure bank details below first.",
-        "freescout_bridge_name": "FreeScout Bridge",
-        "freescout_bridge_desc": "Links FreeScout support conversations to members and the task board.",
+        "freescout_bridge_name": "Support (helpdesk)",
+        "freescout_bridge_desc": "Links helpdesk conversations to members and the task board. Choose the helpdesk under Admin -> Integrations.",
         "deck_sync_name": "Nextcloud Deck Sync",
         "deck_sync_desc": "Pulls cards from a Nextcloud Deck board into the task board, one-way, kept up to date automatically. Configure the connection under Admin -> Integrations first.",
         "applicants_name": "Applicants",
@@ -352,18 +352,6 @@
       "incoming_invoices_folder_label": "Folder path",
       "incoming_invoices_folder_save_button": "Save",
       "incoming_invoices_folder_saved": "Incoming invoices folder saved.",
-      "freescout_title": "FreeScout",
-      "freescout_desc": "Connects Parcella to your FreeScout helpdesk so support conversations can be linked to members and the task board.",
-      "freescout_saved": "FreeScout settings saved",
-      "freescout_base_url_label": "FreeScout instance URL",
-      "freescout_mailbox_id_label": "Mailbox ID",
-      "freescout_mailbox_id_hint": "The FreeScout mailbox to sync (see its URL, e.g. /mailbox/1). Defaults to 1.",
-      "freescout_api_key_label": "FreeScout API key",
-      "freescout_api_key_hint": "Generate one under FreeScout's Manage > API & Webhooks page.",
-      "freescout_save_button": "Save",
-      "freescout_test_button": "Test connection",
-      "freescout_not_configured": "FreeScout is not configured yet",
-      "freescout_test_success": "Connection successful",
       "deck_title": "Nextcloud Deck",
       "deck_desc": "Pulls tasks from a Nextcloud Deck board into Parcella's task board -- a one-way, read-only mirror kept up to date automatically. Deliberately a separate connection from Cloud storage above, even if it points at the same server.",
       "deck_base_url_label": "Nextcloud server URL",
@@ -413,7 +401,13 @@
       "cloud_storage_saved": "Cloud storage settings saved",
       "cloud_storage_type_label": "Storage type",
       "cloud_storage_type_none": "None (no cloud storage)",
-      "cloud_storage_type_hint": "Folder paths entered elsewhere (parcels, invoices, contacts) are relative to the chosen storage."
+      "cloud_storage_type_hint": "Folder paths entered elsewhere (parcels, invoices, contacts) are relative to the chosen storage.",
+      "helpdesk_title": "Support / helpdesk",
+      "helpdesk_desc": "Choose the helpdesk your club answers support requests in. Parcella links its conversations to members, parcels and the task board, and the website contact form creates new requests there. Only one helpdesk is active at a time: choosing another one switches the previous one off but keeps its settings, and its conversations come back if you switch back.",
+      "helpdesk_saved": "Helpdesk settings saved",
+      "helpdesk_type_label": "Helpdesk",
+      "helpdesk_type_none": "None (no helpdesk)",
+      "helpdesk_type_hint": "Not every helpdesk offers everything through its interface; Parcella only shows what the chosen one can do."
     },
     "system": {
       "page_title": "System",
@@ -505,8 +499,8 @@
       "add_button": "Add sample data",
       "what_finances": "Finances: a few example bookkeeping categories (not real SKR42 data)",
       "module_finances": "Finance categories",
-      "what_freescout_bridge": "FreeScout bridge: a handful of sample conversation links across different statuses",
-      "module_freescout_bridge": "FreeScout Bridge"
+      "what_freescout_bridge": "Support: a handful of sample helpdesk conversations across different statuses",
+      "module_freescout_bridge": "Support (helpdesk)"
     },
     "groups": {
       "page_title": "Groups",
@@ -545,7 +539,7 @@
         "calendar": "Calendar",
         "inventory": "Inventory",
         "finances": "Finances",
-        "freescout_bridge": "FreeScout Bridge",
+        "freescout_bridge": "Support (helpdesk)",
         "applicants": "Applicants",
         "external_contacts": "External contacts"
       }
@@ -1705,7 +1699,7 @@
     "birthdays_today": "today, turning {age}",
     "birthdays_turning": "turning {age}",
     "freescout_open_label": "Open support conversations",
-    "freescout_open_suffix": "active or pending FreeScout conversations",
+    "freescout_open_suffix": "active or pending helpdesk conversations",
     "applicants_card_title": "New applications",
     "applicants_suffix": "not looked at yet"
   },
@@ -2631,7 +2625,7 @@
   "freescout": {
     "overview": {
       "title": "Support Conversations",
-      "open_in_freescout": "Open in FreeScout",
+      "open_in_freescout": "Open in {name}",
       "col_subject": "Subject",
       "col_customer": "Customer",
       "col_member": "Member",
@@ -2640,17 +2634,19 @@
       "col_updated": "Updated",
       "col_task": "Task",
       "has_task": "Linked to a task",
-      "empty_state": "No support conversations yet."
+      "empty_state": "No support conversations yet.",
+      "none_configured": "No helpdesk is set up yet. An administrator can choose one under Admin -> Integrations.",
+      "no_inbox": "{name} can't list conversations through its interface. Requests from the website contact form go straight to {name}; answer them there."
     },
     "detail": {
       "back": "Back",
-      "open_in_freescout": "Open in FreeScout",
+      "open_in_freescout": "Open in {name}",
       "transcript_header": "Conversation",
       "no_messages": "No messages could be loaded.",
       "reply_header": "Reply to customer",
       "reply_placeholder": "Type your reply...",
       "reply_send": "Send",
-      "reply_help_text": "Sent through FreeScout and emailed to the customer -- this is not an internal note.",
+      "reply_help_text": "Sent through {name} and emailed to the customer -- this is not an internal note.",
       "member_header": "Member",
       "member_none": "No member matched.",
       "member_none_option": "-- none --",
@@ -2663,14 +2659,16 @@
       "task_header": "Task board",
       "task_open": "Open task",
       "task_create": "Create task",
-      "not_configured": "FreeScout is not configured."
+      "not_configured": "This conversation's helpdesk isn't set up (anymore).",
+      "no_read": "{name} can't show conversations through its interface -- open it in {name}.",
+      "no_reply": "{name} can't send replies through its interface."
     },
     "errors": {
       "conversation_not_found": "Conversation not found",
       "no_lists": "No lists exist on the task board yet"
     },
     "task": {
-      "source_line": "Source: FreeScout conversation #{conversation_id}",
+      "source_line": "Source: {name} conversation #{conversation_id}",
       "member_line": "Member: {name}"
     }
   },
@@ -3050,6 +3048,89 @@
           "endpoint_url": "E.g. https://s3.eu-central-1.amazonaws.com or https://fsn1.your-objectstorage.com.",
           "region": "As your provider names it, e.g. eu-central-1 or fsn1. Leave us-east-1 if your provider doesn't use regions.",
           "path_prefix": "Optional. Parcella's folders are created below this path, e.g. parcella."
+        }
+      }
+    }
+  },
+  "helpdesk": {
+    "providers": {
+      "freescout": {
+        "name": "FreeScout",
+        "desc": "Open-source helpdesk. Everything works: list, reading, replies, contact form and name sync. Needs FreeScout's API & Webhooks module.",
+        "fields": {
+          "base_url": "FreeScout address",
+          "api_key": "API key",
+          "mailbox_id": "Mailbox ID"
+        },
+        "hints": {
+          "api_key": "Generate one under FreeScout's Manage -> API & Webhooks page.",
+          "mailbox_id": "The mailbox to sync (see its address, e.g. /mailbox/1). Defaults to 1."
+        }
+      },
+      "zammad": {
+        "name": "Zammad",
+        "desc": "Open-source helpdesk, widely used in German-speaking countries. Everything works: list, reading, replies, contact form and name sync.",
+        "fields": {
+          "base_url": "Zammad address",
+          "api_token": "Access token",
+          "group": "Group for new requests"
+        },
+        "hints": {
+          "api_token": "Create one under your Zammad profile -> Token Access, with the ticket.agent permission.",
+          "group": "Contact-form requests land in this Zammad group, e.g. Users."
+        }
+      },
+      "znuny": {
+        "name": "Znuny / OTRS",
+        "desc": "Open-source helpdesk. List, reading, replies and contact form work; Znuny has no interface for renaming customers. The Parcella web service has to be imported in Znuny once (see integrations/znuny/).",
+        "fields": {
+          "webservice_url": "Web service address",
+          "username": "Agent login",
+          "password": "Password",
+          "queue": "Queue for new requests",
+          "agent_url": "Agent interface address"
+        },
+        "hints": {
+          "webservice_url": "The address of the imported ParcellaTicketConnector web service.",
+          "username": "An agent with access to the queue below.",
+          "queue": "Contact-form requests land in this queue, e.g. Raw.",
+          "agent_url": "Optional, e.g. https://helpdesk.example.org/otrs/index.pl -- lets Parcella link to tickets."
+        }
+      },
+      "osticket": {
+        "name": "osTicket",
+        "desc": "Open-source helpdesk. Its interface can only create tickets: the website contact form works, but the list, reading and replying happen in osTicket itself.",
+        "fields": {
+          "base_url": "osTicket address",
+          "api_key": "API key"
+        },
+        "hints": {
+          "base_url": "Without /api, e.g. https://support.example.org.",
+          "api_key": "Create one under Admin Panel -> Manage -> API Keys, bound to the IP address Parcella's server connects from."
+        }
+      },
+      "zendesk": {
+        "name": "Zendesk",
+        "desc": "Commercial helpdesk. Everything works: list, reading, replies, contact form and name sync.",
+        "fields": {
+          "base_url": "Zendesk address",
+          "agent_email": "Agent email address",
+          "api_token": "API token"
+        },
+        "hints": {
+          "agent_email": "The agent the API token belongs to.",
+          "api_token": "Create one under Admin Center -> Apps and integrations -> Zendesk API."
+        }
+      },
+      "freshdesk": {
+        "name": "Freshdesk",
+        "desc": "Commercial helpdesk. Everything works: list, reading, replies, contact form and name sync.",
+        "fields": {
+          "base_url": "Freshdesk address",
+          "api_key": "API key"
+        },
+        "hints": {
+          "api_key": "Shown under your Freshdesk profile settings -> View API key."
         }
       }
     }

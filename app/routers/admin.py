@@ -27,6 +27,7 @@ from app.crypto_utils import encrypt
 from app.provider_registry import InvalidConnectorConfig, ProviderRegistry
 from app.website_connectors import BlogPublishError
 from app.website_connectors.registry import WEBSITE
+from app.helpdesk import HELPDESK, HelpdeskError
 from app.cloud_storage import CLOUD_STORAGE, CloudStorageError, get_cloud_storage_provider
 from app.task_sync import (
     load_deck_configuration, load_deck_board_id, normalize_deck_board_id, DeckTaskProvider, DeckError,
@@ -1240,10 +1241,6 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
     incoming_invoices_folder_path = incoming_invoices_folder_entry.value if incoming_invoices_folder_entry else None
     external_contacts_folder_path = await load_contacts_base_folder(db)
 
-    freescout_result = await db.execute(
-        select(ClubSetting).where(ClubSetting.key.in_(["freescout_base_url", "freescout_api_key", "freescout_mailbox_id"]))
-    )
-    freescout_stored = {e.key: e.value for e in freescout_result.scalars().all()}
 
     deck_result = await db.execute(
         select(ClubSetting).where(
@@ -1289,12 +1286,11 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
         "external_contacts_folder_path": external_contacts_folder_path,
         "external_contacts_folder_saved": request.query_params.get("external_contacts_folder_saved"),
         "external_contacts_folder_error": request.query_params.get("external_contacts_folder_error"),
-        "freescout_base_url": freescout_stored.get("freescout_base_url", ""),
-        "freescout_mailbox_id": freescout_stored.get("freescout_mailbox_id", "1"),
-        "freescout_api_key_set": bool(freescout_stored.get("freescout_api_key")),
-        "freescout_saved": request.query_params.get("freescout_saved"),
-        "freescout_test_result": request.query_params.get("freescout_test"),
-        "freescout_test_message": request.query_params.get("freescout_test_message"),
+        "helpdesk": await HELPDESK.admin_context(db),
+        "helpdesk_saved": request.query_params.get("helpdesk_saved"),
+        "helpdesk_error": request.query_params.get("helpdesk_error"),
+        "helpdesk_test_result": request.query_params.get("helpdesk_test"),
+        "helpdesk_test_message": request.query_params.get("helpdesk_test_message"),
         "deck_base_url": deck_stored.get("deck_base_url", ""),
         "deck_username": deck_stored.get("deck_username", ""),
         "deck_app_password_set": bool(deck_stored.get("deck_app_password")),
@@ -1501,59 +1497,15 @@ async def integrations_external_contacts_folder_save(
     return RedirectResponse("/admin/integrations?external_contacts_folder_saved=1", status_code=303)
 
 
-@router.post("/integrations/freescout")
-async def integrations_freescout_save(request: Request, db: AsyncSession = Depends(get_db)):
-    """Saves FreeScout connection details -- same "blank API key field =
-    leave the existing one unchanged" convention as WordPress/Nextcloud
-    above. mailbox_id defaults to 1 (see app/freescout_client.py's
-    DEFAULT_MAILBOX_ID) if left blank."""
-    await require_system_admin(request, db)
-    form = await request.form()
-
-    base_url = (form.get("freescout_base_url") or "").strip() or None
-    mailbox_id = (form.get("freescout_mailbox_id") or "").strip() or "1"
-    api_key = (form.get("freescout_api_key") or "").strip()
-
-    await _upsert_club_setting(db, "freescout_base_url", base_url, "FreeScout instance URL")
-    await _upsert_club_setting(db, "freescout_mailbox_id", mailbox_id, "FreeScout mailbox ID to sync")
-    if api_key:
-        await _upsert_club_setting(db, "freescout_api_key", encrypt(api_key), "FreeScout API key (encrypted)")
-
-    await db.commit()
-    return RedirectResponse("/admin/integrations?freescout_saved=1", status_code=303)
+@router.post("/integrations/helpdesk")
+async def integrations_helpdesk_save(request: Request, db: AsyncSession = Depends(get_db)):
+    """The Support / helpdesk card (ADR 0107)."""
+    return await _save_provider_card(request, db, HELPDESK, "helpdesk")
 
 
-@router.post("/integrations/freescout/test")
-async def integrations_freescout_test(request: Request, db: AsyncSession = Depends(get_db)):
-    """Tests FreeScout connectivity using whatever is currently in the
-    form, falling back to the already-saved configuration for any field
-    left blank -- doesn't persist anything."""
-    await require_system_admin(request, db)
-    form = await request.form()
-    from urllib.parse import quote
-    from app.freescout_client import FreeScoutClient, FreeScoutError, load_freescout_configuration
-
-    saved_config = await load_freescout_configuration(db)
-    base_url = (form.get("freescout_base_url") or "").strip() or (saved_config["base_url"] if saved_config else None)
-    api_key = (form.get("freescout_api_key") or "").strip() or (saved_config["api_key"] if saved_config else None)
-    mailbox_id = int((form.get("freescout_mailbox_id") or "").strip() or (saved_config["mailbox_id"] if saved_config else 1))
-
-    if not base_url or not api_key:
-        message = quote(t_for(request, "admin.integrations.freescout_not_configured"))
-        return RedirectResponse(f"/admin/integrations?freescout_test=failed&freescout_test_message={message}", status_code=303)
-
-    client = FreeScoutClient(base_url=base_url, api_key=api_key, mailbox_id=mailbox_id)
-    try:
-        await client.list_conversations(page=1)
-        result, message = "success", t_for(request, "admin.integrations.freescout_test_success")
-    except FreeScoutError as e:
-        result, message = "failed", str(e)
-    finally:
-        await client.aclose()
-
-    return RedirectResponse(
-        f"/admin/integrations?freescout_test={result}&freescout_test_message={quote(message)}", status_code=303,
-    )
+@router.post("/integrations/helpdesk/test")
+async def integrations_helpdesk_test(request: Request, db: AsyncSession = Depends(get_db)):
+    return await _test_provider_card(request, db, HELPDESK, "helpdesk", (HelpdeskError,))
 
 
 @router.post("/integrations/deck")

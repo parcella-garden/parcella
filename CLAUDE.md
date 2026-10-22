@@ -5,7 +5,7 @@ Guidance for Claude Code (or any AI coding agent) working in this repository. Th
 ## What this project is
 
 Parcella: an open-source web app for allotment garden associations
-("Kleingartenverein" / "Schrebergarten"). Members, parcels/leases, work hours, metering, insurance, a FreeScout support bridge, purchase requests, finances/invoicing, and more, each as an independently toggleable module. AGPL-3.0-licensed, public repo - see [CONTRIBUTING.md](./CONTRIBUTING.md) for the license implications before assuming anything here is private.
+("Kleingartenverein" / "Schrebergarten"). Members, parcels/leases, work hours, metering, insurance, support (pluggable helpdesk), purchase requests, finances/invoicing, and more, each as an independently toggleable module. AGPL-3.0-licensed, public repo - see [CONTRIBUTING.md](./CONTRIBUTING.md) for the license implications before assuming anything here is private.
 
 Stack: Python 3.12 + FastAPI, Jinja2 (server-rendered, Bootstrap 5), PostgreSQL 16 + SQLAlchemy (async) + Alembic, Docker Compose. Full table in [README.md](./README.md#tech-stack).
 

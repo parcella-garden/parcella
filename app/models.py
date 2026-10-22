@@ -280,16 +280,8 @@ class Member(Base):
     # Notes (internal)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
-    # Persistent identity mapping to the FreeScout customer record for this
-    # member (see app/freescout_client.py, docs/module-freescout-bridge.md).
-    # Set lazily -- the first time this member is matched to an inbound
-    # FreeScout conversation, not proactively for every member -- so a
-    # member who never contacts support never gets pushed into FreeScout.
-    # Once set, it's the fast, unambiguous path for matching future
-    # conversations, in preference to re-matching by email every time.
-    freescout_customer_id: Mapped[Optional[int]] = mapped_column(
-        Integer, nullable=True, unique=True, index=True
-    )
+    # The member's customer record in each helpdesk lives in
+    # HelpdeskCustomerId (ADR 0107), not here.
 
     # Audit
     created_at: Mapped[datetime] = mapped_column(
@@ -1633,51 +1625,55 @@ class AccidentInsuranceAdditionalPerson(Base):
 # ---------------------------------------------------------------------------
 # FreeScout conversation bridge
 # ---------------------------------------------------------------------------
-# Parcella no longer implements its own ticket/helpdesk system (removed --
-# see docs/ADR on this decision and docs/module-freescout-bridge.md).
-# FreeScout is the sole, canonical system for support conversations and
-# email communication. This table is a lightweight cross-reference only
-# -- NOT a mirror of FreeScout's messages/attachments. The actual message
-# transcript is fetched live from FreeScout's API when a conversation's
-# detail page is opened (app/routers/freescout.py), never stored here.
-# Populated/updated by the poll loop (app/main.py); member/parcel
-# association can additionally be corrected by staff in the UI.
+# Parcella no longer implements its own ticket/helpdesk system (ADR 0080):
+# support conversations live in the club's helpdesk -- FreeScout, Zammad,
+# Znuny, osTicket, Zendesk, Freshdesk, one at a time (ADR 0107, app/helpdesk/).
+# This table is a lightweight cross-reference only -- NOT a mirror of the
+# helpdesk's messages/attachments. The transcript is fetched live when a
+# conversation's detail page is opened (app/routers/support.py), never
+# stored here. Populated/updated by the poll loop (app/main.py); member/
+# parcel association can additionally be corrected by staff in the UI.
 
-class FreescoutConversationLink(Base):
+class HelpdeskConversationLink(Base):
     """
-    A cross-reference to one FreeScout conversation: which Parcella
-    member/parcel it belongs to, and optionally which Parcella task it
-    was promoted to. Staff read and reply to the actual conversation
-    content through Parcella's UI, which in turn always talks to
-    FreeScout's API live -- nothing about the conversation's message
-    content is duplicated into this table.
+    A cross-reference to one conversation in the club's helpdesk: which
+    Parcella member/parcel it belongs to, and optionally which Parcella
+    task it was promoted to. Rows of a helpdesk that isn't active anymore
+    stay (hidden), so switching back finds them again.
     """
-    __tablename__ = "freescout_conversation_links"
+    __tablename__ = "helpdesk_conversation_links"
+    __table_args__ = (
+        UniqueConstraint("provider", "external_id", name="uq_helpdesk_conversation_provider_external"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
 
-    freescout_conversation_id: Mapped[int] = mapped_column(Integer, nullable=False, unique=True, index=True)
-    freescout_mailbox_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    # Which helpdesk (app.helpdesk.registry type, e.g. "freescout") and
+    # the conversation's id there -- a string, since not every helpdesk
+    # uses integers.
+    provider: Mapped[str] = mapped_column(String(30), nullable=False, index=True)
+    external_id: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    # Mailbox/group/queue the conversation is in, as the helpdesk names it.
+    mailbox_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, index=True)
 
     subject: Mapped[str] = mapped_column(String(255), nullable=False)
     customer_email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     customer_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
-    # FreeScout's own status string, stored as-is (e.g. "active", "pending",
-    # "closed", "spam") -- deliberately NOT translated into any Parcella
-    # enum; FreeScout owns this conversation's lifecycle, not Parcella.
-    freescout_status: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    # One of app.helpdesk.base's STATUS_* values (active, pending, closed,
+    # spam, deleted) -- the helpdesk owns the lifecycle; Parcella only maps
+    # its states onto these so lists and badges work the same everywhere.
+    status: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
 
-    # From FreeScout's conversation list, if exposed there; otherwise
-    # backfilled lazily when the detail view is opened. Shown to staff as
-    # a hint for deciding which conversations are worth promoting to a
-    # task -- a displayed signal, not an automatic trigger.
+    # From the helpdesk's conversation list, if it exposes one. Shown to
+    # staff as a hint for deciding which conversations are worth promoting
+    # to a task -- a displayed signal, not an automatic trigger.
     message_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
-    # Matching hierarchy: Member.freescout_customer_id first (exact,
-    # persisted), else find_members_by_email() (app/member_matching.py).
-    # Left NULL when ambiguous (more than one member shares the address)
-    # or unmatched (a non-member inquiry) -- never guessed.
+    # Matching hierarchy: HelpdeskCustomerId first (exact, persisted), else
+    # find_members_by_email() (app/member_matching.py). Left NULL when
+    # ambiguous (more than one member shares the address) or unmatched (a
+    # non-member inquiry) -- never guessed.
     member_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("members.id", ondelete="SET NULL"), nullable=True, index=True
     )
@@ -1690,14 +1686,14 @@ class FreescoutConversationLink(Base):
     )
 
     # Set only by the manual "Create task"/"Link to existing task" action
-    # (app/routers/freescout.py) -- a loose, nullable cross-domain FK
+    # (app/routers/support.py) -- a loose, nullable cross-domain FK
     # (SET NULL, not a hard-ownership pattern): deleting the task must
     # not delete or break this link row, it just becomes unlinked again.
     task_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("tasks.id", ondelete="SET NULL"), nullable=True, index=True
     )
 
-    freescout_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    external_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
     last_synced_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
@@ -1709,8 +1705,52 @@ class FreescoutConversationLink(Base):
     parcel: Mapped[Optional["Parcel"]] = relationship("Parcel")
     task: Mapped[Optional["Task"]] = relationship("Task")
 
+    # The pre-ADR-0107 field names, kept read-only for the deprecated
+    # /api/v1/freescout endpoints so existing API clients keep working.
+    @property
+    def freescout_conversation_id(self) -> int:
+        return int(self.external_id) if self.external_id.isdigit() else 0
+
+    @property
+    def freescout_mailbox_id(self) -> int:
+        return int(self.mailbox_id) if self.mailbox_id and self.mailbox_id.isdigit() else 0
+
+    @property
+    def freescout_status(self) -> str:
+        return self.status
+
+    @property
+    def freescout_updated_at(self) -> datetime:
+        return self.external_updated_at
+
     def __repr__(self) -> str:
-        return f"<FreescoutConversationLink freescout_id={self.freescout_conversation_id}>"
+        return f"<HelpdeskConversationLink {self.provider}:{self.external_id}>"
+
+
+class HelpdeskCustomerId(Base):
+    """
+    Persistent identity mapping from a member to their customer record in
+    a helpdesk. Set lazily -- the first time the member is matched to an
+    inbound conversation, not proactively -- so a member who never
+    contacts support never gets pushed into any helpdesk. One row per
+    member and helpdesk, since every helpdesk numbers its customers
+    differently.
+    """
+    __tablename__ = "helpdesk_customer_ids"
+    __table_args__ = (
+        UniqueConstraint("provider", "customer_id", name="uq_helpdesk_customer_provider_customer"),
+        UniqueConstraint("member_id", "provider", name="uq_helpdesk_customer_member_provider"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    member_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("members.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    provider: Mapped[str] = mapped_column(String(30), nullable=False)
+    customer_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
 
 # ---------------------------------------------------------------------------

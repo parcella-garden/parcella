@@ -1,8 +1,8 @@
 """
 Automatic member matching by email address -- shared by anything that
 needs to resolve an external sender/customer address to a Parcella
-member (currently: the FreeScout conversation bridge,
-app/freescout_sync.py).
+member (currently: the support module's helpdesk sync,
+app/helpdesk/sync.py).
 """
 from typing import List
 

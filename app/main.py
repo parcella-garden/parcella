@@ -38,15 +38,15 @@ from app.nav_counts import NAV_COUNT_KEYS, load_nav_counts
 # fast file-read operation with no DB access -- unproblematic at import.
 load_translations()
 from app.templating import templates
-from app.freescout_client import get_freescout_client, load_freescout_base_url
-from app.freescout_sync import sync_freescout_conversations
+from app.helpdesk import get_helpdesk, load_helpdesk_web_url
+from app.helpdesk.sync import sync_helpdesk_conversations
 from app.deck_sync import sync_deck_tasks
 from app.parcel_cloud_folders import apply_scheduled_folder_switches
-from app.routers import auth, members, parcels, admin as admin_router, admin_groups as admin_groups_router, work_hours, insurance, freescout as freescout_router, purchase_requests, calendar as calendar_router, announcements as announcements_router, inventory as inventory_router, tasks as tasks_router, finances as finances_router
+from app.routers import auth, members, parcels, admin as admin_router, admin_groups as admin_groups_router, work_hours, insurance, support as support_router, purchase_requests, calendar as calendar_router, announcements as announcements_router, inventory as inventory_router, tasks as tasks_router, finances as finances_router
 from app.routers.metering import create_metering_router
 from app.models import MeteringMedium
 from app.routers import api_auth, api_members, api_parcels, api_club_settings, api_stats
-from app.routers import api_work_hours, api_insurance, api_freescout, api_purchase_requests, api_inventory, api_tasks
+from app.routers import api_work_hours, api_insurance, api_helpdesk, api_purchase_requests, api_inventory, api_tasks
 from app.routers import applicants as applicants_router, api_applicants
 from app.routers import external_contacts as external_contacts_router, api_external_contacts
 from app.routers import api_public
@@ -57,26 +57,28 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def _freescout_polling_loop():
+async def _helpdesk_polling_loop():
     """
-    Polls FreeScout's API for new/updated conversations in the configured
-    mailbox every 5 minutes, upserting app/models.py's
-    FreescoutConversationLink rows (see app/freescout_sync.py). Runs
-    permanently in the background; errors are caught so a single failed
-    poll doesn't end the loop. A no-op (skipped, not an error) whenever
-    the freescout_bridge module isn't configured -- see
-    get_freescout_client()'s Optional[...] return.
+    Polls the active helpdesk for new/updated conversations every 5
+    minutes, upserting app/models.py's HelpdeskConversationLink rows (see
+    app/helpdesk/sync.py). Runs permanently in the background; errors are
+    caught so a single failed poll doesn't end the loop. A no-op whenever
+    no helpdesk is set up, or the active one can't list conversations
+    (osTicket) -- see get_helpdesk() and the INBOX capability.
     """
     while True:
         try:
             async with AsyncSessionLocal() as db:
-                client = await get_freescout_client(db)
-                if client is not None:
-                    synced = await sync_freescout_conversations(db, client)
+                provider = await get_helpdesk(db)
+                if provider is not None:
+                    try:
+                        synced = await sync_helpdesk_conversations(db, provider)
+                    finally:
+                        await provider.aclose()
                     if synced:
-                        logger.info(f"FreeScout: {synced} conversation(s) synced.")
+                        logger.info(f"{provider.label}: {synced} conversation(s) synced.")
         except Exception as e:
-            logger.error(f"FreeScout polling failed: {e}")
+            logger.error(f"Helpdesk polling failed: {e}")
 
         await asyncio.sleep(5 * 60)  # 5 minutes
 
@@ -191,7 +193,7 @@ async def lifespan(app: FastAPI):
                 "-- you will be asked to set a new password on first login."
             )
 
-    polling_task = asyncio.create_task(_freescout_polling_loop())
+    polling_task = asyncio.create_task(_helpdesk_polling_loop())
     update_check_task = asyncio.create_task(_update_check_polling_loop())
     cloud_backup_task = asyncio.create_task(_cloud_backup_polling_loop())
     deck_sync_task = asyncio.create_task(_deck_sync_polling_loop())
@@ -236,11 +238,11 @@ async def modul_flags_middleware(request: Request, call_next):
     async with AsyncSessionLocal() as db:
         request.state.module_flags = await load_module_flags(db)
         # Cheap enough to load alongside the module flags themselves --
-        # only the base URL (not the API key), used by base.html's
-        # "Support" nav link for members with no freescout_bridge
-        # permission (they link straight to FreeScout; staff link to
-        # Parcella's own /freescout/ list instead). See app/freescout_client.py.
-        request.state.freescout_base_url = await load_freescout_base_url(db)
+        # only the active helpdesk's web address (no credentials), used by
+        # base.html's "Support" nav link for members with no
+        # freescout_bridge permission (they link straight to the helpdesk;
+        # staff link to Parcella's own /support/ list instead).
+        request.state.helpdesk_web_url = await load_helpdesk_web_url(db)
     response = await call_next(request)
     return response
 
@@ -481,7 +483,8 @@ app.include_router(admin_router.router)
 app.include_router(admin_groups_router.router)
 app.include_router(work_hours.router)
 app.include_router(insurance.router)
-app.include_router(freescout_router.router)
+app.include_router(support_router.router)
+app.include_router(support_router.legacy_router)
 app.include_router(purchase_requests.router)
 app.include_router(calendar_router.router)
 app.include_router(announcements_router.router)
@@ -516,7 +519,9 @@ app.include_router(api_inventory.router)
 app.include_router(api_tasks.router)
 app.include_router(api_applicants.router)
 app.include_router(api_external_contacts.router)
-app.include_router(api_freescout.router)
+app.include_router(api_helpdesk.router)
+app.include_router(api_helpdesk.legacy_router)
+app.include_router(api_helpdesk.settings_router)
 app.include_router(api_purchase_requests.router)
 app.include_router(api_public.router)
 app.include_router(api_website.router)

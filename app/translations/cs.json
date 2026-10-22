@@ -299,8 +299,8 @@
         "tasks_desc": "Obecná kanban nástěnka (K vyřízení / Probíhá / Hotovo) pro záležitosti spolku, které nejsou vázány na pracovní směnu -- např. \"obnovit pojistku\", \"zavolat elektrikáře\". Pouze pro výbor/administrátora.",
         "finances_name": "Finance",
         "finances_desc": "Připravte a odesílejte roční faktury za každou parcelu, s položkami podle spotřeby a sledováním plateb. Nejprve nastavte bankovní údaje níže.",
-        "freescout_bridge_name": "Propojení s FreeScout",
-        "freescout_bridge_desc": "Propojuje konverzace podpory z FreeScout s členy a nástěnkou úkolů.",
+        "freescout_bridge_name": "Podpora (helpdesk)",
+        "freescout_bridge_desc": "Propojuje konverzace z helpdesku se členy a tabulí úkolů. Helpdesk vyberte v Admin -> Integrace.",
         "deck_sync_name": "Synchronizace Nextcloud Deck",
         "deck_sync_desc": "Stahuje karty z nástěnky Nextcloud Deck do nástěnky úkolů, jednosměrně, automaticky udržované aktuální. Nejprve nastavte připojení v Admin -> Integrace.",
         "applicants_name": "Uchazeči",
@@ -352,18 +352,6 @@
       "incoming_invoices_folder_label": "Cesta ke složce",
       "incoming_invoices_folder_save_button": "Uložit",
       "incoming_invoices_folder_saved": "Složka pro přijaté faktury byla uložena.",
-      "freescout_title": "FreeScout",
-      "freescout_desc": "Propojuje Parcellu s vaším helpdeskem FreeScout, aby šlo konverzace podpory propojit s členy a nástěnkou úkolů.",
-      "freescout_saved": "Nastavení FreeScout uloženo",
-      "freescout_base_url_label": "URL instance FreeScout",
-      "freescout_mailbox_id_label": "ID schránky",
-      "freescout_mailbox_id_hint": "Schránka FreeScout k synchronizaci (viz její URL, např. /mailbox/1). Výchozí je 1.",
-      "freescout_api_key_label": "API klíč FreeScout",
-      "freescout_api_key_hint": "Vygenerujte jej na stránce FreeScout Spravovat > API a webhooky.",
-      "freescout_save_button": "Uložit",
-      "freescout_test_button": "Otestovat připojení",
-      "freescout_not_configured": "FreeScout zatím není nakonfigurován",
-      "freescout_test_success": "Připojení úspěšné",
       "deck_title": "Nextcloud Deck",
       "deck_desc": "Stahuje úkoly z nástěnky Nextcloud Deck do nástěnky úkolů Parcelly -- jednosměrné zrcadlo pouze pro čtení, automaticky udržované aktuální. Záměrně samostatné připojení od úložiště v cloudu výše, i když míří na stejný server.",
       "deck_base_url_label": "URL serveru Nextcloud",
@@ -413,7 +401,13 @@
       "cloud_storage_saved": "Nastavení cloudového úložiště uloženo",
       "cloud_storage_type_label": "Typ úložiště",
       "cloud_storage_type_none": "Žádné (bez cloudového úložiště)",
-      "cloud_storage_type_hint": "Cesty ke složkám zadávané jinde (parcely, faktury, kontakty) se vztahují k vybranému úložišti."
+      "cloud_storage_type_hint": "Cesty ke složkám zadávané jinde (parcely, faktury, kontakty) se vztahují k vybranému úložišti.",
+      "helpdesk_title": "Podpora / helpdesk",
+      "helpdesk_desc": "Vyberte helpdesk, ve kterém spolek odpovídá na žádosti o podporu. Parcella propojuje jeho konverzace se členy, parcelami a tabulí úkolů a kontaktní formulář webu v něm zakládá nové žádosti. Aktivní je vždy jen jeden helpdesk: výběrem jiného se předchozí vypne, jeho nastavení se zachová a jeho konverzace se po přepnutí zpět znovu objeví.",
+      "helpdesk_saved": "Nastavení helpdesku uloženo",
+      "helpdesk_type_label": "Helpdesk",
+      "helpdesk_type_none": "Žádný (bez helpdesku)",
+      "helpdesk_type_hint": "Ne každý helpdesk nabízí přes své rozhraní vše; Parcella zobrazí jen to, co vybraný umí."
     },
     "system": {
       "page_title": "Systém",
@@ -505,8 +499,8 @@
       "add_button": "Přidat ukázková data",
       "what_finances": "Finance: několik ukázkových účetních kategorií (nejde o skutečná data SKR42)",
       "module_finances": "Finanční kategorie",
-      "what_freescout_bridge": "Propojení s FreeScout: několik ukázkových propojení konverzací v různých stavech",
-      "module_freescout_bridge": "Propojení s FreeScout"
+      "what_freescout_bridge": "Podpora: několik ukázkových konverzací z helpdesku v různých stavech",
+      "module_freescout_bridge": "Podpora (helpdesk)"
     },
     "groups": {
       "page_title": "Skupiny",
@@ -545,7 +539,7 @@
         "calendar": "Kalendář",
         "inventory": "Inventář",
         "finances": "Finance",
-        "freescout_bridge": "Propojení s FreeScout",
+        "freescout_bridge": "Podpora (helpdesk)",
         "applicants": "Uchazeči",
         "external_contacts": "Externí kontakty"
       }
@@ -1705,7 +1699,7 @@
     "birthdays_today": "dnes oslaví {age}",
     "birthdays_turning": "oslaví {age}",
     "freescout_open_label": "Otevřené konverzace podpory",
-    "freescout_open_suffix": "aktivní nebo čekající konverzace FreeScout",
+    "freescout_open_suffix": "aktivní nebo čekající konverzace v helpdesku",
     "applicants_card_title": "Nové přihlášky",
     "applicants_suffix": "zatím nevyřízené"
   },
@@ -2631,7 +2625,7 @@
   "freescout": {
     "overview": {
       "title": "Konverzace podpory",
-      "open_in_freescout": "Otevřít ve FreeScout",
+      "open_in_freescout": "Otevřít v {name}",
       "col_subject": "Předmět",
       "col_customer": "Zákazník",
       "col_member": "Člen",
@@ -2640,17 +2634,19 @@
       "col_updated": "Aktualizováno",
       "col_task": "Úkol",
       "has_task": "Propojeno s úkolem",
-      "empty_state": "Zatím žádné konverzace podpory."
+      "empty_state": "Zatím žádné konverzace podpory.",
+      "none_configured": "Zatím není nastaven žádný helpdesk. Administrátor ho může vybrat v Admin -> Integrace.",
+      "no_inbox": "{name} neumí přes své rozhraní vypsat konverzace. Žádosti z kontaktního formuláře webu jdou přímo do {name}; odpovídejte tam."
     },
     "detail": {
       "back": "Zpět",
-      "open_in_freescout": "Otevřít ve FreeScout",
+      "open_in_freescout": "Otevřít v {name}",
       "transcript_header": "Konverzace",
       "no_messages": "Zprávy se nepodařilo načíst.",
       "reply_header": "Odpovědět zákazníkovi",
       "reply_placeholder": "Napište odpověď...",
       "reply_send": "Odeslat",
-      "reply_help_text": "Odesláno přes FreeScout a doručeno zákazníkovi e-mailem -- nejde o interní poznámku.",
+      "reply_help_text": "Odesláno přes {name} e-mailem zákazníkovi – nejde o interní poznámku.",
       "member_header": "Člen",
       "member_none": "Nebyl přiřazen žádný člen.",
       "member_none_option": "-- žádný --",
@@ -2663,14 +2659,16 @@
       "task_header": "Nástěnka úkolů",
       "task_open": "Otevřít úkol",
       "task_create": "Vytvořit úkol",
-      "not_configured": "FreeScout není nakonfigurován."
+      "not_configured": "Helpdesk této konverzace není (už) nastaven.",
+      "no_read": "{name} neumí přes své rozhraní zobrazit konverzace – otevřete ji v {name}.",
+      "no_reply": "{name} neumí přes své rozhraní odesílat odpovědi."
     },
     "errors": {
       "conversation_not_found": "Konverzace nenalezena",
       "no_lists": "Na nástěnce úkolů zatím nejsou žádné seznamy"
     },
     "task": {
-      "source_line": "Zdroj: konverzace FreeScout č. {conversation_id}",
+      "source_line": "Zdroj: konverzace {name} #{conversation_id}",
       "member_line": "Člen: {name}"
     }
   },
@@ -3050,6 +3048,89 @@
           "endpoint_url": "Např. https://s3.eu-central-1.amazonaws.com nebo https://fsn1.your-objectstorage.com.",
           "region": "Tak, jak ho nazývá poskytovatel, např. eu-central-1 nebo fsn1. Ponechte us-east-1, pokud poskytovatel regiony nepoužívá.",
           "path_prefix": "Volitelné. Složky Parcelly se vytvářejí pod touto cestou, např. parcella."
+        }
+      }
+    }
+  },
+  "helpdesk": {
+    "providers": {
+      "freescout": {
+        "name": "FreeScout",
+        "desc": "Open-source helpdesk. Funguje vše: seznam, čtení, odpovědi, kontaktní formulář a synchronizace jmen. Vyžaduje modul API & Webhooks.",
+        "fields": {
+          "base_url": "Adresa FreeScout",
+          "api_key": "Klíč API",
+          "mailbox_id": "ID schránky"
+        },
+        "hints": {
+          "api_key": "Vygenerujte ho ve FreeScout: Spravovat -> API & Webhooks.",
+          "mailbox_id": "Schránka k synchronizaci (viz její adresa, např. /mailbox/1). Výchozí je 1."
+        }
+      },
+      "zammad": {
+        "name": "Zammad",
+        "desc": "Open-source helpdesk, rozšířený v německy mluvících zemích. Funguje vše: seznam, čtení, odpovědi, kontaktní formulář a synchronizace jmen.",
+        "fields": {
+          "base_url": "Adresa Zammad",
+          "api_token": "Přístupový token",
+          "group": "Skupina pro nové žádosti"
+        },
+        "hints": {
+          "api_token": "Vytvořte ho v profilu Zammad -> Přístup tokenem, s oprávněním ticket.agent.",
+          "group": "Žádosti z kontaktního formuláře se ukládají do této skupiny, např. Users."
+        }
+      },
+      "znuny": {
+        "name": "Znuny / OTRS",
+        "desc": "Open-source helpdesk. Funguje seznam, čtení, odpovědi a kontaktní formulář; Znuny nemá rozhraní pro přejmenování zákazníků. Webovou službu Parcella je nutné jednou importovat do Znuny (viz integrations/znuny/).",
+        "fields": {
+          "webservice_url": "Adresa webové služby",
+          "username": "Přihlašovací jméno agenta",
+          "password": "Heslo",
+          "queue": "Fronta pro nové žádosti",
+          "agent_url": "Adresa rozhraní agenta"
+        },
+        "hints": {
+          "webservice_url": "Adresa importované webové služby ParcellaTicketConnector.",
+          "username": "Agent s přístupem k níže uvedené frontě.",
+          "queue": "Žádosti z kontaktního formuláře se ukládají do této fronty, např. Raw.",
+          "agent_url": "Volitelné, např. https://helpdesk.example.org/otrs/index.pl – Parcella pak může odkazovat na tikety."
+        }
+      },
+      "osticket": {
+        "name": "osTicket",
+        "desc": "Open-source helpdesk. Jeho rozhraní umí jen zakládat tikety: kontaktní formulář funguje, ale seznam, čtení a odpovědi probíhají přímo v osTicketu.",
+        "fields": {
+          "base_url": "Adresa osTicket",
+          "api_key": "Klíč API"
+        },
+        "hints": {
+          "base_url": "Bez /api, např. https://support.example.org.",
+          "api_key": "Vytvořte ho v Admin panelu -> Spravovat -> Klíče API, svázaný s IP adresou serveru Parcelly."
+        }
+      },
+      "zendesk": {
+        "name": "Zendesk",
+        "desc": "Komerční helpdesk. Funguje vše: seznam, čtení, odpovědi, kontaktní formulář a synchronizace jmen.",
+        "fields": {
+          "base_url": "Adresa Zendesk",
+          "agent_email": "E-mail agenta",
+          "api_token": "Token API"
+        },
+        "hints": {
+          "agent_email": "Agent, kterému token API patří.",
+          "api_token": "Vytvořte ho v Admin Center -> Aplikace a integrace -> Zendesk API."
+        }
+      },
+      "freshdesk": {
+        "name": "Freshdesk",
+        "desc": "Komerční helpdesk. Funguje vše: seznam, čtení, odpovědi, kontaktní formulář a synchronizace jmen.",
+        "fields": {
+          "base_url": "Adresa Freshdesk",
+          "api_key": "Klíč API"
+        },
+        "hints": {
+          "api_key": "Najdete ho v nastavení profilu Freshdesk -> Zobrazit klíč API."
         }
       }
     }

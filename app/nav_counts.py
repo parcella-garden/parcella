@@ -15,9 +15,10 @@ from datetime import date
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.freescout_sync import HIDDEN_STATUSES
+from app.helpdesk.base import HIDDEN_STATUSES
+from app.helpdesk.registry import get_active_helpdesk_type
 from app.models import (
-    Applicant, ApplicantStatus, FreescoutConversationLink, PurchaseRequest,
+    Applicant, ApplicantStatus, HelpdeskConversationLink, PurchaseRequest,
     PurchaseRequestStatus, Task,
 )
 
@@ -34,12 +35,13 @@ async def load_nav_counts(db: AsyncSession) -> dict[str, int]:
             PurchaseRequest.status == PurchaseRequestStatus.OPEN
         )
     )
-    # Currently active/pending conversations, regardless of member
-    # association (issue #231) -- same HIDDEN_STATUSES exclusion as the
-    # /freescout/ list itself (app/freescout_sync.py).
+    # Currently active/pending conversations of the active helpdesk,
+    # regardless of member association (issue #231) -- the same rows the
+    # /support/ list shows (app/routers/support.py).
     freescout_open = await db.scalar(
-        select(func.count()).select_from(FreescoutConversationLink).where(
-            FreescoutConversationLink.freescout_status.notin_(HIDDEN_STATUSES),
+        select(func.count()).select_from(HelpdeskConversationLink).where(
+            HelpdeskConversationLink.provider == await get_active_helpdesk_type(db),
+            HelpdeskConversationLink.status.notin_(HIDDEN_STATUSES),
         )
     )
     # "Overdue" means exactly what the board shows in red (issue #127):

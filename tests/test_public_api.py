@@ -571,25 +571,35 @@ async def test_contact_requires_valid_api_token(client, admin_user):
 
 class _FakeFreeScoutClient:
     """Records create_conversation() calls instead of making a real HTTP
-    request -- no FreeScout instance is reachable from this test/CI
-    environment. See tests/test_freescout_client.py for the
-    httpx.MockTransport-backed tests of the real client's HTTP behavior."""
+    request -- no helpdesk is reachable from this test/CI environment.
+    See tests/test_freescout_client.py for the httpx.MockTransport-backed
+    tests of the real provider's HTTP behavior."""
 
-    def __init__(self):
+    type = "freescout"
+    label = "FreeScout"
+
+    def __init__(self, can_create=True):
         self.calls = []
+        self._can_create = can_create
+
+    def can(self, capability):
+        return capability == "create" and self._can_create
 
     async def create_conversation(self, **kwargs):
         self.calls.append(kwargs)
-        return {"id": 999}
+        return "999"
+
+    async def aclose(self):
+        pass
 
 
 def _patch_freescout_client(monkeypatch, fake_client):
     import app.routers.api_public as api_public
 
-    async def _fake_get_client(db):
+    async def _fake_get_helpdesk(db):
         return fake_client
 
-    monkeypatch.setattr(api_public, "get_freescout_client", _fake_get_client)
+    monkeypatch.setattr(api_public, "get_helpdesk", _fake_get_helpdesk)
 
 
 async def test_contact_creates_a_freescout_conversation(client, admin_user, monkeypatch):
@@ -617,8 +627,8 @@ async def test_contact_creates_a_freescout_conversation(client, admin_user, monk
 
 
 async def test_contact_not_configured_is_rejected_without_crashing(client, admin_user, monkeypatch):
-    """No FreeScout credentials saved -- get_freescout_client() returns
-    None, the endpoint must reject gracefully (structured response, not
+    """No helpdesk set up -- get_helpdesk() returns None, the endpoint
+    must reject gracefully (structured response, not
     a 5xx), same convention as the honeypot/consent rejections."""
     token = await login(client, "admin@example.com")
     headers = auth_header(token)
@@ -633,6 +643,24 @@ async def test_contact_not_configured_is_rejected_without_crashing(client, admin
     body = response.json()
     assert body["accepted"] is False
     assert body["reason"]
+
+
+async def test_contact_with_a_helpdesk_that_cannot_create_is_rejected(client, admin_user, monkeypatch):
+    """A helpdesk without the CREATE capability can't take contact-form
+    requests -- rejected the same way as "not set up", nothing called."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_contact_module(client, headers)
+    await _set_api_token(client, headers)
+    fake_client = _FakeFreeScoutClient(can_create=False)
+    _patch_freescout_client(monkeypatch, fake_client)
+
+    response = await client.post(
+        "/api/v1/public/contact", json=_CONTACT_PAYLOAD,
+        headers={"X-Parcella-API-Token": "test-public-api-token"},
+    )
+    assert response.json()["accepted"] is False
+    assert fake_client.calls == []
 
 
 async def test_contact_without_consent_is_rejected(client, admin_user, monkeypatch):

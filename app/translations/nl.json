@@ -299,8 +299,8 @@
         "tasks_desc": "Een algemeen kanbanbord (Te doen / Mee bezig / Klaar) voor verenigingszaken die niet aan een werkbeurt gekoppeld zijn -- bijv. \"verzekering verlengen\", \"elektricien bellen\". Alleen voor bestuur/beheerder.",
         "finances_name": "Financiën",
         "finances_desc": "Bereid jaarlijkse facturen per perceel voor en verstuur ze, met verbruiksgebaseerde regels en betalingsopvolging. Stel eerst hieronder de bankgegevens in.",
-        "freescout_bridge_name": "FreeScout-koppeling",
-        "freescout_bridge_desc": "Koppelt FreeScout-supportgesprekken aan leden en het takenbord.",
+        "freescout_bridge_name": "Support (helpdesk)",
+        "freescout_bridge_desc": "Koppelt helpdeskgesprekken aan leden en het takenbord. Kies de helpdesk onder Admin -> Integraties.",
         "deck_sync_name": "Nextcloud Deck-synchronisatie",
         "deck_sync_desc": "Haalt kaarten op van een Nextcloud Deck-bord naar het takenbord, eenrichtingsverkeer, automatisch actueel gehouden. Configureer eerst de verbinding onder Admin -> Integraties.",
         "applicants_name": "Aanmelders",
@@ -352,18 +352,6 @@
       "incoming_invoices_folder_label": "Mappad",
       "incoming_invoices_folder_save_button": "Opslaan",
       "incoming_invoices_folder_saved": "Map voor inkomende facturen opgeslagen.",
-      "freescout_title": "FreeScout",
-      "freescout_desc": "Verbindt Parcella met jullie FreeScout-helpdesk zodat supportgesprekken gekoppeld kunnen worden aan leden en het takenbord.",
-      "freescout_saved": "FreeScout-instellingen opgeslagen",
-      "freescout_base_url_label": "URL van de FreeScout-instantie",
-      "freescout_mailbox_id_label": "Postvak-ID",
-      "freescout_mailbox_id_hint": "Het te synchroniseren FreeScout-postvak (zie de URL, bijv. /mailbox/1). Standaard 1.",
-      "freescout_api_key_label": "FreeScout-API-sleutel",
-      "freescout_api_key_hint": "Genereer er een op FreeScout's pagina Beheren > API & Webhooks.",
-      "freescout_save_button": "Opslaan",
-      "freescout_test_button": "Verbinding testen",
-      "freescout_not_configured": "FreeScout is nog niet geconfigureerd",
-      "freescout_test_success": "Verbinding geslaagd",
       "deck_title": "Nextcloud Deck",
       "deck_desc": "Haalt taken op van een Nextcloud Deck-bord naar het takenbord van Parcella -- een eenrichtings, alleen-lezen spiegel die automatisch actueel wordt gehouden. Bewust een aparte verbinding van de cloudopslag hierboven, ook als deze naar dezelfde server verwijst.",
       "deck_base_url_label": "Nextcloud-server-URL",
@@ -413,7 +401,13 @@
       "cloud_storage_saved": "Instellingen voor cloudopslag opgeslagen",
       "cloud_storage_type_label": "Type opslag",
       "cloud_storage_type_none": "Geen (geen cloudopslag)",
-      "cloud_storage_type_hint": "Mappaden die elders worden ingevuld (percelen, facturen, contacten) zijn relatief ten opzichte van de gekozen opslag."
+      "cloud_storage_type_hint": "Mappaden die elders worden ingevuld (percelen, facturen, contacten) zijn relatief ten opzichte van de gekozen opslag.",
+      "helpdesk_title": "Support / helpdesk",
+      "helpdesk_desc": "Kies de helpdesk waarin jullie vereniging supportvragen beantwoordt. Parcella koppelt de gesprekken daarvan aan leden, percelen en het takenbord, en het contactformulier van de website maakt er nieuwe vragen aan. Er is altijd maar één helpdesk actief: kies je een andere, dan wordt de vorige uitgeschakeld, maar blijven de instellingen bewaard, en de gesprekken komen terug als je weer terugschakelt.",
+      "helpdesk_saved": "Helpdesk-instellingen opgeslagen",
+      "helpdesk_type_label": "Helpdesk",
+      "helpdesk_type_none": "Geen (geen helpdesk)",
+      "helpdesk_type_hint": "Niet elke helpdesk biedt alles via zijn interface; Parcella toont alleen wat de gekozen helpdesk kan."
     },
     "system": {
       "page_title": "Systeem",
@@ -505,8 +499,8 @@
       "add_button": "Voorbeeldgegevens toevoegen",
       "what_finances": "Financiën: enkele voorbeeldboekhoudcategorieën (geen echte SKR42-gegevens)",
       "module_finances": "Financiële categorieën",
-      "what_freescout_bridge": "FreeScout-koppeling: een handvol voorbeeldkoppelingen met verschillende statussen",
-      "module_freescout_bridge": "FreeScout-koppeling"
+      "what_freescout_bridge": "Support: een paar voorbeeldgesprekken uit de helpdesk met verschillende statussen",
+      "module_freescout_bridge": "Support (helpdesk)"
     },
     "groups": {
       "page_title": "Groepen",
@@ -545,7 +539,7 @@
         "calendar": "Kalender",
         "inventory": "Inventaris",
         "finances": "Financiën",
-        "freescout_bridge": "FreeScout-koppeling",
+        "freescout_bridge": "Support (helpdesk)",
         "applicants": "Aanmelders",
         "external_contacts": "Externe contacten"
       }
@@ -1705,7 +1699,7 @@
     "birthdays_today": "vandaag wordt {age}",
     "birthdays_turning": "wordt {age}",
     "freescout_open_label": "Open supportgesprekken",
-    "freescout_open_suffix": "actieve of in behandeling zijnde FreeScout-gesprekken",
+    "freescout_open_suffix": "actieve of wachtende gesprekken in de helpdesk",
     "applicants_card_title": "Nieuwe aanmeldingen",
     "applicants_suffix": "nog niet bekeken"
   },
@@ -2631,7 +2625,7 @@
   "freescout": {
     "overview": {
       "title": "Supportgesprekken",
-      "open_in_freescout": "Openen in FreeScout",
+      "open_in_freescout": "Openen in {name}",
       "col_subject": "Onderwerp",
       "col_customer": "Klant",
       "col_member": "Lid",
@@ -2640,17 +2634,19 @@
       "col_updated": "Bijgewerkt",
       "col_task": "Taak",
       "has_task": "Gekoppeld aan een taak",
-      "empty_state": "Nog geen supportgesprekken."
+      "empty_state": "Nog geen supportgesprekken.",
+      "none_configured": "Er is nog geen helpdesk ingesteld. Een beheerder kan er een kiezen onder Admin -> Integraties.",
+      "no_inbox": "{name} kan via zijn interface geen gesprekken opsommen. Vragen uit het contactformulier van de website gaan direct naar {name}; beantwoord ze daar."
     },
     "detail": {
       "back": "Terug",
-      "open_in_freescout": "Openen in FreeScout",
+      "open_in_freescout": "Openen in {name}",
       "transcript_header": "Gesprek",
       "no_messages": "Er konden geen berichten worden geladen.",
       "reply_header": "Antwoord aan klant",
       "reply_placeholder": "Typ je antwoord...",
       "reply_send": "Verzenden",
-      "reply_help_text": "Verzonden via FreeScout en per e-mail bezorgd bij de klant -- dit is geen interne notitie.",
+      "reply_help_text": "Verstuurd via {name} en naar de klant gemaild -- dit is geen interne notitie.",
       "member_header": "Lid",
       "member_none": "Geen lid gekoppeld.",
       "member_none_option": "-- geen --",
@@ -2663,14 +2659,16 @@
       "task_header": "Takenbord",
       "task_open": "Taak openen",
       "task_create": "Taak aanmaken",
-      "not_configured": "FreeScout is niet geconfigureerd."
+      "not_configured": "De helpdesk van dit gesprek is niet (meer) ingesteld.",
+      "no_read": "{name} kan via zijn interface geen gesprekken tonen -- open het in {name}.",
+      "no_reply": "{name} kan via zijn interface geen antwoorden versturen."
     },
     "errors": {
       "conversation_not_found": "Gesprek niet gevonden",
       "no_lists": "Er bestaan nog geen lijsten op het takenbord"
     },
     "task": {
-      "source_line": "Bron: FreeScout-gesprek #{conversation_id}",
+      "source_line": "Bron: {name}-gesprek #{conversation_id}",
       "member_line": "Lid: {name}"
     }
   },
@@ -3050,6 +3048,89 @@
           "endpoint_url": "Bijv. https://s3.eu-central-1.amazonaws.com of https://fsn1.your-objectstorage.com.",
           "region": "Zoals je aanbieder hem noemt, bijv. eu-central-1 of fsn1. Laat us-east-1 staan als je aanbieder geen regio's kent.",
           "path_prefix": "Optioneel. De mappen van Parcella worden onder dit pad aangemaakt, bijv. parcella."
+        }
+      }
+    }
+  },
+  "helpdesk": {
+    "providers": {
+      "freescout": {
+        "name": "FreeScout",
+        "desc": "Open-source helpdesk. Alles werkt: lijst, lezen, antwoorden, contactformulier en naamsynchronisatie. Vereist de module API & Webhooks.",
+        "fields": {
+          "base_url": "FreeScout-adres",
+          "api_key": "API-sleutel",
+          "mailbox_id": "Mailbox-ID"
+        },
+        "hints": {
+          "api_key": "Maak er een aan in FreeScout: Beheren -> API & Webhooks.",
+          "mailbox_id": "De te synchroniseren mailbox (zie het adres, bijv. /mailbox/1). Standaard 1."
+        }
+      },
+      "zammad": {
+        "name": "Zammad",
+        "desc": "Open-source helpdesk, veel gebruikt in Duitstalige landen. Alles werkt: lijst, lezen, antwoorden, contactformulier en naamsynchronisatie.",
+        "fields": {
+          "base_url": "Zammad-adres",
+          "api_token": "Toegangstoken",
+          "group": "Groep voor nieuwe vragen"
+        },
+        "hints": {
+          "api_token": "Maak er een aan in je Zammad-profiel -> Tokentoegang, met het recht ticket.agent.",
+          "group": "Vragen uit het contactformulier komen in deze Zammad-groep, bijv. Users."
+        }
+      },
+      "znuny": {
+        "name": "Znuny / OTRS",
+        "desc": "Open-source helpdesk. Lijst, lezen, antwoorden en contactformulier werken; Znuny heeft geen interface om klanten te hernoemen. De Parcella-webservice moet één keer in Znuny worden geïmporteerd (zie integrations/znuny/).",
+        "fields": {
+          "webservice_url": "Adres van de webservice",
+          "username": "Agent-login",
+          "password": "Wachtwoord",
+          "queue": "Wachtrij voor nieuwe vragen",
+          "agent_url": "Adres van de agentinterface"
+        },
+        "hints": {
+          "webservice_url": "Het adres van de geïmporteerde webservice ParcellaTicketConnector.",
+          "username": "Een agent met toegang tot de wachtrij hieronder.",
+          "queue": "Vragen uit het contactformulier komen in deze wachtrij, bijv. Raw.",
+          "agent_url": "Optioneel, bijv. https://helpdesk.example.org/otrs/index.pl -- dan kan Parcella naar tickets linken."
+        }
+      },
+      "osticket": {
+        "name": "osTicket",
+        "desc": "Open-source helpdesk. De interface kan alleen tickets aanmaken: het contactformulier werkt, maar lijst, lezen en antwoorden gebeuren in osTicket zelf.",
+        "fields": {
+          "base_url": "osTicket-adres",
+          "api_key": "API-sleutel"
+        },
+        "hints": {
+          "base_url": "Zonder /api, bijv. https://support.example.org.",
+          "api_key": "Maak er een aan onder Admin-paneel -> Beheren -> API-sleutels, gekoppeld aan het IP-adres van de Parcella-server."
+        }
+      },
+      "zendesk": {
+        "name": "Zendesk",
+        "desc": "Commerciële helpdesk. Alles werkt: lijst, lezen, antwoorden, contactformulier en naamsynchronisatie.",
+        "fields": {
+          "base_url": "Zendesk-adres",
+          "agent_email": "E-mailadres van de agent",
+          "api_token": "API-token"
+        },
+        "hints": {
+          "agent_email": "De agent bij wie het API-token hoort.",
+          "api_token": "Maak er een aan onder Admin Center -> Apps en integraties -> Zendesk API."
+        }
+      },
+      "freshdesk": {
+        "name": "Freshdesk",
+        "desc": "Commerciële helpdesk. Alles werkt: lijst, lezen, antwoorden, contactformulier en naamsynchronisatie.",
+        "fields": {
+          "base_url": "Freshdesk-adres",
+          "api_key": "API-sleutel"
+        },
+        "hints": {
+          "api_key": "Te vinden in je Freshdesk-profielinstellingen -> API-sleutel bekijken."
         }
       }
     }

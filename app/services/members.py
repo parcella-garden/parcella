@@ -25,7 +25,8 @@ from app.database import active_member_filter
 from app.models import Member, MemberEmail, MemberPhone, MemberTag, member_tag_links
 from app.services.errors import ServiceError
 from app.tag_translations import clean_translations, find_tag_by_name
-from app.freescout_client import FreeScoutError, get_freescout_client
+from app.helpdesk import CUSTOMER_SYNC, HelpdeskError, get_helpdesk
+from app.helpdesk.sync import customer_id_for
 
 logger = logging.getLogger(__name__)
 
@@ -94,21 +95,25 @@ async def update_member(db: AsyncSession, member: Member, **fields) -> Member:
         setattr(member, key, value)
     await db.flush()
 
-    # Keep an already-linked FreeScout customer's name in sync (see
-    # app/freescout_client.py, docs/module-freescout-bridge.md). Only
-    # members that have actually been matched to a conversation ever get
-    # a freescout_customer_id in the first place (lazy push, not
-    # proactive for every member) -- nothing to do otherwise. Never
-    # blocks the member update if FreeScout is unreachable/unconfigured.
-    if name_changed and member.freescout_customer_id is not None:
-        client = await get_freescout_client(db)
-        if client is not None:
+    # Keep an already-linked helpdesk customer's name in sync (ADR 0107).
+    # Only members that have actually been matched to a conversation ever
+    # get a customer id in the first place (lazy push, not proactive for
+    # every member) -- nothing to do otherwise. Never blocks the member
+    # update if the helpdesk is unreachable, unconfigured, or can't
+    # update customers (osTicket, Znuny).
+    if name_changed:
+        provider = await get_helpdesk(db)
+        if provider is not None:
             try:
-                await client.update_customer(
-                    member.freescout_customer_id, first_name=member.first_name, last_name=member.last_name,
-                )
-            except FreeScoutError as e:
-                logger.warning(f"Could not update FreeScout customer for member {member.id}: {e}")
+                customer_id = await customer_id_for(db, member.id, provider.type) if provider.can(CUSTOMER_SYNC) else None
+                if customer_id:
+                    await provider.update_customer(
+                        customer_id, first_name=member.first_name, last_name=member.last_name,
+                    )
+            except HelpdeskError as e:
+                logger.warning(f"Could not update the {provider.label} customer for member {member.id}: {e}")
+            finally:
+                await provider.aclose()
 
     return member
 

@@ -299,8 +299,8 @@
         "tasks_desc": "Ogólna tablica kanban (Do zrobienia / W trakcie / Zrobione) dla spraw stowarzyszenia niezwiązanych z sesją roboczą -- np. \"odnowić polisę ubezpieczeniową\", \"zadzwonić do elektryka\". Tylko dla zarządu/administratora.",
         "finances_name": "Finanse",
         "finances_desc": "Przygotuj i wysyłaj roczne faktury dla każdej działki, z pozycjami zależnymi od zużycia i śledzeniem płatności. Najpierw skonfiguruj dane bankowe poniżej.",
-        "freescout_bridge_name": "Integracja FreeScout",
-        "freescout_bridge_desc": "Łączy rozmowy wsparcia z FreeScout z członkami i tablicą zadań.",
+        "freescout_bridge_name": "Wsparcie (helpdesk)",
+        "freescout_bridge_desc": "Łączy rozmowy z helpdesku z członkami i tablicą zadań. Helpdesk wybierz w Admin -> Integracje.",
         "deck_sync_name": "Synchronizacja Nextcloud Deck",
         "deck_sync_desc": "Pobiera karty z tablicy Nextcloud Deck do tablicy zadań, jednokierunkowo, automatycznie aktualizowane. Najpierw skonfiguruj połączenie w Admin -> Integracje.",
         "applicants_name": "Kandydaci",
@@ -352,18 +352,6 @@
       "incoming_invoices_folder_label": "Ścieżka folderu",
       "incoming_invoices_folder_save_button": "Zapisz",
       "incoming_invoices_folder_saved": "Folder faktur przychodzących zapisany.",
-      "freescout_title": "FreeScout",
-      "freescout_desc": "Łączy Parcellę z helpdeskiem FreeScout, aby rozmowy wsparcia można było powiązać z członkami i tablicą zadań.",
-      "freescout_saved": "Zapisano ustawienia FreeScout",
-      "freescout_base_url_label": "Adres URL instancji FreeScout",
-      "freescout_mailbox_id_label": "ID skrzynki",
-      "freescout_mailbox_id_hint": "Skrzynka FreeScout do synchronizacji (patrz jej adres URL, np. /mailbox/1). Domyślnie 1.",
-      "freescout_api_key_label": "Klucz API FreeScout",
-      "freescout_api_key_hint": "Wygeneruj go na stronie FreeScout Zarządzaj > API i webhooki.",
-      "freescout_save_button": "Zapisz",
-      "freescout_test_button": "Testuj połączenie",
-      "freescout_not_configured": "FreeScout nie jest jeszcze skonfigurowany",
-      "freescout_test_success": "Połączenie udane",
       "deck_title": "Nextcloud Deck",
       "deck_desc": "Pobiera zadania z tablicy Nextcloud Deck do tablicy zadań Parcelli -- jednokierunkowe, tylko do odczytu lustro, automatycznie aktualizowane. Celowo osobne połączenie od magazynu w chmurze powyżej, nawet jeśli wskazuje na ten sam serwer.",
       "deck_base_url_label": "URL serwera Nextcloud",
@@ -413,7 +401,13 @@
       "cloud_storage_saved": "Ustawienia chmury zapisane",
       "cloud_storage_type_label": "Typ chmury",
       "cloud_storage_type_none": "Brak (bez chmury)",
-      "cloud_storage_type_hint": "Ścieżki folderów wpisywane w innych miejscach (działki, faktury, kontakty) odnoszą się do wybranej chmury."
+      "cloud_storage_type_hint": "Ścieżki folderów wpisywane w innych miejscach (działki, faktury, kontakty) odnoszą się do wybranej chmury.",
+      "helpdesk_title": "Wsparcie / helpdesk",
+      "helpdesk_desc": "Wybierz helpdesk, w którym stowarzyszenie odpowiada na zgłoszenia. Parcella łączy jego rozmowy z członkami, działkami i tablicą zadań, a formularz kontaktowy strony tworzy w nim nowe zgłoszenia. Aktywny jest zawsze tylko jeden helpdesk: wybranie innego wyłącza poprzedni, ale zachowuje jego ustawienia, a jego rozmowy wracają po ponownym przełączeniu.",
+      "helpdesk_saved": "Ustawienia helpdesku zapisane",
+      "helpdesk_type_label": "Helpdesk",
+      "helpdesk_type_none": "Brak (bez helpdesku)",
+      "helpdesk_type_hint": "Nie każdy helpdesk udostępnia wszystko przez swój interfejs; Parcella pokazuje tylko to, co potrafi wybrany."
     },
     "system": {
       "page_title": "System",
@@ -505,8 +499,8 @@
       "add_button": "Dodaj dane przykładowe",
       "what_finances": "Finanse: kilka przykładowych kategorii księgowych (nie prawdziwe dane SKR42)",
       "module_finances": "Kategorie finansowe",
-      "what_freescout_bridge": "Integracja FreeScout: kilka przykładowych powiązań rozmów w różnych statusach",
-      "module_freescout_bridge": "Integracja FreeScout"
+      "what_freescout_bridge": "Wsparcie: kilka przykładowych rozmów z helpdesku w różnych statusach",
+      "module_freescout_bridge": "Wsparcie (helpdesk)"
     },
     "groups": {
       "page_title": "Grupy",
@@ -545,7 +539,7 @@
         "calendar": "Kalendarz",
         "inventory": "Inwentarz",
         "finances": "Finanse",
-        "freescout_bridge": "Integracja FreeScout",
+        "freescout_bridge": "Wsparcie (helpdesk)",
         "applicants": "Kandydaci",
         "external_contacts": "Kontakty zewnętrzne"
       }
@@ -1705,7 +1699,7 @@
     "birthdays_today": "dziś kończy {age}",
     "birthdays_turning": "kończy {age}",
     "freescout_open_label": "Otwarte rozmowy wsparcia",
-    "freescout_open_suffix": "aktywne lub oczekujące rozmowy FreeScout",
+    "freescout_open_suffix": "aktywne lub oczekujące rozmowy w helpdesku",
     "applicants_card_title": "Nowe zgłoszenia",
     "applicants_suffix": "jeszcze nierozpatrzone"
   },
@@ -2631,7 +2625,7 @@
   "freescout": {
     "overview": {
       "title": "Rozmowy wsparcia",
-      "open_in_freescout": "Otwórz w FreeScout",
+      "open_in_freescout": "Otwórz w {name}",
       "col_subject": "Temat",
       "col_customer": "Klient",
       "col_member": "Członek",
@@ -2640,17 +2634,19 @@
       "col_updated": "Zaktualizowano",
       "col_task": "Zadanie",
       "has_task": "Powiązano z zadaniem",
-      "empty_state": "Brak jeszcze rozmów wsparcia."
+      "empty_state": "Brak jeszcze rozmów wsparcia.",
+      "none_configured": "Helpdesk nie jest jeszcze skonfigurowany. Administrator może go wybrać w Admin -> Integracje.",
+      "no_inbox": "{name} nie potrafi wyświetlać listy rozmów przez swój interfejs. Zgłoszenia z formularza kontaktowego trafiają bezpośrednio do {name}; odpowiadaj tam."
     },
     "detail": {
       "back": "Wstecz",
-      "open_in_freescout": "Otwórz w FreeScout",
+      "open_in_freescout": "Otwórz w {name}",
       "transcript_header": "Rozmowa",
       "no_messages": "Nie udało się wczytać wiadomości.",
       "reply_header": "Odpowiedz klientowi",
       "reply_placeholder": "Wpisz odpowiedź...",
       "reply_send": "Wyślij",
-      "reply_help_text": "Wysyłane przez FreeScout i doręczane klientowi e-mailem -- to nie jest notatka wewnętrzna.",
+      "reply_help_text": "Wysyłane przez {name} e-mailem do klienta – to nie jest notatka wewnętrzna.",
       "member_header": "Członek",
       "member_none": "Nie przypisano żadnego członka.",
       "member_none_option": "-- brak --",
@@ -2663,14 +2659,16 @@
       "task_header": "Tablica zadań",
       "task_open": "Otwórz zadanie",
       "task_create": "Utwórz zadanie",
-      "not_configured": "FreeScout nie jest skonfigurowany."
+      "not_configured": "Helpdesk tej rozmowy nie jest (już) skonfigurowany.",
+      "no_read": "{name} nie potrafi pokazywać rozmów przez swój interfejs – otwórz ją w {name}.",
+      "no_reply": "{name} nie potrafi wysyłać odpowiedzi przez swój interfejs."
     },
     "errors": {
       "conversation_not_found": "Nie znaleziono rozmowy",
       "no_lists": "Na tablicy zadań nie ma jeszcze żadnych list"
     },
     "task": {
-      "source_line": "Źródło: rozmowa FreeScout #{conversation_id}",
+      "source_line": "Źródło: rozmowa {name} #{conversation_id}",
       "member_line": "Członek: {name}"
     }
   },
@@ -3050,6 +3048,89 @@
           "endpoint_url": "Np. https://s3.eu-central-1.amazonaws.com lub https://fsn1.your-objectstorage.com.",
           "region": "Tak jak nazywa go dostawca, np. eu-central-1 lub fsn1. Zostaw us-east-1, jeśli dostawca nie używa regionów.",
           "path_prefix": "Opcjonalnie. Foldery Parcelli są tworzone poniżej tej ścieżki, np. parcella."
+        }
+      }
+    }
+  },
+  "helpdesk": {
+    "providers": {
+      "freescout": {
+        "name": "FreeScout",
+        "desc": "Helpdesk open source. Działa wszystko: lista, odczyt, odpowiedzi, formularz kontaktowy i synchronizacja nazwisk. Wymaga modułu API & Webhooks.",
+        "fields": {
+          "base_url": "Adres FreeScout",
+          "api_key": "Klucz API",
+          "mailbox_id": "ID skrzynki"
+        },
+        "hints": {
+          "api_key": "Wygeneruj go w FreeScout: Zarządzaj -> API & Webhooks.",
+          "mailbox_id": "Skrzynka do synchronizacji (zob. jej adres, np. /mailbox/1). Domyślnie 1."
+        }
+      },
+      "zammad": {
+        "name": "Zammad",
+        "desc": "Helpdesk open source, popularny w krajach niemieckojęzycznych. Działa wszystko: lista, odczyt, odpowiedzi, formularz kontaktowy i synchronizacja nazwisk.",
+        "fields": {
+          "base_url": "Adres Zammad",
+          "api_token": "Token dostępu",
+          "group": "Grupa dla nowych zgłoszeń"
+        },
+        "hints": {
+          "api_token": "Utwórz go w profilu Zammad -> Dostęp przez token, z uprawnieniem ticket.agent.",
+          "group": "Zgłoszenia z formularza trafiają do tej grupy Zammad, np. Users."
+        }
+      },
+      "znuny": {
+        "name": "Znuny / OTRS",
+        "desc": "Helpdesk open source. Działają lista, odczyt, odpowiedzi i formularz kontaktowy; Znuny nie ma interfejsu do zmiany nazw klientów. Usługę sieciową Parcella trzeba raz zaimportować w Znuny (zob. integrations/znuny/).",
+        "fields": {
+          "webservice_url": "Adres usługi sieciowej",
+          "username": "Login agenta",
+          "password": "Hasło",
+          "queue": "Kolejka dla nowych zgłoszeń",
+          "agent_url": "Adres interfejsu agenta"
+        },
+        "hints": {
+          "webservice_url": "Adres zaimportowanej usługi ParcellaTicketConnector.",
+          "username": "Agent z dostępem do poniższej kolejki.",
+          "queue": "Zgłoszenia z formularza trafiają do tej kolejki, np. Raw.",
+          "agent_url": "Opcjonalnie, np. https://helpdesk.example.org/otrs/index.pl – Parcella może wtedy linkować do zgłoszeń."
+        }
+      },
+      "osticket": {
+        "name": "osTicket",
+        "desc": "Helpdesk open source. Jego interfejs potrafi tylko tworzyć zgłoszenia: formularz kontaktowy działa, ale lista, odczyt i odpowiedzi odbywają się w samym osTicket.",
+        "fields": {
+          "base_url": "Adres osTicket",
+          "api_key": "Klucz API"
+        },
+        "hints": {
+          "base_url": "Bez /api, np. https://support.example.org.",
+          "api_key": "Utwórz go w Panelu admina -> Zarządzaj -> Klucze API, powiązany z adresem IP serwera Parcelli."
+        }
+      },
+      "zendesk": {
+        "name": "Zendesk",
+        "desc": "Komercyjny helpdesk. Działa wszystko: lista, odczyt, odpowiedzi, formularz kontaktowy i synchronizacja nazwisk.",
+        "fields": {
+          "base_url": "Adres Zendesk",
+          "agent_email": "Adres e-mail agenta",
+          "api_token": "Token API"
+        },
+        "hints": {
+          "agent_email": "Agent, do którego należy token API.",
+          "api_token": "Utwórz go w Admin Center -> Aplikacje i integracje -> Zendesk API."
+        }
+      },
+      "freshdesk": {
+        "name": "Freshdesk",
+        "desc": "Komercyjny helpdesk. Działa wszystko: lista, odczyt, odpowiedzi, formularz kontaktowy i synchronizacja nazwisk.",
+        "fields": {
+          "base_url": "Adres Freshdesk",
+          "api_key": "Klucz API"
+        },
+        "hints": {
+          "api_key": "Widoczny w ustawieniach profilu Freshdesk -> Pokaż klucz API."
         }
       }
     }

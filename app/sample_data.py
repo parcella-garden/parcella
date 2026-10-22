@@ -33,7 +33,7 @@ from app.models import (
     CalendarEventType,
     FinanceCategory,
     FinanceCategoryGroup,
-    FreescoutConversationLink,
+    HelpdeskConversationLink,
     InsuranceConfiguration,
     InventoryCategory,
     InventoryItem,
@@ -70,6 +70,7 @@ from app.models import (
     new_uuid,
 )
 from app.task_board import next_position
+from app.helpdesk.registry import get_active_helpdesk_type
 
 # ---------------------------------------------------------------------------
 # Tracking helper
@@ -90,7 +91,7 @@ def _track(db: AsyncSession, module: str, obj) -> None:
 
 _MODEL_BY_ENTITY_TYPE = {
     "FinanceCategory": FinanceCategory,
-    "FreescoutConversationLink": FreescoutConversationLink,
+    "HelpdeskConversationLink": HelpdeskConversationLink,
     "PurchaseRequestApproval": PurchaseRequestApproval,
     "PurchaseRequest": PurchaseRequest,
     "CalendarEvent": CalendarEvent,
@@ -427,21 +428,23 @@ async def _seed_insurance(db: AsyncSession, parcels: list, assignments: list) ->
 
 async def _seed_freescout_bridge(db: AsyncSession, members: list) -> None:
     """
-    Demo FreescoutConversationLink rows -- deliberately no live FreeScout
-    API call (sample data must work on a fresh install with no external
-    services configured). These are cross-reference rows only, same as
-    the real poller writes; there's no local message content to seed
-    since the actual transcript is always fetched live from FreeScout.
+    Demo HelpdeskConversationLink rows for the active helpdesk (FreeScout
+    if none is set up) -- deliberately no live helpdesk API call (sample
+    data must work on a fresh install with no external services
+    configured). These are cross-reference rows only, same as the real
+    poller writes; there's no local message content to seed since the
+    actual transcript is always fetched live from the helpdesk.
     """
     anna, jonas, klara, peter, sofia, tom = members
+    provider = await get_active_helpdesk_type(db) or "freescout"
 
-    def make(freescout_conversation_id: int, subject: str, customer_email: str, customer_name: str,
-              member_id: Optional[str], status: str, **extra) -> FreescoutConversationLink:
-        link = FreescoutConversationLink(
-            id=new_uuid(), freescout_conversation_id=freescout_conversation_id, freescout_mailbox_id=1,
+    def make(external_id: int, subject: str, customer_email: str, customer_name: str,
+              member_id: Optional[str], status: str, **extra) -> HelpdeskConversationLink:
+        link = HelpdeskConversationLink(
+            id=new_uuid(), provider=provider, external_id=str(external_id), mailbox_id="1",
             subject=subject, customer_email=customer_email, customer_name=customer_name,
-            member_id=member_id, freescout_status=status,
-            freescout_updated_at=datetime.now(timezone.utc), **extra,
+            member_id=member_id, status=status,
+            external_updated_at=datetime.now(timezone.utc), **extra,
         )
         db.add(link)
         _track(db, "freescout_bridge", link)

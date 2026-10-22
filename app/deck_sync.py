@@ -121,7 +121,7 @@ async def sync_deck_tasks(db: AsyncSession) -> int:
     chosen yet. Returns the number of cards created or updated this run
     (a link removed by reconciliation doesn't count -- that's a
     correction, not new activity, same convention as
-    app/freescout_sync.py's sync_freescout_conversations)."""
+    app/helpdesk/sync.py's sync_helpdesk_conversations)."""
     client = await get_deck_client(db)
     if client is None:
         return 0

@@ -299,8 +299,8 @@
         "tasks_desc": "Ein allgemeines Kanban-Board (Zu erledigen / In Bearbeitung / Erledigt) für Vereinsangelegenheiten, die nicht an einen Arbeitseinsatz gebunden sind -- z.B. \"Versicherung erneuern\", \"Elektriker anrufen\". Nur für Vorstand/Admin.",
         "finances_name": "Finanzen",
         "finances_desc": "Jahresrechnungen je Parzelle erstellen und versenden, mit verbrauchsabhängigen Positionen und Zahlungsverfolgung. Bankdaten unten zuerst hinterlegen.",
-        "freescout_bridge_name": "FreeScout-Anbindung",
-        "freescout_bridge_desc": "Verknüpft FreeScout-Support-Konversationen mit Mitgliedern und dem Aufgabenboard.",
+        "freescout_bridge_name": "Support (Helpdesk)",
+        "freescout_bridge_desc": "Verknüpft Helpdesk-Unterhaltungen mit Mitgliedern und dem Aufgabenboard. Das Helpdesk unter Admin -> Integrationen wählen.",
         "deck_sync_name": "Nextcloud-Deck-Synchronisierung",
         "deck_sync_desc": "Überträgt Karten von einem Nextcloud-Deck-Board in das Aufgabenboard, einseitig und automatisch aktuell gehalten. Verbindung zuerst unter Admin -> Integrationen einrichten.",
         "applicants_name": "Bewerber",
@@ -352,18 +352,6 @@
       "incoming_invoices_folder_label": "Ordnerpfad",
       "incoming_invoices_folder_save_button": "Speichern",
       "incoming_invoices_folder_saved": "Ordner für Eingangsrechnungen gespeichert.",
-      "freescout_title": "FreeScout",
-      "freescout_desc": "Verbindet Parcella mit eurem FreeScout-Helpdesk, damit Support-Konversationen mit Mitgliedern und dem Aufgabenboard verknüpft werden können.",
-      "freescout_saved": "FreeScout-Einstellungen gespeichert",
-      "freescout_base_url_label": "FreeScout-Instanz-URL",
-      "freescout_mailbox_id_label": "Postfach-ID",
-      "freescout_mailbox_id_hint": "Das zu synchronisierende FreeScout-Postfach (siehe dessen URL, z. B. /mailbox/1). Standard: 1.",
-      "freescout_api_key_label": "FreeScout-API-Schlüssel",
-      "freescout_api_key_hint": "Erstellt unter FreeScouts Seite Verwalten > API & Webhooks.",
-      "freescout_save_button": "Speichern",
-      "freescout_test_button": "Verbindung testen",
-      "freescout_not_configured": "FreeScout ist noch nicht konfiguriert",
-      "freescout_test_success": "Verbindung erfolgreich",
       "deck_title": "Nextcloud Deck",
       "deck_desc": "Überträgt Aufgaben von einem Nextcloud-Deck-Board in Parcellas Aufgabenboard -- ein einseitiger, schreibgeschützter Spiegel, der automatisch aktuell gehalten wird. Bewusst eine eigene Verbindung, getrennt von der Cloud-Speicher-Verbindung oben, auch wenn sie auf denselben Server zeigt.",
       "deck_base_url_label": "Nextcloud-Server-URL",
@@ -413,7 +401,13 @@
       "cloud_storage_saved": "Einstellungen für den Cloud-Speicher gespeichert",
       "cloud_storage_type_label": "Speicher-Typ",
       "cloud_storage_type_none": "Keiner (kein Cloud-Speicher)",
-      "cloud_storage_type_hint": "Ordnerpfade, die an anderer Stelle eingetragen werden (Parzellen, Rechnungen, Kontakte), beziehen sich auf den gewählten Speicher."
+      "cloud_storage_type_hint": "Ordnerpfade, die an anderer Stelle eingetragen werden (Parzellen, Rechnungen, Kontakte), beziehen sich auf den gewählten Speicher.",
+      "helpdesk_title": "Support / Helpdesk",
+      "helpdesk_desc": "Wählen Sie das Helpdesk, in dem Ihr Verein Support-Anfragen beantwortet. Parcella verknüpft dessen Unterhaltungen mit Mitgliedern, Parzellen und dem Aufgabenboard, und das Kontaktformular der Webseite legt dort neue Anfragen an. Es ist immer nur ein Helpdesk aktiv: Wählen Sie ein anderes, wird das bisherige abgeschaltet, seine Einstellungen bleiben aber erhalten, und seine Unterhaltungen erscheinen wieder, wenn Sie zurückwechseln.",
+      "helpdesk_saved": "Helpdesk-Einstellungen gespeichert",
+      "helpdesk_type_label": "Helpdesk",
+      "helpdesk_type_none": "Keines (kein Helpdesk)",
+      "helpdesk_type_hint": "Nicht jedes Helpdesk bietet über seine Schnittstelle alles an; Parcella zeigt nur, was das gewählte kann."
     },
     "system": {
       "page_title": "System",
@@ -505,8 +499,8 @@
       "add_button": "Beispieldaten hinzufügen",
       "what_finances": "Finanzen: ein paar Beispiel-Buchhaltungskategorien (keine echten SKR42-Daten)",
       "module_finances": "Finanzkategorien",
-      "what_freescout_bridge": "FreeScout-Anbindung: einige Beispiel-Konversationsverknüpfungen mit unterschiedlichen Status",
-      "module_freescout_bridge": "FreeScout-Anbindung"
+      "what_freescout_bridge": "Support: einige Beispiel-Unterhaltungen im Helpdesk in verschiedenen Status",
+      "module_freescout_bridge": "Support (Helpdesk)"
     },
     "groups": {
       "page_title": "Gruppen",
@@ -545,7 +539,7 @@
         "calendar": "Kalender",
         "inventory": "Inventar",
         "finances": "Finanzen",
-        "freescout_bridge": "FreeScout-Anbindung",
+        "freescout_bridge": "Support (Helpdesk)",
         "applicants": "Bewerber",
         "external_contacts": "Externe Kontakte"
       }
@@ -1705,7 +1699,7 @@
     "birthdays_today": "heute wird {age}",
     "birthdays_turning": "wird {age}",
     "freescout_open_label": "Offene Support-Anfragen",
-    "freescout_open_suffix": "aktive oder ausstehende FreeScout-Konversationen",
+    "freescout_open_suffix": "aktive oder wartende Unterhaltungen im Helpdesk",
     "applicants_card_title": "Neue Bewerbungen",
     "applicants_suffix": "noch nicht bearbeitet"
   },
@@ -2631,7 +2625,7 @@
   "freescout": {
     "overview": {
       "title": "Support-Konversationen",
-      "open_in_freescout": "In FreeScout öffnen",
+      "open_in_freescout": "In {name} öffnen",
       "col_subject": "Betreff",
       "col_customer": "Kunde",
       "col_member": "Mitglied",
@@ -2640,17 +2634,19 @@
       "col_updated": "Aktualisiert",
       "col_task": "Aufgabe",
       "has_task": "Mit Aufgabe verknüpft",
-      "empty_state": "Noch keine Support-Konversationen."
+      "empty_state": "Noch keine Support-Konversationen.",
+      "none_configured": "Es ist noch kein Helpdesk eingerichtet. Ein Administrator kann eines unter Admin -> Integrationen wählen.",
+      "no_inbox": "{name} kann über seine Schnittstelle keine Unterhaltungen auflisten. Anfragen aus dem Kontaktformular der Webseite gehen direkt an {name}; beantworten Sie sie dort."
     },
     "detail": {
       "back": "Zurück",
-      "open_in_freescout": "In FreeScout öffnen",
+      "open_in_freescout": "In {name} öffnen",
       "transcript_header": "Konversation",
       "no_messages": "Es konnten keine Nachrichten geladen werden.",
       "reply_header": "Antwort an den Kunden",
       "reply_placeholder": "Antwort eingeben...",
       "reply_send": "Senden",
-      "reply_help_text": "Wird über FreeScout gesendet und dem Kunden per E-Mail zugestellt -- keine interne Notiz.",
+      "reply_help_text": "Wird über {name} gesendet und dem Kunden gemailt – das ist keine interne Notiz.",
       "member_header": "Mitglied",
       "member_none": "Kein Mitglied zugeordnet.",
       "member_none_option": "-- keine --",
@@ -2663,14 +2659,16 @@
       "task_header": "Aufgabenboard",
       "task_open": "Aufgabe öffnen",
       "task_create": "Aufgabe erstellen",
-      "not_configured": "FreeScout ist nicht konfiguriert."
+      "not_configured": "Das Helpdesk dieser Unterhaltung ist nicht (mehr) eingerichtet.",
+      "no_read": "{name} kann über seine Schnittstelle keine Unterhaltungen anzeigen – öffnen Sie sie in {name}.",
+      "no_reply": "{name} kann über seine Schnittstelle keine Antworten senden."
     },
     "errors": {
       "conversation_not_found": "Konversation nicht gefunden",
       "no_lists": "Es gibt noch keine Listen auf dem Aufgabenboard"
     },
     "task": {
-      "source_line": "Quelle: FreeScout-Konversation #{conversation_id}",
+      "source_line": "Quelle: {name}-Unterhaltung #{conversation_id}",
       "member_line": "Mitglied: {name}"
     }
   },
@@ -3050,6 +3048,89 @@
           "endpoint_url": "Z. B. https://s3.eu-central-1.amazonaws.com oder https://fsn1.your-objectstorage.com.",
           "region": "So wie Ihr Anbieter sie nennt, z. B. eu-central-1 oder fsn1. us-east-1 stehen lassen, wenn Ihr Anbieter keine Regionen kennt.",
           "path_prefix": "Optional. Die Ordner von Parcella werden unterhalb dieses Pfades angelegt, z. B. parcella."
+        }
+      }
+    }
+  },
+  "helpdesk": {
+    "providers": {
+      "freescout": {
+        "name": "FreeScout",
+        "desc": "Open-Source-Helpdesk. Alles funktioniert: Liste, Lesen, Antworten, Kontaktformular und Namensabgleich. Benötigt das FreeScout-Modul API & Webhooks.",
+        "fields": {
+          "base_url": "FreeScout-Adresse",
+          "api_key": "API-Schlüssel",
+          "mailbox_id": "Postfach-ID"
+        },
+        "hints": {
+          "api_key": "Erstellen Sie einen unter Verwalten -> API & Webhooks in FreeScout.",
+          "mailbox_id": "Das abzugleichende Postfach (siehe seine Adresse, z. B. /mailbox/1). Standard ist 1."
+        }
+      },
+      "zammad": {
+        "name": "Zammad",
+        "desc": "Open-Source-Helpdesk, im deutschsprachigen Raum weit verbreitet. Alles funktioniert: Liste, Lesen, Antworten, Kontaktformular und Namensabgleich.",
+        "fields": {
+          "base_url": "Zammad-Adresse",
+          "api_token": "Zugriffstoken",
+          "group": "Gruppe für neue Anfragen"
+        },
+        "hints": {
+          "api_token": "Erstellen Sie eines in Ihrem Zammad-Profil -> Token-Zugang, mit der Berechtigung ticket.agent.",
+          "group": "Anfragen aus dem Kontaktformular landen in dieser Zammad-Gruppe, z. B. Users."
+        }
+      },
+      "znuny": {
+        "name": "Znuny / OTRS",
+        "desc": "Open-Source-Helpdesk. Liste, Lesen, Antworten und Kontaktformular funktionieren; Znuny hat keine Schnittstelle zum Umbenennen von Kunden. Der Parcella-Webservice muss einmalig in Znuny importiert werden (siehe integrations/znuny/).",
+        "fields": {
+          "webservice_url": "Webservice-Adresse",
+          "username": "Agenten-Login",
+          "password": "Passwort",
+          "queue": "Queue für neue Anfragen",
+          "agent_url": "Adresse der Agenten-Oberfläche"
+        },
+        "hints": {
+          "webservice_url": "Die Adresse des importierten Webservice ParcellaTicketConnector.",
+          "username": "Ein Agent mit Zugriff auf die unten angegebene Queue.",
+          "queue": "Anfragen aus dem Kontaktformular landen in dieser Queue, z. B. Raw.",
+          "agent_url": "Optional, z. B. https://helpdesk.example.org/otrs/index.pl – damit Parcella auf Tickets verlinken kann."
+        }
+      },
+      "osticket": {
+        "name": "osTicket",
+        "desc": "Open-Source-Helpdesk. Seine Schnittstelle kann nur Tickets anlegen: Das Kontaktformular der Webseite funktioniert, Liste, Lesen und Antworten geschehen aber in osTicket selbst.",
+        "fields": {
+          "base_url": "osTicket-Adresse",
+          "api_key": "API-Schlüssel"
+        },
+        "hints": {
+          "base_url": "Ohne /api, z. B. https://support.example.org.",
+          "api_key": "Erstellen Sie einen unter Admin-Bereich -> Verwalten -> API-Schlüssel, gebunden an die IP-Adresse, von der der Parcella-Server zugreift."
+        }
+      },
+      "zendesk": {
+        "name": "Zendesk",
+        "desc": "Kommerzielles Helpdesk. Alles funktioniert: Liste, Lesen, Antworten, Kontaktformular und Namensabgleich.",
+        "fields": {
+          "base_url": "Zendesk-Adresse",
+          "agent_email": "E-Mail-Adresse des Agenten",
+          "api_token": "API-Token"
+        },
+        "hints": {
+          "agent_email": "Der Agent, zu dem das API-Token gehört.",
+          "api_token": "Erstellen Sie eines unter Admin Center -> Apps und Integrationen -> Zendesk API."
+        }
+      },
+      "freshdesk": {
+        "name": "Freshdesk",
+        "desc": "Kommerzielles Helpdesk. Alles funktioniert: Liste, Lesen, Antworten, Kontaktformular und Namensabgleich.",
+        "fields": {
+          "base_url": "Freshdesk-Adresse",
+          "api_key": "API-Schlüssel"
+        },
+        "hints": {
+          "api_key": "Steht in Ihren Freshdesk-Profileinstellungen -> API-Schlüssel anzeigen."
         }
       }
     }

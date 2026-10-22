@@ -231,8 +231,9 @@ than the actual visitor. Originally built (see
 Parcella's own built-in ticket module; rewritten when that module was
 removed in favor of FreeScout (see
 [ADR 0080](./ADR/0080-remove-builtin-ticket-module-freescout-conversation-bridge.md)
-and `docs/module-freescout-bridge.md`) to call
-`FreeScoutClient.create_conversation()` instead.
+and `docs/module-support.md`) to call the active helpdesk's
+`create_conversation()` instead (any helpdesk with the `create`
+capability, ADR 0107).
 
 **Its own module flag, `public_contact_api`, off by default** -- same
 reasoning as `public_signup_api` above (opens a public write endpoint),

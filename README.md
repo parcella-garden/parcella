@@ -50,7 +50,7 @@ This project is licensed under the **GNU Affero General Public License v3.0** (s
 - ✅ Parcel management (status: active/terminated/deleted, area, termination)
 - ✅ Many-to-many member ↔ parcel assignment, multiple parcels per member; every resident of a parcel is held jointly responsible, with no hierarchy between them
 - ✅ CSV export and import (members, parcels) with duplicate detection
-- ✅ Dashboard with live statistics (members, parcels, areas, plus open purchase requests and FreeScout conversations needing association when those modules are enabled)
+- ✅ Dashboard with live statistics (members, parcels, areas, plus open purchase requests and open helpdesk conversations when those modules are enabled)
 - ✅ Public signup API: lets an external CMS (WordPress, TYPO3, Contao, or anything else) submit work-session signups without a Parcella login, identifying only by parcel number (never a member name - the public site must not expose who lives where). Parcella matches the optional submitted name against the parcel's current residents and registers just that member if it's unambiguous, or every current resident as a precaution if it isn't, creating real participants the board can review and correct like any other signup. Off by default (it opens a public write endpoint) and protected by a regenerable shared token; a reference WordPress connector plugin (`parcella-connector`) is included under `integrations/wordpress/`, consolidating every WordPress <-> Parcella integration (currently signup; more planned) behind one shared settings screen
 
 ### Settings
@@ -85,9 +85,9 @@ postcode-before-city vs. UK-style postcode-last).
 
 - ✅ Calendar module: community calendar (member meetings, parcel inspections, work sessions - all in one simple upcoming-items list,  no full calendar-grid UI), member birthdays (with a dashboard "this week" widget highlighting round-number birthdays), council on-site presence scheduling, and self-service council absence logging (anyone with a login can enter their own). Each with its own ICS export - the community calendar's feed is public (embeddable on your public website), the other three require a private access token since they contain more sensitive information
 
-#### FreeScout support bridge
+#### Support (helpdesk)
 
-- ✅ No built-in ticket system -- [FreeScout](https://github.com/freescout-help-desk/freescout) (or any similarly API-shaped helpdesk) is the canonical system for support conversations. Every logged-in member gets a "Support" nav link straight to it; staff additionally get a Parcella-side conversation list with automatic member/parcel matching (persistent identity mapping, never guessed when ambiguous), a live-fetched full message transcript, reply-to-customer, and one-click promotion of a conversation onto the task board. Off by default. See `docs/module-freescout-bridge.md`.
+- ✅ No built-in ticket system -- the club's helpdesk is the canonical system for support conversations, chosen from a dropdown on Admin -> Integrations, one at a time: FreeScout, Zammad, Znuny / OTRS, osTicket, Zendesk or Freshdesk. Each one gets exactly the features its API supports (osTicket, for example, can only take new requests from the website contact form). Every logged-in member gets a "Support" nav link straight to it; staff additionally get a Parcella-side conversation list with automatic member/parcel matching (persistent identity mapping, never guessed when ambiguous), a live-fetched full message transcript, reply-to-customer, and one-click promotion of a conversation onto the task board. Off by default. See `docs/module-support.md`.
 
 #### Purchase requests
 
@@ -233,12 +233,14 @@ Tokens are valid for 24 hours. The Swagger UI has an "Authorize" button for conv
 | GET/PUT | `/api/v1/insurance/configuration/{year}` | Accident insurance amounts |
 | GET/PUT | `/api/v1/insurance/parcels/{id}/{year}` | Insurance status of a parcel |
 | GET | `/api/v1/insurance/evaluation/{year}` | Annual report |
-| GET | `/api/v1/freescout/conversations` | List FreeScout conversation links |
-| GET | `/api/v1/freescout/conversations/{id}` | Conversation link detail |
-| PUT | `/api/v1/freescout/conversations/{id}/member` | Set/clear the matched member |
-| PUT | `/api/v1/freescout/conversations/{id}/parcel` | Set/clear the matched parcel |
-| POST | `/api/v1/freescout/conversations/{id}/task` | Create/link a task on the task board |
-| POST | `/api/v1/freescout/conversations/{id}/reply` | Reply to the customer via FreeScout |
+| GET | `/api/v1/helpdesk/conversations` | List the active helpdesk's open conversation links |
+| GET | `/api/v1/helpdesk/conversations/{id}` | Conversation link detail |
+| PUT | `/api/v1/helpdesk/conversations/{id}/member` | Set/clear the matched member |
+| PUT | `/api/v1/helpdesk/conversations/{id}/parcel` | Set/clear the matched parcel |
+| POST | `/api/v1/helpdesk/conversations/{id}/task` | Create/link a task on the task board |
+| POST | `/api/v1/helpdesk/conversations/{id}/reply` | Reply to the customer through the helpdesk |
+| GET/PUT | `/api/v1/helpdesk`, `/api/v1/website`, `/api/v1/cloud-storage` | Active helpdesk / website / cloud storage and their settings (admin; secrets never returned) |
+| | `/api/v1/freescout/conversations...` | Deprecated alias of the helpdesk endpoints with the old field names |
 | GET/POST | `/api/v1/purchase-requests` | List/create purchase requests |
 | POST | `/api/v1/purchase-requests/{id}/approve` | Approve (two distinct approvals needed) |
 | POST | `/api/v1/purchase-requests/{id}/reject` | Reject (single rejection is enough) |
@@ -425,7 +427,8 @@ meter_readings                 – water/electricity metering
 property_insurance_packages,
 insurance_configuration,
 parcel_insurance                – insurance tracking per parcel/year
-freescout_conversation_links    – FreeScout conversation cross-reference (see docs/module-freescout-bridge.md)
+helpdesk_conversation_links     – helpdesk conversation cross-reference (see docs/module-support.md)
+helpdesk_customer_ids           – member <-> customer id, per helpdesk
 purchase_requests,
 purchase_request_approvals      – purchase requests with two-person approval
 ```

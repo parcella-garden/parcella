@@ -55,7 +55,7 @@ from app.schemas import (
     PublicApplicantCreate, PublicApplicantResult,
 )
 from app.form_altcha import altcha_required, new_challenge, verify as verify_altcha
-from app.freescout_client import FreeScoutError, get_freescout_client
+from app.helpdesk import CREATE, HelpdeskError, get_helpdesk
 from app.services.applicants import create_applicant
 from app.services.work_hours import notify_new_participations_digest
 from app.i18n import AVAILABLE_LANGUAGES, DEFAULT_LANGUAGE, translate
@@ -69,7 +69,7 @@ def _lang(request: Request) -> str:
 
 def _visitor_lang(request: Request) -> str:
     """The language for what the website's visitor gets to see (rejection
-    reasons, the FreeScout conversation they get replies to): the one the
+    reasons, the helpdesk conversation they get replies to): the one the
     plain-HTML form asked for in its `lang` field, otherwise the club's."""
     return getattr(request.state, "visitor_language", None) or _lang(request)
 
@@ -377,19 +377,18 @@ async def submit_contact(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    """Creates a FreeScout conversation directly from an external contact
-    form (e.g. the parcella-connector WordPress plugin's
-    [parcella_contact_form] shortcode) via the FreeScout API, instead of
-    creating a local Parcella ticket (the ticket module was removed --
-    see docs/module-freescout-bridge.md and the ADR on that decision).
-    Going through the API rather than sending a plain email sets the
-    correct customer/mailbox metadata directly, with no ambiguity about
-    which address FreeScout treats as the customer. Gated by its own
-    module flag (public_contact_api), independent of public_signup_api
-    and freescout_bridge -- a club must have FreeScout configured
-    (Admin -> Integrations) for this to do anything, but doesn't need
-    the freescout_bridge module itself enabled just to accept inbound
-    contact-form messages."""
+    """Creates a conversation in the active helpdesk directly from an
+    external contact form (e.g. the parcella-connector WordPress plugin's
+    [parcella_contact_form] shortcode) through its API, instead of
+    creating a local Parcella ticket (the ticket module was removed,
+    ADR 0080; helpdesks are pluggable, ADR 0107). Going through the API
+    rather than sending a plain email sets the correct customer metadata
+    directly, with no ambiguity about which address the helpdesk treats
+    as the customer. Gated by its own module flag (public_contact_api),
+    independent of public_signup_api and freescout_bridge -- a club must
+    have a helpdesk with the CREATE capability set up (Admin ->
+    Integrations) for this to do anything, but doesn't need the support
+    module itself enabled just to accept inbound contact-form messages."""
     request.state.connector_client_ip = _connector_client_ip(request)
     result, _code = await _process_contact(payload, request, db)
     return result
@@ -422,23 +421,27 @@ async def _process_contact(
     if not payload.consent:
         return reject("consent_missing")
 
-    client = await get_freescout_client(db)
-    if client is None:
-        logger.error("Public contact form submitted but FreeScout is not configured")
+    provider = await get_helpdesk(db)
+    if provider is None or not provider.can(CREATE):
+        logger.error("Public contact form submitted but no helpdesk that can take new requests is set up")
+        if provider is not None:
+            await provider.aclose()
         return reject("unavailable")
 
-    # The visitor gets FreeScout's replies under this subject, so it's in
-    # their language rather than hardcoded English.
+    # The visitor gets the helpdesk's replies under this subject, so it's
+    # in their language rather than hardcoded English.
     lang = _visitor_lang(request)
     try:
-        await client.create_conversation(
+        await provider.create_conversation(
             subject=translate("public_api.contact.subject", lang),
             customer_email=payload.email, customer_name=payload.name,
             message=f"{payload.message}\n\n{translate('public_api.contact.consent_note', lang)}",
         )
-    except FreeScoutError as e:
-        logger.error(f"FreeScout API request failed for public contact form: {e}")
+    except HelpdeskError as e:
+        logger.error(f"{provider.label} API request failed for public contact form: {e}")
         return reject("unavailable")
+    finally:
+        await provider.aclose()
 
     return PublicContactResult(accepted=True), None
 

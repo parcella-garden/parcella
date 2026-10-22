@@ -11,7 +11,7 @@ decisions and reasoning are still fresh.
 - [Work Hours](./module-work-hours.md) -- work sessions, sponsorships, club roles
 - [Metering (Water & Electricity)](./module-metering.md) -- shared codebase for both media
 - [Insurance](./module-insurance.md) -- property and accident insurance per parcel
-- [FreeScout Bridge](./module-freescout-bridge.md) -- links FreeScout support conversations to members, parcels, and the task board
+- [Support (helpdesk)](./module-support.md) -- links helpdesk conversations (FreeScout, Zammad, Znuny, osTicket, Zendesk, Freshdesk) to members, parcels, and the task board
 - [Purchase Requests](./module-purchase-requests.md) -- two-person approval principle for club expenses
 - [Calendar](./module-calendar.md) -- community calendar, birthdays, council presence/absence, ICS export
 - [Public Signup API](./module-public-api.md) -- CMS-agnostic public API for external site connectors (WordPress plugin included)

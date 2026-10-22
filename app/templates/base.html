@@ -262,17 +262,17 @@
         {% macro nav_freescout_bridge(request) %}
         {% if request.state.module_flags.freescout_bridge %}
         {% if has_perm(request, 'freescout_bridge') %}
-        <a href="/freescout/" class="nav-top-link {% if '/freescout' in request.url.path %}aktiv{% endif %}">
+        <a href="/support/" class="nav-top-link {% if '/support' in request.url.path %}aktiv{% endif %}">
             <i class="bi bi-headset"></i> {{ t('nav.freescout_bridge') }}
             {% if nav_count(request, 'freescout_open') > 0 %}
             <span class="badge rounded-pill bg-danger ms-1" title="{{ t('nav.freescout_open_badge_title', count=nav_count(request, 'freescout_open')) }}">{{ nav_count(request, 'freescout_open') }}</span>
             {% endif %}
         </a>
-        {% elif request.state.freescout_base_url %}
+        {% elif request.state.helpdesk_web_url %}
         {# Every Parcella user gets a way to reach support, even without
-           freescout_bridge permission -- they link straight to FreeScout
+           freescout_bridge permission -- they link straight to the helpdesk
            itself rather than Parcella's internal staff-facing view. #}
-        <a href="{{ request.state.freescout_base_url }}" target="_blank" rel="noopener" class="nav-top-link">
+        <a href="{{ request.state.helpdesk_web_url }}" target="_blank" rel="noopener" class="nav-top-link">
             <i class="bi bi-headset"></i> {{ t('nav.freescout_bridge') }}
         </a>
         {% endif %}

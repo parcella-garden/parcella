@@ -5,12 +5,20 @@
 {% block topbar_actions %}
 {% if base_url %}
 <a href="{{ base_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
-    <i class="bi bi-box-arrow-up-right me-1"></i>{{ t('freescout.overview.open_in_freescout') }}
+    <i class="bi bi-box-arrow-up-right me-1"></i>{{ t('freescout.overview.open_in_freescout', name=helpdesk_name) }}
 </a>
 {% endif %}
 {% endblock %}
 
 {% block content %}
+{% if not helpdesk_type %}
+<div class="alert alert-info">{{ t('freescout.overview.none_configured') }}</div>
+{% elif 'inbox' not in capabilities %}
+<div class="alert alert-info">
+    {{ t('freescout.overview.no_inbox', name=helpdesk_name) }}
+    {% if base_url %}<a href="{{ base_url }}" target="_blank" rel="noopener">{{ t('freescout.overview.open_in_freescout', name=helpdesk_name) }}</a>{% endif %}
+</div>
+{% else %}
 <div class="card">
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -28,13 +36,13 @@
                 </thead>
                 <tbody>
                     {% for c in conversations %}
-                    <tr onclick="window.location='/freescout/{{ c.id }}'" style="cursor: pointer;">
+                    <tr onclick="window.location='/support/{{ c.id }}'" style="cursor: pointer;">
                         <td>{{ c.subject }}</td>
                         <td>{{ c.customer_name or c.customer_email }}</td>
                         <td>{{ c.member.full_name if c.member else '—' }}</td>
-                        <td><span class="badge text-bg-secondary">{{ c.freescout_status }}</span></td>
+                        <td><span class="badge text-bg-secondary">{{ c.status }}</span></td>
                         <td>{{ c.message_count if c.message_count is not none else '—' }}</td>
-                        <td>{{ c.freescout_updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ c.external_updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
                         <td>
                             {% if c.task_id %}
                             <i class="bi bi-kanban text-success" title="{{ t('freescout.overview.has_task') }}"></i>
@@ -49,4 +57,5 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}

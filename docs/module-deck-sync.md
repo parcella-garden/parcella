@@ -33,7 +33,7 @@ needs a schema change), `external_board_id`/`external_stack_id`/
 timestamp for the card -- the incremental-sync high-water-mark), and
 `last_synced_at`. Unique on `(source, external_card_id)`. `ON DELETE
 CASCADE` is the reverse of most FKs in this app (which prefer `SET
-NULL`, see `docs/module-freescout-bridge.md`'s `FreescoutConversationLink.task_id`)
+NULL`, see `docs/module-support.md`'s `HelpdeskConversationLink.task_id`)
 -- a link has no meaning without the Task it points at, so deleting the
 Task should delete the link, not leave it dangling.
 

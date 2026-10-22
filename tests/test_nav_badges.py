@@ -11,7 +11,7 @@ from sqlalchemy import update
 
 from app.database import AsyncSessionLocal
 from app.models import (
-    Applicant, ApplicantStatus, ClubSetting, FreescoutConversationLink,
+    Applicant, ApplicantStatus, ClubSetting, HelpdeskConversationLink,
     PurchaseRequest, PurchaseRequestStatus, Task, TaskList,
 )
 
@@ -24,21 +24,22 @@ async def web_login(client, email: str, password: str = "testpasswort123") -> No
 async def test_nav_badges_show_counts_and_clear_when_dealt_with(client, admin_user):
     async with AsyncSessionLocal() as db:
         db.add(ClubSetting(key="modul_freescout_bridge", value="true"))
+        db.add(ClubSetting(key="helpdesk_provider", value="freescout"))
         db.add_all([
             Applicant(email="new1@example.com"),
             Applicant(email="new2@example.com"),
             # Already being worked on -- no badge.
             Applicant(email="old@example.com", status=ApplicantStatus.CONTACTED),
             PurchaseRequest(title="Rasenmäher", justification="kaputt"),
-            FreescoutConversationLink(
-                freescout_conversation_id=1, freescout_mailbox_id=1, subject="Frage",
-                customer_email="x@example.com", freescout_status="active",
-                freescout_updated_at=datetime.now(timezone.utc),
+            HelpdeskConversationLink(
+                provider="freescout", external_id="1", mailbox_id="1", subject="Frage",
+                customer_email="x@example.com", status="active",
+                external_updated_at=datetime.now(timezone.utc),
             ),
-            FreescoutConversationLink(
-                freescout_conversation_id=2, freescout_mailbox_id=1, subject="Erledigt",
-                customer_email="y@example.com", freescout_status="closed",
-                freescout_updated_at=datetime.now(timezone.utc),
+            HelpdeskConversationLink(
+                provider="freescout", external_id="2", mailbox_id="1", subject="Erledigt",
+                customer_email="y@example.com", status="closed",
+                external_updated_at=datetime.now(timezone.utc),
             ),
         ])
         task_list = TaskList(name="To do", position=0)

@@ -682,10 +682,31 @@ class ParcelInsuranceCostOut(ParcelInsuranceOut):
 
 
 # ---------------------------------------------------------------------------
-# FreeScout conversation bridge
+# Support / helpdesk (ADR 0107)
 # ---------------------------------------------------------------------------
 
+class HelpdeskConversationLinkOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    provider: str
+    external_id: str
+    mailbox_id: Optional[str] = None
+    subject: str
+    customer_email: str
+    customer_name: Optional[str] = None
+    status: str
+    message_count: Optional[int] = None
+    member_id: Optional[str] = None
+    parcel_id: Optional[str] = None
+    task_id: Optional[str] = None
+    external_updated_at: datetime
+    last_synced_at: datetime
+
+
 class FreescoutConversationLinkOut(BaseModel):
+    """The pre-ADR-0107 shape, kept for the deprecated /api/v1/freescout
+    endpoints (HelpdeskConversationLink exposes these names as
+    read-only properties)."""
     model_config = ConfigDict(from_attributes=True)
     id: str
     freescout_conversation_id: int
@@ -716,7 +737,7 @@ class FreescoutAddToTaskBoardRequest(BaseModel):
 
 
 class FreescoutReplyCreate(BaseModel):
-    text: str = Field(..., description="Customer-facing reply text, sent to FreeScout as a new thread")
+    text: str = Field(..., description="Customer-facing reply text, sent through the helpdesk")
 
 
 # ---------------------------------------------------------------------------
