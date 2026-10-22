@@ -208,14 +208,11 @@ existing, unnoticed ones.
 
 ## Known limits (deliberately not automated)
 
-- **IMAP fetching and SMTP sending** (`app/ticket_mailer.py`,
-  `app/email_service.py`): require a real mail server. These paths
-  continue to be tested manually (see the earlier diagnostic session with
-  the direct `imaplib` test script). Mocking these external systems would
-  be possible, but was judged not worth it for the project's current
-  scope -- the failure-proneness lies more in real network/configuration
-  issues than in the app's own logic, which is already tested (thread
-  matching, ticket creation).
+- **SMTP sending** (`app/email_service.py`): requires a real mail
+  server, so it's tested manually. Mocking it would be possible, but was
+  judged not worth it for the project's current scope -- the
+  failure-proneness lies more in real network/configuration issues than
+  in the app's own logic.
 - **Email sending in general** (invitations, assignment notifications):
   `sende_email()` simply fails in the test environment for lack of SMTP
   configuration (returns `False`) -- that's intended, already-handled

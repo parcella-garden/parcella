@@ -1,4 +1,4 @@
-# Spam filter leftovers removed
+# Spam filter and IMAP leftovers removed
 
 **Context:** the spam filter (`app/spam_filter.py`, ADRs 0038, 0066
 and 0067) was part of the built-in ticket module. ADR 0080 removed
@@ -42,3 +42,14 @@ Anything that lands in FreeScout should be filtered in FreeScout. If a
 Parcella-side public form needs more than honeypot plus ALTCHA, add
 that protection to the form itself. Don't bring back a general spam
 filter in Parcella.
+
+## Follow-up: IMAP settings
+
+The same incomplete removal left the IMAP side of the ticket inbox
+behind. Parcella reads no mailbox at all anymore; it only sends mail
+over SMTP. Migration `0104_drop_imap_settings` deletes `imap_host`,
+`imap_port`, `imap_ssl`, the old poller's state rows
+(`ticket_imap_letzte_uid`, `ticket_imap_letzter_abruf`,
+`ticket_imap_letzter_fehler`) and `ticket_attachments_cloud_folder`.
+The `imap_*` labels are gone from all 7 catalogs, and the settings card
+is now "Email (SMTP)", with help text that describes sending only.
