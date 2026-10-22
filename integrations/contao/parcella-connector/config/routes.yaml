@@ -1,0 +1,3 @@
+parcella_connector:
+    resource: ../src/Controller/
+    type: attribute

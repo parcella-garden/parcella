@@ -45,3 +45,4 @@ backups/
 # flow -- Postgres data, uploads, ticket attachments. Real instance data,
 # never a repo asset.
 data/
+integrations/dist/

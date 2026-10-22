@@ -1,0 +1,10 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        bind:
+            $projectDir: '%kernel.project_dir%'
+
+    Parcella\ContaoParcellaConnector\Controller\:
+        resource: ../src/Controller/
+        public: true

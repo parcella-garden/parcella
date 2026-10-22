@@ -25,6 +25,8 @@ decisions and reasoning are still fresh.
 - [Operations](./operations.md) -- Docker, migrations, SMTP setup, troubleshooting
 - [Security](./security.md) -- what protects the app, what a review fixed, what's still open
 - [Automated Tests](./testing.md) -- testing philosophy, execution, known limits
+- [Website Plugin Protocol](./website-plugin-protocol.md) -- how a CMS plugin receives drafts from Parcella
+- [Publishing the CMS plugins](./cms-plugins-publishing.md) -- Drupal, Joomla, TYPO3, Contao and WordPress marketplaces
 - [i18n & l10n](./i18n-l10n.md) -- languages, region/currency, how to add a new one
 - [Responsive Design](./responsive-design.md) -- mobile layout patterns for new templates
 

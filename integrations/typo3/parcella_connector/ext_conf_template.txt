@@ -1,0 +1,6 @@
+# cat=basic; type=string; label=Shared secret: 64 hexadecimal characters, e.g. from "openssl rand -hex 32". Enter the same value in Parcella (Admin > Integrations > Website > Parcella plugin). Treat it like a password.
+secret =
+# cat=basic; type=int+; label=Storage folder (page id) for new news drafts
+storagePid = 0
+# cat=basic; type=int+; label=Detail page (page id) of the news plugin: lets Parcella find a published draft's address for its QR code (optional)
+detailPid = 0

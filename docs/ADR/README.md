@@ -111,3 +111,4 @@ in chronological order.
 105. [Website plugin protocol: one open contract instead of one client per CMS](./0105-website-plugin-protocol-and-cms-plugins.md)
 106. [Cloud storage: one dropdown, one provider at a time](./0106-cloud-storage-one-provider-at-a-time.md)
 107. [Helpdesk providers: one dropdown, and capabilities instead of assumptions](./0107-helpdesk-providers-and-capabilities.md)
+108. [CMS plugins: GPL-licensed, one shared PHP core, copied per plugin](./0108-cms-plugins-gpl-and-shared-core.md)

@@ -1,0 +1,29 @@
+{
+    "name": "parcella/contao-parcella-connector",
+    "description": "Receives website drafts from Parcella, the club management software for allotment garden associations, as unpublished news entries.",
+    "type": "contao-bundle",
+    "license": "GPL-2.0-or-later",
+    "homepage": "https://github.com/parcella-garden/parcella/tree/main/integrations/contao/parcella-connector",
+    "support": {
+        "issues": "https://github.com/parcella-garden/parcella/issues"
+    },
+    "require": {
+        "php": ">=8.1",
+        "contao/core-bundle": "^5.3",
+        "contao/news-bundle": "^5.3"
+    },
+    "require-dev": {
+        "contao/manager-plugin": "^2.3"
+    },
+    "conflict": {
+        "contao/manager-plugin": "<2.3 || >=3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Parcella\\ContaoParcellaConnector\\": "src/"
+        }
+    },
+    "extra": {
+        "contao-manager-plugin": "Parcella\\ContaoParcellaConnector\\ContaoManager\\Plugin"
+    }
+}

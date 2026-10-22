@@ -8,6 +8,20 @@ Why it exists: ADR 0105. A runnable reference receiver:
 
 Protocol identifier: `parcella-website/1`.
 
+## Ready-made plugins
+
+| CMS | Plugin | Drafts become |
+|---|---|---|
+| Drupal 10.3 / 11 | `integrations/drupal/parcella_connector` | unpublished nodes |
+| Joomla 4.4 / 5 | `integrations/joomla/plg_system_parcellaconnector` | unpublished articles |
+| TYPO3 12.4 / 13.4 (EXT:news) | `integrations/typo3/parcella_connector` | hidden news records |
+| Contao 5.3 (news) | `integrations/contao/parcella-connector` | unpublished news entries |
+
+They share one PHP core (`integrations/shared-php/`) and are
+GPL-2.0-or-later (ADR 0108). WordPress needs no plugin for drafts:
+Parcella uses its REST API directly. How to publish them to their
+marketplaces: `docs/cms-plugins-publishing.md`.
+
 ## Setup
 
 1. The plugin generates a random **shared secret** (at least 32 bytes

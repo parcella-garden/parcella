@@ -6,7 +6,7 @@ A consolidated WordPress plugin for every integration between this site and a Pa
 
 - **Work session signup** (`includes/modules/signup.php`) -- a public work-session signup form via the `[parcella_work_signup]` shortcode,   backed by Parcella's public signup API.
 - **Community calendar** (`includes/modules/calendar.php`) -- upcoming meetings, parcel inspections, and work sessions via the `[parcella_calendar limit="5"]` shortcode, backed by Parcella's public `/calendar/community.json` feed. Read-only, needs just the base URL.
-- **Contact form** (`includes/modules/contact.php`) -- a public contact form via the `[parcella_contact_form]` shortcode whose messages land as conversations in the club's FreeScout inbox (through Parcella), instead of being sent as a plain email.
+- **Contact form** (`includes/modules/contact.php`) -- a public contact form via the `[parcella_contact_form]` shortcode whose messages land as conversations in the club's helpdesk (through Parcella), instead of being sent as a plain email.
 
 - **Garden plot applications** (`includes/modules/applicants.php`) -- an application form for free garden plots via the `[parcella_applicant_form]` shortcode; applications land in Parcella's applicants list.
 
@@ -150,10 +150,11 @@ and shows a "Modules" table for whatever's active.
 - Renders a form (name, email, message, and a required data-protection
   consent checkbox) via the `[parcella_contact_form]` shortcode.
 - Posts straight to Parcella (see "How the forms work" above), which
-  creates a conversation in the club's FreeScout inbox -- not an email.
+  creates a conversation in the club's helpdesk -- not an email.
   Needs its own module enabled in Parcella (**Public contact-form API**,
-  separate from the signup module's flag) and FreeScout configured
-  there.
+  separate from the signup module's flag) and a helpdesk that can take
+  new requests chosen there (Admin -> Integrations -> Support /
+  helpdesk).
 - Consent is required both client-side (`required` on the checkbox) and
   server-side (Parcella rejects a submission with `consent: false`) --
   the wording is hard-coded in `contact.php`'s

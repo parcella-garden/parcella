@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+    <name>plg_system_parcellaconnector</name>
+    <author>Parcella</author>
+    <creationDate>2026-10</creationDate>
+    <copyright>Parcella contributors</copyright>
+    <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
+    <authorUrl>https://github.com/parcella-garden/parcella</authorUrl>
+    <version>1.0.0</version>
+    <description>PLG_SYSTEM_PARCELLACONNECTOR_XML_DESCRIPTION</description>
+    <namespace path="src">Parcella\Plugin\System\ParcellaConnector</namespace>
+    <scriptfile>script.php</scriptfile>
+    <files>
+        <folder plugin="parcellaconnector">services</folder>
+        <folder>src</folder>
+        <folder>language</folder>
+    </files>
+    <languages folder="language">
+        <language tag="en-GB">en-GB/plg_system_parcellaconnector.ini</language>
+        <language tag="en-GB">en-GB/plg_system_parcellaconnector.sys.ini</language>
+        <language tag="de-DE">de-DE/plg_system_parcellaconnector.ini</language>
+        <language tag="de-DE">de-DE/plg_system_parcellaconnector.sys.ini</language>
+    </languages>
+    <config>
+        <fields name="params">
+            <fieldset name="basic">
+                <field name="howto" type="note" label="PLG_SYSTEM_PARCELLACONNECTOR_HOWTO_LABEL" description="PLG_SYSTEM_PARCELLACONNECTOR_HOWTO_DESC" class="alert alert-info"/>
+                <field name="secret" type="text" label="PLG_SYSTEM_PARCELLACONNECTOR_SECRET_LABEL" description="PLG_SYSTEM_PARCELLACONNECTOR_SECRET_DESC" filter="string" pattern="[0-9a-f]{64}" autocomplete="off"/>
+                <field name="catid" type="category" extension="com_content" label="PLG_SYSTEM_PARCELLACONNECTOR_CATEGORY_LABEL" description="PLG_SYSTEM_PARCELLACONNECTOR_CATEGORY_DESC" required="true"/>
+                <field name="created_by" type="user" label="PLG_SYSTEM_PARCELLACONNECTOR_AUTHOR_LABEL" description="PLG_SYSTEM_PARCELLACONNECTOR_AUTHOR_DESC" required="true"/>
+            </fieldset>
+        </fields>
+    </config>
+</extension>
