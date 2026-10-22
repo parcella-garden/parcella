@@ -115,7 +115,8 @@ final class DraftController
             'date' => $now,
             'time' => $now,
             'teaser' => $draft['summary'] !== '' ? '<p>' . htmlspecialchars($draft['summary'], ENT_QUOTES) . '</p>' : '',
-            'description' => $draft['source_id'] !== '' ? 'parcella:' . $draft['source_id'] : '',
+            // Marks the entry as created by Parcella (see loadNews).
+            'description' => 'parcella:' . ($draft['source_id'] !== '' ? $draft['source_id'] : 'draft-' . bin2hex(random_bytes(8))),
             'source' => 'default',
             // Unpublished, always. (Contao 5 stores checkboxes as 0/1.)
             'published' => 0,
@@ -229,7 +230,12 @@ final class DraftController
         if (!ctype_digit($id)) {
             return null;
         }
-        $row = $this->connection->fetchAssociative('SELECT id, published FROM tl_news WHERE id = ?', [(int) $id]);
+        // Only entries this bundle created: Parcella may create and update
+        // its own drafts, never touch other news.
+        $row = $this->connection->fetchAssociative(
+            "SELECT id, published FROM tl_news WHERE id = ? AND description LIKE 'parcella:%'",
+            [(int) $id],
+        );
 
         return $row === false ? null : $row;
     }

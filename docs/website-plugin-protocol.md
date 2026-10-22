@@ -106,6 +106,17 @@ Answer `201`:
 later. `edit_url` is optional; if present, the announcement page links
 to it.
 
+### Only the plugin's own drafts
+
+`PUT /drafts/{id}` and `GET /drafts/{id}` must only work on content the
+plugin created through `POST /drafts`. For any other id -- an existing
+page, article or news entry a human made -- answer `404`, exactly as if
+it didn't exist. Otherwise the shared secret would grant write access to
+all of the CMS's content instead of "may create drafts", and an update
+would put the overwritten text live at once, since updates keep the
+publish state. Keep a record of what you created (a mapping table, a
+marker field) and check it on every lookup.
+
 ### `PUT /drafts/{id}` (update)
 
 The same body as `POST`. The `image` key has three states:

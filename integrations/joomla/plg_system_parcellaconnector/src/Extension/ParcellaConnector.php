@@ -125,7 +125,8 @@ final class ParcellaConnector extends CMSPlugin implements SubscriberInterface
             'language' => '*',
             'access' => 1,
             'metadesc' => mb_substr($draft['summary'], 0, 160),
-            'note' => $draft['source_id'] !== '' ? 'parcella:' . $draft['source_id'] : '',
+            // Marks the article as created by Parcella (see loadArticle).
+            'note' => 'parcella:' . ($draft['source_id'] !== '' ? $draft['source_id'] : 'draft-' . bin2hex(random_bytes(8))),
             'images' => json_encode($this->imageFields($draft, [])),
             'urls' => '{}',
             'attribs' => '{}',
@@ -238,14 +239,21 @@ final class ParcellaConnector extends CMSPlugin implements SubscriberInterface
         return $fields;
     }
 
+    /**
+     * Only articles this plugin created (note "parcella:..."): Parcella may
+     * create and update its own drafts, never touch other content.
+     */
     private function loadArticle(string $id): ?Content
     {
         if (!ctype_digit($id)) {
             return null;
         }
         $table = new Content($this->getDatabase());
+        if (!$table->load((int) $id) || !str_starts_with((string) $table->note, 'parcella:')) {
+            return null;
+        }
 
-        return $table->load((int) $id) ? $table : null;
+        return $table;
     }
 
     private function findBySource(string $sourceId): ?int

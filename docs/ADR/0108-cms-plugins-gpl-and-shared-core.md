@@ -38,7 +38,13 @@ plugins.
    unpublished content (Drupal unpublished node, Joomla state 0 article,
    TYPO3 hidden EXT:news record, Contao unpublished news entry) and never
    changes the publish state on update. All four are idempotent on
-   `source_id`.
+   `source_id`. **And each only reads or updates content it created
+   itself** (Drupal: its own list of node ids; Joomla and Contao: a
+   `parcella:` marker in the note/description; TYPO3: its mapping
+   table). The security review before the first push found that the
+   first version accepted any id, so the shared secret could have
+   overwritten any existing, published page, and kept it published. The
+   protocol spec now requires this check of every plugin.
 
 5. **Live-tested** against real installations in temporary containers
    (Drupal 11.4, Joomla 5, TYPO3 13.4 with news 12.3, Contao 5.3). That

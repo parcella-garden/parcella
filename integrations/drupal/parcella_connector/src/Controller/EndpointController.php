@@ -29,6 +29,7 @@ final class EndpointController extends ControllerBase {
 
   public function __construct(
     private readonly KeyValueStoreInterface $sources,
+    private readonly KeyValueStoreInterface $ownNodes,
     private readonly FileRepositoryInterface $fileRepository,
     private readonly FileSystemInterface $fileSystem,
     private readonly KillSwitch $pageCacheKillSwitch,
@@ -37,6 +38,7 @@ final class EndpointController extends ControllerBase {
   public static function create(ContainerInterface $container): static {
     return new static(
       $container->get('keyvalue')->get('parcella_connector.sources'),
+      $container->get('keyvalue')->get('parcella_connector.nodes'),
       $container->get('file.repository'),
       $container->get('file_system'),
       $container->get('page_cache_kill_switch'),
@@ -117,6 +119,7 @@ final class EndpointController extends ControllerBase {
     ]);
     $this->applyContent($node, $draft);
     $node->save();
+    $this->ownNodes->set((string) $node->id(), TRUE);
 
     if ($draft['source_id'] !== '') {
       $this->sources->set($draft['source_id'], $node->id());
@@ -181,8 +184,12 @@ final class EndpointController extends ControllerBase {
     $node->set($imageField, ['target_id' => $file->id(), 'alt' => $draft['title']]);
   }
 
+  /**
+   * Only nodes this module created: Parcella may create and update its own
+   * drafts, never touch other content (anything else is "not found").
+   */
   private function loadNode(string $id): ?NodeInterface {
-    if ($id === '' || !ctype_digit($id)) {
+    if ($id === '' || !ctype_digit($id) || !$this->ownNodes->has($id)) {
       return NULL;
     }
     $node = $this->entityTypeManager()->getStorage('node')->load((int) $id);

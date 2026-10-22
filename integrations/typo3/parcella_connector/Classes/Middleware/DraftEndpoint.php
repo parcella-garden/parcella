@@ -116,12 +116,13 @@ final class DraftEndpoint implements MiddlewareInterface
         $uid = (int) $news->lastInsertId();
         $this->applyImage($uid, $storagePid, $draft);
 
-        if ($draft['source_id'] !== '') {
-            // A mapping can outlive its record (deleted in TYPO3): replace it.
-            $sources = $this->connectionPool->getConnectionForTable(self::SOURCE_TABLE);
-            $sources->delete(self::SOURCE_TABLE, ['source_id' => $draft['source_id']]);
-            $sources->insert(self::SOURCE_TABLE, ['source_id' => $draft['source_id'], 'news_uid' => $uid]);
-        }
+        // Every record Parcella creates gets a row here -- it's also what
+        // marks the record as Parcella's own (see loadNews). A mapping can
+        // outlive its record (deleted in TYPO3): replace it.
+        $sourceId = $draft['source_id'] !== '' ? $draft['source_id'] : 'draft-' . bin2hex(random_bytes(8));
+        $sources = $this->connectionPool->getConnectionForTable(self::SOURCE_TABLE);
+        $sources->delete(self::SOURCE_TABLE, ['source_id' => $sourceId]);
+        $sources->insert(self::SOURCE_TABLE, ['source_id' => $sourceId, 'news_uid' => $uid]);
 
         return [201, ['id' => (string) $uid, 'edit_url' => null]];
     }
@@ -239,9 +240,22 @@ final class DraftEndpoint implements MiddlewareInterface
         return $helper->generate(['title' => $title], $pid);
     }
 
+    /**
+     * Only records this extension created (listed in its mapping table):
+     * Parcella may create and update its own drafts, never touch other news.
+     */
     private function loadNews(string $id): ?array
     {
         if (!ctype_digit($id)) {
+            return null;
+        }
+        $owned = $this->connectionPool->getQueryBuilderForTable(self::SOURCE_TABLE);
+        $isOwn = $owned->count('uid')
+            ->from(self::SOURCE_TABLE)
+            ->where($owned->expr()->eq('news_uid', $owned->createNamedParameter((int) $id, Connection::PARAM_INT)))
+            ->executeQuery()
+            ->fetchOne();
+        if ((int) $isOwn === 0) {
             return null;
         }
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::NEWS_TABLE);
