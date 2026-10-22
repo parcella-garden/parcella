@@ -216,9 +216,6 @@ existing, unnoticed ones.
   scope -- the failure-proneness lies more in real network/configuration
   issues than in the app's own logic, which is already tested (thread
   matching, ticket creation).
-- **External spam-check API** (`app/spam_filter.py`,
-  `_externe_pruefung()`): same reason -- only relevant if an association
-  actually configures an external service, which nobody currently does.
 - **Email sending in general** (invitations, assignment notifications):
   `sende_email()` simply fails in the test environment for lack of SMTP
   configuration (returns `False`) -- that's intended, already-handled

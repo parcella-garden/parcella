@@ -72,7 +72,7 @@ root rather than opening a public issue.
     value that was *never* encrypted (legacy plaintext, pre-dating this
     feature) still passes through unchanged, distinguished by checking
     for the Fernet version byte before deciding which case applies. The
-    four callers (SMTP, Nextcloud, WordPress, spam-check API key) treat
+    callers (SMTP, Nextcloud incl. Deck, WordPress, FreeScout) treat
     a `DecryptionError` the same as "not configured yet" and log an
     error pointing at the likely cause, rather than 500ing an unrelated
     request.

@@ -434,34 +434,6 @@
     </div>
 
     <div class="col-12">
-        <div class="card">
-            <div class="card-header settings-card-toggle collapsed" role="button" data-bs-toggle="collapse"
-                 data-bs-target="#settings-card-spam" aria-expanded="false">
-                <span><i class="bi bi-shield-exclamation me-2"></i>{{ t('admin.settings.spam_header') }}</span>
-                <i class="bi bi-chevron-down settings-card-chevron"></i>
-            </div>
-            <div class="collapse" id="settings-card-spam" data-bs-parent="#settings-accordion">
-            <div class="card-body">
-                <p class="text-muted mb-3" style="font-size: 0.82rem;">
-                    {{ t('admin.settings.spam_help') }}
-                </p>
-                {% for key, label in fields[16:] %}
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">{{ label }}</label>
-                    <input type="{{ 'password' if ('password' in key or 'api_key' in key) else 'text' }}"
-                           name="{{ key }}" class="form-control"
-                           value="{{ '' if ('password' in key or 'api_key' in key) else (settings_map.get(key, '') or '') }}"
-                           {% if 'password' in key or 'api_key' in key %}placeholder="{% if settings_map.get(key) %}{{ t('admin.settings.password_set_placeholder') }}{% else %}{{ t('admin.settings.password_unset_placeholder') }}{% endif %}"
-                           {% elif 'schwellenwert' in key %}placeholder="0.5"
-                           {% endif %}>
-                </div>
-                {% endfor %}
-            </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12">
         <button type="submit" class="btn btn-primary">
             <i class="bi bi-check-lg me-1"></i>{{ t('admin.settings.save_button') }}
         </button>

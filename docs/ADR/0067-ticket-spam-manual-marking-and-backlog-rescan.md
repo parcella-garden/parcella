@@ -1,5 +1,9 @@
 # Manual spam marking and backlog re-scan: track human review to protect it from automation
 
+**Note: retired.** The spam filter was removed with the built-in ticket
+module (ADR 0080); its leftovers went in [ADR 0103](./0103-spam-filter-leftovers-removed.md).
+Kept as the design record.
+
 **Context:** the ticket spam filter (`app/spam_filter.py`, stage 3 --
 see `docs/module-tickets.md`, and [ADR 0038](./0038-spam-filter-external-api-tied-to-apilayer-for-now.md)/[ADR 0066](./0066-spam-filter-external-api-back-to-a-generic-contract.md)
 for the external-API side of it) only ever ran automatically, once, on

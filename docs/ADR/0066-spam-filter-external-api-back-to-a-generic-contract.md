@@ -1,5 +1,9 @@
 # Spam filter external API: back to a generic contract
 
+**Note: retired.** The spam filter was removed with the built-in ticket
+module (ADR 0080); its leftovers went in [ADR 0103](./0103-spam-filter-leftovers-removed.md).
+Kept as the design record.
+
 **Context:** [ADR 0038](./0038-spam-filter-external-api-tied-to-apilayer-for-now.md)
 tied `app/spam_filter.py`'s external spam-check integration directly to
 apilayer.com's Spam Check API -- an `apikey` header, a plain-text body,

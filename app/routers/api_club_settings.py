@@ -23,7 +23,7 @@ from app.schemas import ClubSettingOut, ClubSettingUpdate, BoardMemberOut
 router = APIRouter(prefix="/api/v1/club-settings", tags=["API: Club Settings"])
 
 # Matches every credential key in use (smtp_password, nextcloud_app_password,
-# freescout_api_key, spam_api_key, ics_secret_token, public_signup_api_token,
+# freescout_api_key, ics_secret_token, public_signup_api_token,
 # ...) and any new one named the same way.
 _SECRET_KEY_RE = re.compile(r"(password|token|secret|api_key)$")
 
