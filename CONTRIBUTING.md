@@ -18,6 +18,14 @@ v3.0 (AGPL-3.0)**. In short:
 By contributing (pull request), you agree that your code is licensed
 under the same terms (AGPL-3.0).
 
+**Exception: the CMS and helpdesk plugins in `integrations/`** are
+licensed **GPL-2.0-or-later** (each has its own `LICENSE` file), because
+the CMS marketplaces require it (drupal.org only hosts GPL-2.0-or-later
+code; WordPress.org, Joomla's JED and the TYPO3 TER expect
+GPL-compatible extensions). They talk to Parcella only over HTTP, so
+they're separate works from Parcella itself (ADR 0108). Contributions to
+`integrations/` are licensed GPL-2.0-or-later.
+
 ## How you can contribute
 
 1. **Issues**: found a bug or have an idea? Open an issue before starting

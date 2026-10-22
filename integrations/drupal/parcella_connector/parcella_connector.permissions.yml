@@ -1,0 +1,4 @@
+administer parcella connector:
+  title: 'Administer the Parcella Connector'
+  description: 'See and regenerate the shared secret Parcella signs its requests with.'
+  restrict access: true

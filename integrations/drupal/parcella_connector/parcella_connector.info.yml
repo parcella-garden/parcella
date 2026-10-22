@@ -1,0 +1,9 @@
+name: 'Parcella Connector'
+type: module
+description: 'Receives website drafts from Parcella, the club management software for allotment garden associations, as unpublished content.'
+package: Web services
+core_version_requirement: ^10.3 || ^11
+configure: parcella_connector.settings
+dependencies:
+  - drupal:node
+  - drupal:file

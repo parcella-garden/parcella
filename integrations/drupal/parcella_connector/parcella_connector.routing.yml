@@ -1,0 +1,46 @@
+# The Parcella Website Plugin Protocol v1. Authentication is the request
+# signature (HMAC), checked in EndpointController, not a Drupal session;
+# no_cache keeps the page cache away from these answers.
+parcella_connector.ping:
+  path: '/parcella/v1/ping'
+  defaults:
+    _controller: '\Drupal\parcella_connector\Controller\EndpointController::handle'
+    endpoint: 'ping'
+    id: ''
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE
+
+parcella_connector.drafts:
+  path: '/parcella/v1/drafts'
+  defaults:
+    _controller: '\Drupal\parcella_connector\Controller\EndpointController::handle'
+    endpoint: 'drafts'
+    id: ''
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: TRUE
+
+parcella_connector.draft:
+  path: '/parcella/v1/drafts/{id}'
+  defaults:
+    _controller: '\Drupal\parcella_connector\Controller\EndpointController::handle'
+    endpoint: 'draft'
+  methods: [GET, PUT]
+  requirements:
+    _access: 'TRUE'
+    id: '\d+'
+  options:
+    no_cache: TRUE
+
+parcella_connector.settings:
+  path: '/admin/config/services/parcella-connector'
+  defaults:
+    _form: '\Drupal\parcella_connector\Form\SettingsForm'
+    _title: 'Parcella Connector'
+  requirements:
+    _permission: 'administer parcella connector'

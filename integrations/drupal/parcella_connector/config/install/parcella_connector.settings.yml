@@ -1,0 +1,6 @@
+secret: ''
+node_type: article
+text_format: basic_html
+body_field: body
+image_field: field_image
+author_uid: 1

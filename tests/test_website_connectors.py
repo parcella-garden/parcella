@@ -516,3 +516,14 @@ async def test_api_website_settings_are_admin_only(client, admin_user, board_use
     token = await login(client, "vorstand@example.com")
     assert (await client.get("/api/v1/website", headers=auth_header(token))).status_code == 403
     assert (await client.put("/api/v1/website", headers=auth_header(token), json={"active": None})).status_code == 403
+
+
+async def test_plugin_error_text_is_shown_without_json_noise():
+    def handler(request):
+        return httpx.Response(503, text='{"error":"The content type \\u0022article\\u0022 does not exist."}')
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    connector = ParcellaPluginPublisher("https://cms.example.org/parcella/v1", SECRET, client=client)
+    with pytest.raises(BlogPublishError, match='HTTP 503\\): The content type "article" does not exist.'):
+        await connector.test_connection()
+    await client.aclose()

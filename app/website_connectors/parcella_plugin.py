@@ -116,7 +116,15 @@ class ParcellaPluginPublisher(WebsiteConnector):
         if response.status_code == 401:
             raise BlogPublishError("The plugin rejected Parcella's signature -- check the shared secret.")
         if response.status_code not in (200, 201):
-            raise BlogPublishError(f"The plugin rejected the {action} (HTTP {response.status_code}): {response.text[:200]}")
+            # Plugins answer errors as {"error": "..."}; show just that text.
+            detail = response.text[:200]
+            try:
+                error = response.json().get("error")
+                if isinstance(error, str) and error:
+                    detail = error[:300]
+            except (ValueError, AttributeError):
+                pass
+            raise BlogPublishError(f"The plugin rejected the {action} (HTTP {response.status_code}): {detail}")
 
     def _result(self, data: dict) -> DraftResult:
         post_id = data.get("id")

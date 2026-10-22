@@ -1,9 +1,10 @@
 <?php
 /**
  * Plugin Name: Parcella Connector
- * Description: Consolidated connector for every integration between this WordPress site and a Parcella installation. Each capability lives in its own module under includes/modules/ (work-session signup, community calendar, a contact form that lands in the club's FreeScout inbox, and an application form for free garden plots), sharing one Parcella base URL configured here.
- * Version: 3.1.0
- * License: AGPL-3.0-or-later
+ * Description: Consolidated connector for every integration between this WordPress site and a Parcella installation. Each capability lives in its own module under includes/modules/ (work-session signup, community calendar, a contact form that lands in the club's helpdesk, and an application form for free garden plots), sharing one Parcella base URL configured here.
+ * Version: 3.1.1
+ * License: GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: parcella-connector
  *
  * This plugin is intentionally a thin client for every module it
@@ -39,7 +40,7 @@ if (!defined('ABSPATH')) {
 // Kept in sync with the "Version:" header above (was drifted at 2.0.0
 // from a previous release that forgot to update this constant too --
 // unused elsewhere today, but there's no reason to let it lie).
-define('PARCELLA_CONNECTOR_VERSION', '3.1.0');
+define('PARCELLA_CONNECTOR_VERSION', '3.1.1');
 // Name unchanged from the original single-purpose plugin on purpose --
 // see the History note above.
 define('PARCELLA_CONNECTOR_OPTION_BASE_URL', 'parcella_signup_base_url');

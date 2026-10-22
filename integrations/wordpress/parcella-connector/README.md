@@ -232,3 +232,11 @@ up automatically based on the site's language setting. Keep this file
 set in sync with `app/translations/*.json` on the Parcella side when
 adding a new shortcode module or changing user-facing text -- the
 `.pot` lists every current source string as a starting point.
+
+## License
+
+GPL-2.0-or-later (see `LICENSE`), like every CMS plugin in Parcella's
+`integrations/` folder -- the license the WordPress plugin directory
+expects. Until version 3.1.0 this plugin was AGPL-3.0-or-later.
+Parcella itself stays AGPL-3.0-or-later; the plugin only talks to it
+over HTTP (see docs/ADR/0108 in the Parcella repository).

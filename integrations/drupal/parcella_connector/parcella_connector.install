@@ -1,0 +1,25 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for the Parcella Connector.
+ */
+
+use Drupal\parcella_connector\ParcellaProtocol;
+
+/**
+ * Implements hook_install().
+ *
+ * Generates the shared secret, so the settings page shows one right away,
+ * and picks an existing content type if there is no "article" (Drupal
+ * 11.4's standard profile creates none).
+ */
+function parcella_connector_install(): void {
+  $config = \Drupal::configFactory()->getEditable('parcella_connector.settings')
+    ->set('secret', ParcellaProtocol::generateSecret());
+  $types = array_keys(\Drupal::entityTypeManager()->getStorage('node_type')->loadMultiple());
+  if ($types !== [] && !in_array($config->get('node_type'), $types, TRUE)) {
+    $config->set('node_type', in_array('page', $types, TRUE) ? 'page' : reset($types));
+  }
+  $config->save();
+}

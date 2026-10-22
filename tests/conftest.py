@@ -24,6 +24,18 @@ os.environ.setdefault(
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-tests-only")
 os.environ.setdefault("ENVIRONMENT", "development")
 
+# The session fixture below drops and recreates every table. setdefault()
+# keeps a DATABASE_URL that's already set -- inside the dev `web`
+# container that's the real dev database, and running pytest there wiped
+# it (2026-07-23 and again 2026-10-23). So refuse anything that isn't a
+# test database: use ./run_tests.sh, which points at db_test.
+_test_db_name = os.environ["DATABASE_URL"].rsplit("/", 1)[-1].split("?", 1)[0]
+if not _test_db_name.endswith("_test"):
+    raise RuntimeError(
+        f"Refusing to run the tests against database {_test_db_name!r}: they drop every table. "
+        "Run ./run_tests.sh, or set DATABASE_URL to a database whose name ends in _test."
+    )
+
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 

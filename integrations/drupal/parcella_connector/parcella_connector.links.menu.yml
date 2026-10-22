@@ -1,0 +1,5 @@
+parcella_connector.settings:
+  title: 'Parcella Connector'
+  description: 'Receive website drafts from Parcella.'
+  route_name: parcella_connector.settings
+  parent: system.admin_config_services

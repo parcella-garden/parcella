@@ -1,0 +1,22 @@
+parcella_connector.settings:
+  type: config_object
+  label: 'Parcella Connector settings'
+  mapping:
+    secret:
+      type: string
+      label: 'Shared secret'
+    node_type:
+      type: string
+      label: 'Content type for drafts'
+    text_format:
+      type: string
+      label: 'Text format for the body'
+    body_field:
+      type: string
+      label: 'Field for the text'
+    image_field:
+      type: string
+      label: 'Field for the image'
+    author_uid:
+      type: integer
+      label: 'Author of new drafts'

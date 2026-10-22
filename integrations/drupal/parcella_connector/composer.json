@@ -1,0 +1,15 @@
+{
+    "name": "drupal/parcella_connector",
+    "description": "Receives website drafts from Parcella, the club management software for allotment garden associations, as unpublished content.",
+    "type": "drupal-module",
+    "license": "GPL-2.0-or-later",
+    "homepage": "https://github.com/parcella-garden/parcella/tree/main/integrations/drupal/parcella_connector",
+    "support": {
+        "issues": "https://github.com/parcella-garden/parcella/issues",
+        "source": "https://github.com/parcella-garden/parcella"
+    },
+    "require": {
+        "php": ">=8.1",
+        "drupal/core": "^10.3 || ^11"
+    }
+}
