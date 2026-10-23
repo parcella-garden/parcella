@@ -98,7 +98,8 @@
     "member_removed": "Użytkownik usunięty",
     "too_many_login_attempts": "Zbyt wiele nieudanych prób logowania. Odczekaj kilka minut i spróbuj ponownie.",
     "password_must_differ": "Nowe hasło musi różnić się od obecnego.",
-    "csrf_invalid": "Kontrola bezpieczeństwa nie powiodła się. Strona była prawdopodobnie otwarta zbyt długo -- wróć, odśwież ją i spróbuj ponownie."
+    "csrf_invalid": "Kontrola bezpieczeństwa nie powiodła się. Strona była prawdopodobnie otwarta zbyt długo -- wróć, odśwież ją i spróbuj ponownie.",
+    "own_password_reset_use_change_password": "Dla własnego konta użyj opcji „Zmień hasło”."
   },
   "auth": {
     "login": {
@@ -212,7 +213,14 @@
         "delete_text": "Trwałe usunięcie użytkownika całkowicie usuwa konto. Możliwe tylko wtedy, gdy nie ma on żadnej historii w systemie (brak utworzonych rekordów, zatwierdzeń, odczytów itp.) -- w przeciwnym razie zdezaktywuj konto.",
         "delete_confirm": "Trwale usunąć tego użytkownika? Tej operacji nie można cofnąć.",
         "button_delete": "Usuń trwale",
-        "delete_blocked_text": "Ten użytkownik ma historię aktywności gdzieś w systemie (utworzone rekordy, zatwierdzenia, odczyty liczników itp.) i nie można go trwale usunąć. Zamiast tego dezaktywuj konto."
+        "delete_blocked_text": "Ten użytkownik ma historię aktywności gdzieś w systemie (utworzone rekordy, zatwierdzenia, odczyty liczników itp.) i nie można go trwale usunąć. Zamiast tego dezaktywuj konto.",
+        "password_reset_text": "Ktoś zapomniał hasła? Parcella wygeneruje hasło tymczasowe, które przekażesz użytkownikowi. Jego otwarte sesje zostaną zakończone, a przy następnym logowaniu musi ustawić nowe hasło.",
+        "button_password_reset": "Resetuj hasło",
+        "password_reset_confirm": "Zresetować hasło użytkownika {name}? Dotychczasowe hasło natychmiast przestanie działać.",
+        "password_reset_done": "Hasło użytkownika {name} zostało zresetowane.",
+        "password_reset_copy": "Kopiuj",
+        "password_reset_shown_once": "Przekaż to hasło tymczasowe użytkownikowi. Jest wyświetlane tylko ten jeden raz; przy następnym logowaniu trzeba ustawić nowe.",
+        "password_reset_inactive_hint": "To konto jest dezaktywowane – aktywuj je, aby użytkownik mógł się zalogować."
       }
     },
     "settings": {

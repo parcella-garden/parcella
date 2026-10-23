@@ -98,7 +98,8 @@
     "member_removed": "Používateľ odstránený",
     "too_many_login_attempts": "Príliš veľa neúspešných pokusov o prihlásenie. Počkajte niekoľko minút a skúste to znova.",
     "password_must_differ": "Nové heslo sa musí líšiť od súčasného.",
-    "csrf_invalid": "Bezpečnostná kontrola zlyhala. Stránka bola pravdepodobne otvorená príliš dlho -- vráťte sa, znovu ju načítajte a skúste to znova."
+    "csrf_invalid": "Bezpečnostná kontrola zlyhala. Stránka bola pravdepodobne otvorená príliš dlho -- vráťte sa, znovu ju načítajte a skúste to znova.",
+    "own_password_reset_use_change_password": "Pre vlastný účet použite „Zmeniť heslo“."
   },
   "auth": {
     "login": {
@@ -212,7 +213,14 @@
         "delete_text": "Trvalé vymazanie používateľa účet úplne odstráni. Možné iba vtedy, ak k nemu nikde v systéme neexistuje žiadna história (žiadne vytvorené záznamy, schválenia, odpočty atď.) -- inak ho radšej deaktivujte.",
         "delete_confirm": "Trvale vymazať tohto používateľa? Túto akciu nemožno vrátiť späť.",
         "button_delete": "Trvale vymazať",
-        "delete_blocked_text": "Tento používateľ má niekde v systéme históriu aktivít (vytvorené záznamy, schválenia, odpočty meračov atď.) a nemožno ho trvale vymazať. Namiesto toho ho deaktivujte."
+        "delete_blocked_text": "Tento používateľ má niekde v systéme históriu aktivít (vytvorené záznamy, schválenia, odpočty meračov atď.) a nemožno ho trvale vymazať. Namiesto toho ho deaktivujte.",
+        "password_reset_text": "Zabudnuté heslo? Parcella vygeneruje dočasné heslo, ktoré odovzdáte používateľovi. Jeho otvorené relácie sa ukončia a pri ďalšom prihlásení si musí zvoliť nové heslo.",
+        "button_password_reset": "Obnoviť heslo",
+        "password_reset_confirm": "Obnoviť heslo používateľa {name}? Doterajšie heslo okamžite prestane fungovať.",
+        "password_reset_done": "Heslo používateľa {name} bolo obnovené.",
+        "password_reset_copy": "Kopírovať",
+        "password_reset_shown_once": "Odovzdajte toto dočasné heslo používateľovi. Zobrazí sa len tentoraz; pri ďalšom prihlásení si musí zvoliť nové.",
+        "password_reset_inactive_hint": "Tento účet je deaktivovaný – aktivujte ho, aby sa používateľ mohol prihlásiť."
       }
     },
     "settings": {

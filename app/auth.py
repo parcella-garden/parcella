@@ -36,6 +36,21 @@ def verify_password(password: str, hashed: Optional[str]) -> bool:
     return bcrypt.checkpw(password.encode(), hashed.encode())
 
 
+# No 0/O, 1/l/I: an admin reads the password out or writes it down for
+# the user (issue #244), so every character must be unambiguous.
+_TEMPORARY_PASSWORD_ALPHABET = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+
+def generate_temporary_password() -> str:
+    """A one-time password for an admin-initiated reset, e.g.
+    "kP7d-xR3m-2qWz-hN8c" (~90 bits). The account is flagged
+    must_change_password, so it only gets the user to the change form."""
+    return "-".join(
+        "".join(secrets.choice(_TEMPORARY_PASSWORD_ALPHABET) for _ in range(4))
+        for _ in range(4)
+    )
+
+
 def create_invitation_token(email: str) -> str:
     # secrets.token_urlsafe guarantees two invitations to the same address
     # within the same second get different tokens (itsdangerous' own

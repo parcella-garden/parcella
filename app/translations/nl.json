@@ -98,7 +98,8 @@
     "member_removed": "Gebruiker verwijderd",
     "too_many_login_attempts": "Te veel mislukte inlogpogingen. Wacht een paar minuten en probeer het opnieuw.",
     "password_must_differ": "Het nieuwe wachtwoord moet verschillen van het huidige.",
-    "csrf_invalid": "Beveiligingscontrole mislukt. De pagina stond waarschijnlijk te lang open -- ga terug, herlaad de pagina en probeer het opnieuw."
+    "csrf_invalid": "Beveiligingscontrole mislukt. De pagina stond waarschijnlijk te lang open -- ga terug, herlaad de pagina en probeer het opnieuw.",
+    "own_password_reset_use_change_password": "Gebruik voor uw eigen account „Wachtwoord wijzigen”."
   },
   "auth": {
     "login": {
@@ -212,7 +213,14 @@
         "delete_text": "Een gebruiker permanent verwijderen verwijdert het account volledig. Alleen mogelijk als er nergens in het systeem geschiedenis over deze persoon bestaat (geen aangemaakte records, goedkeuringen, standen, enz.) -- deactiveer anders in plaats daarvan.",
         "delete_confirm": "Deze gebruiker permanent verwijderen? Dit kan niet ongedaan worden gemaakt.",
         "button_delete": "Permanent verwijderen",
-        "delete_blocked_text": "Deze gebruiker heeft ergens in het systeem activiteitengeschiedenis (aangemaakte records, goedkeuringen, meterstanden, enz.) en kan niet permanent worden verwijderd. Deactiveer in plaats daarvan."
+        "delete_blocked_text": "Deze gebruiker heeft ergens in het systeem activiteitengeschiedenis (aangemaakte records, goedkeuringen, meterstanden, enz.) en kan niet permanent worden verwijderd. Deactiveer in plaats daarvan.",
+        "password_reset_text": "Wachtwoord vergeten? Parcella maakt een tijdelijk wachtwoord aan dat u aan de gebruiker doorgeeft. Open sessies worden beëindigd en bij de volgende aanmelding moet een nieuw wachtwoord worden gekozen.",
+        "button_password_reset": "Wachtwoord resetten",
+        "password_reset_confirm": "Het wachtwoord van {name} resetten? Het huidige wachtwoord werkt dan meteen niet meer.",
+        "password_reset_done": "Het wachtwoord van {name} is gereset.",
+        "password_reset_copy": "Kopiëren",
+        "password_reset_shown_once": "Geef dit tijdelijke wachtwoord door aan de gebruiker. Het wordt alleen deze ene keer getoond; bij de volgende aanmelding moet een nieuw wachtwoord worden gekozen.",
+        "password_reset_inactive_hint": "Dit account is gedeactiveerd – activeer het zodat de gebruiker kan inloggen."
       }
     },
     "settings": {

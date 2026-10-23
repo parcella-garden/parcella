@@ -98,7 +98,8 @@
     "member_removed": "Benutzer entfernt",
     "too_many_login_attempts": "Zu viele fehlgeschlagene Anmeldeversuche. Bitte einige Minuten warten und erneut versuchen.",
     "password_must_differ": "Das neue Passwort muss sich vom aktuellen unterscheiden.",
-    "csrf_invalid": "Sicherheitsprüfung fehlgeschlagen. Die Seite war vermutlich zu lange geöffnet -- bitte zurückgehen, neu laden und erneut versuchen."
+    "csrf_invalid": "Sicherheitsprüfung fehlgeschlagen. Die Seite war vermutlich zu lange geöffnet -- bitte zurückgehen, neu laden und erneut versuchen.",
+    "own_password_reset_use_change_password": "Für Ihr eigenes Konto nutzen Sie bitte „Passwort ändern“."
   },
   "auth": {
     "login": {
@@ -212,7 +213,14 @@
         "delete_text": "Das endgültige Löschen entfernt das Benutzerkonto vollständig. Nur möglich, wenn nirgendwo im System eine Historie zu dieser Person besteht (keine erstellten Datensätze, Genehmigungen, Ablesungen usw.) -- andernfalls stattdessen deaktivieren.",
         "delete_confirm": "Diesen Benutzer endgültig löschen? Dies kann nicht rückgängig gemacht werden.",
         "button_delete": "Endgültig löschen",
-        "delete_blocked_text": "Dieser Benutzer hat irgendwo im System eine Aktivitätshistorie (erstellte Datensätze, Genehmigungen, Zählerstände usw.) und kann nicht endgültig gelöscht werden. Deaktivieren Sie ihn stattdessen."
+        "delete_blocked_text": "Dieser Benutzer hat irgendwo im System eine Aktivitätshistorie (erstellte Datensätze, Genehmigungen, Zählerstände usw.) und kann nicht endgültig gelöscht werden. Deaktivieren Sie ihn stattdessen.",
+        "password_reset_text": "Passwort vergessen? Parcella erzeugt ein vorläufiges Passwort, das Sie an die Person weitergeben. Ihre offenen Sitzungen werden beendet, und beim nächsten Login muss sie ein neues Passwort wählen.",
+        "button_password_reset": "Passwort zurücksetzen",
+        "password_reset_confirm": "Passwort von {name} zurücksetzen? Das bisherige Passwort funktioniert sofort nicht mehr.",
+        "password_reset_done": "Das Passwort von {name} wurde zurückgesetzt.",
+        "password_reset_copy": "Kopieren",
+        "password_reset_shown_once": "Geben Sie dieses vorläufige Passwort an die Person weiter. Es wird nur dieses eine Mal angezeigt; beim nächsten Login muss ein neues gewählt werden.",
+        "password_reset_inactive_hint": "Dieses Konto ist deaktiviert – aktivieren Sie es, damit sich die Person anmelden kann."
       }
     },
     "settings": {

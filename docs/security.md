@@ -16,6 +16,7 @@ root rather than opening a public issue.
 | REST API | JWT bearer tokens, HS256, separate role system (`app/api_auth.py`) |
 | Public signup API | one shared installation token in a custom header + honeypot + per-IP rate limit ([module doc](./module-public-api.md)) |
 | ICS feeds | shared installation token, constant-time comparison (`app/ics_utils.py`) |
+| Forgotten passwords | no self-service reset; an admin resets, Parcella generates a one-time password shown once, the user must change it at the next login ([ADR 0109](./ADR/0109-admin-initiated-password-reset.md)) |
 | Login | failure-only throttle per IP and per IP+account ([ADR 0065](./ADR/0065-credential-and-deployment-hardening.md)) |
 | Forged requests | `SameSite=Lax` **plus** a double-submit CSRF token ([ADR 0064](./ADR/0064-csrf-and-security-response-headers.md)) |
 | Response headers | CSP, nosniff, `X-Frame-Options`, referrer policy, HSTS outside development |

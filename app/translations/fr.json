@@ -98,7 +98,8 @@
     "member_removed": "Utilisateur retiré",
     "too_many_login_attempts": "Trop de tentatives de connexion échouées. Veuillez patienter quelques minutes et réessayer.",
     "password_must_differ": "Le nouveau mot de passe doit être différent de l'actuel.",
-    "csrf_invalid": "Échec du contrôle de sécurité. La page est probablement restée ouverte trop longtemps -- revenez en arrière, rechargez-la et réessayez."
+    "csrf_invalid": "Échec du contrôle de sécurité. La page est probablement restée ouverte trop longtemps -- revenez en arrière, rechargez-la et réessayez.",
+    "own_password_reset_use_change_password": "Pour votre propre compte, utilisez « Changer le mot de passe »."
   },
   "auth": {
     "login": {
@@ -212,7 +213,14 @@
         "delete_text": "La suppression définitive d'un utilisateur retire complètement le compte. Possible uniquement s'il n'a aucun historique nulle part dans le système (aucun enregistrement créé, approbation, relevé, etc.) -- sinon, désactivez-le plutôt.",
         "delete_confirm": "Supprimer définitivement cet utilisateur ? Cette action est irréversible.",
         "button_delete": "Supprimer définitivement",
-        "delete_blocked_text": "Cet utilisateur a un historique d'activité quelque part dans le système (enregistrements créés, approbations, relevés de compteurs, etc.) et ne peut pas être supprimé définitivement. Désactivez-le plutôt."
+        "delete_blocked_text": "Cet utilisateur a un historique d'activité quelque part dans le système (enregistrements créés, approbations, relevés de compteurs, etc.) et ne peut pas être supprimé définitivement. Désactivez-le plutôt.",
+        "password_reset_text": "Mot de passe oublié ? Parcella génère un mot de passe temporaire que vous transmettez à l'utilisateur. Ses sessions ouvertes sont fermées et il doit choisir un nouveau mot de passe à la prochaine connexion.",
+        "button_password_reset": "Réinitialiser le mot de passe",
+        "password_reset_confirm": "Réinitialiser le mot de passe de {name} ? L'ancien mot de passe cesse immédiatement de fonctionner.",
+        "password_reset_done": "Le mot de passe de {name} a été réinitialisé.",
+        "password_reset_copy": "Copier",
+        "password_reset_shown_once": "Transmettez ce mot de passe temporaire à l'utilisateur. Il n'est affiché qu'une seule fois ; à la prochaine connexion, un nouveau mot de passe doit être choisi.",
+        "password_reset_inactive_hint": "Ce compte est désactivé – activez-le pour que l'utilisateur puisse se connecter."
       }
     },
     "settings": {

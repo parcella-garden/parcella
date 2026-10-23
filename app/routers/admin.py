@@ -20,7 +20,7 @@ from app.models import (
     CalendarEvent, CouncilPresence, CouncilAbsence, Announcement, InventoryItem,
     ItemLoan, Task, TaskAssignee, Member, ClubBoardMember, ExternalTaskLink,
 )
-from app.auth import require_system_admin, create_invitation_token, hash_password
+from app.auth import require_system_admin, create_invitation_token, hash_password, generate_temporary_password
 from app.permissions import is_last_admin
 from app.email_service import send_email
 from app.crypto_utils import encrypt
@@ -653,6 +653,12 @@ async def user_edit_page(
     if not target:
         raise HTTPException(status_code=404, detail=t_for(request, "errors.user_not_found"))
 
+    return templates.TemplateResponse(
+        "admin/user_edit.html", await _user_edit_context(request, db, admin, target),
+    )
+
+
+async def _user_edit_context(request: Request, db: AsyncSession, admin: User, target: User) -> dict:
     can_delete = False
     if target.id != admin.id:
         is_last_admin_lock = (
@@ -672,13 +678,50 @@ async def user_edit_page(
     # button (needs the membership id) or an Add button per group.
     target_memberships = {m.group_id: m.id for m in memberships_result.scalars().all()}
 
-    return templates.TemplateResponse(
-        "admin/user_edit.html",
-        {
-            "request": request, "user": admin, "target": target, "UserRole": UserRole,
-            "can_delete": can_delete, "all_groups": all_groups, "target_memberships": target_memberships,
-        },
+    return {
+        "request": request, "user": admin, "target": target, "UserRole": UserRole,
+        "can_delete": can_delete, "all_groups": all_groups, "target_memberships": target_memberships,
+    }
+
+
+@router.post("/users/{user_id}/reset-password", response_class=HTMLResponse)
+async def user_reset_password(
+    user_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Issue #244, ADR 0109: there's no self-service "forgot password" by
+    design, so an admin resets it. Parcella generates a temporary
+    password, shows it once, and the user must change it at the next
+    login (the same must_change_password flow as the bootstrap admin).
+    The page is rendered directly rather than redirected to, so the
+    password never ends up in a URL, the browser history or a log."""
+    admin = await require_system_admin(request, db)
+
+    if user_id == admin.id:
+        return RedirectResponse(
+            f"/admin/users/{user_id}/edit?error={urllib.parse.quote(t_for(request, 'errors.own_password_reset_use_change_password'))}",
+            status_code=302,
+        )
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    target = result.scalar_one_or_none()
+    if not target:
+        raise HTTPException(status_code=404, detail=t_for(request, "errors.user_not_found"))
+
+    temp_password = generate_temporary_password()
+    target.password_hash = hash_password(temp_password)
+    target.must_change_password = True
+    # Logs out every open session of that account.
+    target.session_version += 1
+    await db.commit()
+
+    context = await _user_edit_context(request, db, admin, target)
+    response = templates.TemplateResponse(
+        "admin/user_edit.html", {**context, "temp_password": temp_password},
     )
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @router.post("/users/{user_id}/edit")

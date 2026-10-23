@@ -98,7 +98,8 @@
     "member_removed": "User removed",
     "too_many_login_attempts": "Too many failed login attempts. Please wait a few minutes and try again.",
     "password_must_differ": "The new password must be different from the current one.",
-    "csrf_invalid": "Security check failed. The page was probably open for too long -- please go back, reload it and try again."
+    "csrf_invalid": "Security check failed. The page was probably open for too long -- please go back, reload it and try again.",
+    "own_password_reset_use_change_password": "Use \"Change password\" for your own account."
   },
   "auth": {
     "login": {
@@ -212,7 +213,14 @@
         "delete_text": "Permanently deleting a user removes the account entirely. Only possible if they have no history anywhere in the system (no created records, approvals, readings, etc.) -- otherwise, deactivate instead.",
         "delete_confirm": "Permanently delete this user? This cannot be undone.",
         "button_delete": "Delete permanently",
-        "delete_blocked_text": "This user has activity history somewhere in the system (created records, approvals, meter readings, etc.) and can't be permanently deleted. Deactivate them instead."
+        "delete_blocked_text": "This user has activity history somewhere in the system (created records, approvals, meter readings, etc.) and can't be permanently deleted. Deactivate them instead.",
+        "password_reset_text": "Forgot their password? Parcella generates a temporary password that you pass on to the user. Their open sessions end, and they must choose a new password at the next login.",
+        "button_password_reset": "Reset password",
+        "password_reset_confirm": "Reset the password of {name}? The current password stops working immediately.",
+        "password_reset_done": "The password of {name} has been reset.",
+        "password_reset_copy": "Copy",
+        "password_reset_shown_once": "Pass this temporary password on to the user. It is shown only this once; at the next login they must choose a new one.",
+        "password_reset_inactive_hint": "This account is deactivated -- activate it so the user can log in."
       }
     },
     "settings": {

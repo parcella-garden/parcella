@@ -16,6 +16,23 @@
     <i class="bi bi-exclamation-circle-fill"></i> {{ request.query_params.get('error') }}
 </div>
 {% endif %}
+{% if temp_password %}
+<div class="alert alert-success mb-3" style="max-width: 640px;">
+    <div class="d-flex gap-2 align-items-center mb-2">
+        <i class="bi bi-key-fill"></i> <strong>{{ t('admin.users.edit.password_reset_done', name=target.name) }}</strong>
+    </div>
+    <div class="d-flex gap-2 align-items-center flex-wrap mb-2">
+        <code id="temp_password" class="fs-5 px-2 py-1 bg-white border rounded user-select-all">{{ temp_password }}</code>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="copy_temp_password">
+            <i class="bi bi-clipboard me-1"></i>{{ t('admin.users.edit.password_reset_copy') }}
+        </button>
+    </div>
+    <div class="small">{{ t('admin.users.edit.password_reset_shown_once') }}</div>
+    {% if not target.is_active %}
+    <div class="small mt-1"><i class="bi bi-exclamation-triangle me-1"></i>{{ t('admin.users.edit.password_reset_inactive_hint') }}</div>
+    {% endif %}
+</div>
+{% endif %}
 {% if request.query_params.get('avatar_error') == 'invalid_avatar_type' %}
 <div class="alert alert-danger d-flex gap-2 align-items-center mb-3" style="max-width: 640px;">
     <i class="bi bi-exclamation-circle-fill"></i> {{ t('auth.avatar.error_type') }}
@@ -174,6 +191,17 @@
 
                 <hr>
 
+                <p class="text-muted small">{{ t('admin.users.edit.password_reset_text') }}</p>
+                <form method="post" action="/admin/users/{{ target.id }}/reset-password"
+                      onsubmit="return confirm({{ t('admin.users.edit.password_reset_confirm', name=target.name)|tojson|forceescape }})">
+                    {{ csrf_field() }}
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="bi bi-key me-1"></i>{{ t('admin.users.edit.button_password_reset') }}
+                    </button>
+                </form>
+
+                <hr>
+
                 {% if can_delete %}
                 <p class="text-muted small">{{ t('admin.users.edit.delete_text') }}</p>
                 <form method="post" action="/admin/users/{{ target.id }}/delete"
@@ -192,4 +220,14 @@
 </div>
 {% endif %}
 
+{% endblock %}
+
+{% block extra_scripts %}
+{% if temp_password %}
+<script>
+    document.getElementById('copy_temp_password').addEventListener('click', function () {
+        navigator.clipboard.writeText(document.getElementById('temp_password').textContent.trim());
+    });
+</script>
+{% endif %}
 {% endblock %}
