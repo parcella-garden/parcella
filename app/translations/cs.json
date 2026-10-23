@@ -1604,7 +1604,9 @@
       "delete_confirm": "Opravdu chcete smazat tento záznam?",
       "no_active": "V {year} nejsou žádné aktivní sponzoringy.",
       "former_card_title": "Dřívější sponzoringy",
-      "no_former": "Nejsou evidovány žádné dřívější sponzoringy."
+      "no_former": "Nejsou evidovány žádné dřívější sponzoringy.",
+      "dates_invalid_badge": "Konec před začátkem",
+      "dates_invalid_hint": "Datum ukončení tohoto patronství je před datem zahájení, proto se nezapočítává v žádném roce. Upravte jej a opravte data."
     },
     "errors": {
       "configuration_not_found": "Konfigurace nebyla nalezena",
@@ -1616,7 +1618,8 @@
       "no_configuration_for_year": "Pro {year} neexistuje žádná konfigurace",
       "task_not_found": "Úkol nenalezen",
       "task_not_scheduled": "Tento úkol ještě není přiřazen k žádné směně",
-      "participant_not_in_session": "Tento účastník není na tuto směnu přihlášen"
+      "participant_not_in_session": "Tento účastník není na tuto směnu přihlášen",
+      "sponsorship_end_before_start": "Datum ukončení je před datem zahájení. Zkontrolujte prosím data – takové patronství by se nikdy nezapočítalo."
     },
     "tasks": {
       "title": "Úkoly",

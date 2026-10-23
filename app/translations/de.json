@@ -1604,7 +1604,9 @@
       "delete_confirm": "Eintrag wirklich löschen?",
       "no_active": "Keine aktiven Patenschaften im Jahr {year}.",
       "former_card_title": "Frühere Patenschaften",
-      "no_former": "Keine früheren Patenschaften hinterlegt."
+      "no_former": "Keine früheren Patenschaften hinterlegt.",
+      "dates_invalid_badge": "Ende vor Beginn",
+      "dates_invalid_hint": "Das Enddatum dieser Patenschaft liegt vor dem Startdatum, deshalb wird sie in keinem Jahr angerechnet. Bearbeiten Sie sie, um die Daten zu korrigieren."
     },
     "errors": {
       "configuration_not_found": "Konfiguration nicht gefunden",
@@ -1616,7 +1618,8 @@
       "no_configuration_for_year": "Keine Konfiguration für {year}",
       "task_not_found": "Aufgabe nicht gefunden",
       "task_not_scheduled": "Diese Aufgabe ist noch keinem Einsatz zugeordnet",
-      "participant_not_in_session": "Dieser Teilnehmer ist für diesen Einsatz nicht angemeldet"
+      "participant_not_in_session": "Dieser Teilnehmer ist für diesen Einsatz nicht angemeldet",
+      "sponsorship_end_before_start": "Das Enddatum liegt vor dem Startdatum. Bitte prüfen Sie die Daten – eine solche Patenschaft würde nie angerechnet."
     },
     "tasks": {
       "title": "Aufgaben",

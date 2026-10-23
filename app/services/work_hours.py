@@ -565,10 +565,22 @@ async def update_participation(db: AsyncSession, participation: SessionParticipa
 # ---------------------------------------------------------------------------
 
 
+class SponsorshipDatesError(ValueError):
+    """End date before start date (issue #245). Such a sponsorship
+    overlaps no year at all, so the evaluation silently credited it
+    nothing -- a typo in the year (2025 for 2026) was enough."""
+
+
+def _check_sponsorship_dates(valid_from: Optional[date], valid_until: Optional[date]) -> None:
+    if valid_from and valid_until and valid_until < valid_from:
+        raise SponsorshipDatesError("sponsorship_end_before_start")
+
+
 async def create_sponsorship(
     db: AsyncSession, *, member_id: Optional[str], area: str, description: Optional[str],
     credited_hours: float, valid_from: Optional[date] = None, valid_until: Optional[date] = None,
 ) -> Sponsorship:
+    _check_sponsorship_dates(valid_from, valid_until)
     sponsorship = Sponsorship(
         member_id=member_id or None, area=area.strip(), description=(description or "").strip() or None,
         credited_hours=credited_hours, valid_from=valid_from, valid_until=valid_until,
@@ -678,6 +690,12 @@ async def list_hours_transfers(db: AsyncSession, year: int) -> List[HoursTransfe
 
 
 async def update_sponsorship(db: AsyncSession, sponsorship: Sponsorship, **fields) -> Sponsorship:
+    # Checked against the stored date for a partial (API) update, and
+    # before anything is changed.
+    _check_sponsorship_dates(
+        fields.get("valid_from", sponsorship.valid_from),
+        fields.get("valid_until", sponsorship.valid_until),
+    )
     for key in ("member_id", "area", "description", "credited_hours", "valid_from", "valid_until"):
         if key not in fields:
             continue

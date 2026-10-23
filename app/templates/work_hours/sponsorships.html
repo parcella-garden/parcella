@@ -9,6 +9,12 @@
 {% endblock %}
 
 {% block content %}
+{% if error %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-circle-fill"></i> {{ t('work_hours.errors.' ~ error) }}
+</div>
+{% endif %}
+{% set f = entered or {} %}
 <div class="row g-3">
     <div class="col-12">
     {% if has_perm(request, 'work_hours', 'write') %}
@@ -22,7 +28,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">{{ t('work_hours.sponsorships.area_label') }} <span class="text-danger">*</span></label>
                         <input type="text" name="area" class="form-control" list="bereiche-liste"
-                               placeholder="{{ t('work_hours.sponsorships.area_placeholder') }}" required>
+                               value="{{ f.area }}" placeholder="{{ t('work_hours.sponsorships.area_placeholder') }}" required>
                         <datalist id="bereiche-liste">
                             {% for b in all_areas %}
                             <option value="{{ b }}">
@@ -38,7 +44,7 @@
                             <option value="">{{ t('work_hours.sponsorships.not_yet_assigned') }}</option>
                             {% for m in all_members %}
                             {% set m_plots = m.parcel_assignments | selectattr('is_current') | map(attribute='parcel.plot_number') | join(', ') %}
-                            <option value="{{ m.id }}">{% if m_plots %}{{ m_plots }} - {% endif %}{{ m.full_name }}</option>
+                            <option value="{{ m.id }}"{% if f.member_id == m.id %} selected{% endif %}>{% if m_plots %}{{ m_plots }} - {% endif %}{{ m.full_name }}</option>
                             {% endfor %}
                         </select>
                         <div class="form-text">{{ t('work_hours.sponsorships.member_hint') }}</div>
@@ -46,13 +52,13 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">{{ t('work_hours.sponsorships.description_label') }}</label>
                         <textarea name="description" class="form-control" rows="2"
-                                  placeholder="{{ t('work_hours.sponsorships.description_placeholder') }}"></textarea>
+                                  placeholder="{{ t('work_hours.sponsorships.description_placeholder') }}">{{ f.description }}</textarea>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">{{ t('work_hours.sponsorships.credited_hours_label') }} <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <input type="text" name="credited_hours" class="form-control"
-                                   value="{{ config.hours_required if config else '' }}"
+                                   value="{{ f.credited_hours if entered else (config.hours_required if config else '') }}"
                                    placeholder="{{ t('work_hours.sponsorships.credited_hours_placeholder') }}" required>
                             <span class="input-group-text">h</span>
                         </div>
@@ -67,12 +73,12 @@
                     <div class="row g-2 mb-3">
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold">{{ t('work_hours.sponsorships.valid_from_label') }}</label>
-                            <input type="date" name="valid_from" class="form-control">
+                            <input type="date" name="valid_from" class="form-control" value="{{ f.valid_from }}">
                             <div class="form-text">{{ t('work_hours.sponsorships.empty_means_not_yet_claimed') }}</div>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold">{{ t('work_hours.sponsorships.valid_until_label') }}</label>
-                            <input type="date" name="valid_until" class="form-control">
+                            <input type="date" name="valid_until" class="form-control{% if error %} is-invalid{% endif %}" value="{{ f.valid_until }}">
                             <div class="form-text">{{ t('work_hours.sponsorships.empty_means_ongoing') }}</div>
                         </div>
                     </div>
@@ -133,6 +139,9 @@
                                     {% if p.valid_from %}
                                     {{ p.valid_from.strftime('%d.%m.%Y') }} –
                                     {{ p.valid_until.strftime('%d.%m.%Y') if p.valid_until else t('work_hours.sponsorships.ongoing') }}
+                                    {% if p.valid_from and p.valid_until and p.valid_until < p.valid_from %}
+                                    <span class="badge ms-1" style="background: #fee2e2; color: #991b1b;" title="{{ t('work_hours.sponsorships.dates_invalid_hint') }}">{{ t('work_hours.sponsorships.dates_invalid_badge') }}</span>
+                                    {% endif %}
                                     {% else %}
                                     <span class="fst-italic">{{ t('work_hours.sponsorships.not_yet_claimed') }}</span>
                                     {% endif %}
@@ -208,6 +217,9 @@
                                 <td class="text-muted" style="font-size: 0.85rem;">
                                     {{ p.valid_from.strftime('%d.%m.%Y') if p.valid_from else '–' }} –
                                     {{ p.valid_until.strftime('%d.%m.%Y') }}
+                                    {% if p.valid_from and p.valid_until and p.valid_until < p.valid_from %}
+                                    <span class="badge ms-1" style="background: #fee2e2; color: #991b1b;" title="{{ t('work_hours.sponsorships.dates_invalid_hint') }}">{{ t('work_hours.sponsorships.dates_invalid_badge') }}</span>
+                                    {% endif %}
                                 </td>
                                 <td class="text-end">
                                     {% if has_perm(request, 'work_hours', 'write') %}
@@ -242,4 +254,16 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Issue #245: the end date can't be before the start date.
+    document.querySelectorAll('input[name="valid_from"]').forEach(function (from) {
+        const until = from.form.querySelector('input[name="valid_until"]');
+        const sync = function () { until.min = from.value; };
+        from.addEventListener('change', sync);
+        sync();
+    });
+</script>
 {% endblock %}

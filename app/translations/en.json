@@ -1604,7 +1604,9 @@
       "delete_confirm": "Really delete this entry?",
       "no_active": "No active sponsorships in {year}.",
       "former_card_title": "Former Sponsorships",
-      "no_former": "No former sponsorships on file."
+      "no_former": "No former sponsorships on file.",
+      "dates_invalid_badge": "End before start",
+      "dates_invalid_hint": "This sponsorship's end date is before its start date, so it isn't counted in any year. Edit it to correct the dates."
     },
     "errors": {
       "configuration_not_found": "Configuration not found",
@@ -1616,7 +1618,8 @@
       "no_configuration_for_year": "No configuration for {year}",
       "task_not_found": "Task not found",
       "task_not_scheduled": "This task isn't scheduled to a session yet",
-      "participant_not_in_session": "This participant isn't signed up for this session"
+      "participant_not_in_session": "This participant isn't signed up for this session",
+      "sponsorship_end_before_start": "The end date is before the start date. Please check the dates -- a sponsorship like that would never be counted."
     },
     "tasks": {
       "title": "Tasks",

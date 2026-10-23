@@ -1604,7 +1604,9 @@
       "delete_confirm": "Deze invoer echt verwijderen?",
       "no_active": "Geen actieve sponsorschappen in {year}.",
       "former_card_title": "Voormalige sponsorschappen",
-      "no_former": "Geen voormalige sponsorschappen bekend."
+      "no_former": "Geen voormalige sponsorschappen bekend.",
+      "dates_invalid_badge": "Einde vóór begin",
+      "dates_invalid_hint": "De einddatum van dit peterschap ligt vóór de begindatum, daarom telt het in geen enkel jaar mee. Bewerk het om de data te corrigeren."
     },
     "errors": {
       "configuration_not_found": "Configuratie niet gevonden",
@@ -1616,7 +1618,8 @@
       "no_configuration_for_year": "Geen configuratie voor {year}",
       "task_not_found": "Taak niet gevonden",
       "task_not_scheduled": "Deze taak is nog aan geen enkele sessie toegewezen",
-      "participant_not_in_session": "Deze deelnemer is niet aangemeld voor deze sessie"
+      "participant_not_in_session": "Deze deelnemer is niet aangemeld voor deze sessie",
+      "sponsorship_end_before_start": "De einddatum ligt vóór de begindatum. Controleer de data – zo'n peterschap zou nooit worden meegeteld."
     },
     "tasks": {
       "title": "Taken",

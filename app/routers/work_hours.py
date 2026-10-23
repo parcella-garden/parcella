@@ -36,7 +36,7 @@ from app.services.work_hours import (
     get_config_for_year, evaluate_year, save_configuration_for_year,
     create_club_role, update_club_role, assign_member_to_club_role,
     create_session, update_session, add_participation, update_participation,
-    create_sponsorship, update_sponsorship,
+    create_sponsorship, update_sponsorship, SponsorshipDatesError,
     create_hours_transfer, list_hours_transfers,
     create_task, schedule_task, assign_task_to_participant, toggle_task_done,
     new_participation_cutoff, notify_new_participation, mark_signups_reviewed,
@@ -884,10 +884,13 @@ async def sponsorships_page(
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "work_hours", "read")
+    return await _render_sponsorships_page(request, db, user, year or date.today().year)
 
-    if not year:
-        year = date.today().year
 
+async def _render_sponsorships_page(
+    request: Request, db: AsyncSession, user, year: int, *,
+    error: Optional[str] = None, entered: Optional[dict] = None,
+):
     query = (
         select(Sponsorship)
         .options(selectinload(Sponsorship.member))
@@ -957,7 +960,10 @@ async def sponsorships_page(
             "config": config,
             "all_members": all_members,
             "year": year,
+            "error": error,
+            "entered": entered,
         },
+        status_code=400 if error else 200,
     )
 
 
@@ -972,14 +978,24 @@ async def sponsorship_create(
     valid_until: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
-    await require_permission(request, db, "work_hours", "write")
+    user = await require_permission(request, db, "work_hours", "write")
 
-    await create_sponsorship(
-        db, member_id=member_id, area=area, description=description,
-        credited_hours=float(credited_hours.replace(",", ".")),
-        valid_from=(date.fromisoformat(valid_from) if valid_from.strip() else None),
-        valid_until=(date.fromisoformat(valid_until) if valid_until.strip() else None),
-    )
+    try:
+        await create_sponsorship(
+            db, member_id=member_id, area=area, description=description,
+            credited_hours=float(credited_hours.replace(",", ".")),
+            valid_from=(date.fromisoformat(valid_from) if valid_from.strip() else None),
+            valid_until=(date.fromisoformat(valid_until) if valid_until.strip() else None),
+        )
+    except SponsorshipDatesError as e:
+        # Show the form again with what was typed, instead of losing it.
+        entered = dict(
+            member_id=member_id, area=area, description=description,
+            credited_hours=credited_hours, valid_from=valid_from, valid_until=valid_until,
+        )
+        return await _render_sponsorships_page(
+            request, db, user, date.today().year, error=str(e), entered=entered,
+        )
     await db.commit()
     return RedirectResponse("/work-hours/sponsorships", status_code=302)
 
@@ -1001,6 +1017,13 @@ async def sponsorship_edit_page(
     if not sponsorship:
         raise HTTPException(status_code=404, detail=t_for(request, "work_hours.errors.sponsorship_not_found"))
 
+    return await _render_sponsorship_form(request, db, user, sponsorship)
+
+
+async def _render_sponsorship_form(
+    request: Request, db: AsyncSession, user, sponsorship: Sponsorship, *,
+    error: Optional[str] = None, entered: Optional[dict] = None,
+):
     members_result = await db.execute(
         select(Member)
         .options(selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel))
@@ -1022,7 +1045,10 @@ async def sponsorship_edit_page(
             "sponsorship": sponsorship,
             "all_members": all_members,
             "all_areas": all_areas,
+            "error": error,
+            "entered": entered,
         },
+        status_code=400 if error else 200,
     )
 
 
@@ -1038,20 +1064,28 @@ async def sponsorship_update(
     valid_until: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
-    await require_permission(request, db, "work_hours", "write")
+    user = await require_permission(request, db, "work_hours", "write")
 
     result = await db.execute(select(Sponsorship).where(Sponsorship.id == sponsorship_id))
     sponsorship = result.scalar_one_or_none()
     if not sponsorship:
         raise HTTPException(status_code=404, detail=t_for(request, "work_hours.errors.sponsorship_not_found"))
 
-    await update_sponsorship(
-        db, sponsorship,
-        member_id=member_id, area=area, description=description,
-        credited_hours=float(credited_hours.replace(",", ".")),
-        valid_from=(date.fromisoformat(valid_from) if valid_from.strip() else None),
-        valid_until=(date.fromisoformat(valid_until) if valid_until.strip() else None),
-    )
+    try:
+        await update_sponsorship(
+            db, sponsorship,
+            member_id=member_id, area=area, description=description,
+            credited_hours=float(credited_hours.replace(",", ".")),
+            valid_from=(date.fromisoformat(valid_from) if valid_from.strip() else None),
+            valid_until=(date.fromisoformat(valid_until) if valid_until.strip() else None),
+        )
+    except SponsorshipDatesError as e:
+        # Show the form again with what was typed, instead of losing it.
+        entered = dict(
+            member_id=member_id, area=area, description=description,
+            credited_hours=credited_hours, valid_from=valid_from, valid_until=valid_until,
+        )
+        return await _render_sponsorship_form(request, db, user, sponsorship, error=str(e), entered=entered)
 
     await db.commit()
 

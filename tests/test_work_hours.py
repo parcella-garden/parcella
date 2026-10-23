@@ -863,3 +863,99 @@ async def test_member_who_moved_plots_mid_year_counts_once(client, admin_user):
     labels = {row["label"] for row in (await client.get("/api/v1/work-hours/evaluation/2026", headers=headers)).json()}
     assert "G239Y" in labels
     assert "G239X" not in labels, "the plot they left has no other tenant in the year"
+
+
+async def test_sponsorship_ended_mid_year_still_counts_its_full_hours(client, admin_user):
+    """Issue #245: a sponsorship cancelled during the year still counts
+    with its full credited hours for that year."""
+    from app.models import Member
+    from app.services.work_hours import calculate_hours_for_member
+
+    async with AsyncSessionLocal() as db:
+        member = Member(first_name="Detlef", last_name="Hedge")
+        db.add(member)
+        await db.flush()
+        db.add(Sponsorship(
+            member_id=member.id, area="Hedge at the BBQ area", credited_hours=2.5,
+            valid_from=date(2026, 3, 21), valid_until=date(2026, 5, 20),
+        ))
+        await db.commit()
+        hours = await calculate_hours_for_member(db, member.id, 2026)
+    assert hours["sponsorship_hours"] == 2.5
+
+
+async def test_sponsorship_end_before_start_is_rejected(client, admin_user):
+    """Issue #245: a sponsorship entered as 21.03.2026 - 20.05.2025 (a
+    typo in the year) overlaps no year at all, so the evaluation silently
+    credited the member nothing. The web forms and the API must refuse
+    it, and the web forms must keep what was typed."""
+    from sqlalchemy import select
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    bad_dates = {"valid_from": "2026-03-21", "valid_until": "2025-05-20"}
+
+    create = await client.post(
+        "/work-hours/sponsorships/new",
+        data={"area": "Hedge at the BBQ area", "credited_hours": "2.5", **bad_dates},
+    )
+    assert create.status_code == 400
+    assert "The end date is before the start date" in create.text
+    assert 'value="Hedge at the BBQ area"' in create.text
+    assert 'value="2025-05-20"' in create.text
+
+    async with AsyncSessionLocal() as db:
+        assert (await db.execute(select(Sponsorship))).scalars().all() == []
+
+    ok = await client.post(
+        "/work-hours/sponsorships/new",
+        data={"area": "Hedge at the BBQ area", "credited_hours": "2.5", "valid_from": "2026-03-21"},
+    )
+    assert ok.status_code == 302
+    async with AsyncSessionLocal() as db:
+        sponsorship_id = (await db.execute(select(Sponsorship.id))).scalar_one()
+
+    edit = await client.post(
+        f"/work-hours/sponsorships/{sponsorship_id}/edit",
+        data={"area": "Renamed hedge", "credited_hours": "2.5", **bad_dates},
+    )
+    assert edit.status_code == 400
+    assert "The end date is before the start date" in edit.text
+    assert 'value="Renamed hedge"' in edit.text
+
+    headers = auth_header(await login(client, "admin@example.com"))
+    api_create = await client.post(
+        "/api/v1/work-hours/sponsorships",
+        json={"area": "API hedge", "credited_hours": "2.5", **bad_dates},
+        headers=headers,
+    )
+    assert api_create.status_code == 422
+    # A partial update is checked against the stored start date.
+    api_update = await client.put(
+        f"/api/v1/work-hours/sponsorships/{sponsorship_id}",
+        json={"valid_until": "2025-05-20"},
+        headers=headers,
+    )
+    assert api_update.status_code == 422
+
+    async with AsyncSessionLocal() as db:
+        stored = await db.get(Sponsorship, sponsorship_id)
+        assert stored.area == "Hedge at the BBQ area"
+        assert stored.valid_until is None
+
+
+async def test_existing_sponsorship_with_end_before_start_is_flagged(client, admin_user):
+    """Rows saved before the check (issue #245) get a badge so they can
+    be found and corrected."""
+    async with AsyncSessionLocal() as db:
+        db.add(Sponsorship(
+            area="Typo hedge", credited_hours=2.5,
+            valid_from=date(2026, 3, 21), valid_until=date(2025, 5, 20),
+        ))
+        await db.commit()
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    page = await client.get("/work-hours/sponsorships", params={"year": 2026})
+    assert page.status_code == 200
+    former_section = page.text.split("Former Sponsorships", 1)[1]
+    assert "Typo hedge" in former_section
+    assert "End before start" in former_section

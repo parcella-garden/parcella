@@ -1604,7 +1604,9 @@
       "delete_confirm": "Czy na pewno usunąć wpis?",
       "no_active": "Brak aktywnych patronatów w roku {year}.",
       "former_card_title": "Dawne patronaty",
-      "no_former": "Brak zapisanych dawnych patronatów."
+      "no_former": "Brak zapisanych dawnych patronatów.",
+      "dates_invalid_badge": "Koniec przed początkiem",
+      "dates_invalid_hint": "Data zakończenia tego patronatu jest wcześniejsza niż data rozpoczęcia, więc nie jest on zaliczany w żadnym roku. Edytuj go, aby poprawić daty."
     },
     "errors": {
       "configuration_not_found": "Nie znaleziono konfiguracji",
@@ -1616,7 +1618,8 @@
       "no_configuration_for_year": "Brak konfiguracji dla {year}",
       "task_not_found": "Nie znaleziono zadania",
       "task_not_scheduled": "To zadanie nie jest jeszcze przypisane do żadnego wpisu",
-      "participant_not_in_session": "Ten uczestnik nie jest zarejestrowany na ten wpis"
+      "participant_not_in_session": "Ten uczestnik nie jest zarejestrowany na ten wpis",
+      "sponsorship_end_before_start": "Data zakończenia jest wcześniejsza niż data rozpoczęcia. Sprawdź daty – taki patronat nigdy nie zostałby zaliczony."
     },
     "tasks": {
       "title": "Zadania",

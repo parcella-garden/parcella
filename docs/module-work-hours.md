@@ -146,6 +146,15 @@ comes from `Member.parcel_assignments`, a Python-side sort since the
 member list also needs to include people without any current parcel, which
 a plain SQL join would drop or duplicate).
 
+**A sponsorship ended mid-year counts with its full credited hours for
+that year** -- the year-overlap check above, nothing prorated. **An end
+date before the start date is rejected** (issue #245) in the web forms,
+the REST API (422) and `create_sponsorship`/`update_sponsorship`
+themselves: such a range overlaps no year, so the evaluation silently
+credited nothing -- on prod a sponsorship typed as 21.03.2026-20.05.2025
+did exactly that. Rows saved before the check get an "End before start"
+badge on `/work-hours/sponsorships`.
+
 **Creditable hours are pre-filled from the current configuration**, but
 remain freely editable (e.g. in case a sponsorship takes more effort than
 the standard requirement).

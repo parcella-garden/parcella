@@ -1604,7 +1604,9 @@
       "delete_confirm": "Voulez-vous vraiment supprimer cette entrée ?",
       "no_active": "Aucun parrainage actif en {year}.",
       "former_card_title": "Anciens parrainages",
-      "no_former": "Aucun ancien parrainage enregistré."
+      "no_former": "Aucun ancien parrainage enregistré.",
+      "dates_invalid_badge": "Fin avant le début",
+      "dates_invalid_hint": "La date de fin de ce parrainage est antérieure à sa date de début : il n'est donc comptabilisé pour aucune année. Modifiez-le pour corriger les dates."
     },
     "errors": {
       "configuration_not_found": "Configuration non trouvée",
@@ -1616,7 +1618,8 @@
       "no_configuration_for_year": "Aucune configuration pour {year}",
       "task_not_found": "Tâche introuvable",
       "task_not_scheduled": "Cette tâche n'est pas encore planifiée pour une session",
-      "participant_not_in_session": "Ce participant n'est pas inscrit à cette session"
+      "participant_not_in_session": "Ce participant n'est pas inscrit à cette session",
+      "sponsorship_end_before_start": "La date de fin est antérieure à la date de début. Vérifiez les dates – un tel parrainage ne serait jamais comptabilisé."
     },
     "tasks": {
       "title": "Tâches",

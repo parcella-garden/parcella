@@ -32,7 +32,7 @@ from app.services.work_hours import (
     get_config_for_year, save_configuration_for_year, evaluate_year,
     create_club_role, update_club_role, assign_member_to_club_role,
     create_session, update_session, add_participation, update_participation,
-    create_sponsorship, update_sponsorship,
+    create_sponsorship, update_sponsorship, SponsorshipDatesError,
     create_hours_transfer, list_hours_transfers,
     create_task, schedule_task, assign_task_to_participant,
     notify_new_participation,
@@ -440,6 +440,9 @@ async def sponsorships_list(
     return result.scalars().all()
 
 
+_SPONSORSHIP_DATES_DETAIL = "valid_until must not be before valid_from"
+
+
 @router.post(
     "/sponsorships", response_model=SponsorshipOut, status_code=status.HTTP_201_CREATED,
     summary="Create sponsorship",
@@ -450,10 +453,13 @@ async def sponsorship_create(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission("work_hours", "write")),
 ):
-    sponsorship = await create_sponsorship(
-        db, member_id=data.member_id, area=data.area, description=data.description,
-        credited_hours=data.credited_hours, valid_from=data.valid_from, valid_until=data.valid_until,
-    )
+    try:
+        sponsorship = await create_sponsorship(
+            db, member_id=data.member_id, area=data.area, description=data.description,
+            credited_hours=data.credited_hours, valid_from=data.valid_from, valid_until=data.valid_until,
+        )
+    except SponsorshipDatesError:
+        raise HTTPException(status_code=422, detail=_SPONSORSHIP_DATES_DETAIL)
     await db.commit()
     await db.refresh(sponsorship)
     return sponsorship
@@ -471,7 +477,10 @@ async def sponsorship_update(
     if not sponsorship:
         raise HTTPException(status_code=404, detail="Sponsorship not found")
 
-    await update_sponsorship(db, sponsorship, **data.model_dump(exclude_unset=True))
+    try:
+        await update_sponsorship(db, sponsorship, **data.model_dump(exclude_unset=True))
+    except SponsorshipDatesError:
+        raise HTTPException(status_code=422, detail=_SPONSORSHIP_DATES_DETAIL)
     await db.commit()
     await db.refresh(sponsorship)
     return sponsorship
