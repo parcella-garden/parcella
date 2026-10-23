@@ -589,10 +589,14 @@ async def startseite(request: Request):
         )
         recent_members = neueste_result.scalars().all()
 
-    # Dashboard tile "Birthdays this week" -- independent of the Calendar
-    # module flag, since birthdays are shown here purely for information
-    # (no link/dependency on the calendar routes).
-    birthdays_this_week = await upcoming_birthdays(db, within_days=7)
+        # Dashboard tile "Birthdays this week" -- independent of the Calendar
+        # module flag, since birthdays are shown here purely for information
+        # (no link/dependency on the calendar routes). Must stay inside the
+        # session block: run after it, the closed session silently opened a
+        # new transaction that nobody ended, leaking a connection "idle in
+        # transaction" on every dashboard load -- enough to block a backup
+        # restore's DROP TABLE until it timed out.
+        birthdays_this_week = await upcoming_birthdays(db, within_days=7)
 
     stats = {
         "members_total": members_total or 0,
