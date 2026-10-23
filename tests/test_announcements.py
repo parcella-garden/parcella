@@ -590,6 +590,47 @@ async def test_uploaded_image_is_saved_and_actually_servable(client, admin_user)
     assert not image_path.exists()
 
 
+async def test_oversized_image_keeps_the_typed_text(client, admin_user, monkeypatch):
+    """Regression: saving a new announcement with an image over the size
+    limit re-rendered an empty form, so the typed title and body were
+    lost. Editing had the same shape (the stored text came back instead
+    of the edited one). The form must come back with what was typed."""
+    monkeypatch.setattr("app.routers.announcements.MAX_IMAGE_SIZE_BYTES", 10)
+    token = await login(client, "admin@example.com")
+    await _enable_module(client, auth_header(token))
+    await web_login(client, "admin@example.com")
+
+    response = await client.post(
+        "/announcements/new",
+        data={"title": "Summer party", "body_markdown": "Bring <cake> & drinks."},
+        files={"image": ("garden.png", _TINY_PNG_BYTES, "image/png")},
+    )
+    assert response.status_code == 400
+    assert 'value="Summer party"' in response.text
+    assert "Bring &lt;cake&gt; &amp; drinks.</textarea>" in response.text
+    assert 'data-max-bytes="' in response.text
+
+    from app.database import AsyncSessionLocal
+    from app.models import Announcement
+    from sqlalchemy import select
+
+    async with AsyncSessionLocal() as session:
+        assert (await session.execute(select(Announcement))).scalars().all() == []
+
+    create = await client.post("/announcements/new", data={"title": "Stored", "body_markdown": "Stored body."})
+    assert create.status_code == 303
+    announcement_id = create.headers["location"].split("/")[2]
+
+    response = await client.post(
+        f"/announcements/{announcement_id}/edit",
+        data={"title": "Edited", "body_markdown": "Edited body."},
+        files={"image": ("garden.png", _TINY_PNG_BYTES, "image/png")},
+    )
+    assert response.status_code == 400
+    assert 'value="Edited"' in response.text
+    assert "Edited body.</textarea>" in response.text
+
+
 # ---------------------------------------------------------------------------
 # Blog channel, WordPress connector (app/website_connectors/wordpress.py)
 #

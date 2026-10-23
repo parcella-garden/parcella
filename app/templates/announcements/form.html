@@ -21,6 +21,11 @@
 {% endblock %}
 
 {% block content %}
+{#- After a rejected save, show what was typed, not the stored/empty values. -#}
+{% set title_value = entered.title if entered else (announcement.title if announcement else '') %}
+{% set body_value = entered.body_markdown if entered else (announcement.body_markdown if announcement else '') %}
+{% set print_override_value = entered.print_text_override if entered else ((announcement.print_text_override or '') if announcement else '') %}
+{% set letters_for_all_value = entered.letters_for_all if entered else (announcement and announcement.letters_for_all) %}
 {% if error %}
 <div class="alert alert-danger">
     {% if error == 'missing_fields' %}{{ t('announcements.form.error_missing_fields') }}
@@ -66,7 +71,7 @@
             </ul>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="letters_for_all" value="true" id="letters_for_all"
-                       {% if announcement and announcement.letters_for_all %}checked{% endif %}>
+                       {% if letters_for_all_value %}checked{% endif %}>
                 <label class="form-check-label" for="letters_for_all">{{ t('announcements.audience.letters_for_all') }}</label>
             </div>
             <div class="form-text">{{ t('announcements.audience.hint') }}</div>
@@ -78,7 +83,7 @@
             <div class="mb-3">
                 <label class="form-label">{{ t('announcements.form.label_title') }}</label>
                 <input type="text" name="title" class="form-control" required
-                       value="{{ announcement.title if announcement else '' }}">
+                       value="{{ title_value }}">
             </div>
 
             <div class="mb-3">
@@ -92,20 +97,22 @@
                     </div>
                 </div>
                 {% endif %}
-                <input type="file" name="image" class="form-control" accept="image/png,image/jpeg,image/webp">
+                <input type="file" name="image" id="image" class="form-control" accept="image/png,image/jpeg,image/webp"
+                       data-max-bytes="{{ announcement_max_image_bytes }}">
+                <div class="invalid-feedback" id="image_too_large">{{ t('announcements.form.error_image_too_large') }}</div>
                 <div class="form-text">{{ t('announcements.form.image_hint') }}</div>
             </div>
 
             <div class="mb-3">
                 <label class="form-label">{{ t('announcements.form.label_body') }}</label>
-                <textarea name="body_markdown" id="body_markdown" rows="12">{{ announcement.body_markdown if announcement else '' }}</textarea>
+                <textarea name="body_markdown" id="body_markdown" rows="12">{{ body_value }}</textarea>
                 <div class="form-text">{{ t('announcements.form.body_hint') }}</div>
             </div>
 
             {% if announcement and not announcement.is_targeted %}
             <div class="mb-3">
                 <label class="form-label">{{ t('announcements.form.label_print_override') }}</label>
-                <textarea name="print_text_override" class="form-control" rows="6">{{ announcement.print_text_override or '' }}</textarea>
+                <textarea name="print_text_override" class="form-control" rows="6">{{ print_override_value }}</textarea>
                 <div class="form-text">
                     {{ t('announcements.form.print_override_hint') }}
                     {% if fits_one_page %}
@@ -119,7 +126,7 @@
         </div>
     </div>
 
-    <button type="submit" class="btn btn-primary">
+    <button type="submit" class="btn btn-primary" id="announcement_save">
         <i class="bi bi-check-lg me-1"></i>{{ t('announcements.form.save_button') }}
     </button>
     <a href="/announcements/" class="btn btn-outline-secondary">{{ t('announcements.form.cancel_button') }}</a>
@@ -326,6 +333,20 @@
 {% block extra_scripts %}
 <script src="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.js"></script>
 <script>
+    // Reject an oversized image as soon as it's picked: the server would
+    // refuse it anyway, but only after uploading it all.
+    (function () {
+        const input = document.getElementById('image');
+        const save = document.getElementById('announcement_save');
+        const maxBytes = Number(input.dataset.maxBytes);
+        input.addEventListener('change', function () {
+            const tooLarge = Array.from(input.files).some(f => f.size > maxBytes);
+            input.classList.toggle('is-invalid', tooLarge);
+            input.setCustomValidity(tooLarge ? document.getElementById('image_too_large').textContent : '');
+            save.disabled = tooLarge;
+        });
+    })();
+
     new EasyMDE({
         element: document.getElementById('body_markdown'),
         spellChecker: false,

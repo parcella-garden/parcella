@@ -78,6 +78,9 @@ ALLOWED_IMAGE_TYPES = {
     "image/webp": ".webp",
 }
 MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB
+# The form checks the size in the browser too, so an oversized image is
+# flagged as soon as it's picked instead of after a full upload.
+templates.env.globals["announcement_max_image_bytes"] = MAX_IMAGE_SIZE_BYTES
 # Stored copies of generated print PDFs (download again without
 # regenerating). Under static/uploads/ because that's the one persisted
 # data directory (ADR 0077); names are random uuids, and the content is
@@ -302,6 +305,19 @@ async def _new_form_context(db: AsyncSession, audience_query: Optional[str]) -> 
     return await _audience_context(db, preview)
 
 
+def _entered_values(form) -> dict:
+    """What the user typed, for re-rendering the form after a validation
+    error. Without it a rejected save (e.g. an oversized image) showed
+    an empty form -- or, when editing, the stored text -- and the typed
+    text was gone."""
+    return {
+        "title": form.get("title") or "",
+        "body_markdown": form.get("body_markdown") or "",
+        "print_text_override": form.get("print_text_override") or "",
+        "letters_for_all": form.get("letters_for_all") == "true",
+    }
+
+
 @router.get("/new", response_class=HTMLResponse)
 async def announcement_new_form(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_admin(request, db)
@@ -324,10 +340,11 @@ async def announcement_create(
     body_markdown = (form.get("body_markdown") or "").strip()
     image_upload = form.get("image")
     audience_query = _targeted_audience_query(form)
+    entered = _entered_values(form)
 
     if not title or not body_markdown:
         return templates.TemplateResponse("announcements/form.html", {
-            "request": request, "user": user, "announcement": None,
+            "request": request, "user": user, "announcement": None, "entered": entered,
             "error": "missing_fields", **await _new_form_context(db, audience_query),
         }, status_code=400)
 
@@ -337,7 +354,7 @@ async def announcement_create(
             image_filename = await _save_announcement_image(image_upload)
         except ValueError as e:
             return templates.TemplateResponse("announcements/form.html", {
-                "request": request, "user": user, "announcement": None,
+                "request": request, "user": user, "announcement": None, "entered": entered,
                 "error": str(e), **await _new_form_context(db, audience_query),
             }, status_code=400)
 
@@ -388,10 +405,11 @@ async def announcement_update(
     print_text_override = (form.get("print_text_override") or "").strip() or None
     remove_image = form.get("remove_image", "") == "true"
     image_upload = form.get("image")
+    entered = _entered_values(form)
 
     if not title or not body_markdown:
         return templates.TemplateResponse("announcements/form.html", {
-            "request": request, "user": user, "announcement": announcement,
+            "request": request, "user": user, "announcement": announcement, "entered": entered,
             "error": "missing_fields", **await _form_context(db, announcement), **await _audience_context(db, announcement),
         }, status_code=400)
 
@@ -405,7 +423,7 @@ async def announcement_update(
             announcement.image_filename = new_filename
         except ValueError as e:
             return templates.TemplateResponse("announcements/form.html", {
-                "request": request, "user": user, "announcement": announcement,
+                "request": request, "user": user, "announcement": announcement, "entered": entered,
                 "error": str(e), **await _form_context(db, announcement), **await _audience_context(db, announcement),
             }, status_code=400)
 
