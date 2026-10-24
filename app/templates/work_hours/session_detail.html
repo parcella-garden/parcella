@@ -133,7 +133,7 @@
                                     <a href="/members/{{ t_p.member.id }}" class="text-decoration-none"
                                        style="color: var(--gv-gruen);">{{ t_p.member.full_name }}</a>
                                     {% if t_p in new_participants %}
-                                    <span class="badge bg-info text-dark ms-1">{{ t('work_hours.session_detail.new_participant_badge') }}</span>
+                                    <span class="badge bg-danger ms-1">{{ t('work_hours.session_detail.new_participant_badge') }}</span>
                                     {% endif %}
                                 </td>
                                 <td class="text-muted">{{ current_parcels | join(', ') or '–' }}</td>

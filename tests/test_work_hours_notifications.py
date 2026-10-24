@@ -184,7 +184,7 @@ async def test_dashboard_tile_nav_badge_and_session_new_badge(client, admin_user
     assert detail.status_code == 200
     # Exactly one "New" badge on the participant table -- the 100-day-old
     # backdated row must not be flagged.
-    assert detail.text.count('badge bg-info text-dark ms-1">New</span>') == 1
+    assert detail.text.count('badge bg-danger ms-1">New</span>') == 1
 
     # The /work-hours/ overview list also flags the session itself with
     # its count of new sign-ups (issue #217 follow-up) -- distinct from
@@ -192,7 +192,9 @@ async def test_dashboard_tile_nav_badge_and_session_new_badge(client, admin_user
     # render on this same page.
     overview = await client.get(f"/work-hours/?year={date.today().year}")
     assert overview.status_code == 200
-    assert overview.text.count("rounded-pill bg-info text-dark ms-1") == 1
+    # Red like the nav badges (issue #250), not the old blue bg-info.
+    assert overview.text.count('rounded-pill bg-danger ms-1" title="1 new sign-up(s) for this session"') == 1
+    assert "bg-info" not in overview.text
     assert overview.text.count("1 new work-session sign-up(s) recently") == 2
     assert "1 new sign-up(s) for this session" in overview.text
 
@@ -226,10 +228,10 @@ async def test_new_participation_count_excludes_special_and_past_sessions(client
     assert "new work-session sign-up(s) recently" not in dashboard.text
 
     special_detail = await client.get(f"/work-hours/sessions/{special_id}")
-    assert 'badge bg-info text-dark ms-1">New</span>' not in special_detail.text
+    assert 'badge bg-danger ms-1">New</span>' not in special_detail.text
 
     past_detail = await client.get(f"/work-hours/sessions/{past_id}")
-    assert 'badge bg-info text-dark ms-1">New</span>' not in past_detail.text
+    assert 'badge bg-danger ms-1">New</span>' not in past_detail.text
 
 
 async def test_mark_reviewed_clears_new_badges_but_not_future_signups(client, admin_user):
@@ -247,14 +249,14 @@ async def test_mark_reviewed_clears_new_badges_but_not_future_signups(client, ad
     assert add.status_code in (302, 303)
 
     detail = await client.get(f"/work-hours/sessions/{session_id}")
-    assert 'badge bg-info text-dark ms-1">New</span>' in detail.text
+    assert 'badge bg-danger ms-1">New</span>' in detail.text
     assert f'/work-hours/sessions/{session_id}/mark-signups-reviewed' in detail.text
 
     mark = await client.post(f"/work-hours/sessions/{session_id}/mark-signups-reviewed")
     assert mark.status_code in (302, 303)
 
     reviewed_detail = await client.get(f"/work-hours/sessions/{session_id}")
-    assert 'badge bg-info text-dark ms-1">New</span>' not in reviewed_detail.text
+    assert 'badge bg-danger ms-1">New</span>' not in reviewed_detail.text
     # The button itself disappears once there's nothing new left to review.
     assert f'/work-hours/sessions/{session_id}/mark-signups-reviewed' not in reviewed_detail.text
 
@@ -275,4 +277,4 @@ async def test_mark_reviewed_clears_new_badges_but_not_future_signups(client, ad
     assert add_again.status_code in (302, 303)
 
     final_detail = await client.get(f"/work-hours/sessions/{session_id}")
-    assert final_detail.text.count('badge bg-info text-dark ms-1">New</span>') == 1
+    assert final_detail.text.count('badge bg-danger ms-1">New</span>') == 1

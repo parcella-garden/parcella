@@ -99,7 +99,7 @@
                             <a href="/work-hours/sessions/{{ e.id }}" class="text-decoration-none"
                                style="color: var(--gv-gruen);">{{ e.title }}</a>
                             {% if new_count > 0 %}
-                            <span class="badge rounded-pill bg-info text-dark ms-1" title="{{ t('work_hours.overview.new_signups_badge_title', count=new_count) }}">
+                            <span class="badge rounded-pill bg-danger ms-1" title="{{ t('work_hours.overview.new_signups_badge_title', count=new_count) }}">
                                 {{ new_count }}
                             </span>
                             {% endif %}
