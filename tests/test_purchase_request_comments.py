@@ -94,3 +94,21 @@ async def test_empty_comment_is_refused(client, admin_user, monkeypatch):
     )
     assert response.status_code == 400
     assert sent == []
+
+
+async def test_confirmation_email_escapes_user_input(client, admin_user, monkeypatch):
+    """The confirmation email to an external requester used to put the
+    name, title and justification into its HTML raw, and the title into
+    the subject with its line breaks."""
+    sent = _record_emails(monkeypatch)
+    await _create(
+        client, "admin@example.com", title="Säge\r\nBcc: evil@example.org <b>",
+        justification='<img src=x onerror="alert(1)">\nZweite Zeile',
+        requester_name="<script>Erika</script>", requester_email="erika@example.org",
+    )
+    [(to, subject, html)] = sent
+    assert to == "erika@example.org"
+    assert "\r" not in subject and "\n" not in subject and "Säge Bcc: evil@example.org <b>" in subject
+    assert "<script>" not in html and "&lt;script&gt;Erika&lt;/script&gt;" in html
+    assert "<img" not in html and "&lt;img src=x" in html and "<br>Zweite Zeile" in html
+    assert "<b>" not in html.replace("<br>", "")

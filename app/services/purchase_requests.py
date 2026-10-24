@@ -81,15 +81,19 @@ async def create_purchase_request(
 async def send_confirmation_email(
     pr: PurchaseRequest, *, admin_name: str, confirmation_link: str, lang: str, db=None,
 ) -> None:
-    subject = translate("email.purchase_request_confirm.subject", lang, title=pr.title)
+    # Every user-entered value is escaped, and the title loses its line
+    # breaks before it goes into the subject header (same as
+    # notify_comment below).
+    subject = translate("email.purchase_request_confirm.subject", lang, title=" ".join(pr.title.split()))
+    justification = escape(pr.justification).replace("\n", Markup("<br>"))
     html = f"""
     <html><body style="font-family: sans-serif;">
-    <p>{translate("email.purchase_request_confirm.greeting", lang, name=pr.requester_name or "")}</p>
-    <p>{translate("email.purchase_request_confirm.body", lang, admin_name=admin_name, app_name=settings.app_name)}</p>
-    <p><strong>{pr.title}</strong><br>{pr.justification}</p>
-    <p>{translate("email.purchase_request_confirm.instruction", lang)}</p>
-    <p><a href="{confirmation_link}" style="background: #2d6a4f; color: white; padding: 10px 20px;
-       text-decoration: none; border-radius: 4px;">{translate("email.purchase_request_confirm.button", lang)}</a></p>
+    <p>{escape(translate("email.purchase_request_confirm.greeting", lang, name=pr.requester_name or ""))}</p>
+    <p>{escape(translate("email.purchase_request_confirm.body", lang, admin_name=admin_name, app_name=settings.app_name))}</p>
+    <p><strong>{escape(pr.title)}</strong><br>{justification}</p>
+    <p>{escape(translate("email.purchase_request_confirm.instruction", lang))}</p>
+    <p><a href="{escape(confirmation_link)}" style="background: #2d6a4f; color: white; padding: 10px 20px;
+       text-decoration: none; border-radius: 4px;">{escape(translate("email.purchase_request_confirm.button", lang))}</a></p>
     </body></html>
     """
     await send_email(pr.requester_email, subject, html, db=db)
