@@ -2368,7 +2368,9 @@
       "reminders_hint": "Faktur po splatnosti: {n}",
       "incoming_invoices_hint": "zaznamenáno {n} přijatých faktur",
       "accounting_statement_hint": "Přehled na hotovostní bázi pro finanční úřad",
-      "bookings_hint": "Všechny platby z přijatých i vydaných faktur"
+      "bookings_hint": "Všechny platby z přijatých i vydaných faktur",
+      "budget_title": "Rozpočet",
+      "budget_hint": "Plánované příjmy a výdaje podle kategorií na příští rok, vedle skutečnosti minulých let"
     },
     "coming_soon": {
       "message": "Tato funkce bude brzy k dispozici.",
@@ -2618,6 +2620,26 @@
       "col_description": "Popis",
       "col_amount": "Částka",
       "no_bookings": "Žádné platby neodpovídají těmto filtrům."
+    },
+    "budget": {
+      "title": "Rozpočet {year}",
+      "prev_year": "Předchozí rok",
+      "next_year": "Následující rok",
+      "col_category": "Kategorie",
+      "col_actual": "{year} skutečnost",
+      "col_actual_so_far": "{year} zatím",
+      "col_planned": "{year} plán",
+      "section_income": "Příjmy",
+      "section_expenses": "Výdaje",
+      "section_total": "Celkem",
+      "other_row": "Ostatní (bez kategorie nebo zaúčtováno na druhé straně)",
+      "result": "Výsledek (příjmy − výdaje)",
+      "hint": "Minulé roky ukazují, co bylo skutečně zaplaceno (jako v pokladním výkazu). Prázdné pole znamená „nic neplánováno“.",
+      "save": "Uložit plán",
+      "saved": "Rozpočet uložen.",
+      "error_invalid_amount": "Zadejte částky jako čísla, např. 1050.00.",
+      "no_categories": "Zatím žádné účetní kategorie. Rozpočet má jeden řádek na kategorii.",
+      "manage_categories": "Spravovat kategorie"
     }
   },
   "pdf": {

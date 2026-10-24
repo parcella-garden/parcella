@@ -2368,7 +2368,9 @@
       "reminders_hint": "{n} Rechnung(en) überfällig",
       "incoming_invoices_hint": "{n} Eingangsrechnung(en)",
       "accounting_statement_hint": "Kassenbasierte Übersicht für das Finanzamt",
-      "bookings_hint": "Alle Zahlungen aus Eingangs- und Ausgangsrechnungen"
+      "bookings_hint": "Alle Zahlungen aus Eingangs- und Ausgangsrechnungen",
+      "budget_title": "Haushaltsplan",
+      "budget_hint": "Geplante Einnahmen und Ausgaben je Kategorie für das kommende Jahr, neben den Ist-Werten der Vorjahre"
     },
     "coming_soon": {
       "message": "Diese Funktion ist demnächst verfügbar.",
@@ -2618,6 +2620,26 @@
       "col_description": "Beschreibung",
       "col_amount": "Betrag",
       "no_bookings": "Keine Buchungen entsprechen diesen Filtern."
+    },
+    "budget": {
+      "title": "Haushaltsplan {year}",
+      "prev_year": "Vorjahr",
+      "next_year": "Folgejahr",
+      "col_category": "Kategorie",
+      "col_actual": "{year} Ist",
+      "col_actual_so_far": "{year} bisher",
+      "col_planned": "{year} Plan",
+      "section_income": "Einnahmen",
+      "section_expenses": "Ausgaben",
+      "section_total": "Summe",
+      "other_row": "Sonstiges (ohne Kategorie oder auf der anderen Seite gebucht)",
+      "result": "Ergebnis (Einnahmen − Ausgaben)",
+      "hint": "Vergangene Jahre zeigen, was tatsächlich gezahlt wurde (wie in der Einnahmen-Überschuss-Rechnung). Ein leeres Feld heißt „nichts geplant“.",
+      "save": "Plan speichern",
+      "saved": "Haushaltsplan gespeichert.",
+      "error_invalid_amount": "Bitte Beträge als Zahlen eingeben, z. B. 1050,00.",
+      "no_categories": "Noch keine Buchungskategorien. Der Haushaltsplan hat eine Zeile je Kategorie.",
+      "manage_categories": "Kategorien verwalten"
     }
   },
   "pdf": {

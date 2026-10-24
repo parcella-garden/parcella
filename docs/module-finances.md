@@ -12,6 +12,7 @@ optional bookkeeping-category tag for reporting. Off by default
 
 ```
 finance_categories        -- optional bookkeeping tag (code + title + group)
+  finance_budget_lines      -- planned amount per category and year (issue #248)
 finance_accounts           -- a club's real bank/cash accounts (issue #156)
   account_transactions      -- other bookings against the account (issue #174)
 
@@ -387,6 +388,22 @@ and [ADR 0061](./ADR/0061-accounting-statement-fully-cash-based.md)
 for the full reasoning and accepted limitations. Exportable as PDF
 (`app/accounting_statement_pdf.py`), same shared page chrome as every
 other PDF in this app.
+
+## Budget plan
+
+`/finances/budget` (issue #248, `app/budget_plan.py`,
+[ADR 0113](./ADR/0113-budget-plan-stores-only-the-plan.md)): one row
+per finance category, the income section (INCOME categories) above the
+expense section (all other groups), each with a total, and the result
+(income minus expenses) at the bottom. The columns are the actuals of
+the three years before the planned year, taken from the cash accounting
+statement ("so far" for the running year), and the editable plan for
+the planned year itself, which defaults to next year. Only the plan is
+stored (`finance_budget_lines`). An "other" row per section holds
+whatever the statement counts that no row there shows, such as
+uncategorized payments, so totals match the statement. A blank field
+means nothing planned. Saving needs finances write access. There's no
+REST API, like the rest of this module.
 
 ## All bookings (club-wide)
 

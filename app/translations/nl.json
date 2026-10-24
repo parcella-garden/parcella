@@ -2368,7 +2368,9 @@
       "reminders_hint": "{n} factu(u)r(en) achterstallig",
       "incoming_invoices_hint": "{n} inkomende factu(u)r(en)",
       "accounting_statement_hint": "Overzicht op kasbasis voor de belastingdienst",
-      "bookings_hint": "Alle betalingen van inkomende en uitgaande facturen"
+      "bookings_hint": "Alle betalingen van inkomende en uitgaande facturen",
+      "budget_title": "Begroting",
+      "budget_hint": "Begrote inkomsten en uitgaven per categorie voor het komende jaar, naast de werkelijke cijfers van eerdere jaren"
     },
     "coming_soon": {
       "message": "Deze functie is binnenkort beschikbaar.",
@@ -2618,6 +2620,26 @@
       "col_description": "Omschrijving",
       "col_amount": "Bedrag",
       "no_bookings": "Geen boekingen komen overeen met deze filters."
+    },
+    "budget": {
+      "title": "Begroting {year}",
+      "prev_year": "Vorig jaar",
+      "next_year": "Volgend jaar",
+      "col_category": "Categorie",
+      "col_actual": "{year} werkelijk",
+      "col_actual_so_far": "{year} tot nu toe",
+      "col_planned": "{year} begroot",
+      "section_income": "Inkomsten",
+      "section_expenses": "Uitgaven",
+      "section_total": "Totaal",
+      "other_row": "Overig (zonder categorie of aan de andere kant geboekt)",
+      "result": "Resultaat (inkomsten − uitgaven)",
+      "hint": "Afgelopen jaren tonen wat werkelijk is betaald (zoals in het kasoverzicht). Een leeg veld betekent \"niets begroot\".",
+      "save": "Begroting opslaan",
+      "saved": "Begroting opgeslagen.",
+      "error_invalid_amount": "Voer bedragen in als getallen, bijv. 1050.00.",
+      "no_categories": "Nog geen boekhoudcategorieën. De begroting heeft één rij per categorie.",
+      "manage_categories": "Categorieën beheren"
     }
   },
   "pdf": {

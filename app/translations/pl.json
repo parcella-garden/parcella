@@ -2368,7 +2368,9 @@
       "reminders_hint": "Zaległych faktur: {n}",
       "incoming_invoices_hint": "zarejestrowano {n} faktur przychodzących",
       "accounting_statement_hint": "Zestawienie kasowe dla urzędu skarbowego",
-      "bookings_hint": "Wszystkie płatności z faktur przychodzących i wychodzących"
+      "bookings_hint": "Wszystkie płatności z faktur przychodzących i wychodzących",
+      "budget_title": "Plan budżetu",
+      "budget_hint": "Planowane przychody i wydatki według kategorii na nadchodzący rok, obok wykonania z lat ubiegłych"
     },
     "coming_soon": {
       "message": "Ta funkcja będzie wkrótce dostępna.",
@@ -2618,6 +2620,26 @@
       "col_description": "Opis",
       "col_amount": "Kwota",
       "no_bookings": "Żadne księgowania nie pasują do tych filtrów."
+    },
+    "budget": {
+      "title": "Plan budżetu {year}",
+      "prev_year": "Poprzedni rok",
+      "next_year": "Następny rok",
+      "col_category": "Kategoria",
+      "col_actual": "{year} wykonanie",
+      "col_actual_so_far": "{year} dotychczas",
+      "col_planned": "{year} plan",
+      "section_income": "Przychody",
+      "section_expenses": "Wydatki",
+      "section_total": "Suma",
+      "other_row": "Inne (bez kategorii lub zaksięgowane po drugiej stronie)",
+      "result": "Wynik (przychody − wydatki)",
+      "hint": "Lata ubiegłe pokazują faktycznie zapłacone kwoty (jak w zestawieniu kasowym). Puste pole oznacza „nic nie zaplanowano”.",
+      "save": "Zapisz plan",
+      "saved": "Plan budżetu zapisany.",
+      "error_invalid_amount": "Wpisz kwoty jako liczby, np. 1050.00.",
+      "no_categories": "Brak kategorii księgowych. Plan budżetu ma jeden wiersz na kategorię.",
+      "manage_categories": "Zarządzaj kategoriami"
     }
   },
   "pdf": {

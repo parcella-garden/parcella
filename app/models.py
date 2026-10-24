@@ -2620,6 +2620,31 @@ class FinanceCategory(Base):
         return f"<FinanceCategory {self.code} {self.title!r}>"
 
 
+class FinanceBudgetLine(Base):
+    """The planned amount for one category in one year (issue #248's
+    budget plan). Only plans are stored; the past and current years'
+    actuals next to them come from the cash accounting statement
+    (app/accounting_statement.py) every time -- see docs/ADR/0113.
+    No row = nothing planned."""
+    __tablename__ = "finance_budget_lines"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    year: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    category_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("finance_categories.id", ondelete="CASCADE"), nullable=False
+    )
+    amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    category: Mapped["FinanceCategory"] = relationship("FinanceCategory")
+
+    __table_args__ = (
+        UniqueConstraint("year", "category_id", name="uq_finance_budget_line_year_category"),
+    )
+
+
 class FinanceAccountType(str, enum.Enum):
     BANK = "BANK"
     CASH = "CASH"

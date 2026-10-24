@@ -2368,7 +2368,9 @@
       "reminders_hint": "{n} facture(s) en retard",
       "incoming_invoices_hint": "{n} facture(s) entrante(s)",
       "accounting_statement_hint": "État de trésorerie pour l'administration fiscale",
-      "bookings_hint": "Tous les paiements des factures reçues et émises"
+      "bookings_hint": "Tous les paiements des factures reçues et émises",
+      "budget_title": "Budget prévisionnel",
+      "budget_hint": "Recettes et dépenses prévues par catégorie pour l'année à venir, à côté du réalisé des années passées"
     },
     "coming_soon": {
       "message": "Cette fonctionnalité sera bientôt disponible.",
@@ -2618,6 +2620,26 @@
       "col_description": "Description",
       "col_amount": "Montant",
       "no_bookings": "Aucune écriture ne correspond à ces filtres."
+    },
+    "budget": {
+      "title": "Budget prévisionnel {year}",
+      "prev_year": "Année précédente",
+      "next_year": "Année suivante",
+      "col_category": "Catégorie",
+      "col_actual": "{year} réalisé",
+      "col_actual_so_far": "{year} à ce jour",
+      "col_planned": "{year} prévu",
+      "section_income": "Recettes",
+      "section_expenses": "Dépenses",
+      "section_total": "Total",
+      "other_row": "Autres (sans catégorie ou comptabilisé de l'autre côté)",
+      "result": "Résultat (recettes − dépenses)",
+      "hint": "Les années passées montrent ce qui a réellement été payé (comme dans l'état de trésorerie). Un champ vide signifie « rien de prévu ».",
+      "save": "Enregistrer le budget",
+      "saved": "Budget prévisionnel enregistré.",
+      "error_invalid_amount": "Saisissez les montants sous forme de nombres, p. ex. 1050.00.",
+      "no_categories": "Pas encore de catégories comptables. Le budget a une ligne par catégorie.",
+      "manage_categories": "Gérer les catégories"
     }
   },
   "pdf": {

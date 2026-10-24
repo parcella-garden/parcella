@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{#- Issue #248: budget plan. Actuals come from the accounting statement, only the plan is stored (ADR 0113). -#}
+{% block title %}{{ t('finances.budget.title', year=plan.year) }}{% endblock %}
+{% block page_title %}{{ t('finances.budget.title', year=plan.year) }}{% endblock %}
+
+{% block topbar_actions %}
+<div class="d-flex gap-2 align-items-center">
+    <a href="/finances/budget?year={{ plan.year - 1 }}" class="btn btn-sm btn-outline-secondary" aria-label="{{ t('finances.budget.prev_year') }}"><i class="bi bi-chevron-left"></i></a>
+    <a href="/finances/budget?year={{ plan.year + 1 }}" class="btn btn-sm btn-outline-secondary" aria-label="{{ t('finances.budget.next_year') }}"><i class="bi bi-chevron-right"></i></a>
+    <a href="/finances/" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>{{ t('finances.coming_soon.back') }}
+    </a>
+</div>
+{% endblock %}
+
+{% macro amount_input(row) -%}
+{%- set value = entered[row.category.id] if row.category.id in entered else ('%.2f' | format(row.planned) if row.planned is not none else '') -%}
+<input type="number" step="0.01" inputmode="decimal" name="amount_{{ row.category.id }}" value="{{ value }}"
+       class="form-control form-control-sm text-end ms-auto" style="max-width: 9rem;"
+       aria-label="{{ row.category.title }} {{ plan.year }}" {% if not has_perm(request, 'finances', 'write') %}disabled{% endif %}>
+{%- endmacro %}
+
+{% macro section(rows_section, heading, icon) %}
+<tr class="table-light"><th colspan="{{ plan.actual_years | length + 2 }}"><i class="bi {{ icon }} me-2"></i>{{ heading }}</th></tr>
+{% for row in rows_section.rows %}
+<tr>
+    <td><span class="text-muted me-1">{{ row.category.code }}</span>{{ row.category.title }}</td>
+    {% for a in row.actuals %}<td class="text-end text-nowrap">{{ a | money }}</td>{% endfor %}
+    <td class="text-end">{{ amount_input(row) }}</td>
+</tr>
+{% endfor %}
+{% if rows_section.has_other %}
+<tr class="text-muted">
+    <td>{{ t('finances.budget.other_row') }}</td>
+    {% for a in rows_section.other_actuals %}<td class="text-end text-nowrap">{{ a | money }}</td>{% endfor %}
+    <td></td>
+</tr>
+{% endif %}
+<tr class="fw-semibold">
+    <td>{{ t('finances.budget.section_total') }}</td>
+    {% for a in rows_section.actual_totals %}<td class="text-end text-nowrap">{{ a | money }}</td>{% endfor %}
+    <td class="text-end text-nowrap">{{ rows_section.planned_total | money }}</td>
+</tr>
+{% endmacro %}
+
+{% block content %}
+{% set can_edit = has_perm(request, 'finances', 'write') %}
+{% if error %}
+<div class="alert alert-danger">{{ t('finances.budget.error_' ~ error) }}</div>
+{% elif request.query_params.get('saved') %}
+<div class="alert alert-success">{{ t('finances.budget.saved') }}</div>
+{% endif %}
+
+{% if not plan.income.rows and not plan.expense.rows %}
+<div class="card"><div class="card-body text-center text-muted py-5">
+    <i class="bi bi-tags d-block mb-2" style="font-size: 1.5rem;"></i>
+    {{ t('finances.budget.no_categories') }}
+    <div class="mt-2"><a href="/finances/categories">{{ t('finances.budget.manage_categories') }}</a></div>
+</div></div>
+{% else %}
+<form method="post" action="/finances/budget">
+    {{ csrf_field() }}
+    <input type="hidden" name="year" value="{{ plan.year }}">
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-sm mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>{{ t('finances.budget.col_category') }}</th>
+                            {% for y in plan.actual_years %}
+                            <th class="text-end text-nowrap">{{ t('finances.budget.col_actual_so_far', year=y) if y == current_year else t('finances.budget.col_actual', year=y) }}</th>
+                            {% endfor %}
+                            <th class="text-end text-nowrap">{{ t('finances.budget.col_planned', year=plan.year) }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ section(plan.income, t('finances.budget.section_income'), 'bi-graph-up-arrow') }}
+                        {{ section(plan.expense, t('finances.budget.section_expenses'), 'bi-graph-down-arrow') }}
+                        <tr class="fw-bold border-top">
+                            <td>{{ t('finances.budget.result') }}</td>
+                            {% for r in plan.actual_results %}<td class="text-end text-nowrap {% if r < 0 %}text-danger{% endif %}">{{ r | money }}</td>{% endfor %}
+                            <td class="text-end text-nowrap {% if plan.planned_result < 0 %}text-danger{% endif %}">{{ plan.planned_result | money }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="text-muted" style="font-size: 0.8rem;">{{ t('finances.budget.hint') }}</span>
+            {% if can_edit %}
+            <button type="submit" class="btn btn-sm btn-primary">{{ t('finances.budget.save') }}</button>
+            {% endif %}
+        </div>
+    </div>
+</form>
+{% endif %}
+{% endblock %}

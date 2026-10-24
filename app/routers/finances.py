@@ -70,6 +70,7 @@ from app.invoice_delivery import (
 )
 from app.accounting_statement import compute_cash_accounting_statement, available_statement_years
 from app.accounting_statement_pdf import render_accounting_statement_pdf
+from app.budget_plan import compute_budget_plan, parse_budget_amount, save_budget
 from app.bookings import list_bookings
 from app.invoice_matching import find_matching_invoices, best_match_option
 
@@ -605,6 +606,52 @@ async def accounting_statement_page(
         "request": request, "user": user, "statement": statement,
         "available_years": available_years, "year": target_year,
     })
+
+
+# ---------------------------------------------------------------------------
+# Budget plan (issue #248, ADR 0113)
+# ---------------------------------------------------------------------------
+
+def _budget_year(year: Optional[int]) -> int:
+    """The planned year: next year unless another is asked for (kept to
+    a sane range, it's only ever a calendar year)."""
+    if year is None or not 2000 <= year <= 2100:
+        return date.today().year + 1
+    return year
+
+
+async def _budget_page(request, db, user, year: int, error: Optional[str] = None, entered=None, status_code=200):
+    return templates.TemplateResponse("finances/budget.html", {
+        "request": request, "user": user, "plan": await compute_budget_plan(db, year),
+        "current_year": date.today().year, "error": error, "entered": entered or {},
+    }, status_code=status_code)
+
+
+@router.get("/budget", response_class=HTMLResponse)
+async def budget_page(request: Request, year: Optional[int] = Query(None), db: AsyncSession = Depends(get_db)):
+    user = await require_permission(request, db, "finances", "read")
+    return await _budget_page(request, db, user, _budget_year(year))
+
+
+@router.post("/budget")
+async def budget_save(request: Request, db: AsyncSession = Depends(get_db)):
+    user = await require_permission(request, db, "finances", "write")
+    form = await request.form()
+    try:
+        year = _budget_year(int(form.get("year") or 0))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid year")
+
+    entered = {key[len("amount_"):]: value for key, value in form.items() if key.startswith("amount_")}
+    amounts = {}
+    for category_id, raw in entered.items():
+        try:
+            amounts[category_id] = parse_budget_amount(raw)
+        except ValueError:
+            return await _budget_page(request, db, user, year, error="invalid_amount", entered=entered, status_code=400)
+    await save_budget(db, year, amounts)
+    await db.commit()
+    return RedirectResponse(f"/finances/budget?year={year}&saved=1", status_code=303)
 
 
 @router.get("/accounting-statement/pdf")

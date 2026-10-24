@@ -2368,7 +2368,9 @@
       "reminders_hint": "{n} invoice(s) overdue",
       "incoming_invoices_hint": "{n} incoming invoice(s)",
       "accounting_statement_hint": "Cash-based statement for the tax office",
-      "bookings_hint": "Every payment across incoming and outgoing invoices"
+      "bookings_hint": "Every payment across incoming and outgoing invoices",
+      "budget_title": "Budget plan",
+      "budget_hint": "Planned income and expenses per category for the coming year, next to past actuals"
     },
     "coming_soon": {
       "message": "This feature is coming soon.",
@@ -2618,6 +2620,26 @@
       "col_description": "Description",
       "col_amount": "Amount",
       "no_bookings": "No bookings match these filters."
+    },
+    "budget": {
+      "title": "Budget plan {year}",
+      "prev_year": "Previous year",
+      "next_year": "Next year",
+      "col_category": "Category",
+      "col_actual": "{year} actual",
+      "col_actual_so_far": "{year} so far",
+      "col_planned": "{year} plan",
+      "section_income": "Income",
+      "section_expenses": "Expenses",
+      "section_total": "Total",
+      "other_row": "Other (uncategorized or booked on the other side)",
+      "result": "Result (income − expenses)",
+      "hint": "Past years show what was actually paid (as in the accounting statement). Leave a field empty for \"nothing planned\".",
+      "save": "Save plan",
+      "saved": "Budget plan saved.",
+      "error_invalid_amount": "Please enter amounts as numbers, e.g. 1050.00.",
+      "no_categories": "No bookkeeping categories yet. The budget plan has one row per category.",
+      "manage_categories": "Manage categories"
     }
   },
   "pdf": {
