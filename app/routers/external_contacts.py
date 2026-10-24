@@ -1,7 +1,7 @@
 """
 External contacts router (web UI): suppliers, craftsmen, authorities --
-a company plus a contact person (docs/module-external-contacts.md,
-ADR 0096). Same shape as the members router, minus everything that
+companies and the people there (docs/module-external-contacts.md, ADR
+0096, ADR 0110). Same shape as the members router, minus everything that
 only makes sense for members (parcels, membership dates, email_info).
 
 Business logic lives in app/services/external_contacts.py (ADR 0070).
@@ -32,14 +32,15 @@ from app.cloud_storage import CloudStorageError, get_cloud_storage_provider
 from app.contact_documents import contact_folder_path, load_base_folder, sanitize_folder_name, upload_filename
 from app.contact_filters import ContactListFilter
 from app.parcel_cloud_folders import InvalidCloudPathError, sanitize_browse_subpath
-from app.models import ExternalContact, ExternalContactTag, IncomingInvoice, PurchaseRequest
+from app.models import ExternalContact, ExternalContactKind, ExternalContactTag, IncomingInvoice, PurchaseRequest
 from app.module_flags import require_module
 from app.permissions import has_permission, require_permission
 from app.services.errors import ServiceError
 from app.services.applicants import load_red_flag_tag, save_red_flag_tag
 from app.services.external_contacts import (
     add_email, add_phone, count_tag_contacts, create_contact, delete_tag, find_duplicate, get_contact,
-    list_active_contacts, list_tags, merge_phones_and_emails, remove_email, remove_phone, rename_tag, set_contact_tags,
+    list_active_contacts, list_tags, merge_companies, merge_phones_and_emails, picker_groups,
+    place_address_on_company, remove_email, remove_phone, rename_tag, resolve_company, set_contact_tags,
     set_tag_translations, soft_delete_contact, tag_contact, untag_contact, update_contact,
 )
 from app.templating import templates
@@ -53,6 +54,16 @@ router = APIRouter(
 )
 
 
+def _with_people():
+    """Loader options for a company's people, each with phones, emails
+    and tags -- the list and the detail page show them."""
+    return selectinload(ExternalContact.people).options(
+        selectinload(ExternalContact.phone_numbers),
+        selectinload(ExternalContact.email_addresses),
+        selectinload(ExternalContact.tags),
+    )
+
+
 async def _get_contact_with_details(db: AsyncSession, contact_id: str) -> Optional[ExternalContact]:
     return await db.scalar(
         select(ExternalContact)
@@ -60,6 +71,7 @@ async def _get_contact_with_details(db: AsyncSession, contact_id: str) -> Option
             selectinload(ExternalContact.phone_numbers),
             selectinload(ExternalContact.email_addresses),
             selectinload(ExternalContact.tags),
+            _with_people(),
         )
         .where(ExternalContact.id == contact_id, ExternalContact.deleted_at.is_(None))
         # The CSV import re-reads a contact it already touched earlier in
@@ -88,13 +100,18 @@ async def contacts_list(
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, MODULE, "read")
-    contacts = (await db.scalars(filters.apply().options(
+    contacts = (await db.scalars(filters.apply_top_level().options(
         selectinload(ExternalContact.email_addresses),
         selectinload(ExternalContact.phone_numbers),
         selectinload(ExternalContact.tags),
+        _with_people(),
     ))).all()
+    # People that match the search/tag themselves get highlighted under
+    # their company.
+    matched_ids = set((await db.scalars(filters.apply().with_only_columns(ExternalContact.id))).all()) \
+        if filters.active else set()
     return templates.TemplateResponse("external_contacts/list.html", {
-        "request": request, "user": user, "contacts": contacts,
+        "request": request, "user": user, "contacts": contacts, "matched_ids": matched_ids,
         "search": filters.search, "tag": filters.tag, "all_tags": await list_tags(db),
         "list_query_string": filters.query_string(),
     })
@@ -104,10 +121,13 @@ async def contacts_list(
 # Create / edit
 # ---------------------------------------------------------------------------
 
-def _form_context(request: Request, user, contact, all_tags, values: Optional[dict] = None, error: str = "") -> dict:
+async def _form_context(
+    request: Request, db: AsyncSession, user, contact, values: Optional[dict] = None, error: str = "",
+) -> dict:
+    companies = [c for c in await list_active_contacts(db) if c.is_company and c.company_name]
     return {
-        "request": request, "user": user, "contact": contact, "all_tags": all_tags,
-        "values": values or {}, "fehler": error,
+        "request": request, "user": user, "contact": contact, "all_tags": await list_tags(db),
+        "values": values or {}, "fehler": error, "company_names": [c.company_name for c in companies],
     }
 
 
@@ -127,19 +147,28 @@ async def _sync_form_tags(request: Request, db: AsyncSession, contact_id: str) -
 
 
 @router.get("/new", response_class=HTMLResponse)
-async def contact_new_page(request: Request, db: AsyncSession = Depends(get_db)):
+async def contact_new_page(request: Request, kind: str = "", company_id: str = "", db: AsyncSession = Depends(get_db)):
+    """?kind=PERSON&company_id=… comes from a company's "Add person"."""
     user = await require_permission(request, db, MODULE, "write")
+    values = {}
+    if kind in (ExternalContactKind.COMPANY.value, ExternalContactKind.PERSON.value):
+        values["kind"] = kind
+    company = await get_contact(db, company_id) if company_id else None
+    if company is not None and company.is_company:
+        values.update(kind=ExternalContactKind.PERSON.value, company_name=company.company_name or "")
     return templates.TemplateResponse(
-        "external_contacts/form.html", _form_context(request, user, None, await list_tags(db)),
+        "external_contacts/form.html", await _form_context(request, db, user, None, values),
     )
 
 
 @router.post("/new")
 async def contact_create(
     request: Request,
+    kind: str = Form(""),
     company_name: str = Form(""),
     first_name: str = Form(""),
     last_name: str = Form(""),
+    position: str = Form(""),
     street: str = Form(""),
     postal_code: str = Form(""),
     city: str = Form(""),
@@ -150,8 +179,10 @@ async def contact_create(
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, MODULE, "write")
+    if kind not in (ExternalContactKind.COMPANY.value, ExternalContactKind.PERSON.value):
+        kind = ""  # inferred from the names, as for the CSV import
     fields = dict(
-        company_name=company_name, first_name=first_name, last_name=last_name,
+        kind=kind or None, company_name=company_name, first_name=first_name, last_name=last_name, position=position,
         street=street, postal_code=postal_code, city=city, iban=iban, notes=notes,
     )
     try:
@@ -160,8 +191,8 @@ async def contact_create(
         # Raised before anything was added to the session -- nothing to roll back.
         return templates.TemplateResponse(
             "external_contacts/form.html",
-            _form_context(request, user, None, await list_tags(db), {**fields, "email": email, "phone": phone},
-                          t_for(request, e.key, **e.params)),
+            await _form_context(request, db, user, None, {**fields, "kind": kind, "email": email, "phone": phone},
+                                t_for(request, e.key, **e.params)),
             status_code=e.http_status,
         )
     if email.strip():
@@ -251,14 +282,22 @@ async def tag_delete(tag_id: str, request: Request, db: AsyncSession = Depends(g
 
 CSV_IMPORT_PREVIEW_ROWS = 5
 CONTACTS_IMPORT_TARGET_FIELDS = [
-    "company_name", "first_name", "last_name", "street", "postal_code", "city",
+    "kind", "company_name", "first_name", "last_name", "position", "street", "postal_code", "city",
     "iban", "email_addresses", "phone_numbers", "tags", "notes",
 ]
 CONTACTS_EXPORT_HEADERS = [
-    "Firma", "Vorname", "Nachname", "Strasse", "PLZ", "Ort",
+    "Typ", "Firma", "Vorname", "Nachname", "Position", "Strasse", "PLZ", "Ort",
     "IBAN", "E-Mail-Adressen", "Telefonnummern", "Tags", "Notizen",
 ]
+# The "Typ" column's values; anything else (or no such column) means:
+# a person if the row has a name, a company otherwise.
+CSV_KIND_VALUES = {
+    "firma": ExternalContactKind.COMPANY, "company": ExternalContactKind.COMPANY,
+    "unternehmen": ExternalContactKind.COMPANY, "person": ExternalContactKind.PERSON,
+}
 CONTACTS_IMPORT_FIELD_ALIASES = {
+    "kind": {"typ", "type", "art", "kind"},
+    "position": {"position", "funktion", "role", "rolle", "job title"},
     "company_name": {"firma", "company", "company name", "unternehmen", "firmenname"},
     "first_name": {"vorname", "first name", "firstname"},
     "last_name": {"nachname", "last name", "lastname", "surname", "name"},
@@ -293,18 +332,23 @@ async def contacts_export_csv(
     db: AsyncSession = Depends(get_db),
 ):
     await require_permission(request, db, MODULE, "read")
-    contacts = (await db.scalars(filters.apply().options(
+    top_level = (await db.scalars(filters.apply_top_level().options(
         selectinload(ExternalContact.email_addresses),
         selectinload(ExternalContact.phone_numbers),
         selectinload(ExternalContact.tags),
+        _with_people(),
     ))).all()
+    # Each company followed by its people -- the list's order, so the
+    # file imports back with every company existing before its people.
+    contacts = [row for c in top_level for row in [c, *(c.active_people if c.is_company else [])]]
 
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")
     writer.writerow(CONTACTS_EXPORT_HEADERS)
     for c in contacts:
         writer.writerow([
-            csv_safe(c.company_name or ""), csv_safe(c.first_name), csv_safe(c.last_name),
+            "Firma" if c.is_company else "Person",
+            csv_safe(c.organisation_name or ""), csv_safe(c.first_name), csv_safe(c.last_name), csv_safe(c.position),
             csv_safe(c.street or ""), csv_safe(c.postal_code or ""), csv_safe(c.city or ""),
             csv_safe(c.iban or ""),
             csv_safe("; ".join(e.address for e in c.email_addresses)),
@@ -347,13 +391,17 @@ async def contacts_import_finalize(
     csv_content_b64: str = Form(...), delimiter: str = Form(";"),
     db: AsyncSession = Depends(get_db),
 ):
-    """Step 2. A row matches an existing contact the same way duplicates
-    are defined (ignoring case): by the person name if the row has one,
-    otherwise by company among the contacts without a person -- both
-    unique, so the match is unambiguous. A match gets its fields updated
-    from the non-empty cells, and phones, emails and tags it doesn't
-    have yet added; nothing is removed. Every field is optional; only
-    completely empty rows are skipped."""
+    """Step 2. A row is a company or a person: the "Typ" column says
+    which, without it a row with a name is a person. It matches an
+    existing contact the same way duplicates are defined (ignoring
+    case): a person by name, a company by company name -- both unique,
+    so the match is unambiguous. A person's "Firma" links the company of
+    that name, created if needed; the row's address and IBAN fill in
+    what that company doesn't have yet and stay on the person only if
+    they differ. A match gets its fields updated from the non-empty
+    cells, and phones, emails and tags it doesn't have yet added;
+    nothing is removed. Every field is optional; only completely empty
+    rows are skipped."""
     await require_permission(request, db, MODULE, "write")
     form = await request.form()
     column_mapping = parse_column_mapping(form, CONTACTS_IMPORT_TARGET_FIELDS)
@@ -364,7 +412,7 @@ async def contacts_import_finalize(
 
     created = updated = 0
     errors: list[str] = []
-    scalar_fields = ("company_name", "first_name", "last_name", "street", "postal_code", "city", "iban", "notes")
+    scalar_fields = ("first_name", "last_name", "position", "street", "postal_code", "city", "iban", "notes")
 
     for row_number, values in enumerate(rows, start=2):
         values = {k: _uncsv_safe(v) for k, v in values.items()}
@@ -372,16 +420,31 @@ async def contacts_import_finalize(
             continue  # blank line
 
         try:
-            existing = await find_duplicate(
-                db, first_name=values.get("first_name"), last_name=values.get("last_name"),
-                company_name=values.get("company_name"),
-            )
+            kind = CSV_KIND_VALUES.get((values.pop("kind", "") or "").lower())
+            if kind is None:
+                kind = ExternalContactKind.PERSON if values.get("first_name") or values.get("last_name") \
+                    else ExternalContactKind.COMPANY
+            if kind == ExternalContactKind.COMPANY:
+                values.update(first_name="", last_name="", position="")
+                existing = await find_duplicate(db, first_name=None, last_name=None, company_name=values.get("company_name"))
+            else:
+                existing = await find_duplicate(
+                    db, first_name=values.get("first_name"), last_name=values.get("last_name"), company_name=None,
+                )
+                company = await resolve_company(db, values.get("company_name"))
+                if company is None and existing is not None:
+                    company = existing.company
+                if company is not None:
+                    values = place_address_on_company(company, values)
+            fields = {k: values[k] for k in scalar_fields if values.get(k)}
+            if kind == ExternalContactKind.COMPANY or values.get("company_name"):
+                fields["company_name"] = values.get("company_name")
             if existing is not None:
                 contact = await _get_contact_with_details(db, existing.id)
-                await update_contact(db, contact, **{k: values[k] for k in scalar_fields if values.get(k)})
+                await update_contact(db, contact, **{k: v for k, v in fields.items() if v})
                 updated += 1
             else:
-                contact = await create_contact(db, **{k: values.get(k) or None for k in scalar_fields})
+                contact = await create_contact(db, kind=kind.value, **fields)
                 await db.refresh(contact, attribute_names=["phone_numbers", "email_addresses"])
                 created += 1
             await merge_phones_and_emails(
@@ -421,7 +484,7 @@ async def contact_detail(
     user = await require_permission(request, db, MODULE, "read")
     contact = await _get_contact_or_404(request, db, contact_id)
 
-    ordered_ids = (await db.scalars(filters.apply().with_only_columns(ExternalContact.id))).all()
+    ordered_ids = (await db.scalars(filters.apply_top_level().with_only_columns(ExternalContact.id))).all()
     prev_id = next_id = None
     if contact_id in ordered_ids:
         idx = ordered_ids.index(contact_id)
@@ -430,31 +493,43 @@ async def contact_detail(
 
     # Linked records from other modules -- only if that module is on and
     # the user may read it there anyway.
+    # A company's page also lists what's linked to its people.
     flags = getattr(request.state, "module_flags", {})
     permissions = getattr(request.state, "permissions", {})
+    linked_ids = [contact_id, *(p.id for p in contact.people)]
     incoming_invoices = None
     if flags.get("finances") and has_permission(permissions, "finances", "read"):
         incoming_invoices = (await db.scalars(
             select(IncomingInvoice)
-            .options(selectinload(IncomingInvoice.line_items), selectinload(IncomingInvoice.payments))
-            .where(IncomingInvoice.external_contact_id == contact_id)
+            .options(
+                selectinload(IncomingInvoice.line_items), selectinload(IncomingInvoice.payments),
+                selectinload(IncomingInvoice.external_contact),
+            )
+            .where(IncomingInvoice.external_contact_id.in_(linked_ids))
             .order_by(IncomingInvoice.invoice_date.desc())
         )).all()
     purchase_requests = None
     if flags.get("purchase_requests") and has_permission(permissions, "purchase_requests", "read"):
         purchase_requests = (await db.scalars(
             select(PurchaseRequest)
-            .where(PurchaseRequest.external_contact_id == contact_id)
+            .options(selectinload(PurchaseRequest.external_contact))
+            .where(PurchaseRequest.external_contact_id.in_(linked_ids))
             .order_by(PurchaseRequest.created_at.desc())
         )).all()
 
+    # Documents belong to the company: a person at one only gets its own
+    # card if it still carries a folder of its own (from before ADR 0110).
     documents = None
-    if flags.get("cloud_storage"):
+    if flags.get("cloud_storage") and (contact.company is None or contact.cloud_folder):
         documents = await _documents_context(
             request, db, contact,
             browse_path=sanitize_browse_subpath(docs_path),
             picking=docs_pick == "1" and has_permission(permissions, MODULE, "write"),
         )
+
+    merge_targets = None
+    if contact.is_company and has_permission(permissions, MODULE, "delete"):
+        merge_targets = [c for c in await list_active_contacts(db) if c.is_company and c.id != contact.id]
 
     list_query_string = filters.query_string()
     return templates.TemplateResponse("external_contacts/detail.html", {
@@ -462,7 +537,7 @@ async def contact_detail(
         "prev_contact_id": prev_id, "next_contact_id": next_id,
         "nav_query_suffix": f"?{list_query_string}" if list_query_string else "",
         "incoming_invoices": incoming_invoices, "purchase_requests": purchase_requests,
-        "documents": documents,
+        "documents": documents, "merge_targets": merge_targets,
     })
 
 
@@ -609,7 +684,7 @@ async def contact_edit_page(contact_id: str, request: Request, db: AsyncSession 
     user = await require_permission(request, db, MODULE, "write")
     contact = await _get_contact_or_404(request, db, contact_id)
     return templates.TemplateResponse(
-        "external_contacts/form.html", _form_context(request, user, contact, await list_tags(db)),
+        "external_contacts/form.html", await _form_context(request, db, user, contact),
     )
 
 
@@ -620,6 +695,7 @@ async def contact_update(
     company_name: str = Form(""),
     first_name: str = Form(""),
     last_name: str = Form(""),
+    position: str = Form(""),
     street: str = Form(""),
     postal_code: str = Form(""),
     city: str = Form(""),
@@ -630,7 +706,7 @@ async def contact_update(
     user = await require_permission(request, db, MODULE, "write")
     contact = await _get_contact_or_404(request, db, contact_id)
     fields = dict(
-        company_name=company_name, first_name=first_name, last_name=last_name,
+        company_name=company_name, first_name=first_name, last_name=last_name, position=position,
         street=street, postal_code=postal_code, city=city, iban=iban, notes=notes,
     )
     try:
@@ -641,7 +717,7 @@ async def contact_update(
         # template lazy-load under asyncio.
         return templates.TemplateResponse(
             "external_contacts/form.html",
-            _form_context(request, user, contact, await list_tags(db), fields, t_for(request, e.key, **e.params)),
+            await _form_context(request, db, user, contact, fields, t_for(request, e.key, **e.params)),
             status_code=e.http_status,
         )
     if not await _sync_form_tags(request, db, contact_id):
@@ -656,11 +732,34 @@ async def contact_delete(contact_id: str, request: Request, db: AsyncSession = D
     requests keep pointing at the contact."""
     await require_permission(request, db, MODULE, "delete")
     contact = await _get_contact_or_404(request, db, contact_id)
-    await soft_delete_contact(db, contact)
+    try:
+        await soft_delete_contact(db, contact)
+    except ServiceError as e:
+        return _redirect_with_error(request, f"/contacts/{contact_id}", e)
     await db.commit()
     name = contact.display_name or t_for(request, "external_contacts.unnamed")
     message = t_for(request, "external_contacts.detail.deleted_message", name=name)
     return RedirectResponse(f"/contacts/?message={urllib.parse.quote(message)}", status_code=302)
+
+
+@router.post("/{contact_id}/merge")
+async def contact_merge(contact_id: str, request: Request, target_id: str = Form(""), db: AsyncSession = Depends(get_db)):
+    """Folds this company into another one (two spellings of one firm)
+    and soft-deletes it -- needs the delete permission, like deleting."""
+    await require_permission(request, db, MODULE, "write")
+    await require_permission(request, db, MODULE, "delete")
+    source = await _get_contact_or_404(request, db, contact_id)
+    target = await get_contact(db, target_id.strip())
+    if target is None:
+        raise HTTPException(status_code=404, detail=t_for(request, "external_contacts.errors.not_found"))
+    try:
+        await merge_companies(db, source, target)
+    except ServiceError as e:
+        return _redirect_with_error(request, f"/contacts/{contact_id}", e)
+    await db.commit()
+    message = t_for(request, "external_contacts.merge.done", source=source.company_name or "–",
+                    target=target.company_name or "–")
+    return RedirectResponse(f"/contacts/{target.id}?message={urllib.parse.quote(message)}", status_code=303)
 
 
 # ---------------------------------------------------------------------------
@@ -737,14 +836,18 @@ async def email_delete(contact_id: str, email_id: str, request: Request, db: Asy
 # requests -- ADR 0096).
 # ---------------------------------------------------------------------------
 
-async def picker_contacts(request: Request, db: AsyncSession) -> Optional[list[ExternalContact]]:
-    """The contacts to offer in a picker, or None if this user shouldn't
-    see one (module off, or no read access to contacts)."""
+async def picker_contacts(
+    request: Request, db: AsyncSession,
+) -> Optional[list[tuple[ExternalContact, list[ExternalContact]]]]:
+    """The contacts to offer in a picker, grouped by company
+    (picker_groups(), rendered by external_contacts/_picker_options.html),
+    or None if this user shouldn't see one (module off, or no read
+    access to contacts)."""
     flags = getattr(request.state, "module_flags", {})
     permissions = getattr(request.state, "permissions", {})
     if not flags.get(MODULE) or not has_permission(permissions, MODULE, "read"):
         return None
-    return await list_active_contacts(db)
+    return picker_groups(await list_active_contacts(db))
 
 
 async def resolve_picked_contact(request: Request, db: AsyncSession, contact_id: str) -> Optional[str]:

@@ -2826,7 +2826,9 @@
       "csv_import_button": "Importeren",
       "csv_format_help": "Gescheiden door puntkomma of komma, met een kopregel. De kolommen koppel je in de volgende stap. Kolommen van de export:",
       "csv_multi_help": "Meerdere e-mails, telefoonnummers of labels staan in één cel, gescheiden door puntkomma's.",
-      "csv_match_help": "Een regel hoort bij een bestaand contact via de persoonsnaam, of via het bedrijf bij contacten zonder persoon; dat contact wordt bijgewerkt, er wordt niets verwijderd."
+      "csv_match_help": "Type \"Firma\" of \"Person\"; zonder type is een regel met een naam een persoon. Een bedrijf wordt op naam gevonden, een persoon op de eigen naam, en de \"Firma\" van een persoon koppelt dat bedrijf (zo nodig aangemaakt). Een treffer wordt bijgewerkt, er wordt niets verwijderd.",
+      "col_name": "Naam",
+      "open": "Openen"
     },
     "form": {
       "title_new": "Nieuw extern contact",
@@ -2843,13 +2845,20 @@
       "person_header": "Contactpersoon",
       "label_first_name": "Voornaam",
       "label_last_name": "Achternaam",
-      "name_unique_help": "Alle velden zijn optioneel. Een persoonsnaam mag maar één keer voorkomen; een contact zonder persoon maar één keer per bedrijf.",
+      "name_unique_help": "Alle velden zijn optioneel. Een bedrijfsnaam en een persoonsnaam mogen elk maar één keer voorkomen.",
       "label_email": "E-mail",
       "label_phone": "Telefoon",
       "more_later_help": "Meer nummers en adressen kun je op de detailpagina toevoegen.",
       "notes_header": "Notities",
       "button_save": "Wijzigingen opslaan",
-      "button_create": "Contact aanmaken"
+      "button_create": "Contact aanmaken",
+      "kind_label": "Soort contact",
+      "label_person_company": "Bedrijf (optioneel)",
+      "person_company_help": "Een bestaand bedrijf wordt gekoppeld; een nieuwe naam maakt het bedrijf aan.",
+      "label_position": "Functie",
+      "position_placeholder": "bijv. medewerker, eigenaar",
+      "address_header": "Adres en bankgegevens",
+      "person_address_help": "Leeg laten om die van het bedrijf te gebruiken. Samen met een nieuw bedrijf ingevuld, wordt het het adres van het bedrijf."
     },
     "detail": {
       "button_edit": "Bewerken",
@@ -2876,7 +2885,16 @@
       "danger_zone_text": "Verwijderen haalt het contact uit lijsten en keuzevelden. Gekoppelde inkomende facturen en inkoopaanvragen blijven het tonen.",
       "delete_confirm": "{name} echt verwijderen?",
       "button_delete": "Contact verwijderen",
-      "deleted_message": "{name} is verwijderd."
+      "deleted_message": "{name} is verwijderd.",
+      "company_header": "Bedrijf",
+      "person_header": "Persoon",
+      "label_name": "Naam",
+      "label_position": "Functie",
+      "company_address_hint": "Adres van het bedrijf",
+      "company_iban_hint": "IBAN van het bedrijf",
+      "people_header": "Personen",
+      "add_person": "Persoon toevoegen",
+      "no_people": "Nog geen personen bij dit bedrijf."
     },
     "tags": {
       "manage_link": "Labels beheren",
@@ -2912,7 +2930,11 @@
     "errors": {
       "not_found": "Extern contact niet gevonden.",
       "name_taken": "Er bestaat al een contactpersoon {name} ({company}).",
-      "company_taken": "Er bestaat al een contact zonder persoon voor {company}."
+      "company_taken": "Er bestaat al een bedrijf {company}.",
+      "company_not_found": "Bedrijf niet gevonden.",
+      "company_has_people": "Dit bedrijf heeft nog personen. Verplaats of verwijder die eerst.",
+      "merge_invalid": "Alleen een bedrijf kan met een ander, bestaand bedrijf worden samengevoegd.",
+      "kind_fixed": "Een contact kan niet wisselen tussen bedrijf en persoon."
     },
     "import": {
       "empty_error": "Het CSV-bestand is leeg.",
@@ -2936,7 +2958,9 @@
       "map_field_email_addresses": "E-mailadressen",
       "map_field_phone_numbers": "Telefoonnummers",
       "map_field_tags": "Labels",
-      "map_field_notes": "Notities"
+      "map_field_notes": "Notities",
+      "map_field_kind": "Type (bedrijf/persoon)",
+      "map_field_position": "Functie"
     },
     "picker": {
       "label": "Contact",
@@ -2964,7 +2988,19 @@
       "upload_help": "Het bestand wordt geüpload naar de map hierboven. Bestanden verwijderen of verplaatsen doe je direct in de cloud.",
       "cloud_not_configured": "De cloudverbinding is niet ingesteld.",
       "invalid_folder": "Ongeldige mapnaam.",
-      "invalid_file": "Ongeldige bestandsnaam."
+      "invalid_file": "Ongeldige bestandsnaam.",
+      "at_company": "Documenten worden bij het bedrijf bewaard:"
+    },
+    "kind": {
+      "COMPANY": "Bedrijf",
+      "PERSON": "Persoon"
+    },
+    "merge": {
+      "label": "Samenvoegen met",
+      "button": "Samenvoegen",
+      "help": "Voor twee vermeldingen van hetzelfde bedrijf: personen, telefoonnummers, e-mails, tags en gekoppelde facturen en inkoopaanvragen gaan naar het gekozen bedrijf, en dit bedrijf wordt verwijderd.",
+      "confirm": "{name} echt samenvoegen met het gekozen bedrijf? Deze vermelding wordt daarna verwijderd.",
+      "done": "{source} is samengevoegd met {target}."
     }
   },
   "website": {

@@ -11,7 +11,7 @@ from sqlalchemy import select
 from app.auth import hash_password
 from app.database import AsyncSessionLocal
 from app.models import (
-    Applicant, ExternalContact, ExternalContactEmail, ExternalContactPhone, ExternalContactTag,
+    Applicant, ExternalContact, ExternalContactEmail, ExternalContactKind, ExternalContactPhone, ExternalContactTag,
     Group, GroupMembership, GroupModulePermission, User, UserRole,
 )
 from app.services.applicants import find_red_flags, save_red_flag_tag
@@ -24,7 +24,7 @@ async def _flagged_contact(choose_tag=True, **fields):
     async with AsyncSessionLocal() as db:
         tag = ExternalContactTag(name="Rote Liste")
         contact = ExternalContact(
-            first_name=fields.get("first_name", "Max"), last_name=fields.get("last_name", "Ärger"), tags=[tag],
+            kind=ExternalContactKind.PERSON, first_name=fields.get("first_name", "Max"), last_name=fields.get("last_name", "Ärger"), tags=[tag],
             deleted_at=fields.get("deleted_at"),
         )
         db.add(contact)
@@ -116,3 +116,15 @@ async def test_choosing_the_red_flag_tag_on_the_tags_page(client, admin_user):
 
     assert (await client.post("/contacts/tags/red-flag", data={"tag_id": ""})).status_code == 303
     assert await _flags_for(await _applicant(first_name="Max", last_name="Ärger", email="x@example.org")) == []
+
+
+async def test_a_flagged_company_flags_its_people(client, admin_user):
+    async with AsyncSessionLocal() as db:
+        tag = ExternalContactTag(name="Rote Liste")
+        company = ExternalContact(kind=ExternalContactKind.COMPANY, company_name="Ärger GmbH", tags=[tag])
+        person = ExternalContact(kind=ExternalContactKind.PERSON, first_name="Paul", last_name="Plage", company=company)
+        db.add_all([company, person])
+        await db.flush()
+        await save_red_flag_tag(db, tag.id)
+        await db.commit()
+    assert await _flags_for(await _applicant(first_name="Paul", last_name="Plage")) == [["name"]]

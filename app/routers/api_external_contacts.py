@@ -1,6 +1,7 @@
 """
 API router: External contacts -- suppliers, craftsmen, authorities
-(docs/module-external-contacts.md, ADR 0096).
+(docs/module-external-contacts.md, ADR 0096): companies and persons,
+a person optionally at one company (ADR 0110).
 
 Business logic shared with app/routers/external_contacts.py (HTML)
 lives in app/services/external_contacts.py (ADR 0070) -- this router
@@ -8,7 +9,7 @@ owns bearer-token authentication, the permission check, Pydantic body
 parsing and JSON serialization. A duplicate contact person name is a
 409 (the service's own status), other rule violations a 422.
 """
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select
@@ -19,7 +20,7 @@ from app.api_auth import require_api_permission
 from app.contact_filters import ContactListFilter
 from app.database import get_db
 from app.i18n import t_for
-from app.models import ExternalContact, ExternalContactTag, User
+from app.models import ExternalContact, ExternalContactKind, ExternalContactTag, User
 from app.module_flags import require_module
 from app.schemas import (
     EmailAddressCreate, EmailAddressOut, ExternalContactCreate, ExternalContactOut,
@@ -28,8 +29,8 @@ from app.schemas import (
 )
 from app.services.errors import ServiceError
 from app.services.external_contacts import (
-    add_email, add_phone, create_contact, delete_tag, list_tags, remove_email, remove_phone,
-    rename_tag, soft_delete_contact, tag_contact, untag_contact, update_contact,
+    add_email, add_phone, create_contact, delete_tag, get_contact, list_tags, merge_companies, remove_email,
+    remove_phone, rename_tag, soft_delete_contact, tag_contact, untag_contact, update_contact,
 )
 
 MODULE = "external_contacts"
@@ -74,13 +75,19 @@ async def _get_tag_or_404(db: AsyncSession, tag_id: str) -> ExternalContactTag:
 async def contacts_list(
     search: str = Query("", description="Company, name, city, email or phone (substring)"),
     tag: str = Query("", description="Tag id"),
+    kind: Optional[ExternalContactKind] = Query(None, description="Only companies or only persons"),
+    company_id: str = Query("", description="Only the people of this company"),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission(MODULE, "read")),
 ):
-    query = ContactListFilter.from_query(search, tag).apply().options(*_DETAIL_OPTIONS).limit(limit).offset(offset)
-    return (await db.scalars(query)).all()
+    query = ContactListFilter.from_query(search, tag).apply()
+    if kind is not None:
+        query = query.where(ExternalContact.kind == kind)
+    if company_id:
+        query = query.where(ExternalContact.company_id == company_id)
+    return (await db.scalars(query.options(*_DETAIL_OPTIONS).limit(limit).offset(offset))).all()
 
 
 @router.post("", response_model=ExternalContactOut, status_code=status.HTTP_201_CREATED, summary="Create an external contact")
@@ -89,8 +96,10 @@ async def contact_create(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission(MODULE, "write")),
 ):
+    fields = data.model_dump()
+    fields["kind"] = data.kind.value if data.kind else None
     try:
-        contact = await create_contact(db, **data.model_dump())
+        contact = await create_contact(db, **fields)
     except ServiceError as e:
         raise _service_error(request, e)
     await db.commit()
@@ -150,22 +159,52 @@ async def contact_update(
     user: User = Depends(require_api_permission(MODULE, "write")),
 ):
     contact = await _get_contact_or_404(db, contact_id)
+    fields = data.model_dump(exclude_unset=True)
+    if data.kind:
+        fields["kind"] = data.kind.value
     try:
-        await update_contact(db, contact, **data.model_dump(exclude_unset=True))
+        await update_contact(db, contact, **fields)
     except ServiceError as e:
         raise _service_error(request, e)
     await db.commit()
     return await _get_contact_or_404(db, contact_id)
 
 
-@router.delete("/{contact_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete an external contact (soft delete)")
+@router.delete(
+    "/{contact_id}", status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete an external contact (soft delete; 409 for a company that still has people)",
+)
 async def contact_delete(
-    contact_id: str,
+    contact_id: str, request: Request,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission(MODULE, "delete")),
 ):
-    await soft_delete_contact(db, await _get_contact_or_404(db, contact_id))
+    try:
+        await soft_delete_contact(db, await _get_contact_or_404(db, contact_id))
+    except ServiceError as e:
+        raise _service_error(request, e)
     await db.commit()
+
+
+@router.post(
+    "/{contact_id}/merge-into/{target_id}", response_model=ExternalContactOut,
+    summary="Merge a company into another one (moves people, phones, emails, tags and links; soft-deletes it)",
+)
+async def contact_merge(
+    contact_id: str, target_id: str, request: Request,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_api_permission(MODULE, "delete")),
+):
+    source = await _get_contact_or_404(db, contact_id)
+    target = await get_contact(db, target_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="External contact not found")
+    try:
+        await merge_companies(db, source, target)
+    except ServiceError as e:
+        raise _service_error(request, e)
+    await db.commit()
+    return await _get_contact_or_404(db, target_id)
 
 
 @router.post(

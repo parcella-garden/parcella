@@ -13,13 +13,14 @@ from datetime import date, datetime, time, timezone
 from typing import Optional, Sequence, Union
 
 from email_validator import EmailNotValidError, validate_email
-from sqlalchemy import delete, select
+from sqlalchemy import delete, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.change_tracker import ChangeTracker
 from app.models import (
     Applicant, ApplicantSource, ApplicantStatus, ChangeHistory, ClubSetting, ExternalContact, ExternalContactTag,
+    external_contact_tag_links,
 )
 from app.services.errors import ServiceError
 
@@ -192,14 +193,19 @@ async def save_red_flag_tag(db: AsyncSession, tag_id: Optional[str]) -> None:
 
 async def find_red_flags(db: AsyncSession, applicants: Sequence[Applicant]) -> dict[str, list[RedFlagMatch]]:
     """Applicant id -> the flagged contacts it matches (only applicants
-    with at least one match appear)."""
+    with at least one match appear). A flagged company flags its people
+    too (ADR 0110)."""
     tag = await load_red_flag_tag(db)
     if tag is None or not applicants:
         return {}
+    tagged_ids = select(external_contact_tag_links.c.contact_id).where(external_contact_tag_links.c.tag_id == tag.id)
     contacts = (await db.scalars(
         select(ExternalContact)
         .options(selectinload(ExternalContact.email_addresses), selectinload(ExternalContact.phone_numbers))
-        .where(ExternalContact.deleted_at.is_(None), ExternalContact.tags.any(ExternalContactTag.id == tag.id))
+        .where(
+            ExternalContact.deleted_at.is_(None),
+            or_(ExternalContact.id.in_(tagged_ids), ExternalContact.company_id.in_(tagged_ids)),
+        )
     )).all()
     if not contacts:
         return {}

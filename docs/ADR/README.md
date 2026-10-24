@@ -113,3 +113,4 @@ in chronological order.
 107. [Helpdesk providers: one dropdown, and capabilities instead of assumptions](./0107-helpdesk-providers-and-capabilities.md)
 108. [CMS plugins: GPL-licensed, one shared PHP core, copied per plugin](./0108-cms-plugins-gpl-and-shared-core.md)
 109. [Admin-initiated password reset: generated, shown once, forced change](./0109-admin-initiated-password-reset.md)
+110. [External contacts: companies and people in one table](./0110-external-contacts-companies-and-people.md)

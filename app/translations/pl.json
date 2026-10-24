@@ -2826,7 +2826,9 @@
       "csv_import_button": "Importuj",
       "csv_format_help": "Rozdzielane średnikiem lub przecinkiem, z wierszem nagłówka. Kolumny przypiszesz w następnym kroku. Kolumny eksportu:",
       "csv_multi_help": "Kilka e-maili, numerów telefonów lub tagów wpisuje się w jedną komórkę, oddzielając średnikiem.",
-      "csv_match_help": "Wiersz jest dopasowywany do istniejącego kontaktu po imieniu i nazwisku osoby, a dla kontaktów bez osoby po firmie; dopasowany kontakt jest aktualizowany, nic nie jest usuwane."
+      "csv_match_help": "Typ „Firma” lub „Person”; bez niego wiersz z imieniem i nazwiskiem to osoba. Firma jest dopasowywana po nazwie, osoba po imieniu i nazwisku, a „Firma” osoby wiąże tę firmę (w razie potrzeby tworzy ją). Dopasowanie jest aktualizowane, nic nie jest usuwane.",
+      "col_name": "Nazwa",
+      "open": "Otwórz"
     },
     "form": {
       "title_new": "Nowy kontakt zewnętrzny",
@@ -2843,13 +2845,20 @@
       "person_header": "Osoba kontaktowa",
       "label_first_name": "Imię",
       "label_last_name": "Nazwisko",
-      "name_unique_help": "Wszystkie pola są opcjonalne. Imię i nazwisko osoby może wystąpić tylko raz; kontakt bez osoby tylko raz na firmę.",
+      "name_unique_help": "Wszystkie pola są opcjonalne. Nazwa firmy i imię i nazwisko osoby mogą wystąpić tylko raz.",
       "label_email": "E-mail",
       "label_phone": "Telefon",
       "more_later_help": "Kolejne numery i adresy możesz dodać na stronie szczegółów.",
       "notes_header": "Notatki",
       "button_save": "Zapisz zmiany",
-      "button_create": "Utwórz kontakt"
+      "button_create": "Utwórz kontakt",
+      "kind_label": "Rodzaj kontaktu",
+      "label_person_company": "Firma (opcjonalnie)",
+      "person_company_help": "Istniejąca firma zostanie powiązana, nowa nazwa tworzy firmę.",
+      "label_position": "Stanowisko",
+      "position_placeholder": "np. referent, właściciel",
+      "address_header": "Adres i dane bankowe",
+      "person_address_help": "Pozostaw puste, aby użyć danych firmy. Wpisany razem z nową firmą staje się adresem firmy."
     },
     "detail": {
       "button_edit": "Edytuj",
@@ -2876,7 +2885,16 @@
       "danger_zone_text": "Usunięcie usuwa kontakt z list i pól wyboru. Powiązane faktury przychodzące i wnioski zakupowe nadal go pokazują.",
       "delete_confirm": "Na pewno usunąć {name}?",
       "button_delete": "Usuń kontakt",
-      "deleted_message": "Usunięto {name}."
+      "deleted_message": "Usunięto {name}.",
+      "company_header": "Firma",
+      "person_header": "Osoba",
+      "label_name": "Imię i nazwisko",
+      "label_position": "Stanowisko",
+      "company_address_hint": "Adres firmy",
+      "company_iban_hint": "IBAN firmy",
+      "people_header": "Osoby",
+      "add_person": "Dodaj osobę",
+      "no_people": "Brak osób w tej firmie."
     },
     "tags": {
       "manage_link": "Zarządzaj tagami",
@@ -2912,7 +2930,11 @@
     "errors": {
       "not_found": "Nie znaleziono kontaktu zewnętrznego.",
       "name_taken": "Osoba kontaktowa {name} już istnieje ({company}).",
-      "company_taken": "Kontakt bez osoby dla {company} już istnieje."
+      "company_taken": "Firma {company} już istnieje.",
+      "company_not_found": "Nie znaleziono firmy.",
+      "company_has_people": "Ta firma ma jeszcze osoby. Najpierw je przenieś lub usuń.",
+      "merge_invalid": "Można połączyć tylko firmę z inną, istniejącą firmą.",
+      "kind_fixed": "Kontakt nie może zmienić się z firmy w osobę ani odwrotnie."
     },
     "import": {
       "empty_error": "Plik CSV jest pusty.",
@@ -2936,7 +2958,9 @@
       "map_field_email_addresses": "Adresy e-mail",
       "map_field_phone_numbers": "Numery telefonów",
       "map_field_tags": "Tagi",
-      "map_field_notes": "Notatki"
+      "map_field_notes": "Notatki",
+      "map_field_kind": "Typ (firma/osoba)",
+      "map_field_position": "Stanowisko"
     },
     "picker": {
       "label": "Kontakt",
@@ -2964,7 +2988,19 @@
       "upload_help": "Plik zostanie przesłany do folderu pokazanego powyżej. Pliki usuwa się lub przenosi bezpośrednio w chmurze.",
       "cloud_not_configured": "Połączenie z chmurą nie jest skonfigurowane.",
       "invalid_folder": "Nieprawidłowa nazwa folderu.",
-      "invalid_file": "Nieprawidłowa nazwa pliku."
+      "invalid_file": "Nieprawidłowa nazwa pliku.",
+      "at_company": "Dokumenty są przechowywane przy firmie:"
+    },
+    "kind": {
+      "COMPANY": "Firma",
+      "PERSON": "Osoba"
+    },
+    "merge": {
+      "label": "Połącz z",
+      "button": "Połącz",
+      "help": "Dla dwóch wpisów tej samej firmy: osoby, numery telefonów, e-maile, tagi oraz powiązane faktury i wnioski zakupowe przechodzą do wybranej firmy, a ta zostaje usunięta.",
+      "confirm": "Na pewno połączyć {name} z wybraną firmą? Ten wpis zostanie potem usunięty.",
+      "done": "{source} połączono z {target}."
     }
   },
   "website": {

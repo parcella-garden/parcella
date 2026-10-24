@@ -2826,7 +2826,9 @@
       "csv_import_button": "Importieren",
       "csv_format_help": "Semikolon- oder kommagetrennt, mit Kopfzeile. Die Spalten ordnest du im nächsten Schritt zu. Spalten des Exports:",
       "csv_multi_help": "Mehrere E-Mails, Telefonnummern oder Tags stehen in einer Zelle, getrennt durch Semikolon.",
-      "csv_match_help": "Eine Zeile passt zu einem vorhandenen Kontakt über den Personennamen, bei Kontakten ohne Person über die Firma; ein Treffer wird aktualisiert, entfernt wird nichts."
+      "csv_match_help": "Typ „Firma“ oder „Person“; ohne Typ ist eine Zeile mit Namen eine Person. Eine Firma wird über ihren Namen gefunden, eine Person über ihren; die „Firma“ einer Person verknüpft diese Firma (wird bei Bedarf angelegt). Treffer werden aktualisiert, nichts wird entfernt.",
+      "col_name": "Name",
+      "open": "Öffnen"
     },
     "form": {
       "title_new": "Neuer externer Kontakt",
@@ -2843,13 +2845,20 @@
       "person_header": "Ansprechpartner",
       "label_first_name": "Vorname",
       "label_last_name": "Nachname",
-      "name_unique_help": "Alle Felder sind optional. Ein Personenname darf nur einmal vorkommen, ein Kontakt ohne Person nur einmal pro Firma.",
+      "name_unique_help": "Alle Felder sind optional. Ein Firmenname und ein Personenname dürfen jeweils nur einmal vorkommen.",
       "label_email": "E-Mail",
       "label_phone": "Telefon",
       "more_later_help": "Weitere Nummern und Adressen kannst du auf der Detailseite ergänzen.",
       "notes_header": "Notizen",
       "button_save": "Änderungen speichern",
-      "button_create": "Kontakt anlegen"
+      "button_create": "Kontakt anlegen",
+      "kind_label": "Art des Kontakts",
+      "label_person_company": "Firma (optional)",
+      "person_company_help": "Eine vorhandene Firma wird verknüpft, ein neuer Name legt die Firma an.",
+      "label_position": "Position",
+      "position_placeholder": "z. B. Sachbearbeiter, Inhaber",
+      "address_header": "Adresse & Bankverbindung",
+      "person_address_help": "Leer lassen, um die der Firma zu verwenden. Zusammen mit einer neuen Firma eingegeben, wird sie zur Adresse der Firma."
     },
     "detail": {
       "button_edit": "Bearbeiten",
@@ -2876,7 +2885,16 @@
       "danger_zone_text": "Beim Löschen verschwindet der Kontakt aus Listen und Auswahlfeldern. Verknüpfte Eingangsrechnungen und Einkaufswünsche zeigen ihn weiterhin an.",
       "delete_confirm": "{name} wirklich löschen?",
       "button_delete": "Kontakt löschen",
-      "deleted_message": "{name} wurde gelöscht."
+      "deleted_message": "{name} wurde gelöscht.",
+      "company_header": "Firma",
+      "person_header": "Person",
+      "label_name": "Name",
+      "label_position": "Position",
+      "company_address_hint": "Adresse der Firma",
+      "company_iban_hint": "IBAN der Firma",
+      "people_header": "Personen",
+      "add_person": "Person hinzufügen",
+      "no_people": "Noch keine Personen bei dieser Firma."
     },
     "tags": {
       "manage_link": "Tags verwalten",
@@ -2912,7 +2930,11 @@
     "errors": {
       "not_found": "Externer Kontakt nicht gefunden.",
       "name_taken": "Einen Ansprechpartner {name} gibt es schon ({company}).",
-      "company_taken": "Einen Kontakt ohne Person für {company} gibt es schon."
+      "company_taken": "Eine Firma {company} gibt es schon.",
+      "company_not_found": "Firma nicht gefunden.",
+      "company_has_people": "Diese Firma hat noch Personen. Bitte erst verschieben oder löschen.",
+      "merge_invalid": "Nur eine Firma kann mit einer anderen, bestehenden Firma zusammengeführt werden.",
+      "kind_fixed": "Ein Kontakt kann nicht zwischen Firma und Person wechseln."
     },
     "import": {
       "empty_error": "Die CSV-Datei ist leer.",
@@ -2936,7 +2958,9 @@
       "map_field_email_addresses": "E-Mail-Adressen",
       "map_field_phone_numbers": "Telefonnummern",
       "map_field_tags": "Tags",
-      "map_field_notes": "Notizen"
+      "map_field_notes": "Notizen",
+      "map_field_kind": "Typ (Firma/Person)",
+      "map_field_position": "Position"
     },
     "picker": {
       "label": "Kontakt",
@@ -2964,7 +2988,19 @@
       "upload_help": "Die Datei wird in den oben angezeigten Ordner hochgeladen. Löschen oder Verschieben geht direkt in der Cloud.",
       "cloud_not_configured": "Die Cloud-Verbindung ist nicht eingerichtet.",
       "invalid_folder": "Ungültiger Ordnername.",
-      "invalid_file": "Ungültiger Dateiname."
+      "invalid_file": "Ungültiger Dateiname.",
+      "at_company": "Dokumente liegen bei der Firma:"
+    },
+    "kind": {
+      "COMPANY": "Firma",
+      "PERSON": "Person"
+    },
+    "merge": {
+      "label": "Zusammenführen mit",
+      "button": "Zusammenführen",
+      "help": "Für zwei Einträge derselben Firma: Personen, Telefonnummern, E-Mails, Tags sowie verknüpfte Rechnungen und Beschaffungsanträge wandern zur gewählten Firma, diese hier wird gelöscht.",
+      "confirm": "{name} wirklich mit der gewählten Firma zusammenführen? Dieser Eintrag wird danach gelöscht.",
+      "done": "{source} wurde mit {target} zusammengeführt."
     }
   },
   "website": {

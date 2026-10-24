@@ -2826,7 +2826,9 @@
       "csv_import_button": "Importovat",
       "csv_format_help": "Oddělené středníkem nebo čárkou, s řádkem záhlaví. Sloupce přiřadíte v dalším kroku. Sloupce exportu:",
       "csv_multi_help": "Více e-mailů, telefonních čísel nebo štítků patří do jedné buňky, oddělených středníkem.",
-      "csv_match_help": "Řádek se přiřadí k existujícímu kontaktu podle jména osoby, u kontaktů bez osoby podle firmy; nalezený kontakt se aktualizuje, nic se neodstraní."
+      "csv_match_help": "Typ „Firma“ nebo „Person“; bez něj je řádek se jménem osoba. Firma se páruje podle názvu, osoba podle jména a „Firma“ osoby propojí tuto firmu (v případě potřeby ji založí). Shoda se aktualizuje, nic se neodstraňuje.",
+      "col_name": "Název",
+      "open": "Otevřít"
     },
     "form": {
       "title_new": "Nový externí kontakt",
@@ -2843,13 +2845,20 @@
       "person_header": "Kontaktní osoba",
       "label_first_name": "Jméno",
       "label_last_name": "Příjmení",
-      "name_unique_help": "Všechna pole jsou nepovinná. Jméno osoby smí existovat jen jednou; kontakt bez osoby jen jednou na firmu.",
+      "name_unique_help": "Všechna pole jsou nepovinná. Název firmy i jméno osoby smí existovat jen jednou.",
       "label_email": "E-mail",
       "label_phone": "Telefon",
       "more_later_help": "Další čísla a adresy můžete přidat na stránce detailu.",
       "notes_header": "Poznámky",
       "button_save": "Uložit změny",
-      "button_create": "Vytvořit kontakt"
+      "button_create": "Vytvořit kontakt",
+      "kind_label": "Druh kontaktu",
+      "label_person_company": "Firma (nepovinné)",
+      "person_company_help": "Existující firma se propojí, nový název firmu založí.",
+      "label_position": "Pozice",
+      "position_placeholder": "např. referent, majitel",
+      "address_header": "Adresa a bankovní spojení",
+      "person_address_help": "Nechte prázdné pro použití údajů firmy. Zadáno spolu s novou firmou se stane adresou firmy."
     },
     "detail": {
       "button_edit": "Upravit",
@@ -2876,7 +2885,16 @@
       "danger_zone_text": "Smazáním kontakt zmizí ze seznamů a výběrových polí. Propojené přijaté faktury a požadavky na nákup ho dál zobrazují.",
       "delete_confirm": "Opravdu smazat {name}?",
       "button_delete": "Smazat kontakt",
-      "deleted_message": "{name} byl smazán."
+      "deleted_message": "{name} byl smazán.",
+      "company_header": "Firma",
+      "person_header": "Osoba",
+      "label_name": "Jméno",
+      "label_position": "Pozice",
+      "company_address_hint": "Adresa firmy",
+      "company_iban_hint": "IBAN firmy",
+      "people_header": "Osoby",
+      "add_person": "Přidat osobu",
+      "no_people": "U této firmy zatím nejsou žádné osoby."
     },
     "tags": {
       "manage_link": "Spravovat štítky",
@@ -2912,7 +2930,11 @@
     "errors": {
       "not_found": "Externí kontakt nenalezen.",
       "name_taken": "Kontaktní osoba {name} už existuje ({company}).",
-      "company_taken": "Kontakt bez osoby pro {company} už existuje."
+      "company_taken": "Firma {company} už existuje.",
+      "company_not_found": "Firma nenalezena.",
+      "company_has_people": "Tato firma má ještě osoby. Nejprve je přesuňte nebo smažte.",
+      "merge_invalid": "Sloučit lze jen firmu do jiné, existující firmy.",
+      "kind_fixed": "Kontakt nemůže přejít mezi firmou a osobou."
     },
     "import": {
       "empty_error": "Soubor CSV je prázdný.",
@@ -2936,7 +2958,9 @@
       "map_field_email_addresses": "E-mailové adresy",
       "map_field_phone_numbers": "Telefonní čísla",
       "map_field_tags": "Štítky",
-      "map_field_notes": "Poznámky"
+      "map_field_notes": "Poznámky",
+      "map_field_kind": "Typ (firma/osoba)",
+      "map_field_position": "Pozice"
     },
     "picker": {
       "label": "Kontakt",
@@ -2964,7 +2988,19 @@
       "upload_help": "Soubor se nahraje do složky zobrazené výše. Mazání nebo přesouvání souborů probíhá přímo v cloudu.",
       "cloud_not_configured": "Připojení ke cloudu není nastaveno.",
       "invalid_folder": "Neplatný název složky.",
-      "invalid_file": "Neplatný název souboru."
+      "invalid_file": "Neplatný název souboru.",
+      "at_company": "Dokumenty jsou uloženy u firmy:"
+    },
+    "kind": {
+      "COMPANY": "Firma",
+      "PERSON": "Osoba"
+    },
+    "merge": {
+      "label": "Sloučit do",
+      "button": "Sloučit",
+      "help": "Pro dva záznamy téže firmy: osoby, telefonní čísla, e-maily, štítky a propojené faktury a žádosti o nákup přejdou do zvolené firmy a tato bude smazána.",
+      "confirm": "Opravdu sloučit {name} do zvolené firmy? Tento záznam bude poté smazán.",
+      "done": "{source} byla sloučena do {target}."
     }
   },
   "website": {

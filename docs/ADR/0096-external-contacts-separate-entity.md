@@ -1,5 +1,10 @@
 # External contacts: a separate entity, not members with a flag
 
+> **Partly superseded by [ADR 0110](./0110-external-contacts-companies-and-people.md):**
+> a contact is now a company *or* a person, and a person may belong to
+> one company. "Company + person in one row" and "company names may
+> repeat" below no longer hold; the rest does.
+
 **Context:** The club deals with people who aren't members: suppliers,
 craftsmen, the water utility, the city's allotment office. They were
 kept in notes, mailboxes and spreadsheets. The request was "basically

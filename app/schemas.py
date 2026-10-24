@@ -11,7 +11,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, EmailStr, ConfigDict, Field, field_validator
 
-from app.models import ApplicantSource, ApplicantStatus, ParcelStatus, UserRole, TaskPriority
+from app.models import ApplicantSource, ApplicantStatus, ExternalContactKind, ParcelStatus, UserRole, TaskPriority
 
 
 # ---------------------------------------------------------------------------
@@ -166,9 +166,17 @@ class MemberDetailOut(MemberOut):
 # ---------------------------------------------------------------------------
 
 class ExternalContactBase(BaseModel):
+    # COMPANY or PERSON (ADR 0110); left out on create, a contact with a
+    # first or last name is a person.
+    kind: Optional[ExternalContactKind] = None
+    # A company's name -- or, on a person, the name of its company:
+    # linked if it exists (ignoring case), created otherwise.
     company_name: Optional[str] = Field(None, max_length=255)
     first_name: Optional[str] = Field(None, max_length=100)
     last_name: Optional[str] = Field(None, max_length=100)
+    # Persons only: the company by id (wins over company_name), and the role there.
+    company_id: Optional[str] = None
+    position: Optional[str] = Field(None, max_length=100)
     street: Optional[str] = Field(None, max_length=255)
     postal_code: Optional[str] = Field(None, max_length=10)
     city: Optional[str] = Field(None, max_length=100)
@@ -180,16 +188,9 @@ class ExternalContactCreate(ExternalContactBase):
     pass
 
 
-class ExternalContactUpdate(BaseModel):
-    """All fields optional -- partial update."""
-    company_name: Optional[str] = Field(None, max_length=255)
-    first_name: Optional[str] = Field(None, max_length=100)
-    last_name: Optional[str] = Field(None, max_length=100)
-    street: Optional[str] = Field(None, max_length=255)
-    postal_code: Optional[str] = Field(None, max_length=10)
-    city: Optional[str] = Field(None, max_length=100)
-    iban: Optional[str] = Field(None, max_length=34)
-    notes: Optional[str] = None
+class ExternalContactUpdate(ExternalContactBase):
+    """All fields optional -- partial update. The kind can't change; on
+    a person, company_name re-links the company by name ("" unlinks)."""
 
 
 class ExternalContactTagOut(BaseModel):
@@ -202,6 +203,9 @@ class ExternalContactTagOut(BaseModel):
 
 class ExternalContactOut(ExternalContactBase):
     model_config = ConfigDict(from_attributes=True)
+    kind: ExternalContactKind
+    # A person's company name, read from the company.
+    company_name: Optional[str] = Field(None, validation_alias="organisation_name")
     id: str
     created_at: datetime
     updated_at: datetime

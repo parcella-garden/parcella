@@ -3,31 +3,37 @@ Shared external-contact business logic, called by both
 app/routers/external_contacts.py (HTML) and
 app/routers/api_external_contacts.py (API) -- see ADR 0070.
 
-The one real rule here, among non-deleted contacts and ignoring case
-(ADR 0096): a given person name (first and/or last) is unique; a
-contact without a person is unique by company name, which otherwise may
-repeat. Every field is optional. The partial unique indexes
-uq_external_contacts_person / uq_external_contacts_company are the
-safety net; check_duplicate_free() runs first so the user gets a
-readable error instead of an IntegrityError.
+A contact is a company or a person, and a person may belong to one
+company (ADR 0110). The uniqueness rule, among non-deleted contacts and
+ignoring case (ADR 0096): a given person name (first and/or last) is
+unique, and so is a company name. Every field is optional. The partial
+unique indexes uq_external_contacts_person / uq_external_contacts_company
+are the safety net; check_duplicate_free() runs first so the user gets
+a readable error instead of an IntegrityError.
+
+Wherever a person comes with a company *name* (web form, CSV import,
+API), resolve_company() links the company of that name, or creates it.
 
 Tags work exactly like member tags (ADR 0093) but in their own pool.
 """
 from datetime import datetime, timezone
 from typing import Iterable, Optional
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
-    ExternalContact, ExternalContactEmail, ExternalContactPhone, ExternalContactTag,
-    external_contact_tag_links,
+    ExternalContact, ExternalContactEmail, ExternalContactKind, ExternalContactPhone, ExternalContactTag,
+    IncomingInvoice, PurchaseRequest, external_contact_tag_links,
 )
 from app.services.errors import ServiceError
 from app.tag_translations import clean_translations, find_tag_by_name
 
-STRING_FIELDS = ("company_name", "first_name", "last_name", "street", "postal_code", "city", "iban", "notes")
+STRING_FIELDS = (
+    "company_name", "first_name", "last_name", "position", "street", "postal_code", "city", "iban", "notes",
+)
+ADDRESS_FIELDS = ("street", "postal_code", "city")
 
 
 def _clean(value: Optional[str]) -> Optional[str]:
@@ -42,12 +48,20 @@ def _lower(value: Optional[str]) -> Optional[str]:
     return value.lower() if value else None
 
 
+def _kind_for(kind, first_name: Optional[str], last_name: Optional[str]) -> ExternalContactKind:
+    """An explicit kind, else a person if a name is given -- so callers
+    that predate the two kinds (old CSV files, API clients) keep working."""
+    if kind:
+        return ExternalContactKind(kind)
+    return ExternalContactKind.PERSON if _clean(first_name) or _clean(last_name) else ExternalContactKind.COMPANY
+
+
 async def find_duplicate(
     db: AsyncSession, *, first_name: Optional[str], last_name: Optional[str], company_name: Optional[str],
 ) -> Optional[ExternalContact]:
     """The non-deleted contact these values would duplicate, if any:
-    same person name if one is given, otherwise same company among the
-    contacts without a person. None for a contact with neither."""
+    the person of that name if one is given, otherwise the company of
+    that name. None for a contact with neither."""
     first, last, company = _lower(first_name), _lower(last_name), _lower(company_name)
     query = select(ExternalContact).where(ExternalContact.deleted_at.is_(None))
     if first or last:
@@ -57,7 +71,7 @@ async def find_duplicate(
         )
     elif company:
         query = query.where(
-            ExternalContact.first_name.is_(None), ExternalContact.last_name.is_(None),
+            ExternalContact.kind == ExternalContactKind.COMPANY,
             func.lower(ExternalContact.company_name) == company,
         )
     else:
@@ -75,9 +89,52 @@ async def check_duplicate_free(
     if existing.has_person:
         raise ServiceError(
             "external_contacts.errors.name_taken", http_status=409,
-            name=existing.full_name, company=existing.company_name or "–",
+            name=existing.full_name, company=existing.organisation_name or "–",
         )
     raise ServiceError("external_contacts.errors.company_taken", http_status=409, company=existing.company_name)
+
+
+async def resolve_company(db: AsyncSession, name: Optional[str]) -> Optional[ExternalContact]:
+    """The non-deleted company of that name (ignoring case), created if
+    there's none yet. None for an empty name."""
+    if not _clean(name):
+        return None
+    company = await find_duplicate(db, first_name=None, last_name=None, company_name=name)
+    if company is None:
+        company = ExternalContact(kind=ExternalContactKind.COMPANY, company_name=_clean(name))
+        db.add(company)
+        await db.flush()
+    return company
+
+
+async def _company_or_error(db: AsyncSession, company_id: str) -> ExternalContact:
+    company = await get_contact(db, company_id)
+    if company is None or not company.is_company:
+        raise ServiceError("external_contacts.errors.company_not_found", http_status=404)
+    return company
+
+
+def place_address_on_company(company: ExternalContact, values: dict) -> dict:
+    """A new person's address and IBAN, entered together with the
+    company (form, CSV row, API): they fill in what the company doesn't
+    have yet; whatever equals the company's is dropped. Returns what's
+    left for the person -- only a value that really differs."""
+    values = dict(values)
+    address = {f: _clean(values.get(f)) for f in ADDRESS_FIELDS}
+    if any(address.values()):
+        if not any(getattr(company, f) for f in ADDRESS_FIELDS):
+            for f in ADDRESS_FIELDS:
+                setattr(company, f, address[f])
+        if all(getattr(company, f) == address[f] for f in ADDRESS_FIELDS):
+            for f in ADDRESS_FIELDS:
+                values[f] = None
+    iban = _clean(values.get("iban"))
+    if iban:
+        if not company.iban:
+            company.iban = iban
+        if company.iban == iban:
+            values["iban"] = None
+    return values
 
 
 async def get_contact(db: AsyncSession, contact_id: Optional[str]) -> Optional[ExternalContact]:
@@ -91,7 +148,9 @@ async def get_contact(db: AsyncSession, contact_id: Optional[str]) -> Optional[E
 
 
 async def list_active_contacts(db: AsyncSession) -> list[ExternalContact]:
-    """For the contact pickers on other modules' forms."""
+    """For the contact pickers on other modules' forms, in picker order:
+    each company followed by its people, then the people without a
+    company (see picker_groups())."""
     return list((await db.scalars(
         select(ExternalContact)
         .where(ExternalContact.deleted_at.is_(None))
@@ -99,44 +158,87 @@ async def list_active_contacts(db: AsyncSession) -> list[ExternalContact]:
     )).all())
 
 
+def picker_groups(contacts: list[ExternalContact]) -> list[tuple[ExternalContact, list[ExternalContact]]]:
+    """(top-level contact, its people) pairs for a grouped picker:
+    companies with their people, then persons without a company (with
+    an empty list). A person whose company isn't in `contacts` is listed
+    on its own."""
+    ids = {c.id for c in contacts}
+    people: dict[str, list[ExternalContact]] = {}
+    for contact in contacts:
+        if contact.company_id in ids:
+            people.setdefault(contact.company_id, []).append(contact)
+    groups = [(c, people.get(c.id, [])) for c in contacts if c.is_company]
+    groups += [(c, []) for c in contacts if not c.is_company and c.company_id not in ids]
+    return groups
+
+
 async def create_contact(
     db: AsyncSession,
     *,
+    kind: Optional[str] = None,
     first_name: Optional[str] = None,
     last_name: Optional[str] = None,
     company_name: Optional[str] = None,
+    company_id: Optional[str] = None,
+    position: Optional[str] = None,
     street: Optional[str] = None,
     postal_code: Optional[str] = None,
     city: Optional[str] = None,
     iban: Optional[str] = None,
     notes: Optional[str] = None,
 ) -> ExternalContact:
-    await check_duplicate_free(db, first_name=first_name, last_name=last_name, company_name=company_name)
-    contact = ExternalContact(
-        company_name=_clean(company_name),
-        first_name=_clean(first_name),
-        last_name=_clean(last_name),
-        street=_clean(street),
-        postal_code=_clean(postal_code),
-        city=_clean(city),
-        iban=_clean(iban),
-        notes=_clean(notes),
-    )
+    """For a person, company_name names its company (linked, or created
+    by resolve_company()); company_id picks one directly and wins."""
+    kind = _kind_for(kind, first_name, last_name)
+    values = dict(street=street, postal_code=postal_code, city=city, iban=iban)
+    if kind == ExternalContactKind.COMPANY:
+        await check_duplicate_free(db, first_name=None, last_name=None, company_name=company_name)
+        contact = ExternalContact(kind=kind, company_name=_clean(company_name))
+    else:
+        await check_duplicate_free(db, first_name=first_name, last_name=last_name, company_name=None)
+        company = await _company_or_error(db, company_id) if company_id else await resolve_company(db, company_name)
+        if company is not None:
+            values = place_address_on_company(company, values)
+        contact = ExternalContact(
+            kind=kind, first_name=_clean(first_name), last_name=_clean(last_name), position=_clean(position),
+            company=company,
+        )
+    for key, value in values.items():
+        setattr(contact, key, _clean(value))
+    contact.notes = _clean(notes)
     db.add(contact)
     await db.flush()
     return contact
 
 
 async def update_contact(db: AsyncSession, contact: ExternalContact, **fields) -> ExternalContact:
-    """Partial update: only keys present in `fields` are changed."""
+    """Partial update: only keys present in `fields` are changed. The
+    kind can't change. On a person, company_name re-links the company by
+    name ("" unlinks), company_id by id; person names on a company and
+    company_name on a person are ignored otherwise."""
     fields = {k: (_clean(v) if k in STRING_FIELDS and v is not None else v) for k, v in fields.items()}
-    await check_duplicate_free(
-        db,
-        first_name=fields.get("first_name", contact.first_name),
-        last_name=fields.get("last_name", contact.last_name),
-        company_name=fields.get("company_name", contact.company_name),
-        exclude_id=contact.id,
-    )
+    if fields.get("kind") and ExternalContactKind(fields["kind"]) != contact.kind:
+        raise ServiceError("external_contacts.errors.kind_fixed", http_status=422)
+    fields.pop("kind", None)
+    if contact.is_company:
+        for key in ("first_name", "last_name", "position", "company_id"):
+            fields.pop(key, None)
+        await check_duplicate_free(
+            db, first_name=None, last_name=None,
+            company_name=fields.get("company_name", contact.company_name), exclude_id=contact.id,
+        )
+    else:
+        await check_duplicate_free(
+            db, first_name=fields.get("first_name", contact.first_name),
+            last_name=fields.get("last_name", contact.last_name), company_name=None, exclude_id=contact.id,
+        )
+        if fields.get("company_id"):
+            contact.company = await _company_or_error(db, fields["company_id"])
+        elif "company_id" in fields or "company_name" in fields:
+            contact.company = await resolve_company(db, fields.get("company_name"))
+        fields.pop("company_id", None)
+        fields.pop("company_name", None)
     for key, value in fields.items():
         setattr(contact, key, value)
     await db.flush()
@@ -145,8 +247,47 @@ async def update_contact(db: AsyncSession, contact: ExternalContact, **fields) -
 
 async def soft_delete_contact(db: AsyncSession, contact: ExternalContact) -> None:
     """Sets deleted_at (ADR 0005) -- linked incoming invoices and
-    purchase requests keep pointing at it. Frees the name for reuse."""
+    purchase requests keep pointing at it. Frees the name for reuse. A
+    company with people left is refused: move or delete them first."""
+    if contact.is_company and await db.scalar(
+        select(func.count()).select_from(ExternalContact)
+        .where(ExternalContact.company_id == contact.id, ExternalContact.deleted_at.is_(None))
+    ):
+        raise ServiceError("external_contacts.errors.company_has_people", http_status=409)
     contact.deleted_at = datetime.now(timezone.utc)
+    await db.flush()
+
+
+async def merge_companies(db: AsyncSession, source: ExternalContact, target: ExternalContact) -> None:
+    """Folds `source` into `target` (two spellings of one firm): people,
+    phones, emails, tags and the links from incoming invoices and
+    purchase requests move over; address, IBAN, documents folder and
+    notes fill in where the target has none. `source` is soft-deleted."""
+    if not (source.is_company and target.is_company) or source.id == target.id or target.deleted_at:
+        raise ServiceError("external_contacts.errors.merge_invalid", http_status=422)
+    for model, column in (
+        (ExternalContact, ExternalContact.company_id),
+        (ExternalContactPhone, ExternalContactPhone.contact_id),
+        (ExternalContactEmail, ExternalContactEmail.contact_id),
+        (IncomingInvoice, IncomingInvoice.external_contact_id),
+        (PurchaseRequest, PurchaseRequest.external_contact_id),
+    ):
+        await db.execute(update(model).where(column == source.id).values({column.key: target.id}))
+    tag_ids = (await db.scalars(
+        select(external_contact_tag_links.c.tag_id).where(external_contact_tag_links.c.contact_id == source.id)
+    )).all()
+    for tag_id in tag_ids:
+        await tag_contact(db, target.id, tag_id=tag_id)
+    await db.execute(delete(external_contact_tag_links).where(external_contact_tag_links.c.contact_id == source.id))
+    if not any(getattr(target, f) for f in ADDRESS_FIELDS):
+        for f in ADDRESS_FIELDS:
+            setattr(target, f, getattr(source, f))
+    for f in ("iban", "cloud_folder"):
+        if not getattr(target, f):
+            setattr(target, f, getattr(source, f))
+    if source.notes:
+        target.notes = f"{target.notes}\n\n{source.notes}" if target.notes else source.notes
+    source.deleted_at = datetime.now(timezone.utc)
     await db.flush()
 
 

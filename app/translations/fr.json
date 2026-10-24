@@ -2826,7 +2826,9 @@
       "csv_import_button": "Importer",
       "csv_format_help": "Séparé par des points-virgules ou des virgules, avec une ligne d'en-tête. Vous associerez les colonnes à l'étape suivante. Colonnes de l'export :",
       "csv_multi_help": "Plusieurs e-mails, numéros ou étiquettes vont dans une même cellule, séparés par des points-virgules.",
-      "csv_match_help": "Une ligne correspond à un contact existant par le nom de la personne, ou par l'entreprise pour les contacts sans personne ; il est alors mis à jour, rien n'est supprimé."
+      "csv_match_help": "Type « Firma » ou « Person » ; sans lui, une ligne avec un nom est une personne. Une entreprise est reconnue par son nom, une personne par le sien, et la « Firma » d'une personne lie cette entreprise (créée si besoin). Une correspondance est mise à jour, rien n'est supprimé.",
+      "col_name": "Nom",
+      "open": "Ouvrir"
     },
     "form": {
       "title_new": "Nouveau contact externe",
@@ -2843,13 +2845,20 @@
       "person_header": "Interlocuteur",
       "label_first_name": "Prénom",
       "label_last_name": "Nom",
-      "name_unique_help": "Tous les champs sont facultatifs. Le nom d'une personne ne peut exister qu'une fois ; un contact sans personne, une seule fois par entreprise.",
+      "name_unique_help": "Tous les champs sont facultatifs. Un nom d'entreprise et le nom d'une personne ne peuvent exister qu'une seule fois.",
       "label_email": "E-mail",
       "label_phone": "Téléphone",
       "more_later_help": "Vous pourrez ajouter d'autres numéros et adresses sur la page de détail.",
       "notes_header": "Notes",
       "button_save": "Enregistrer",
-      "button_create": "Créer le contact"
+      "button_create": "Créer le contact",
+      "kind_label": "Type de contact",
+      "label_person_company": "Entreprise (facultatif)",
+      "person_company_help": "Une entreprise existante est liée ; un nouveau nom crée l'entreprise.",
+      "label_position": "Fonction",
+      "position_placeholder": "p. ex. gestionnaire, gérant",
+      "address_header": "Adresse et coordonnées bancaires",
+      "person_address_help": "Laisser vide pour utiliser celles de l'entreprise. Saisie avec une nouvelle entreprise, elle devient l'adresse de l'entreprise."
     },
     "detail": {
       "button_edit": "Modifier",
@@ -2876,7 +2885,16 @@
       "danger_zone_text": "La suppression retire le contact des listes et des sélecteurs. Les factures reçues et demandes d'achat liées continuent de l'afficher.",
       "delete_confirm": "Vraiment supprimer {name} ?",
       "button_delete": "Supprimer le contact",
-      "deleted_message": "{name} a été supprimé."
+      "deleted_message": "{name} a été supprimé.",
+      "company_header": "Entreprise",
+      "person_header": "Personne",
+      "label_name": "Nom",
+      "label_position": "Fonction",
+      "company_address_hint": "Adresse de l'entreprise",
+      "company_iban_hint": "IBAN de l'entreprise",
+      "people_header": "Personnes",
+      "add_person": "Ajouter une personne",
+      "no_people": "Aucune personne dans cette entreprise pour l'instant."
     },
     "tags": {
       "manage_link": "Gérer les étiquettes",
@@ -2912,7 +2930,11 @@
     "errors": {
       "not_found": "Contact externe introuvable.",
       "name_taken": "Un interlocuteur nommé {name} existe déjà ({company}).",
-      "company_taken": "Un contact sans personne pour {company} existe déjà."
+      "company_taken": "Une entreprise {company} existe déjà.",
+      "company_not_found": "Entreprise introuvable.",
+      "company_has_people": "Cette entreprise a encore des personnes. Déplacez-les ou supprimez-les d'abord.",
+      "merge_invalid": "Seule une entreprise peut être fusionnée avec une autre entreprise existante.",
+      "kind_fixed": "Un contact ne peut pas passer d'entreprise à personne ou inversement."
     },
     "import": {
       "empty_error": "Le fichier CSV est vide.",
@@ -2936,7 +2958,9 @@
       "map_field_email_addresses": "Adresses e-mail",
       "map_field_phone_numbers": "Numéros de téléphone",
       "map_field_tags": "Étiquettes",
-      "map_field_notes": "Notes"
+      "map_field_notes": "Notes",
+      "map_field_kind": "Type (entreprise/personne)",
+      "map_field_position": "Fonction"
     },
     "picker": {
       "label": "Contact",
@@ -2964,7 +2988,19 @@
       "upload_help": "Le fichier est envoyé dans le dossier affiché ci-dessus. Les fichiers se suppriment ou se déplacent directement dans le cloud.",
       "cloud_not_configured": "La connexion au cloud n'est pas configurée.",
       "invalid_folder": "Nom de dossier invalide.",
-      "invalid_file": "Nom de fichier invalide."
+      "invalid_file": "Nom de fichier invalide.",
+      "at_company": "Les documents sont rangés avec l'entreprise :"
+    },
+    "kind": {
+      "COMPANY": "Entreprise",
+      "PERSON": "Personne"
+    },
+    "merge": {
+      "label": "Fusionner avec",
+      "button": "Fusionner",
+      "help": "Pour deux fiches de la même entreprise : personnes, numéros, e-mails, étiquettes ainsi que factures et demandes d'achat liées passent à l'entreprise choisie, et celle-ci est supprimée.",
+      "confirm": "Vraiment fusionner {name} avec l'entreprise choisie ? Cette fiche sera ensuite supprimée.",
+      "done": "{source} a été fusionnée avec {target}."
     }
   },
   "website": {

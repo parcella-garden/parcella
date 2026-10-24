@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "external_contacts/_picker_options.html" import contact_options with context %}
 {% from "_avatar.html" import user_avatar %}
 {% block title %}{{ pr.title }}{% endblock %}
 {% block page_title %}{{ pr.title }}{% endblock %}
@@ -62,9 +63,7 @@
                             {{ csrf_field() }}
                             <select name="external_contact_id" class="form-select form-select-sm" aria-label="{{ t('external_contacts.picker.supplier_label') }}">
                                 <option value="">{{ t('external_contacts.picker.none') }}</option>
-                                {% for c in contacts %}
-                                <option value="{{ c.id }}" {% if c.id == pr.external_contact_id %}selected{% endif %}>{{ (c.display_name or t('external_contacts.unnamed')) }}</option>
-                                {% endfor %}
+                                {{ contact_options(contacts, pr.external_contact_id) }}
                             </select>
                             <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('external_contacts.picker.save') }}</button>
                         </form>

@@ -2826,7 +2826,9 @@
       "csv_import_button": "Import",
       "csv_format_help": "Semicolon or comma separated, with a header row. You can map the columns in the next step. Columns of the export:",
       "csv_multi_help": "Several emails, phone numbers or tags go into one cell, separated by semicolons.",
-      "csv_match_help": "A row matches an existing contact by the person's name, or by company for contacts without a person; a match is updated, nothing is removed."
+      "csv_match_help": "Type \"Firma\" or \"Person\"; without it, a row with a name is a person. A company matches by its name, a person by theirs, and a person's \"Firma\" links that company (created if needed). A match is updated, nothing is removed.",
+      "col_name": "Name",
+      "open": "Open"
     },
     "form": {
       "title_new": "New external contact",
@@ -2843,13 +2845,20 @@
       "person_header": "Contact person",
       "label_first_name": "First name",
       "label_last_name": "Last name",
-      "name_unique_help": "All fields are optional. A person's name may exist only once; a contact without a person only once per company.",
+      "name_unique_help": "All fields are optional. A company name and a person's name may each exist only once.",
       "label_email": "Email",
       "label_phone": "Phone",
       "more_later_help": "You can add more numbers and addresses on the detail page.",
       "notes_header": "Notes",
       "button_save": "Save changes",
-      "button_create": "Create contact"
+      "button_create": "Create contact",
+      "kind_label": "Kind of contact",
+      "label_person_company": "Company (optional)",
+      "person_company_help": "An existing company is linked; a new name creates the company.",
+      "label_position": "Position",
+      "position_placeholder": "e.g. Clerk, Owner",
+      "address_header": "Address & bank details",
+      "person_address_help": "Leave empty to use the company's. Entered with a new company, it becomes the company's address."
     },
     "detail": {
       "button_edit": "Edit",
@@ -2876,7 +2885,16 @@
       "danger_zone_text": "Deleting removes the contact from lists and pickers. Linked incoming invoices and purchase requests keep showing it.",
       "delete_confirm": "Really delete {name}?",
       "button_delete": "Delete contact",
-      "deleted_message": "{name} was deleted."
+      "deleted_message": "{name} was deleted.",
+      "company_header": "Company",
+      "person_header": "Person",
+      "label_name": "Name",
+      "label_position": "Position",
+      "company_address_hint": "Company address",
+      "company_iban_hint": "Company IBAN",
+      "people_header": "People",
+      "add_person": "Add person",
+      "no_people": "No people at this company yet."
     },
     "tags": {
       "manage_link": "Manage tags",
@@ -2912,7 +2930,11 @@
     "errors": {
       "not_found": "External contact not found.",
       "name_taken": "A contact person called {name} already exists ({company}).",
-      "company_taken": "A contact without a person for {company} already exists."
+      "company_taken": "A company called {company} already exists.",
+      "company_not_found": "Company not found.",
+      "company_has_people": "This company still has people. Move or delete them first.",
+      "merge_invalid": "Only one company can be merged into another, existing company.",
+      "kind_fixed": "A contact can't switch between company and person."
     },
     "import": {
       "empty_error": "The CSV file is empty.",
@@ -2936,7 +2958,9 @@
       "map_field_email_addresses": "Email addresses",
       "map_field_phone_numbers": "Phone numbers",
       "map_field_tags": "Tags",
-      "map_field_notes": "Notes"
+      "map_field_notes": "Notes",
+      "map_field_kind": "Type (company/person)",
+      "map_field_position": "Position"
     },
     "picker": {
       "label": "Contact",
@@ -2964,7 +2988,19 @@
       "upload_help": "The file is uploaded into the folder shown above. Files are deleted or moved in the cloud itself.",
       "cloud_not_configured": "The cloud storage connection isn't set up.",
       "invalid_folder": "Invalid folder name.",
-      "invalid_file": "Invalid file name."
+      "invalid_file": "Invalid file name.",
+      "at_company": "Documents are kept with the company:"
+    },
+    "kind": {
+      "COMPANY": "Company",
+      "PERSON": "Person"
+    },
+    "merge": {
+      "label": "Merge into",
+      "button": "Merge",
+      "help": "For two entries of the same firm: people, phone numbers, emails, tags and linked invoices and purchase requests move to the chosen company, and this one is deleted.",
+      "confirm": "Really merge {name} into the chosen company? This one is deleted afterwards.",
+      "done": "{source} was merged into {target}."
     }
   },
   "website": {

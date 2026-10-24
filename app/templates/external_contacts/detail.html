@@ -30,30 +30,89 @@
 {% endblock %}
 
 {% block content %}
+{% if request.query_params.get('message') %}
+<div class="alert alert-success d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-check-circle-fill"></i> {{ request.query_params.get('message') }}
+</div>
+{% endif %}
+{# A person at a company shows the company's address and IBAN unless it has its own. #}
+{% set company = contact.company %}
+{% set own_address = address_html(contact.street, contact.postal_code, contact.city) %}
 <div class="row g-3">
 
     <div class="col-lg-6">
-        <div class="card h-100">
-            <div class="card-header"><i class="bi bi-building me-2"></i>{{ t('external_contacts.detail.master_data_header') }}</div>
+        <div class="card mb-3">
+            <div class="card-header">
+                {% if contact.is_company %}<i class="bi bi-building me-2"></i>{{ t('external_contacts.detail.company_header') }}
+                {% else %}<i class="bi bi-person me-2"></i>{{ t('external_contacts.detail.person_header') }}{% endif %}
+            </div>
             <div class="card-body">
                 <dl class="row mb-0">
+                    {% if contact.is_company %}
                     <dt class="col-sm-5 text-muted">{{ t('external_contacts.detail.label_company') }}</dt>
                     <dd class="col-sm-7 fw-semibold">{{ contact.company_name or '–' }}</dd>
+                    {% else %}
+                    <dt class="col-sm-5 text-muted">{{ t('external_contacts.detail.label_name') }}</dt>
+                    <dd class="col-sm-7 fw-semibold">{{ contact.full_name or '–' }}</dd>
 
-                    <dt class="col-sm-5 text-muted">{{ t('external_contacts.detail.label_contact_person') }}</dt>
-                    <dd class="col-sm-7">{{ contact.full_name or '–' }}</dd>
+                    <dt class="col-sm-5 text-muted">{{ t('external_contacts.detail.label_position') }}</dt>
+                    <dd class="col-sm-7">{{ contact.position or '–' }}</dd>
+
+                    <dt class="col-sm-5 text-muted">{{ t('external_contacts.detail.label_company') }}</dt>
+                    <dd class="col-sm-7">
+                        {% if company %}
+                        <a href="/contacts/{{ company.id }}" class="fw-semibold text-decoration-none">{{ company.company_name or t('external_contacts.unnamed') }}</a>
+                        {% if company.deleted_at %} <span class="text-muted small">({{ t('external_contacts.picker.deleted') }})</span>{% endif %}
+                        {% else %}–{% endif %}
+                    </dd>
+                    {% endif %}
 
                     <dt class="col-sm-5 text-muted">{{ t('external_contacts.detail.label_address') }}</dt>
                     <dd class="col-sm-7">
-                        {% set addr_html = address_html(contact.street, contact.postal_code, contact.city) %}
-                        {% if addr_html %}{{ addr_html }}{% else %}–{% endif %}
+                        {% if own_address %}{{ own_address }}
+                        {% elif company and address_html(company.street, company.postal_code, company.city) %}
+                        {{ address_html(company.street, company.postal_code, company.city) }}
+                        <div class="text-muted small">{{ t('external_contacts.detail.company_address_hint') }}</div>
+                        {% else %}–{% endif %}
                     </dd>
 
                     <dt class="col-sm-5 text-muted">{{ t('external_contacts.detail.label_iban') }}</dt>
-                    <dd class="col-sm-7">{% if contact.iban %}<code>{{ contact.iban }}</code>{% else %}–{% endif %}</dd>
+                    <dd class="col-sm-7">
+                        {% if contact.iban %}<code>{{ contact.iban }}</code>
+                        {% elif company and company.iban %}<code>{{ company.iban }}</code>
+                        <div class="text-muted small">{{ t('external_contacts.detail.company_iban_hint') }}</div>
+                        {% else %}–{% endif %}
+                    </dd>
                 </dl>
             </div>
         </div>
+
+        {% if contact.is_company %}
+        <div class="card" id="people">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-people me-2"></i>{{ t('external_contacts.detail.people_header') }}</span>
+                {% if has_perm(request, 'external_contacts', 'write') %}
+                <a href="/contacts/new?company_id={{ contact.id }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-person-plus me-1"></i>{{ t('external_contacts.detail.add_person') }}
+                </a>
+                {% endif %}
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for person in contact.active_people %}
+                <li class="list-group-item">
+                    <a href="/contacts/{{ person.id }}" class="fw-semibold text-decoration-none">{{ person.full_name or t('external_contacts.unnamed') }}</a>
+                    {% if person.position %}<span class="text-muted small ms-1">· {{ person.position }}</span>{% endif %}
+                    <div class="small">
+                        {% for phone in person.phone_numbers %}<a href="tel:{{ phone.number }}" class="text-decoration-none me-2"><i class="bi bi-telephone me-1"></i>{{ phone.number }}</a>{% endfor %}
+                        {% for e in person.email_addresses %}<a href="mailto:{{ e.address }}" class="text-decoration-none me-2"><i class="bi bi-envelope me-1"></i>{{ e.address }}</a>{% endfor %}
+                    </div>
+                </li>
+                {% else %}
+                <li class="list-group-item text-muted">{{ t('external_contacts.detail.no_people') }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
     </div>
 
     <div class="col-lg-6">
@@ -185,7 +244,8 @@
                             {% for invoice in incoming_invoices %}
                             <tr>
                                 <td class="text-muted">{{ invoice.invoice_date.strftime('%d.%m.%Y') }}</td>
-                                <td><a href="/finances/incoming-invoices/{{ invoice.id }}">{{ invoice.invoice_number or invoice.sender }}</a></td>
+                                <td><a href="/finances/incoming-invoices/{{ invoice.id }}">{{ invoice.invoice_number or invoice.sender }}</a>
+                                    {% if invoice.external_contact_id != contact.id %}<span class="text-muted small">· {{ invoice.external_contact.full_name or t('external_contacts.unnamed') }}</span>{% endif %}</td>
                                 <td class="text-end">{{ invoice.total_amount|float|money }}</td>
                             </tr>
                             {% else %}
@@ -210,7 +270,8 @@
                             {% for pr in purchase_requests %}
                             <tr>
                                 <td class="text-muted">{{ pr.created_at.strftime('%d.%m.%Y') }}</td>
-                                <td><a href="/purchase-requests/{{ pr.id }}">{{ pr.title }}</a></td>
+                                <td><a href="/purchase-requests/{{ pr.id }}">{{ pr.title }}</a>
+                                    {% if pr.external_contact_id != contact.id %}<span class="text-muted small">· {{ pr.external_contact.full_name or t('external_contacts.unnamed') }}</span>{% endif %}</td>
                                 <td class="text-end">{{ pr.estimated_cost_eur|float|money if pr.estimated_cost_eur else '–' }}</td>
                             </tr>
                             {% else %}
@@ -322,6 +383,18 @@
     </div>
     {% endif %}
 
+    {% if documents is none and company and request.state.module_flags.cloud_storage %}
+    <div class="col-12">
+        <div class="card" id="documents">
+            <div class="card-header"><i class="bi bi-folder2-open me-2"></i>{{ t('external_contacts.documents.header') }}</div>
+            <div class="card-body text-muted">
+                {{ t('external_contacts.documents.at_company') }}
+                <a href="/contacts/{{ company.id }}#documents">{{ company.company_name or t('external_contacts.unnamed') }}</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     {% if contact.notes %}
     <div class="col-12">
         <div class="card">
@@ -337,6 +410,21 @@
             <div class="card-header text-danger"><i class="bi bi-exclamation-triangle me-2"></i>{{ t('external_contacts.detail.danger_zone_header') }}</div>
             <div class="card-body">
                 <p class="text-muted mb-3" style="font-size: 0.88rem;">{{ t('external_contacts.detail.danger_zone_text') }}</p>
+                {% if merge_targets %}
+                <form method="post" action="/contacts/{{ contact.id }}/merge" class="d-flex gap-2 flex-wrap align-items-center mb-3"
+                      onsubmit="return confirm({{ t('external_contacts.merge.confirm', name=(contact.company_name or t('external_contacts.unnamed')))|tojson|forceescape }})">
+                    {{ csrf_field() }}
+                    <label for="merge-target" class="form-label mb-0 small">{{ t('external_contacts.merge.label') }}</label>
+                    <select name="target_id" id="merge-target" class="form-select form-select-sm" style="max-width: 320px;" required>
+                        <option value="">{{ t('external_contacts.picker.none') }}</option>
+                        {% for target in merge_targets %}
+                        <option value="{{ target.id }}">{{ target.company_name or t('external_contacts.unnamed') }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-intersect me-1"></i>{{ t('external_contacts.merge.button') }}</button>
+                </form>
+                <div class="form-text mb-3">{{ t('external_contacts.merge.help') }}</div>
+                {% endif %}
                 <form method="post" action="/contacts/{{ contact.id }}/delete"
                       onsubmit="return confirm({{ t('external_contacts.detail.delete_confirm', name=(contact.display_name or t('external_contacts.unnamed')))|tojson|forceescape }})">
                     {{ csrf_field() }}

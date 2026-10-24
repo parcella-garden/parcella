@@ -65,8 +65,7 @@
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th>{{ t('external_contacts.list.col_contact_person') }}</th>
-                        <th>{{ t('external_contacts.list.col_organisation') }}</th>
+                        <th>{{ t('external_contacts.list.col_name') }}</th>
                         <th>{{ t('external_contacts.list.col_tags') }}</th>
                         <th>{{ t('external_contacts.list.col_phone') }}</th>
                         <th>{{ t('external_contacts.list.col_email') }}</th>
@@ -74,18 +73,18 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for c in contacts %}
+                    {% macro contact_row(c, nested=false) %}
                     {% set detail_url = '/contacts/' ~ c.id ~ ('?' ~ list_query_string if list_query_string else '') %}
-                    <tr>
-                        <td>
-                            {% if c.sort_name %}
-                            <a href="{{ detail_url }}" class="text-decoration-none fw-semibold" style="color: var(--gv-gruen);">{{ c.sort_name }}</a>
-                            {% else %}–{% endif %}
-                        </td>
-                        <td>
-                            {% if c.company_name %}
-                            <a href="{{ detail_url }}" class="text-decoration-none fw-semibold" style="color: var(--gv-gruen);">{{ c.company_name }}</a>
-                            {% else %}–{% endif %}
+                    <tr{% if nested %} class="contact-person-row{% if c.id in matched_ids %} table-active{% endif %}"{% endif %}>
+                        <td{% if nested %} style="padding-left: 2.25rem;"{% endif %}>
+                            {% if c.is_company %}
+                            <i class="bi bi-building text-muted me-1" title="{{ t('external_contacts.kind.COMPANY') }}"></i>
+                            <a href="{{ detail_url }}" class="text-decoration-none fw-semibold" style="color: var(--gv-gruen);">{{ c.company_name or t('external_contacts.unnamed') }}</a>
+                            {% else %}
+                            <i class="bi bi-person text-muted me-1" title="{{ t('external_contacts.kind.PERSON') }}"></i>
+                            <a href="{{ detail_url }}" class="text-decoration-none{% if not nested %} fw-semibold{% endif %}" style="color: var(--gv-gruen);">{{ c.sort_name or t('external_contacts.unnamed') }}</a>
+                            {% if c.position %}<span class="text-muted small ms-1">· {{ c.position }}</span>{% endif %}
+                            {% endif %}
                         </td>
                         <td>
                             {% for contact_tag in c.tags %}
@@ -98,12 +97,18 @@
                             {% if c.email_addresses %}<a href="mailto:{{ c.email_addresses[0].address }}">{{ c.email_addresses[0].address }}</a>{% else %}–{% endif %}
                         </td>
                         <td class="text-end">
-                            <a href="{{ detail_url }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
+                            <a href="{{ detail_url }}" class="btn btn-sm btn-outline-secondary" aria-label="{{ t('external_contacts.list.open') }}"><i class="bi bi-eye"></i></a>
                         </td>
                     </tr>
+                    {% endmacro %}
+                    {% for c in contacts %}
+                    {{ contact_row(c) }}
+                    {% for person in c.active_people %}
+                    {{ contact_row(person, nested=true) }}
+                    {% endfor %}
                     {% else %}
                     <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">
+                        <td colspan="5" class="text-center py-5 text-muted">
                             {% if search %}
                             <i class="bi bi-search d-block mb-2" style="font-size: 1.5rem;"></i>
                             {{ t('external_contacts.list.empty_search', query=search) }}
@@ -148,7 +153,7 @@
                 </form>
                 <div class="form-text mt-2">
                     {{ t('external_contacts.list.csv_format_help') }}
-                    <code>Firma; Vorname; Nachname; Strasse; PLZ; Ort; IBAN; E-Mail-Adressen; Telefonnummern; Tags; Notizen</code><br>
+                    <code>Typ; Firma; Vorname; Nachname; Position; Strasse; PLZ; Ort; IBAN; E-Mail-Adressen; Telefonnummern; Tags; Notizen</code><br>
                     {{ t('external_contacts.list.csv_multi_help') }}<br>
                     {{ t('external_contacts.list.csv_match_help') }}
                 </div>

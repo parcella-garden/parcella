@@ -401,31 +401,50 @@ class MemberEmail(Base):
 # External contacts (suppliers, craftsmen, authorities ...)
 # ---------------------------------------------------------------------------
 
+class ExternalContactKind(str, enum.Enum):
+    COMPANY = "COMPANY"
+    PERSON = "PERSON"
+
+
 class ExternalContact(Base):
     """
-    Someone the club deals with who isn't a member: a company plus the
-    person to talk to there (see docs/module-external-contacts.md, ADR
-    0096). Deliberately its own table rather than a Member with a flag
-    -- no parcels, work hours, invoices or email_info for anything to
-    accidentally pull a contact into.
+    Someone the club deals with who isn't a member (see
+    docs/module-external-contacts.md, ADR 0096). Deliberately its own
+    table rather than a Member with a flag -- no parcels, work hours,
+    invoices or email_info for anything to accidentally pull a contact
+    into.
+
+    Two kinds in one table (ADR 0110): a COMPANY (company_name, no
+    person name) and a PERSON (first/last name, company_name always
+    NULL), who may belong to one company via company_id. Phones, emails,
+    tags, documents and the links from invoices/purchase requests work
+    the same for both.
 
     Every field is optional, names included (migration 0098). Duplicates
     among non-deleted contacts, ignoring case: a given person name
-    (first and/or last) is unique; a contact without a person is unique
-    by company name, which otherwise may repeat (two people at the same
-    firm). Enforced by the partial indexes uq_external_contacts_person
-    and uq_external_contacts_company, checked up front in
+    (first and/or last) is unique; a company name is unique. Enforced by
+    the partial indexes uq_external_contacts_person and
+    uq_external_contacts_company, checked up front in
     app/services/external_contacts.py for a readable error.
     """
     __tablename__ = "external_contacts"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
 
+    kind: Mapped[ExternalContactKind] = mapped_column(
+        SAEnum(ExternalContactKind), default=ExternalContactKind.COMPANY, nullable=False
+    )
+    # Companies only; a person's company is `company`.
     company_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
     first_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     last_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    # Persons only: the company they work for, and their role there.
+    company_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("external_contacts.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    position: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
-    # Company address
+    # Company address; on a person only where it differs from the company's.
     street: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     postal_code: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
     city: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
@@ -460,6 +479,20 @@ class ExternalContact(Base):
         "ExternalContactTag", secondary="external_contact_tag_links", back_populates="contacts",
         order_by="ExternalContactTag.name",
     )
+    # lazy="selectin": display_name reads it, and contacts are shown from
+    # many places (pickers, invoices, purchase requests, applicants) --
+    # one forgotten selectinload would be a MissingGreenlet 500.
+    # join_depth: a self-referential eager load doesn't happen at all
+    # without one; 1 is enough, a company has no company.
+    company: Mapped[Optional["ExternalContact"]] = relationship(
+        "ExternalContact", remote_side=[id], back_populates="people", lazy="selectin", join_depth=1,
+    )
+    # Includes soft-deleted people -- see active_people.
+    # selectinload(ExternalContact.people) wherever it's read.
+    people: Mapped[List["ExternalContact"]] = relationship(
+        "ExternalContact", back_populates="company",
+        order_by="[ExternalContact.last_name, ExternalContact.first_name]",
+    )
 
     __table_args__ = (
         Index(
@@ -477,8 +510,24 @@ class ExternalContact(Base):
     )
 
     @property
+    def is_company(self) -> bool:
+        return self.kind == ExternalContactKind.COMPANY
+
+    @property
     def has_person(self) -> bool:
         return bool(self.first_name or self.last_name)
+
+    @property
+    def organisation_name(self) -> Optional[str]:
+        """A company's own name, or a person's company's name."""
+        if self.is_company:
+            return self.company_name
+        return self.company.company_name if self.company is not None else None
+
+    @property
+    def active_people(self) -> List["ExternalContact"]:
+        """Needs `people` loaded."""
+        return [p for p in self.people if p.deleted_at is None]
 
     @property
     def full_name(self) -> str:
@@ -492,12 +541,13 @@ class ExternalContact(Base):
 
     @property
     def display_name(self) -> str:
-        """"Company (First Last)", or just one of the two; "" for a
-        contact with neither -- templates fall back to
-        external_contacts.unnamed."""
-        if self.company_name and self.has_person:
-            return f"{self.company_name} ({self.full_name})"
-        return self.company_name or self.full_name
+        """A company's name; a person as "Company (First Last)", or just
+        the name without a company. "" for a contact with neither --
+        templates fall back to external_contacts.unnamed."""
+        organisation = self.organisation_name
+        if organisation and self.has_person:
+            return f"{organisation} ({self.full_name})"
+        return organisation or self.full_name
 
     def __repr__(self) -> str:
         return f"<ExternalContact {self.display_name}>"

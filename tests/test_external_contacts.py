@@ -1,10 +1,11 @@
 """
-External contacts module: suppliers, craftsmen, authorities -- a
-company plus a contact person (docs/module-external-contacts.md, ADR
-0096). Focus: the uniqueness rule (person's name unique ignoring case,
-company may repeat, a deleted contact frees its name), the separate tag
-pool, CSV export/import round trip, and the links from incoming
-invoices and purchase requests.
+External contacts module: suppliers, craftsmen, authorities --
+companies and the people there (docs/module-external-contacts.md, ADR
+0096, ADR 0110). Focus: the uniqueness rule (person's name and company
+name unique ignoring case, a deleted contact frees its name), people
+under a company, merging companies, the separate tag pool, CSV
+export/import round trip, and the links from incoming invoices and
+purchase requests.
 """
 import base64
 
@@ -13,7 +14,7 @@ from sqlalchemy.orm import selectinload
 
 from app.database import AsyncSessionLocal
 from app.models import (
-    ClubSetting, ExternalContact, ExternalContactTag, Group, GroupMembership, GroupModulePermission,
+    ClubSetting, ExternalContact, ExternalContactKind, ExternalContactTag, Group, GroupMembership, GroupModulePermission,
     IncomingInvoice, MemberTag, PurchaseRequest, User, UserRole,
 )
 from app.auth import hash_password
@@ -21,9 +22,12 @@ from tests.conftest import auth_header, login
 from tests.test_detail_page_navigation import web_login
 
 
-async def _contacts():
+PERSON, COMPANY = ExternalContactKind.PERSON, ExternalContactKind.COMPANY
+
+
+async def _contacts(kind=None):
     async with AsyncSessionLocal() as db:
-        return (await db.scalars(
+        query = (
             select(ExternalContact)
             .options(
                 selectinload(ExternalContact.phone_numbers),
@@ -31,7 +35,10 @@ async def _contacts():
                 selectinload(ExternalContact.tags),
             )
             .order_by(ExternalContact.last_name)
-        )).all()
+        )
+        if kind is not None:
+            query = query.where(ExternalContact.kind == kind)
+        return (await db.scalars(query)).all()
 
 
 async def _create(client, **fields) -> str:
@@ -48,9 +55,14 @@ async def test_create_contact_with_phone_email_and_tag(client, admin_user):
         email="Max@Mueller-Gartenbau.de", phone="+49 30 123456", notes="Liefert Rindenmulch",
         tags_present="1", new_tags="Lieferant",
     )
-    [contact] = await _contacts()
+    [contact] = await _contacts(PERSON)
     assert contact.id == contact_id
-    assert contact.company_name == "Gartenbau Müller GmbH" and contact.full_name == "Max Müller"
+    assert contact.organisation_name == "Gartenbau Müller GmbH" and contact.full_name == "Max Müller"
+    assert contact.company_name is None and contact.city is None and contact.iban is None
+    # The address came with a new company, so it's the company's.
+    [company] = await _contacts(COMPANY)
+    assert company.company_name == "Gartenbau Müller GmbH" and contact.company_id == company.id
+    assert (company.city, company.iban) == ("Gartenstadt", "DE02120300000000202051")
     assert [e.address for e in contact.email_addresses] == ["max@mueller-gartenbau.de"]
     assert [p.number for p in contact.phone_numbers] == ["+49 30 123456"]
     assert [t.name for t in contact.tags] == ["Lieferant"]
@@ -84,17 +96,18 @@ async def test_contact_person_name_is_unique_ignoring_case_company_may_repeat(cl
     })
     assert response.status_code == 409
     assert "Max Müller" in response.text and "Ganz Andere AG" in response.text  # entered values kept
-    assert len(await _contacts()) == 2
+    assert len(await _contacts(PERSON)) == 2
+    assert [c.company_name for c in await _contacts(COMPANY)] == ["Gartenbau Müller GmbH"]  # not created either
 
     # Renaming the second contact onto the first one's name is refused too.
-    erika = [c for c in await _contacts() if c.first_name == "Erika"][0]
+    erika = [c for c in await _contacts(PERSON) if c.first_name == "Erika"][0]
     response = await client.post(f"/contacts/{erika.id}/edit", data={"first_name": "Max", "last_name": "Müller"})
     assert response.status_code == 409
 
     # A deleted contact frees its name.
     assert (await client.post(f"/contacts/{first_id}/delete")).status_code == 302
     await _create(client, company_name="Ganz Andere AG", first_name="max", last_name="müller")
-    assert sorted(c.company_name for c in await _contacts()) == ["Ganz Andere AG", "Gartenbau Müller GmbH", "Gartenbau Müller GmbH"]
+    assert sorted(c.organisation_name for c in await _contacts(PERSON)) == ["Ganz Andere AG", "Gartenbau Müller GmbH", "Gartenbau Müller GmbH"]
     assert "Gartenbau" not in (await client.get("/contacts/?search=max")).text
 
 
@@ -120,7 +133,9 @@ async def test_csv_export_imports_back_unchanged_and_updates_by_person(client, a
     assert "Gartenbau Müller GmbH" in export.text and "'+49 30 123456" in export.text  # formula-safe
 
     # Re-import the export plus one changed row and one new contact.
-    csv_text = export.text + "Neue Firma;Erika;Muster;;;Hafenstadt;;e@example.org; 0170 1;Behörde;\n"
+    assert "Firma;Gartenbau Müller GmbH;;;;;;Gartenstadt" in export.text  # the company's row...
+    assert "Person;Gartenbau Müller GmbH;Max;Müller;" in export.text  # ...followed by its people
+    csv_text = export.text + "Person;Neue Firma;Erika;Muster;;;;Hafenstadt;;e@example.org; 0170 1;Behörde;\n"
     csv_text = csv_text.replace("Gartenstadt", "Neustadt")
     preview = await client.post(
         "/contacts/import/preview", files={"file": ("contacts.csv", csv_text.encode("utf-8"), "text/csv")},
@@ -129,7 +144,7 @@ async def test_csv_export_imports_back_unchanged_and_updates_by_person(client, a
     assert 'value="first_name" selected' in preview.text  # headers of our own export are recognised
 
     mapping = {f"map_{i}": field for i, field in enumerate([
-        "company_name", "first_name", "last_name", "street", "postal_code", "city",
+        "kind", "company_name", "first_name", "last_name", "position", "street", "postal_code", "city",
         "iban", "email_addresses", "phone_numbers", "tags", "notes",
     ])}
     response = await client.post("/contacts/import/finalize", data={
@@ -137,15 +152,18 @@ async def test_csv_export_imports_back_unchanged_and_updates_by_person(client, a
     })
     assert response.status_code == 302
 
-    contacts = {c.first_name: c for c in await _contacts()}
+    contacts = {c.first_name: c for c in await _contacts(PERSON)}
     assert set(contacts) == {"Max", "Erika"}
+    companies = {c.company_name: c for c in await _contacts(COMPANY)}
+    assert set(companies) == {"Gartenbau Müller GmbH", "Neue Firma"}
     max_ = contacts["Max"]
-    assert max_.city == "Neustadt"
+    assert companies["Gartenbau Müller GmbH"].city == "Neustadt" and max_.city is None
     assert [p.number for p in max_.phone_numbers] == ["+49 30 123456"]  # apostrophe stripped, no duplicate
     assert [e.address for e in max_.email_addresses] == ["a@example.org"]
     assert [t.name for t in max_.tags] == ["Lieferant"]
     erika = contacts["Erika"]
-    assert erika.company_name == "Neue Firma" and erika.city == "Hafenstadt"
+    assert erika.company_id == companies["Neue Firma"].id and erika.city is None
+    assert companies["Neue Firma"].city == "Hafenstadt"  # a new company takes the row's address
     assert [p.number for p in erika.phone_numbers] == ["0170 1"]
     assert [t.name for t in erika.tags] == ["Behörde"]
 
@@ -188,8 +206,13 @@ async def test_names_are_optional_and_company_only_contacts_are_unique_per_compa
     assert next(c for c in contacts if c.last_name == "Strom").display_name == "Stadtwerke (Strom)"
     assert "Stadtwerke" in (await client.get("/contacts/")).text
 
-    # Deleting the company-only contact frees the company again.
-    await client.post(f"/contacts/{stadtwerke_id}/delete")
+    # A company with people can't be deleted...
+    response = await client.post(f"/contacts/{stadtwerke_id}/delete")
+    assert response.status_code == 303 and "error=" in response.headers["location"]
+    # ...once they're gone, deleting it frees the company name again.
+    strom = next(c for c in contacts if c.last_name == "Strom")
+    assert (await client.post(f"/contacts/{strom.id}/delete")).status_code == 302
+    assert (await client.post(f"/contacts/{stadtwerke_id}/delete")).status_code == 302
     await _create(client, company_name="Stadtwerke", first_name="", last_name="")
 
 
@@ -399,7 +422,7 @@ async def test_documents_pick_folder_browse_upload_download(client, admin_user, 
         "kgv_dokumente/extern/Gartenbau Müller": [("Eingang", True), ("Angebot 2026.pdf", False)],
         "kgv_dokumente/extern/Gartenbau Müller/Eingang": [("Rechnung 42.pdf", False)],
     })
-    contact_id = await _create(client)
+    contact_id = await _create(client, first_name="", last_name="")
 
     # No folder yet: the picker offers the subfolders of the base folder (no files).
     page = await client.get(f"/contacts/{contact_id}")
@@ -437,7 +460,7 @@ async def test_documents_pick_folder_browse_upload_download(client, admin_user, 
 
 async def test_documents_need_the_cloud_module_and_respect_permissions(client, admin_user, monkeypatch):
     await web_login(client, "admin@example.com")
-    contact_id = await _create(client)
+    contact_id = await _create(client, first_name="", last_name="")
     # Module off: no card, routes 404.
     assert 'id="documents"' not in (await client.get(f"/contacts/{contact_id}")).text
     assert (await client.get(f"/contacts/{contact_id}/documents/download?filename=a.pdf")).status_code == 404
@@ -462,18 +485,177 @@ async def test_documents_need_the_cloud_module_and_respect_permissions(client, a
     assert (await client.post(f"/contacts/{contact_id}/documents/folder", data={"folder_name": ""})).status_code == 403
 
 
-async def test_list_search_covers_notes_and_links_name_and_organisation(client, admin_user):
-    """A ticket number in a contact's notes finds it; the list shows the
-    contact person before the organisation and links both to the detail
-    page."""
+async def test_list_search_covers_notes_and_shows_the_person_under_its_company(client, admin_user):
+    """A ticket number in a person's notes finds them; the list shows
+    their company's row with the person highlighted beneath it."""
     async with AsyncSessionLocal() as db:
-        noted = ExternalContact(company_name="Notiz GmbH", first_name="Nora", last_name="Notiz", notes="Ticket #4711")
-        db.add_all([noted, ExternalContact(company_name="Andere AG")])
+        company = ExternalContact(kind=COMPANY, company_name="Notiz GmbH")
+        noted = ExternalContact(kind=PERSON, first_name="Nora", last_name="Notiz", notes="Ticket #4711", company=company)
+        other = ExternalContact(kind=PERSON, first_name="Olaf", last_name="Other", company=company)
+        db.add_all([company, noted, other, ExternalContact(kind=COMPANY, company_name="Andere AG")])
         await db.commit()
-        noted_id = noted.id
+        company_id, noted_id = company.id, noted.id
     await web_login(client, "admin@example.com")
 
     page = (await client.get("/contacts/?search=4711")).text
     assert "Notiz GmbH" in page and "Andere AG" not in page
-    assert page.count(f'href="/contacts/{noted_id}?search=4711"') == 3  # name, organisation, eye button
-    assert page.index("Notiz, Nora") < page.index("Notiz GmbH")
+    assert page.count(f'href="/contacts/{noted_id}?search=4711"') == 2  # name, eye button
+    assert page.count(f'href="/contacts/{company_id}?search=4711"') == 2
+    assert page.index("Notiz GmbH") < page.index("Notiz, Nora")
+    assert "Other, Olaf" in page  # the company's other people are listed too...
+    assert page.count("table-active") == 1  # ...but only the match is highlighted
+
+
+# ---------------------------------------------------------------------------
+# Companies and their people (ADR 0110)
+# ---------------------------------------------------------------------------
+
+async def test_company_with_people_form_list_and_detail(client, admin_user):
+    await web_login(client, "admin@example.com")
+    response = await client.post("/contacts/new", data={
+        "kind": "COMPANY", "company_name": "Stadtwerke", "first_name": "ignored", "city": "Gartenstadt",
+        "phone": "0800 1",
+    })
+    assert response.status_code == 302
+    company_id = response.headers["location"].rsplit("/", 1)[1]
+
+    # "Add person" pre-fills the company.
+    form = await client.get(f"/contacts/new?company_id={company_id}")
+    assert 'value="Stadtwerke"' in form.text and 'value="PERSON" id="kind-person" autocomplete="off" checked' in form.text
+    for first, last in (("Ina", "Strom"), ("Wolf", "Wasser")):
+        response = await client.post("/contacts/new", data={
+            "kind": "PERSON", "company_name": "stadtwerke", "first_name": first, "last_name": last, "position": "Vertrieb",
+        })
+        assert response.status_code == 302
+    [company] = await _contacts(COMPANY)
+    assert company.first_name is None  # a company has no person name
+    people = await _contacts(PERSON)
+    assert [p.company_id for p in people] == [company_id, company_id]
+
+    page = (await client.get("/contacts/")).text
+    assert page.index("Stadtwerke") < page.index("Strom, Ina") < page.index("Wasser, Wolf")
+
+    detail = (await client.get(f"/contacts/{company_id}")).text
+    assert "Strom" in detail and "Wasser" in detail and f"/contacts/new?company_id={company_id}" in detail
+    person = (await client.get(f"/contacts/{people[0].id}")).text
+    assert f'href="/contacts/{company_id}"' in person and "Gartenstadt" in person and "Vertrieb" in person
+
+    # Moving a person to another company by name, which gets created.
+    response = await client.post(f"/contacts/{people[0].id}/edit", data={
+        "company_name": "Netzbetreiber", "first_name": "Ina", "last_name": "Strom",
+    })
+    assert response.status_code == 302
+    async with AsyncSessionLocal() as db:
+        moved = await db.get(ExternalContact, people[0].id)
+        assert moved.organisation_name == "Netzbetreiber" and moved.position is None
+
+
+async def test_merge_companies_moves_people_details_and_links(client, admin_user):
+    async with AsyncSessionLocal() as db:
+        db.add(ClubSetting(key="modul_finances", value="true", description="test"))
+        await db.commit()
+    await web_login(client, "admin@example.com")
+    source_id = await _create(client, company_name="Commerzbank", first_name="", last_name="", city="Leipzig",
+                              phone="0341 1", tags_present="1", new_tags="Bank")
+    target_id = await _create(client, company_name="Commerzbank AG", first_name="", last_name="")
+    person_id = await _create(client, company_name="Commerzbank", first_name="Kurt", last_name="Konto")
+    response = await client.post("/purchase-requests/new", data={
+        "title": "Tresor", "justification": "Kasse", "external_contact_id": source_id,
+    })
+    assert response.status_code == 302
+
+    # The source's page offers the other company as a target.
+    assert f'<option value="{target_id}">Commerzbank AG</option>' in (await client.get(f"/contacts/{source_id}")).text
+    response = await client.post(f"/contacts/{source_id}/merge", data={"target_id": target_id})
+    assert response.status_code == 303 and response.headers["location"].startswith(f"/contacts/{target_id}?")
+
+    contacts = {c.id: c for c in await _contacts()}
+    source, target = contacts[source_id], contacts[target_id]
+    assert source.deleted_at is not None and not source.phone_numbers and not source.tags
+    assert contacts[person_id].company_id == target_id
+    assert target.city == "Leipzig" and [p.number for p in target.phone_numbers] == ["0341 1"]
+    assert [t.name for t in target.tags] == ["Bank"]
+    async with AsyncSessionLocal() as db:
+        assert (await db.scalars(select(PurchaseRequest))).one().external_contact_id == target_id
+
+    # Only companies merge, and not into themselves.
+    response = await client.post(f"/contacts/{person_id}/merge", data={"target_id": target_id})
+    assert response.status_code == 303 and "error=" in response.headers["location"]
+
+
+async def test_merge_needs_the_delete_permission(client, admin_user):
+    async with AsyncSessionLocal() as db:
+        user = User(email="writer@example.com", name="Writer",
+                    password_hash=hash_password("testpasswort123"), role=UserRole.READONLY)
+        group = Group(name="Contacts writers")
+        db.add_all([user, group])
+        await db.flush()
+        db.add(GroupModulePermission(group_id=group.id, module="external_contacts", can_read=True, can_write=True))
+        db.add(GroupMembership(user_id=user.id, group_id=group.id))
+        a = ExternalContact(kind=COMPANY, company_name="A")
+        b = ExternalContact(kind=COMPANY, company_name="B")
+        db.add_all([a, b])
+        await db.commit()
+        a_id, b_id = a.id, b.id
+    await web_login(client, "writer@example.com")
+    assert (await client.post(f"/contacts/{a_id}/merge", data={"target_id": b_id})).status_code == 403
+    assert "/merge" not in (await client.get(f"/contacts/{a_id}")).text
+
+
+async def test_csv_import_without_type_column_groups_people_under_one_company(client, admin_user):
+    """An old-style file (one row = company + person + company address)
+    ends up as one company with the address, and its people."""
+    await web_login(client, "admin@example.com")
+    csv_text = (
+        "Firma;Vorname;Nachname;Strasse;Ort\n"
+        "Handelshof;Hans;Hof;Markt 1;Bitterfeld\n"
+        "HANDELSHOF;Heike;Hof;Markt 1;Bitterfeld\n"
+        "Handelshof;Herbert;Hof;Lager 9;Bitterfeld\n"
+    )
+    response = await client.post("/contacts/import/finalize", data={
+        "csv_content_b64": base64.b64encode(csv_text.encode()).decode(), "delimiter": ";",
+        "map_0": "company_name", "map_1": "first_name", "map_2": "last_name", "map_3": "street", "map_4": "city",
+    })
+    assert response.status_code == 302
+    [company] = await _contacts(COMPANY)
+    assert (company.company_name, company.street, company.city) == ("Handelshof", "Markt 1", "Bitterfeld")
+    people = {p.first_name: p for p in await _contacts(PERSON)}
+    assert {p.company_id for p in people.values()} == {company.id}
+    assert people["Hans"].street is None and people["Heike"].street is None
+    assert people["Herbert"].street == "Lager 9"  # differs from the company's: kept on the person
+
+
+async def test_picker_groups_people_under_their_company(client, admin_user):
+    await web_login(client, "admin@example.com")
+    person_id = await _create(client)
+    company_id = (await _contacts(COMPANY))[0].id
+    page = (await client.get("/purchase-requests/new")).text
+    group = page[page.index('<optgroup label="Gartenbau Müller GmbH">'):page.index("</optgroup>")]
+    assert f'value="{company_id}"' in group and f'value="{person_id}"' in group
+
+
+async def test_rest_api_companies_and_people(client, admin_user):
+    headers = auth_header(await login(client, "admin@example.com"))
+    company = await client.post("/api/v1/external-contacts", json={"kind": "COMPANY", "company_name": "Bauhof"}, headers=headers)
+    assert company.status_code == 201 and company.json()["kind"] == "COMPANY"
+    company_id = company.json()["id"]
+    person = await client.post("/api/v1/external-contacts", json={
+        "first_name": "Bea", "last_name": "Bagger", "company_id": company_id, "position": "Polier",
+    }, headers=headers)
+    assert person.status_code == 201, person.text
+    body = person.json()
+    assert (body["kind"], body["company_id"], body["company_name"], body["position"]) == ("PERSON", company_id, "Bauhof", "Polier")
+
+    listed = await client.get(f"/api/v1/external-contacts?kind=PERSON&company_id={company_id}", headers=headers)
+    assert [c["id"] for c in listed.json()] == [body["id"]]
+    assert [c["id"] for c in (await client.get("/api/v1/external-contacts?kind=COMPANY", headers=headers)).json()] == [company_id]
+
+    assert (await client.put(f"/api/v1/external-contacts/{body['id']}", json={"kind": "COMPANY"}, headers=headers)).status_code == 422
+    assert (await client.post("/api/v1/external-contacts", json={"last_name": "X", "company_id": body["id"]}, headers=headers)).status_code == 404
+    assert (await client.delete(f"/api/v1/external-contacts/{company_id}", headers=headers)).status_code == 409
+
+    other = (await client.post("/api/v1/external-contacts", json={"company_name": "Bauhof GmbH"}, headers=headers)).json()
+    merged = await client.post(f"/api/v1/external-contacts/{company_id}/merge-into/{other['id']}", headers=headers)
+    assert merged.status_code == 200 and merged.json()["id"] == other["id"]
+    moved = (await client.get(f"/api/v1/external-contacts/{body['id']}", headers=headers)).json()
+    assert moved["company_id"] == other["id"] and moved["company_name"] == "Bauhof GmbH"

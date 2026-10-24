@@ -17,19 +17,83 @@
 </div>
 {% endif %}
 
+{# kind: fixed once saved; on a new contact a switch, and the fields of
+   the other kind are hidden (and ignored by the server). #}
+{% set kind = contact.kind.value if contact else (values.kind or 'COMPANY') %}
+{% macro shown_for(k) %}data-kind-show="{{ k }}"{% if kind != k %} style="display: none;"{% endif %}{% endmacro %}
+{% set company_value = values.company_name if 'company_name' in values else ((contact.organisation_name or '') if contact else '') %}
+
 <form method="post" action="{% if contact %}/contacts/{{ contact.id }}/edit{% else %}/contacts/new{% endif %}">
     {{ csrf_field() }}
 <div class="row g-3">
 
+    {% if not contact %}
+    <div class="col-12">
+        <div class="btn-group" role="group" aria-label="{{ t('external_contacts.form.kind_label') }}">
+            <input type="radio" class="btn-check" name="kind" value="COMPANY" id="kind-company" autocomplete="off" {% if kind == 'COMPANY' %}checked{% endif %}>
+            <label class="btn btn-outline-primary" for="kind-company"><i class="bi bi-building me-1"></i>{{ t('external_contacts.kind.COMPANY') }}</label>
+            <input type="radio" class="btn-check" name="kind" value="PERSON" id="kind-person" autocomplete="off" {% if kind == 'PERSON' %}checked{% endif %}>
+            <label class="btn btn-outline-primary" for="kind-person"><i class="bi bi-person me-1"></i>{{ t('external_contacts.kind.PERSON') }}</label>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="col-lg-6">
         <div class="card">
-            <div class="card-header"><i class="bi bi-building me-2"></i>{{ t('external_contacts.form.company_header') }}</div>
+            <div class="card-header">
+                <span {{ shown_for('COMPANY') }}><i class="bi bi-building me-2"></i>{{ t('external_contacts.form.company_header') }}</span>
+                <span {{ shown_for('PERSON') }}><i class="bi bi-person me-2"></i>{{ t('external_contacts.form.person_header') }}</span>
+            </div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_company_name') }}</label>
-                        <input type="text" name="company_name" class="form-control" maxlength="255" value="{{ field('company_name') }}" autofocus>
+                    <div class="col-sm-6" {{ shown_for('PERSON') }}>
+                        <label class="form-label fw-semibold" for="first_name">{{ t('external_contacts.form.label_first_name') }}</label>
+                        <input type="text" name="first_name" id="first_name" class="form-control" maxlength="100" value="{{ field('first_name') }}">
                     </div>
+                    <div class="col-sm-6" {{ shown_for('PERSON') }}>
+                        <label class="form-label fw-semibold" for="last_name">{{ t('external_contacts.form.label_last_name') }}</label>
+                        <input type="text" name="last_name" id="last_name" class="form-control" maxlength="100" value="{{ field('last_name') }}">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" for="company_name">
+                            <span {{ shown_for('COMPANY') }}>{{ t('external_contacts.form.label_company_name') }}</span>
+                            <span {{ shown_for('PERSON') }}>{{ t('external_contacts.form.label_person_company') }}</span>
+                        </label>
+                        <input type="text" name="company_name" id="company_name" class="form-control" maxlength="255"
+                               value="{{ company_value }}" list="company-options">
+                        <datalist id="company-options">
+                            {% for name in company_names %}<option value="{{ name }}"></option>{% endfor %}
+                        </datalist>
+                        <div class="form-text" {{ shown_for('PERSON') }}>{{ t('external_contacts.form.person_company_help') }}</div>
+                    </div>
+                    <div class="col-12" {{ shown_for('PERSON') }}>
+                        <label class="form-label fw-semibold" for="position">{{ t('external_contacts.form.label_position') }}</label>
+                        <input type="text" name="position" id="position" class="form-control" maxlength="100" value="{{ field('position') }}"
+                               placeholder="{{ t('external_contacts.form.position_placeholder') }}">
+                    </div>
+                    <div class="col-12 form-text mt-1">{{ t('external_contacts.form.name_unique_help') }}</div>
+                    {% if not contact %}
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_email') }}</label>
+                        <input type="email" name="email" class="form-control" value="{{ field('email') }}">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_phone') }}</label>
+                        <input type="tel" name="phone" class="form-control" value="{{ field('phone') }}">
+                    </div>
+                    <div class="col-12 form-text mt-1">{{ t('external_contacts.form.more_later_help') }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-geo-alt me-2"></i>{{ t('external_contacts.form.address_header') }}</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 form-text mt-0" {{ shown_for('PERSON') }}>{{ t('external_contacts.form.person_address_help') }}</div>
                     <div class="col-12">
                         <label class="form-label fw-semibold">{{ t('external_contacts.form.label_street') }}</label>
                         <input type="text" name="street" class="form-control" maxlength="255" value="{{ field('street') }}">
@@ -47,36 +111,6 @@
                         <input type="text" name="iban" class="form-control font-monospace" maxlength="34"
                                placeholder="DE00 0000 0000 0000 0000 00" value="{{ field('iban') }}">
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-6">
-        <div class="card">
-            <div class="card-header"><i class="bi bi-person me-2"></i>{{ t('external_contacts.form.person_header') }}</div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-sm-6">
-                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_first_name') }}</label>
-                        <input type="text" name="first_name" class="form-control" maxlength="100" value="{{ field('first_name') }}">
-                    </div>
-                    <div class="col-sm-6">
-                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_last_name') }}</label>
-                        <input type="text" name="last_name" class="form-control" maxlength="100" value="{{ field('last_name') }}">
-                    </div>
-                    <div class="col-12 form-text mt-1">{{ t('external_contacts.form.name_unique_help') }}</div>
-                    {% if not contact %}
-                    <div class="col-sm-6">
-                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_email') }}</label>
-                        <input type="email" name="email" class="form-control" value="{{ field('email') }}">
-                    </div>
-                    <div class="col-sm-6">
-                        <label class="form-label fw-semibold">{{ t('external_contacts.form.label_phone') }}</label>
-                        <input type="tel" name="phone" class="form-control" value="{{ field('phone') }}">
-                    </div>
-                    <div class="col-12 form-text mt-1">{{ t('external_contacts.form.more_later_help') }}</div>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -128,4 +162,16 @@
 
 </div>
 </form>
+{% if not contact %}
+<script>
+// Company / person switch: shows the fields of the picked kind.
+document.querySelectorAll('input[name="kind"]').forEach(function (radio) {
+    radio.addEventListener('change', function () {
+        document.querySelectorAll('[data-kind-show]').forEach(function (el) {
+            el.style.display = el.dataset.kindShow === radio.value ? '' : 'none';
+        });
+    });
+});
+</script>
+{% endif %}
 {% endblock %}

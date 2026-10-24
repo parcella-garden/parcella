@@ -1,0 +1,22 @@
+{# The <option>s of a contact picker on another module's form (ADR 0096):
+   `groups` is picker_groups() output -- each company in an optgroup
+   with itself and its people, persons without a company on their own.
+   with_sender adds data-sender for the incoming-invoice form. #}
+{% macro contact_options(groups, selected_id='', with_sender=false) %}
+{% for top, people in groups %}
+{% if people %}
+<optgroup label="{{ top.display_name or t('external_contacts.unnamed') }}">
+    {{ _option(top, selected_id, with_sender) }}
+    {% for person in people %}
+    {{ _option(person, selected_id, with_sender) }}
+    {% endfor %}
+</optgroup>
+{% else %}
+{{ _option(top, selected_id, with_sender) }}
+{% endif %}
+{% endfor %}
+{% endmacro %}
+
+{% macro _option(c, selected_id, with_sender) %}
+<option value="{{ c.id }}"{% if with_sender %} data-sender="{{ c.organisation_name or c.full_name }}"{% endif %}{% if c.id == selected_id %} selected{% endif %}>{{ c.display_name or t('external_contacts.unnamed') }}</option>
+{% endmacro %}
