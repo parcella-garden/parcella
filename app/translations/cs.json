@@ -99,7 +99,9 @@
     "too_many_login_attempts": "Příliš mnoho neúspěšných pokusů o přihlášení. Počkejte několik minut a zkuste to znovu.",
     "password_must_differ": "Nové heslo se musí lišit od současného.",
     "csrf_invalid": "Bezpečnostní kontrola selhala. Stránka byla pravděpodobně otevřená příliš dlouho -- vraťte se, načtěte ji znovu a zkuste to znovu.",
-    "own_password_reset_use_change_password": "Pro vlastní účet použijte „Změnit heslo“."
+    "own_password_reset_use_change_password": "Pro vlastní účet použijte „Změnit heslo“.",
+    "comment_empty": "Komentář je prázdný.",
+    "comment_too_long": "Komentář je příliš dlouhý (nejvýše {max} znaků)."
   },
   "auth": {
     "login": {
@@ -1042,7 +1044,13 @@
       "reject_button": "Zamítnout",
       "reject_reason_placeholder": "Důvod zamítnutí…",
       "reject_confirm_button": "Trvale zamítnout",
-      "unknown": "Neznámý"
+      "unknown": "Neznámý",
+      "comments_header": "Diskuse ({count})",
+      "no_comments": "Zatím žádné komentáře.",
+      "comment_deleted_user": "Smazaný uživatel",
+      "comment_placeholder": "Položte otázku nebo přidejte poznámku, např. „něco takového už máme“",
+      "comment_hint": "Odešle se e-mailem žadateli a všem v diskusi.",
+      "comment_button": "Komentovat"
     },
     "confirm": {
       "title": "Potvrdit žádost o nákup",
@@ -2171,6 +2179,12 @@
       "subject": "Upomínka č. {level} k faktuře {invoice_number} — {club_name}",
       "greeting": "Vážený/á {name},",
       "body": "toto je upomínka, že faktura {invoice_number} od {club_name} dosud nebyla uhrazena. Podrobnosti naleznete v přiloženém PDF."
+    },
+    "purchase_request_comment": {
+      "subject": "Nový komentář: požadavek na nákup „{title}“",
+      "body": "{author} okomentoval(a) požadavek na nákup „{title}“ v {app_name}:",
+      "button": "Otevřít požadavek a odpovědět",
+      "external_hint": "Chcete-li odpovědět, obraťte se prosím na výbor."
     }
   },
   "finances": {

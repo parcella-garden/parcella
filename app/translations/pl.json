@@ -99,7 +99,9 @@
     "too_many_login_attempts": "Zbyt wiele nieudanych prób logowania. Odczekaj kilka minut i spróbuj ponownie.",
     "password_must_differ": "Nowe hasło musi różnić się od obecnego.",
     "csrf_invalid": "Kontrola bezpieczeństwa nie powiodła się. Strona była prawdopodobnie otwarta zbyt długo -- wróć, odśwież ją i spróbuj ponownie.",
-    "own_password_reset_use_change_password": "Dla własnego konta użyj opcji „Zmień hasło”."
+    "own_password_reset_use_change_password": "Dla własnego konta użyj opcji „Zmień hasło”.",
+    "comment_empty": "Komentarz jest pusty.",
+    "comment_too_long": "Komentarz jest za długi (maksymalnie {max} znaków)."
   },
   "auth": {
     "login": {
@@ -1042,7 +1044,13 @@
       "reject_button": "Odrzuć",
       "reject_reason_placeholder": "Uzasadnienie odrzucenia…",
       "reject_confirm_button": "Odrzuć ostatecznie",
-      "unknown": "Nieznany"
+      "unknown": "Nieznany",
+      "comments_header": "Dyskusja ({count})",
+      "no_comments": "Brak komentarzy.",
+      "comment_deleted_user": "Usunięty użytkownik",
+      "comment_placeholder": "Zadaj pytanie lub dodaj uwagę, np. „już coś takiego mamy”",
+      "comment_hint": "Wysyłane e-mailem do wnioskodawcy i wszystkich uczestników dyskusji.",
+      "comment_button": "Skomentuj"
     },
     "confirm": {
       "title": "Potwierdź wniosek zakupowy",
@@ -2171,6 +2179,12 @@
       "subject": "Upomnienie nr {level} dotyczące faktury {invoice_number} — {club_name}",
       "greeting": "Szanowni Państwo {name},",
       "body": "przypominamy, że faktura {invoice_number} od {club_name} nie została jeszcze opłacona. Szczegóły znajdują się w załączonym pliku PDF."
+    },
+    "purchase_request_comment": {
+      "subject": "Nowy komentarz: wniosek zakupowy „{title}”",
+      "body": "{author} skomentował(a) wniosek zakupowy „{title}” w {app_name}:",
+      "button": "Otwórz wniosek i odpowiedz",
+      "external_hint": "Aby odpowiedzieć, skontaktuj się z zarządem."
     }
   },
   "finances": {

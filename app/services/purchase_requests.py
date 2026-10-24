@@ -30,15 +30,23 @@ Two real divergences found and fixed along the way:
    built correctly.
 """
 from datetime import datetime, timezone
-from typing import Optional
+from typing import List, Optional, Tuple
+
+from markupsafe import Markup, escape
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.config import settings
 from app.email_service import send_email
 from app.i18n import translate
-from app.models import PurchaseRequest, PurchaseRequestApproval, PurchaseRequestStatus
+from app.models import (
+    PurchaseRequest, PurchaseRequestApproval, PurchaseRequestComment, PurchaseRequestStatus, User,
+)
 from app.services.errors import ServiceError
 
 REQUIRED_APPROVALS = 2
+# Long enough for any real discussion post, short enough to stay an email.
+MAX_COMMENT_LENGTH = 5000
 
 
 async def create_purchase_request(
@@ -114,3 +122,86 @@ async def reject_purchase_request(db, pr: PurchaseRequest, *, acting_user_id: st
     pr.rejected_by_id = acting_user_id
     pr.rejected_at = datetime.now(timezone.utc)
     await db.flush()
+
+
+# ---------------------------------------------------------------------------
+# Discussion (issue #249)
+# ---------------------------------------------------------------------------
+
+async def add_comment(db, pr: PurchaseRequest, *, author: User, content: str) -> PurchaseRequestComment:
+    """Appends a comment; allowed in every status (a rejected request is
+    exactly when someone may want to say why). Caller commits, then
+    calls notify_comment()."""
+    content = (content or "").strip()
+    if not content:
+        raise ServiceError("errors.comment_empty", http_status=400)
+    if len(content) > MAX_COMMENT_LENGTH:
+        raise ServiceError("errors.comment_too_long", http_status=400, max=MAX_COMMENT_LENGTH)
+    comment = PurchaseRequestComment(purchase_request_id=pr.id, content=content, created_by_id=author.id)
+    db.add(comment)
+    await db.flush()
+    return comment
+
+
+async def comment_recipients(db, pr: PurchaseRequest, *, author: User) -> List[Tuple[Optional[User], str]]:
+    """Who hears about a new comment: the requester (their account, or
+    the external address for a request entered on their behalf), and
+    every active user who commented or approved before -- not the
+    author, and each address once. (user, address); user is None for
+    the external requester."""
+    users: List[User] = []
+    if pr.requested_by_id:
+        users.append(await db.get(User, pr.requested_by_id))
+    commenter_ids = select(PurchaseRequestComment.created_by_id).where(
+        PurchaseRequestComment.purchase_request_id == pr.id
+    )
+    approver_ids = select(PurchaseRequestApproval.user_id).where(PurchaseRequestApproval.purchase_request_id == pr.id)
+    users += (await db.scalars(
+        select(User).where(User.id.in_(commenter_ids) | User.id.in_(approver_ids)).order_by(User.name)
+    )).all()
+
+    recipients: List[Tuple[Optional[User], str]] = []
+    seen = {(author.email or "").strip().lower()}
+    for user in users:
+        if user is None or not user.is_active or user.id == author.id:
+            continue
+        address = (user.email or "").strip()
+        if address and address.lower() not in seen:
+            seen.add(address.lower())
+            recipients.append((user, address))
+    if pr.requester_email and pr.requester_email.strip().lower() not in seen:
+        recipients.append((None, pr.requester_email.strip()))
+    return recipients
+
+
+async def notify_comment(
+    db, pr: PurchaseRequest, comment: PurchaseRequestComment, *, author: User, base_url: str, lang: str,
+) -> int:
+    """Emails the new comment to comment_recipients(). Users get a link
+    to the request to answer there; an external requester has no login,
+    so their email says to reply to the board instead. Every
+    user-entered value is escaped. Returns how many emails went out."""
+    link = f"{base_url}/purchase-requests/{pr.id}"
+    # The title is user input and ends up in a mail header: no line breaks.
+    subject = translate("email.purchase_request_comment.subject", lang, title=" ".join(pr.title.split()))
+    comment_html = escape(comment.content).replace("\n", Markup("<br>"))
+    sent = 0
+    for user, address in await comment_recipients(db, pr, author=author):
+        if user is not None:
+            action = (
+                f'<p><a href="{escape(link)}" style="background: #2d6a4f; color: white; padding: 10px 20px; '
+                f'text-decoration: none; border-radius: 4px;">'
+                f'{escape(translate("email.purchase_request_comment.button", lang))}</a></p>'
+            )
+        else:
+            action = f'<p>{escape(translate("email.purchase_request_comment.external_hint", lang))}</p>'
+        html = f"""
+        <html><body style="font-family: sans-serif;">
+        <p>{escape(translate("email.purchase_request_comment.body", lang, author=author.name, title=pr.title, app_name=settings.app_name))}</p>
+        <blockquote style="border-left: 3px solid #ccc; margin: 0; padding-left: 12px;">{comment_html}</blockquote>
+        {action}
+        </body></html>
+        """
+        if await send_email(address, subject, html, db=db):
+            sent += 1
+    return sent

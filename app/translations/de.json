@@ -99,7 +99,9 @@
     "too_many_login_attempts": "Zu viele fehlgeschlagene Anmeldeversuche. Bitte einige Minuten warten und erneut versuchen.",
     "password_must_differ": "Das neue Passwort muss sich vom aktuellen unterscheiden.",
     "csrf_invalid": "Sicherheitsprüfung fehlgeschlagen. Die Seite war vermutlich zu lange geöffnet -- bitte zurückgehen, neu laden und erneut versuchen.",
-    "own_password_reset_use_change_password": "Für Ihr eigenes Konto nutzen Sie bitte „Passwort ändern“."
+    "own_password_reset_use_change_password": "Für Ihr eigenes Konto nutzen Sie bitte „Passwort ändern“.",
+    "comment_empty": "Der Kommentar ist leer.",
+    "comment_too_long": "Der Kommentar ist zu lang (höchstens {max} Zeichen)."
   },
   "auth": {
     "login": {
@@ -1042,7 +1044,13 @@
       "reject_button": "Ablehnen",
       "reject_reason_placeholder": "Begründung für die Ablehnung…",
       "reject_confirm_button": "Endgültig ablehnen",
-      "unknown": "Unbekannt"
+      "unknown": "Unbekannt",
+      "comments_header": "Diskussion ({count})",
+      "no_comments": "Noch keine Kommentare.",
+      "comment_deleted_user": "Gelöschter Benutzer",
+      "comment_placeholder": "Frage stellen oder Hinweis geben, z. B. „so etwas haben wir schon“",
+      "comment_hint": "Geht per E-Mail an den Antragsteller und alle in der Diskussion.",
+      "comment_button": "Kommentieren"
     },
     "confirm": {
       "title": "Einkaufswunsch bestätigen",
@@ -2171,6 +2179,12 @@
       "subject": "Zahlungserinnerung Nr. {level} zu Rechnung {invoice_number} — {club_name}",
       "greeting": "Liebe/r {name},",
       "body": "dies ist eine Erinnerung, dass die Rechnung {invoice_number} von {club_name} noch nicht beglichen wurde. Details finden Sie im beigefügten PDF."
+    },
+    "purchase_request_comment": {
+      "subject": "Neuer Kommentar: Einkaufswunsch „{title}“",
+      "body": "{author} hat den Einkaufswunsch „{title}“ in {app_name} kommentiert:",
+      "button": "Einkaufswunsch öffnen und antworten",
+      "external_hint": "Zum Antworten wende dich bitte an den Vorstand."
     }
   },
   "finances": {

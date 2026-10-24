@@ -12,6 +12,7 @@ Module flag: `purchase_requests`
 ```
 purchase_requests          – the request: title, justification, link, cost, status
 purchase_request_approvals – individual approvals (who, when) -- needs 2 per request
+purchase_request_comments  – the discussion on a request (issue #249), append-only
 ```
 
 `purchase_requests.external_contact_id` is an optional supplier from
@@ -64,6 +65,20 @@ dashboard's "Open purchase requests" tile (`app/nav_counts.py`, ADR
 0100). It counts every open request, including ones the current user
 has already approved and that are waiting for a second approver.
 
+**Discussion instead of a phone call (issue #249).** Anyone who can see
+a request (`purchase_requests` read) can comment on it, in every status
+-- the case from the issue: an approver knows the club already owns a
+labelling machine and says so on the request. Comments are append-only
+(no edit, no delete), like task card comments. Each new comment is
+emailed (`notify_comment()` in `app/services/purchase_requests.py`) to
+the requester and to every active user who commented or approved
+before; never to its author, each address once. Users get a link to
+`/purchase-requests/{id}` to answer there. The comment text is escaped
+in the email, line breaks kept, and the title is stripped of line
+breaks before it goes into the subject header. Sent right after the
+commit, like the confirmation email; a failing SMTP server doesn't lose
+the comment.
+
 ## REST API
 
 Complete from the start (`/api/v1/purchase-requests`), following the same
@@ -72,6 +87,8 @@ pattern as the other modules. `approve` and `reject` use
 `require_api_permission` other write endpoints in this module use --
 approval authority here is deliberately narrower than ordinary module
 write access, mirroring the HTML side's `require_admin`.
+`GET`/`POST /{id}/comments` (issue #249) need only read access, like
+the web form, and go through the same `add_comment()`/`notify_comment()`.
 
 **Implementation note (ADR 0070):** request creation, the four-eyes
 approval/rejection rules, and the confirmation email now live in
@@ -97,3 +114,12 @@ the two rules that must hold regardless of caller (self-approval block,
 the 2-distinct-approvals threshold) are shared. The unauthenticated
 deep-link confirmation flow (`/purchase-requests/confirm/{token}`) has
 no API equivalent and stays entirely HTML-side.
+
+## Known gaps
+
+- An external requester (no login, entered on their behalf) gets
+  comments by email but can't answer in Parcella -- the email tells
+  them to get in touch with the board. The confirmation deep link could
+  carry a reply box later.
+- No notification for approvals/rejections themselves, only for
+  comments.

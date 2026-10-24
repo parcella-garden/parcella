@@ -95,6 +95,34 @@
     </div>
 
     <div class="col-lg-5">
+        {#- Issue #249: discussion, emailed to the requester and earlier participants. -#}
+        <div class="card mb-3" id="comments">
+            <div class="card-header"><i class="bi bi-chat-left-text me-2"></i>{{ t('purchase_requests.detail.comments_header', count=pr.comments | length) }}</div>
+            <div class="card-body">
+                {% for c in pr.comments %}
+                <div class="mb-3" id="comment-{{ c.id }}">
+                    <div class="d-flex justify-content-between align-items-center" style="font-size: 0.8rem;">
+                        <span class="d-inline-flex align-items-center gap-1 fw-semibold">{% if c.created_by %}{{ user_avatar(c.created_by, size=20) }}{{ c.created_by.name }}{% else %}{{ t('purchase_requests.detail.comment_deleted_user') }}{% endif %}</span>
+                        <span class="text-muted">{{ c.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                    </div>
+                    <div style="white-space: pre-wrap; font-size: 0.9rem;">{{ c.content }}</div>
+                </div>
+                {% else %}
+                <p class="text-muted" style="font-size: 0.85rem;">{{ t('purchase_requests.detail.no_comments') }}</p>
+                {% endfor %}
+                <form method="post" action="/purchase-requests/{{ pr.id }}/comments">
+                    {{ csrf_field() }}
+                    <textarea name="content" class="form-control form-control-sm mb-2" rows="3" required
+                              maxlength="{{ max_comment_length }}"
+                              placeholder="{{ t('purchase_requests.detail.comment_placeholder') }}"></textarea>
+                    <div class="d-flex justify-content-between align-items-center gap-2">
+                        <span class="form-text m-0">{{ t('purchase_requests.detail.comment_hint') }}</span>
+                        <button type="submit" class="btn btn-sm btn-primary">{{ t('purchase_requests.detail.comment_button') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div class="card mb-3">
             <div class="card-header"><i class="bi bi-people-fill me-2"></i>{{ t('purchase_requests.detail.approvals_header', count=pr.approvals | length, required=required_approvals) }}</div>
             <div class="card-body">

@@ -20,17 +20,19 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
-from app.models import PurchaseRequest, PurchaseRequestStatus, User
+from app.models import PurchaseRequest, PurchaseRequestComment, PurchaseRequestStatus, User
 from app.api_auth import require_api_permission, require_api_full_access
 from app.i18n import t_for, DEFAULT_LANGUAGE
 from app.module_flags import require_module
 from app.services.errors import ServiceError
 from app.services.purchase_requests import (
     create_purchase_request, send_confirmation_email, approve_purchase_request, reject_purchase_request,
+    add_comment, notify_comment,
 )
 from app.services.external_contacts import get_contact
 from app.schemas import (
     PurchaseRequestCreate, PurchaseRequestOut, PurchaseRequestDetailOut, PurchaseRequestRejectRequest,
+    PurchaseRequestCommentCreate, PurchaseRequestCommentOut,
 )
 
 router = APIRouter(
@@ -167,3 +169,47 @@ async def purchase_request_reject(
     await db.commit()
     await db.refresh(pr)
     return pr
+
+
+@router.get(
+    "/{request_id}/comments", response_model=List[PurchaseRequestCommentOut],
+    summary="List the discussion on a purchase request",
+)
+async def purchase_request_comments(
+    request_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_api_permission("purchase_requests", "read")),
+):
+    if await db.get(PurchaseRequest, request_id) is None:
+        raise HTTPException(status_code=404, detail="Purchase request not found")
+    return (await db.scalars(
+        select(PurchaseRequestComment)
+        .where(PurchaseRequestComment.purchase_request_id == request_id)
+        .order_by(PurchaseRequestComment.created_at)
+    )).all()
+
+
+@router.post(
+    "/{request_id}/comments", response_model=PurchaseRequestCommentOut, status_code=201,
+    summary="Comment on a purchase request",
+    description="Anyone with read access may comment (issue #249). The comment is emailed to the "
+                "requester and to everyone who commented or approved before, not to its author.",
+)
+async def purchase_request_comment_create(
+    request_id: str, data: PurchaseRequestCommentCreate, request: Request,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_api_permission("purchase_requests", "read")),
+):
+    pr = await db.get(PurchaseRequest, request_id)
+    if pr is None:
+        raise HTTPException(status_code=404, detail="Purchase request not found")
+    try:
+        comment = await add_comment(db, pr, author=user, content=data.content)
+    except ServiceError as e:
+        raise HTTPException(status_code=e.http_status, detail=t_for(request, e.key, **e.params))
+    await db.commit()
+    await notify_comment(
+        db, pr, comment, author=user, base_url=str(request.base_url).rstrip("/"),
+        lang=getattr(request.state, "language", DEFAULT_LANGUAGE),
+    )
+    return comment

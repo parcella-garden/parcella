@@ -17,7 +17,7 @@ from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.models import (
-    PurchaseRequest, PurchaseRequestApproval, PurchaseRequestStatus, User,
+    PurchaseRequest, PurchaseRequestApproval, PurchaseRequestComment, PurchaseRequestStatus, User,
 )
 from app.auth import require_admin
 from app.permissions import require_permission
@@ -26,8 +26,8 @@ from app.module_flags import require_module
 from app.services.errors import ServiceError
 from app.routers.external_contacts import picker_contacts, resolve_picked_contact
 from app.services.purchase_requests import (
-    REQUIRED_APPROVALS, create_purchase_request, send_confirmation_email,
-    approve_purchase_request, reject_purchase_request,
+    MAX_COMMENT_LENGTH, REQUIRED_APPROVALS, create_purchase_request, send_confirmation_email,
+    approve_purchase_request, reject_purchase_request, add_comment, notify_comment,
 )
 
 router = APIRouter(
@@ -57,6 +57,7 @@ async def _load_with_details(db: AsyncSession, request_id: str) -> Optional[Purc
             selectinload(PurchaseRequest.rejected_by),
             selectinload(PurchaseRequest.approvals).selectinload(PurchaseRequestApproval.user),
             selectinload(PurchaseRequest.external_contact),
+            selectinload(PurchaseRequest.comments).selectinload(PurchaseRequestComment.created_by),
         )
         .where(PurchaseRequest.id == request_id)
     )
@@ -181,7 +182,30 @@ async def purchase_request_detail(request_id: str, request: Request, db: AsyncSe
         "is_requester": is_requester,
         "PurchaseRequestStatus": PurchaseRequestStatus,
         "contacts": await picker_contacts(request, db),
+        "max_comment_length": MAX_COMMENT_LENGTH,
     })
+
+
+@router.post("/{request_id}/comments")
+async def purchase_request_comment(
+    request_id: str, request: Request, content: str = Form(""), db: AsyncSession = Depends(get_db),
+):
+    """Issue #249: anyone who can see the request can discuss it; the
+    comment is emailed to the requester and the discussion so far."""
+    user = await require_permission(request, db, "purchase_requests", "read")
+    pr = await db.get(PurchaseRequest, request_id)
+    if pr is None:
+        raise HTTPException(status_code=404, detail=t_for(request, "errors.purchase_request_not_found"))
+    try:
+        comment = await add_comment(db, pr, author=user, content=content)
+    except ServiceError as e:
+        raise HTTPException(status_code=e.http_status, detail=t_for(request, e.key, **e.params))
+    await db.commit()
+    await notify_comment(
+        db, pr, comment, author=user, base_url=str(request.base_url).rstrip("/"),
+        lang=getattr(request.state, "language", DEFAULT_LANGUAGE),
+    )
+    return RedirectResponse(f"/purchase-requests/{request_id}#comment-{comment.id}", status_code=303)
 
 
 @router.post("/{request_id}/contact")

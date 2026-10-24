@@ -99,7 +99,9 @@
     "too_many_login_attempts": "Too many failed login attempts. Please wait a few minutes and try again.",
     "password_must_differ": "The new password must be different from the current one.",
     "csrf_invalid": "Security check failed. The page was probably open for too long -- please go back, reload it and try again.",
-    "own_password_reset_use_change_password": "Use \"Change password\" for your own account."
+    "own_password_reset_use_change_password": "Use \"Change password\" for your own account.",
+    "comment_empty": "The comment is empty.",
+    "comment_too_long": "The comment is too long (at most {max} characters)."
   },
   "auth": {
     "login": {
@@ -1042,7 +1044,13 @@
       "reject_button": "Reject",
       "reject_reason_placeholder": "Reason for rejection…",
       "reject_confirm_button": "Reject permanently",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "comments_header": "Discussion ({count})",
+      "no_comments": "No comments yet.",
+      "comment_deleted_user": "Deleted user",
+      "comment_placeholder": "Ask a question or add a note, e.g. \"we already have one of these\"",
+      "comment_hint": "Emailed to the requester and everyone in the discussion.",
+      "comment_button": "Comment"
     },
     "confirm": {
       "title": "Confirm purchase request",
@@ -2171,6 +2179,12 @@
       "subject": "Payment reminder #{level} for invoice {invoice_number} — {club_name}",
       "greeting": "Dear {name},",
       "body": "This is a reminder that invoice {invoice_number} from {club_name} is still unpaid. Please see the attached PDF for details."
+    },
+    "purchase_request_comment": {
+      "subject": "New comment: purchase request \"{title}\"",
+      "body": "{author} commented on the purchase request \"{title}\" in {app_name}:",
+      "button": "Open the request and reply",
+      "external_hint": "To reply, please get in touch with the board."
     }
   },
   "finances": {

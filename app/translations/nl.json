@@ -99,7 +99,9 @@
     "too_many_login_attempts": "Te veel mislukte inlogpogingen. Wacht een paar minuten en probeer het opnieuw.",
     "password_must_differ": "Het nieuwe wachtwoord moet verschillen van het huidige.",
     "csrf_invalid": "Beveiligingscontrole mislukt. De pagina stond waarschijnlijk te lang open -- ga terug, herlaad de pagina en probeer het opnieuw.",
-    "own_password_reset_use_change_password": "Gebruik voor uw eigen account „Wachtwoord wijzigen”."
+    "own_password_reset_use_change_password": "Gebruik voor uw eigen account „Wachtwoord wijzigen”.",
+    "comment_empty": "De reactie is leeg.",
+    "comment_too_long": "De reactie is te lang (maximaal {max} tekens)."
   },
   "auth": {
     "login": {
@@ -1042,7 +1044,13 @@
       "reject_button": "Afwijzen",
       "reject_reason_placeholder": "Reden voor afwijzing…",
       "reject_confirm_button": "Definitief afwijzen",
-      "unknown": "Onbekend"
+      "unknown": "Onbekend",
+      "comments_header": "Discussie ({count})",
+      "no_comments": "Nog geen reacties.",
+      "comment_deleted_user": "Verwijderde gebruiker",
+      "comment_placeholder": "Stel een vraag of voeg een opmerking toe, bijv. \"zoiets hebben we al\"",
+      "comment_hint": "Wordt gemaild naar de aanvrager en iedereen in de discussie.",
+      "comment_button": "Reageren"
     },
     "confirm": {
       "title": "Aankoopaanvraag bevestigen",
@@ -2171,6 +2179,12 @@
       "subject": "Betalingsherinnering nr. {level} voor factuur {invoice_number} — {club_name}",
       "greeting": "Beste {name},",
       "body": "dit is een herinnering dat factuur {invoice_number} van {club_name} nog niet is betaald. Zie de bijgevoegde PDF voor details."
+    },
+    "purchase_request_comment": {
+      "subject": "Nieuwe reactie: aankoopverzoek \"{title}\"",
+      "body": "{author} heeft gereageerd op het aankoopverzoek \"{title}\" in {app_name}:",
+      "button": "Verzoek openen en antwoorden",
+      "external_hint": "Neem contact op met het bestuur om te antwoorden."
     }
   },
   "finances": {

@@ -99,7 +99,9 @@
     "too_many_login_attempts": "Trop de tentatives de connexion échouées. Veuillez patienter quelques minutes et réessayer.",
     "password_must_differ": "Le nouveau mot de passe doit être différent de l'actuel.",
     "csrf_invalid": "Échec du contrôle de sécurité. La page est probablement restée ouverte trop longtemps -- revenez en arrière, rechargez-la et réessayez.",
-    "own_password_reset_use_change_password": "Pour votre propre compte, utilisez « Changer le mot de passe »."
+    "own_password_reset_use_change_password": "Pour votre propre compte, utilisez « Changer le mot de passe ».",
+    "comment_empty": "Le commentaire est vide.",
+    "comment_too_long": "Le commentaire est trop long ({max} caractères au maximum)."
   },
   "auth": {
     "login": {
@@ -1042,7 +1044,13 @@
       "reject_button": "Rejeter",
       "reject_reason_placeholder": "Motif du rejet…",
       "reject_confirm_button": "Rejeter définitivement",
-      "unknown": "Inconnu"
+      "unknown": "Inconnu",
+      "comments_header": "Discussion ({count})",
+      "no_comments": "Pas encore de commentaires.",
+      "comment_deleted_user": "Utilisateur supprimé",
+      "comment_placeholder": "Posez une question ou ajoutez une remarque, p. ex. « nous en avons déjà un »",
+      "comment_hint": "Envoyé par e-mail au demandeur et à tous les participants de la discussion.",
+      "comment_button": "Commenter"
     },
     "confirm": {
       "title": "Confirmer la demande d'achat",
@@ -2171,6 +2179,12 @@
       "subject": "Rappel de paiement n° {level} pour la facture {invoice_number} — {club_name}",
       "greeting": "Cher/Chère {name},",
       "body": "ceci est un rappel : la facture {invoice_number} de {club_name} n'a pas encore été réglée. Merci de consulter le PDF joint pour plus de détails."
+    },
+    "purchase_request_comment": {
+      "subject": "Nouveau commentaire : demande d'achat « {title} »",
+      "body": "{author} a commenté la demande d'achat « {title} » dans {app_name} :",
+      "button": "Ouvrir la demande et répondre",
+      "external_hint": "Pour répondre, veuillez contacter le bureau."
     }
   },
   "finances": {

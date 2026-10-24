@@ -790,6 +790,20 @@ class PurchaseRequestDetailOut(PurchaseRequestOut):
     approvals: List[PurchaseRequestApprovalOut] = []
 
 
+class PurchaseRequestCommentCreate(BaseModel):
+    content: str
+
+
+class PurchaseRequestCommentOut(BaseModel):
+    """A comment in a purchase request's discussion (issue #249)."""
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    purchase_request_id: str
+    content: str
+    created_by_id: Optional[str] = None
+    created_at: datetime
+
+
 # ---------------------------------------------------------------------------
 # Public signup API (see app/routers/api_public.py) -- deliberately its own
 # small schema set, independent from WorkSessionOut/ParcelOut above: this is

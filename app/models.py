@@ -1875,6 +1875,10 @@ class PurchaseRequest(Base):
     approvals: Mapped[List["PurchaseRequestApproval"]] = relationship(
         "PurchaseRequestApproval", back_populates="purchase_request", cascade="all, delete-orphan"
     )
+    comments: Mapped[List["PurchaseRequestComment"]] = relationship(
+        "PurchaseRequestComment", back_populates="purchase_request", cascade="all, delete-orphan",
+        order_by="PurchaseRequestComment.created_at",
+    )
 
     @property
     def requester_display_name(self) -> str:
@@ -1911,6 +1915,32 @@ class PurchaseRequestApproval(Base):
     __table_args__ = (
         UniqueConstraint("purchase_request_id", "user_id", name="uq_purchase_request_approval"),
     )
+
+
+class PurchaseRequestComment(Base):
+    """A comment in the discussion on a purchase request (issue #249),
+    e.g. "we already have a labelling machine". Append-only like
+    TaskComment. Each new comment is emailed to the requester and to
+    everyone who commented or approved before (not to its author)."""
+    __tablename__ = "purchase_request_comments"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    purchase_request_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("purchase_requests.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_by_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    purchase_request: Mapped["PurchaseRequest"] = relationship("PurchaseRequest", back_populates="comments")
+    created_by: Mapped[Optional["User"]] = relationship("User")
+
+    def __repr__(self) -> str:
+        return f"<PurchaseRequestComment purchase_request={self.purchase_request_id}>"
 
 
 class CalendarEventType(str, enum.Enum):
