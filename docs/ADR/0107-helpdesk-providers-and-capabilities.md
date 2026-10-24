@@ -21,7 +21,8 @@ Zammad and osTicket.
    API can only create tickets; Znuny's web service has no operation for
    editing customer users. Instead of a lowest common denominator, or
    pretending, each provider declares what it can do (`inbox`, `read`,
-   `reply`, `create`, `customer_sync`), and every caller checks first.
+   `create`, `customer_sync`; `reply` was dropped again by ADR 0111),
+   and every caller checks first.
    Missing features are hidden or explained (osTicket: "answer requests
    in osTicket" plus a link), never a broken button.
 

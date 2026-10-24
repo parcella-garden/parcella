@@ -740,10 +740,6 @@ class FreescoutAddToTaskBoardRequest(BaseModel):
     task_id: Optional[str] = Field(None, description="Link to this existing task instead of creating a new one")
 
 
-class FreescoutReplyCreate(BaseModel):
-    text: str = Field(..., description="Customer-facing reply text, sent through the helpdesk")
-
-
 # ---------------------------------------------------------------------------
 # Purchase Requests
 # ---------------------------------------------------------------------------

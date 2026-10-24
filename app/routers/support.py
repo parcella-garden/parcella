@@ -24,7 +24,7 @@ from sqlalchemy.orm import selectinload
 from app.auth import require_admin
 from app.database import active_member_filter, current_tenant_filter, get_db
 from app.helpdesk import (
-    HELPDESK, HIDDEN_STATUSES, INBOX, READ, REPLY, HelpdeskError, get_active_helpdesk_type,
+    HELPDESK, HIDDEN_STATUSES, INBOX, READ, HelpdeskError, get_active_helpdesk_type,
     get_helpdesk,
 )
 from app.i18n import t_for
@@ -233,30 +233,3 @@ async def link_existing_task(
     await db.commit()
     return RedirectResponse(f"/support/{link_id}", status_code=302)
 
-
-@router.post("/{link_id}/reply")
-async def reply_to_customer(
-    link_id: str, request: Request, text: str = Form(...), db: AsyncSession = Depends(get_db),
-):
-    """Posts a customer-facing reply through the helpdesk. Entirely
-    separate from Parcella's internal task comments (TaskComment) --
-    there is no shared 'notes' widget, so an internal remark can never
-    be sent to the customer by accident."""
-    await require_permission(request, db, "freescout_bridge", "write")
-    link = await _get_link_or_404(db, link_id, request)
-
-    provider = await get_helpdesk(db)
-    if provider is None or provider.type != link.provider:
-        raise HTTPException(status_code=400, detail=t_for(request, "freescout.detail.not_configured"))
-    if not provider.can(REPLY):
-        await provider.aclose()
-        raise HTTPException(status_code=400, detail=t_for(request, "freescout.detail.no_reply", name=provider.label))
-
-    try:
-        await provider.reply(link.external_id, text.strip())
-    except HelpdeskError as e:
-        raise HTTPException(status_code=502, detail=str(e))
-    finally:
-        await provider.aclose()
-
-    return RedirectResponse(f"/support/{link_id}", status_code=302)

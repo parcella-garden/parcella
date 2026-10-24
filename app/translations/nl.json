@@ -2654,10 +2654,6 @@
       "open_in_freescout": "Openen in {name}",
       "transcript_header": "Gesprek",
       "no_messages": "Er konden geen berichten worden geladen.",
-      "reply_header": "Antwoord aan klant",
-      "reply_placeholder": "Typ je antwoord...",
-      "reply_send": "Verzenden",
-      "reply_help_text": "Verstuurd via {name} en naar de klant gemaild -- dit is geen interne notitie.",
       "member_header": "Lid",
       "member_none": "Geen lid gekoppeld.",
       "member_none_option": "-- geen --",
@@ -2671,8 +2667,7 @@
       "task_open": "Taak openen",
       "task_create": "Taak aanmaken",
       "not_configured": "De helpdesk van dit gesprek is niet (meer) ingesteld.",
-      "no_read": "{name} kan via zijn interface geen gesprekken tonen -- open het in {name}.",
-      "no_reply": "{name} kan via zijn interface geen antwoorden versturen."
+      "no_read": "{name} kan via zijn interface geen gesprekken tonen -- open het in {name}."
     },
     "errors": {
       "conversation_not_found": "Gesprek niet gevonden",
@@ -3103,7 +3098,7 @@
     "providers": {
       "freescout": {
         "name": "FreeScout",
-        "desc": "Open-source helpdesk. Alles werkt: lijst, lezen, antwoorden, contactformulier en naamsynchronisatie. Vereist de module API & Webhooks.",
+        "desc": "Open-source helpdesk. Alles werkt: lijst, lezen, contactformulier en naamsynchronisatie. Vereist de module API & Webhooks.",
         "fields": {
           "base_url": "FreeScout-adres",
           "api_key": "API-sleutel",
@@ -3116,7 +3111,7 @@
       },
       "zammad": {
         "name": "Zammad",
-        "desc": "Open-source helpdesk, veel gebruikt in Duitstalige landen. Alles werkt: lijst, lezen, antwoorden, contactformulier en naamsynchronisatie.",
+        "desc": "Open-source helpdesk, veel gebruikt in Duitstalige landen. Alles werkt: lijst, lezen, contactformulier en naamsynchronisatie.",
         "fields": {
           "base_url": "Zammad-adres",
           "api_token": "Toegangstoken",
@@ -3129,7 +3124,7 @@
       },
       "znuny": {
         "name": "Znuny / OTRS",
-        "desc": "Open-source helpdesk. Lijst, lezen, antwoorden en contactformulier werken; Znuny heeft geen interface om klanten te hernoemen. De Parcella-webservice moet één keer in Znuny worden geïmporteerd (zie integrations/znuny/).",
+        "desc": "Open-source helpdesk. Lijst, lezen en contactformulier werken; Znuny heeft geen interface om klanten te hernoemen. De Parcella-webservice moet één keer in Znuny worden geïmporteerd (zie integrations/znuny/).",
         "fields": {
           "webservice_url": "Adres van de webservice",
           "username": "Agent-login",
@@ -3158,7 +3153,7 @@
       },
       "zendesk": {
         "name": "Zendesk",
-        "desc": "Commerciële helpdesk. Alles werkt: lijst, lezen, antwoorden, contactformulier en naamsynchronisatie.",
+        "desc": "Commerciële helpdesk. Alles werkt: lijst, lezen, contactformulier en naamsynchronisatie.",
         "fields": {
           "base_url": "Zendesk-adres",
           "agent_email": "E-mailadres van de agent",
@@ -3171,7 +3166,7 @@
       },
       "freshdesk": {
         "name": "Freshdesk",
-        "desc": "Commerciële helpdesk. Alles werkt: lijst, lezen, antwoorden, contactformulier en naamsynchronisatie.",
+        "desc": "Commerciële helpdesk. Alles werkt: lijst, lezen, contactformulier en naamsynchronisatie.",
         "fields": {
           "base_url": "Freshdesk-adres",
           "api_key": "API-sleutel"

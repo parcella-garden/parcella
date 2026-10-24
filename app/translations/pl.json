@@ -2654,10 +2654,6 @@
       "open_in_freescout": "Otwórz w {name}",
       "transcript_header": "Rozmowa",
       "no_messages": "Nie udało się wczytać wiadomości.",
-      "reply_header": "Odpowiedz klientowi",
-      "reply_placeholder": "Wpisz odpowiedź...",
-      "reply_send": "Wyślij",
-      "reply_help_text": "Wysyłane przez {name} e-mailem do klienta – to nie jest notatka wewnętrzna.",
       "member_header": "Członek",
       "member_none": "Nie przypisano żadnego członka.",
       "member_none_option": "-- brak --",
@@ -2671,8 +2667,7 @@
       "task_open": "Otwórz zadanie",
       "task_create": "Utwórz zadanie",
       "not_configured": "Helpdesk tej rozmowy nie jest (już) skonfigurowany.",
-      "no_read": "{name} nie potrafi pokazywać rozmów przez swój interfejs – otwórz ją w {name}.",
-      "no_reply": "{name} nie potrafi wysyłać odpowiedzi przez swój interfejs."
+      "no_read": "{name} nie potrafi pokazywać rozmów przez swój interfejs – otwórz ją w {name}."
     },
     "errors": {
       "conversation_not_found": "Nie znaleziono rozmowy",
@@ -3103,7 +3098,7 @@
     "providers": {
       "freescout": {
         "name": "FreeScout",
-        "desc": "Helpdesk open source. Działa wszystko: lista, odczyt, odpowiedzi, formularz kontaktowy i synchronizacja nazwisk. Wymaga modułu API & Webhooks.",
+        "desc": "Helpdesk open source. Działa wszystko: lista, odczyt, formularz kontaktowy i synchronizacja nazwisk. Wymaga modułu API & Webhooks.",
         "fields": {
           "base_url": "Adres FreeScout",
           "api_key": "Klucz API",
@@ -3116,7 +3111,7 @@
       },
       "zammad": {
         "name": "Zammad",
-        "desc": "Helpdesk open source, popularny w krajach niemieckojęzycznych. Działa wszystko: lista, odczyt, odpowiedzi, formularz kontaktowy i synchronizacja nazwisk.",
+        "desc": "Helpdesk open source, popularny w krajach niemieckojęzycznych. Działa wszystko: lista, odczyt, formularz kontaktowy i synchronizacja nazwisk.",
         "fields": {
           "base_url": "Adres Zammad",
           "api_token": "Token dostępu",
@@ -3129,7 +3124,7 @@
       },
       "znuny": {
         "name": "Znuny / OTRS",
-        "desc": "Helpdesk open source. Działają lista, odczyt, odpowiedzi i formularz kontaktowy; Znuny nie ma interfejsu do zmiany nazw klientów. Usługę sieciową Parcella trzeba raz zaimportować w Znuny (zob. integrations/znuny/).",
+        "desc": "Helpdesk open source. Działają lista, odczyt i formularz kontaktowy; Znuny nie ma interfejsu do zmiany nazw klientów. Usługę sieciową Parcella trzeba raz zaimportować w Znuny (zob. integrations/znuny/).",
         "fields": {
           "webservice_url": "Adres usługi sieciowej",
           "username": "Login agenta",
@@ -3158,7 +3153,7 @@
       },
       "zendesk": {
         "name": "Zendesk",
-        "desc": "Komercyjny helpdesk. Działa wszystko: lista, odczyt, odpowiedzi, formularz kontaktowy i synchronizacja nazwisk.",
+        "desc": "Komercyjny helpdesk. Działa wszystko: lista, odczyt, formularz kontaktowy i synchronizacja nazwisk.",
         "fields": {
           "base_url": "Adres Zendesk",
           "agent_email": "Adres e-mail agenta",
@@ -3171,7 +3166,7 @@
       },
       "freshdesk": {
         "name": "Freshdesk",
-        "desc": "Komercyjny helpdesk. Działa wszystko: lista, odczyt, odpowiedzi, formularz kontaktowy i synchronizacja nazwisk.",
+        "desc": "Komercyjny helpdesk. Działa wszystko: lista, odczyt, formularz kontaktowy i synchronizacja nazwisk.",
         "fields": {
           "base_url": "Adres Freshdesk",
           "api_key": "Klucz API"

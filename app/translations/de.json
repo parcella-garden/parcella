@@ -2654,10 +2654,6 @@
       "open_in_freescout": "In {name} öffnen",
       "transcript_header": "Konversation",
       "no_messages": "Es konnten keine Nachrichten geladen werden.",
-      "reply_header": "Antwort an den Kunden",
-      "reply_placeholder": "Antwort eingeben...",
-      "reply_send": "Senden",
-      "reply_help_text": "Wird über {name} gesendet und dem Kunden gemailt – das ist keine interne Notiz.",
       "member_header": "Mitglied",
       "member_none": "Kein Mitglied zugeordnet.",
       "member_none_option": "-- keine --",
@@ -2671,8 +2667,7 @@
       "task_open": "Aufgabe öffnen",
       "task_create": "Aufgabe erstellen",
       "not_configured": "Das Helpdesk dieser Unterhaltung ist nicht (mehr) eingerichtet.",
-      "no_read": "{name} kann über seine Schnittstelle keine Unterhaltungen anzeigen – öffnen Sie sie in {name}.",
-      "no_reply": "{name} kann über seine Schnittstelle keine Antworten senden."
+      "no_read": "{name} kann über seine Schnittstelle keine Unterhaltungen anzeigen – öffnen Sie sie in {name}."
     },
     "errors": {
       "conversation_not_found": "Konversation nicht gefunden",
@@ -3103,7 +3098,7 @@
     "providers": {
       "freescout": {
         "name": "FreeScout",
-        "desc": "Open-Source-Helpdesk. Alles funktioniert: Liste, Lesen, Antworten, Kontaktformular und Namensabgleich. Benötigt das FreeScout-Modul API & Webhooks.",
+        "desc": "Open-Source-Helpdesk. Alles funktioniert: Liste, Lesen, Kontaktformular und Namensabgleich. Benötigt das FreeScout-Modul API & Webhooks.",
         "fields": {
           "base_url": "FreeScout-Adresse",
           "api_key": "API-Schlüssel",
@@ -3116,7 +3111,7 @@
       },
       "zammad": {
         "name": "Zammad",
-        "desc": "Open-Source-Helpdesk, im deutschsprachigen Raum weit verbreitet. Alles funktioniert: Liste, Lesen, Antworten, Kontaktformular und Namensabgleich.",
+        "desc": "Open-Source-Helpdesk, im deutschsprachigen Raum weit verbreitet. Alles funktioniert: Liste, Lesen, Kontaktformular und Namensabgleich.",
         "fields": {
           "base_url": "Zammad-Adresse",
           "api_token": "Zugriffstoken",
@@ -3129,7 +3124,7 @@
       },
       "znuny": {
         "name": "Znuny / OTRS",
-        "desc": "Open-Source-Helpdesk. Liste, Lesen, Antworten und Kontaktformular funktionieren; Znuny hat keine Schnittstelle zum Umbenennen von Kunden. Der Parcella-Webservice muss einmalig in Znuny importiert werden (siehe integrations/znuny/).",
+        "desc": "Open-Source-Helpdesk. Liste, Lesen und Kontaktformular funktionieren; Znuny hat keine Schnittstelle zum Umbenennen von Kunden. Der Parcella-Webservice muss einmalig in Znuny importiert werden (siehe integrations/znuny/).",
         "fields": {
           "webservice_url": "Webservice-Adresse",
           "username": "Agenten-Login",
@@ -3158,7 +3153,7 @@
       },
       "zendesk": {
         "name": "Zendesk",
-        "desc": "Kommerzielles Helpdesk. Alles funktioniert: Liste, Lesen, Antworten, Kontaktformular und Namensabgleich.",
+        "desc": "Kommerzielles Helpdesk. Alles funktioniert: Liste, Lesen, Kontaktformular und Namensabgleich.",
         "fields": {
           "base_url": "Zendesk-Adresse",
           "agent_email": "E-Mail-Adresse des Agenten",
@@ -3171,7 +3166,7 @@
       },
       "freshdesk": {
         "name": "Freshdesk",
-        "desc": "Kommerzielles Helpdesk. Alles funktioniert: Liste, Lesen, Antworten, Kontaktformular und Namensabgleich.",
+        "desc": "Kommerzielles Helpdesk. Alles funktioniert: Liste, Lesen, Kontaktformular und Namensabgleich.",
         "fields": {
           "base_url": "Freshdesk-Adresse",
           "api_key": "API-Schlüssel"

@@ -52,14 +52,10 @@ async def test_zammad_lists_tickets_with_customer_and_state_mapping():
     await provider.aclose()
 
 
-async def test_zammad_reply_goes_to_the_customer_and_create_names_the_customer():
+async def test_zammad_create_names_the_customer():
     posted = []
 
     def handler(request):
-        if request.method == "GET" and request.url.path == "/api/v1/tickets/5":
-            return httpx.Response(200, json={"id": 5, "title": "Wasser", "customer_id": 9})
-        if request.url.path == "/api/v1/users/9":
-            return httpx.Response(200, json={"email": "anna@example.com"})
         if request.url.path == "/api/v1/users/search":
             # Plain address, not the email:"..." syntax that needs Elasticsearch.
             assert request.url.params["query"] == "gast@example.com"
@@ -70,30 +66,14 @@ async def test_zammad_reply_goes_to_the_customer_and_create_names_the_customer()
         return httpx.Response(201, json={"id": 77})
 
     provider = ZammadProvider("https://z.example.org", "tok", group="Verein", client=_mock(handler))
-    await provider.reply("5", "Wir kümmern uns.")
     new_id = await provider.create_conversation("Frage", "gast@example.com", "Hallo", customer_name="Gerd Gast")
 
-    article = posted[0][1]
-    assert posted[0][0] == "/api/v1/ticket_articles"
-    assert (article["ticket_id"], article["to"], article["internal"], article["type"]) == (5, "anna@example.com", False, "email")
-    assert posted[1] == ("/api/v1/users", {
+    assert posted[0] == ("/api/v1/users", {
         "email": "gast@example.com", "firstname": "Gerd", "lastname": "Gast", "roles": ["Customer"],
     })
-    ticket = posted[2][1]
+    ticket = posted[1][1]
     assert (ticket["group"], ticket["customer_id"]) == ("Verein", 42)
     assert new_id == "77"
-    await provider.aclose()
-
-
-async def test_zammad_reply_failure_names_the_likely_cause():
-    def handler(request):
-        if request.method == "GET":
-            return httpx.Response(200, json={"id": 5, "title": "x", "customer_id": None})
-        return httpx.Response(500, json={"error": "Please contact your administrator."})
-
-    provider = ZammadProvider("https://z.example.org", "tok", client=_mock(handler))
-    with pytest.raises(HelpdeskError, match="email address"):
-        await provider.reply("5", "Hallo")
     await provider.aclose()
 
 

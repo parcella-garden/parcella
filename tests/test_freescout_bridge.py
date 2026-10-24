@@ -1,7 +1,7 @@
 """
 Tests for the support module with FreeScout as the active helpdesk:
 matching hierarchy (app/helpdesk/sync.py), idempotent upserts, deletion
-reconciliation, task-board linking, and reply-to-customer. External
+reconciliation, task-board linking, and that there is no reply-to-customer (ADR 0111). External
 calls are always faked (a HelpdeskProvider exposing just what's used) --
 no real helpdesk is reachable from this test environment. See
 tests/test_freescout_client.py for the HTTP layer and
@@ -34,16 +34,12 @@ class _FakeFreeScoutClient(HelpdeskProvider):
         # (deleted)"; a ROW not present in this dict is treated as still
         # existing as "active".
         self._states = states or {}
-        self.reply_calls = []
 
     async def list_conversations(self, updated_since):
         return [FreeScoutProvider._to_conversation(raw) for raw in self._conversations]
 
     async def get_status(self, external_id):
         return self._states.get(int(external_id), "active")
-
-    async def reply(self, external_id, text):
-        self.reply_calls.append((external_id, text))
 
 
 async def sync_freescout_conversations(db, client):
@@ -280,7 +276,7 @@ async def test_sync_never_reguesses_once_staff_has_associated_a_conversation():
 
 
 # ---------------------------------------------------------------------------
-# Task board bridge + reply-to-customer (via the REST API)
+# Task board bridge (via the REST API); no reply-to-customer
 # ---------------------------------------------------------------------------
 
 async def _enable_module(client, headers):
@@ -326,29 +322,30 @@ async def test_add_to_task_board_creates_a_task_and_links_it(client, admin_user)
         assert task.title == "Leaking tap"
 
 
-async def test_reply_to_customer_calls_client_and_never_touches_task_comments(client, admin_user, monkeypatch):
+async def test_no_way_to_reply_to_the_customer_from_parcella(client, admin_user, monkeypatch):
+    """Answers are written in the helpdesk itself (ADR 0111): no reply
+    box on the detail page, no web or API route, no provider method."""
     token = await login(client, "admin@example.com")
     headers = auth_header(token)
     await _enable_module(client, headers)
-
     link_id = await _make_link(freescout_conversation_id=847)
 
-    fake_client = _FakeFreeScoutClient([])
-    import app.routers.api_helpdesk as api_helpdesk
+    import app.routers.support as support
 
-    async def _fake_get_helpdesk(db):
-        return fake_client
+    async def _no_helpdesk(db):
+        return None
 
-    monkeypatch.setattr(api_helpdesk, "get_helpdesk", _fake_get_helpdesk)
+    monkeypatch.setattr(support, "get_helpdesk", _no_helpdesk)
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    page = await client.get(f"/support/{link_id}")
+    assert page.status_code == 200
+    assert "/reply" not in page.text and 'name="text"' not in page.text
 
-    response = await client.post(
-        f"/api/v1/freescout/conversations/{link_id}/reply", json={"text": "We'll look into it."}, headers=headers,
-    )
-    assert response.status_code == 204, response.text
-    assert fake_client.reply_calls == [("847", "We'll look into it.")]
-
-    async with AsyncSessionLocal() as db:
-        assert (await db.execute(select(TaskComment))).scalars().all() == []
+    assert (await client.post(f"/support/{link_id}/reply", data={"text": "x"})).status_code in (404, 405)
+    for prefix in ("/api/v1/helpdesk", "/api/v1/freescout"):
+        response = await client.post(f"{prefix}/conversations/{link_id}/reply", json={"text": "x"}, headers=headers)
+        assert response.status_code in (404, 405)
+    assert not hasattr(HelpdeskProvider, "reply")
 
 
 # ---------------------------------------------------------------------------

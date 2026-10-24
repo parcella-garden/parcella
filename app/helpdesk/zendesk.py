@@ -111,11 +111,6 @@ class ZendeskProvider(HttpHelpdeskProvider):
             ))
         return messages
 
-    async def reply(self, external_id: str, text: str) -> None:
-        await self._request("PUT", f"/api/v2/tickets/{external_id}.json", json={
-            "ticket": {"comment": {"body": text, "public": True}},
-        })
-
     async def create_conversation(
         self, subject: str, customer_email: str, message: str, customer_name: Optional[str] = None,
     ) -> str:

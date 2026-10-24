@@ -158,10 +158,6 @@ class FreeScoutProvider(HttpHelpdeskProvider):
         messages.sort(key=lambda m: m.created_at or datetime.min.replace(tzinfo=timezone.utc))
         return messages
 
-    async def reply(self, external_id: str, text: str) -> None:
-        """A customer-facing reply (type="message"); FreeScout emails it out."""
-        await self._request("POST", f"/api/conversations/{external_id}/threads", json={"type": "message", "text": text})
-
     async def create_conversation(
         self, subject: str, customer_email: str, message: str, customer_name: Optional[str] = None,
     ) -> str:

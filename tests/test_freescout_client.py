@@ -123,22 +123,6 @@ async def test_create_conversation_posts_expected_shape():
     assert body["threads"][0]["text"] == "Hello"
 
 
-async def test_reply_posts_message_type():
-    captured = {}
-
-    def handler(request: httpx.Request) -> httpx.Response:
-        captured["path"] = request.url.path
-        captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json={"id": 1})
-
-    client = _client(handler)
-    await client.reply("847", "We'll look into it.")
-    await client.aclose()
-
-    assert captured["path"] == "/api/conversations/847/threads"
-    assert captured["body"] == {"type": "message", "text": "We'll look into it."}
-
-
 async def test_update_customer_sends_only_given_names():
     captured = {}
 

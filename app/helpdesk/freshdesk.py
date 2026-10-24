@@ -119,9 +119,6 @@ class FreshdeskProvider(HttpHelpdeskProvider):
             ))
         return messages
 
-    async def reply(self, external_id: str, text: str) -> None:
-        await self._request("POST", f"/api/v2/tickets/{external_id}/reply", json={"body": text})
-
     async def create_conversation(
         self, subject: str, customer_email: str, message: str, customer_name: Optional[str] = None,
     ) -> str:

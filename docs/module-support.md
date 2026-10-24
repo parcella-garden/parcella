@@ -20,8 +20,9 @@ What the module provides:
 2. A **staff-facing conversation list/detail view**, gated by Group-based
    `freescout_bridge` read/write permission (ADMIN/BOARD bypass as
    always): which conversation belongs to which member/parcel, the
-   transcript (fetched live, not stored), reply-to-customer, and
-   promoting a conversation onto the task board.
+   transcript (fetched live, not stored), and promoting a conversation
+   onto the task board. Answering the customer happens in the helpdesk
+   itself, never from Parcella (ADR 0111).
 3. The **public contact form** (`POST /api/v1/public/contact`, its own
    `public_contact_api` flag) creates a new conversation in the helpdesk.
 
@@ -32,14 +33,16 @@ Not every helpdesk API offers everything. Each provider class in
 before using a feature -- a missing capability is hidden or explained,
 never a broken button or a 500:
 
-| | inbox (list, sync, badge) | read | reply | create (contact form) | customer_sync |
-|---|---|---|---|---|---|
-| FreeScout | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Zammad | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Znuny / OTRS | ✅ | ✅ | ✅ | ✅ | – (no web-service operation for customer users) |
-| osTicket | – | – | – | ✅ (its API can only create tickets) | – |
-| Zendesk | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Freshdesk | ✅ | ✅ | ✅ | ✅ | ✅ |
+| | inbox (list, sync, badge) | read | create (contact form) | customer_sync |
+|---|---|---|---|---|
+| FreeScout | ✅ | ✅ | ✅ | ✅ |
+| Zammad | ✅ | ✅ | ✅ | ✅ |
+| Znuny / OTRS | ✅ | ✅ | ✅ | – (no web-service operation for customer users) |
+| osTicket | – | – | ✅ (its API can only create tickets) | – |
+| Zendesk | ✅ | ✅ | ✅ | ✅ |
+| Freshdesk | ✅ | ✅ | ✅ | ✅ |
+
+There is deliberately no "reply" capability: see ADR 0111.
 
 With osTicket, `/support/` says that requests are answered in osTicket and
 links there; the sync loop does nothing.
@@ -130,8 +133,7 @@ Parcella has synced, not by the helpdesk's history.
   the plain address (the `email:"..."` syntax also needs Elasticsearch)
   and creates them with the visitor's name -- `guess:<email>` would
   create a nameless customer. Internal notes are left out of the
-  transcript. A reply fails if the ticket's group has no sending email
-  address; Parcella says so instead of passing on Zammad's bare 500.
+  transcript.
 - **Znuny / OTRS** (`znuny.py`): the GenericInterface web service from
   `integrations/znuny/` must be imported first. Logs in with
   `SessionCreate` so the password never appears in a URL. Errors often
@@ -158,8 +160,7 @@ against simulated answers.
 
 ## Routes and API
 
-- Web: `/support/`, `/support/{id}` (+ member, parcel, task, reply
-  POSTs). `/freescout/...` redirects there (301).
+- Web: `/support/`, `/support/{id}` (+ member, parcel, task POSTs). `/freescout/...` redirects there (301).
 - REST: `/api/v1/helpdesk/conversations...` with neutral field names;
   `/api/v1/freescout/conversations...` is the same, marked deprecated,
   with the old field names (`freescout_conversation_id` etc., read-only
@@ -168,13 +169,15 @@ against simulated answers.
   ADMIN only, secrets never accepted or returned (shared with the website
   and cloud storage settings, `app/routers/api_provider_settings.py`).
 
-## Task board and replies
+## Task board, and no replies
 
 A conversation can be promoted to a new task (admin/board only, matching
 the task board's own gating) or linked to an existing one; `task_id` is a
-loose `SET NULL` link. The reply box sends a customer-facing reply through
-the helpdesk and is entirely separate from internal task comments, so an
-internal remark can never reach a customer by accident.
+loose `SET NULL` link.
+
+Parcella doesn't reply to customers -- not in the web UI, not through the
+REST API (removed 2026-10-24, ADR 0111). The detail page links to the
+conversation in the helpdesk, where answers are written.
 
 ## Known gaps / deliberate scope cuts
 

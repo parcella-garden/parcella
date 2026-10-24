@@ -14,12 +14,14 @@ Not every helpdesk's API can do everything. Each provider declares its
 - INBOX: list conversations and their state (the Support list, the
   background sync, the nav badge, the dashboard card)
 - READ: fetch a conversation's messages (the detail page transcript)
-- REPLY: send a customer-facing reply
 - CREATE: open a new conversation (the website contact form)
 - CUSTOMER_SYNC: update a customer's name when a member is renamed
 
 A missing capability means the feature is hidden or explained -- never
 a broken button or a 500.
+
+Replying to the customer is deliberately not among them: answers are
+written in the helpdesk itself, never from Parcella (ADR 0111).
 """
 from dataclasses import dataclass
 from datetime import datetime
@@ -32,10 +34,9 @@ from app.provider_registry import ConfigField  # noqa: F401  (re-exported for pr
 
 INBOX = "inbox"
 READ = "read"
-REPLY = "reply"
 CREATE = "create"
 CUSTOMER_SYNC = "customer_sync"
-ALL_CAPABILITIES = frozenset({INBOX, READ, REPLY, CREATE, CUSTOMER_SYNC})
+ALL_CAPABILITIES = frozenset({INBOX, READ, CREATE, CUSTOMER_SYNC})
 
 # Every provider maps its own states onto these. "deleted" is only ever
 # set by Parcella's reconciliation (the conversation is gone).
@@ -134,10 +135,6 @@ class HelpdeskProvider:
     async def get_messages(self, external_id: str) -> List[HelpdeskMessage]:
         """READ: the conversation's transcript, oldest first."""
         raise CapabilityMissing(f"{self.label} can't show conversations through its API.")
-
-    async def reply(self, external_id: str, text: str) -> None:
-        """REPLY: a customer-facing reply, sent by the helpdesk."""
-        raise CapabilityMissing(f"{self.label} can't send replies through its API.")
 
     async def create_conversation(
         self, subject: str, customer_email: str, message: str, customer_name: Optional[str] = None,

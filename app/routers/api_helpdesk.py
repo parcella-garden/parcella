@@ -17,13 +17,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api_auth import require_admin_api, require_api_permission
 from app.database import current_tenant_filter, get_db
-from app.helpdesk import HELPDESK, HIDDEN_STATUSES, REPLY, HelpdeskError, get_active_helpdesk_type, get_helpdesk
+from app.helpdesk import HELPDESK, HIDDEN_STATUSES, HelpdeskError, get_active_helpdesk_type, get_helpdesk
 from app.models import HelpdeskConversationLink, MemberParcel, TaskList, User
 from app.module_flags import require_module
 from app.routers.api_provider_settings import create_provider_settings_router
 from app.schemas import (
     FreescoutAddToTaskBoardRequest, FreescoutConversationLinkMemberUpdate, FreescoutConversationLinkOut,
-    FreescoutConversationLinkParcelUpdate, FreescoutReplyCreate, HelpdeskConversationLinkOut,
+    FreescoutConversationLinkParcelUpdate, HelpdeskConversationLinkOut,
 )
 from app.task_board import create_task
 
@@ -133,24 +133,6 @@ def create_conversations_router(prefix: str, out_model, tag: str, deprecated: bo
         await db.commit()
         await db.refresh(link)
         return link
-
-    @router.post("/conversations/{link_id}/reply", status_code=status.HTTP_204_NO_CONTENT)
-    async def reply_to_customer(
-        link_id: str, data: FreescoutReplyCreate, db: AsyncSession = Depends(get_db),
-        user: User = Depends(require_api_permission("freescout_bridge", "write")),
-    ):
-        link = await _get_link_or_404(db, link_id)
-        provider = await get_helpdesk(db)
-        if provider is None or provider.type != link.provider:
-            raise HTTPException(status_code=400, detail="This conversation's helpdesk is not set up")
-        try:
-            if not provider.can(REPLY):
-                raise HTTPException(status_code=400, detail=f"{provider.label} can't send replies through its API")
-            await provider.reply(link.external_id, data.text)
-        except HelpdeskError as e:
-            raise HTTPException(status_code=502, detail=str(e))
-        finally:
-            await provider.aclose()
 
     return router
 

@@ -114,3 +114,4 @@ in chronological order.
 108. [CMS plugins: GPL-licensed, one shared PHP core, copied per plugin](./0108-cms-plugins-gpl-and-shared-core.md)
 109. [Admin-initiated password reset: generated, shown once, forced change](./0109-admin-initiated-password-reset.md)
 110. [External contacts: companies and people in one table](./0110-external-contacts-companies-and-people.md)
+111. [Support: no customer replies from Parcella](./0111-no-customer-replies-from-parcella.md)

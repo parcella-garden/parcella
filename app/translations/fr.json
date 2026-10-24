@@ -2654,10 +2654,6 @@
       "open_in_freescout": "Ouvrir dans {name}",
       "transcript_header": "Conversation",
       "no_messages": "Impossible de charger les messages.",
-      "reply_header": "Répondre au client",
-      "reply_placeholder": "Saisissez votre réponse...",
-      "reply_send": "Envoyer",
-      "reply_help_text": "Envoyé via {name} par e-mail au client -- ce n'est pas une note interne.",
       "member_header": "Membre",
       "member_none": "Aucun membre associé.",
       "member_none_option": "-- aucun --",
@@ -2671,8 +2667,7 @@
       "task_open": "Ouvrir la tâche",
       "task_create": "Créer une tâche",
       "not_configured": "Le helpdesk de cette conversation n'est pas (ou plus) configuré.",
-      "no_read": "{name} ne peut pas afficher les conversations via son interface -- ouvrez-la dans {name}.",
-      "no_reply": "{name} ne peut pas envoyer de réponses via son interface."
+      "no_read": "{name} ne peut pas afficher les conversations via son interface -- ouvrez-la dans {name}."
     },
     "errors": {
       "conversation_not_found": "Conversation introuvable",
@@ -3103,7 +3098,7 @@
     "providers": {
       "freescout": {
         "name": "FreeScout",
-        "desc": "Helpdesk open source. Tout fonctionne : liste, lecture, réponses, formulaire de contact et synchronisation des noms. Nécessite le module API & Webhooks.",
+        "desc": "Helpdesk open source. Tout fonctionne : liste, lecture, formulaire de contact et synchronisation des noms. Nécessite le module API & Webhooks.",
         "fields": {
           "base_url": "Adresse FreeScout",
           "api_key": "Clé API",
@@ -3116,7 +3111,7 @@
       },
       "zammad": {
         "name": "Zammad",
-        "desc": "Helpdesk open source, très répandu dans les pays germanophones. Tout fonctionne : liste, lecture, réponses, formulaire de contact et synchronisation des noms.",
+        "desc": "Helpdesk open source, très répandu dans les pays germanophones. Tout fonctionne : liste, lecture, formulaire de contact et synchronisation des noms.",
         "fields": {
           "base_url": "Adresse Zammad",
           "api_token": "Jeton d'accès",
@@ -3129,7 +3124,7 @@
       },
       "znuny": {
         "name": "Znuny / OTRS",
-        "desc": "Helpdesk open source. Liste, lecture, réponses et formulaire de contact fonctionnent ; Znuny n'a pas d'interface pour renommer les clients. Le service web Parcella doit être importé une fois dans Znuny (voir integrations/znuny/).",
+        "desc": "Helpdesk open source. Liste, lecture et formulaire de contact fonctionnent ; Znuny n'a pas d'interface pour renommer les clients. Le service web Parcella doit être importé une fois dans Znuny (voir integrations/znuny/).",
         "fields": {
           "webservice_url": "Adresse du service web",
           "username": "Identifiant de l'agent",
@@ -3158,7 +3153,7 @@
       },
       "zendesk": {
         "name": "Zendesk",
-        "desc": "Helpdesk commercial. Tout fonctionne : liste, lecture, réponses, formulaire de contact et synchronisation des noms.",
+        "desc": "Helpdesk commercial. Tout fonctionne : liste, lecture, formulaire de contact et synchronisation des noms.",
         "fields": {
           "base_url": "Adresse Zendesk",
           "agent_email": "E-mail de l'agent",
@@ -3171,7 +3166,7 @@
       },
       "freshdesk": {
         "name": "Freshdesk",
-        "desc": "Helpdesk commercial. Tout fonctionne : liste, lecture, réponses, formulaire de contact et synchronisation des noms.",
+        "desc": "Helpdesk commercial. Tout fonctionne : liste, lecture, formulaire de contact et synchronisation des noms.",
         "fields": {
           "base_url": "Adresse Freshdesk",
           "api_key": "Clé API"

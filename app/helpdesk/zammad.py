@@ -132,26 +132,6 @@ class ZammadProvider(HttpHelpdeskProvider):
             ))
         return messages
 
-    async def reply(self, external_id: str, text: str) -> None:
-        """An email article to the ticket's customer -- Zammad sends it."""
-        ticket = self._json(await self._request("GET", f"/api/v1/tickets/{external_id}"))
-        customer = await self._user(ticket.get("customer_id"))
-        response = await self._raw("POST", "/api/v1/ticket_articles", json={
-            "ticket_id": int(external_id), "body": text, "content_type": "text/plain",
-            "type": "email", "internal": False, "sender": "Agent",
-            "to": customer.get("email") or "",
-            "subject": ticket.get("title") or "",
-        })
-        if response.status_code >= 500:
-            # Zammad's usual reason: the ticket's group has no sending
-            # email address (Channels -> Email). Its own answer only says
-            # "contact your administrator".
-            raise HelpdeskError(
-                "Zammad couldn't send the reply. Check that the ticket's group has an email address "
-                "(Zammad: Channels -> Email)."
-            )
-        self._check(response)
-
     async def _customer_id(self, email: str, name: Optional[str]):
         """Finds the customer by email address, or creates one with the
         visitor's name -- Zammad's own `guess:<email>` shortcut would

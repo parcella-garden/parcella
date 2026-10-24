@@ -44,19 +44,6 @@
             </div>
         </div>
 
-        {% if has_perm(request, 'freescout_bridge', 'write') and 'reply' in capabilities and link.provider == helpdesk_type %}
-        <div class="card">
-            <div class="card-header"><i class="bi bi-reply me-2"></i>{{ t('freescout.detail.reply_header') }}</div>
-            <div class="card-body">
-                <form method="post" action="/support/{{ link.id }}/reply">
-                    {{ csrf_field() }}
-                    <textarea name="text" class="form-control mb-2" rows="4" placeholder="{{ t('freescout.detail.reply_placeholder') }}" required></textarea>
-                    <button type="submit" class="btn btn-primary btn-sm">{{ t('freescout.detail.reply_send') }}</button>
-                </form>
-                <div class="form-text">{{ t('freescout.detail.reply_help_text', name=helpdesk_name) }}</div>
-            </div>
-        </div>
-        {% endif %}
     </div>
 
     <div class="col-lg-4">

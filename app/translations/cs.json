@@ -2654,10 +2654,6 @@
       "open_in_freescout": "Otevřít v {name}",
       "transcript_header": "Konverzace",
       "no_messages": "Zprávy se nepodařilo načíst.",
-      "reply_header": "Odpovědět zákazníkovi",
-      "reply_placeholder": "Napište odpověď...",
-      "reply_send": "Odeslat",
-      "reply_help_text": "Odesláno přes {name} e-mailem zákazníkovi – nejde o interní poznámku.",
       "member_header": "Člen",
       "member_none": "Nebyl přiřazen žádný člen.",
       "member_none_option": "-- žádný --",
@@ -2671,8 +2667,7 @@
       "task_open": "Otevřít úkol",
       "task_create": "Vytvořit úkol",
       "not_configured": "Helpdesk této konverzace není (už) nastaven.",
-      "no_read": "{name} neumí přes své rozhraní zobrazit konverzace – otevřete ji v {name}.",
-      "no_reply": "{name} neumí přes své rozhraní odesílat odpovědi."
+      "no_read": "{name} neumí přes své rozhraní zobrazit konverzace – otevřete ji v {name}."
     },
     "errors": {
       "conversation_not_found": "Konverzace nenalezena",
@@ -3103,7 +3098,7 @@
     "providers": {
       "freescout": {
         "name": "FreeScout",
-        "desc": "Open-source helpdesk. Funguje vše: seznam, čtení, odpovědi, kontaktní formulář a synchronizace jmen. Vyžaduje modul API & Webhooks.",
+        "desc": "Open-source helpdesk. Funguje vše: seznam, čtení, kontaktní formulář a synchronizace jmen. Vyžaduje modul API & Webhooks.",
         "fields": {
           "base_url": "Adresa FreeScout",
           "api_key": "Klíč API",
@@ -3116,7 +3111,7 @@
       },
       "zammad": {
         "name": "Zammad",
-        "desc": "Open-source helpdesk, rozšířený v německy mluvících zemích. Funguje vše: seznam, čtení, odpovědi, kontaktní formulář a synchronizace jmen.",
+        "desc": "Open-source helpdesk, rozšířený v německy mluvících zemích. Funguje vše: seznam, čtení, kontaktní formulář a synchronizace jmen.",
         "fields": {
           "base_url": "Adresa Zammad",
           "api_token": "Přístupový token",
@@ -3129,7 +3124,7 @@
       },
       "znuny": {
         "name": "Znuny / OTRS",
-        "desc": "Open-source helpdesk. Funguje seznam, čtení, odpovědi a kontaktní formulář; Znuny nemá rozhraní pro přejmenování zákazníků. Webovou službu Parcella je nutné jednou importovat do Znuny (viz integrations/znuny/).",
+        "desc": "Open-source helpdesk. Funguje seznam, čtení a kontaktní formulář; Znuny nemá rozhraní pro přejmenování zákazníků. Webovou službu Parcella je nutné jednou importovat do Znuny (viz integrations/znuny/).",
         "fields": {
           "webservice_url": "Adresa webové služby",
           "username": "Přihlašovací jméno agenta",
@@ -3158,7 +3153,7 @@
       },
       "zendesk": {
         "name": "Zendesk",
-        "desc": "Komerční helpdesk. Funguje vše: seznam, čtení, odpovědi, kontaktní formulář a synchronizace jmen.",
+        "desc": "Komerční helpdesk. Funguje vše: seznam, čtení, kontaktní formulář a synchronizace jmen.",
         "fields": {
           "base_url": "Adresa Zendesk",
           "agent_email": "E-mail agenta",
@@ -3171,7 +3166,7 @@
       },
       "freshdesk": {
         "name": "Freshdesk",
-        "desc": "Komerční helpdesk. Funguje vše: seznam, čtení, odpovědi, kontaktní formulář a synchronizace jmen.",
+        "desc": "Komerční helpdesk. Funguje vše: seznam, čtení, kontaktní formulář a synchronizace jmen.",
         "fields": {
           "base_url": "Adresa Freshdesk",
           "api_key": "Klíč API"

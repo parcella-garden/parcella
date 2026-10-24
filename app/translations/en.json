@@ -2654,10 +2654,6 @@
       "open_in_freescout": "Open in {name}",
       "transcript_header": "Conversation",
       "no_messages": "No messages could be loaded.",
-      "reply_header": "Reply to customer",
-      "reply_placeholder": "Type your reply...",
-      "reply_send": "Send",
-      "reply_help_text": "Sent through {name} and emailed to the customer -- this is not an internal note.",
       "member_header": "Member",
       "member_none": "No member matched.",
       "member_none_option": "-- none --",
@@ -2671,8 +2667,7 @@
       "task_open": "Open task",
       "task_create": "Create task",
       "not_configured": "This conversation's helpdesk isn't set up (anymore).",
-      "no_read": "{name} can't show conversations through its interface -- open it in {name}.",
-      "no_reply": "{name} can't send replies through its interface."
+      "no_read": "{name} can't show conversations through its interface -- open it in {name}."
     },
     "errors": {
       "conversation_not_found": "Conversation not found",
@@ -3103,7 +3098,7 @@
     "providers": {
       "freescout": {
         "name": "FreeScout",
-        "desc": "Open-source helpdesk. Everything works: list, reading, replies, contact form and name sync. Needs FreeScout's API & Webhooks module.",
+        "desc": "Open-source helpdesk. Everything works: list, reading, contact form and name sync. Needs FreeScout's API & Webhooks module.",
         "fields": {
           "base_url": "FreeScout address",
           "api_key": "API key",
@@ -3116,7 +3111,7 @@
       },
       "zammad": {
         "name": "Zammad",
-        "desc": "Open-source helpdesk, widely used in German-speaking countries. Everything works: list, reading, replies, contact form and name sync.",
+        "desc": "Open-source helpdesk, widely used in German-speaking countries. Everything works: list, reading, contact form and name sync.",
         "fields": {
           "base_url": "Zammad address",
           "api_token": "Access token",
@@ -3129,7 +3124,7 @@
       },
       "znuny": {
         "name": "Znuny / OTRS",
-        "desc": "Open-source helpdesk. List, reading, replies and contact form work; Znuny has no interface for renaming customers. The Parcella web service has to be imported in Znuny once (see integrations/znuny/).",
+        "desc": "Open-source helpdesk. List, reading and contact form work; Znuny has no interface for renaming customers. The Parcella web service has to be imported in Znuny once (see integrations/znuny/).",
         "fields": {
           "webservice_url": "Web service address",
           "username": "Agent login",
@@ -3158,7 +3153,7 @@
       },
       "zendesk": {
         "name": "Zendesk",
-        "desc": "Commercial helpdesk. Everything works: list, reading, replies, contact form and name sync.",
+        "desc": "Commercial helpdesk. Everything works: list, reading, contact form and name sync.",
         "fields": {
           "base_url": "Zendesk address",
           "agent_email": "Agent email address",
@@ -3171,7 +3166,7 @@
       },
       "freshdesk": {
         "name": "Freshdesk",
-        "desc": "Commercial helpdesk. Everything works: list, reading, replies, contact form and name sync.",
+        "desc": "Commercial helpdesk. Everything works: list, reading, contact form and name sync.",
         "fields": {
           "base_url": "Freshdesk address",
           "api_key": "API key"

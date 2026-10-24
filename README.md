@@ -238,7 +238,6 @@ Tokens are valid for 24 hours. The Swagger UI has an "Authorize" button for conv
 | PUT | `/api/v1/helpdesk/conversations/{id}/member` | Set/clear the matched member |
 | PUT | `/api/v1/helpdesk/conversations/{id}/parcel` | Set/clear the matched parcel |
 | POST | `/api/v1/helpdesk/conversations/{id}/task` | Create/link a task on the task board |
-| POST | `/api/v1/helpdesk/conversations/{id}/reply` | Reply to the customer through the helpdesk |
 | GET/PUT | `/api/v1/helpdesk`, `/api/v1/website`, `/api/v1/cloud-storage` | Active helpdesk / website / cloud storage and their settings (admin; secrets never returned) |
 | | `/api/v1/freescout/conversations...` | Deprecated alias of the helpdesk endpoints with the old field names |
 | GET/POST | `/api/v1/purchase-requests` | List/create purchase requests |

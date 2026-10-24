@@ -14,7 +14,7 @@ import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.helpdesk.base import (
-    CREATE, INBOX, READ, REPLY, ConfigField, HelpdeskConversation, HelpdeskError, HelpdeskMessage,
+    CREATE, INBOX, READ, ConfigField, HelpdeskConversation, HelpdeskError, HelpdeskMessage,
     HttpHelpdeskProvider, STATUS_ACTIVE, STATUS_CLOSED, STATUS_DELETED, STATUS_PENDING,
 )
 
@@ -44,7 +44,7 @@ def _parse_local(value: Optional[str]) -> Optional[datetime]:
 class ZnunyProvider(HttpHelpdeskProvider):
     type = "znuny"
     label = "Znuny"
-    capabilities = frozenset({INBOX, READ, REPLY, CREATE})
+    capabilities = frozenset({INBOX, READ, CREATE})
     web_url_field = "agent_url"
     config_fields = [
         ConfigField(
@@ -186,23 +186,6 @@ class ZnunyProvider(HttpHelpdeskProvider):
                 from_customer=(article.get("SenderType") or "") == "customer",
             ))
         return messages
-
-    async def reply(self, external_id: str, text: str) -> None:
-        """An email article to the customer; ArticleSend makes Znuny send it."""
-        ticket = await self._ticket_with_articles(external_id)
-        recipient = next(
-            (a.get("From") for a in reversed(ticket.get("Article") or []) if a.get("SenderType") == "customer"),
-            None,
-        ) or ticket.get("CustomerUserID") or ""
-        self._unwrap(await self._raw("PATCH", f"/Ticket/{external_id}", json={
-            **(await self._credentials()),
-            "Article": {
-                "CommunicationChannel": "Email", "IsVisibleForCustomer": 1, "SenderType": "agent",
-                "To": recipient, "Subject": f"Re: {ticket.get('Title') or ''}", "Body": text,
-                "ContentType": "text/plain; charset=utf8", "HistoryType": "EmailAgent",
-                "HistoryComment": "Reply sent from Parcella", "ArticleSend": 1,
-            },
-        }))
 
     async def create_conversation(
         self, subject: str, customer_email: str, message: str, customer_name: Optional[str] = None,
