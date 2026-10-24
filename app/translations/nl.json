@@ -1886,6 +1886,14 @@
       "letter_hint": "Eén pdf met een brief per ontvanger, voor vensterenveloppen. Wordt bij het klikken gemaakt, nooit opgeslagen.",
       "letter_button": "{count} brief/brieven maken",
       "list_badge": "Gefilterde leden"
+    },
+    "applicants": {
+      "header": "Bericht aan {count} adres(sen) van aanvragers",
+      "show_list": "Aanvragers tonen",
+      "duplicates_merged": "{count} geselecteerde aanvraag/aanvragen delen een adres met een andere en krijgen het bericht maar één keer.",
+      "hint": "Alleen per e-mail. De selectie ligt vast: later aangevinkte aanvragers worden niet toegevoegd.",
+      "send_email_confirm": "Dit bericht nu per e-mail naar {count} adres(sen) van aanvragers sturen? Dit kan niet ongedaan worden gemaakt.",
+      "list_badge": "Aanvragers"
     }
   },
   "inventory": {
@@ -2697,7 +2705,12 @@
       "repeat_badge": "{count}×",
       "search_placeholder": "Naam, e-mail, telefoon, bericht, notities…",
       "search_button": "Zoeken",
-      "reset_button": "Wissen"
+      "reset_button": "Wissen",
+      "col_select": "Selecteren",
+      "select_all": "Alles selecteren",
+      "select_none": "Niets selecteren",
+      "selected_count": "{count} geselecteerd",
+      "write_to_selected": "Schrijf naar de geselecteerde aanvragers"
     },
     "fields": {
       "email": "E-mailadres",

@@ -15,6 +15,8 @@ announcement_deliveries   -- one row per (announcement, channel) send attempt
 
 `Announcement` fields worth calling out:
 
+- `audience_applicant_ids` -- set only for a message to picked
+  applicants (issue #247); see "Messages to picked applicants" below.
 - `audience_filter` / `letters_for_all` -- set only for a message to
   filtered members (issue #242); see "Messages to filtered members"
   below. NULL means classic club news.
@@ -364,6 +366,26 @@ Known gaps: no per-recipient delivery log (channel-level, as for club
 news); the audience isn't frozen at send time -- someone tagged between
 sending the email and generating the letters is included in the
 letters; no attachment support.
+
+## Messages to picked applicants (issues #246/#247, ADR 0112)
+
+The third kind of announcement, next to club news and filtered members.
+
+- **Start**: tick applicants on `/applicants/` (checkbox per row,
+  "Select all" / "Select none"), then "Write to the selected
+  applicants" -- a GET to
+  `/announcements/new?audience_kind=applicants&applicant_ids=...`.
+  Needs the applicants module and applicants read permission on top of
+  the usual board/full access. Unknown ids are dropped; an empty or
+  entirely unknown selection is a 400, never club news.
+- **Stored** as `Announcement.audience_applicant_ids`, a list fixed at
+  creation (`is_applicant_message`; `is_targeted` is true as well).
+- **Who gets what** -- `resolve_audience()` returns one
+  `(Applicant, address)` pair per distinct address (ignoring case and
+  surrounding blanks, oldest application first) and counts the merged
+  duplicates; the page shows both. The paced sender is unchanged.
+- **Channels**: EMAIL only. BLOG, PRINT and LETTER are hidden and
+  refused with 409.
 
 ## What's not built yet
 

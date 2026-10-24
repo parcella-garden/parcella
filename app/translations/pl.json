@@ -1886,6 +1886,14 @@
       "letter_hint": "Jeden PDF z listem dla każdego odbiorcy, do kopert z okienkiem. Tworzony po kliknięciu, nigdy nie zapisywany.",
       "letter_button": "Utwórz listy: {count}",
       "list_badge": "Wybrani członkowie"
+    },
+    "applicants": {
+      "header": "Wiadomość na {count} adres(y) kandydatów",
+      "show_list": "Pokaż kandydatów",
+      "duplicates_merged": "{count} zaznaczonych zgłoszeń ma ten sam adres co inne i otrzyma wiadomość tylko raz.",
+      "hint": "Tylko e-mail. Wybór jest stały: kandydaci zaznaczeni później nie zostaną dodani.",
+      "send_email_confirm": "Wysłać teraz tę wiadomość e-mailem na {count} adres(y) kandydatów? Tego nie można cofnąć.",
+      "list_badge": "Kandydaci"
     }
   },
   "inventory": {
@@ -2697,7 +2705,12 @@
       "repeat_badge": "{count}×",
       "search_placeholder": "Imię i nazwisko, e-mail, telefon, wiadomość, notatki…",
       "search_button": "Szukaj",
-      "reset_button": "Resetuj"
+      "reset_button": "Resetuj",
+      "col_select": "Wybierz",
+      "select_all": "Zaznacz wszystkich",
+      "select_none": "Odznacz wszystkich",
+      "selected_count": "Zaznaczono: {count}",
+      "write_to_selected": "Napisz do zaznaczonych kandydatów"
     },
     "fields": {
       "email": "Adres e-mail",

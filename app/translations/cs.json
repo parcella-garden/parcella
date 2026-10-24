@@ -1886,6 +1886,14 @@
       "letter_hint": "Jedno PDF s dopisem pro každého příjemce, do obálek s okénkem. Vytvoří se po kliknutí, neukládá se.",
       "letter_button": "Vytvořit dopisy ({count})",
       "list_badge": "Vybraní členové"
+    },
+    "applicants": {
+      "header": "Zpráva na {count} adres(y) uchazečů",
+      "show_list": "Zobrazit uchazeče",
+      "duplicates_merged": "{count} vybraných přihlášek sdílí adresu s jinou a zprávu dostane jen jednou.",
+      "hint": "Pouze e-mailem. Výběr je pevný: později zaškrtnutí uchazeči se nepřidají.",
+      "send_email_confirm": "Odeslat tuto zprávu nyní e-mailem na {count} adres(y) uchazečů? Nelze to vrátit zpět.",
+      "list_badge": "Uchazeči"
     }
   },
   "inventory": {
@@ -2697,7 +2705,12 @@
       "repeat_badge": "{count}×",
       "search_placeholder": "Jméno, e-mail, telefon, zpráva, poznámky…",
       "search_button": "Hledat",
-      "reset_button": "Zrušit filtr"
+      "reset_button": "Zrušit filtr",
+      "col_select": "Vybrat",
+      "select_all": "Vybrat vše",
+      "select_none": "Zrušit výběr",
+      "selected_count": "Vybráno: {count}",
+      "write_to_selected": "Napsat vybraným uchazečům"
     },
     "fields": {
       "email": "E-mailová adresa",

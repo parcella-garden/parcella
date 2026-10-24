@@ -2071,6 +2071,12 @@ class Announcement(Base):
     # letters_for_all). See docs/ADR/0095.
     audience_filter: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     letters_for_all: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
+    # Issue #247: a message to the applicants ticked on /applicants/
+    # (issue #246) -- a list of Applicant ids, fixed at creation (a
+    # hand-picked selection, not a filter). Email only; one email per
+    # distinct address. Mutually exclusive with audience_filter. See
+    # docs/ADR/0112.
+    audience_applicant_ids: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     created_by_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
@@ -2096,8 +2102,14 @@ class Announcement(Base):
 
     @property
     def is_targeted(self) -> bool:
-        """A message to filtered members (issue #242), not club news."""
-        return self.audience_filter is not None
+        """A message to filtered members (issue #242) or to picked
+        applicants (issue #247), not club news."""
+        return self.audience_filter is not None or self.audience_applicant_ids is not None
+
+    @property
+    def is_applicant_message(self) -> bool:
+        """A message to applicants picked on /applicants/ (issue #247)."""
+        return self.audience_applicant_ids is not None
 
     def delivery_for(self, channel: "AnnouncementChannel") -> Optional["AnnouncementDelivery"]:
         return next((d for d in self.deliveries if d.channel == channel), None)

@@ -1886,6 +1886,14 @@
       "letter_hint": "Jedno PDF s listom pre každého príjemcu, do obálok s okienkom. Vytvorí sa po kliknutí, neukladá sa.",
       "letter_button": "Vytvoriť listy ({count})",
       "list_badge": "Vybraní členovia"
+    },
+    "applicants": {
+      "header": "Správa na {count} adries uchádzačov",
+      "show_list": "Zobraziť uchádzačov",
+      "duplicates_merged": "{count} vybraných prihlášok zdieľa adresu s inou a správu dostane len raz.",
+      "hint": "Iba e-mailom. Výber je pevný: neskôr označení uchádzači sa nepridajú.",
+      "send_email_confirm": "Odoslať túto správu teraz e-mailom na {count} adries uchádzačov? Nedá sa to vrátiť späť.",
+      "list_badge": "Uchádzači"
     }
   },
   "inventory": {
@@ -2697,7 +2705,12 @@
       "repeat_badge": "{count}×",
       "search_placeholder": "Meno, e-mail, telefón, správa, poznámky…",
       "search_button": "Hľadať",
-      "reset_button": "Zrušiť filter"
+      "reset_button": "Zrušiť filter",
+      "col_select": "Vybrať",
+      "select_all": "Vybrať všetko",
+      "select_none": "Zrušiť výber",
+      "selected_count": "Vybrané: {count}",
+      "write_to_selected": "Napísať vybraným uchádzačom"
     },
     "fields": {
       "email": "E-mailová adresa",

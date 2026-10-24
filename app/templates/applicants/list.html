@@ -11,6 +11,8 @@
 {% endblock %}
 
 {% block content %}
+{#- Issue #246: tick applicants (all, none or some) and write to them (issue #247). -#}
+{% set can_pick = request.state.module_flags.announcements and is_full_access(request) and applicants %}
 <div class="card mb-3">
     <div class="card-body py-2 d-flex gap-3 align-items-center flex-wrap">
         <div class="btn-group btn-group-sm flex-wrap" role="group">
@@ -31,12 +33,26 @@
     </div>
 </div>
 
+{% if can_pick %}
+<form id="applicant-pick" method="get" action="/announcements/new"
+      class="d-flex gap-2 align-items-center flex-wrap mb-2">
+    <input type="hidden" name="audience_kind" value="applicants">
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="pick-all">{{ t('applicants.list.select_all') }}</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="pick-none">{{ t('applicants.list.select_none') }}</button>
+    <span class="text-muted small" id="pick-count" data-template="{{ t('applicants.list.selected_count', count='__N__') }}">{{ t('applicants.list.selected_count', count=0) }}</span>
+    <button type="submit" class="btn btn-sm btn-outline-primary ms-auto" id="pick-submit" disabled>
+        <i class="bi bi-envelope-paper me-1"></i>{{ t('applicants.list.write_to_selected') }}
+    </button>
+</form>
+{% endif %}
+
 <div class="card">
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
+                        {% if can_pick %}<th style="width: 1%;"><span class="visually-hidden">{{ t('applicants.list.col_select') }}</span></th>{% endif %}
                         <th>{{ t('applicants.list.col_name') }}</th>
                         <th>{{ t('applicants.list.col_email') }}</th>
                         <th>{{ t('applicants.list.col_phone') }}</th>
@@ -48,6 +64,11 @@
                 <tbody>
                     {% for applicant in applicants %}
                     <tr>
+                        {% if can_pick %}
+                        <td><input type="checkbox" class="form-check-input pick-applicant" form="applicant-pick"
+                                   name="applicant_ids" value="{{ applicant.id }}"
+                                   aria-label="{{ t('applicants.list.col_select') }}: {{ applicant.display_name }}"></td>
+                        {% endif %}
                         <td>
                             <a href="/applicants/{{ applicant.id }}" class="text-decoration-none fw-semibold"
                                style="color: var(--gv-gruen);">{{ applicant.display_name }}</a>
@@ -76,7 +97,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">
+                        <td colspan="{{ 7 if can_pick else 6 }}" class="text-center py-5 text-muted">
                             <i class="bi bi-person-raised-hand d-block mb-2" style="font-size: 1.5rem;"></i>
                             {{ t('applicants.list.empty') }}
                         </td>
@@ -87,4 +108,28 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var boxes = Array.prototype.slice.call(document.querySelectorAll('.pick-applicant'));
+    var count = document.getElementById('pick-count');
+    var submit = document.getElementById('pick-submit');
+    if (!submit) return;
+    function update() {
+        var n = boxes.filter(function (b) { return b.checked; }).length;
+        count.textContent = count.dataset.template.replace('__N__', n);
+        submit.disabled = n === 0;
+    }
+    function setAll(checked) {
+        boxes.forEach(function (b) { b.checked = checked; });
+        update();
+    }
+    document.getElementById('pick-all').addEventListener('click', function () { setAll(true); });
+    document.getElementById('pick-none').addEventListener('click', function () { setAll(false); });
+    boxes.forEach(function (b) { b.addEventListener('change', update); });
+    update();
+});
+</script>
 {% endblock %}

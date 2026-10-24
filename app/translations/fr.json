@@ -1886,6 +1886,14 @@
       "letter_hint": "Un PDF avec un courrier par destinataire, pour enveloppes à fenêtre. Créé au clic, jamais enregistré.",
       "letter_button": "Créer {count} courrier(s)",
       "list_badge": "Membres filtrés"
+    },
+    "applicants": {
+      "header": "Message à {count} adresse(s) de candidats",
+      "show_list": "Afficher les candidats",
+      "duplicates_merged": "{count} candidature(s) sélectionnée(s) partagent une adresse avec une autre et ne reçoivent le message qu'une fois.",
+      "hint": "Par e-mail uniquement. La sélection est figée : les candidats cochés plus tard ne sont pas ajoutés.",
+      "send_email_confirm": "Envoyer maintenant ce message par e-mail à {count} adresse(s) de candidats ? C'est irréversible.",
+      "list_badge": "Candidats"
     }
   },
   "inventory": {
@@ -2697,7 +2705,12 @@
       "repeat_badge": "{count}×",
       "search_placeholder": "Nom, e-mail, téléphone, message, notes…",
       "search_button": "Rechercher",
-      "reset_button": "Réinitialiser"
+      "reset_button": "Réinitialiser",
+      "col_select": "Sélectionner",
+      "select_all": "Tout sélectionner",
+      "select_none": "Tout désélectionner",
+      "selected_count": "{count} sélectionné(s)",
+      "write_to_selected": "Écrire aux candidats sélectionnés"
     },
     "fields": {
       "email": "Adresse e-mail",

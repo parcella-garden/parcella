@@ -39,7 +39,7 @@ import urllib.parse
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Request, Depends, HTTPException, UploadFile, BackgroundTasks, Response
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
@@ -48,9 +48,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
-from app.models import Announcement, AnnouncementDelivery, AnnouncementChannel, AnnouncementDeliveryStatus, MemberTag
+from app.models import Announcement, AnnouncementDelivery, AnnouncementChannel, AnnouncementDeliveryStatus, Applicant, MemberTag
 from app.member_filters import MemberListFilter
 from app.auth import require_admin
+from app.permissions import require_permission
 from app.module_flags import require_module
 from app.announcement_utils import render_markdown_to_html, likely_fits_one_print_page, channel_fingerprint
 from app.announcement_mailer import start_paced_email_send, run_paced_email_send, send_test_email, resolve_audience
@@ -168,8 +169,9 @@ def _channel_action_available(announcement: Announcement, channel: AnnouncementC
         return False
     if channel == AnnouncementChannel.LETTER:
         # Generated on demand, never stored (names and addresses) --
-        # so it can always be generated again.
-        return announcement.is_targeted
+        # so it can always be generated again. Not for applicants
+        # (issue #247): they have no postal address on file.
+        return announcement.is_targeted and not announcement.is_applicant_message
 
     delivery = announcement.delivery_for(channel)
     if delivery is None or delivery.status == AnnouncementDeliveryStatus.FAILED:
@@ -238,6 +240,13 @@ async def _audience_context(db: AsyncSession, announcement: Announcement) -> dic
     member list showing the same filter. Empty for club news."""
     if not announcement.is_targeted:
         return {}
+    if announcement.is_applicant_message:
+        return {
+            "audience": await resolve_audience(db, announcement),
+            "applicant_audience": True,
+            "audience_applicant_ids": announcement.audience_applicant_ids,
+            "audience_list_url": "/applicants/?filter=all",
+        }
     audience_filter = MemberListFilter.from_dict(announcement.audience_filter)
     tag = await db.get(MemberTag, audience_filter.tag) if audience_filter.tag else None
     query_string = audience_filter.query_string()
@@ -294,11 +303,40 @@ def _targeted_audience_query(params) -> Optional[str]:
     return None if _filter_from_query_string(query).is_empty() else query
 
 
-async def _new_form_context(db: AsyncSession, audience_query: Optional[str]) -> dict:
+# A sanity cap on one hand-picked selection, not a product limit.
+MAX_PICKED_APPLICANTS = 2000
+
+
+async def _picked_applicant_ids(request: Request, db: AsyncSession, params) -> Optional[List[str]]:
+    """The applicants ticked on /applicants/ (issues #246/#247), or None
+    when this isn't a message to applicants. Only ids of applicants that
+    exist are kept, in the order given; an empty or entirely unknown
+    selection is refused rather than quietly becoming club news."""
+    if params.get("audience_kind") != "applicants":
+        return None
+    if not request.state.module_flags.get("applicants"):
+        raise HTTPException(status_code=404, detail="Applicants module is disabled")
+    await require_permission(request, db, "applicants", "read")
+    requested = list(dict.fromkeys(i for i in params.getlist("applicant_ids") if i and len(i) <= 36))
+    if len(requested) > MAX_PICKED_APPLICANTS:
+        raise HTTPException(status_code=400, detail="Too many applicants selected")
+    existing = set((await db.scalars(select(Applicant.id).where(Applicant.id.in_(requested)))).all()) if requested else set()
+    picked = [i for i in requested if i in existing]
+    if not picked:
+        raise HTTPException(status_code=400, detail="No applicants selected")
+    return picked
+
+
+async def _new_form_context(
+    db: AsyncSession, audience_query: Optional[str], applicant_ids: Optional[List[str]] = None,
+) -> dict:
     """For "write to these members" (issue #242): audience_query is the
-    /members/ filter it was started from, None for club news. The
+    /members/ filter it was started from, None for club news; for
+    "write to the selected applicants" (issue #247) applicant_ids. The
     preview uses a transient Announcement that's never added to the
     session."""
+    if applicant_ids is not None:
+        return await _audience_context(db, Announcement(audience_applicant_ids=applicant_ids))
     if audience_query is None:
         return {}
     preview = Announcement(audience_filter=_filter_from_query_string(audience_query).to_dict())
@@ -321,10 +359,11 @@ def _entered_values(form) -> dict:
 @router.get("/new", response_class=HTMLResponse)
 async def announcement_new_form(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_admin(request, db)
-    audience_query = _targeted_audience_query(request.query_params)
+    applicant_ids = await _picked_applicant_ids(request, db, request.query_params)
+    audience_query = None if applicant_ids is not None else _targeted_audience_query(request.query_params)
     return templates.TemplateResponse("announcements/form.html", {
         "request": request, "user": user, "announcement": None, "error": None,
-        **await _new_form_context(db, audience_query),
+        **await _new_form_context(db, audience_query, applicant_ids),
     })
 
 
@@ -339,13 +378,14 @@ async def announcement_create(
     title = (form.get("title") or "").strip()
     body_markdown = (form.get("body_markdown") or "").strip()
     image_upload = form.get("image")
-    audience_query = _targeted_audience_query(form)
+    applicant_ids = await _picked_applicant_ids(request, db, form)
+    audience_query = None if applicant_ids is not None else _targeted_audience_query(form)
     entered = _entered_values(form)
 
     if not title or not body_markdown:
         return templates.TemplateResponse("announcements/form.html", {
             "request": request, "user": user, "announcement": None, "entered": entered,
-            "error": "missing_fields", **await _new_form_context(db, audience_query),
+            "error": "missing_fields", **await _new_form_context(db, audience_query, applicant_ids),
         }, status_code=400)
 
     image_filename = None
@@ -355,7 +395,7 @@ async def announcement_create(
         except ValueError as e:
             return templates.TemplateResponse("announcements/form.html", {
                 "request": request, "user": user, "announcement": None, "entered": entered,
-                "error": str(e), **await _new_form_context(db, audience_query),
+                "error": str(e), **await _new_form_context(db, audience_query, applicant_ids),
             }, status_code=400)
 
     announcement = Announcement(
@@ -365,7 +405,9 @@ async def announcement_create(
         image_filename=image_filename,
         created_by_id=user.id,
     )
-    if audience_query is not None:
+    if applicant_ids is not None:
+        announcement.audience_applicant_ids = applicant_ids
+    elif audience_query is not None:
         announcement.audience_filter = _filter_from_query_string(audience_query).to_dict()
         announcement.letters_for_all = form.get("letters_for_all") == "true"
     db.add(announcement)

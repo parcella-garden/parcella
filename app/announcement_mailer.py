@@ -49,6 +49,10 @@ whoever the stored member-list filter matches into email recipients,
 letter recipients (app/announcement_letters.py) and unreachable ones.
 The email-info opt-out doesn't apply there -- a message to the water
 team is operational, not a newsletter (kermie's call, ADR 0095).
+
+Issue #247 added messages to applicants picked on /applicants/
+(Announcement.audience_applicant_ids, ADR 0112): email only, and an
+address shared by several picked applications gets the message once.
 """
 import asyncio
 import logging
@@ -63,7 +67,7 @@ from sqlalchemy.orm import selectinload
 from app.database import AsyncSessionLocal, active_member_filter
 from app.models import (
     Announcement, AnnouncementChannel, AnnouncementDelivery,
-    AnnouncementDeliveryStatus, Member,
+    AnnouncementDeliveryStatus, Applicant, Member,
 )
 from app.email_service import send_email
 from app.member_filters import MemberListFilter
@@ -118,10 +122,14 @@ def has_postal_address(member: Member) -> bool:
 @dataclass
 class Audience:
     """Who a (targeted) announcement reaches, and how. A member can be
-    in both `email` and `letter` (letters_for_all)."""
+    in both `email` and `letter` (letters_for_all). For a message to
+    applicants (issue #247) `email` holds (Applicant, address) pairs,
+    one per distinct address, and `duplicates` counts the picked
+    applications whose address was already in the list."""
     email: List[Tuple[Member, str]] = field(default_factory=list)
     letter: List[Member] = field(default_factory=list)
     unreachable: List[Member] = field(default_factory=list)
+    duplicates: int = 0
 
     @property
     def member_count(self) -> int:
@@ -141,6 +149,8 @@ async def resolve_audience(db: AsyncSession, announcement: Announcement) -> Audi
     gets neither is unreachable."""
     if not announcement.is_targeted:
         return Audience(email=await get_active_recipient_emails(db))
+    if announcement.is_applicant_message:
+        return await _resolve_applicant_audience(db, announcement.audience_applicant_ids)
 
     members = (await db.scalars(
         MemberListFilter.from_dict(announcement.audience_filter).apply()
@@ -155,6 +165,27 @@ async def resolve_audience(db: AsyncSession, announcement: Announcement) -> Audi
             audience.letter.append(member)
         elif address is None:
             audience.unreachable.append(member)
+    return audience
+
+
+async def _resolve_applicant_audience(db: AsyncSession, applicant_ids: List[str]) -> Audience:
+    """Issue #247: the picked applicants, one email per address --
+    compared ignoring case and surrounding blanks, the oldest
+    application keeps the slot. A deleted applicant is simply gone."""
+    applicants = (await db.scalars(
+        select(Applicant).where(Applicant.id.in_(applicant_ids or [])).order_by(Applicant.applied_at)
+    )).all()
+    audience = Audience()
+    seen = set()
+    for applicant in applicants:
+        address = (applicant.email or "").strip()
+        if not address:
+            continue
+        if address.lower() in seen:
+            audience.duplicates += 1
+            continue
+        seen.add(address.lower())
+        audience.email.append((applicant, address))
     return audience
 
 
@@ -222,6 +253,8 @@ async def start_paced_email_send(announcement: Announcement, db: AsyncSession) -
     if not recipients:
         delivery.status = AnnouncementDeliveryStatus.FAILED
         delivery.error_message = (
+            "No recipients found (none of the selected applicants exists any more)."
+            if announcement.is_applicant_message else
             "No recipients found (nobody in the selected members has a stored email address)."
             if announcement.is_targeted else
             "No recipients found (no current members with email notifications enabled and a stored email address)."

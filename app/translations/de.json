@@ -1886,6 +1886,14 @@
       "letter_hint": "Ein PDF mit einem Brief je Empfänger, für Fensterumschläge. Wird beim Klick erzeugt und nicht gespeichert.",
       "letter_button": "{count} Brief(e) erzeugen",
       "list_badge": "Gefilterte Mitglieder"
+    },
+    "applicants": {
+      "header": "Nachricht an {count} Bewerber-Adresse(n)",
+      "show_list": "Bewerber anzeigen",
+      "duplicates_merged": "{count} ausgewählte Bewerbung(en) teilen sich eine Adresse mit einer anderen und bekommen die Nachricht nur einmal.",
+      "hint": "Nur per E-Mail. Die Auswahl steht fest: später angehakte Bewerber kommen nicht dazu.",
+      "send_email_confirm": "Diese Nachricht jetzt per E-Mail an {count} Bewerber-Adresse(n) senden? Das lässt sich nicht rückgängig machen.",
+      "list_badge": "Bewerber"
     }
   },
   "inventory": {
@@ -2697,7 +2705,12 @@
       "repeat_badge": "{count}×",
       "search_placeholder": "Name, E-Mail, Telefon, Nachricht, Notizen…",
       "search_button": "Suchen",
-      "reset_button": "Zurücksetzen"
+      "reset_button": "Zurücksetzen",
+      "col_select": "Auswählen",
+      "select_all": "Alle auswählen",
+      "select_none": "Keine auswählen",
+      "selected_count": "{count} ausgewählt",
+      "write_to_selected": "An ausgewählte Bewerber schreiben"
     },
     "fields": {
       "email": "E-Mail-Adresse",

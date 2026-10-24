@@ -1886,6 +1886,14 @@
       "letter_hint": "One PDF with a letter per recipient, for windowed envelopes. Generated when you click, never stored.",
       "letter_button": "Generate {count} letter(s)",
       "list_badge": "Filtered members"
+    },
+    "applicants": {
+      "header": "Message to {count} applicant address(es)",
+      "show_list": "Show applicants",
+      "duplicates_merged": "{count} selected application(s) share an address with another one and get the message only once.",
+      "hint": "Email only. The selection is fixed: applicants you tick later are not added.",
+      "send_email_confirm": "Send this message by email to {count} applicant address(es) now? This can't be undone.",
+      "list_badge": "Applicants"
     }
   },
   "inventory": {
@@ -2697,7 +2705,12 @@
       "repeat_badge": "{count}×",
       "search_placeholder": "Name, email, phone, message, notes…",
       "search_button": "Search",
-      "reset_button": "Reset"
+      "reset_button": "Reset",
+      "col_select": "Select",
+      "select_all": "Select all",
+      "select_none": "Select none",
+      "selected_count": "{count} selected",
+      "write_to_selected": "Write to the selected applicants"
     },
     "fields": {
       "email": "Email address",

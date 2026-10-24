@@ -123,6 +123,17 @@ which disappears once every new application has been moved on.
   Parcella Connector plugin (`integrations/wordpress/`).
 - **Anything else**: a plain HTML form following the contract above.
 
+## Writing to applicants (issues #246/#247, ADR 0112)
+
+With the announcements module on, board/full-access users get a
+checkbox per row on `/applicants/` plus "Select all" / "Select none"
+(on the rows the current filter and search show). "Write to the
+selected applicants" opens `/announcements/new` with the ticked ids; the
+message goes out by email only, through the announcements module's paced
+sending, once per address (two applications from the same address get
+one email). See "Messages to picked applicants" in
+[module-announcements.md](./module-announcements.md).
+
 ## Known gaps
 
 - Handing over a parcel copies only name, email and phone. Address, IBAN
@@ -130,6 +141,7 @@ which disappears once every new application has been moved on.
   afterwards (ADR 0101).
 - No email to the board on a new application; the dashboard card and the
   nav entry are the signal.
-- No email to the applicant either (confirmation, status updates).
+- No automatic email to the applicant (confirmation, status updates);
+  the board can write to picked applicants by hand (see above).
 - No automatic deletion of closed applications after some time -- delete
   them by hand.
