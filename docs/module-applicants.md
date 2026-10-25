@@ -27,15 +27,22 @@ applicants   – one row per application: contact data, status, board note, time
 
 - `email` -- required, the only required field. First and last name,
   phone and `message` (the applicant's free text) are optional.
-- `status` -- `NEW` → `CONTACTED` → `OFFERED` → `ACCEPTED`, or
-  `WITHDRAWN` / `REJECTED`. `NEW`/`CONTACTED`/`OFFERED` count as open
-  (`APPLICANT_OPEN_STATUSES`, the list page's default filter).
+- `status` -- `NEW` → `CONTACTED` → `OFFERED` → `ACCEPTED` → `CLOSED`,
+  or `REJECTED` ([ADR 0114](./ADR/0114-applicant-workflow-and-retention.md)).
+  `ACCEPTED` means the applicant wants the offered plot and the handover
+  is still being negotiated; `CLOSED` is set by "Assign a parcel". An
+  applicant who turns a plot down goes to `REJECTED` (no further offers)
+  or back to `CONTACTED` (stays on the waiting list) -- there's no
+  "withdrawn". `NEW` to `ACCEPTED` count as open
+  (`APPLICANT_OPEN_STATUSES`).
 - `source` -- `WEBSITE` (any public form or connector) or `MANUAL`
   (entered by the board, e.g. after a phone call).
 - `board_note` -- internal, never shown to the applicant.
-- `consent_at` -- when the applicant ticked the data-protection box.
-  Set for every public submission (consent is required there); empty
-  for manual entries.
+- `consent_at` -- when the applicant ticked the data-protection box,
+  shown as "Privacy consent (applicant)". Set for every public
+  submission (consent is required there); empty for manual entries. Not
+  a board approval (issue #251). The detail page shows this and the
+  other dates without a time of day.
 - `applied_at` -- decides the waiting-list order. Set to "now" on
   creation, but the board can set or correct it by hand (issue #240),
   both on the "new" form and on the detail page, and through the API --
@@ -61,7 +68,8 @@ work hours, mailings all read `members`). An applicant only becomes a
 member once they actually get a plot -- see "Assigning a parcel" below.
 
 **Assigning a parcel** ([ADR 0101](./ADR/0101-hand-terminated-parcel-over-to-applicants.md)).
-The "Assign a parcel" button on an open application
+The "Assign a parcel" button on an open application (`ACCEPTED`
+included, issue #252)
 (`/applicants/{id}/assign-parcel`, needs write on `applicants` *and*
 `members_parcels`) hands a `TERMINATED` parcel over in one step. You
 pick the parcel, the handover date (also in the future -- the switch
@@ -71,7 +79,7 @@ the preview, then confirm. The old tenants become former tenants and
 leave the club unless they hold another parcel. The applicants become
 members (or an existing member with the same email is reused), tenants
 and invoice recipients. The parcel turns `ACTIVE` and the applications
-`ACCEPTED`. Logic: `app/services/parcel_handover.py`; API:
+`CLOSED`. Logic: `app/services/parcel_handover.py`; API:
 `POST /api/v1/applicants/{id}/assign-parcel`.
 
 **Hard delete, deliberately** ([ADR 0091](./ADR/0091-applicants-hard-delete-gdpr-exception.md)).
@@ -80,6 +88,15 @@ The one place in Parcella that removes rows instead of historizing them
 board must be able to remove it for good -- on request, or once the
 process is over. Needs the `delete` permission; the applicant's
 `change_history` rows go with it.
+
+**Automatic deletion after a retention period** ([ADR 0114](./ADR/0114-applicant-workflow-and-retention.md), issue #255).
+Admin settings → "Applicants" → "Delete applications after (months)"
+(`applicant_retention_months`, blank/0 = never, the default). Every
+application whose last status change -- or its application date, if the
+status never changed -- is older than that is deleted the same way,
+**whatever its status**. No cron job and no notice to anyone: logged-in
+page views trigger it, at most once an hour
+(`maybe_purge_expired_applicants()`, `app/services/applicants.py`).
 
 **Same form contract as every other public form** ([ADR 0090](./ADR/0090-one-form-contract-wordpress-via-plain-forms.md)).
 `POST /api/v1/public/forms/applicant` (website forms, origin allowlist)
@@ -96,7 +113,10 @@ other applications -- the board decides what to do; silently merging
 would lose the second message.
 
 **Dashboard card counts `NEW` only** and links to `?filter=new`, so the
-number and the list it opens always match (ADR 0019). The Applicants nav
+number and the list it opens always match (ADR 0019). On `/applicants/`
+the "New" filter comes first and is the default while there are new
+applications; without any it's hidden and the page opens on "Open"
+(issue #254). The Applicants nav
 entry shows the same count as a badge (`app/nav_counts.py`, ADR 0100),
 which disappears once every new application has been moved on.
 
@@ -143,5 +163,3 @@ one email). See "Messages to picked applicants" in
   nav entry are the signal.
 - No automatic email to the applicant (confirmation, status updates);
   the board can write to picked applicants by hand (see above).
-- No automatic deletion of closed applications after some time -- delete
-  them by hand.

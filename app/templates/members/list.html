@@ -61,14 +61,6 @@
                 </label>
             </div>
             <div class="form-check form-check-inline my-auto">
-                <input class="form-check-input" type="checkbox" name="pending_only" id="pending-only"
-                       value="true" {% if pending_only %}checked{% endif %}
-                       onchange="this.form.submit()">
-                <label class="form-check-label text-muted" for="pending-only" style="font-size: 0.85rem;">
-                    {{ t('members.list.show_pending_only') }}
-                </label>
-            </div>
-            <div class="form-check form-check-inline my-auto">
                 <input class="form-check-input" type="checkbox" name="active_only" id="active-only"
                        value="true" {% if active_only %}checked{% endif %}
                        onchange="this.form.submit()">
@@ -106,12 +98,6 @@
     {{ t('members.list.inactive_notice') }}
 </div>
 {% endif %}
-{% if pending_only %}
-<div class="alert alert-info d-flex gap-2 align-items-center mb-3" style="font-size: 0.875rem;">
-    <i class="bi bi-info-circle-fill"></i>
-    {{ t('members.list.pending_notice') }}
-</div>
-{% endif %}
 {% if active_only %}
 <div class="alert alert-info d-flex gap-2 align-items-center mb-3" style="font-size: 0.875rem;">
     <i class="bi bi-info-circle-fill"></i>
@@ -128,9 +114,6 @@
                     <tr>
                         <th>{{ t('members.list.col_name') }}</th>
                         <th>{{ t('members.list.col_member_since') }}</th>
-                        {% if pending_only %}
-                        <th>{{ t('members.list.col_added') }}</th>
-                        {% endif %}
                         <th>{{ t('members.list.col_parcels') }}</th>
                         <th>{{ t('members.list.col_status') }}</th>
                         <th></th>
@@ -153,11 +136,6 @@
                         <td class="text-muted">
                             {{ m.member_since.strftime('%d.%m.%Y') if m.member_since else '–' }}
                         </td>
-                        {% if pending_only %}
-                        <td class="text-muted">
-                            {{ m.created_at.strftime('%d.%m.%Y') }}
-                        </td>
-                        {% endif %}
                         <td>
                             {% for z in m.parcel_assignments %}
                             <span class="badge" style="background: var(--gv-gruen-blass); color: var(--gv-gruen);">
@@ -193,13 +171,10 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="{{ 6 if pending_only else 5 }}" class="text-center py-5 text-muted">
+                        <td colspan="5" class="text-center py-5 text-muted">
                             {% if search %}
                             <i class="bi bi-search d-block mb-2" style="font-size: 1.5rem;"></i>
                             {{ t('members.list.empty_search', query=search) }}
-                            {% elif pending_only %}
-                            <i class="bi bi-hourglass-split d-block mb-2" style="font-size: 1.5rem;"></i>
-                            {{ t('members.list.empty_pending') }}
                             {% else %}
                             <i class="bi bi-people d-block mb-2" style="font-size: 1.5rem;"></i>
                             {{ t('members.list.empty_none') }}<br>

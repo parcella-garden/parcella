@@ -8,12 +8,13 @@ changes in the audit log, and the one deliberate exception to
 historization -- applicants can be hard-deleted (ADR 0091).
 """
 import re
+import time as time_module
 from dataclasses import dataclass, field
 from datetime import date, datetime, time, timezone
 from typing import Optional, Sequence, Union
 
 from email_validator import EmailNotValidError, validate_email
-from sqlalchemy import delete, or_, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -142,6 +143,76 @@ async def delete_applicant(db, applicant: Applicant) -> None:
     ))
     await db.delete(applicant)
     await db.commit()
+
+
+# ---------------------------------------------------------------------------
+# Automatic deletion after a set time (issue #255): every application,
+# whatever its status, whose status hasn't changed for the configured
+# number of months is hard-deleted (ADR 0091), its change_history rows
+# with it. No cron job and no email to anyone -- regular site use
+# triggers it (see maybe_purge_expired_applicants()).
+# ---------------------------------------------------------------------------
+
+RETENTION_SETTING = "applicant_retention_months"
+_PURGE_INTERVAL_SECONDS = 3600
+_last_purge: Optional[float] = None
+
+
+def parse_retention_months(value: Optional[str]) -> Optional[int]:
+    """The setting as stored: a whole number of months, or None for
+    "keep forever" (blank, 0, negative or garbage)."""
+    try:
+        months = int((value or "").strip())
+    except ValueError:
+        return None
+    return months if months > 0 else None
+
+
+def _months_before(moment: datetime, months: int) -> datetime:
+    """Same day `months` calendar months earlier, clamped to the end of
+    a shorter month (31 March minus one month is 28/29 February)."""
+    total = moment.year * 12 + moment.month - 1 - months
+    year, month = divmod(total, 12)
+    month += 1
+    next_month_first = date(year + month // 12, month % 12 + 1, 1)
+    last_day = (next_month_first - date.resolution).day
+    return moment.replace(year=year, month=month, day=min(moment.day, last_day))
+
+
+async def purge_expired_applicants(db: AsyncSession, now: Optional[datetime] = None) -> int:
+    """Deletes every applicant whose last status change -- or, if the
+    status never changed, the application date -- lies more than the
+    configured number of months back. Returns how many went."""
+    months = parse_retention_months(
+        await db.scalar(select(ClubSetting.value).where(ClubSetting.key == RETENTION_SETTING))
+    )
+    if months is None:
+        return 0
+    cutoff = _months_before(now or datetime.now(timezone.utc), months)
+    expired_ids = (await db.scalars(
+        select(Applicant.id).where(func.coalesce(Applicant.status_changed_at, Applicant.applied_at) < cutoff)
+    )).all()
+    if not expired_ids:
+        return 0
+    await db.execute(delete(ChangeHistory).where(
+        ChangeHistory.entity_type == "Applicant", ChangeHistory.entity_id.in_(expired_ids),
+    ))
+    await db.execute(delete(Applicant).where(Applicant.id.in_(expired_ids)))
+    await db.commit()
+    return len(expired_ids)
+
+
+async def maybe_purge_expired_applicants(db: AsyncSession) -> None:
+    """Called on every logged-in request (nav_counts_middleware,
+    app/main.py), but runs the purge at most once an hour per process --
+    a day's precision is all a retention period measured in months
+    needs."""
+    global _last_purge
+    now = time_module.monotonic()
+    if _last_purge is not None and now - _last_purge < _PURGE_INTERVAL_SECONDS:
+        return
+    _last_purge = now
+    await purge_expired_applicants(db)
 
 
 # ---------------------------------------------------------------------------

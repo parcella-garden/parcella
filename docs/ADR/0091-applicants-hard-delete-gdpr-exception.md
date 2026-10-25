@@ -21,7 +21,9 @@ like `WITHDRAWN` doesn't remove anything.
   set the status (`ACCEPTED`, `WITHDRAWN`, `REJECTED`). Deleting is for
   when the data itself has to go.
 - No automatic deletion after a retention period for now (kermie's
-  call); the board deletes by hand.
+  call); the board deletes by hand. *Superseded by ADR 0114: a
+  configurable retention period now deletes applications automatically,
+  and `WITHDRAWN` no longer exists.*
 
 **Consequences:** The applicants table holds no history beyond what's
 still in it -- there's no record that a deleted applicant ever applied.

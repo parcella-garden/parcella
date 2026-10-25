@@ -280,6 +280,25 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header settings-card-toggle collapsed" role="button" data-bs-toggle="collapse"
+                 data-bs-target="#settings-card-applicants" aria-expanded="false">
+                <span><i class="bi bi-person-raised-hand me-2"></i>{{ t('admin.settings.applicants_header') }}</span>
+                <i class="bi bi-chevron-down settings-card-chevron"></i>
+            </div>
+            <div class="collapse" id="settings-card-applicants" data-bs-parent="#settings-accordion">
+            <div class="card-body">
+                <label class="form-label fw-semibold" for="applicant_retention_months">{{ t('admin.settings.applicant_retention_label') }}</label>
+                <input type="number" min="0" step="1" class="form-control" style="max-width: 160px;"
+                       name="applicant_retention_months" id="applicant_retention_months"
+                       value="{{ settings_map.get('applicant_retention_months', '') or '' }}">
+                <div class="form-text">{{ t('admin.settings.applicant_retention_hint') }}</div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header settings-card-toggle collapsed" role="button" data-bs-toggle="collapse"
                  data-bs-target="#settings-card-club-data" aria-expanded="false">
                 <span><i class="bi bi-building me-2"></i>{{ t('admin.settings.club_data_header') }}</span>
                 <i class="bi bi-chevron-down settings-card-chevron"></i>

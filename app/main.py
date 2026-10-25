@@ -31,6 +31,7 @@ from app.area_utils import compute_area_a_sqm
 from app.permissions import get_user_permissions, is_full_access_user, is_system_admin_user
 from app.services.work_hours import count_new_participations
 from app.nav_counts import NAV_COUNT_KEYS, load_nav_counts
+from app.services.applicants import maybe_purge_expired_applicants
 
 # Loaded at module import time (not only in the lifespan startup
 # event), since ASGI test clients (e.g. httpx with ASGITransport) don't
@@ -346,6 +347,9 @@ async def nav_counts_middleware(request: Request, call_next):
         if user is not None:
             request.state.new_participations_count = await count_new_participations(db)
             request.state.nav_counts = await load_nav_counts(db)
+            # Issue #255: applicants past the retention period are
+            # deleted on regular site use, no cron job (throttled).
+            await maybe_purge_expired_applicants(db)
     response = await call_next(request)
     return response
 

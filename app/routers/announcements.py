@@ -227,7 +227,6 @@ def _filter_from_query_string(query_string: str) -> MemberListFilter:
     return MemberListFilter.from_query(
         search=params.get("search", ""),
         include_inactive=params.get("include_inactive") == "true",
-        pending_only=params.get("pending_only") == "true",
         active_only=params.get("active_only") == "true",
         email_info_only=params.get("email_info_only") == "true",
         tag=params.get("tag", ""),

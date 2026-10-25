@@ -8,9 +8,7 @@ itself uses.
 
 A member with a blank member_since/member_until (still "active" per
 active_member_filter(), unchanged -- see tests/test_upcoming_members.py)
-must NOT show up here, even though such members do show up in the
-separate pending_only view (issue #167 follow-up) -- these two filters
-serve different purposes and are deliberately not the same population.
+must NOT show up here.
 """
 from datetime import date, timedelta
 
@@ -62,9 +60,7 @@ async def test_inactive_only_includes_not_yet_started_member(client, admin_user)
 
 async def test_inactive_only_excludes_member_with_blank_dates(client, admin_user):
     """A blank member_since/member_until still counts as active per
-    active_member_filter() itself (unchanged) -- must not show up here,
-    unlike the separate pending_only view which deliberately does
-    catch this case."""
+    active_member_filter() itself (unchanged) -- must not show up here."""
     await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
 
     async with AsyncSessionLocal() as session:

@@ -117,3 +117,4 @@ in chronological order.
 111. [Support: no customer replies from Parcella](./0111-no-customer-replies-from-parcella.md)
 112. [Announcements to picked applicants: a stored id list, email only](./0112-announcements-to-picked-applicants.md)
 113. [Budget plan: store only the plan, derive the actuals](./0113-budget-plan-stores-only-the-plan.md)
+114. [Applicants: status workflow without "withdrawn", deletion after a retention period](./0114-applicant-workflow-and-retention.md)

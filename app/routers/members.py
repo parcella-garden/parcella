@@ -83,7 +83,6 @@ async def members_list(
             "members": members,
             "search": filters.search,
             "include_inactive": filters.include_inactive,
-            "pending_only": filters.pending_only,
             "active_only": filters.active_only,
             "email_info_only": filters.email_info_only,
             "tag": filters.tag,
@@ -337,7 +336,7 @@ async def member_detail(
 
     # Previous/Next buttons (issue #202): walk the same filtered, ordered
     # ID list the list page itself would show, so paging through e.g.
-    # /members/?pending_only=true stays within that same set instead of
+    # /members/?include_inactive=true stays within that same set instead of
     # falling back to every member. If the current member isn't in that
     # set at all (filter changed since the list was loaded, or the
     # member was edited out of it), no prev/next is shown rather than

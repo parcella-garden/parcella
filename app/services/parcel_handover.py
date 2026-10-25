@@ -2,7 +2,7 @@
 Handing a terminated parcel over to applicants (ADR 0101): the old
 tenants become former tenants, the applicants become members and the
 parcel's new tenants and invoice recipients, the parcel is ACTIVE
-again and the applications are ACCEPTED -- one transaction, called by
+again and the applications are CLOSED -- one transaction, called by
 both app/routers/applicants.py (HTML) and app/routers/api_applicants.py
 (API), same split as ADR 0070.
 
@@ -215,8 +215,8 @@ async def hand_over_parcel(db: AsyncSession, plan: HandoverPlan, *, acting_user:
         new_tenants.append(member)
 
         tracker = ChangeTracker(applicant, "Applicant", ["status"])
-        if applicant.status != ApplicantStatus.ACCEPTED:
-            applicant.status = ApplicantStatus.ACCEPTED
+        if applicant.status != ApplicantStatus.CLOSED:
+            applicant.status = ApplicantStatus.CLOSED
             applicant.status_changed_at = datetime.now(timezone.utc)
         await tracker.commit(db, acting_user.id)
 

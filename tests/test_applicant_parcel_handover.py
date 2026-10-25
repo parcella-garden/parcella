@@ -2,7 +2,8 @@
 ADR 0101: handing a terminated parcel over to applicants -- old tenants
 become former tenants (and leave the club unless they hold another
 parcel), the applicants become members, tenants and invoice
-recipients, the parcel is active again, the applications ACCEPTED.
+recipients, the parcel is active again, the applications CLOSED
+(issue #252: ACCEPTED is still open, the handover closes it).
 """
 from datetime import date, timedelta
 
@@ -42,8 +43,10 @@ async def _setup() -> dict:
             MemberEmail(member_id=yvonne_member.id, address="yvonne@example.com", is_primary=True),
         ])
         xaver = Applicant(email="xaver@example.com", first_name="Xaver", last_name="Neu", phone="0170 123")
+        # ACCEPTED: wants the plot, handover still being negotiated --
+        # must still be assignable (issue #252).
         yvonne = Applicant(email="Yvonne@example.com", first_name="Yvonne", last_name="Yilmaz",
-                           status=ApplicantStatus.CONTACTED)
+                           status=ApplicantStatus.ACCEPTED)
         db.add_all([xaver, yvonne])
         await db.commit()
         return {
@@ -109,11 +112,11 @@ async def test_handover_via_web(client, admin_user):
 
         for applicant_id in (ids["xaver"], ids["yvonne"]):
             applicant = await db.get(Applicant, applicant_id)
-            assert applicant.status == ApplicantStatus.ACCEPTED
+            assert applicant.status == ApplicantStatus.CLOSED
         history = (await db.execute(select(ChangeHistory).where(
             ChangeHistory.entity_type == "Applicant", ChangeHistory.entity_id == ids["xaver"],
         ))).scalars().all()
-        assert [(h.field_name, h.new_value) for h in history] == [("status", "ACCEPTED")]
+        assert [(h.field_name, h.new_value) for h in history] == [("status", "CLOSED")]
 
     # Closed now -- no handover button any more.
     detail = await client.get(f"/applicants/{ids['xaver']}")

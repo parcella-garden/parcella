@@ -1,6 +1,6 @@
 """
 The /members/ list filter as one value (issue #241): the search box,
-the four checkboxes and the tag dropdown.
+the three checkboxes and the tag dropdown.
 
 Before, those five loose parameters were repeated in every place that
 needs "the members currently on screen" -- the list, its CSV export
@@ -31,7 +31,6 @@ def has_tag_condition(tag_id: str):
 class MemberListFilter:
     search: str = ""
     include_inactive: bool = False
-    pending_only: bool = False
     active_only: bool = False
     email_info_only: bool = False
     tag: str = ""  # MemberTag.id, "" = any
@@ -41,13 +40,12 @@ class MemberListFilter:
         cls,
         search: str = "",
         include_inactive: bool = False,
-        pending_only: bool = False,
         active_only: bool = False,
         email_info_only: bool = False,
         tag: str = "",
     ) -> "MemberListFilter":
         """FastAPI dependency: `filters: MemberListFilter = Depends(MemberListFilter.from_query)`."""
-        return cls(search.strip(), include_inactive, pending_only, active_only, email_info_only, tag.strip())
+        return cls(search.strip(), include_inactive, active_only, email_info_only, tag.strip())
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -67,7 +65,7 @@ class MemberListFilter:
         nothing is set). Issue #202: carried from each list row onto
         its detail page, and back out again via the detail page's
         Previous/Next buttons, so paging through a filtered view (e.g.
-        pending applications) doesn't silently fall back to the full,
+        inactive members) doesn't silently fall back to the full,
         unfiltered member list."""
         params = {}
         for f in fields(self):
@@ -85,71 +83,39 @@ class MemberListFilter:
         logic. Callers still add their own `.options(...)` eager-loads,
         since the list and the export don't need exactly the same
         relationships."""
-        query = select(Member)
-
-        if self.pending_only:
-            # Issue #167 follow-up: a dedicated view for pending
-            # applications -- member_since in the future, OR blank (a
-            # member entered into the system with no confirmed start date
-            # at all is just as much "not actually a member yet" as one
-            # with a future date, per the reporter). Deliberately narrower
-            # than active_member_filter(), which still treats a blank
-            # member_since as already-started everywhere else (invoices,
-            # meetings, dashboard counts, etc.) -- only this review view
-            # widens to catch incomplete records too. Sorted oldest-entered
-            # first (by created_at, the "entered into the system" timestamp
-            # the reporter asked for), since that's the order a board
-            # actually works through a queue of applications in -- takes
-            # precedence over include_inactive, which is meaningless here.
-            #
-            # Also requires zero parcel assignments at all (issue #167,
-            # second follow-up): a member who already has a parcel is
-            # clearly an actual resident, not a pending application -- most
-            # likely just missing member_since data entry, not someone
-            # still waiting to be let in. Confirmed trade-off, accepted for
-            # now: this also hides a member pre-assigned a parcel ahead of a
-            # future start date (e.g. approved today, moves in next month)
-            # -- a real but rarer case, left as a follow-up.
-            no_parcel_assigned = Member.id.not_in(select(MemberParcel.member_id))
+        # The "pending applications" view (issue #167) was removed in
+        # issue #256: applications live in the applicants module now.
+        query = select(Member).order_by(Member.last_name, Member.first_name)
+        if self.include_inactive:
+            # Issue #169: this must show ONLY inactive members (expired
+            # OR not-yet-started), not every non-deleted member
+            # regardless of status -- previously this was the plain
+            # complement of active_member_filter() done wrong (just
+            # deleted_at IS NULL), which meant active members showed up
+            # here too. The actual complement of active_member_filter()
+            # is an OR (a member is inactive if EITHER half fails), not
+            # an AND. A blank member_since is still "active" per
+            # active_member_filter() itself, unchanged.
             query = query.where(
                 Member.deleted_at.is_(None),
-                (Member.member_since.is_(None)) | (Member.member_since > date.today()),
-                no_parcel_assigned,
+                or_(
+                    and_(Member.member_since.is_not(None), Member.member_since > date.today()),
+                    and_(Member.member_until.is_not(None), Member.member_until < date.today()),
+                ),
             )
-            query = query.order_by(Member.created_at.asc())
+        elif self.active_only:
+            # Issue #200: active_member_filter() alone still counts a
+            # blank member_since as active (deliberate, issue #167 --
+            # keeps invoices/sign-in/dashboard totals unaffected for
+            # pre-existing members without the field set). The list's
+            # own status badge already treats that same blank case as
+            # "pending" for display (issue #170). This filter makes the
+            # two agree: a member only counts as active_only if they
+            # also have a confirmed member_since, i.e. exactly the rows
+            # that render the "active" (not "pending") badge.
+            query = query.where(active_member_filter(), Member.member_since.is_not(None))
         else:
-            query = query.order_by(Member.last_name, Member.first_name)
-            if self.include_inactive:
-                # Issue #169: this must show ONLY inactive members (expired
-                # OR not-yet-started), not every non-deleted member
-                # regardless of status -- previously this was the plain
-                # complement of active_member_filter() done wrong (just
-                # deleted_at IS NULL), which meant active members showed up
-                # here too. The actual complement of active_member_filter()
-                # is an OR (a member is inactive if EITHER half fails), not
-                # an AND. Doesn't widen to blank member_since the way
-                # pending_only does above -- that's still "active" per
-                # active_member_filter() itself, unchanged.
-                query = query.where(
-                    Member.deleted_at.is_(None),
-                    or_(
-                        and_(Member.member_since.is_not(None), Member.member_since > date.today()),
-                        and_(Member.member_until.is_not(None), Member.member_until < date.today()),
-                    ),
-                )
-            elif self.active_only:
-                # Issue #200: active_member_filter() alone still counts a
-                # blank member_since as active (deliberate, issue #167 --
-                # keeps invoices/sign-in/dashboard totals unaffected for
-                # pre-existing members without the field set). The list's
-                # own status badge already treats that same blank case as
-                # "pending" for display (issue #170). This filter makes the
-                # two agree: a member only counts as active_only if they
-                # also have a confirmed member_since, i.e. exactly the rows
-                # that render the "active" (not "pending") badge.
-                query = query.where(active_member_filter(), Member.member_since.is_not(None))
-            else:
-                query = query.where(active_member_filter())
+            query = query.where(active_member_filter())
 
         if self.search:
             # Searches every text field of the member (name, address, IBAN,

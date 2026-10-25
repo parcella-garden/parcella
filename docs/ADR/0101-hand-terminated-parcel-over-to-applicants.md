@@ -36,7 +36,7 @@ see below and ADR 0102):
 | …still holding another parcel | membership untouched |
 | Each applicant | becomes a `Member` (`member_since = D`, email + phone copied from the application), tenant from D, invoice recipient |
 | Parcel | `TERMINATED` → `ACTIVE` (via `update_parcel()`, so it's in `change_history`) |
-| Applications | `ACCEPTED` (in `change_history`) |
+| Applications | `CLOSED` (in `change_history`; `ACCEPTED` until ADR 0114) |
 
 **Why D − 1 for the membership and D for the tenancy:** the two date
 fields have different boundary semantics that already exist.

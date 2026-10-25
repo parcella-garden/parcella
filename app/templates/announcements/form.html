@@ -79,7 +79,6 @@
                 {% if audience_tag %}<span class="badge ms-1" style="background: var(--gv-gruen-blass); color: var(--gv-gruen);"><i class="bi bi-tag"></i> {{ tag_name(audience_tag) }}</span>{% endif %}
                 {% if audience_filter.search %}<span class="badge ms-1 text-bg-light border">“{{ audience_filter.search }}”</span>{% endif %}
                 {% if audience_filter.include_inactive %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_inactive') }}</span>{% endif %}
-                {% if audience_filter.pending_only %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_pending_only') }}</span>{% endif %}
                 {% if audience_filter.active_only %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_active_only') }}</span>{% endif %}
                 {% if audience_filter.email_info_only %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_email_info_only') }}</span>{% endif %}
             </div>

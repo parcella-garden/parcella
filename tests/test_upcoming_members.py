@@ -13,10 +13,11 @@ as every member before this field existed).
 Follow-up (same issue): Member.is_active -- a second, Python-side
 mirror of active_member_filter() used by the member list's status
 badge and the REST API's active_only filter -- was missed in the
-original fix and still showed a pending application as active. Also
-adds a dedicated /members/?pending_only=true view, sorted by
-created_at (the "entered into the system" timestamp), for reviewing a
-queue of pending applications.
+original fix and still showed a pending application as active.
+
+The dedicated /members/?pending_only=true view this issue also added
+was removed again in issue #256: applications live in the applicants
+module now.
 """
 from datetime import date, timedelta
 
@@ -133,88 +134,23 @@ async def test_member_is_active_property_reflects_member_since():
     assert started.is_active is True
 
 
-async def test_pending_only_view_shows_upcoming_members_sorted_by_created_at(client, admin_user):
+async def test_pending_only_filter_is_gone(client, admin_user):
+    """Issue #256: the "pending applications only" checkbox is gone from
+    the member list, and a stale ?pending_only=true link just shows the
+    normal list -- an active member included."""
     await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
 
     async with AsyncSessionLocal() as session:
-        active_member = Member(first_name="Already", last_name="Active", member_since=date.today() - timedelta(days=1))
-        second_applicant = Member(first_name="Second", last_name="Applicant", member_since=date.today() + timedelta(days=10))
-        session.add_all([active_member, second_applicant])
+        session.add(Member(first_name="Already", last_name="Active", member_since=date.today() - timedelta(days=1)))
         await session.commit()
 
-    # Added in a separate commit, after the first applicant, so
-    # created_at ordering is unambiguous even at second resolution.
-    async with AsyncSessionLocal() as session:
-        first_applicant = Member(first_name="First", last_name="Applicant", member_since=date.today() + timedelta(days=5))
-        session.add(first_applicant)
-        await session.commit()
+    response = await client.get("/members/")
+    assert response.status_code == 200
+    assert 'name="pending_only"' not in response.text
 
     response = await client.get("/members/?pending_only=true")
     assert response.status_code == 200
-    text = response.text
-
-    assert "Active, Already" not in text, "an already-active member must not appear in the pending-only view"
-    assert "Applicant, Second" in text
-    assert "Applicant, First" in text
-    # "Second" was entered into the system before "First" (committed
-    # first above), so it must be listed first (oldest-applied-first).
-    assert text.index("Applicant, Second") < text.index("Applicant, First")
-
-
-async def test_pending_only_view_includes_blank_member_since(client, admin_user):
-    """A member entered with no confirmed start date at all (neither
-    member_since nor member_until set) is just as much "not actually a
-    member yet" as one with a future member_since -- reported live:
-    Sophia Möbius had blank dates and didn't show up in the pending
-    view before this fix. Deliberately does NOT change
-    active_member_filter() itself -- she must stay "active" everywhere
-    else (invoices, meetings, etc.), same as any other legacy member
-    with no member_since ever set."""
-    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
-
-    async with AsyncSessionLocal() as session:
-        blank_dates_member = Member(first_name="Sophia", last_name="Möbius", member_since=None, member_until=None)
-        session.add(blank_dates_member)
-        await session.commit()
-
-    response = await client.get("/members/?pending_only=true")
-    assert response.status_code == 200
-    assert "Möbius, Sophia" in response.text
-
-    async with AsyncSessionLocal() as session:
-        result = await session.execute(select(Member.last_name).where(active_member_filter()))
-        last_names = {row[0] for row in result.all()}
-    assert "Möbius" in last_names, "active_member_filter() itself must be unaffected -- still active everywhere else"
-
-
-async def test_pending_only_view_excludes_member_with_a_parcel_assigned(client, admin_user):
-    """Second follow-up to issue #167: a member with a future/blank
-    member_since who already has a parcel assigned is clearly an
-    actual resident (most likely just a missing member_since data
-    entry), not a pending application -- must not show up here even
-    though they'd otherwise match on dates alone."""
-    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
-
-    async with AsyncSessionLocal() as session:
-        parcel = Parcel(plot_number="PENDING-WITH-PARCEL")
-        member_with_parcel = Member(
-            first_name="Already", last_name="Resident", member_since=date.today() + timedelta(days=30),
-        )
-        session.add_all([parcel, member_with_parcel])
-        await session.flush()
-        session.add(MemberParcel(member_id=member_with_parcel.id, parcel_id=parcel.id, is_invoice_address=True))
-        await session.commit()
-
-    response = await client.get("/members/?pending_only=true")
-    assert response.status_code == 200
-    assert "Resident, Already" not in response.text
-
-
-async def test_pending_only_view_empty_state(client, admin_user):
-    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
-
-    response = await client.get("/members/?pending_only=true")
-    assert response.status_code == 200
+    assert "Active, Already" in response.text
 
 
 async def test_rest_api_active_only_excludes_upcoming_member(client, admin_user):

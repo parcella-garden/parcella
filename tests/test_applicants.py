@@ -165,13 +165,13 @@ async def test_json_endpoint_for_connectors(client, admin_user):
 
 async def test_board_lists_applicants_and_changes_status(client, admin_user):
     applicant_id = await _create_applicant(first_name="Erika", last_name="Musterfrau")
-    await _create_applicant(email="old@example.org", status=ApplicantStatus.WITHDRAWN)
+    await _create_applicant(email="old@example.org", status=ApplicantStatus.REJECTED)
     await web_login(client)
 
     page = await client.get("/applicants/")
     assert page.status_code == 200
     assert "Erika Musterfrau" in page.text
-    assert "old@example.org" not in page.text  # the default "open" filter hides closed ones
+    assert "old@example.org" not in page.text  # the default "new" filter hides closed ones
     assert "old@example.org" in (await client.get("/applicants/?filter=all")).text
 
     response = await client.post(f"/applicants/{applicant_id}/edit", data={

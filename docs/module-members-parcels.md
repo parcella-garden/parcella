@@ -153,7 +153,7 @@ an update.
 
 **CSV export respects the list page's current filter (issue #198).**
 `_filtered_members_query()` in `app/routers/members.py` holds the
-`search`/`include_inactive`/`pending_only`/`active_only` (issue #200)/
+`search`/`include_inactive`/`active_only` (issue #200)/
 `email_info_only` (issue #229) WHERE/ORDER BY logic once; both
 `members_list` and `members_export_csv` build their query from it
 (with their own `.options(...)` eager-loads on top), and the export

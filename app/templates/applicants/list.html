@@ -16,7 +16,8 @@
 <div class="card mb-3">
     <div class="card-body py-2 d-flex gap-3 align-items-center flex-wrap">
         <div class="btn-group btn-group-sm flex-wrap" role="group">
-            {% for key in ('open', 'new', 'closed', 'all') %}
+            {#- Issue #254: "New" first, and only while there are new applications. -#}
+            {% for key in ('new', 'open', 'closed', 'all') if key != 'new' or new_count or filter == 'new' %}
             <a href="/applicants/?filter={{ key }}{% if search %}&search={{ search | urlencode }}{% endif %}" class="btn btn-{{ 'primary' if filter == key else 'outline-secondary' }}">{{ t('applicants.list.filter_' ~ key) }}</a>
             {% endfor %}
         </div>
@@ -87,7 +88,7 @@
                         </td>
                         <td style="font-size: 0.85rem;"><a href="mailto:{{ applicant.email }}">{{ applicant.email }}</a></td>
                         <td class="text-muted" style="font-size: 0.85rem;">{{ applicant.phone or '–' }}</td>
-                        <td class="text-muted" style="font-size: 0.85rem;">{{ applicant.applied_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                        <td class="text-muted" style="font-size: 0.85rem;">{{ applicant.applied_at.strftime('%d.%m.%Y') }}</td>
                         <td>{% with status=applicant.status %}{% include "applicants/_status_badge.html" %}{% endwith %}</td>
                         <td class="text-end">
                             <a href="/applicants/{{ applicant.id }}" class="btn btn-sm btn-outline-secondary" aria-label="{{ t('applicants.list.open') }}">

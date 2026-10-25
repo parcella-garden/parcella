@@ -40,12 +40,13 @@ router = APIRouter(
     dependencies=[Depends(require_module("applicants"))],
 )
 
-# ?filter= on the list page. "open" is the default, and the dashboard
-# card counts exactly the "new" one -- keep the two in sync (ADR 0019).
+# ?filter= on the list page. The default is "new" while there are new
+# applications, "open" otherwise (issue #254); the dashboard card counts
+# exactly the "new" one -- keep the two in sync (ADR 0019).
 _FILTERS = {
     "open": APPLICANT_OPEN_STATUSES,
     "new": (ApplicantStatus.NEW,),
-    "closed": (ApplicantStatus.ACCEPTED, ApplicantStatus.WITHDRAWN, ApplicantStatus.REJECTED),
+    "closed": (ApplicantStatus.CLOSED, ApplicantStatus.REJECTED),
     "all": None,
 }
 
@@ -69,10 +70,13 @@ def _form_values(form) -> dict:
 # ---------------------------------------------------------------------------
 
 @router.get("/", response_class=HTMLResponse)
-async def applicants_list(request: Request, filter: str = "open", search: str = "", db: AsyncSession = Depends(get_db)):
+async def applicants_list(request: Request, filter: str = "", search: str = "", db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "applicants", "read")
+    new_count = await db.scalar(
+        select(func.count()).select_from(Applicant).where(Applicant.status == ApplicantStatus.NEW)
+    )
     if filter not in _FILTERS:
-        filter = "open"
+        filter = "new" if new_count else "open"
 
     query = select(Applicant).order_by(Applicant.applied_at.desc())
     statuses = _FILTERS[filter]
@@ -103,7 +107,7 @@ async def applicants_list(request: Request, filter: str = "open", search: str = 
 
     return templates.TemplateResponse("applicants/list.html", {
         "request": request, "user": user, "applicants": applicants,
-        "filter": filter, "search": search, "application_counts": counts,
+        "filter": filter, "search": search, "application_counts": counts, "new_count": new_count,
         "red_flags": await _red_flags(request, db, applicants),
     })
 

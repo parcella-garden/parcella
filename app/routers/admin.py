@@ -65,6 +65,7 @@ from app.cloud_backup import (
     get_cloud_backup_settings, save_cloud_backup_settings, run_cloud_backup_now,
     is_backup_filename, FREQUENCY_CHOICES,
 )
+from app.services.applicants import RETENTION_SETTING, parse_retention_months
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 from app.templating import templates
@@ -1223,6 +1224,16 @@ async def settings_save(
             key="update_check_enabled", value=update_check_value,
             description="Whether to periodically check GitHub for a newer Parcella release",
         ))
+
+    # Applicant retention (issue #255): months after the last status
+    # change; blank or 0 = keep forever. Only when the field was on the
+    # form, so a form without it can't silently switch the purge off.
+    if "applicant_retention_months" in form:
+        months = parse_retention_months(form.get("applicant_retention_months"))
+        await _upsert_club_setting(
+            db, RETENTION_SETTING, str(months) if months else "",
+            "Months after the last status change before an applicant is deleted (blank = never)",
+        )
 
     # Board members (issue #111): full resync, not incremental add/remove
     # -- same convention as finances.py's parcel_scopes/member_scopes and

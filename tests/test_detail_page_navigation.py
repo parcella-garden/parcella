@@ -4,7 +4,7 @@ a board member working through a list one record at a time doesn't have
 to keep going back to the list and re-finding their place.
 
 Prev/Next walk the *same filtered, ordered* list the board member was
-actually looking at (search / include_inactive / pending_only /
+actually looking at (search / include_inactive /
 active_only for members; search / status_filter for parcels) -- not
 always the full unfiltered list -- via MemberListFilter.apply() (app/member_filters.py) /
 _filtered_parcels_query(), the same helpers the list pages and CSV

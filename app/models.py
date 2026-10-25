@@ -3369,14 +3369,20 @@ class ApplicantStatus(str, enum.Enum):
     NEW = "NEW"              # just applied, nobody has looked at it yet
     CONTACTED = "CONTACTED"  # the board got in touch
     OFFERED = "OFFERED"      # a plot was offered
-    ACCEPTED = "ACCEPTED"    # took a plot -- becomes a member the usual way
-    WITHDRAWN = "WITHDRAWN"  # no longer interested
-    REJECTED = "REJECTED"    # the club declined
+    ACCEPTED = "ACCEPTED"    # wants the offered plot -- handover still being negotiated (issue #252)
+    REJECTED = "REJECTED"    # the club declined, or the applicant wants no further offers
+    CLOSED = "CLOSED"        # a parcel was assigned ("Assign a parcel", ADR 0101)
+    # No WITHDRAWN (issue #253): an applicant who turns an offer down is
+    # either REJECTED (no more offers) or back to CONTACTED (stays on the
+    # waiting list). Migration 0113 renamed the enum label to CLOSED.
 
 
 # Statuses an application is still being worked on in -- the list page's
-# and the dashboard card's default filter (ADR 0019: they must match).
-APPLICANT_OPEN_STATUSES = (ApplicantStatus.NEW, ApplicantStatus.CONTACTED, ApplicantStatus.OFFERED)
+# "open" filter. ACCEPTED stays open until the parcel is actually handed
+# over (issue #252); the handover moves it to CLOSED.
+APPLICANT_OPEN_STATUSES = (
+    ApplicantStatus.NEW, ApplicantStatus.CONTACTED, ApplicantStatus.OFFERED, ApplicantStatus.ACCEPTED,
+)
 
 
 class ApplicantSource(str, enum.Enum):
