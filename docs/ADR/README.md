@@ -118,3 +118,4 @@ in chronological order.
 112. [Announcements to picked applicants: a stored id list, email only](./0112-announcements-to-picked-applicants.md)
 113. [Budget plan: store only the plan, derive the actuals](./0113-budget-plan-stores-only-the-plan.md)
 114. [Applicants: status workflow without "withdrawn", deletion after a retention period](./0114-applicant-workflow-and-retention.md)
+115. [Task board: done lists and a done timestamp per card](./0115-task-board-done-lists.md)

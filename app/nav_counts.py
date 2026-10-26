@@ -45,10 +45,12 @@ async def load_nav_counts(db: AsyncSession) -> dict[str, int]:
         )
     )
     # "Overdue" means exactly what the board shows in red (issue #127):
-    # a due_date in the past, whichever list the card is in -- there's
-    # no "done" flag to exclude by (docs/module-tasks.md).
+    # a due_date in the past and not done (issue #257, docs/ADR/0115),
+    # whichever list the card is in.
     tasks_overdue = await db.scalar(
-        select(func.count()).select_from(Task).where(Task.due_date < date.today())
+        select(func.count()).select_from(Task).where(
+            Task.due_date < date.today(), Task.completed_at.is_(None),
+        )
     )
     return {
         "applicants_new": applicants_new or 0,

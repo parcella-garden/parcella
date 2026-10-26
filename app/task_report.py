@@ -133,13 +133,16 @@ async def build_report_markdown(
         [
             t_for(request, "tasks.export.col_list"), t_for(request, "tasks.export.col_title"),
             t_for(request, "tasks.export.col_priority"), t_for(request, "tasks.export.col_due"),
-            t_for(request, "tasks.export.col_overdue"), t_for(request, "tasks.export.col_assignees"),
+            t_for(request, "tasks.export.col_overdue"), t_for(request, "tasks.export.col_done"),
+            t_for(request, "tasks.export.col_assignees"),
         ],
         [
             [
                 lists_by_id[task.list_id].name, task.title, _priority_label(request, task),
                 task.due_date.isoformat() if task.due_date else "—",
-                t_for(request, "tasks.export.overdue_yes") if task.due_date and task.due_date < today else "",
+                t_for(request, "tasks.export.overdue_yes")
+                if task.due_date and task.due_date < today and not task.completed_at else "",
+                task.completed_at.date().isoformat() if task.completed_at else "",
                 _assignee_names(task),
             ]
             for task in all_tasks

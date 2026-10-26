@@ -20,6 +20,7 @@ from app.routers.tasks import TASK_TRACKED_FIELDS
 from app.task_board import (
     next_position, move_task, close_gap_after_delete,
     next_list_position, move_list, delete_list, create_task,
+    set_completed, set_done_list,
 )
 from app.schemas import (
     KanbanTaskCreate, KanbanTaskUpdate, KanbanTaskMove, KanbanTaskOut,
@@ -86,21 +87,24 @@ async def list_create(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_admin_api),
 ):
-    task_list = TaskList(name=data.name, position=await next_list_position(db))
+    task_list = TaskList(name=data.name, position=await next_list_position(db), is_done_list=data.is_done_list)
     db.add(task_list)
     await db.commit()
     await db.refresh(task_list)
     return task_list
 
 
-@router.put("/lists/{list_id}", response_model=KanbanTaskListOut, summary="Rename a column")
+@router.put("/lists/{list_id}", response_model=KanbanTaskListOut, summary="Update a column")
 async def list_rename(
     list_id: str, data: KanbanTaskListUpdate,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_admin_api),
 ):
     task_list = await _get_list_or_404(db, list_id)
-    task_list.name = data.name
+    if data.name is not None:
+        task_list.name = data.name
+    if data.is_done_list is not None:
+        await set_done_list(db, task_list, data.is_done_list)
     await db.commit()
     await db.refresh(task_list)
     return task_list
@@ -212,8 +216,11 @@ async def task_update(
 
     fields = data.model_dump(exclude_unset=True)
     assigned_to_ids = fields.pop("assigned_to_ids", None)
+    completed = fields.pop("completed", None)
     for field, value in fields.items():
         setattr(task, field, value)
+    if completed is not None:
+        set_completed(task, completed, db, user.id)
 
     if assigned_to_ids is not None:
         # uq_task_assignee is a unique constraint, so the deletes must

@@ -2054,7 +2054,9 @@
       "sort_due_date": "Date d'échéance",
       "sort_priority": "Priorité",
       "export_report_button": "Exporter le rapport",
-      "synced_badge": "Synchronisé depuis Nextcloud Deck"
+      "synced_badge": "Synchronisé depuis Nextcloud Deck",
+      "done_on": "Terminé le {date}",
+      "no_done_list_hint": "Pas encore de liste « terminé ». Ouvrez le menu ⋮ de la colonne des tâches finies et choisissez « Marquer comme liste terminé » – les cartes déplacées là seront marquées comme terminées et ne seront plus en retard."
     },
     "form": {
       "title_new": "Nouvelle tâche",
@@ -2094,7 +2096,9 @@
       "history_col_new_value": "Nouvelle valeur",
       "history_col_changed_by": "Modifié par",
       "synced_notice": "Cette carte est synchronisée depuis Nextcloud Deck -- le titre, la description, la date d'échéance et la liste y sont gérés et mis à jour automatiquement. La priorité, les étiquettes, les assignés et les commentaires n'existent que dans Parcella et restent toujours modifiables.",
-      "adopt_button": "Adopter dans Parcella"
+      "adopt_button": "Adopter dans Parcella",
+      "label_completed": "Terminé",
+      "completed_hint": "Les tâches terminées ne sont jamais affichées en retard. Déplacer une carte dans une liste « terminé » la marque automatiquement comme terminée."
     },
     "lists": {
       "add_modal_title": "Ajouter une liste",
@@ -2109,7 +2113,10 @@
       "label_move_cards_to": "Déplacer ses cartes vers",
       "delete_button": "Supprimer la liste",
       "delete_confirm_empty": "Supprimer la liste « {name} » ? Cette action est irréversible.",
-      "delete_confirm_with_cards": "Cette liste contient encore des cartes. Choisissez une autre liste vers laquelle les déplacer avant de la supprimer."
+      "delete_confirm_with_cards": "Cette liste contient encore des cartes. Choisissez une autre liste vers laquelle les déplacer avant de la supprimer.",
+      "done_list_badge": "Liste « terminé » : les cartes déplacées ici sont marquées comme terminées",
+      "mark_done_list_action": "Marquer comme liste « terminé »",
+      "unmark_done_list_action": "Retirer le marquage « terminé »"
     },
     "export": {
       "modal_title": "Exporter le rapport d'activité",
@@ -2137,7 +2144,8 @@
       "col_author": "Auteur",
       "col_comment": "Commentaire",
       "col_overdue": "En retard ?",
-      "overdue_yes": "oui"
+      "overdue_yes": "oui",
+      "col_done": "Terminé"
     }
   },
   "email": {

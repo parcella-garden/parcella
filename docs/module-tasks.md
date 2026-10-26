@@ -232,14 +232,54 @@ why sorting doesn't persist and, like an active filter, disables card
 dragging while it's non-manual (there's no meaningful `position` to
 write while the board isn't showing manual order).
 
+## Done lists and `completed_at` (issue #257)
+
+**Only done is done.** A card is done if and only if `Task.completed_at`
+is set -- nothing else counts. A list *named* "Done", "Done!" or
+"Erledigt", the rightmost column, or a card sitting there untouched for
+months does not make a card done, and the app never guesses from names
+or positions. The only things that set `completed_at` are the explicit
+actions below (a move into a list flagged as a done list, or the "Done"
+checkbox); everything that asks "is this finished?" -- overdue styling,
+the nav badge, the dashboard card, the report -- reads `completed_at`
+and nothing else. A club whose done column isn't flagged gets no
+automatic done marks until someone flags it -- migration 0114 only
+flagged lists named "done" ignoring case, spaces and punctuation
+("DONE!" yes, "Erledigt" no). While no list is flagged, the board shows
+an info notice (`#no-done-list-hint`) explaining how to flag one -- the
+international answer to names the migration can't and shouldn't guess.
+
+A list can be flagged as a **done list** (`TaskList.is_done_list`, column
+dropdown -> "Mark as done list", or `is_done_list` on the list API). A
+card is done when `Task.completed_at` is set:
+
+- moving a card into a done list sets it (drag-and-drop, the modal's list
+  dropdown, the API's move endpoint, creating a card in that list, the
+  reassignment when a list is deleted);
+- moving it out of a done list into a normal list clears it;
+- moving between two normal lists leaves it alone;
+- the "Done" checkbox in the card modal (`completed` on the API's `PUT`)
+  sets or clears it in any list.
+
+All of this lives in `app/task_board.py` (`apply_done_state()`,
+`set_completed()`, `set_done_list()`). Flagging a list marks the cards
+already in it done; unflagging changes no card. Done cards are shown
+muted with a "Done <date>" line and never count as overdue. Changes are
+recorded in the card's history as `completed_at`. Migration
+`0114_task_done_list` flagged every list named "Done" (ignoring case,
+spaces and punctuation, so "DONE!" too) and marked its
+cards done as of their `updated_at`. See
+[ADR 0115](./ADR/0115-task-board-done-lists.md).
+
 ## Dashboard overdue-tasks card (issue #127)
 
 The dashboard (`/`, `app/main.py`'s `startseite()`) shows an "Overdue
 Tasks" count (gated on `module_flags.tasks`) linking to
 `/tasks/?overdue=1`, which pre-checks the board's own "Overdue only"
 filter checkbox -- same `data-overdue="1"` attribute and definition of
-"overdue" (`due_date` in the past, any list) the board already used to
-color a card red. See [ADR 0051](./ADR/0051-dashboard-overdue-tasks-card.md).
+"overdue" (`due_date` in the past and not done, any list -- see "Done
+lists" below) the board already uses to color a card red. See
+[ADR 0051](./ADR/0051-dashboard-overdue-tasks-card.md).
 The Tasks nav entry shows the same count as a red badge
 (`app/nav_counts.py`, [ADR 0100](./ADR/0100-nav-badges-for-needs-attention-counts.md)).
 
@@ -312,10 +352,9 @@ The report has three sections:
 2. **Comments in the period** -- the closest thing this module has to a
    decision/discussion log.
 3. **Full board snapshot** -- every current card, any list, as of
-   generation time, for context regardless of the chosen window. Not
-   filtered by any "done"-looking list name, since lists are free text
-   and user-configurable (see "Column labels are no longer translated"
-   above) -- there's no reliable way to infer which list means "done".
+   generation time, for context regardless of the chosen window. Done
+   cards stay in the snapshot, with their done date in a "Done" column
+   and never marked overdue (issue #257, see "Done lists" above).
 
 **Important limitation, stated in the generated file itself (not just
 here):** "Touched" in section 1 means created or updated in the window,

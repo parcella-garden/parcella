@@ -2054,7 +2054,9 @@
       "sort_due_date": "Fälligkeitsdatum",
       "sort_priority": "Priorität",
       "export_report_button": "Bericht exportieren",
-      "synced_badge": "Synchronisiert von Nextcloud Deck"
+      "synced_badge": "Synchronisiert von Nextcloud Deck",
+      "done_on": "Erledigt {date}",
+      "no_done_list_hint": "Noch keine Erledigt-Liste. Öffnen Sie das ⋮-Menü der Spalte für abgeschlossene Aufgaben und wählen Sie „Als Erledigt-Liste markieren“ – dorthin verschobene Karten gelten dann als erledigt und nicht mehr als überfällig."
     },
     "form": {
       "title_new": "Neue Aufgabe",
@@ -2094,7 +2096,9 @@
       "history_col_new_value": "Neuer Wert",
       "history_col_changed_by": "Geändert von",
       "synced_notice": "Diese Karte wird von Nextcloud Deck synchronisiert -- Titel, Beschreibung, Fälligkeitsdatum und Liste werden dort verwaltet und automatisch aktualisiert. Priorität, Tags, Zuständige und Kommentare gibt es nur in Parcella und sind immer bearbeitbar.",
-      "adopt_button": "In Parcella übernehmen"
+      "adopt_button": "In Parcella übernehmen",
+      "label_completed": "Erledigt",
+      "completed_hint": "Erledigte Aufgaben werden nie als überfällig angezeigt. Wird eine Karte in eine Erledigt-Liste verschoben, gilt sie automatisch als erledigt."
     },
     "lists": {
       "add_modal_title": "Liste hinzufügen",
@@ -2109,7 +2113,10 @@
       "label_move_cards_to": "Karten verschieben nach",
       "delete_button": "Liste löschen",
       "delete_confirm_empty": "Liste \"{name}\" löschen? Das kann nicht rückgängig gemacht werden.",
-      "delete_confirm_with_cards": "Diese Liste enthält noch Karten. Wählen Sie eine andere Liste aus, in die sie vor dem Löschen verschoben werden sollen."
+      "delete_confirm_with_cards": "Diese Liste enthält noch Karten. Wählen Sie eine andere Liste aus, in die sie vor dem Löschen verschoben werden sollen.",
+      "done_list_badge": "Erledigt-Liste: Karten, die hierher verschoben werden, gelten als erledigt",
+      "mark_done_list_action": "Als Erledigt-Liste markieren",
+      "unmark_done_list_action": "Nicht mehr Erledigt-Liste"
     },
     "export": {
       "modal_title": "Aktivitätsbericht exportieren",
@@ -2137,7 +2144,8 @@
       "col_author": "Autor",
       "col_comment": "Kommentar",
       "col_overdue": "Überfällig?",
-      "overdue_yes": "ja"
+      "overdue_yes": "ja",
+      "col_done": "Erledigt"
     }
   },
   "email": {

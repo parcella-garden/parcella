@@ -2054,7 +2054,9 @@
       "sort_due_date": "Termín splnění",
       "sort_priority": "Priorita",
       "export_report_button": "Exportovat report",
-      "synced_badge": "Synchronizováno z Nextcloud Deck"
+      "synced_badge": "Synchronizováno z Nextcloud Deck",
+      "done_on": "Hotovo {date}",
+      "no_done_list_hint": "Zatím žádný seznam hotových. Otevřete nabídku ⋮ sloupce s dokončenými úkoly a zvolte „Označit jako seznam hotových“ – karty přesunuté sem se pak označí jako hotové a nebudou po termínu."
     },
     "form": {
       "title_new": "Nový úkol",
@@ -2094,7 +2096,9 @@
       "history_col_new_value": "Nová hodnota",
       "history_col_changed_by": "Změnil",
       "synced_notice": "Tato karta je synchronizována z Nextcloud Deck -- název, popis, termín a seznam jsou spravovány tam a aktualizují se automaticky. Priorita, štítky, přiřazení a komentáře existují pouze v Parcelle a lze je vždy upravovat.",
-      "adopt_button": "Převzít do Parcelly"
+      "adopt_button": "Převzít do Parcelly",
+      "label_completed": "Hotovo",
+      "completed_hint": "Hotové úkoly se nikdy nezobrazují jako po termínu. Přesunutím karty do seznamu hotových se automaticky označí jako hotová."
     },
     "lists": {
       "add_modal_title": "Přidat seznam",
@@ -2109,7 +2113,10 @@
       "label_move_cards_to": "Přesunout karty do",
       "delete_button": "Smazat seznam",
       "delete_confirm_empty": "Smazat seznam „{name}“? Tuto akci nelze vrátit zpět.",
-      "delete_confirm_with_cards": "Tento seznam stále obsahuje karty. Před smazáním vyberte jiný seznam, do kterého se mají přesunout."
+      "delete_confirm_with_cards": "Tento seznam stále obsahuje karty. Před smazáním vyberte jiný seznam, do kterého se mají přesunout.",
+      "done_list_badge": "Seznam hotových: karty přesunuté sem se označí jako hotové",
+      "mark_done_list_action": "Označit jako seznam hotových",
+      "unmark_done_list_action": "Zrušit označení seznamu hotových"
     },
     "export": {
       "modal_title": "Export reportu aktivit",
@@ -2137,7 +2144,8 @@
       "col_author": "Autor",
       "col_comment": "Komentář",
       "col_overdue": "Po termínu?",
-      "overdue_yes": "ano"
+      "overdue_yes": "ano",
+      "col_done": "Hotovo"
     }
   },
   "email": {

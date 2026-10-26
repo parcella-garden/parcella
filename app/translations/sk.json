@@ -2054,7 +2054,9 @@
       "sort_due_date": "Termín splnenia",
       "sort_priority": "Priorita",
       "export_report_button": "Exportovať report",
-      "synced_badge": "Synchronizované z Nextcloud Deck"
+      "synced_badge": "Synchronizované z Nextcloud Deck",
+      "done_on": "Hotovo {date}",
+      "no_done_list_hint": "Zatiaľ žiadny zoznam hotových. Otvorte ponuku ⋮ stĺpca s dokončenými úlohami a zvoľte „Označiť ako zoznam hotových“ – karty presunuté sem sa potom označia ako hotové a nebudú po termíne."
     },
     "form": {
       "title_new": "Nová úloha",
@@ -2094,7 +2096,9 @@
       "history_col_new_value": "Nová hodnota",
       "history_col_changed_by": "Zmenil",
       "synced_notice": "Táto karta je synchronizovaná z Nextcloud Deck -- názov, popis, termín a zoznam sa spravujú tam a aktualizujú sa automaticky. Priorita, štítky, priradení a komentáre existujú iba v Parcelle a vždy sa dajú upravovať.",
-      "adopt_button": "Prevziať do Parcelly"
+      "adopt_button": "Prevziať do Parcelly",
+      "label_completed": "Hotovo",
+      "completed_hint": "Hotové úlohy sa nikdy nezobrazujú ako po termíne. Presunutím karty do zoznamu hotových sa automaticky označí ako hotová."
     },
     "lists": {
       "add_modal_title": "Pridať zoznam",
@@ -2109,7 +2113,10 @@
       "label_move_cards_to": "Presunúť karty do",
       "delete_button": "Odstrániť zoznam",
       "delete_confirm_empty": "Odstrániť zoznam „{name}“? Túto akciu nemožno vrátiť späť.",
-      "delete_confirm_with_cards": "Tento zoznam stále obsahuje karty. Pred odstránením vyberte iný zoznam, do ktorého sa majú presunúť."
+      "delete_confirm_with_cards": "Tento zoznam stále obsahuje karty. Pred odstránením vyberte iný zoznam, do ktorého sa majú presunúť.",
+      "done_list_badge": "Zoznam hotových: karty presunuté sem sa označia ako hotové",
+      "mark_done_list_action": "Označiť ako zoznam hotových",
+      "unmark_done_list_action": "Zrušiť označenie zoznamu hotových"
     },
     "export": {
       "modal_title": "Export reportu aktivít",
@@ -2137,7 +2144,8 @@
       "col_author": "Autor",
       "col_comment": "Komentár",
       "col_overdue": "Po termíne?",
-      "overdue_yes": "áno"
+      "overdue_yes": "áno",
+      "col_done": "Hotovo"
     }
   },
   "email": {

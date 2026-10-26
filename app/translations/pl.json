@@ -2054,7 +2054,9 @@
       "sort_due_date": "Termin",
       "sort_priority": "Priorytet",
       "export_report_button": "Eksportuj raport",
-      "synced_badge": "Zsynchronizowano z Nextcloud Deck"
+      "synced_badge": "Zsynchronizowano z Nextcloud Deck",
+      "done_on": "Ukończono {date}",
+      "no_done_list_hint": "Brak listy ukończonych. Otwórz menu ⋮ kolumny z zakończonymi zadaniami i wybierz „Oznacz jako listę ukończonych” – przeniesione tam karty zostaną oznaczone jako ukończone i przestaną być zaległe."
     },
     "form": {
       "title_new": "Nowe zadanie",
@@ -2094,7 +2096,9 @@
       "history_col_new_value": "Nowa wartość",
       "history_col_changed_by": "Zmienione przez",
       "synced_notice": "Ta karta jest zsynchronizowana z Nextcloud Deck -- tytuł, opis, termin i lista są zarządzane tam i aktualizowane automatycznie. Priorytet, tagi, przypisani i komentarze istnieją tylko w Parcelli i zawsze można je edytować.",
-      "adopt_button": "Przejmij do Parcelli"
+      "adopt_button": "Przejmij do Parcelli",
+      "label_completed": "Ukończone",
+      "completed_hint": "Ukończone zadania nigdy nie są pokazywane jako zaległe. Przeniesienie karty na listę ukończonych automatycznie oznacza ją jako ukończoną."
     },
     "lists": {
       "add_modal_title": "Dodaj listę",
@@ -2109,7 +2113,10 @@
       "label_move_cards_to": "Przenieś karty do",
       "delete_button": "Usuń listę",
       "delete_confirm_empty": "Usunąć listę \"{name}\"? Tej operacji nie można cofnąć.",
-      "delete_confirm_with_cards": "Ta lista nadal zawiera karty. Przed usunięciem wybierz inną listę, do której mają zostać przeniesione."
+      "delete_confirm_with_cards": "Ta lista nadal zawiera karty. Przed usunięciem wybierz inną listę, do której mają zostać przeniesione.",
+      "done_list_badge": "Lista ukończonych: karty przeniesione tutaj są oznaczane jako ukończone",
+      "mark_done_list_action": "Oznacz jako listę ukończonych",
+      "unmark_done_list_action": "Usuń oznaczenie listy ukończonych"
     },
     "export": {
       "modal_title": "Eksportuj raport aktywności",
@@ -2137,7 +2144,8 @@
       "col_author": "Autor",
       "col_comment": "Komentarz",
       "col_overdue": "Po terminie?",
-      "overdue_yes": "tak"
+      "overdue_yes": "tak",
+      "col_done": "Ukończono"
     }
   },
   "email": {

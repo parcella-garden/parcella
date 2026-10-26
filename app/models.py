@@ -2407,6 +2407,11 @@ class TaskList(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    # Issue #257: a card moved into a "done list" gets Task.completed_at
+    # set (and cleared again when moved out) -- see app/task_board.py's
+    # apply_done_state() and docs/ADR/0115. List names are free text, so
+    # this flag is the only reliable way to know which list means "done".
+    is_done_list: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -2443,6 +2448,9 @@ class Task(Base):
     due_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     priority: Mapped[Optional[TaskPriority]] = mapped_column(SAEnum(TaskPriority), nullable=True)
     tags: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=False, default=list, server_default="{}")
+    # Issue #257: set = done. Done cards never count as overdue. Set by a
+    # move into a done list or by the "Done" checkbox on any list.
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_by_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True

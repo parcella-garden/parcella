@@ -1096,6 +1096,9 @@ class KanbanTaskUpdate(BaseModel):
     priority: Optional[TaskPriority] = None
     tags: Optional[List[str]] = None
     assigned_to_ids: Optional[List[str]] = None
+    completed: Optional[bool] = Field(
+        None, description="Mark the task done (true) or not done (false), in any list"
+    )
 
 
 class KanbanTaskMove(BaseModel):
@@ -1114,6 +1117,7 @@ class KanbanTaskOut(BaseModel):
     priority: Optional[TaskPriority] = None
     tags: List[str] = Field(default_factory=list)
     assigned_to_ids: List[str] = Field(default_factory=list)
+    completed_at: Optional[datetime] = None
     created_by_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
@@ -1121,10 +1125,14 @@ class KanbanTaskOut(BaseModel):
 
 class KanbanTaskListCreate(BaseModel):
     name: str = Field(..., max_length=100)
+    is_done_list: bool = False
 
 
 class KanbanTaskListUpdate(BaseModel):
-    name: str = Field(..., max_length=100)
+    name: Optional[str] = Field(None, max_length=100)
+    is_done_list: Optional[bool] = Field(
+        None, description="Cards moved into a done list are marked done; flagging marks the cards already in it done"
+    )
 
 
 class KanbanTaskListMove(BaseModel):
@@ -1136,6 +1144,7 @@ class KanbanTaskListOut(BaseModel):
     id: str
     name: str
     position: int
+    is_done_list: bool = False
     created_at: datetime
 
 

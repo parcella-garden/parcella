@@ -75,6 +75,9 @@
     .kanban-card-title { font-weight: 600; font-size: 0.92rem; }
     .kanban-card-meta { font-size: 0.75rem; color: #6c757d; margin-top: 0.35rem; }
     .kanban-card-overdue { color: #b91c1c; font-weight: 600; }
+    .kanban-card-done { opacity: 0.7; }
+    .kanban-card-done .kanban-card-title a { text-decoration: line-through !important; }
+    .kanban-card-done-badge { font-size: 0.72rem; color: #15803d; font-weight: 600; margin-top: 0.35rem; }
     .kanban-card-priority {
         display: inline-block;
         font-size: 0.68rem;
@@ -116,6 +119,14 @@
 
 {% if list_error %}
 <div class="alert alert-danger">{{ list_error }}</div>
+{% endif %}
+{# Issue #257: "only done is done" -- without a flagged done list, moving a
+   card never marks it done, and list names are never guessed from. #}
+{% if lists and not (lists | selectattr('is_done_list') | list) %}
+<div class="alert alert-info d-flex gap-2 align-items-start py-2" id="no-done-list-hint">
+    <i class="bi bi-info-circle mt-1"></i>
+    <div>{{ t('tasks.board.no_done_list_hint') }}</div>
+</div>
 {% endif %}
 
 <div class="task-filter-bar mb-3">
@@ -174,7 +185,7 @@
     {% for list in lists %}
     <div class="kanban-column" data-list-id="{{ list.id }}">
         <div class="kanban-column-header" draggable="true">
-            <span class="kanban-column-header-title">{{ list.name }}</span>
+            <span class="kanban-column-header-title">{{ list.name }}{% if list.is_done_list %} <i class="bi bi-check2-circle text-success" title="{{ t('tasks.lists.done_list_badge') }}"></i>{% endif %}</span>
             <div class="kanban-column-header-actions">
                 <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ list.tasks | length }}</span>
                 <div class="dropdown">
@@ -187,6 +198,15 @@
                                data-list-id="{{ list.id }}" data-list-name="{{ list.name }}">
                                 <i class="bi bi-pencil me-2"></i>{{ t('tasks.lists.rename_action') }}
                             </a>
+                        </li>
+                        <li>
+                            <form method="post" action="/tasks/lists/{{ list.id }}/done" class="m-0">
+                                {{ csrf_field() }}
+                                {% if not list.is_done_list %}<input type="hidden" name="is_done_list" value="1">{% endif %}
+                                <button type="submit" class="dropdown-item">
+                                    <i class="bi bi-check2-circle me-2"></i>{{ t('tasks.lists.unmark_done_list_action' if list.is_done_list else 'tasks.lists.mark_done_list_action') }}
+                                </button>
+                            </form>
                         </li>
                         <li>
                             <a class="dropdown-item text-danger {% if lists | length <= 1 %}disabled{% endif %}" href="#"
@@ -202,13 +222,14 @@
         </div>
         <div class="kanban-cards" data-list-id="{{ list.id }}">
             {% for task in list.tasks %}
-            <div class="kanban-card" draggable="true" data-task-id="{{ task.id }}"
+            {% set is_overdue = task.due_date and task.due_date < today and not task.completed_at %}
+            <div class="kanban-card{% if task.completed_at %} kanban-card-done{% endif %}" draggable="true" data-task-id="{{ task.id }}"
                  data-search-text="{{ ([task.title, task.description or '', task.tags|join(' '), task.comments|map(attribute='content')|join(' ')]|join(' '))|lower }}"
                  data-priority="{{ task.priority.value.lower() if task.priority else '' }}"
                  data-tags="{{ task.tags|map('lower')|join(',') }}"
                  data-assignee-ids="{{ task.assignees|map(attribute='user_id')|join(',') }}"
                  data-due-month="{{ task.due_date.strftime('%Y-%m') if task.due_date else '' }}"
-                 data-overdue="{{ '1' if task.due_date and task.due_date < today else '' }}">
+                 data-overdue="{{ '1' if is_overdue else '' }}">
                 {% if task.priority %}
                 <div class="kanban-card-priority kanban-card-priority-{{ task.priority.value.lower() }}">
                     {{ t('tasks.form.priority_' + task.priority.value.lower()) }}
@@ -229,10 +250,15 @@
                     {% endif %}
                     {% if task.assignees and task.due_date %} &middot; {% endif %}
                     {% if task.due_date %}
-                    <span class="{% if task.due_date < today %}kanban-card-overdue{% endif %}">
+                    <span class="{% if is_overdue %}kanban-card-overdue{% endif %}">
                         <i class="bi bi-calendar-event"></i> {{ task.due_date.strftime('%d.%m.%Y') }}
                     </span>
                     {% endif %}
+                </div>
+                {% endif %}
+                {% if task.completed_at %}
+                <div class="kanban-card-done-badge">
+                    <i class="bi bi-check-circle-fill"></i> {{ t('tasks.board.done_on', date=task.completed_at.strftime('%d.%m.%Y')) }}
                 </div>
                 {% endif %}
                 {% if task.tags %}
@@ -381,6 +407,17 @@
                                (it's a required-shape Form field) without letting it be edited. #}
                             <input type="hidden" name="list_id" value="{{ task.list_id }}">
                             {% endif %}
+                        </div>
+                        <div class="col-sm-6 d-flex align-items-end">
+                            <div class="form-check mb-2">
+                                <input type="checkbox" name="completed" value="1" class="form-check-input" id="task-completed"
+                                       {% if task and task.completed_at %}checked{% endif %}>
+                                <label class="form-check-label" for="task-completed">
+                                    {{ t('tasks.form.label_completed') }}{% if task and task.completed_at %}
+                                    <span class="text-muted small">({{ task.completed_at.strftime('%d.%m.%Y %H:%M') }})</span>{% endif %}
+                                </label>
+                                <div class="form-text">{{ t('tasks.form.completed_hint') }}</div>
+                            </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">{{ t('tasks.form.label_assigned_to') }}</label>

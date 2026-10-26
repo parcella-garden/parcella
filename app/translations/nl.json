@@ -2054,7 +2054,9 @@
       "sort_due_date": "Vervaldatum",
       "sort_priority": "Prioriteit",
       "export_report_button": "Rapport exporteren",
-      "synced_badge": "Gesynchroniseerd vanuit Nextcloud Deck"
+      "synced_badge": "Gesynchroniseerd vanuit Nextcloud Deck",
+      "done_on": "Klaar {date}",
+      "no_done_list_hint": "Nog geen klaar-lijst. Open het ⋮-menu van de kolom voor afgeronde taken en kies ‘Markeren als klaar-lijst’ – kaarten die daarheen worden verplaatst, gelden dan als klaar en niet meer als achterstallig."
     },
     "form": {
       "title_new": "Nieuwe taak",
@@ -2094,7 +2096,9 @@
       "history_col_new_value": "Nieuwe waarde",
       "history_col_changed_by": "Gewijzigd door",
       "synced_notice": "Deze kaart is gesynchroniseerd vanuit Nextcloud Deck -- titel, beschrijving, vervaldatum en lijst worden daar beheerd en automatisch bijgewerkt. Prioriteit, tags, toegewezenen en reacties bestaan alleen in Parcella en zijn altijd bewerkbaar.",
-      "adopt_button": "Overnemen in Parcella"
+      "adopt_button": "Overnemen in Parcella",
+      "label_completed": "Klaar",
+      "completed_hint": "Afgeronde taken worden nooit als achterstallig getoond. Een kaart naar een klaar-lijst verplaatsen markeert hem automatisch als klaar."
     },
     "lists": {
       "add_modal_title": "Lijst toevoegen",
@@ -2109,7 +2113,10 @@
       "label_move_cards_to": "Verplaats de kaarten naar",
       "delete_button": "Lijst verwijderen",
       "delete_confirm_empty": "Lijst \"{name}\" verwijderen? Dit kan niet ongedaan worden gemaakt.",
-      "delete_confirm_with_cards": "Deze lijst bevat nog kaarten. Kies een andere lijst om ze naartoe te verplaatsen voordat u verwijdert."
+      "delete_confirm_with_cards": "Deze lijst bevat nog kaarten. Kies een andere lijst om ze naartoe te verplaatsen voordat u verwijdert.",
+      "done_list_badge": "Klaar-lijst: kaarten die hierheen worden verplaatst, worden als klaar gemarkeerd",
+      "mark_done_list_action": "Markeren als klaar-lijst",
+      "unmark_done_list_action": "Niet meer als klaar-lijst markeren"
     },
     "export": {
       "modal_title": "Activiteitenrapport exporteren",
@@ -2137,7 +2144,8 @@
       "col_author": "Auteur",
       "col_comment": "Reactie",
       "col_overdue": "Te laat?",
-      "overdue_yes": "ja"
+      "overdue_yes": "ja",
+      "col_done": "Klaar"
     }
   },
   "email": {

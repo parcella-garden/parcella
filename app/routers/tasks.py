@@ -26,6 +26,7 @@ from app.module_flags import require_module
 from app.task_board import (
     next_position, move_task, close_gap_after_delete,
     next_list_position, move_list, delete_list, create_task,
+    set_completed, set_done_list,
 )
 from app.task_report import build_report_markdown
 
@@ -240,6 +241,7 @@ async def task_create(
     tags: str = Form(""),
     assigned_to_ids: list[str] = Form([]),
     list_id: str = Form(""),
+    completed: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
     await require_admin(request, db)
@@ -247,7 +249,7 @@ async def task_create(
     lists = await _all_lists(db)
     target_list_id = list_id.strip() or lists[0].id
 
-    await create_task(
+    task = await create_task(
         db,
         title=title.strip(),
         description=description.strip() or None,
@@ -257,6 +259,10 @@ async def task_create(
         list_id=target_list_id,
         assigned_to_ids=assigned_to_ids,
     )
+    # A card created straight into a done list is already done
+    # (create_task); the checkbox can additionally mark one done anywhere.
+    if completed and task.completed_at is None:
+        set_completed(task, True, db)
     await db.commit()
     return RedirectResponse("/tasks/", status_code=302)
 
@@ -292,6 +298,19 @@ async def list_rename(list_id: str, request: Request, name: str = Form(...), db:
     task_list = await _get_list_or_404(db, list_id, request)
 
     task_list.name = name.strip()
+    await db.commit()
+    return RedirectResponse("/tasks/", status_code=302)
+
+
+@router.post("/lists/{list_id}/done")
+async def list_set_done(
+    list_id: str, request: Request, is_done_list: str = Form(""), db: AsyncSession = Depends(get_db),
+):
+    """Issue #257: flags/unflags a list as a done list (column dropdown)."""
+    await require_admin(request, db)
+    task_list = await _get_list_or_404(db, list_id, request)
+
+    await set_done_list(db, task_list, bool(is_done_list))
     await db.commit()
     return RedirectResponse("/tasks/", status_code=302)
 
@@ -332,6 +351,7 @@ async def task_update(
     tags: str = Form(""),
     assigned_to_ids: list[str] = Form([]),
     list_id: str = Form(""),
+    completed: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_admin(request, db)
@@ -345,10 +365,15 @@ async def task_update(
     task.priority = TaskPriority(priority.strip()) if priority.strip() else None
     task.tags = _parse_tags(tags)
     if list_id.strip() and list_id.strip() != task.list_id:
+        # A list change decides done/not done by itself (issue #257:
+        # into a done list = done, out of one = not done), so the
+        # checkbox only applies when the card stays in its list.
         await move_task(
             db, task, list_id.strip(), await next_position(db, list_id.strip()),
             changed_by_id=user.id,
         )
+    else:
+        set_completed(task, bool(completed), db, user.id)
 
     # Always resync assignees to what was actually submitted, same as
     # finances.py's parcel_scopes/member_scopes resync. Unlike those scope

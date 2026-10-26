@@ -6,13 +6,62 @@ Shared between the web router (app/routers/tasks.py) and the REST API
 (app/routers/api_tasks.py) so both move cards/lists with identical
 semantics.
 """
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import ChangeHistory, Task, TaskAssignee, TaskList, TaskPriority
+
+
+def _history_timestamp(value: Optional[datetime]) -> Optional[str]:
+    return value.strftime("%Y-%m-%d %H:%M") if value else None
+
+
+def set_completed(task: Task, done: bool, db: AsyncSession, changed_by_id: Optional[str] = None) -> None:
+    """Marks a card done (`completed_at` = now) or not done (issue #257),
+    writing a ChangeHistory row when the state actually changes. A card
+    that's already done keeps its original timestamp."""
+    if done == (task.completed_at is not None):
+        return
+    old_value = task.completed_at
+    task.completed_at = datetime.now(timezone.utc) if done else None
+    db.add(ChangeHistory(
+        entity_type="Task", entity_id=task.id, field_name="completed_at",
+        old_value=_history_timestamp(old_value), new_value=_history_timestamp(task.completed_at),
+        changed_by_id=changed_by_id,
+    ))
+
+
+async def apply_done_state(
+    db: AsyncSession, task: Task, old_list_id: Optional[str], new_list_id: str,
+    changed_by_id: Optional[str] = None,
+) -> None:
+    """Issue #257, docs/ADR/0115: moving a card into a done list marks it
+    done; moving it out of a done list into a normal one marks it not
+    done again. A move between two normal lists leaves the state alone,
+    so a card ticked "Done" by hand stays done until it's unticked."""
+    if old_list_id == new_list_id:
+        return
+    new_list = await db.get(TaskList, new_list_id)
+    if new_list is not None and new_list.is_done_list:
+        set_completed(task, True, db, changed_by_id)
+        return
+    old_list = await db.get(TaskList, old_list_id) if old_list_id else None
+    if old_list is not None and old_list.is_done_list:
+        set_completed(task, False, db, changed_by_id)
+
+
+async def set_done_list(db: AsyncSession, task_list: TaskList, is_done_list: bool) -> None:
+    """Flags/unflags a list as a done list. Flagging marks the cards
+    already in it done; unflagging leaves every card as it is -- some
+    may have been ticked done by hand. Caller commits."""
+    task_list.is_done_list = is_done_list
+    if is_done_list:
+        result = await db.execute(select(Task).where(Task.list_id == task_list.id))
+        for card in result.scalars().all():
+            set_completed(card, True, db)
 
 
 async def next_position(db: AsyncSession, list_id: str) -> int:
@@ -52,6 +101,9 @@ async def create_task(
         position=await next_position(db, list_id),
         created_by_id=created_by_id,
     )
+    target_list = await db.get(TaskList, list_id)
+    if target_list is not None and target_list.is_done_list:
+        task.completed_at = datetime.now(timezone.utc)
     db.add(task)
     await db.flush()
     for user_id in assigned_to_ids:
@@ -106,6 +158,7 @@ async def move_task(
             entity_type="Task", entity_id=task.id, field_name="list_id",
             old_value=old_list_id, new_value=new_list_id, changed_by_id=changed_by_id,
         ))
+        await apply_done_state(db, task, old_list_id, new_list_id, changed_by_id)
 
     await db.commit()
 
@@ -181,6 +234,8 @@ async def delete_list(db: AsyncSession, task_list: TaskList, move_to_list_id: Op
         for index, card in enumerate(target_cards + cards):
             card.position = index
             card.list_id = target.id
+        for card in cards:
+            await apply_done_state(db, card, task_list.id, target.id)
 
         # Flush the reassignment before deleting the list: otherwise
         # SQLAlchemy's unit-of-work sees `task_list` still has (or might

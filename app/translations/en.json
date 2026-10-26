@@ -2054,7 +2054,9 @@
       "sort_due_date": "Due date",
       "sort_priority": "Priority",
       "export_report_button": "Export report",
-      "synced_badge": "Synced from Nextcloud Deck"
+      "synced_badge": "Synced from Nextcloud Deck",
+      "done_on": "Done {date}",
+      "no_done_list_hint": "No done list yet. Open the ⋮ menu of the column you use for finished tasks and choose “Mark as done list” – cards moved there are then marked done and no longer count as overdue."
     },
     "form": {
       "title_new": "New task",
@@ -2094,7 +2096,9 @@
       "history_col_new_value": "New value",
       "history_col_changed_by": "Changed by",
       "synced_notice": "This card is synced from Nextcloud Deck -- title, description, due date, and list are managed there and update automatically. Priority, tags, assignees, and comments are only in Parcella and always editable.",
-      "adopt_button": "Adopt into Parcella"
+      "adopt_button": "Adopt into Parcella",
+      "label_completed": "Done",
+      "completed_hint": "Done tasks are never shown as overdue. Moving a card into a done list marks it done automatically."
     },
     "lists": {
       "add_modal_title": "Add list",
@@ -2109,7 +2113,10 @@
       "label_move_cards_to": "Move its cards to",
       "delete_button": "Delete list",
       "delete_confirm_empty": "Delete the list \"{name}\"? This cannot be undone.",
-      "delete_confirm_with_cards": "This list still has cards. Choose another list to move them to before deleting it."
+      "delete_confirm_with_cards": "This list still has cards. Choose another list to move them to before deleting it.",
+      "done_list_badge": "Done list: cards moved here are marked done",
+      "mark_done_list_action": "Mark as done list",
+      "unmark_done_list_action": "Unmark as done list"
     },
     "export": {
       "modal_title": "Export activity report",
@@ -2137,7 +2144,8 @@
       "col_author": "Author",
       "col_comment": "Comment",
       "col_overdue": "Overdue?",
-      "overdue_yes": "yes"
+      "overdue_yes": "yes",
+      "col_done": "Done"
     }
   },
   "email": {

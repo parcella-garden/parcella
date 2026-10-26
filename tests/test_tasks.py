@@ -1146,8 +1146,8 @@ async def test_board_renders_sort_dropdown(client, admin_user):
 
 async def test_dashboard_overdue_tasks_card_and_board_prefilter(client, admin_user):
     """Issue #127: dashboard gets an "Overdue Tasks" card counting tasks
-    whose due_date is in the past (across every list -- there's no
-    "done" flag to exclude by, see docs/module-tasks.md), linking to
+    whose due_date is in the past (across every list; done tasks are
+    excluded since issue #257, see the tests below), linking to
     /tasks/?overdue=1. The board pre-checks its own "Overdue only"
     filter checkbox from that query param (ADR 0019: the stat and the
     view it links to must use the exact same definition of the count)."""
@@ -1182,3 +1182,167 @@ async def test_dashboard_overdue_tasks_card_and_board_prefilter(client, admin_us
     prefiltered_response = await client.get("/tasks/?overdue=1")
     assert prefiltered_response.status_code == 200
     assert 'id="task-filter-overdue" checked' in prefiltered_response.text
+
+
+# ---------------------------------------------------------------------------
+# Done lists and completed_at (issue #257)
+# ---------------------------------------------------------------------------
+
+async def _seed_lists_with_done_list():
+    lists = await _seed_lists()
+    async with AsyncSessionLocal() as session:
+        done = await session.get(TaskList, lists["Done"])
+        done.is_done_list = True
+        await session.commit()
+    return lists
+
+
+async def test_moving_into_done_list_marks_done_and_out_unmarks(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    lists = await _seed_lists_with_done_list()
+
+    task = (await client.post("/api/v1/tasks", json={"title": "Call the roofer"}, headers=headers)).json()
+    assert task["completed_at"] is None
+
+    moved = (await client.post(
+        f"/api/v1/tasks/{task['id']}/move", json={"list_id": lists["Done"], "position": 0}, headers=headers,
+    )).json()
+    assert moved["completed_at"] is not None
+
+    back = (await client.post(
+        f"/api/v1/tasks/{task['id']}/move", json={"list_id": lists["In Progress"], "position": 0}, headers=headers,
+    )).json()
+    assert back["completed_at"] is None
+
+
+async def test_manual_done_survives_move_between_normal_lists(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    lists = await _seed_lists_with_done_list()
+
+    task = (await client.post("/api/v1/tasks", json={"title": "Order seeds"}, headers=headers)).json()
+    updated = (await client.put(f"/api/v1/tasks/{task['id']}", json={"completed": True}, headers=headers)).json()
+    assert updated["completed_at"] is not None
+
+    moved = (await client.post(
+        f"/api/v1/tasks/{task['id']}/move", json={"list_id": lists["In Progress"], "position": 0}, headers=headers,
+    )).json()
+    assert moved["completed_at"] == updated["completed_at"]
+
+    undone = (await client.put(f"/api/v1/tasks/{task['id']}", json={"completed": False}, headers=headers)).json()
+    assert undone["completed_at"] is None
+
+
+async def test_task_created_in_done_list_is_done(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    lists = await _seed_lists_with_done_list()
+
+    task = (await client.post(
+        "/api/v1/tasks", json={"title": "Already done", "list_id": lists["Done"]}, headers=headers,
+    )).json()
+    assert task["completed_at"] is not None
+
+
+async def test_flagging_done_list_marks_existing_cards_done(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    lists = await _seed_lists()
+
+    task = (await client.post(
+        "/api/v1/tasks", json={"title": "Old card", "list_id": lists["Done"]}, headers=headers,
+    )).json()
+    assert task["completed_at"] is None
+
+    updated_list = (await client.put(
+        f"/api/v1/tasks/lists/{lists['Done']}", json={"is_done_list": True}, headers=headers,
+    )).json()
+    assert updated_list["is_done_list"] is True
+    assert updated_list["name"] == "Done"
+
+    fetched = (await client.get(f"/api/v1/tasks/{task['id']}", headers=headers)).json()
+    assert fetched["completed_at"] is not None
+
+
+async def test_done_task_is_not_overdue(client, admin_user):
+    from datetime import date, timedelta
+    import re
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    lists = await _seed_lists_with_done_list()
+    await web_login(client, "admin@example.com")
+
+    past = (date.today() - timedelta(days=5)).isoformat()
+    await client.post("/tasks/new", data={"title": "Overdue task", "due_date": past})
+    await client.post("/tasks/new", data={"title": "Finished late", "due_date": past, "list_id": lists["Done"]})
+    await client.post("/tasks/new", data={"title": "Ticked by hand", "due_date": past, "completed": "1"})
+
+    board = await client.get("/tasks/")
+    assert board.text.count('data-overdue="1"') == 1
+    assert board.text.count("kanban-card-done") >= 2
+
+    dashboard = await client.get("/")
+    m = re.search(r'Overdue Tasks.*?font-weight: 700; color: #b91c1c;">(\d+)<', dashboard.text, re.S)
+    assert m and m.group(1) == "1"
+
+
+async def test_web_done_checkbox_and_done_list_toggle(client, admin_user):
+    from app.models import Task
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    lists = await _seed_lists()
+    await web_login(client, "admin@example.com")
+
+    await client.post("/tasks/new", data={"title": "Fix the gate"})
+    async with AsyncSessionLocal() as session:
+        task = (await session.execute(select(Task))).scalar_one()
+    task_id = task.id
+
+    edit_page = await client.get(f"/tasks/{task_id}/edit")
+    assert 'name="completed"' in edit_page.text
+
+    response = await client.post(
+        f"/tasks/{task_id}/edit", data={"title": "Fix the gate", "list_id": lists["To Do"], "completed": "1"},
+    )
+    assert response.status_code == 302
+    async with AsyncSessionLocal() as session:
+        assert (await session.get(Task, task_id)).completed_at is not None
+
+    response = await client.post(f"/tasks/{task_id}/edit", data={"title": "Fix the gate", "list_id": lists["To Do"]})
+    async with AsyncSessionLocal() as session:
+        assert (await session.get(Task, task_id)).completed_at is None
+
+    response = await client.post(f"/tasks/lists/{lists['Done']}/done", data={"is_done_list": "1"})
+    assert response.status_code == 302
+    async with AsyncSessionLocal() as session:
+        assert (await session.get(TaskList, lists["Done"])).is_done_list is True
+    board = await client.get("/tasks/")
+    assert "Unmark as done list" in board.text
+
+    await client.post(f"/tasks/lists/{lists['Done']}/done", data={})
+    async with AsyncSessionLocal() as session:
+        assert (await session.get(TaskList, lists["Done"])).is_done_list is False
+
+
+async def test_board_hints_at_missing_done_list(client, admin_user):
+    """Issue #257: "only done is done" -- the board says so while no list
+    is flagged as a done list, and the hint goes away once one is."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    lists = await _seed_lists()
+    await web_login(client, "admin@example.com")
+
+    assert 'id="no-done-list-hint"' in (await client.get("/tasks/")).text
+
+    await client.post(f"/tasks/lists/{lists['Done']}/done", data={"is_done_list": "1"})
+    assert 'id="no-done-list-hint"' not in (await client.get("/tasks/")).text
