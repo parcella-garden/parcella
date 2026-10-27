@@ -29,3 +29,8 @@ markdown==3.10.3
 altcha==2.1.0
 weasyprint==70.0
 qrcode[pil]==8.2
+# Not a direct dependency: weasyprint pulls it in via fonttools[woff], and
+# httpx then decodes "br" responses with it automatically. Floor pinned
+# for CVE-2026-111497 (decoder out-of-bounds write, fixed in 1.2.1), so
+# no build can resolve to a vulnerable version from a cache or mirror.
+brotli>=1.2.1
