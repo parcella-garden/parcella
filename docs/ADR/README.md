@@ -120,3 +120,4 @@ in chronological order.
 114. [Applicants: status workflow without "withdrawn", deletion after a retention period](./0114-applicant-workflow-and-retention.md)
 115. [Task board: done lists and a done timestamp per card](./0115-task-board-done-lists.md)
 116. [Task board: predefined, coloured tags](./0116-task-board-predefined-coloured-tags.md)
+117. [Work hours: a member holding several plots owes each plot, hours fill them in order](./0117-work-hours-multi-plot-members-share-out-hours.md)

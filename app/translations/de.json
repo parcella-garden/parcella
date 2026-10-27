@@ -1480,7 +1480,9 @@
       "col_transfers_hint": "Von anderen Mitgliedern erhaltene (+) oder an sie abgegebene (−) Stunden",
       "show_sessions": "Arbeitseinsätze anzeigen",
       "sessions_header": "Besuchte Arbeitseinsätze {year}",
-      "no_sessions": "In diesem Jahr keine besuchten Arbeitseinsätze."
+      "no_sessions": "In diesem Jahr keine besuchten Arbeitseinsätze.",
+      "split_hours": "{credited} von {total} h",
+      "split_hours_hint": "Hat mehrere Parzellen: die Stunden zählen auf jeder Parzelle nur bis zur Erfüllung, der Rest geht an die nächste Parzelle"
     },
     "member_club_role_form": {
       "title": "Zuordnung bearbeiten",

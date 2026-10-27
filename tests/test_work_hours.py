@@ -1013,3 +1013,71 @@ async def test_evaluation_lists_attended_sessions_per_member(client, admin_user)
     await _erstelle_configuration(client, headers, year=2026, mode="PER_MEMBER")
     page = await client.get("/work-hours/evaluation", params={"year": 2026})
     assert f'href="/work-hours/sessions/{attended["id"]}"' in page.text
+
+
+async def test_member_with_two_plots_owes_the_hours_for_each_plot(client, admin_user):
+    """Under PER_PARCEL a member holding two plots owes the requirement
+    for each of them, but their hours are per member and used to count
+    in full on both plots: 7.5 h fulfilled two 5 h plots at once. They
+    are now shared out in plot-number order -- the first plot gets what
+    it needs, the next one the rest."""
+    from tests.test_hours_transfers import _worked
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _erstelle_configuration(client, headers, year=2026, mode="PER_PARCEL")
+
+    schmidt = (await client.post(
+        "/api/v1/members", json={"first_name": "Test", "last_name": "Schmidt"}, headers=headers
+    )).json()
+    for plot in ("G047", "G048"):
+        parcel = (await client.post("/api/v1/parcels", json={"plot_number": plot}, headers=headers)).json()
+        await client.post(
+            f"/api/v1/parcels/{parcel['id']}/assignments",
+            json={"member_id": schmidt["id"], "parcel_id": parcel["id"]}, headers=headers,
+        )
+    await _worked(client, headers, schmidt, 7.5)
+
+    rows = {r["label"]: r for r in (await client.get("/api/v1/work-hours/evaluation/2026", headers=headers)).json()}
+    assert float(rows["G047"]["hours_completed"]) == 5.0 and rows["G047"]["fulfilled"] is True
+    assert float(rows["G048"]["hours_completed"]) == 2.5 and rows["G048"]["fulfilled"] is False
+    assert float(rows["G048"]["hours_open"]) == 2.5
+    assert float(rows["G048"]["amount_due_eur"]) == 62.5
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    html = (await client.get("/work-hours/evaluation", params={"year": 2026})).text
+    assert "5,0 of 7,5 h" in html and "2,5 of 7,5 h" in html  # de-DE number format
+
+    csv_text = (await client.get("/work-hours/evaluation/csv", params={"year": 2026})).text
+    csv_rows = {line.split(";")[0]: line.split(";") for line in csv_text.splitlines()[1:]}
+    assert csv_rows["G047"][6] == "5.0" and csv_rows["G048"][6] == "2.5"
+
+
+async def test_member_with_two_plots_fills_what_a_cotenant_left_open(client, admin_user):
+    """The share-out counts single-plot co-tenants first: a plot already
+    fulfilled by its co-tenant needs nothing from the multi-plot member,
+    so all of their hours go to their other plot."""
+    from tests.test_hours_transfers import _worked
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _erstelle_configuration(client, headers, year=2026, mode="PER_PARCEL")
+
+    def member(last_name):
+        return client.post("/api/v1/members", json={"first_name": "Test", "last_name": last_name}, headers=headers)
+
+    owner = (await member("Zweigarten")).json()
+    cotenant = (await member("Mitpaechter")).json()
+    first = (await client.post("/api/v1/parcels", json={"plot_number": "M1"}, headers=headers)).json()
+    second = (await client.post("/api/v1/parcels", json={"plot_number": "M2"}, headers=headers)).json()
+    for m, parcel in ((owner, first), (cotenant, first), (owner, second)):
+        await client.post(
+            f"/api/v1/parcels/{parcel['id']}/assignments",
+            json={"member_id": m["id"], "parcel_id": parcel["id"]}, headers=headers,
+        )
+    await _worked(client, headers, cotenant, 5)
+    await _worked(client, headers, owner, 6)
+
+    rows = {r["label"]: r for r in (await client.get("/api/v1/work-hours/evaluation/2026", headers=headers)).json()}
+    assert float(rows["M1"]["hours_completed"]) == 5.0 and rows["M1"]["fulfilled"] is True
+    assert float(rows["M2"]["hours_completed"]) == 6.0 and rows["M2"]["fulfilled"] is True

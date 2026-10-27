@@ -1480,7 +1480,9 @@
       "col_transfers_hint": "Hodiny prijaté od iných členov (+) alebo im odovzdané (−)",
       "show_sessions": "Zobraziť pracovné sedenia",
       "sessions_header": "Navštívené pracovné sedenia v roku {year}",
-      "no_sessions": "V tomto roku žiadne navštívené pracovné sedenia."
+      "no_sessions": "V tomto roku žiadne navštívené pracovné sedenia.",
+      "split_hours": "{credited} z {total} h",
+      "split_hours_hint": "Má viac parciel: hodiny sa na každej parcele počítajú len do jej splnenia, zvyšok prechádza na ďalšiu parcelu"
     },
     "member_club_role_form": {
       "title": "Upraviť priradenie",

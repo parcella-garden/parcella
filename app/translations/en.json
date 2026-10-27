@@ -1480,7 +1480,9 @@
       "col_transfers_hint": "Hours given to (+) or by (−) other members",
       "show_sessions": "Show work sessions",
       "sessions_header": "Attended work sessions in {year}",
-      "no_sessions": "No attended work sessions this year."
+      "no_sessions": "No attended work sessions this year.",
+      "split_hours": "{credited} of {total} h",
+      "split_hours_hint": "Holds several plots: their hours count on each plot only until it is fulfilled, the rest goes to the next plot"
     },
     "member_club_role_form": {
       "title": "Edit Assignment",

@@ -1480,7 +1480,9 @@
       "col_transfers_hint": "Uren ontvangen van (+) of gegeven aan (−) andere leden",
       "show_sessions": "Werksessies tonen",
       "sessions_header": "Bijgewoonde werksessies in {year}",
-      "no_sessions": "Dit jaar geen werksessies bijgewoond."
+      "no_sessions": "Dit jaar geen werksessies bijgewoond.",
+      "split_hours": "{credited} van {total} h",
+      "split_hours_hint": "Heeft meerdere tuinen: de uren tellen per tuin alleen tot die is vervuld, de rest gaat naar de volgende tuin"
     },
     "member_club_role_form": {
       "title": "Koppeling bewerken",

@@ -138,7 +138,11 @@
                                    style="color: var(--gv-gruen);">{{ pd.member.full_name }}</a>
                                 {% if pd.exempt %}<span class="badge ms-1" style="background: #dbeafe; color: #1e40af; font-size: 0.7rem;">{{ t('work_hours.evaluation.exempt_badge') }}</span>{% endif %}
                                 {% if pd.lease_ended_on %}<span class="badge ms-1 text-bg-light border" style="font-size: 0.7rem;">{{ t('work_hours.evaluation.lease_ended_badge', date=pd.lease_ended_on.strftime('%d.%m.%Y')) }}</span>{% endif %}
+                                {% if pd.split %}
+                                <span class="text-muted" title="{{ t('work_hours.evaluation.split_hours_hint') }}">({{ t('work_hours.evaluation.split_hours', credited=pd.hours.total|number(1), total=pd.own_hours.total|number(1)) }})</span>
+                                {% else %}
                                 <span class="text-muted">({{ pd.hours.total|number(1) }}h)</span>
+                                {% endif %}
                             </div>
                             {% endfor %}
                         </td>

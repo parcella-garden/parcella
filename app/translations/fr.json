@@ -1480,7 +1480,9 @@
       "col_transfers_hint": "Heures reçues d'autres membres (+) ou données (−)",
       "show_sessions": "Afficher les sessions de travail",
       "sessions_header": "Sessions de travail suivies en {year}",
-      "no_sessions": "Aucune session de travail suivie cette année."
+      "no_sessions": "Aucune session de travail suivie cette année.",
+      "split_hours": "{credited} sur {total} h",
+      "split_hours_hint": "A plusieurs parcelles : les heures comptent sur chaque parcelle jusqu'à ce qu'elle soit remplie, le reste passe à la parcelle suivante"
     },
     "member_club_role_form": {
       "title": "Modifier l'attribution",

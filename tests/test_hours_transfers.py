@@ -140,3 +140,25 @@ async def test_nan_hours_and_per_member_helper(client, admin_user):
     response = await client.post("/work-hours/transfers/new", data=form)
     assert "error=" in response.headers["location"]
     assert await _total(helper["id"]) == 0.0
+
+
+async def test_per_parcel_member_with_two_plots_gives_only_what_both_plots_leave(client, admin_user):
+    """A member holding two plots owes 5 h for each: of 12 h, only 2 h
+    are surplus (not 7 h, as when their hours counted on both plots)."""
+    headers = await _setup(client, "PER_PARCEL")
+    giver = await _member(client, headers, "Zweigarten", "T20")
+    second = (await client.post("/api/v1/parcels", json={"plot_number": "T21"}, headers=headers)).json()
+    await client.post(
+        f"/api/v1/parcels/{second['id']}/assignments",
+        json={"member_id": giver["id"], "parcel_id": second["id"]}, headers=headers,
+    )
+    receiver = await _member(client, headers, "Empfaenger", "T22")
+    await _worked(client, headers, giver, 12)
+
+    too_much = await _transfer(client, headers, giver, receiver, 2.5)
+    assert too_much.status_code == 422 and "2.0" in too_much.json()["detail"]
+    assert (await _transfer(client, headers, giver, receiver, 2)).status_code == 201
+
+    rows = {r["label"]: r for r in (await client.get("/api/v1/work-hours/evaluation/2026", headers=headers)).json()}
+    assert rows["T20"]["fulfilled"] is True and rows["T21"]["fulfilled"] is True
+    assert float(rows["T21"]["hours_completed"]) == 5.0

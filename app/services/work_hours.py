@@ -202,37 +202,94 @@ async def evaluate_parcel(db: AsyncSession, parcel: Parcel, year: int, *, config
     if not assignments:
         return None
 
-    total_hours = 0.0
     tenant_details = []
     for z in assignments:
         m = z.member
         hours = await calculate_hours_for_member(db, m.id, year)
         exempt = await is_exempt(db, m.id, year)
-        total_hours += hours["total"]
+        # "hours" is what counts on THIS plot, "own_hours" the member's
+        # whole year -- they differ only for a member holding several
+        # plots, see _share_out_multi_plot_hours().
         tenant_details.append({
-            "member": m, "hours": hours, "exempt": exempt,
+            "member": m, "hours": hours, "own_hours": hours, "split": False, "exempt": exempt,
             "lease_ended_on": _lease_ended_on([z], year),
         })
 
-    required = float(config.hours_required)
     # Exempt if AT LEAST ONE tenant is exempt (any(), not all() -- see
     # this module's docstring: this exact rule already caused a real
     # shipped bug from an inverted all()-copy in the CSV export and API.
     exempt_flag = any(t["exempt"] for t in tenant_details)
-    outstanding = max(0.0, required - total_hours) if not exempt_flag else 0.0
-    amount_due = outstanding * float(config.rate_per_hour_eur)
-
-    return {
+    row = {
         "parcel": parcel,
         "tenant_details": tenant_details,
-        "total_hours": total_hours,
-        "required_hours": required,
-        "outstanding_hours": outstanding,
-        "amount_due": amount_due,
-        "fulfilled": exempt_flag or total_hours >= required,
+        "required_hours": float(config.hours_required),
         "all_exempt": exempt_flag,  # unified key kept for the template, see original comment
         "exempt": exempt_flag,
     }
+    _total_up_parcel_row(row, config)
+    return row
+
+
+def _total_up_parcel_row(row: dict, config: WorkHoursConfiguration) -> None:
+    """(Re)computes a PER_PARCEL row's totals from its tenants' "hours"."""
+    total_hours = sum(t["hours"]["total"] for t in row["tenant_details"])
+    required = row["required_hours"]
+    outstanding = max(0.0, required - total_hours) if not row["exempt"] else 0.0
+    row.update({
+        "total_hours": total_hours,
+        "outstanding_hours": outstanding,
+        "amount_due": outstanding * float(config.rate_per_hour_eur),
+        "fulfilled": row["exempt"] or total_hours >= required,
+    })
+
+
+def _share_out_multi_plot_hours(rows: List[dict], config: WorkHoursConfiguration) -> None:
+    """A member holding several plots owes the requirement once PER PLOT,
+    but their hours are per member -- counted in full on every plot,
+    7.5 h fulfilled two 5 h plots at once. Shares each such member's
+    hours out over their plots instead: in plot-number order (the order
+    of `rows`), each plot gets what it still needs after its single-plot
+    tenants, the last plot whatever is left. An exempt plot needs
+    nothing, so their hours go to the other plots. Each component
+    (sessions, sponsorship, transfers) is split in the same proportion,
+    so a row's columns still add up to its total. Members sharing
+    plots with each other are handled in order of their first plot.
+    Mutates `rows`."""
+    plots_of: dict = {}
+    for row in rows:
+        for t in row["tenant_details"]:
+            plots_of.setdefault(t["member"].id, []).append((row, t))
+    multi = {member_id: plots for member_id, plots in plots_of.items() if len(plots) > 1}
+    if not multi:
+        return
+
+    required = float(config.hours_required)
+    pooled = {
+        id(row): sum(t["hours"]["total"] for t in row["tenant_details"] if t["member"].id not in multi)
+        for row in rows
+    }
+    for plots in multi.values():
+        own = plots[0][1]["own_hours"]
+        remaining = own["total"]
+        given = dict.fromkeys(own, 0.0)
+        for i, (row, t) in enumerate(plots):
+            if i == len(plots) - 1:
+                part = {k: own[k] - given[k] for k in own}
+            else:
+                need = 0.0 if row["exempt"] else max(0.0, required - pooled[id(row)])
+                credit = max(0.0, min(remaining, need))
+                share = credit / own["total"] if own["total"] > 0 else 0.0
+                part = {k: own[k] * share for k in own}
+                part["total"] = credit
+                remaining -= credit
+                for k in own:
+                    given[k] += part[k]
+            t["hours"] = part
+            t["split"] = True
+            pooled[id(row)] += part["total"]
+
+    for row in rows:
+        _total_up_parcel_row(row, config)
 
 
 async def evaluate_member(db: AsyncSession, member: Member, year: int, *, config: WorkHoursConfiguration) -> dict:
@@ -281,6 +338,7 @@ async def evaluate_year(db: AsyncSession, year: int) -> tuple:
             row = await evaluate_parcel(db, parcel, year, config=config)
             if row:
                 rows.append(row)
+        _share_out_multi_plot_hours(rows, config)
     else:
         result = await db.execute(
             select(Member)
@@ -624,9 +682,10 @@ async def transferable_hours(db: AsyncSession, member_id: str, year: int) -> flo
     - PER_MEMBER: own total minus the requirement.
     - PER_PARCEL: the surplus of the plot(s) they're a tenant of that
       year (hours are pooled there, so giving must not push the plot
-      below its requirement), capped at their own total -- a co-tenant's
-      hours aren't theirs to give. With several plots, the smallest
-      surplus counts.
+      below its requirement), capped at what of their own hours counts
+      on that plot -- a co-tenant's hours aren't theirs to give. With
+      several plots, their hours are shared out first (see
+      _share_out_multi_plot_hours) and the plots' surpluses add up.
     - Exempt, or no lease that year (a helper without a plot): nothing
       is owed, so all of their own hours.
     Their own total already nets earlier transfers in and out."""
@@ -644,25 +703,19 @@ async def transferable_hours(db: AsyncSession, member_id: str, year: int) -> flo
         )
         return max(0.0, own - float(config.hours_required)) if has_lease else max(0.0, own)
 
-    parcels = (await db.scalars(
-        select(Parcel)
-        .join(MemberParcel, MemberParcel.parcel_id == Parcel.id)
-        .where(MemberParcel.member_id == member_id, tenant_in_year_filter(year))
-        .options(
-            selectinload(Parcel.member_assignments)
-            .selectinload(MemberParcel.member)
-            .selectinload(Member.parcel_assignments)
-        )
-    )).unique().all()
+    # The whole year's rows, not just their plots: how a multi-plot
+    # member's hours are shared out depends on the other plots too.
+    _, rows = await evaluate_year(db, year)
     surpluses = []
-    for parcel in parcels:
-        row = await evaluate_parcel(db, parcel, year, config=config)
-        if row is None or not any(t["member"].id == member_id for t in row["tenant_details"]):
-            continue  # e.g. they moved off this plot during the year
-        surpluses.append(own if row["exempt"] else row["total_hours"] - row["required_hours"])
+    for row in rows:
+        mine = next((t for t in row["tenant_details"] if t["member"].id == member_id), None)
+        if mine is None:
+            continue  # not their plot, or they moved off it during the year
+        credited = mine["hours"]["total"]
+        surpluses.append(credited if row["exempt"] else min(credited, row["total_hours"] - row["required_hours"]))
     if not surpluses:
         return max(0.0, own)
-    return max(0.0, min([own] + surpluses))
+    return max(0.0, min(own, sum(max(0.0, s) for s in surpluses)))
 
 
 async def create_hours_transfer(

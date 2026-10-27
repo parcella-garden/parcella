@@ -50,6 +50,14 @@ parcel, their hours are added together against the parcel's single
 requirement (not counted individually per person). One tenant might
 contribute 2 hours, the other 3 -- together the 5 hours are fulfilled.
 
+**One member, several plots (ADR 0117).** The requirement is per plot,
+so a member holding G048 and G049 owes it twice. Their hours aren't
+counted in full on both: `_share_out_multi_plot_hours()` (run by
+`evaluate_year()`) fills their plots in plot-number order, each up to
+what it still needs after its single-plot co-tenants, the last plot
+gets the rest. 7.5 h of a 5 h requirement: G048 5 h (fulfilled), G049
+2.5 h (2.5 h open). The page shows such a tenant as "5,0 of 7,5 h".
+
 **Who counts as a tenant: the evaluated year, not today (issue #239,
 ADR 0092).** The evaluation counts every tenancy that was in effect on
 at least one day of the evaluated year (`MemberParcel.overlaps_year()`,
@@ -215,8 +223,9 @@ export is unchanged.
 
 - **Year-based tenancy, known gaps (ADR 0092).** (1) A member who moved
   from one plot to another *within the club* during the year counts
-  only on the plot they moved to (`_moved_on()`), but a member holding
-  two plots at once still counts on both, as always. (2) A parcel whose
+  only on the plot they moved to (`_moved_on()`). A member holding two
+  plots at once owes each of them; their hours fill the plots in
+  plot-number order (ADR 0117). (2) A parcel whose
   only tenancies in the year have all ended (left, plot not re-let)
   still shows its shortfall, but PER_PARCEL invoicing can't bill it:
   parcel invoices go to the *current* invoice-address tenants, and

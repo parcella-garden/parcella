@@ -1480,7 +1480,9 @@
       "col_transfers_hint": "Godziny otrzymane od innych członków (+) lub im przekazane (−)",
       "show_sessions": "Pokaż wpisy prac",
       "sessions_header": "Wpisy prac z obecnością w {year}",
-      "no_sessions": "Brak wpisów prac z obecnością w tym roku."
+      "no_sessions": "Brak wpisów prac z obecnością w tym roku.",
+      "split_hours": "{credited} z {total} h",
+      "split_hours_hint": "Ma kilka działek: godziny liczą się na każdej działce tylko do jej wypełnienia, reszta przechodzi na następną działkę"
     },
     "member_club_role_form": {
       "title": "Edytuj przypisanie",
