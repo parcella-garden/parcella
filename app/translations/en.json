@@ -2033,7 +2033,9 @@
       "delete_list_last_list": "Cannot delete the only remaining list.",
       "delete_list_missing_target": "Choose a list to move the cards to.",
       "delete_list_target_not_found": "The selected destination list could not be found.",
-      "comment_not_found": "Comment not found."
+      "comment_not_found": "Comment not found.",
+      "unknown_tags": "Only predefined tags can be used.",
+      "tag_not_found": "Tag not found."
     },
     "board": {
       "title": "Task Board",
@@ -2059,7 +2061,8 @@
       "export_report_button": "Export report",
       "synced_badge": "Synced from Nextcloud Deck",
       "done_on": "Done {date}",
-      "no_done_list_hint": "No done list yet. Open the ⋮ menu of the column you use for finished tasks and choose “Mark as done list” – cards moved there are then marked done and no longer count as overdue."
+      "no_done_list_hint": "No done list yet. Open the ⋮ menu of the column you use for finished tasks and choose “Mark as done list” – cards moved there are then marked done and no longer count as overdue.",
+      "manage_tags_button": "Manage tags"
     },
     "form": {
       "title_new": "New task",
@@ -2073,7 +2076,6 @@
       "label_due_date": "Due date",
       "label_priority": "Priority",
       "label_tags": "Tags",
-      "tags_placeholder": "Comma-separated (e.g. urgent, outdoor)",
       "label_assigned_to": "Assigned to",
       "label_list": "List",
       "button_save_changes": "Save changes",
@@ -2101,7 +2103,8 @@
       "synced_notice": "This card is synced from Nextcloud Deck -- title, description, due date, and list are managed there and update automatically. Priority, tags, assignees, and comments are only in Parcella and always editable.",
       "adopt_button": "Adopt into Parcella",
       "label_completed": "Done",
-      "completed_hint": "Done tasks are never shown as overdue. Moving a card into a done list marks it done automatically."
+      "completed_hint": "Done tasks are never shown as overdue. Moving a card into a done list marks it done automatically.",
+      "no_tags_defined": "No tags defined yet."
     },
     "lists": {
       "add_modal_title": "Add list",
@@ -2149,6 +2152,30 @@
       "col_overdue": "Overdue?",
       "overdue_yes": "yes",
       "col_done": "Done"
+    },
+    "tags": {
+      "page_title": "Task tags",
+      "back_to_board": "Back to the board",
+      "page_hint": "Cards can only carry the tags defined here. Renaming or recolouring a tag changes it on every card; deleting it removes it from every card.",
+      "name_label": "Name",
+      "color_label": "Colour",
+      "add_button": "Add tag",
+      "save_button": "Save",
+      "delete_button": "Delete",
+      "delete_confirm": "Delete the tag \"{name}\"? It is removed from every task.",
+      "task_count": "{count} task(s)",
+      "empty": "No tags yet.",
+      "error_name_required": "A tag needs a name.",
+      "error_name_taken": "A tag with this name already exists.",
+      "error_invalid_color": "Unknown colour.",
+      "color_grey": "Grey",
+      "color_red": "Red",
+      "color_orange": "Orange",
+      "color_yellow": "Yellow",
+      "color_green": "Green",
+      "color_teal": "Teal",
+      "color_blue": "Blue",
+      "color_purple": "Purple"
     }
   },
   "email": {

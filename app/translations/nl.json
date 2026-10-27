@@ -2033,7 +2033,9 @@
       "delete_list_last_list": "De laatste overgebleven lijst kan niet worden verwijderd.",
       "delete_list_missing_target": "Kies een lijst waarnaar de kaarten moeten worden verplaatst.",
       "delete_list_target_not_found": "De geselecteerde doellijst is niet gevonden.",
-      "comment_not_found": "Reactie niet gevonden."
+      "comment_not_found": "Reactie niet gevonden.",
+      "unknown_tags": "Alleen vooraf gedefinieerde labels kunnen worden gebruikt.",
+      "tag_not_found": "Label niet gevonden."
     },
     "board": {
       "title": "Takenbord",
@@ -2059,7 +2061,8 @@
       "export_report_button": "Rapport exporteren",
       "synced_badge": "Gesynchroniseerd vanuit Nextcloud Deck",
       "done_on": "Klaar {date}",
-      "no_done_list_hint": "Nog geen klaar-lijst. Open het ⋮-menu van de kolom voor afgeronde taken en kies ‘Markeren als klaar-lijst’ – kaarten die daarheen worden verplaatst, gelden dan als klaar en niet meer als achterstallig."
+      "no_done_list_hint": "Nog geen klaar-lijst. Open het ⋮-menu van de kolom voor afgeronde taken en kies ‘Markeren als klaar-lijst’ – kaarten die daarheen worden verplaatst, gelden dan als klaar en niet meer als achterstallig.",
+      "manage_tags_button": "Labels beheren"
     },
     "form": {
       "title_new": "Nieuwe taak",
@@ -2073,7 +2076,6 @@
       "label_due_date": "Deadline",
       "label_priority": "Prioriteit",
       "label_tags": "Tags",
-      "tags_placeholder": "Kommagescheiden (bijv. dringend, buiten)",
       "label_assigned_to": "Toegewezen aan",
       "label_list": "Lijst",
       "button_save_changes": "Wijzigingen opslaan",
@@ -2101,7 +2103,8 @@
       "synced_notice": "Deze kaart is gesynchroniseerd vanuit Nextcloud Deck -- titel, beschrijving, vervaldatum en lijst worden daar beheerd en automatisch bijgewerkt. Prioriteit, tags, toegewezenen en reacties bestaan alleen in Parcella en zijn altijd bewerkbaar.",
       "adopt_button": "Overnemen in Parcella",
       "label_completed": "Klaar",
-      "completed_hint": "Afgeronde taken worden nooit als achterstallig getoond. Een kaart naar een klaar-lijst verplaatsen markeert hem automatisch als klaar."
+      "completed_hint": "Afgeronde taken worden nooit als achterstallig getoond. Een kaart naar een klaar-lijst verplaatsen markeert hem automatisch als klaar.",
+      "no_tags_defined": "Nog geen labels aangemaakt."
     },
     "lists": {
       "add_modal_title": "Lijst toevoegen",
@@ -2149,6 +2152,30 @@
       "col_overdue": "Te laat?",
       "overdue_yes": "ja",
       "col_done": "Klaar"
+    },
+    "tags": {
+      "page_title": "Taaklabels",
+      "back_to_board": "Terug naar het bord",
+      "page_hint": "Kaarten kunnen alleen de hier aangemaakte labels dragen. Een label hernoemen of een andere kleur geven wijzigt het op alle kaarten; verwijderen haalt het van alle kaarten.",
+      "name_label": "Naam",
+      "color_label": "Kleur",
+      "add_button": "Label toevoegen",
+      "save_button": "Opslaan",
+      "delete_button": "Verwijderen",
+      "delete_confirm": "Label ‘{name}’ verwijderen? Het wordt van alle taken verwijderd.",
+      "task_count": "{count} ta(a)k(en)",
+      "empty": "Nog geen labels.",
+      "error_name_required": "Een label heeft een naam nodig.",
+      "error_name_taken": "Er bestaat al een label met deze naam.",
+      "error_invalid_color": "Onbekende kleur.",
+      "color_grey": "Grijs",
+      "color_red": "Rood",
+      "color_orange": "Oranje",
+      "color_yellow": "Geel",
+      "color_green": "Groen",
+      "color_teal": "Turkoois",
+      "color_blue": "Blauw",
+      "color_purple": "Paars"
     }
   },
   "email": {

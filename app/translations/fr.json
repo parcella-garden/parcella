@@ -2033,7 +2033,9 @@
       "delete_list_last_list": "Impossible de supprimer la dernière liste restante.",
       "delete_list_missing_target": "Choisissez une liste vers laquelle déplacer les cartes.",
       "delete_list_target_not_found": "La liste de destination sélectionnée est introuvable.",
-      "comment_not_found": "Commentaire introuvable."
+      "comment_not_found": "Commentaire introuvable.",
+      "unknown_tags": "Seules les étiquettes prédéfinies peuvent être utilisées.",
+      "tag_not_found": "Étiquette introuvable."
     },
     "board": {
       "title": "Tableau des tâches",
@@ -2059,7 +2061,8 @@
       "export_report_button": "Exporter le rapport",
       "synced_badge": "Synchronisé depuis Nextcloud Deck",
       "done_on": "Terminé le {date}",
-      "no_done_list_hint": "Pas encore de liste « terminé ». Ouvrez le menu ⋮ de la colonne des tâches finies et choisissez « Marquer comme liste terminé » – les cartes déplacées là seront marquées comme terminées et ne seront plus en retard."
+      "no_done_list_hint": "Pas encore de liste « terminé ». Ouvrez le menu ⋮ de la colonne des tâches finies et choisissez « Marquer comme liste terminé » – les cartes déplacées là seront marquées comme terminées et ne seront plus en retard.",
+      "manage_tags_button": "Gérer les étiquettes"
     },
     "form": {
       "title_new": "Nouvelle tâche",
@@ -2073,7 +2076,6 @@
       "label_due_date": "Échéance",
       "label_priority": "Priorité",
       "label_tags": "Étiquettes",
-      "tags_placeholder": "Séparés par des virgules (ex. urgent, extérieur)",
       "label_assigned_to": "Assignée à",
       "label_list": "Liste",
       "button_save_changes": "Enregistrer les modifications",
@@ -2101,7 +2103,8 @@
       "synced_notice": "Cette carte est synchronisée depuis Nextcloud Deck -- le titre, la description, la date d'échéance et la liste y sont gérés et mis à jour automatiquement. La priorité, les étiquettes, les assignés et les commentaires n'existent que dans Parcella et restent toujours modifiables.",
       "adopt_button": "Adopter dans Parcella",
       "label_completed": "Terminé",
-      "completed_hint": "Les tâches terminées ne sont jamais affichées en retard. Déplacer une carte dans une liste « terminé » la marque automatiquement comme terminée."
+      "completed_hint": "Les tâches terminées ne sont jamais affichées en retard. Déplacer une carte dans une liste « terminé » la marque automatiquement comme terminée.",
+      "no_tags_defined": "Aucune étiquette définie pour l’instant."
     },
     "lists": {
       "add_modal_title": "Ajouter une liste",
@@ -2149,6 +2152,30 @@
       "col_overdue": "En retard ?",
       "overdue_yes": "oui",
       "col_done": "Terminé"
+    },
+    "tags": {
+      "page_title": "Étiquettes des tâches",
+      "back_to_board": "Retour au tableau",
+      "page_hint": "Les cartes ne peuvent porter que les étiquettes définies ici. Renommer ou recolorer une étiquette la modifie sur toutes les cartes ; la supprimer la retire de toutes les cartes.",
+      "name_label": "Nom",
+      "color_label": "Couleur",
+      "add_button": "Ajouter une étiquette",
+      "save_button": "Enregistrer",
+      "delete_button": "Supprimer",
+      "delete_confirm": "Supprimer l’étiquette « {name} » ? Elle sera retirée de toutes les tâches.",
+      "task_count": "{count} tâche(s)",
+      "empty": "Aucune étiquette pour l’instant.",
+      "error_name_required": "Une étiquette doit avoir un nom.",
+      "error_name_taken": "Une étiquette portant ce nom existe déjà.",
+      "error_invalid_color": "Couleur inconnue.",
+      "color_grey": "Gris",
+      "color_red": "Rouge",
+      "color_orange": "Orange",
+      "color_yellow": "Jaune",
+      "color_green": "Vert",
+      "color_teal": "Turquoise",
+      "color_blue": "Bleu",
+      "color_purple": "Violet"
     }
   },
   "email": {

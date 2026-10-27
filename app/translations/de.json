@@ -2033,7 +2033,9 @@
       "delete_list_last_list": "Die letzte verbleibende Liste kann nicht gelöscht werden.",
       "delete_list_missing_target": "Wählen Sie eine Liste aus, in die die Karten verschoben werden sollen.",
       "delete_list_target_not_found": "Die ausgewählte Zielliste wurde nicht gefunden.",
-      "comment_not_found": "Kommentar nicht gefunden."
+      "comment_not_found": "Kommentar nicht gefunden.",
+      "unknown_tags": "Es können nur vordefinierte Tags verwendet werden.",
+      "tag_not_found": "Tag nicht gefunden."
     },
     "board": {
       "title": "Aufgabenboard",
@@ -2059,7 +2061,8 @@
       "export_report_button": "Bericht exportieren",
       "synced_badge": "Synchronisiert von Nextcloud Deck",
       "done_on": "Erledigt {date}",
-      "no_done_list_hint": "Noch keine Erledigt-Liste. Öffnen Sie das ⋮-Menü der Spalte für abgeschlossene Aufgaben und wählen Sie „Als Erledigt-Liste markieren“ – dorthin verschobene Karten gelten dann als erledigt und nicht mehr als überfällig."
+      "no_done_list_hint": "Noch keine Erledigt-Liste. Öffnen Sie das ⋮-Menü der Spalte für abgeschlossene Aufgaben und wählen Sie „Als Erledigt-Liste markieren“ – dorthin verschobene Karten gelten dann als erledigt und nicht mehr als überfällig.",
+      "manage_tags_button": "Tags verwalten"
     },
     "form": {
       "title_new": "Neue Aufgabe",
@@ -2073,7 +2076,6 @@
       "label_due_date": "Fällig am",
       "label_priority": "Priorität",
       "label_tags": "Tags",
-      "tags_placeholder": "Kommagetrennt (z. B. dringend, draußen)",
       "label_assigned_to": "Zugewiesen an",
       "label_list": "Liste",
       "button_save_changes": "Änderungen speichern",
@@ -2101,7 +2103,8 @@
       "synced_notice": "Diese Karte wird von Nextcloud Deck synchronisiert -- Titel, Beschreibung, Fälligkeitsdatum und Liste werden dort verwaltet und automatisch aktualisiert. Priorität, Tags, Zuständige und Kommentare gibt es nur in Parcella und sind immer bearbeitbar.",
       "adopt_button": "In Parcella übernehmen",
       "label_completed": "Erledigt",
-      "completed_hint": "Erledigte Aufgaben werden nie als überfällig angezeigt. Wird eine Karte in eine Erledigt-Liste verschoben, gilt sie automatisch als erledigt."
+      "completed_hint": "Erledigte Aufgaben werden nie als überfällig angezeigt. Wird eine Karte in eine Erledigt-Liste verschoben, gilt sie automatisch als erledigt.",
+      "no_tags_defined": "Noch keine Tags angelegt."
     },
     "lists": {
       "add_modal_title": "Liste hinzufügen",
@@ -2149,6 +2152,30 @@
       "col_overdue": "Überfällig?",
       "overdue_yes": "ja",
       "col_done": "Erledigt"
+    },
+    "tags": {
+      "page_title": "Aufgaben-Tags",
+      "back_to_board": "Zurück zum Board",
+      "page_hint": "Karten können nur die hier angelegten Tags tragen. Umbenennen oder Umfärben ändert den Tag auf allen Karten, Löschen entfernt ihn von allen Karten.",
+      "name_label": "Name",
+      "color_label": "Farbe",
+      "add_button": "Tag anlegen",
+      "save_button": "Speichern",
+      "delete_button": "Löschen",
+      "delete_confirm": "Tag „{name}“ löschen? Er wird bei allen Aufgaben entfernt.",
+      "task_count": "{count} Aufgabe(n)",
+      "empty": "Noch keine Tags.",
+      "error_name_required": "Ein Tag braucht einen Namen.",
+      "error_name_taken": "Ein Tag mit diesem Namen gibt es schon.",
+      "error_invalid_color": "Unbekannte Farbe.",
+      "color_grey": "Grau",
+      "color_red": "Rot",
+      "color_orange": "Orange",
+      "color_yellow": "Gelb",
+      "color_green": "Grün",
+      "color_teal": "Türkis",
+      "color_blue": "Blau",
+      "color_purple": "Lila"
     }
   },
   "email": {

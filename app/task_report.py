@@ -72,6 +72,7 @@ async def build_report_markdown(
         .options(
             selectinload(Task.assignees).selectinload(TaskAssignee.user),
             selectinload(Task.created_by),
+            selectinload(Task.tags),
         )
         .order_by(Task.list_id, Task.position)
     )
@@ -104,7 +105,7 @@ async def build_report_markdown(
         [
             [
                 lists_by_id[task.list_id].name, task.title, _priority_label(request, task),
-                ", ".join(task.tags) if task.tags else "—",
+                ", ".join(tag.name for tag in task.tags) if task.tags else "—",
                 task.due_date.isoformat() if task.due_date else "—",
                 task.created_at.date().isoformat(), task.updated_at.date().isoformat(),
                 _assignee_names(task), task.created_by.name if task.created_by else "—",

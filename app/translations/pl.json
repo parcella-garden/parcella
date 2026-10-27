@@ -2033,7 +2033,9 @@
       "delete_list_last_list": "Nie można usunąć ostatniej pozostałej listy.",
       "delete_list_missing_target": "Wybierz listę, do której mają zostać przeniesione karty.",
       "delete_list_target_not_found": "Nie znaleziono wybranej listy docelowej.",
-      "comment_not_found": "Nie znaleziono komentarza."
+      "comment_not_found": "Nie znaleziono komentarza.",
+      "unknown_tags": "Można używać tylko zdefiniowanych tagów.",
+      "tag_not_found": "Nie znaleziono tagu."
     },
     "board": {
       "title": "Tablica zadań",
@@ -2059,7 +2061,8 @@
       "export_report_button": "Eksportuj raport",
       "synced_badge": "Zsynchronizowano z Nextcloud Deck",
       "done_on": "Ukończono {date}",
-      "no_done_list_hint": "Brak listy ukończonych. Otwórz menu ⋮ kolumny z zakończonymi zadaniami i wybierz „Oznacz jako listę ukończonych” – przeniesione tam karty zostaną oznaczone jako ukończone i przestaną być zaległe."
+      "no_done_list_hint": "Brak listy ukończonych. Otwórz menu ⋮ kolumny z zakończonymi zadaniami i wybierz „Oznacz jako listę ukończonych” – przeniesione tam karty zostaną oznaczone jako ukończone i przestaną być zaległe.",
+      "manage_tags_button": "Zarządzaj tagami"
     },
     "form": {
       "title_new": "Nowe zadanie",
@@ -2073,7 +2076,6 @@
       "label_due_date": "Termin",
       "label_priority": "Priorytet",
       "label_tags": "Tagi",
-      "tags_placeholder": "Rozdzielone przecinkami (np. pilne, zewnętrzne)",
       "label_assigned_to": "Przypisano do",
       "label_list": "Lista",
       "button_save_changes": "Zapisz zmiany",
@@ -2101,7 +2103,8 @@
       "synced_notice": "Ta karta jest zsynchronizowana z Nextcloud Deck -- tytuł, opis, termin i lista są zarządzane tam i aktualizowane automatycznie. Priorytet, tagi, przypisani i komentarze istnieją tylko w Parcelli i zawsze można je edytować.",
       "adopt_button": "Przejmij do Parcelli",
       "label_completed": "Ukończone",
-      "completed_hint": "Ukończone zadania nigdy nie są pokazywane jako zaległe. Przeniesienie karty na listę ukończonych automatycznie oznacza ją jako ukończoną."
+      "completed_hint": "Ukończone zadania nigdy nie są pokazywane jako zaległe. Przeniesienie karty na listę ukończonych automatycznie oznacza ją jako ukończoną.",
+      "no_tags_defined": "Nie zdefiniowano jeszcze tagów."
     },
     "lists": {
       "add_modal_title": "Dodaj listę",
@@ -2149,6 +2152,30 @@
       "col_overdue": "Po terminie?",
       "overdue_yes": "tak",
       "col_done": "Ukończono"
+    },
+    "tags": {
+      "page_title": "Tagi zadań",
+      "back_to_board": "Powrót do tablicy",
+      "page_hint": "Karty mogą mieć tylko zdefiniowane tutaj tagi. Zmiana nazwy lub koloru tagu zmienia go na wszystkich kartach, usunięcie usuwa go ze wszystkich kart.",
+      "name_label": "Nazwa",
+      "color_label": "Kolor",
+      "add_button": "Dodaj tag",
+      "save_button": "Zapisz",
+      "delete_button": "Usuń",
+      "delete_confirm": "Usunąć tag „{name}”? Zostanie usunięty ze wszystkich zadań.",
+      "task_count": "Zadania: {count}",
+      "empty": "Brak tagów.",
+      "error_name_required": "Tag musi mieć nazwę.",
+      "error_name_taken": "Tag o tej nazwie już istnieje.",
+      "error_invalid_color": "Nieznany kolor.",
+      "color_grey": "Szary",
+      "color_red": "Czerwony",
+      "color_orange": "Pomarańczowy",
+      "color_yellow": "Żółty",
+      "color_green": "Zielony",
+      "color_teal": "Turkusowy",
+      "color_blue": "Niebieski",
+      "color_purple": "Fioletowy"
     }
   },
   "email": {

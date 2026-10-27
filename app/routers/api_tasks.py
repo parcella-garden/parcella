@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
-from app.models import Task, TaskAssignee, TaskComment, TaskList, User
+from app.models import Task, TaskAssignee, TaskComment, TaskList, TaskTag, User
 from app.api_auth import require_admin_api
 from app.change_tracker import ChangeTracker
 from app.module_flags import require_module
@@ -21,11 +21,13 @@ from app.task_board import (
     next_position, move_task, close_gap_after_delete,
     next_list_position, move_list, delete_list, create_task,
     set_completed, set_done_list,
+    TagError, UnknownTagsError, list_task_tags, create_tag, update_tag, tags_by_names, set_task_tags,
 )
 from app.schemas import (
     KanbanTaskCreate, KanbanTaskUpdate, KanbanTaskMove, KanbanTaskOut,
     KanbanTaskListCreate, KanbanTaskListUpdate, KanbanTaskListMove, KanbanTaskListOut,
     KanbanTaskCommentCreate, KanbanTaskCommentOut,
+    KanbanTaskTagCreate, KanbanTaskTagUpdate, KanbanTaskTagOut,
 )
 
 router = APIRouter(
@@ -41,10 +43,29 @@ _LIST_DELETE_ERROR_MESSAGES = {
     "target_not_found": "move_to_list_id does not identify an existing list.",
 }
 
+# Maps task_board.TagError's short codes to API error messages (issue #259).
+_TAG_ERROR_MESSAGES = {
+    "name_required": "A tag needs a name.",
+    "name_taken": "A tag with this name already exists.",
+    "invalid_color": "Unknown tag colour.",
+}
+
+
+async def _tags_or_400(db: AsyncSession, names: List[str]):
+    """Predefined tags only (issue #259, ADR 0116): unknown names are a
+    400 listing them, never created on the fly."""
+    try:
+        return await tags_by_names(db, names)
+    except UnknownTagsError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown tag(s): {', '.join(e.unknown)}. Create them first via POST /api/v1/tasks/tags.",
+        )
+
 
 async def _get_task_or_404(db: AsyncSession, task_id: str) -> Task:
     result = await db.execute(
-        select(Task).options(selectinload(Task.assignees)).where(Task.id == task_id)
+        select(Task).options(selectinload(Task.assignees), selectinload(Task.tags)).where(Task.id == task_id)
     )
     task = result.scalar_one_or_none()
     if not task:
@@ -145,6 +166,67 @@ async def list_delete(
 
 
 # ---------------------------------------------------------------------------
+# Predefined tags (issue #259) -- also registered before "/{task_id}".
+# ---------------------------------------------------------------------------
+
+async def _get_tag_or_404(db: AsyncSession, tag_id: str) -> TaskTag:
+    tag = await db.get(TaskTag, tag_id)
+    if tag is None:
+        raise HTTPException(status_code=404, detail="Tag not found")
+    return tag
+
+
+@router.get("/tags", response_model=List[KanbanTaskTagOut], summary="List tags")
+async def tags_list(db: AsyncSession = Depends(get_db), user: User = Depends(require_admin_api)):
+    return await list_task_tags(db)
+
+
+@router.post("/tags", response_model=KanbanTaskTagOut, status_code=status.HTTP_201_CREATED, summary="Create a tag")
+async def tag_create(
+    data: KanbanTaskTagCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_admin_api),
+):
+    try:
+        tag = await create_tag(db, data.name, data.color)
+    except TagError as e:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail=_TAG_ERROR_MESSAGES[str(e)])
+    await db.commit()
+    return tag
+
+
+@router.put("/tags/{tag_id}", response_model=KanbanTaskTagOut, summary="Rename or recolour a tag")
+async def tag_update(
+    tag_id: str, data: KanbanTaskTagUpdate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_admin_api),
+):
+    tag = await _get_tag_or_404(db, tag_id)
+    try:
+        await update_tag(db, tag, name=data.name, color=data.color)
+    except TagError as e:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail=_TAG_ERROR_MESSAGES[str(e)])
+    await db.commit()
+    return tag
+
+
+@router.delete(
+    "/tags/{tag_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a tag",
+    description="Deletes the tag and removes it from every task carrying it.",
+)
+async def tag_delete(
+    tag_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_admin_api),
+):
+    tag = await _get_tag_or_404(db, tag_id)
+    await db.delete(tag)
+    await db.commit()
+
+
+# ---------------------------------------------------------------------------
 # Tasks (cards)
 # ---------------------------------------------------------------------------
 
@@ -154,7 +236,11 @@ async def tasks_list(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_admin_api),
 ):
-    query = select(Task).options(selectinload(Task.assignees)).order_by(Task.list_id, Task.position)
+    query = (
+        select(Task)
+        .options(selectinload(Task.assignees), selectinload(Task.tags))
+        .order_by(Task.list_id, Task.position)
+    )
     if list_id:
         query = query.where(Task.list_id == list_id)
     result = await db.execute(query)
@@ -185,6 +271,7 @@ async def task_create(
         target_list_id = first_list.id
     else:
         await _get_list_or_404(db, target_list_id)
+    tags = await _tags_or_400(db, data.tags)
 
     task = await create_task(
         db,
@@ -192,7 +279,7 @@ async def task_create(
         description=data.description,
         due_date=data.due_date,
         priority=data.priority,
-        tags=data.tags,
+        tags=tags,
         list_id=target_list_id,
         assigned_to_ids=data.assigned_to_ids,
     )
@@ -217,8 +304,12 @@ async def task_update(
     fields = data.model_dump(exclude_unset=True)
     assigned_to_ids = fields.pop("assigned_to_ids", None)
     completed = fields.pop("completed", None)
+    tag_names = fields.pop("tags", None)
+    tags = await _tags_or_400(db, tag_names) if tag_names is not None else None
     for field, value in fields.items():
         setattr(task, field, value)
+    if tags is not None:
+        set_task_tags(db, task, tags, user.id)
     if completed is not None:
         set_completed(task, completed, db, user.id)
 

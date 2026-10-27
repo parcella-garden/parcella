@@ -74,20 +74,32 @@ create/edit form as due date and assignee; there's no separate
 priority -- `position` (drag-and-drop order) still governs ordering
 within a list.
 
-`tags` (issue #107, migration `0056_task_tags`) is a Postgres text array
-(`ARRAY(String)`), not a join table to a separate `Tag` entity: there's
-no cross-card vocabulary to enforce or reuse-by-reference here (unlike,
-say, `InventoryCategory`), just a per-card list of short free-text
-strings. `NOT NULL` with a `'{}'` server default -- an untagged card is
-an empty list, not `NULL`, so every consumer (board template, CSV/API
-iteration) can iterate `task.tags` unconditionally. The web form takes a
-single comma-separated text input (`app/templates/tasks/form.html`),
-split/stripped/deduped by `_parse_tags()` in `app/routers/tasks.py`; the
-API takes a plain `list[str]` (`KanbanTaskBase.tags`). Shown on the board
-as small pill badges under the card title/meta line, one per tag, in the
-same style family as the priority badge but a single neutral color
-(tags have no fixed small set of values to give distinct colors to,
-unlike priority's three).
+**Tags (issue #259, [ADR 0116](./ADR/0116-task-board-predefined-coloured-tags.md))**
+are predefined: a `TaskTag` row (`name`, unique ignoring case; `color`,
+one of `TASK_TAG_COLORS` in `app/models.py`) linked to cards through
+`task_tag_links` (both FKs `ON DELETE CASCADE`, `passive_deletes` on both
+relationship sides so deleting a card or tag never loads the other
+side). `Task.tags` is that relationship, ordered by name -- not
+lazy-loadable under asyncio, so every query that reads it has
+`selectinload(Task.tags)`. Cards can only carry tags from this list:
+the web form is a checkbox per tag (`tag_ids`), the API takes tag
+*names*, and anything unknown is a 400 in both (`tags_by_ids()` /
+`tags_by_names()` in `app/task_board.py`) -- never created on the fly.
+The list is managed on `/tasks/tags` ("Manage tags" on the board
+header) and `/api/v1/tasks/tags`, both admin/board only like the rest of
+the module; renaming or recolouring shows on every card at once,
+deleting removes the tag from every card. The colour is a plain string
+validated in code, not a Postgres enum, so adding a colour later needs
+no `ALTER TYPE`; each key has a `.task-tag-<key>` class in
+`app/templates/tasks/_tag_colors.html`, shared by the board and the
+tag page. The board's tag filter works on tag *ids* (`data-tags`), since
+a predefined name may contain a comma.
+
+Before issue #259, `tags` was a free-text Postgres text array (issue
+#107, migration `0056_task_tags`), typed as a comma-separated input.
+Migration `0115_task_tags` turned every distinct existing value into a
+grey `TaskTag` (spellings differing only in case/spaces merged), linked
+the cards and dropped the array column.
 
 **Migration gotcha, the mirror image of the one in
 [docs/module-work-hours.md](./module-work-hours.md#known-pitfalls):**
@@ -314,7 +326,7 @@ listing every recorded field change (timestamp, field, old value, new
 value, changed by), newest first. This reuses the app's existing
 generic audit log rather than a bespoke table -- see
 [ADR 0085](./ADR/0085-task-board-change-history-via-change-history.md).
-Tracked fields: `title`, `description`, `due_date`, `priority`, `tags`
+Tracked fields: `title`, `description`, `due_date`, `priority`
 (via `app/change_tracker.py`'s `ChangeTracker`, in both
 `app/routers/tasks.py::task_update` and
 `app/routers/api_tasks.py::task_update`) and `list_id` (written
@@ -322,7 +334,11 @@ directly inside `app/task_board.py::move_task()` -- the single funnel
 every list change goes through, web drag-and-drop and the API's move
 endpoint included -- only when the list actually changes, not on a
 same-list reorder). `list_id`'s old/new values are resolved to list
-*names* in the template, not shown as raw ids.
+*names* in the template, not shown as raw ids. `tags` is written by
+`set_task_tags()` in `app/task_board.py` as the sorted, comma-joined tag
+names -- a relationship since issue #259, which `ChangeTracker` can't
+diff. Rows from before that store the old array's text form
+(`['a', 'b']`). `completed_at` is written by `set_completed()` (issue #257).
 
 **Not tracked, deliberately:** assignee changes (`assigned_to_ids` is a
 derived property over the `TaskAssignee` join table, not a plain
@@ -392,6 +408,13 @@ user id) was replaced by `assigned_to_ids` (a list) on
 `KanbanTaskCreate`/`KanbanTaskUpdate`/`KanbanTaskOut`, same
 no-versioning rationale as the `status` -> `list_id` change above.
 
+**Breaking change (issue #259):** `tags` on `KanbanTaskCreate`/
+`KanbanTaskUpdate` must name predefined tags (`GET /api/v1/tasks/tags`,
+matched ignoring case); an unknown name is now a 400 instead of creating
+a free-text tag. Responses are unchanged -- `KanbanTaskOut.tags` is still
+a list of names. New: `GET`/`POST /api/v1/tasks/tags`,
+`PUT`/`DELETE /api/v1/tasks/tags/{id}` (registered before `/{task_id}`).
+
 ## A naming collision found while building this
 
 `app/schemas.py` already defined `TaskBase`/`TaskCreate`/`TaskUpdate`/
@@ -435,6 +458,16 @@ filter dropdowns only offer options actually present on the board, and
 search/filter/sort behavior itself is client-side JS, untestable via
 `pytest`, so these tests only cover the server-rendered data/markup it
 reads.
+
+Done lists (issue #257): into/out of a done list, a manual "Done"
+surviving moves between normal lists, flagging backfilling the cards
+already in a list, done cards excluded from overdue (board and
+dashboard), the board's "no done list" notice. Predefined tags (issue
+#259): unknown tags rejected by the API (400, nothing auto-created) and
+the web form, tag CRUD via API and web (case-insensitive uniqueness,
+colour validation, rename/recolour visible on cards, delete removing the
+tag from cards), the `tags` history row, and admin/board-only access to
+both tag management surfaces.
 
 **Test-DB sharp edge:** the test suite builds its schema from
 `app/models.py` via `Base.metadata.create_all` (see `tests/conftest.py`),

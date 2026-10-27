@@ -14,11 +14,14 @@ from babel.dates import get_month_names
 from fastapi import APIRouter, Request, Form, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
-from app.models import ChangeHistory, Task, TaskAssignee, TaskComment, TaskList, TaskPriority, User
+from app.models import (
+    ChangeHistory, Task, TaskAssignee, TaskComment, TaskList, TaskPriority, TaskTag, User,
+    TASK_TAG_COLORS, TASK_TAG_DEFAULT_COLOR,
+)
 from app.auth import require_admin
 from app.change_tracker import ChangeTracker
 from app.i18n import t_for, DEFAULT_LANGUAGE
@@ -27,6 +30,7 @@ from app.task_board import (
     next_position, move_task, close_gap_after_delete,
     next_list_position, move_list, delete_list, create_task,
     set_completed, set_done_list,
+    TagError, UnknownTagsError, list_task_tags, create_tag, update_tag, tags_by_ids, set_task_tags,
 )
 from app.task_report import build_report_markdown
 
@@ -35,8 +39,10 @@ EXPORT_DEFAULT_WINDOW_DAYS = 30
 # ChangeHistory, see docs/ADR/0085) -- list_id is tracked separately,
 # directly inside app/task_board.py's move_task(), since that's the
 # single funnel every list change (web + API, drag-and-drop + form)
-# goes through. assigned_to_ids is deliberately excluded -- see ADR 0085.
-TASK_TRACKED_FIELDS = ["title", "description", "due_date", "priority", "tags"]
+# goes through. tags too, by set_task_tags() -- a relationship since
+# issue #259, which ChangeTracker can't diff. assigned_to_ids is
+# deliberately excluded -- see ADR 0085.
+TASK_TRACKED_FIELDS = ["title", "description", "due_date", "priority"]
 
 router = APIRouter(
     prefix="/tasks",
@@ -52,6 +58,13 @@ _LIST_DELETE_ERROR_KEYS = {
     "target_not_found": "tasks.errors.delete_list_target_not_found",
 }
 
+# Maps task_board.TagError's short codes to translation keys (issue #259).
+_TAG_ERROR_KEYS = {
+    "name_required": "tasks.tags.error_name_required",
+    "name_taken": "tasks.tags.error_name_taken",
+    "invalid_color": "tasks.tags.error_invalid_color",
+}
+
 
 async def _get_task_or_404(db: AsyncSession, task_id: str, request: Request) -> Task:
     result = await db.execute(
@@ -60,6 +73,7 @@ async def _get_task_or_404(db: AsyncSession, task_id: str, request: Request) -> 
             selectinload(Task.assignees),
             selectinload(Task.comments).selectinload(TaskComment.created_by),
             selectinload(Task.external_link),
+            selectinload(Task.tags),
         )
         .where(Task.id == task_id)
     )
@@ -107,14 +121,13 @@ async def _change_history(db: AsyncSession, task_id: str):
     return result.scalars().all()
 
 
-def _parse_tags(raw: str) -> list[str]:
-    """Comma-separated free text -> a deduped, order-preserving tag list."""
-    seen: dict[str, None] = {}
-    for part in raw.split(","):
-        tag = part.strip()
-        if tag:
-            seen.setdefault(tag, None)
-    return list(seen)
+async def _tags_from_form(db: AsyncSession, request: Request, tag_ids: list[str]) -> list[TaskTag]:
+    """Checkbox values -> predefined tags; anything else is a 400
+    (issue #259: no tags but the predefined ones)."""
+    try:
+        return await tags_by_ids(db, tag_ids)
+    except UnknownTagsError:
+        raise HTTPException(status_code=400, detail=t_for(request, "tasks.errors.unknown_tags"))
 
 
 async def _render_board(
@@ -135,6 +148,7 @@ async def _render_board(
             selectinload(TaskList.tasks).selectinload(Task.assignees).selectinload(TaskAssignee.user),
             selectinload(TaskList.tasks).selectinload(Task.comments),
             selectinload(TaskList.tasks).selectinload(Task.external_link),
+            selectinload(TaskList.tasks).selectinload(Task.tags),
         )
         .order_by(TaskList.position)
     )
@@ -147,13 +161,13 @@ async def _render_board(
     # actually on the board right now, not every tag/user that's ever
     # existed.
     assignee_options: dict[str, str] = {}
-    tag_options: set[str] = set()
+    tag_options: dict[str, str] = {}
     due_year_months: set[tuple[int, int]] = set()
     for task_list in lists:
         for task in task_list.tasks:
             for assignee in task.assignees:
                 assignee_options[assignee.user_id] = assignee.user.name
-            tag_options.update(task.tags)
+            tag_options.update((tag.id, tag.name) for tag in task.tags)
             if task.due_date:
                 due_year_months.add((task.due_date.year, task.due_date.month))
 
@@ -175,7 +189,7 @@ async def _render_board(
         "today": date.today(),
         "list_error": request.query_params.get("list_error"),
         "assignee_options": sorted(assignee_options.items(), key=lambda kv: kv[1].lower()),
-        "tag_options": sorted(tag_options, key=str.lower),
+        "tag_options": sorted(tag_options.items(), key=lambda kv: kv[1].lower()),
         "due_month_options": due_month_options,
         # Dashboard "Overdue Tasks" card (issue #127) links here with
         # ?overdue=1 -- pre-checks the board's own "Overdue only" filter
@@ -191,6 +205,7 @@ async def _render_board(
     if open_task or is_new:
         context["active_users"] = await _active_users(db)
         context["priorities"] = list(TaskPriority)
+        context["all_tags"] = await list_task_tags(db)
     if open_task:
         context["task_history"] = await _change_history(db, open_task.id)
 
@@ -238,13 +253,14 @@ async def task_create(
     description: str = Form(""),
     due_date: str = Form(""),
     priority: str = Form(""),
-    tags: str = Form(""),
+    tag_ids: list[str] = Form([]),
     assigned_to_ids: list[str] = Form([]),
     list_id: str = Form(""),
     completed: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
     await require_admin(request, db)
+    tags = await _tags_from_form(db, request, tag_ids)
 
     lists = await _all_lists(db)
     target_list_id = list_id.strip() or lists[0].id
@@ -255,7 +271,7 @@ async def task_create(
         description=description.strip() or None,
         due_date=date.fromisoformat(due_date) if due_date.strip() else None,
         priority=TaskPriority(priority.strip()) if priority.strip() else None,
-        tags=_parse_tags(tags),
+        tags=tags,
         list_id=target_list_id,
         assigned_to_ids=assigned_to_ids,
     )
@@ -265,6 +281,78 @@ async def task_create(
         set_completed(task, True, db)
     await db.commit()
     return RedirectResponse("/tasks/", status_code=302)
+
+
+# ---------------------------------------------------------------------------
+# Predefined tags (issue #259, docs/ADR/0116) -- admin/board only, like
+# the rest of this router. Registered before the "/{task_id}/..." routes.
+# ---------------------------------------------------------------------------
+
+def _tags_redirect(request: Request, error: Optional[TagError] = None) -> RedirectResponse:
+    if error is None:
+        return RedirectResponse("/tasks/tags", status_code=303)
+    message = urlquote(t_for(request, _TAG_ERROR_KEYS[str(error)]))
+    return RedirectResponse(f"/tasks/tags?error={message}", status_code=303)
+
+
+async def _get_tag_or_404(db: AsyncSession, tag_id: str, request: Request) -> TaskTag:
+    tag = await db.get(TaskTag, tag_id)
+    if tag is None:
+        raise HTTPException(status_code=404, detail=t_for(request, "tasks.errors.tag_not_found"))
+    return tag
+
+
+@router.get("/tags", response_class=HTMLResponse)
+async def tags_page(request: Request, db: AsyncSession = Depends(get_db)):
+    user = await require_admin(request, db)
+    tags = await list_task_tags(db)
+    result = await db.execute(
+        select(TaskTag.id, func.count(Task.id)).join(TaskTag.tasks).group_by(TaskTag.id)
+    )
+    return templates.TemplateResponse("tasks/tags.html", {
+        "request": request, "user": user,
+        "tags": tags, "task_counts": dict(result.all()), "colors": TASK_TAG_COLORS,
+    })
+
+
+@router.post("/tags/new")
+async def tag_create(
+    request: Request, name: str = Form(""), color: str = Form(""), db: AsyncSession = Depends(get_db),
+):
+    await require_admin(request, db)
+    try:
+        await create_tag(db, name, color or TASK_TAG_DEFAULT_COLOR)
+    except TagError as e:
+        await db.rollback()
+        return _tags_redirect(request, e)
+    await db.commit()
+    return _tags_redirect(request)
+
+
+@router.post("/tags/{tag_id}/edit")
+async def tag_update(
+    tag_id: str, request: Request, name: str = Form(""), color: str = Form(""), db: AsyncSession = Depends(get_db),
+):
+    await require_admin(request, db)
+    tag = await _get_tag_or_404(db, tag_id, request)
+    try:
+        await update_tag(db, tag, name=name, color=color or tag.color)
+    except TagError as e:
+        await db.rollback()
+        return _tags_redirect(request, e)
+    await db.commit()
+    return _tags_redirect(request)
+
+
+@router.post("/tags/{tag_id}/delete")
+async def tag_delete(tag_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    """Removes the tag from every card (link rows cascade) -- no history
+    row per card, same as a list delete's bulk reassignment."""
+    await require_admin(request, db)
+    tag = await _get_tag_or_404(db, tag_id, request)
+    await db.delete(tag)
+    await db.commit()
+    return _tags_redirect(request)
 
 
 @router.post("/lists/new")
@@ -348,7 +436,7 @@ async def task_update(
     description: str = Form(""),
     due_date: str = Form(""),
     priority: str = Form(""),
-    tags: str = Form(""),
+    tag_ids: list[str] = Form([]),
     assigned_to_ids: list[str] = Form([]),
     list_id: str = Form(""),
     completed: str = Form(""),
@@ -356,6 +444,7 @@ async def task_update(
 ):
     user = await require_admin(request, db)
     task = await _get_task_or_404(db, task_id, request)
+    tags = await _tags_from_form(db, request, tag_ids)
 
     tracker = ChangeTracker(task, "Task", TASK_TRACKED_FIELDS)
 
@@ -363,7 +452,7 @@ async def task_update(
     task.description = description.strip() or None
     task.due_date = date.fromisoformat(due_date) if due_date.strip() else None
     task.priority = TaskPriority(priority.strip()) if priority.strip() else None
-    task.tags = _parse_tags(tags)
+    set_task_tags(db, task, tags, user.id)
     if list_id.strip() and list_id.strip() != task.list_id:
         # A list change decides done/not done by itself (issue #257:
         # into a done list = done, out of one = not done), so the

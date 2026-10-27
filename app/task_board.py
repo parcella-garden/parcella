@@ -7,12 +7,124 @@ Shared between the web router (app/routers/tasks.py) and the REST API
 semantics.
 """
 from datetime import date, datetime, timezone
-from typing import List, Optional
+from typing import Iterable, List, Optional
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import ChangeHistory, Task, TaskAssignee, TaskList, TaskPriority
+from app.models import (
+    ChangeHistory, Task, TaskAssignee, TaskList, TaskPriority, TaskTag,
+    TASK_TAG_COLORS, TASK_TAG_DEFAULT_COLOR,
+)
+
+
+# ---------------------------------------------------------------------------
+# Predefined tags (issue #259, docs/ADR/0116)
+# ---------------------------------------------------------------------------
+
+class TagError(ValueError):
+    """Raised with a short code ("name_required", "name_taken",
+    "invalid_color") the routers turn into a translated (web) or
+    plain-English (API) 400, same scheme as delete_list()'s codes."""
+
+
+class UnknownTagsError(ValueError):
+    """A card was given tags that aren't on the predefined list --
+    `.unknown` holds the offending names/ids for the error message."""
+
+    def __init__(self, unknown: List[str]):
+        super().__init__("unknown_tags")
+        self.unknown = unknown
+
+
+async def list_task_tags(db: AsyncSession) -> List[TaskTag]:
+    result = await db.execute(select(TaskTag).order_by(func.lower(TaskTag.name)))
+    return list(result.scalars().all())
+
+
+async def _check_tag_fields(db: AsyncSession, name: str, color: str, *, exclude_id: Optional[str] = None) -> str:
+    name = name.strip()
+    if not name:
+        raise TagError("name_required")
+    if color not in TASK_TAG_COLORS:
+        raise TagError("invalid_color")
+    query = select(TaskTag.id).where(func.lower(TaskTag.name) == name.lower())
+    if exclude_id:
+        query = query.where(TaskTag.id != exclude_id)
+    if await db.scalar(query):
+        raise TagError("name_taken")
+    return name
+
+
+async def create_tag(db: AsyncSession, name: str, color: str = TASK_TAG_DEFAULT_COLOR) -> TaskTag:
+    """Caller commits. Names are unique ignoring case."""
+    tag = TaskTag(name=await _check_tag_fields(db, name, color), color=color)
+    db.add(tag)
+    await db.flush()
+    return tag
+
+
+async def update_tag(db: AsyncSession, tag: TaskTag, name: Optional[str] = None, color: Optional[str] = None) -> None:
+    """Rename and/or recolour; a rename shows on every card at once,
+    since cards link to the tag rather than copying its name. Caller
+    commits."""
+    new_name = tag.name if name is None else name
+    new_color = tag.color if color is None else color
+    tag.name = await _check_tag_fields(db, new_name, new_color, exclude_id=tag.id)
+    tag.color = new_color
+
+
+async def tags_by_ids(db: AsyncSession, tag_ids: Iterable[str]) -> List[TaskTag]:
+    """Web form: checkbox values -> TaskTag rows. Any id that isn't a
+    predefined tag raises UnknownTagsError -- a card can't carry a tag
+    that isn't on the list (issue #259). Sorted by name, the order
+    Task.tags loads in."""
+    wanted = list(dict.fromkeys(i for i in tag_ids if i))
+    if not wanted:
+        return []
+    result = await db.execute(select(TaskTag).where(TaskTag.id.in_(wanted)))
+    found = {tag.id: tag for tag in result.scalars().all()}
+    missing = [i for i in wanted if i not in found]
+    if missing:
+        raise UnknownTagsError(missing)
+    return sorted(found.values(), key=lambda tag: tag.name)
+
+
+async def tags_by_names(db: AsyncSession, names: Iterable[str]) -> List[TaskTag]:
+    """REST API: tag names -> TaskTag rows, matched ignoring case and
+    surrounding spaces. Unknown names raise UnknownTagsError rather than
+    creating tags on the fly (kermie's call, issue #259: predefined only,
+    also via the API -- a breaking change, see ADR 0116)."""
+    wanted = list(dict.fromkeys(n.strip() for n in names if n and n.strip()))
+    if not wanted:
+        return []
+    result = await db.execute(
+        select(TaskTag).where(func.lower(TaskTag.name).in_([n.lower() for n in wanted]))
+    )
+    found = {tag.name.lower(): tag for tag in result.scalars().all()}
+    missing = [n for n in wanted if n.lower() not in found]
+    if missing:
+        raise UnknownTagsError(missing)
+    return sorted({tag.id: tag for tag in found.values()}.values(), key=lambda tag: tag.name)
+
+
+def _tag_names(tags: Iterable[TaskTag]) -> Optional[str]:
+    names = sorted((tag.name for tag in tags), key=str.lower)
+    return ", ".join(names) if names else None
+
+
+def set_task_tags(db: AsyncSession, task: Task, tags: List[TaskTag], changed_by_id: Optional[str] = None) -> None:
+    """Replaces a card's tags (Task.tags must already be loaded) and logs
+    the change as a `tags` ChangeHistory row with the tag names --
+    ChangeTracker can't diff a relationship, see docs/ADR/0085."""
+    old_value = _tag_names(task.tags)
+    task.tags = list(tags)
+    new_value = _tag_names(task.tags)
+    if old_value != new_value:
+        db.add(ChangeHistory(
+            entity_type="Task", entity_id=task.id, field_name="tags",
+            old_value=old_value, new_value=new_value, changed_by_id=changed_by_id,
+        ))
 
 
 def _history_timestamp(value: Optional[datetime]) -> Optional[str]:
@@ -78,7 +190,7 @@ async def create_task(
     list_id: str,
     due_date: Optional[date],
     priority: Optional[TaskPriority],
-    tags: List[str],
+    tags: List[TaskTag],
     assigned_to_ids: List[str],
     created_by_id: Optional[str] = None,
 ) -> Task:

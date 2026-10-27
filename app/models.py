@@ -16,7 +16,7 @@ from sqlalchemy import (
     Column, Table, JSON,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func, text
 import enum
 
@@ -2447,7 +2447,15 @@ class Task(Base):
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     due_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     priority: Mapped[Optional[TaskPriority]] = mapped_column(SAEnum(TaskPriority), nullable=True)
-    tags: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=False, default=list, server_default="{}")
+    # Issue #259: predefined, coloured tags only (TaskTag) -- replaced the
+    # free-text ARRAY(String) column from issue #107, see docs/ADR/0116.
+    # Not lazy-loadable under asyncio: selectinload(Task.tags) wherever
+    # it's read. passive_deletes: the link rows go by ON DELETE CASCADE,
+    # so deleting a card never has to load its tags first.
+    tags: Mapped[List["TaskTag"]] = relationship(
+        "TaskTag", secondary="task_tag_links", back_populates="tasks", order_by="TaskTag.name",
+        passive_deletes=True,
+    )
     # Issue #257: set = done. Done cards never count as overdue. Set by a
     # move into a done list or by the "Done" checkbox on any list.
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -2482,6 +2490,51 @@ class Task(Base):
 
     def __repr__(self) -> str:
         return f"<Task {self.title!r} (list={self.list_id})>"
+
+
+# Issue #259: the fixed palette a TaskTag's colour comes from. A plain
+# string column validated against this list, not a Postgres enum, so a
+# colour can be added later without an ALTER TYPE migration. Each key
+# has a .task-tag-<key> CSS class in app/templates/tasks/.
+TASK_TAG_COLORS = ("grey", "red", "orange", "yellow", "green", "teal", "blue", "purple")
+TASK_TAG_DEFAULT_COLOR = "grey"
+
+
+class TaskTag(Base):
+    """
+    A predefined task board tag (issue #259): cards can only carry tags
+    from this list, and only admin/board -- the board's own audience --
+    manage it (/tasks/tags). Replaced the free-text per-card tag array
+    of issue #107; see docs/ADR/0116. Removing a tag from a card deletes
+    the link row, deleting the tag removes it from every card -- a label
+    isn't club history, same reasoning as MemberTag (ADR 0005 doesn't
+    apply).
+    """
+    __tablename__ = "task_tags"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    color: Mapped[str] = mapped_column(
+        String(20), nullable=False, default=TASK_TAG_DEFAULT_COLOR, server_default=TASK_TAG_DEFAULT_COLOR,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    tasks: Mapped[List["Task"]] = relationship(
+        "Task", secondary="task_tag_links", back_populates="tags", passive_deletes=True,
+    )
+
+    def __repr__(self) -> str:
+        return f"<TaskTag {self.name}>"
+
+
+task_tag_links = Table(
+    "task_tag_links",
+    Base.metadata,
+    Column("task_id", String(36), ForeignKey("tasks.id", ondelete="CASCADE"), primary_key=True),
+    Column("tag_id", String(36), ForeignKey("task_tags.id", ondelete="CASCADE"), primary_key=True, index=True),
+)
 
 
 class TaskAssignee(Base):

@@ -35,6 +35,22 @@ async def _seed_lists(names=("To Do", "In Progress", "Done")):
     return ids
 
 
+async def _seed_tags(*names, color="grey"):
+    """Predefined task tags (issue #259) -- cards can't carry any other.
+    Returns {name: id}."""
+    from app.models import TaskTag
+
+    ids = {}
+    async with AsyncSessionLocal() as session:
+        for name in names:
+            tag = TaskTag(name=name, color=color)
+            session.add(tag)
+            await session.flush()
+            ids[name] = tag.id
+        await session.commit()
+    return ids
+
+
 async def web_login(client, email: str, password: str = "testpasswort123") -> None:
     response = await client.post("/auth/login", data={"email": email, "password": password})
     assert response.status_code in (302, 303)
@@ -167,13 +183,19 @@ async def test_task_tags_set_update_and_clear_via_api(client, admin_user):
     await _enable_module(client, headers)
     await _seed_lists()
 
+    await _seed_tags("urgent", "outdoor")
+
     untagged = (await client.post("/api/v1/tasks", json={"title": "Untagged"}, headers=headers)).json()
     assert untagged["tags"] == []
 
+    # Names match ignoring case and spaces; the response lists the tags'
+    # own spelling, sorted by name (issue #259).
     created = (await client.post(
-        "/api/v1/tasks", json={"title": "Fix the roof", "tags": ["urgent", "outdoor"]}, headers=headers,
+        "/api/v1/tasks", json={"title": "Fix the roof", "tags": ["URGENT ", "outdoor"]}, headers=headers,
     )).json()
-    assert created["tags"] == ["urgent", "outdoor"]
+    assert created["tags"] == ["outdoor", "urgent"]
+    fetched = (await client.get(f"/api/v1/tasks/{created['id']}", headers=headers)).json()
+    assert fetched["tags"] == ["outdoor", "urgent"]
 
     updated = (await client.put(
         f"/api/v1/tasks/{created['id']}", json={"tags": ["outdoor"]}, headers=headers,
@@ -330,13 +352,14 @@ async def test_web_board_renders_and_create_edit_delete_flow(client, admin_user)
         await session.commit()
         await session.refresh(board_member)
 
+    tags = await _seed_tags("urgent", "outdoor")
     await web_login(client, "admin@example.com")
 
     create_response = await client.post(
         "/tasks/new",
         data={
             "title": "Fix the gate lock", "description": "Squeaky hinge", "due_date": "2026-08-01",
-            "priority": "HIGH", "tags": "urgent, outdoor, urgent, ",
+            "priority": "HIGH", "tag_ids": [tags["urgent"], tags["outdoor"], tags["urgent"]],
             "assigned_to_ids": [board_member.id],
         },
     )
@@ -351,10 +374,10 @@ async def test_web_board_renders_and_create_edit_delete_flow(client, admin_user)
     # substring check -- that also matches board.html's <style> block CSS
     # selector, which is always present regardless of any card's priority.
     assert 'class="kanban-card-priority kanban-card-priority-high"' in board_response.text
-    # "urgent" typed twice (with stray whitespace) collapses to one badge.
-    assert board_response.text.count('class="kanban-card-tag"') == 2
-    assert '<span class="kanban-card-tag">urgent</span>' in board_response.text
-    assert '<span class="kanban-card-tag">outdoor</span>' in board_response.text
+    # "urgent" submitted twice collapses to one badge.
+    assert board_response.text.count('class="task-tag task-tag-grey"') == 2
+    assert '<span class="task-tag task-tag-grey">urgent</span>' in board_response.text
+    assert '<span class="task-tag task-tag-grey">outdoor</span>' in board_response.text
 
     import re
     m = re.search(r'/tasks/([a-f0-9-]+)/edit', board_response.text)
@@ -364,7 +387,9 @@ async def test_web_board_renders_and_create_edit_delete_flow(client, admin_user)
     edit_page = await client.get(f"/tasks/{task_id}/edit")
     assert edit_page.status_code == 200
     assert "Fix the gate lock" in edit_page.text
-    assert 'value="urgent, outdoor"' in edit_page.text
+    assert edit_page.text.count('name="tag_ids"') == 2
+    assert f'id="tag-{tags["urgent"]}" checked>' in edit_page.text
+    assert f'id="tag-{tags["outdoor"]}" checked>' in edit_page.text
 
     edit_response = await client.post(
         f"/tasks/{task_id}/edit",
@@ -377,7 +402,7 @@ async def test_web_board_renders_and_create_edit_delete_flow(client, admin_user)
     # Priority and tags form fields were both omitted on the edit POST --
     # same "" default as an explicit clear, so both should be gone.
     assert 'class="kanban-card-priority kanban-card-priority-high"' not in board_response2.text
-    assert 'class="kanban-card-tag"' not in board_response2.text
+    assert 'class="task-tag task-tag-grey"' not in board_response2.text
     # assigned_to_ids was also omitted -- the web form always resyncs to
     # exactly what was submitted, so the assignee is cleared too.
     assert board_member.name not in board_response2.text
@@ -1060,6 +1085,7 @@ async def test_board_renders_search_filter_data_attributes(client, admin_user):
         await session.commit()
         await session.refresh(alice)
 
+    tags = await _seed_tags("urgent", "admin")
     await web_login(client, "admin@example.com")
 
     create_response = await client.post(
@@ -1069,7 +1095,7 @@ async def test_board_renders_search_filter_data_attributes(client, admin_user):
             "description": "Talk to the broker about the annual renewal",
             "due_date": "2026-11-15",
             "priority": "HIGH",
-            "tags": "urgent, admin",
+            "tag_ids": [tags["urgent"], tags["admin"]],
             "assigned_to_ids": [alice.id],
         },
     )
@@ -1085,7 +1111,10 @@ async def test_board_renders_search_filter_data_attributes(client, admin_user):
 
     assert 'data-search-text="renew the insurance policy talk to the broker' in html
     assert 'data-priority="high"' in html
-    assert 'data-tags="urgent,admin"' in html
+    # Tag ids, not names -- a predefined name may contain a comma
+    # (issue #259); sorted by tag name, so "admin" first.
+    assert f'data-tags="{tags["admin"]},{tags["urgent"]}"' in html
+    assert "talk to the broker about the annual renewal admin urgent" in html
     assert f'data-assignee-ids="{alice.id}"' in html
     assert 'data-due-month="2026-11"' in html
 
@@ -1093,8 +1122,8 @@ async def test_board_renders_search_filter_data_attributes(client, admin_user):
     # board (the tag/assignee added above), not every tag/user ever
     # created. The due-month dropdown shows a human-readable "Month
     # YYYY" label (localized -- English here), not a raw YYYY-MM value.
-    assert '<option value="urgent">urgent</option>' in html
-    assert '<option value="admin">admin</option>' in html
+    assert f'<option value="{tags["urgent"]}">urgent</option>' in html
+    assert f'<option value="{tags["admin"]}">admin</option>' in html
     assert f'<option value="{alice.id}">{alice.name}</option>' in html
     assert '<option value="2026-11">November 2026</option>' in html
 
@@ -1346,3 +1375,151 @@ async def test_board_hints_at_missing_done_list(client, admin_user):
 
     await client.post(f"/tasks/lists/{lists['Done']}/done", data={"is_done_list": "1"})
     assert 'id="no-done-list-hint"' not in (await client.get("/tasks/")).text
+
+
+# ---------------------------------------------------------------------------
+# Predefined, coloured tags (issue #259)
+# ---------------------------------------------------------------------------
+
+async def test_unknown_tags_are_rejected(client, admin_user):
+    """Predefined tags only -- via the API (a 400 naming the unknown
+    tags, never auto-created) and via the web form."""
+    from app.models import Task
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    await _seed_lists()
+    await _seed_tags("urgent")
+
+    response = await client.post(
+        "/api/v1/tasks", json={"title": "Roof", "tags": ["urgent", "made-up"]}, headers=headers,
+    )
+    assert response.status_code == 400
+    assert "made-up" in response.json()["detail"]
+    assert (await client.get("/api/v1/tasks/tags", headers=headers)).json()[0]["name"] == "urgent"
+    assert len((await client.get("/api/v1/tasks/tags", headers=headers)).json()) == 1
+
+    task = (await client.post("/api/v1/tasks", json={"title": "Roof"}, headers=headers)).json()
+    response = await client.put(f"/api/v1/tasks/{task['id']}", json={"tags": ["nope"]}, headers=headers)
+    assert response.status_code == 400
+
+    await web_login(client, "admin@example.com")
+    response = await client.post("/tasks/new", data={"title": "Fence", "tag_ids": ["not-a-tag-id"]})
+    assert response.status_code == 400
+    async with AsyncSessionLocal() as session:
+        titles = (await session.execute(select(Task.title))).scalars().all()
+    assert "Fence" not in titles
+
+
+async def test_tag_crud_via_api(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    await _seed_lists()
+
+    created = await client.post("/api/v1/tasks/tags", json={"name": "Garden", "color": "green"}, headers=headers)
+    assert created.status_code == 201
+    tag = created.json()
+    assert tag["color"] == "green"
+
+    duplicate = await client.post("/api/v1/tasks/tags", json={"name": " garden "}, headers=headers)
+    assert duplicate.status_code == 400
+    bad_color = await client.post("/api/v1/tasks/tags", json={"name": "Other", "color": "pink"}, headers=headers)
+    assert bad_color.status_code == 422
+
+    task = (await client.post("/api/v1/tasks", json={"title": "Weed", "tags": ["garden"]}, headers=headers)).json()
+    assert task["tags"] == ["Garden"]
+
+    renamed = (await client.put(
+        f"/api/v1/tasks/tags/{tag['id']}", json={"name": "Gardening", "color": "teal"}, headers=headers,
+    )).json()
+    assert renamed == {"id": tag["id"], "name": "Gardening", "color": "teal"}
+    assert (await client.get(f"/api/v1/tasks/{task['id']}", headers=headers)).json()["tags"] == ["Gardening"]
+
+    assert (await client.delete(f"/api/v1/tasks/tags/{tag['id']}", headers=headers)).status_code == 204
+    assert (await client.get(f"/api/v1/tasks/{task['id']}", headers=headers)).json()["tags"] == []
+    assert (await client.get("/api/v1/tasks/tags", headers=headers)).json() == []
+
+
+async def test_web_tag_management_and_colours_on_board(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    await _seed_lists()
+    await web_login(client, "admin@example.com")
+
+    page = await client.get("/tasks/tags")
+    assert page.status_code == 200
+    assert 'action="/tasks/tags/new"' in page.text
+
+    response = await client.post("/tasks/tags/new", data={"name": "Water", "color": "blue"})
+    assert response.status_code == 303
+    response = await client.post("/tasks/tags/new", data={"name": "WATER", "color": "red"})
+    assert "error=" in response.headers["location"]
+
+    tags = (await client.get("/api/v1/tasks/tags", headers=headers)).json()
+    assert [(t["name"], t["color"]) for t in tags] == [("Water", "blue")]
+    tag_id = tags[0]["id"]
+
+    await client.post("/tasks/new", data={"title": "Read the meters", "tag_ids": [tag_id]})
+    board = await client.get("/tasks/")
+    assert '<span class="task-tag task-tag-blue">Water</span>' in board.text
+    assert 'href="/tasks/tags"' in board.text
+
+    await client.post(f"/tasks/tags/{tag_id}/edit", data={"name": "Water supply", "color": "purple"})
+    board = await client.get("/tasks/")
+    assert '<span class="task-tag task-tag-purple">Water supply</span>' in board.text
+    assert "1 task(s)" in (await client.get("/tasks/tags")).text
+
+    await client.post(f"/tasks/tags/{tag_id}/delete")
+    board = await client.get("/tasks/")
+    assert "Water supply" not in board.text
+    assert "Read the meters" in board.text
+
+
+async def test_tag_changes_are_recorded_in_history(client, admin_user):
+    from app.models import ChangeHistory
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    await _seed_lists()
+    await _seed_tags("b-tag", "a-tag")
+
+    task = (await client.post("/api/v1/tasks", json={"title": "History"}, headers=headers)).json()
+    await client.put(f"/api/v1/tasks/{task['id']}", json={"tags": ["b-tag", "a-tag"]}, headers=headers)
+    await client.put(f"/api/v1/tasks/{task['id']}", json={"tags": ["b-tag", "a-tag"]}, headers=headers)
+
+    async with AsyncSessionLocal() as session:
+        rows = (await session.execute(
+            select(ChangeHistory).where(ChangeHistory.entity_id == task["id"], ChangeHistory.field_name == "tags")
+        )).scalars().all()
+    assert [(r.old_value, r.new_value) for r in rows] == [(None, "a-tag, b-tag")]
+
+
+async def test_readonly_member_cannot_manage_tags(client, admin_user):
+    from app.models import User, UserRole
+    from app.auth import hash_password
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    tag_id = (await _seed_tags("secret"))["secret"]
+
+    async with AsyncSessionLocal() as session:
+        session.add(User(
+            email="readonly-tags@example.com", name="Read Only",
+            password_hash=hash_password("testpasswort123"), role=UserRole.READONLY,
+        ))
+        await session.commit()
+
+    member_headers = auth_header(await login(client, "readonly-tags@example.com"))
+    assert (await client.get("/api/v1/tasks/tags", headers=member_headers)).status_code == 403
+    assert (await client.post("/api/v1/tasks/tags", json={"name": "x"}, headers=member_headers)).status_code == 403
+    assert (await client.delete(f"/api/v1/tasks/tags/{tag_id}", headers=member_headers)).status_code == 403
+
+    await web_login(client, "readonly-tags@example.com")
+    assert (await client.get("/tasks/tags")).status_code == 403
+    assert (await client.post(f"/tasks/tags/{tag_id}/delete")).status_code == 403
+    assert (await client.get("/api/v1/tasks/tags", headers=headers)).json()[0]["name"] == "secret"

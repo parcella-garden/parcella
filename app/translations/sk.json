@@ -2033,7 +2033,9 @@
       "delete_list_last_list": "Posledný zostávajúci zoznam nemožno odstrániť.",
       "delete_list_missing_target": "Vyberte zoznam, do ktorého sa majú karty presunúť.",
       "delete_list_target_not_found": "Vybraný cieľový zoznam sa nenašiel.",
-      "comment_not_found": "Komentár sa nenašiel."
+      "comment_not_found": "Komentár sa nenašiel.",
+      "unknown_tags": "Možno použiť len vopred definované štítky.",
+      "tag_not_found": "Štítok sa nenašiel."
     },
     "board": {
       "title": "Nástenka úloh",
@@ -2059,7 +2061,8 @@
       "export_report_button": "Exportovať report",
       "synced_badge": "Synchronizované z Nextcloud Deck",
       "done_on": "Hotovo {date}",
-      "no_done_list_hint": "Zatiaľ žiadny zoznam hotových. Otvorte ponuku ⋮ stĺpca s dokončenými úlohami a zvoľte „Označiť ako zoznam hotových“ – karty presunuté sem sa potom označia ako hotové a nebudú po termíne."
+      "no_done_list_hint": "Zatiaľ žiadny zoznam hotových. Otvorte ponuku ⋮ stĺpca s dokončenými úlohami a zvoľte „Označiť ako zoznam hotových“ – karty presunuté sem sa potom označia ako hotové a nebudú po termíne.",
+      "manage_tags_button": "Spravovať štítky"
     },
     "form": {
       "title_new": "Nová úloha",
@@ -2073,7 +2076,6 @@
       "label_due_date": "Termín",
       "label_priority": "Priorita",
       "label_tags": "Štítky",
-      "tags_placeholder": "Oddelené čiarkami (napr. naliehavé, vonkajšie)",
       "label_assigned_to": "Priradené komu",
       "label_list": "Zoznam",
       "button_save_changes": "Uložiť zmeny",
@@ -2101,7 +2103,8 @@
       "synced_notice": "Táto karta je synchronizovaná z Nextcloud Deck -- názov, popis, termín a zoznam sa spravujú tam a aktualizujú sa automaticky. Priorita, štítky, priradení a komentáre existujú iba v Parcelle a vždy sa dajú upravovať.",
       "adopt_button": "Prevziať do Parcelly",
       "label_completed": "Hotovo",
-      "completed_hint": "Hotové úlohy sa nikdy nezobrazujú ako po termíne. Presunutím karty do zoznamu hotových sa automaticky označí ako hotová."
+      "completed_hint": "Hotové úlohy sa nikdy nezobrazujú ako po termíne. Presunutím karty do zoznamu hotových sa automaticky označí ako hotová.",
+      "no_tags_defined": "Zatiaľ nie sú definované žiadne štítky."
     },
     "lists": {
       "add_modal_title": "Pridať zoznam",
@@ -2149,6 +2152,30 @@
       "col_overdue": "Po termíne?",
       "overdue_yes": "áno",
       "col_done": "Hotovo"
+    },
+    "tags": {
+      "page_title": "Štítky úloh",
+      "back_to_board": "Späť na tabuľu",
+      "page_hint": "Karty môžu niesť len tu definované štítky. Premenovanie alebo zmena farby štítku sa prejaví na všetkých kartách, zmazanie ho odstráni zo všetkých kariet.",
+      "name_label": "Názov",
+      "color_label": "Farba",
+      "add_button": "Pridať štítok",
+      "save_button": "Uložiť",
+      "delete_button": "Zmazať",
+      "delete_confirm": "Zmazať štítok „{name}“? Odstráni sa zo všetkých úloh.",
+      "task_count": "Úlohy: {count}",
+      "empty": "Zatiaľ žiadne štítky.",
+      "error_name_required": "Štítok musí mať názov.",
+      "error_name_taken": "Štítok s týmto názvom už existuje.",
+      "error_invalid_color": "Neznáma farba.",
+      "color_grey": "Sivá",
+      "color_red": "Červená",
+      "color_orange": "Oranžová",
+      "color_yellow": "Žltá",
+      "color_green": "Zelená",
+      "color_teal": "Tyrkysová",
+      "color_blue": "Modrá",
+      "color_purple": "Fialová"
     }
   },
   "email": {

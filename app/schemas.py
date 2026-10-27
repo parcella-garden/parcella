@@ -11,7 +11,10 @@ from decimal import Decimal
 
 from pydantic import BaseModel, EmailStr, ConfigDict, Field, field_validator
 
-from app.models import ApplicantSource, ApplicantStatus, ExternalContactKind, ParcelStatus, UserRole, TaskPriority
+from app.models import (
+    ApplicantSource, ApplicantStatus, ExternalContactKind, ParcelStatus, UserRole, TaskPriority,
+    TASK_TAG_COLORS, TASK_TAG_DEFAULT_COLOR,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -1081,7 +1084,11 @@ class KanbanTaskBase(BaseModel):
     description: Optional[str] = None
     due_date: Optional[date] = None
     priority: Optional[TaskPriority] = None
-    tags: List[str] = Field(default_factory=list)
+    tags: List[str] = Field(
+        default_factory=list,
+        description="Names of predefined tags (GET /api/v1/tasks/tags), matched ignoring case. "
+                    "An unknown name is a 400 -- create the tag first.",
+    )
     assigned_to_ids: List[str] = Field(default_factory=list)
 
 
@@ -1094,7 +1101,9 @@ class KanbanTaskUpdate(BaseModel):
     description: Optional[str] = None
     due_date: Optional[date] = None
     priority: Optional[TaskPriority] = None
-    tags: Optional[List[str]] = None
+    tags: Optional[List[str]] = Field(
+        None, description="Names of predefined tags; replaces the card's tags. An unknown name is a 400.",
+    )
     assigned_to_ids: Optional[List[str]] = None
     completed: Optional[bool] = Field(
         None, description="Mark the task done (true) or not done (false), in any list"
@@ -1115,12 +1124,47 @@ class KanbanTaskOut(BaseModel):
     position: int
     due_date: Optional[date] = None
     priority: Optional[TaskPriority] = None
-    tags: List[str] = Field(default_factory=list)
+    tags: List[str] = Field(default_factory=list, description="Tag names")
     assigned_to_ids: List[str] = Field(default_factory=list)
     completed_at: Optional[datetime] = None
     created_by_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+
+
+    @field_validator("tags", mode="before")
+    @classmethod
+    def _tag_names(cls, value):
+        # Task.tags holds TaskTag rows since issue #259; the API keeps
+        # returning plain names, so responses didn't change shape.
+        return [getattr(tag, "name", tag) for tag in (value or [])]
+
+
+def _check_tag_color(value):
+    if value is not None and value not in TASK_TAG_COLORS:
+        raise ValueError(f"color must be one of: {', '.join(TASK_TAG_COLORS)}")
+    return value
+
+
+class KanbanTaskTagCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    color: str = Field(TASK_TAG_DEFAULT_COLOR, description=f"One of: {', '.join(TASK_TAG_COLORS)}")
+
+    check_color = field_validator("color")(_check_tag_color)
+
+
+class KanbanTaskTagUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    color: Optional[str] = Field(None, description=f"One of: {', '.join(TASK_TAG_COLORS)}")
+
+    check_color = field_validator("color")(_check_tag_color)
+
+
+class KanbanTaskTagOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    name: str
+    color: str
 
 
 class KanbanTaskListCreate(BaseModel):

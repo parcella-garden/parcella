@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{{ t('tasks.tags.page_title') }}{% endblock %}
+{% block page_title %}{{ t('tasks.tags.page_title') }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="/tasks/" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>{{ t('tasks.tags.back_to_board') }}
+</a>
+{% endblock %}
+
+{% block content %}
+{% include "tasks/_tag_colors.html" %}
+{% macro color_select(selected) %}
+<select name="color" class="form-select form-select-sm" style="max-width: 9rem;" aria-label="{{ t('tasks.tags.color_label') }}">
+    {% for color in colors %}
+    <option value="{{ color }}" {% if color == selected %}selected{% endif %}>{{ t('tasks.tags.color_' + color) }}</option>
+    {% endfor %}
+</select>
+{% endmacro %}
+<div style="max-width: 760px;">
+    {% if request.query_params.get('error') %}
+    <div class="alert alert-danger d-flex gap-2 align-items-center" style="font-size: 0.875rem;">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ request.query_params.get('error') }}
+    </div>
+    {% endif %}
+    <p class="text-muted" style="font-size: 0.875rem;">{{ t('tasks.tags.page_hint') }}</p>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="post" action="/tasks/tags/new" class="d-flex flex-wrap gap-2 m-0">
+                {{ csrf_field() }}
+                <input type="text" name="name" class="form-control form-control-sm" style="max-width: 18rem;"
+                       maxlength="100" required placeholder="{{ t('tasks.tags.name_label') }}"
+                       aria-label="{{ t('tasks.tags.name_label') }}">
+                {{ color_select('grey') }}
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i>{{ t('tasks.tags.add_button') }}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <ul class="list-group list-group-flush">
+            {% for tag in tags %}
+            <li class="list-group-item d-flex flex-wrap gap-2 align-items-center">
+                <span class="task-tag task-tag-{{ tag.color }}" style="min-width: 5rem; text-align: center;">{{ tag.name }}</span>
+                <form method="post" action="/tasks/tags/{{ tag.id }}/edit" class="d-flex flex-wrap gap-2 flex-grow-1 m-0">
+                    {{ csrf_field() }}
+                    <input type="text" name="name" value="{{ tag.name }}" class="form-control form-control-sm"
+                           style="max-width: 18rem;" maxlength="100" required aria-label="{{ t('tasks.tags.name_label') }}">
+                    {{ color_select(tag.color) }}
+                    <button type="submit" class="btn btn-sm btn-outline-primary" title="{{ t('tasks.tags.save_button') }}">
+                        <i class="bi bi-check-lg"></i>
+                    </button>
+                </form>
+                <span class="text-muted small">{{ t('tasks.tags.task_count', count=task_counts.get(tag.id, 0)) }}</span>
+                <form method="post" action="/tasks/tags/{{ tag.id }}/delete" class="m-0"
+                      onsubmit="return confirm({{ t('tasks.tags.delete_confirm', name=tag.name)|tojson|forceescape }})">
+                    {{ csrf_field() }}
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ t('tasks.tags.delete_button') }}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </li>
+            {% else %}
+            <li class="list-group-item text-muted">{{ t('tasks.tags.empty') }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

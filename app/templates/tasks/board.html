@@ -7,6 +7,9 @@
 <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addListModal">
     <i class="bi bi-layout-three-columns me-1"></i>{{ t('tasks.board.add_list_button') }}
 </button>
+<a href="/tasks/tags" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-tags me-1"></i>{{ t('tasks.board.manage_tags_button') }}
+</a>
 <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#exportReportModal">
     <i class="bi bi-download me-1"></i>{{ t('tasks.board.export_report_button') }}
 </button>
@@ -16,6 +19,7 @@
 {% endblock %}
 
 {% block content %}
+{% include "tasks/_tag_colors.html" %}
 <style>
     .kanban-scroll {
         display: flex;
@@ -97,15 +101,6 @@
         gap: 0.3rem;
         margin-top: 0.35rem;
     }
-    .kanban-card-tag {
-        display: inline-block;
-        font-size: 0.68rem;
-        font-weight: 500;
-        padding: 0.1rem 0.5rem;
-        border-radius: 1rem;
-        background: #e7f0fd;
-        color: #1a4a8f;
-    }
     .kanban-empty {
         font-size: 0.8rem; color: #adb5bd; text-align: center; padding: 1rem 0;
     }
@@ -144,8 +139,8 @@
     </select>
     <select id="task-filter-tag" class="form-select form-select-sm" aria-label="{{ t('tasks.board.filter_tag_label') }}">
         <option value="">{{ t('tasks.board.filter_tag_any') }}</option>
-        {% for tag in tag_options %}
-        <option value="{{ tag|lower }}">{{ tag }}</option>
+        {% for tag_id, tag_name in tag_options %}
+        <option value="{{ tag_id }}">{{ tag_name }}</option>
         {% endfor %}
     </select>
     <select id="task-filter-assignee" class="form-select form-select-sm" aria-label="{{ t('tasks.board.filter_assignee_label') }}">
@@ -224,9 +219,9 @@
             {% for task in list.tasks %}
             {% set is_overdue = task.due_date and task.due_date < today and not task.completed_at %}
             <div class="kanban-card{% if task.completed_at %} kanban-card-done{% endif %}" draggable="true" data-task-id="{{ task.id }}"
-                 data-search-text="{{ ([task.title, task.description or '', task.tags|join(' '), task.comments|map(attribute='content')|join(' ')]|join(' '))|lower }}"
+                 data-search-text="{{ ([task.title, task.description or '', task.tags|map(attribute='name')|join(' '), task.comments|map(attribute='content')|join(' ')]|join(' '))|lower }}"
                  data-priority="{{ task.priority.value.lower() if task.priority else '' }}"
-                 data-tags="{{ task.tags|map('lower')|join(',') }}"
+                 data-tags="{{ task.tags|map(attribute='id')|join(',') }}"
                  data-assignee-ids="{{ task.assignees|map(attribute='user_id')|join(',') }}"
                  data-due-month="{{ task.due_date.strftime('%Y-%m') if task.due_date else '' }}"
                  data-overdue="{{ '1' if is_overdue else '' }}">
@@ -264,7 +259,7 @@
                 {% if task.tags %}
                 <div class="kanban-card-tags">
                     {% for tag in task.tags %}
-                    <span class="kanban-card-tag">{{ tag }}</span>
+                    <span class="task-tag task-tag-{{ tag.color }}">{{ tag.name }}</span>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -387,9 +382,23 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">{{ t('tasks.form.label_tags') }}</label>
-                            <input type="text" name="tags" class="form-control"
-                                   placeholder="{{ t('tasks.form.tags_placeholder') }}"
-                                   value="{{ task.tags | join(', ') if task and task.tags else '' }}">
+                            {% set selected_tag_ids = task.tags|map(attribute='id')|list if task else [] %}
+                            {% if all_tags %}
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for tag in all_tags %}
+                                <div class="form-check form-check-inline m-0">
+                                    <input type="checkbox" name="tag_ids" value="{{ tag.id }}" class="form-check-input"
+                                           id="tag-{{ tag.id }}" {% if tag.id in selected_tag_ids %}checked{% endif %}>
+                                    <label class="form-check-label" for="tag-{{ tag.id }}">
+                                        <span class="task-tag task-tag-{{ tag.color }}">{{ tag.name }}</span>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="form-text mt-0">{{ t('tasks.form.no_tags_defined') }}
+                                <a href="/tasks/tags">{{ t('tasks.board.manage_tags_button') }}</a></div>
+                            {% endif %}
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold">{{ t('tasks.form.label_list') }}</label>
