@@ -1477,7 +1477,10 @@
       "no_data": "Nie sú k dispozícii žiadne údaje – boli vytvorené parcely a členovia?",
       "lease_ended_badge": "nájom ukončený {date}",
       "col_transfers": "Prevedené",
-      "col_transfers_hint": "Hodiny prijaté od iných členov (+) alebo im odovzdané (−)"
+      "col_transfers_hint": "Hodiny prijaté od iných členov (+) alebo im odovzdané (−)",
+      "show_sessions": "Zobraziť pracovné sedenia",
+      "sessions_header": "Navštívené pracovné sedenia v roku {year}",
+      "no_sessions": "V tomto roku žiadne navštívené pracovné sedenia."
     },
     "member_club_role_form": {
       "title": "Upraviť priradenie",

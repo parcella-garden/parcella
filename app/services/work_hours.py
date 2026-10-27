@@ -100,6 +100,28 @@ async def calculate_hours_for_member(db: AsyncSession, member_id: str, year: int
     }
 
 
+async def attended_sessions_by_member(db: AsyncSession, year: int) -> dict:
+    """Issue #258: every attended work session of `year`, grouped by
+    member -- {member_id: [{"session": WorkSession, "hours": float}, ...]},
+    oldest first. Same filter and hours rule as calculate_hours_for_member
+    above, so a member's list always adds up to their session hours on
+    the evaluation page."""
+    hours = func.coalesce(SessionParticipation.hours_completed, WorkSession.hours_per_participant, 0)
+    result = await db.execute(
+        select(SessionParticipation.member_id, WorkSession, hours)
+        .join(WorkSession, WorkSession.id == SessionParticipation.session_id)
+        .where(
+            SessionParticipation.status == ParticipationStatus.ATTENDED,
+            func.extract("year", WorkSession.date) == year,
+        )
+        .order_by(WorkSession.date, WorkSession.title)
+    )
+    sessions: dict = {}
+    for member_id, session, session_hours in result.all():
+        sessions.setdefault(member_id, []).append({"session": session, "hours": float(session_hours)})
+    return sessions
+
+
 async def is_exempt(db: AsyncSession, member_id: str, year: int) -> bool:
     """Checks whether a member is exempt from required work hours for a
     year. A member can hold more than one ClubRole in the same year

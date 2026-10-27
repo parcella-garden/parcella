@@ -1477,7 +1477,10 @@
       "no_data": "Brak danych – czy utworzono działki i członków?",
       "lease_ended_badge": "dzierżawa zakończona {date}",
       "col_transfers": "Przekazane",
-      "col_transfers_hint": "Godziny otrzymane od innych członków (+) lub im przekazane (−)"
+      "col_transfers_hint": "Godziny otrzymane od innych członków (+) lub im przekazane (−)",
+      "show_sessions": "Pokaż wpisy prac",
+      "sessions_header": "Wpisy prac z obecnością w {year}",
+      "no_sessions": "Brak wpisów prac z obecnością w tym roku."
     },
     "member_club_role_form": {
       "title": "Edytuj przypisanie",

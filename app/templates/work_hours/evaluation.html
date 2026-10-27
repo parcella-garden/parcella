@@ -66,6 +66,32 @@
     </div>
 </div>
 
+{# Issue #258: one attended-sessions list per member, shown in a
+   collapsible row under the evaluation row (sessions_by_member comes
+   from attended_sessions_by_member()). #}
+<style>
+    .evaluation-toggle i { display: inline-block; transition: transform 0.15s; }
+    .evaluation-toggle[aria-expanded="true"] i { transform: rotate(90deg); }
+    .evaluation-detail > td { background: var(--bs-tertiary-bg); }
+    .evaluation-sessions td { padding: 0.15rem 0.5rem 0.15rem 0; background: transparent; }
+</style>
+{% macro session_list(member) %}
+{% set entries = sessions_by_member.get(member.id, []) %}
+{% if entries %}
+<table class="table table-sm table-borderless mb-0 evaluation-sessions">
+    {% for entry in entries %}
+    <tr>
+        <td class="text-nowrap" style="width: 7rem;">{{ entry.session.date.strftime('%d.%m.%Y') }}</td>
+        <td><a href="/work-hours/sessions/{{ entry.session.id }}" class="text-decoration-none">{{ entry.session.title }}</a></td>
+        <td class="text-end text-nowrap" style="width: 5rem;">{{ entry.hours|number(1) }} h</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<div class="text-muted small">{{ t('work_hours.evaluation.no_sessions') }}</div>
+{% endif %}
+{% endmacro %}
+
 <!-- Auswertungstabelle -->
 <div class="card">
     <div class="card-body p-0">
@@ -91,11 +117,17 @@
                 </thead>
                 <tbody>
                     {% for z in rows %}
+                    {% set detail_id = 'eval-sessions-' ~ loop.index %}
                     <tr class="{% if z.fulfilled %}table-success{% elif z.outstanding_hours > 0 %}table-warning{% endif %}"
                         style="{% if z.fulfilled %}background: #f0fdf4 !important;{% endif %}">
 
                         {% if config.mode.value == 'PER_PARCEL' %}
-                        <td>
+                        <td class="text-nowrap">
+                            <button type="button" class="btn btn-sm btn-link p-0 me-1 text-secondary evaluation-toggle"
+                                    data-bs-toggle="collapse" data-bs-target="#{{ detail_id }}" aria-expanded="false"
+                                    aria-controls="{{ detail_id }}" title="{{ t('work_hours.evaluation.show_sessions') }}">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
                             <a href="/parcels/{{ z.parcel.id }}" class="fw-bold text-decoration-none"
                                style="color: var(--gv-gruen);">{{ z.parcel.plot_number }}</a>
                         </td>
@@ -121,6 +153,11 @@
 
                         {% else %}
                         <td>
+                            <button type="button" class="btn btn-sm btn-link p-0 me-1 text-secondary evaluation-toggle"
+                                    data-bs-toggle="collapse" data-bs-target="#{{ detail_id }}" aria-expanded="false"
+                                    aria-controls="{{ detail_id }}" title="{{ t('work_hours.evaluation.show_sessions') }}">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
                             <a href="/members/{{ z.member.id }}" class="text-decoration-none fw-semibold"
                                style="color: var(--gv-gruen);">{{ z.member.full_name }}</a>
                             {% if z.lease_ended_on %}<span class="badge ms-1 text-bg-light border" style="font-size: 0.7rem;">{{ t('work_hours.evaluation.lease_ended_badge', date=z.lease_ended_on.strftime('%d.%m.%Y')) }}</span>{% endif %}
@@ -142,6 +179,19 @@
                             <span class="badge badge-aktiv"><i class="bi bi-check-lg me-1"></i>{{ t('work_hours.evaluation.status_fulfilled') }}</span>
                             {% else %}
                             <span class="badge badge-gekuendigt"><i class="bi bi-exclamation me-1"></i>{{ t('work_hours.evaluation.status_open') }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr class="collapse evaluation-detail" id="{{ detail_id }}">
+                        <td colspan="{{ 10 if config.mode.value == 'PER_PARCEL' else 9 }}" class="ps-4">
+                            <div class="fw-semibold small mb-1">{{ t('work_hours.evaluation.sessions_header', year=year) }}</div>
+                            {% if config.mode.value == 'PER_PARCEL' %}
+                            {% for pd in z.tenant_details %}
+                            <div class="small text-muted mt-2">{{ pd.member.full_name }}</div>
+                            {{ session_list(pd.member) }}
+                            {% endfor %}
+                            {% else %}
+                            {{ session_list(z.member) }}
                             {% endif %}
                         </td>
                     </tr>

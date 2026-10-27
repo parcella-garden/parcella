@@ -1477,7 +1477,10 @@
       "no_data": "No data available – have parcels and members been created?",
       "lease_ended_badge": "lease ended {date}",
       "col_transfers": "Transfers",
-      "col_transfers_hint": "Hours given to (+) or by (−) other members"
+      "col_transfers_hint": "Hours given to (+) or by (−) other members",
+      "show_sessions": "Show work sessions",
+      "sessions_header": "Attended work sessions in {year}",
+      "no_sessions": "No attended work sessions this year."
     },
     "member_club_role_form": {
       "title": "Edit Assignment",

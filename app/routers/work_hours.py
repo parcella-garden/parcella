@@ -34,6 +34,7 @@ from app.module_flags import require_module
 from app.services.errors import ServiceError
 from app.services.work_hours import (
     get_config_for_year, evaluate_year, save_configuration_for_year,
+    attended_sessions_by_member,
     create_club_role, update_club_role, assign_member_to_club_role,
     create_session, update_session, add_participation, update_participation,
     create_sponsorship, update_sponsorship, SponsorshipDatesError,
@@ -1219,6 +1220,7 @@ async def evaluation(
     available_years = [r[0] for r in years_result.all()]
 
     config, rows = await evaluate_year(db, year)
+    sessions_by_member = await attended_sessions_by_member(db, year) if config else {}
 
     return templates.TemplateResponse(
         "work_hours/evaluation.html",
@@ -1228,6 +1230,7 @@ async def evaluation(
             "year": year,
             "config": config,
             "rows": rows,
+            "sessions_by_member": sessions_by_member,
             "available_years": available_years,
             "WorkHoursMode": WorkHoursMode,
         },

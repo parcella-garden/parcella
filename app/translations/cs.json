@@ -1477,7 +1477,10 @@
       "no_data": "Nejsou k dispozici žádné údaje – byly vytvořeny parcely a členové?",
       "lease_ended_badge": "pacht ukončen {date}",
       "col_transfers": "Převedeno",
-      "col_transfers_hint": "Hodiny přijaté od jiných členů (+) nebo jim předané (−)"
+      "col_transfers_hint": "Hodiny přijaté od jiných členů (+) nebo jim předané (−)",
+      "show_sessions": "Zobrazit pracovní sezení",
+      "sessions_header": "Navštívená pracovní sezení v roce {year}",
+      "no_sessions": "V tomto roce žádná navštívená pracovní sezení."
     },
     "member_club_role_form": {
       "title": "Upravit přiřazení",

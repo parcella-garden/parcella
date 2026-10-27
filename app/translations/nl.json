@@ -1477,7 +1477,10 @@
       "no_data": "Geen gegevens beschikbaar – zijn er percelen en leden aangemaakt?",
       "lease_ended_badge": "pacht beëindigd {date}",
       "col_transfers": "Overgedragen",
-      "col_transfers_hint": "Uren ontvangen van (+) of gegeven aan (−) andere leden"
+      "col_transfers_hint": "Uren ontvangen van (+) of gegeven aan (−) andere leden",
+      "show_sessions": "Werksessies tonen",
+      "sessions_header": "Bijgewoonde werksessies in {year}",
+      "no_sessions": "Dit jaar geen werksessies bijgewoond."
     },
     "member_club_role_form": {
       "title": "Koppeling bewerken",

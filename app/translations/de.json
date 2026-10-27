@@ -1477,7 +1477,10 @@
       "no_data": "Keine Daten vorhanden – sind Parzellen und Mitglieder angelegt?",
       "lease_ended_badge": "Pacht beendet {date}",
       "col_transfers": "Übertragen",
-      "col_transfers_hint": "Von anderen Mitgliedern erhaltene (+) oder an sie abgegebene (−) Stunden"
+      "col_transfers_hint": "Von anderen Mitgliedern erhaltene (+) oder an sie abgegebene (−) Stunden",
+      "show_sessions": "Arbeitseinsätze anzeigen",
+      "sessions_header": "Besuchte Arbeitseinsätze {year}",
+      "no_sessions": "In diesem Jahr keine besuchten Arbeitseinsätze."
     },
     "member_club_role_form": {
       "title": "Zuordnung bearbeiten",

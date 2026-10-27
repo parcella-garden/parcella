@@ -959,3 +959,57 @@ async def test_existing_sponsorship_with_end_before_start_is_flagged(client, adm
     former_section = page.text.split("Former Sponsorships", 1)[1]
     assert "Typo hedge" in former_section
     assert "End before start" in former_section
+
+
+async def test_evaluation_lists_attended_sessions_per_member(client, admin_user):
+    """Issue #258: each evaluation row expands into the member's attended
+    work sessions of that year -- in both modes, only ATTENDED ones (the
+    same rule the session-hours column counts), and only that year's."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _erstelle_configuration(client, headers, year=2026, mode="PER_PARCEL")
+
+    member = (await client.post(
+        "/api/v1/members", json={"first_name": "Erna", "last_name": "Emsig"}, headers=headers
+    )).json()
+    idle = (await client.post(
+        "/api/v1/members", json={"first_name": "Otto", "last_name": "Ohnefleiss"}, headers=headers
+    )).json()
+    for plot_number, tenant in (("G258A", member), ("G258B", idle)):
+        parcel = (await client.post("/api/v1/parcels", json={"plot_number": plot_number}, headers=headers)).json()
+        await client.post(
+            f"/api/v1/parcels/{parcel['id']}/assignments",
+            json={"member_id": tenant["id"], "parcel_id": parcel["id"]}, headers=headers,
+        )
+
+    async def session_with(title, day, status):
+        session = (await client.post(
+            "/api/v1/work-hours/sessions",
+            json={"title": title, "type": "STANDARD", "date": day, "hours_per_participant": "2.5"},
+            headers=headers,
+        )).json()
+        response = await client.post(
+            f"/api/v1/work-hours/sessions/{session['id']}/participations",
+            json={"member_id": member["id"], "status": status}, headers=headers,
+        )
+        assert response.status_code == 201, response.text
+        return session
+
+    attended = await session_with("Hecke schneiden", "2026-05-02", "ATTENDED")
+    await session_with("Nur angemeldet", "2026-06-06", "REGISTERED")
+    await session_with("Letztes Jahr", "2025-09-13", "ATTENDED")
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    page = await client.get("/work-hours/evaluation", params={"year": 2026})
+    assert page.status_code == 200
+    assert f'href="/work-hours/sessions/{attended["id"]}"' in page.text
+    assert "02.05.2026" in page.text
+    assert "2.5 h" in page.text or "2,5 h" in page.text
+    assert "Nur angemeldet" not in page.text
+    assert "Letztes Jahr" not in page.text
+    assert "No attended work sessions this year." in page.text  # Otto's row
+    assert page.text.count('class="collapse evaluation-detail"') == 2
+
+    await _erstelle_configuration(client, headers, year=2026, mode="PER_MEMBER")
+    page = await client.get("/work-hours/evaluation", params={"year": 2026})
+    assert f'href="/work-hours/sessions/{attended["id"]}"' in page.text

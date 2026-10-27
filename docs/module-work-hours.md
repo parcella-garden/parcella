@@ -196,6 +196,21 @@ entirely owned by the public API module -- see
 for the full design, including why it's deliberately scoped to public
 signup only and not staff adding a participant in Parcella itself.
 
+## Evaluation: sessions per member (issue #258)
+
+Each row on `/work-hours/evaluation` has a chevron that expands an inline
+row listing the member's attended work sessions of that year (date,
+session linked to its detail page, hours) -- in PER_PARCEL mode one list
+per tenant. `attended_sessions_by_member()` in
+`app/services/work_hours.py` loads them in one query for the whole year
+(no per-row query) and uses exactly the filter and hours rule of
+`calculate_hours_for_member()` -- ATTENDED only,
+`coalesce(hours_completed, hours_per_participant, 0)` -- so a list
+always adds up to the row's "Sessions" column. Registered and no-show
+participations aren't listed for the same reason. Sponsorships and hour
+transfers keep their own columns and aren't part of the list. The CSV
+export is unchanged.
+
 ## Known pitfalls
 
 - **Year-based tenancy, known gaps (ADR 0092).** (1) A member who moved

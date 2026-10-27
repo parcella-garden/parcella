@@ -1477,7 +1477,10 @@
       "no_data": "Aucune donnée disponible – des parcelles et des membres ont-ils été créés ?",
       "lease_ended_badge": "bail terminé le {date}",
       "col_transfers": "Transférées",
-      "col_transfers_hint": "Heures reçues d'autres membres (+) ou données (−)"
+      "col_transfers_hint": "Heures reçues d'autres membres (+) ou données (−)",
+      "show_sessions": "Afficher les sessions de travail",
+      "sessions_header": "Sessions de travail suivies en {year}",
+      "no_sessions": "Aucune session de travail suivie cette année."
     },
     "member_club_role_form": {
       "title": "Modifier l'attribution",
