@@ -300,6 +300,17 @@ from the site address plus the header's `url`, a plugin answers
 `GET /drafts/{id}`. If the post is still a draft (or was never sent),
 the QR code is simply omitted; nothing blocks generating the PDF anyway.
 
+**Byline (issue #261)**: under the title (and image) the notice reads
+"Published on <date> by <author>". The date is the day the PDF is
+*generated*, not the announcement's creation date (kermie's call: the
+notice says when it went up on the board, and a regenerated PDF gets a
+fresh date). The author is `created_by`'s real name, nothing more. The
+issue asked for "name, tags", but announcements have no tags, and
+printing the author's Parcella groups instead was tried and dropped as
+too much. If the author's account is gone, only the date is shown. The title and byline
+are escaped before they go into the PDF's HTML. The title used to be
+inserted raw, so a `<` in a title was read as markup.
+
 **Images and the logo are embedded as base64 data URIs**, not
 filesystem paths or HTTP URLs, so the PDF doesn't depend on WeasyPrint
 resolving relative paths correctly or on the app's own HTTP server

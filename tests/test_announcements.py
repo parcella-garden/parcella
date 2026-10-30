@@ -1149,6 +1149,53 @@ async def test_generate_print_pdf_too_long_is_marked_failed_without_pdf(client, 
         assert "shorten" in delivery.error_message.lower()
 
 
+async def test_generate_print_pdf_shows_date_and_author(client, admin_user):
+    """Issue #261: "Published on <today> by <author's name>" under the
+    title, without the author's groups; the title itself is printed as
+    text, not markup."""
+    from datetime import date
+    from app.database import AsyncSessionLocal
+    from app.models import Group, GroupMembership
+
+    async with AsyncSessionLocal() as session:
+        group = Group(name="Vorstand")
+        session.add(group)
+        await session.flush()
+        session.add(GroupMembership(user_id=admin_user.id, group_id=group.id))
+        await session.commit()
+
+    token = await login(client, "admin@example.com")
+    await _enable_module(client, auth_header(token))
+    await web_login(client, "admin@example.com")
+
+    create = await client.post(
+        "/announcements/new",
+        data={"title": "Wasser <b>ab</b> Montag", "body_markdown": "Bitte die Hähne schließen."},
+    )
+    announcement_id = create.headers["location"].split("/")[2]
+
+    response = await client.post(f"/announcements/{announcement_id}/print")
+    assert response.status_code == 200
+
+    normalized = _normalized(_pdf_text(response.content))
+    today = date.today().strftime("%d.%m.%Y")
+    assert _normalized(f"Published on {today} by Test-Admin") in normalized
+    assert "Vorstand" not in normalized
+    assert _normalized("Wasser <b>ab</b> Montag") in normalized
+
+
+async def test_print_byline_without_author_shows_only_the_date(client, admin_user):
+    from datetime import date
+    from app.database import AsyncSessionLocal
+    from app.models import Announcement
+    from app.routers.announcements import _print_byline
+
+    async with AsyncSessionLocal() as session:
+        announcement = Announcement(title="T", body_markdown="B", created_by_id=None)
+        byline = await _print_byline(session, announcement, "en")
+    assert byline == f"Published on {date.today().strftime('%d.%m.%Y')}"
+
+
 # ---------------------------------------------------------------------------
 # One action per channel, offered again only when there's something new
 # to deliver (ADR 0087 -- replaces the old draft/published/archived

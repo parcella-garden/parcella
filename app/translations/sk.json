@@ -1818,6 +1818,10 @@
     "ics_subscribe_button": "Odoberať (ICS)"
   },
   "announcements": {
+    "print": {
+      "byline": "Zverejnené {date}, autor: {author}",
+      "byline_date_only": "Zverejnené {date}"
+    },
     "list": {
       "title": "Oznamy",
       "new_button": "Nový oznam",

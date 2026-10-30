@@ -37,7 +37,7 @@ it isn't a general member-facing feature.
 import re
 import urllib.parse
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import List, Optional
 
@@ -48,7 +48,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
-from app.models import Announcement, AnnouncementDelivery, AnnouncementChannel, AnnouncementDeliveryStatus, Applicant, MemberTag
+from app.models import (
+    Announcement, AnnouncementDelivery, AnnouncementChannel, AnnouncementDeliveryStatus, Applicant, MemberTag,
+    User,
+)
 from app.member_filters import MemberListFilter
 from app.auth import require_admin
 from app.permissions import require_permission
@@ -62,7 +65,7 @@ from app.website_connectors import (
 from app.print_publisher import render_announcement_print_pdf, PrintTooLongError
 from app.branding import load_branding
 from app.pdf_chrome import load_org_footer_context
-from app.i18n import load_current_language
+from app.i18n import load_current_language, translate
 from app.l10n import load_current_region
 from app.templating import templates
 
@@ -649,6 +652,20 @@ async def _get_public_blog_url(db: AsyncSession, announcement: Announcement) -> 
         await connector.aclose()
 
 
+async def _print_byline(db: AsyncSession, announcement: Announcement, language: str) -> str:
+    """Issue #261: "Published on <date> by <name>" under the print
+    notice's title. The date is the day the PDF is generated, not the
+    announcement's creation date (kermie's call): the notice says when
+    it went up on the board. The author is the creating user's real
+    name only -- their groups were tried and dropped as too much.
+    Without an author (account deleted), just the date."""
+    today = date.today().strftime("%d.%m.%Y")
+    author = await db.get(User, announcement.created_by_id) if announcement.created_by_id else None
+    if author is None:
+        return translate("announcements.print.byline_date_only", language, date=today)
+    return translate("announcements.print.byline", language, date=today, author=author.name)
+
+
 @router.post("/{announcement_id}/print")
 async def announcement_generate_print_pdf(
     announcement_id: str, request: Request, db: AsyncSession = Depends(get_db),
@@ -668,10 +685,11 @@ async def announcement_generate_print_pdf(
     public_blog_url = await _get_public_blog_url(db, announcement)
     footer_context = await load_org_footer_context(db, branding["club_name"])
     language = await load_current_language(db)
+    byline = await _print_byline(db, announcement, language)
 
     try:
         result = render_announcement_print_pdf(
-            announcement, footer_context, logo_path, image_path, public_blog_url, language,
+            announcement, footer_context, logo_path, image_path, public_blog_url, language, byline,
         )
     except PrintTooLongError as e:
         delivery.status = AnnouncementDeliveryStatus.FAILED

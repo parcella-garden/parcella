@@ -1818,6 +1818,10 @@
     "ics_subscribe_button": "Subskrybuj (ICS)"
   },
   "announcements": {
+    "print": {
+      "byline": "Opublikowano {date} przez: {author}",
+      "byline_date_only": "Opublikowano {date}"
+    },
     "list": {
       "title": "Ogłoszenia",
       "new_button": "Nowe ogłoszenie",

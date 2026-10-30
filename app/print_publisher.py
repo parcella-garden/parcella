@@ -40,6 +40,7 @@ from pathlib import Path
 from typing import List, Optional
 
 import qrcode
+from markupsafe import escape
 from weasyprint import HTML
 
 from app.models import Announcement
@@ -56,6 +57,7 @@ EXTRA_CSS = """
 body { font-size: 11pt; line-height: 1.45; }
 h1 { font-size: 18pt; margin-top: 0.6cm; margin-bottom: 0.4cm; color: #1f2937; }
 .announcement-image { max-width: 100%; max-height: 7cm; display: block; margin: 0.3cm auto; }
+.byline { font-size: 9.5pt; font-style: italic; color: #4b5563; margin: 0.2cm 0 0.4cm; }
 .online-note { margin-top: 0.6cm; padding-top: 0.3cm; border-top: 1px dashed #9ca3af; font-size: 9pt; color: #4b5563; display: flex; align-items: center; gap: 0.4cm; }
 .online-note img { width: 2.2cm; height: 2.2cm; }
 """
@@ -92,11 +94,16 @@ def _split_paragraphs(markdown_text: str) -> List[str]:
 def _build_html(
     title: str, body_html: str, image_data_uri: Optional[str],
     logo_path: Optional[Path], footer_context: OrgFooterContext, language: str, online_note_html: str,
+    byline: Optional[str] = None,
 ) -> str:
     image_block = f'<img class="announcement-image" src="{image_data_uri}">' if image_data_uri else ""
+    # Title and byline are user-entered plain text: escaped, so a "<" in
+    # a title can't turn into markup in the PDF.
+    byline_block = f'<p class="byline">{escape(byline)}</p>' if byline else ""
     body = f"""
-        <h1>{title}</h1>
+        <h1>{escape(title)}</h1>
         {image_block}
+        {byline_block}
         <div>{body_html}</div>
         {online_note_html}
     """
@@ -109,7 +116,7 @@ def _build_html(
 def render_announcement_print_pdf(
     announcement: Announcement, footer_context: OrgFooterContext,
     logo_path: Optional[Path], image_path: Optional[Path],
-    public_blog_url: Optional[str], language: str = "en",
+    public_blog_url: Optional[str], language: str = "en", byline: Optional[str] = None,
 ) -> PrintRenderResult:
     """Renders the announcement as a one-page PDF, shortening the text
     if needed. Mutates announcement.print_text_override if shortening
@@ -128,11 +135,11 @@ def render_announcement_print_pdf(
             qr_uri = _qr_data_uri(public_blog_url)
             online_note_html = (
                 f'<div class="online-note"><img src="{qr_uri}">'
-                f'<div>Read the full announcement online:<br>{public_blog_url}</div></div>'
+                f'<div>Read the full announcement online:<br>{escape(public_blog_url)}</div></div>'
             )
         html_doc = _build_html(
             announcement.title, render_markdown_to_html(body_markdown),
-            image_data_uri, logo_path, footer_context, language, online_note_html,
+            image_data_uri, logo_path, footer_context, language, online_note_html, byline,
         )
         return HTML(string=html_doc, url_fetcher=data_uri_only_fetcher()).render()
 

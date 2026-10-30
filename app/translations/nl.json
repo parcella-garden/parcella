@@ -1818,6 +1818,10 @@
     "ics_subscribe_button": "Abonneren (ICS)"
   },
   "announcements": {
+    "print": {
+      "byline": "Gepubliceerd op {date} door {author}",
+      "byline_date_only": "Gepubliceerd op {date}"
+    },
     "list": {
       "title": "Mededelingen",
       "new_button": "Nieuwe mededeling",
