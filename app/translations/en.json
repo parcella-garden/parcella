@@ -60,7 +60,8 @@
     "freescout_bridge": "Support",
     "applicants": "Applicants",
     "work_hours_transfers": "Hours transfers",
-    "external_contacts": "External contacts"
+    "external_contacts": "External contacts",
+    "reporting": "Reporting"
   },
   "errors": {
     "user_not_found": "User not found",
@@ -321,7 +322,9 @@
         "public_applicant_api_name": "Public applicant-form API",
         "public_applicant_api_desc": "Lets the club website's application form for free garden plots create applicants directly. Off by default since it opens a public write endpoint; see the Integrations page for the endpoints.",
         "external_contacts_name": "External contacts",
-        "external_contacts_desc": "Suppliers, craftsmen, authorities: a company plus a contact person, with address, IBAN, phone numbers, emails, notes and tags. Can be linked to incoming invoices and purchase requests."
+        "external_contacts_desc": "Suppliers, craftsmen, authorities: a company plus a contact person, with address, IBAN, phone numbers, emails, notes and tags. Can be linked to incoming invoices and purchase requests.",
+        "reporting_name": "Reporting",
+        "reporting_desc": "Club figures over time as charts: age groups, members per year, ended leases, applicants, work-hours outcomes, hours transfers and electricity connections. Read-only, computed from the existing data."
       },
       "region_header": "Region",
       "region_help": "Determines number and address format (e.g. thousands separator, order of postal code and city). Independent of the interface language.",
@@ -557,7 +560,8 @@
         "finances": "Finances",
         "freescout_bridge": "Support (helpdesk)",
         "applicants": "Applicants",
-        "external_contacts": "External contacts"
+        "external_contacts": "External contacts",
+        "reporting": "Reporting"
       }
     }
   },
@@ -3272,6 +3276,60 @@
           "api_key": "Shown under your Freshdesk profile settings -> View API key."
         }
       }
+    }
+  },
+  "reporting": {
+    "page_title": "Reporting",
+    "intro": "Club figures over time, computed from the current data each time the page is opened. Time series show up to the last 10 years.",
+    "no_data": "No data yet.",
+    "show_table": "Show figures as a table",
+    "share": "Share / total",
+    "generations": {
+      "title": "Members by generation",
+      "silent": "Silent Generation (until 1945)",
+      "boomers": "Baby boomers (1946–1964)",
+      "gen_x": "Generation X (1965–1980)",
+      "millennials": "Millennials (1981–1996)",
+      "gen_z": "Generation Z (1997–2012)",
+      "alpha": "Generation Alpha (2013 on)",
+      "series_members": "Members",
+      "note_missing": "{count} active member(s) without a date of birth are not included."
+    },
+    "members_per_year": {
+      "title": "Members per year",
+      "series_members": "Members",
+      "note_blank_since": "{count} member(s) have no join date and are counted in every year."
+    },
+    "cancelled_plots": {
+      "title": "Cancelled plots per year",
+      "series_leases_ended": "Leases ended"
+    },
+    "applicants_per_quarter": {
+      "title": "Applicants per quarter",
+      "series_applicants": "Applicants"
+    },
+    "applicants_per_year": {
+      "title": "Applicants per year",
+      "series_applicants": "Applicants"
+    },
+    "work_hours": {
+      "title": "Work hours per year",
+      "series_exempt": "Exempt",
+      "series_owes_fee": "Pays the fee (hours short)",
+      "series_sponsorship": "Fulfilled with sponsorship",
+      "series_sessions": "Fulfilled by work sessions",
+      "note_per_member": "Counted per member instead of per plot in {years}."
+    },
+    "hours_transfers": {
+      "title": "Hours transfers per year",
+      "series_transfers": "Transfers",
+      "series_hours": "Hours transferred"
+    },
+    "electricity": {
+      "title": "Plots with electricity",
+      "with": "With electricity connection",
+      "without": "Without electricity connection",
+      "series_plots": "Plots"
     }
   }
 }

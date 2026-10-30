@@ -50,6 +50,7 @@ NAV_ORDER_DEFAULTS: Dict[str, int] = {
     "finances": 1400,
     "applicants": 1500,
     "external_contacts": 1600,
+    "reporting": 1700,
 }
 
 

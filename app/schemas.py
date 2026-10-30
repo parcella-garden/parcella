@@ -1218,6 +1218,26 @@ class ProviderFieldOut(BaseModel):
     label: str
 
 
+class ReportSeriesOut(BaseModel):
+    key: str
+    values: List[float]
+
+
+class ReportOut(BaseModel):
+    """One figure of the reporting module (issue #264, app/reporting.py)."""
+    key: str
+    chart: str
+    labels: List[str]
+    categorical: bool
+    series: List[ReportSeriesOut]
+    note_key: Optional[str] = None
+    note_params: Dict[str, object] = {}
+
+
+class ReportingOut(BaseModel):
+    reports: List[ReportOut]
+
+
 class ProviderTypeOut(BaseModel):
     type: str
     name: str

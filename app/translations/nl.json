@@ -60,7 +60,8 @@
     "freescout_bridge": "Ondersteuning",
     "applicants": "Aanmelders",
     "work_hours_transfers": "Uren overdragen",
-    "external_contacts": "Externe contacten"
+    "external_contacts": "Externe contacten",
+    "reporting": "Rapportages"
   },
   "errors": {
     "user_not_found": "Gebruiker niet gevonden",
@@ -321,7 +322,9 @@
         "public_applicant_api_name": "Openbare aanmeldformulier-API",
         "public_applicant_api_desc": "Laat het aanmeldformulier voor vrije tuinen op de verenigingswebsite direct aanmelders aanmaken. Standaard uit omdat het een openbaar schrijf-eindpunt opent; zie de pagina \"Integraties\" voor de eindpunten.",
         "external_contacts_name": "Externe contacten",
-        "external_contacts_desc": "Leveranciers, vakmensen, instanties: een bedrijf plus contactpersoon, met adres, IBAN, telefoonnummers, e-mails, notities en labels. Te koppelen aan inkomende facturen en inkoopaanvragen."
+        "external_contacts_desc": "Leveranciers, vakmensen, instanties: een bedrijf plus contactpersoon, met adres, IBAN, telefoonnummers, e-mails, notities en labels. Te koppelen aan inkomende facturen en inkoopaanvragen.",
+        "reporting_name": "Rapportages",
+        "reporting_desc": "Verenigingscijfers door de tijd als grafieken: leeftijdsgroepen, leden per jaar, beëindigde pachten, aanmeldingen, uitkomsten van werkuren, urenoverdrachten en stroomaansluitingen. Alleen lezen, berekend uit de bestaande gegevens."
       },
       "region_header": "Regio",
       "region_help": "Bepaalt het getal- en adresformaat (bijv. duizendtalscheidingsteken, volgorde van postcode en plaats). Onafhankelijk van de interfacetaal.",
@@ -557,7 +560,8 @@
         "finances": "Financiën",
         "freescout_bridge": "Support (helpdesk)",
         "applicants": "Aanmelders",
-        "external_contacts": "Externe contacten"
+        "external_contacts": "Externe contacten",
+        "reporting": "Rapportages"
       }
     }
   },
@@ -3272,6 +3276,60 @@
           "api_key": "Te vinden in je Freshdesk-profielinstellingen -> API-sleutel bekijken."
         }
       }
+    }
+  },
+  "reporting": {
+    "page_title": "Rapportages",
+    "intro": "Verenigingscijfers door de tijd, bij elk openen van de pagina berekend uit de actuele gegevens. Tijdreeksen tonen hooguit de laatste 10 jaar.",
+    "no_data": "Nog geen gegevens.",
+    "show_table": "Cijfers als tabel tonen",
+    "share": "Aandeel / totaal",
+    "generations": {
+      "title": "Leden per generatie",
+      "silent": "Stille generatie (tot 1945)",
+      "boomers": "Babyboomers (1946–1964)",
+      "gen_x": "Generatie X (1965–1980)",
+      "millennials": "Millennials (1981–1996)",
+      "gen_z": "Generatie Z (1997–2012)",
+      "alpha": "Generatie Alfa (vanaf 2013)",
+      "series_members": "Leden",
+      "note_missing": "{count} actieve leden zonder geboortedatum zijn niet meegeteld."
+    },
+    "members_per_year": {
+      "title": "Leden per jaar",
+      "series_members": "Leden",
+      "note_blank_since": "{count} leden zonder datum van toetreding worden in elk jaar meegeteld."
+    },
+    "cancelled_plots": {
+      "title": "Opgezegde tuinen per jaar",
+      "series_leases_ended": "Beëindigde pachten"
+    },
+    "applicants_per_quarter": {
+      "title": "Aanmeldingen per kwartaal",
+      "series_applicants": "Aanmeldingen"
+    },
+    "applicants_per_year": {
+      "title": "Aanmeldingen per jaar",
+      "series_applicants": "Aanmeldingen"
+    },
+    "work_hours": {
+      "title": "Werkuren per jaar",
+      "series_exempt": "Vrijgesteld",
+      "series_owes_fee": "Betaalt de bijdrage (uren tekort)",
+      "series_sponsorship": "Voldaan met peterschap",
+      "series_sessions": "Voldaan met werkdagen",
+      "note_per_member": "In {years} per lid in plaats van per tuin geteld."
+    },
+    "hours_transfers": {
+      "title": "Urenoverdrachten per jaar",
+      "series_transfers": "Overdrachten",
+      "series_hours": "Overgedragen uren"
+    },
+    "electricity": {
+      "title": "Tuinen met stroom",
+      "with": "Met stroomaansluiting",
+      "without": "Zonder stroomaansluiting",
+      "series_plots": "Tuinen"
     }
   }
 }

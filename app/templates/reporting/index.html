@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}{{ t('reporting.page_title') }}{% endblock %}
+{% block page_title %}{{ t('reporting.page_title') }}{% endblock %}
+
+{% block content %}
+<p class="text-muted">{{ t('reporting.intro') }}</p>
+
+<div class="row g-3">
+    {% for chart in charts %}
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-graph-up me-2"></i>{{ chart.title }}</div>
+            <div class="card-body">
+                {% if chart.labels %}
+                <div style="position: relative; height: 260px;">
+                    <canvas id="chart-{{ chart.key }}" aria-label="{{ chart.title }}" role="img"></canvas>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">{{ t('reporting.no_data') }}</p>
+                {% endif %}
+                {% if chart.note %}
+                <p class="text-muted mt-2 mb-0" style="font-size: 0.85rem;"><i class="bi bi-info-circle me-1"></i>{{ chart.note }}</p>
+                {% endif %}
+            </div>
+            {% if chart.labels %}
+            <div class="card-footer bg-transparent">
+                <a class="small text-decoration-none" data-bs-toggle="collapse" href="#table-{{ chart.key }}" role="button"
+                   aria-expanded="false" aria-controls="table-{{ chart.key }}">
+                    <i class="bi bi-table me-1"></i>{{ t('reporting.show_table') }}
+                </a>
+                <div class="collapse mt-2" id="table-{{ chart.key }}">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    {% for name in chart.series_labels %}<th class="text-end">{{ name }}</th>{% endfor %}
+                                    {% if chart.chart in ('pie', 'stacked_bar') %}<th class="text-end">{{ t('reporting.share') }}</th>{% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for label in chart.display_labels %}
+                                {% set i = loop.index0 %}
+                                <tr>
+                                    <td>{{ label }}</td>
+                                    {% for series in chart.series %}<td class="text-end">{{ series['values'][i] | number(1 if series['values'][i] % 1 else 0) }}</td>{% endfor %}
+                                    {% if chart.chart == 'pie' %}
+                                    {% set total = chart.series[0]['values'] | sum %}
+                                    <td class="text-end">{{ (100 * chart.series[0]['values'][i] / total) | number(1) if total else '–' }} %</td>
+                                    {% elif chart.chart == 'stacked_bar' %}
+                                    {% set ns = namespace(total=0) %}
+                                    {% for series in chart.series %}{% set ns.total = ns.total + series['values'][i] %}{% endfor %}
+                                    <td class="text-end">{{ ns.total | number }}</td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script type="application/json" id="reporting-data">{{ charts | tojson }}</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+    (function () {
+        // Garden greens and earth tones first, then a few distinct hues
+        // so a six-slice pie never repeats a colour.
+        const palette = ['#2d6a4f', '#95d5b2', '#6b4226', '#e9c46a', '#40916c', '#f4a261', '#264653', '#e76f51'];
+        const charts = JSON.parse(document.getElementById('reporting-data').textContent);
+        charts.forEach(function (chart) {
+            const canvas = document.getElementById('chart-' + chart.key);
+            if (!canvas) return;
+            const isPie = chart.chart === 'pie';
+            const stacked = chart.chart === 'stacked_bar';
+            const datasets = chart.series.map(function (series, i) {
+                return {
+                    label: chart.series_labels[i],
+                    data: series.values,
+                    backgroundColor: isPie ? palette.slice(0, series.values.length) : palette[i % palette.length],
+                    borderColor: isPie ? '#fff' : palette[i % palette.length],
+                    tension: 0.25,
+                };
+            });
+            new Chart(canvas, {
+                type: isPie ? 'pie' : (chart.chart === 'line' ? 'line' : 'bar'),
+                data: { labels: chart.display_labels, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: isPie || datasets.length > 1, position: 'bottom' } },
+                    scales: isPie ? {} : {
+                        x: { stacked: stacked },
+                        y: { stacked: stacked, beginAtZero: true, ticks: { precision: 0 } },
+                    },
+                },
+            });
+        });
+    })();
+</script>
+{% endblock %}

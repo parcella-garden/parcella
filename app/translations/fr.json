@@ -60,7 +60,8 @@
     "freescout_bridge": "Assistance",
     "applicants": "Candidats",
     "work_hours_transfers": "Transferts d'heures",
-    "external_contacts": "Contacts externes"
+    "external_contacts": "Contacts externes",
+    "reporting": "Rapports"
   },
   "errors": {
     "user_not_found": "Utilisateur non trouvé",
@@ -321,7 +322,9 @@
         "public_applicant_api_name": "API publique du formulaire de candidature",
         "public_applicant_api_desc": "Permet au formulaire de candidature aux parcelles libres du site de l'association de créer directement des candidats. Désactivé par défaut car il ouvre un point d'écriture public ; voir la page « Intégrations » pour les points de terminaison.",
         "external_contacts_name": "Contacts externes",
-        "external_contacts_desc": "Fournisseurs, artisans, administrations : une entreprise et un interlocuteur, avec adresse, IBAN, numéros de téléphone, e-mails, notes et étiquettes. Peuvent être liés aux factures reçues et aux demandes d'achat."
+        "external_contacts_desc": "Fournisseurs, artisans, administrations : une entreprise et un interlocuteur, avec adresse, IBAN, numéros de téléphone, e-mails, notes et étiquettes. Peuvent être liés aux factures reçues et aux demandes d'achat.",
+        "reporting_name": "Rapports",
+        "reporting_desc": "Les chiffres de l'association dans le temps, en graphiques : tranches d'âge, membres par année, baux terminés, candidats, bilan des heures de travail, transferts d'heures et raccordements électriques. Lecture seule, calculé à partir des données existantes."
       },
       "region_header": "Région",
       "region_help": "Détermine le format des nombres et de l'adresse (par ex. séparateur de milliers, ordre du code postal et de la ville). Indépendant de la langue de l'interface.",
@@ -557,7 +560,8 @@
         "finances": "Finances",
         "freescout_bridge": "Assistance (helpdesk)",
         "applicants": "Candidats",
-        "external_contacts": "Contacts externes"
+        "external_contacts": "Contacts externes",
+        "reporting": "Rapports"
       }
     }
   },
@@ -3272,6 +3276,60 @@
           "api_key": "Affichée dans les paramètres de votre profil Freshdesk -> Voir la clé API."
         }
       }
+    }
+  },
+  "reporting": {
+    "page_title": "Rapports",
+    "intro": "Les chiffres de l'association dans le temps, recalculés à partir des données actuelles à chaque ouverture de la page. Les séries couvrent au plus les 10 dernières années.",
+    "no_data": "Pas encore de données.",
+    "show_table": "Afficher les chiffres sous forme de tableau",
+    "share": "Part / total",
+    "generations": {
+      "title": "Membres par génération",
+      "silent": "Génération silencieuse (jusqu'à 1945)",
+      "boomers": "Baby-boomers (1946–1964)",
+      "gen_x": "Génération X (1965–1980)",
+      "millennials": "Milléniaux (1981–1996)",
+      "gen_z": "Génération Z (1997–2012)",
+      "alpha": "Génération Alpha (depuis 2013)",
+      "series_members": "Membres",
+      "note_missing": "{count} membre(s) actif(s) sans date de naissance ne sont pas inclus."
+    },
+    "members_per_year": {
+      "title": "Membres par année",
+      "series_members": "Membres",
+      "note_blank_since": "{count} membre(s) sans date d'adhésion sont comptés chaque année."
+    },
+    "cancelled_plots": {
+      "title": "Parcelles résiliées par année",
+      "series_leases_ended": "Baux terminés"
+    },
+    "applicants_per_quarter": {
+      "title": "Candidats par trimestre",
+      "series_applicants": "Candidats"
+    },
+    "applicants_per_year": {
+      "title": "Candidats par année",
+      "series_applicants": "Candidats"
+    },
+    "work_hours": {
+      "title": "Heures de travail par année",
+      "series_exempt": "Exemptés",
+      "series_owes_fee": "Paie la contribution (heures manquantes)",
+      "series_sponsorship": "Accompli grâce au parrainage",
+      "series_sessions": "Accompli par les journées de travail",
+      "note_per_member": "Compté par membre au lieu de par parcelle en {years}."
+    },
+    "hours_transfers": {
+      "title": "Transferts d'heures par année",
+      "series_transfers": "Transferts",
+      "series_hours": "Heures transférées"
+    },
+    "electricity": {
+      "title": "Parcelles avec électricité",
+      "with": "Avec raccordement électrique",
+      "without": "Sans raccordement électrique",
+      "series_plots": "Parcelles"
     }
   }
 }

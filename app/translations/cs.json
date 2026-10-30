@@ -60,7 +60,8 @@
     "freescout_bridge": "Podpora",
     "applicants": "Uchazeči",
     "work_hours_transfers": "Převod hodin",
-    "external_contacts": "Externí kontakty"
+    "external_contacts": "Externí kontakty",
+    "reporting": "Přehledy"
   },
   "errors": {
     "user_not_found": "Uživatel nebyl nalezen",
@@ -321,7 +322,9 @@
         "public_applicant_api_name": "Veřejné API formuláře přihlášek",
         "public_applicant_api_desc": "Umožní formuláři přihlášek o volné zahrady na webu spolku přímo zakládat uchazeče. Ve výchozím stavu vypnuto, protože otevírá veřejný zápisový koncový bod; koncové body najdete na stránce \"Integrace\".",
         "external_contacts_name": "Externí kontakty",
-        "external_contacts_desc": "Dodavatelé, řemeslníci, úřady: firma a kontaktní osoba, s adresou, IBAN, telefonními čísly, e-maily, poznámkami a štítky. Lze je propojit s přijatými fakturami a požadavky na nákup."
+        "external_contacts_desc": "Dodavatelé, řemeslníci, úřady: firma a kontaktní osoba, s adresou, IBAN, telefonními čísly, e-maily, poznámkami a štítky. Lze je propojit s přijatými fakturami a požadavky na nákup.",
+        "reporting_name": "Přehledy",
+        "reporting_desc": "Údaje spolku v čase jako grafy: věkové skupiny, členové po letech, ukončené nájmy, žadatelé, výsledky pracovních hodin, převody hodin a elektrické přípojky. Jen pro čtení, počítáno z existujících dat."
       },
       "region_header": "Region",
       "region_help": "Určuje formát čísel a adresy (např. oddělovač tisíců, pořadí PSČ a města). Nezávisle na jazyce rozhraní.",
@@ -557,7 +560,8 @@
         "finances": "Finance",
         "freescout_bridge": "Podpora (helpdesk)",
         "applicants": "Uchazeči",
-        "external_contacts": "Externí kontakty"
+        "external_contacts": "Externí kontakty",
+        "reporting": "Přehledy"
       }
     }
   },
@@ -3272,6 +3276,60 @@
           "api_key": "Najdete ho v nastavení profilu Freshdesk -> Zobrazit klíč API."
         }
       }
+    }
+  },
+  "reporting": {
+    "page_title": "Přehledy",
+    "intro": "Údaje spolku v čase, při každém otevření stránky počítané z aktuálních dat. Časové řady zobrazují nejvýše posledních 10 let.",
+    "no_data": "Zatím žádná data.",
+    "show_table": "Zobrazit údaje jako tabulku",
+    "share": "Podíl / součet",
+    "generations": {
+      "title": "Členové podle generace",
+      "silent": "Tichá generace (do 1945)",
+      "boomers": "Baby boomers (1946–1964)",
+      "gen_x": "Generace X (1965–1980)",
+      "millennials": "Mileniálové (1981–1996)",
+      "gen_z": "Generace Z (1997–2012)",
+      "alpha": "Generace Alfa (od 2013)",
+      "series_members": "Členové",
+      "note_missing": "{count} aktivních členů bez data narození není zahrnuto."
+    },
+    "members_per_year": {
+      "title": "Členové po letech",
+      "series_members": "Členové",
+      "note_blank_since": "{count} členů bez data vstupu se počítá v každém roce."
+    },
+    "cancelled_plots": {
+      "title": "Vypovězené parcely po letech",
+      "series_leases_ended": "Ukončené nájmy"
+    },
+    "applicants_per_quarter": {
+      "title": "Žadatelé po čtvrtletích",
+      "series_applicants": "Žadatelé"
+    },
+    "applicants_per_year": {
+      "title": "Žadatelé po letech",
+      "series_applicants": "Žadatelé"
+    },
+    "work_hours": {
+      "title": "Pracovní hodiny po letech",
+      "series_exempt": "Osvobozeno",
+      "series_owes_fee": "Platí náhradu (chybí hodiny)",
+      "series_sponsorship": "Splněno díky patronátu",
+      "series_sessions": "Splněno brigádami",
+      "note_per_member": "V letech {years} počítáno na člena místo na parcelu."
+    },
+    "hours_transfers": {
+      "title": "Převody hodin po letech",
+      "series_transfers": "Převody",
+      "series_hours": "Převedené hodiny"
+    },
+    "electricity": {
+      "title": "Parcely s elektřinou",
+      "with": "S elektrickou přípojkou",
+      "without": "Bez elektrické přípojky",
+      "series_plots": "Parcely"
     }
   }
 }

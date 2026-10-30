@@ -60,7 +60,8 @@
     "freescout_bridge": "Wsparcie",
     "applicants": "Kandydaci",
     "work_hours_transfers": "Przekazywanie godzin",
-    "external_contacts": "Kontakty zewnętrzne"
+    "external_contacts": "Kontakty zewnętrzne",
+    "reporting": "Raporty"
   },
   "errors": {
     "user_not_found": "Nie znaleziono użytkownika",
@@ -321,7 +322,9 @@
         "public_applicant_api_name": "Publiczne API formularza zgłoszeń",
         "public_applicant_api_desc": "Pozwala formularzowi zgłoszeń na wolne działki na stronie stowarzyszenia bezpośrednio tworzyć kandydatów. Domyślnie wyłączone, ponieważ otwiera publiczny punkt zapisu; punkty końcowe znajdziesz na stronie \"Integracje\".",
         "external_contacts_name": "Kontakty zewnętrzne",
-        "external_contacts_desc": "Dostawcy, rzemieślnicy, urzędy: firma i osoba kontaktowa, z adresem, IBAN, numerami telefonów, e-mailami, notatkami i tagami. Można je powiązać z fakturami przychodzącymi i wnioskami zakupowymi."
+        "external_contacts_desc": "Dostawcy, rzemieślnicy, urzędy: firma i osoba kontaktowa, z adresem, IBAN, numerami telefonów, e-mailami, notatkami i tagami. Można je powiązać z fakturami przychodzącymi i wnioskami zakupowymi.",
+        "reporting_name": "Raporty",
+        "reporting_desc": "Dane stowarzyszenia w czasie jako wykresy: grupy wiekowe, członkowie w poszczególnych latach, zakończone dzierżawy, kandydaci, wyniki godzin pracy, przekazania godzin i przyłącza prądu. Tylko do odczytu, liczone z istniejących danych."
       },
       "region_header": "Region",
       "region_help": "Określa format liczb i adresu (np. separator tysięcy, kolejność kodu pocztowego i miejscowości). Niezależnie od języka interfejsu.",
@@ -557,7 +560,8 @@
         "finances": "Finanse",
         "freescout_bridge": "Wsparcie (helpdesk)",
         "applicants": "Kandydaci",
-        "external_contacts": "Kontakty zewnętrzne"
+        "external_contacts": "Kontakty zewnętrzne",
+        "reporting": "Raporty"
       }
     }
   },
@@ -3272,6 +3276,60 @@
           "api_key": "Widoczny w ustawieniach profilu Freshdesk -> Pokaż klucz API."
         }
       }
+    }
+  },
+  "reporting": {
+    "page_title": "Raporty",
+    "intro": "Dane stowarzyszenia w czasie, liczone z aktualnych danych przy każdym otwarciu strony. Szeregi czasowe obejmują najwyżej ostatnie 10 lat.",
+    "no_data": "Brak danych.",
+    "show_table": "Pokaż dane jako tabelę",
+    "share": "Udział / suma",
+    "generations": {
+      "title": "Członkowie według pokolenia",
+      "silent": "Ciche pokolenie (do 1945)",
+      "boomers": "Baby boomers (1946–1964)",
+      "gen_x": "Pokolenie X (1965–1980)",
+      "millennials": "Millenialsi (1981–1996)",
+      "gen_z": "Pokolenie Z (1997–2012)",
+      "alpha": "Pokolenie Alfa (od 2013)",
+      "series_members": "Członkowie",
+      "note_missing": "Nie uwzględniono {count} aktywnych członków bez daty urodzenia."
+    },
+    "members_per_year": {
+      "title": "Członkowie w poszczególnych latach",
+      "series_members": "Członkowie",
+      "note_blank_since": "{count} członków bez daty przystąpienia liczy się w każdym roku."
+    },
+    "cancelled_plots": {
+      "title": "Wypowiedziane działki w poszczególnych latach",
+      "series_leases_ended": "Zakończone dzierżawy"
+    },
+    "applicants_per_quarter": {
+      "title": "Kandydaci na kwartał",
+      "series_applicants": "Kandydaci"
+    },
+    "applicants_per_year": {
+      "title": "Kandydaci na rok",
+      "series_applicants": "Kandydaci"
+    },
+    "work_hours": {
+      "title": "Godziny pracy w poszczególnych latach",
+      "series_exempt": "Zwolnieni",
+      "series_owes_fee": "Płaci opłatę (brak godzin)",
+      "series_sponsorship": "Wypełnione dzięki patronatowi",
+      "series_sessions": "Wypełnione przez prace",
+      "note_per_member": "W latach {years} liczone na członka zamiast na działkę."
+    },
+    "hours_transfers": {
+      "title": "Przekazania godzin w poszczególnych latach",
+      "series_transfers": "Przekazania",
+      "series_hours": "Przekazane godziny"
+    },
+    "electricity": {
+      "title": "Działki z prądem",
+      "with": "Z przyłączem prądu",
+      "without": "Bez przyłącza prądu",
+      "series_plots": "Działki"
     }
   }
 }

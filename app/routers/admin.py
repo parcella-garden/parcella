@@ -918,6 +918,7 @@ MODULE_FIELDS = [
     ("modul_tasks", "admin.settings.modules.tasks_name", "admin.settings.modules.tasks_desc"),
     ("modul_applicants", "admin.settings.modules.applicants_name", "admin.settings.modules.applicants_desc"),
     ("modul_external_contacts", "admin.settings.modules.external_contacts_name", "admin.settings.modules.external_contacts_desc"),
+    ("modul_reporting", "admin.settings.modules.reporting_name", "admin.settings.modules.reporting_desc"),
     ("modul_public_signup_api", "admin.settings.modules.public_signup_api_name", "admin.settings.modules.public_signup_api_desc"),
     ("modul_public_contact_api", "admin.settings.modules.public_contact_api_name", "admin.settings.modules.public_contact_api_desc"),
     ("modul_public_applicant_api", "admin.settings.modules.public_applicant_api_name", "admin.settings.modules.public_applicant_api_desc"),
@@ -966,6 +967,7 @@ NAV_ORDER_FIELDS = [
     ("finances", "nav.finances_group"),
     ("applicants", "nav.applicants"),
     ("external_contacts", "nav.external_contacts"),
+    ("reporting", "nav.reporting"),
 ]
 
 

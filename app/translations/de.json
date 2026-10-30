@@ -60,7 +60,8 @@
     "freescout_bridge": "Support",
     "applicants": "Bewerber",
     "work_hours_transfers": "Stundenübertragung",
-    "external_contacts": "Externe Kontakte"
+    "external_contacts": "Externe Kontakte",
+    "reporting": "Auswertungen"
   },
   "errors": {
     "user_not_found": "Benutzer nicht gefunden",
@@ -321,7 +322,9 @@
         "public_applicant_api_name": "Öffentliche Bewerbungsformular-API",
         "public_applicant_api_desc": "Lässt das Bewerbungsformular für freie Gärten auf der Vereins-Website direkt Bewerber anlegen. Standardmäßig aus, da es einen öffentlichen Schreib-Endpunkt öffnet; die Endpunkte stehen auf der Seite \"Integrationen\".",
         "external_contacts_name": "Externe Kontakte",
-        "external_contacts_desc": "Lieferanten, Handwerker, Behörden: eine Firma plus Ansprechpartner, mit Adresse, IBAN, Telefonnummern, E-Mails, Notizen und Tags. Lässt sich mit Eingangsrechnungen und Einkaufswünschen verknüpfen."
+        "external_contacts_desc": "Lieferanten, Handwerker, Behörden: eine Firma plus Ansprechpartner, mit Adresse, IBAN, Telefonnummern, E-Mails, Notizen und Tags. Lässt sich mit Eingangsrechnungen und Einkaufswünschen verknüpfen.",
+        "reporting_name": "Auswertungen",
+        "reporting_desc": "Vereinszahlen im Zeitverlauf als Diagramme: Altersgruppen, Mitglieder pro Jahr, beendete Pachtverhältnisse, Bewerbungen, Arbeitsstunden-Ergebnisse, Stundenübertragungen und Stromanschlüsse. Nur lesend, aus den vorhandenen Daten berechnet."
       },
       "region_header": "Region",
       "region_help": "Bestimmt Zahlen- und Adressformat (z.B. Tausendertrennzeichen, Reihenfolge von PLZ und Ort). Unabhängig von der Oberflächensprache.",
@@ -557,7 +560,8 @@
         "finances": "Finanzen",
         "freescout_bridge": "Support (Helpdesk)",
         "applicants": "Bewerber",
-        "external_contacts": "Externe Kontakte"
+        "external_contacts": "Externe Kontakte",
+        "reporting": "Auswertungen"
       }
     }
   },
@@ -3272,6 +3276,60 @@
           "api_key": "Steht in Ihren Freshdesk-Profileinstellungen -> API-Schlüssel anzeigen."
         }
       }
+    }
+  },
+  "reporting": {
+    "page_title": "Auswertungen",
+    "intro": "Vereinszahlen im Zeitverlauf, bei jedem Aufruf aus den aktuellen Daten berechnet. Zeitreihen zeigen höchstens die letzten 10 Jahre.",
+    "no_data": "Noch keine Daten.",
+    "show_table": "Zahlen als Tabelle anzeigen",
+    "share": "Anteil / Summe",
+    "generations": {
+      "title": "Mitglieder nach Generation",
+      "silent": "Stille Generation (bis 1945)",
+      "boomers": "Babyboomer (1946–1964)",
+      "gen_x": "Generation X (1965–1980)",
+      "millennials": "Millennials (1981–1996)",
+      "gen_z": "Generation Z (1997–2012)",
+      "alpha": "Generation Alpha (ab 2013)",
+      "series_members": "Mitglieder",
+      "note_missing": "{count} aktive(s) Mitglied(er) ohne Geburtsdatum sind nicht enthalten."
+    },
+    "members_per_year": {
+      "title": "Mitglieder pro Jahr",
+      "series_members": "Mitglieder",
+      "note_blank_since": "{count} Mitglied(er) ohne Eintrittsdatum werden in jedem Jahr mitgezählt."
+    },
+    "cancelled_plots": {
+      "title": "Gekündigte Parzellen pro Jahr",
+      "series_leases_ended": "Beendete Pachtverhältnisse"
+    },
+    "applicants_per_quarter": {
+      "title": "Bewerbungen pro Quartal",
+      "series_applicants": "Bewerbungen"
+    },
+    "applicants_per_year": {
+      "title": "Bewerbungen pro Jahr",
+      "series_applicants": "Bewerbungen"
+    },
+    "work_hours": {
+      "title": "Arbeitsstunden pro Jahr",
+      "series_exempt": "Befreit",
+      "series_owes_fee": "Zahlt Ersatzbeitrag (Stunden fehlen)",
+      "series_sponsorship": "Erfüllt mit Patenschaft",
+      "series_sessions": "Erfüllt durch Arbeitseinsätze",
+      "note_per_member": "In {years} pro Mitglied statt pro Parzelle gezählt."
+    },
+    "hours_transfers": {
+      "title": "Stundenübertragungen pro Jahr",
+      "series_transfers": "Übertragungen",
+      "series_hours": "Übertragene Stunden"
+    },
+    "electricity": {
+      "title": "Parzellen mit Strom",
+      "with": "Mit Stromanschluss",
+      "without": "Ohne Stromanschluss",
+      "series_plots": "Parzellen"
     }
   }
 }

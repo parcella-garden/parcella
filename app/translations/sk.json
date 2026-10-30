@@ -60,7 +60,8 @@
     "freescout_bridge": "Podpora",
     "applicants": "Uchádzači",
     "work_hours_transfers": "Prevod hodín",
-    "external_contacts": "Externé kontakty"
+    "external_contacts": "Externé kontakty",
+    "reporting": "Prehľady"
   },
   "errors": {
     "user_not_found": "Používateľ nebol nájdený",
@@ -321,7 +322,9 @@
         "public_applicant_api_name": "Verejné API formulára prihlášok",
         "public_applicant_api_desc": "Umožní formuláru prihlášok o voľné záhrady na webe spolku priamo zakladať uchádzačov. Predvolene vypnuté, pretože otvára verejný zápisový koncový bod; koncové body nájdete na stránke \"Integrácie\".",
         "external_contacts_name": "Externé kontakty",
-        "external_contacts_desc": "Dodávatelia, remeselníci, úrady: firma a kontaktná osoba, s adresou, IBAN, telefónnymi číslami, e-mailmi, poznámkami a štítkami. Dajú sa prepojiť s prijatými faktúrami a požiadavkami na nákup."
+        "external_contacts_desc": "Dodávatelia, remeselníci, úrady: firma a kontaktná osoba, s adresou, IBAN, telefónnymi číslami, e-mailmi, poznámkami a štítkami. Dajú sa prepojiť s prijatými faktúrami a požiadavkami na nákup.",
+        "reporting_name": "Prehľady",
+        "reporting_desc": "Údaje spolku v čase ako grafy: vekové skupiny, členovia po rokoch, ukončené nájmy, žiadatelia, výsledky pracovných hodín, prevody hodín a elektrické prípojky. Len na čítanie, počítané z existujúcich údajov."
       },
       "region_header": "Región",
       "region_help": "Určuje formát čísel a adresy (napr. oddeľovač tisícov, poradie PSČ a mesta). Nezávisle od jazyka rozhrania.",
@@ -557,7 +560,8 @@
         "finances": "Financie",
         "freescout_bridge": "Podpora (helpdesk)",
         "applicants": "Uchádzači",
-        "external_contacts": "Externé kontakty"
+        "external_contacts": "Externé kontakty",
+        "reporting": "Prehľady"
       }
     }
   },
@@ -3272,6 +3276,60 @@
           "api_key": "Nájdete ho v nastaveniach profilu Freshdesk -> Zobraziť kľúč API."
         }
       }
+    }
+  },
+  "reporting": {
+    "page_title": "Prehľady",
+    "intro": "Údaje spolku v čase, pri každom otvorení stránky počítané z aktuálnych údajov. Časové rady zobrazujú najviac posledných 10 rokov.",
+    "no_data": "Zatiaľ žiadne údaje.",
+    "show_table": "Zobraziť údaje ako tabuľku",
+    "share": "Podiel / súčet",
+    "generations": {
+      "title": "Členovia podľa generácie",
+      "silent": "Tichá generácia (do 1945)",
+      "boomers": "Baby boomers (1946–1964)",
+      "gen_x": "Generácia X (1965–1980)",
+      "millennials": "Mileniáli (1981–1996)",
+      "gen_z": "Generácia Z (1997–2012)",
+      "alpha": "Generácia Alfa (od 2013)",
+      "series_members": "Členovia",
+      "note_missing": "{count} aktívnych členov bez dátumu narodenia nie je zahrnutých."
+    },
+    "members_per_year": {
+      "title": "Členovia po rokoch",
+      "series_members": "Členovia",
+      "note_blank_since": "{count} členov bez dátumu vstupu sa počíta v každom roku."
+    },
+    "cancelled_plots": {
+      "title": "Vypovedané parcely po rokoch",
+      "series_leases_ended": "Ukončené nájmy"
+    },
+    "applicants_per_quarter": {
+      "title": "Žiadatelia po štvrťrokoch",
+      "series_applicants": "Žiadatelia"
+    },
+    "applicants_per_year": {
+      "title": "Žiadatelia po rokoch",
+      "series_applicants": "Žiadatelia"
+    },
+    "work_hours": {
+      "title": "Pracovné hodiny po rokoch",
+      "series_exempt": "Oslobodené",
+      "series_owes_fee": "Platí náhradu (chýbajú hodiny)",
+      "series_sponsorship": "Splnené vďaka patronátu",
+      "series_sessions": "Splnené brigádami",
+      "note_per_member": "V rokoch {years} počítané na člena namiesto na parcelu."
+    },
+    "hours_transfers": {
+      "title": "Prevody hodín po rokoch",
+      "series_transfers": "Prevody",
+      "series_hours": "Prevedené hodiny"
+    },
+    "electricity": {
+      "title": "Parcely s elektrinou",
+      "with": "S elektrickou prípojkou",
+      "without": "Bez elektrickej prípojky",
+      "series_plots": "Parcely"
     }
   }
 }

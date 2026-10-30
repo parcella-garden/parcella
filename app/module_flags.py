@@ -84,6 +84,10 @@ MODULE_DEFAULTS: Dict[str, bool] = {
     # On by default: internal data only, no public endpoint, no outbound
     # credentials.
     "external_contacts": True,
+    # Club figures over time as charts (docs/module-reporting.md). On by
+    # default: read-only aggregates of internal data, no public endpoint,
+    # no outbound credentials.
+    "reporting": True,
 }
 
 
