@@ -40,13 +40,25 @@ from pathlib import Path
 from typing import List, Optional
 
 import qrcode
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from markupsafe import escape
 from weasyprint import HTML
 
-from app.models import Announcement
+from app.models import Announcement, ClubSetting
 from app.announcement_utils import render_markdown_to_html
 from app.pdf_chrome import wrap_document, org_footer_html, OrgFooterContext
 from app.pdf_utils import data_uri_only_fetcher, file_to_data_uri
+
+# Issue #262: cloud folder every generated print PDF is also saved to,
+# chosen on the admin integrations page. Unset = download only.
+PRINT_CLOUD_FOLDER_SETTING = "announcements_print_cloud_folder"
+
+
+async def load_print_cloud_folder(db: AsyncSession) -> Optional[str]:
+    value = await db.scalar(select(ClubSetting.value).where(ClubSetting.key == PRINT_CLOUD_FOLDER_SETTING))
+    return value or None
+
 
 # Flyer-specific rules only -- @page/body/#header/#footer chrome now
 # comes from app/pdf_chrome.py's page_css(). font-size/line-height stay

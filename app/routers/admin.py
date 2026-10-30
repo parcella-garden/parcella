@@ -58,7 +58,8 @@ from app.backup import (
     build_backup_zip, restore_from_zip_bytes, BackupError, RestoreZipError,
     RESTORE_CONFIRM_PHRASE, MAX_RESTORE_UPLOAD_BYTES,
 )
-from app.parcel_cloud_folders import sanitize_relative_path, InvalidCloudPathError
+from app.parcel_cloud_folders import browse_folder_picker, sanitize_relative_path, InvalidCloudPathError
+from app.print_publisher import PRINT_CLOUD_FOLDER_SETTING, load_print_cloud_folder
 from app.ics_utils import regenerate_ics_token
 from app.contact_documents import EXTERNAL_CONTACTS_FOLDER_SETTING, load_base_folder as load_contacts_base_folder
 from app.cloud_backup import (
@@ -1294,6 +1295,16 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
     incoming_invoices_folder_entry = incoming_invoices_folder_result.scalar_one_or_none()
     incoming_invoices_folder_path = incoming_invoices_folder_entry.value if incoming_invoices_folder_entry else None
     external_contacts_folder_path = await load_contacts_base_folder(db)
+    print_folder_path = await load_print_cloud_folder(db)
+    # Issue #262: "Browse" opens the same folder picker as the parcel
+    # page, inline in the cloud storage card (?print_pick=1&pick_path=...).
+    print_picker = None
+    if cloud_storage_active and request.query_params.get("print_pick") == "1":
+        print_picker = await browse_folder_picker(
+            db, request.query_params.get("pick_path", ""),
+            root_label=t_for(request, "parcels.detail.cloud_picker_root_label"),
+            not_configured_message=t_for(request, "parcels.cloud_storage.not_configured"),
+        )
 
 
     deck_result = await db.execute(
@@ -1340,6 +1351,10 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
         "external_contacts_folder_path": external_contacts_folder_path,
         "external_contacts_folder_saved": request.query_params.get("external_contacts_folder_saved"),
         "external_contacts_folder_error": request.query_params.get("external_contacts_folder_error"),
+        "print_folder_path": print_folder_path,
+        "print_picker": print_picker,
+        "print_folder_saved": request.query_params.get("print_folder_saved"),
+        "print_folder_error": request.query_params.get("print_folder_error"),
         "helpdesk": await HELPDESK.admin_context(db),
         "helpdesk_saved": request.query_params.get("helpdesk_saved"),
         "helpdesk_error": request.query_params.get("helpdesk_error"),
@@ -1549,6 +1564,38 @@ async def integrations_external_contacts_folder_save(
         ))
     await db.commit()
     return RedirectResponse("/admin/integrations?external_contacts_folder_saved=1", status_code=303)
+
+
+@router.post("/integrations/nextcloud/announcements-print-folder")
+async def integrations_print_folder_save(
+    request: Request, relative_path: str = Form(""), db: AsyncSession = Depends(get_db),
+):
+    """Issue #262: cloud folder every generated announcement print PDF
+    is also saved to. Blank clears it (download only, as before)."""
+    await require_system_admin(request, db)
+    from urllib.parse import quote
+
+    entry = await db.scalar(select(ClubSetting).where(ClubSetting.key == PRINT_CLOUD_FOLDER_SETTING))
+    if not relative_path.strip():
+        if entry:
+            await db.delete(entry)
+            await db.commit()
+        return RedirectResponse("/admin/integrations?print_folder_saved=1#integration-card-nextcloud", status_code=303)
+    try:
+        sanitized = sanitize_relative_path(relative_path)
+    except InvalidCloudPathError as e:
+        return RedirectResponse(
+            f"/admin/integrations?print_folder_error={quote(str(e))}#integration-card-nextcloud", status_code=303,
+        )
+    if entry:
+        entry.value = sanitized
+    else:
+        db.add(ClubSetting(
+            key=PRINT_CLOUD_FOLDER_SETTING, value=sanitized,
+            description="Cloud folder for generated announcement print PDFs",
+        ))
+    await db.commit()
+    return RedirectResponse("/admin/integrations?print_folder_saved=1#integration-card-nextcloud", status_code=303)
 
 
 @router.post("/integrations/helpdesk")

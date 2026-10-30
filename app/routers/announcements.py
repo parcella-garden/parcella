@@ -62,7 +62,8 @@ from app.announcement_letters import render_announcement_letters_pdf
 from app.website_connectors import (
     BlogPostNotFoundError, BlogPublishError, DraftContent, get_active_connector, get_active_type,
 )
-from app.print_publisher import render_announcement_print_pdf, PrintTooLongError
+from app.print_publisher import render_announcement_print_pdf, PrintTooLongError, load_print_cloud_folder
+from app.cloud_storage import CloudStorageError, get_cloud_storage_provider
 from app.branding import load_branding
 from app.pdf_chrome import load_org_footer_context
 from app.i18n import load_current_language, translate
@@ -666,6 +667,34 @@ async def _print_byline(db: AsyncSession, announcement: Announcement, language: 
     return translate("announcements.print.byline", language, date=today, author=author.name)
 
 
+async def _save_print_pdf_to_cloud(
+    request: Request, db: AsyncSession, announcement: Announcement, pdf_bytes: bytes,
+) -> Optional[str]:
+    """Issue #262: also put the generated PDF into the cloud folder
+    chosen on the integrations page. The browser download happens
+    either way -- a failed upload never costs the admin the PDF, it's
+    only noted on the print delivery. Returns that note, or None when no
+    folder is set up (cloud storage module off, or no folder chosen).
+    The date in the file name keeps earlier notices; regenerating on
+    the same day replaces that day's file."""
+    if not request.state.module_flags.get("cloud_storage"):
+        return None
+    folder = await load_print_cloud_folder(db)
+    if not folder:
+        return None
+    filename = _download_name(announcement, suffix=f"_{date.today().isoformat()}")
+    provider = await get_cloud_storage_provider(db)
+    if provider is None:
+        return "Not saved to the cloud: no cloud storage is configured."
+    try:
+        await provider.upload_file(folder, filename, pdf_bytes)
+    except CloudStorageError as e:
+        return f"Not saved to the cloud folder '{folder}': {e}"
+    finally:
+        await provider.aclose()
+    return f"Saved to the cloud as {folder}/{filename}."
+
+
 @router.post("/{announcement_id}/print")
 async def announcement_generate_print_pdf(
     announcement_id: str, request: Request, db: AsyncSession = Depends(get_db),
@@ -717,6 +746,9 @@ async def announcement_generate_print_pdf(
         delivery.error_message = "Text was shortened automatically to fit one page. No QR code was added since the blog post isn't published yet."
     else:
         delivery.error_message = None
+    cloud_note = await _save_print_pdf_to_cloud(request, db, announcement, result.pdf_bytes)
+    if cloud_note:
+        delivery.error_message = f"{delivery.error_message} {cloud_note}" if delivery.error_message else cloud_note
     await db.commit()
 
     return Response(

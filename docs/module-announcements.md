@@ -311,6 +311,20 @@ too much. If the author's account is gone, only the date is shown. The title and
 are escaped before they go into the PDF's HTML. The title used to be
 inserted raw, so a `<` in a title was read as markup.
 
+**Saving to a cloud folder (issue #262)**: when the cloud storage
+module is on and a folder is chosen on the admin integrations page
+(`announcements_print_cloud_folder`, typed in or picked with the folder
+browser), every generated print PDF is also uploaded there as
+`<title slug>_<YYYY-MM-DD>.pdf`. A regeneration on the same day
+replaces that day's file, and earlier days are kept. The browser
+download happens either way. A failed upload doesn't block the PDF. It
+is only noted on the print delivery ("Not saved to the cloud folder
+…"), just like a successful save ("Saved to the cloud as …").
+
+The issue also asked for a local "Downloads" folder as the fallback
+without cloud storage. A web app can't choose where the browser saves
+a file, so without a cloud folder the PDF simply downloads as before.
+
 **Images and the logo are embedded as base64 data URIs**, not
 filesystem paths or HTTP URLs, so the PDF doesn't depend on WeasyPrint
 resolving relative paths correctly or on the app's own HTTP server

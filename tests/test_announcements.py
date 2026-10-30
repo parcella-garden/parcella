@@ -1196,6 +1196,135 @@ async def test_print_byline_without_author_shows_only_the_date(client, admin_use
     assert byline == f"Published on {date.today().strftime('%d.%m.%Y')}"
 
 
+# Issue #262: generated print PDFs also go to a chosen cloud folder.
+
+class _FakeCloud:
+    def __init__(self, fail: bool = False):
+        self.fail = fail
+        self.uploads = []
+
+    async def upload_file(self, path, filename, content):
+        from app.cloud_storage import CloudStorageError
+        if self.fail:
+            raise CloudStorageError("folder 'Aushang' likely doesn't exist")
+        self.uploads.append((path, filename, content))
+
+    async def aclose(self):
+        pass
+
+
+async def _print_with_cloud_folder(client, monkeypatch, cloud):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    for key, value in [("modul_cloud_storage", "true"), ("announcements_print_cloud_folder", "Mitteilungen/Aushang")]:
+        response = await client.put(f"/api/v1/club-settings/{key}", json={"value": value}, headers=headers)
+        assert response.status_code == 200, response.text
+
+    async def fake_provider(db):
+        return cloud
+    monkeypatch.setattr("app.routers.announcements.get_cloud_storage_provider", fake_provider)
+
+    await web_login(client, "admin@example.com")
+    create = await client.post(
+        "/announcements/new",
+        data={"title": "Wasser ab Montag", "body_markdown": "Bitte die Hähne schließen."},
+    )
+    announcement_id = create.headers["location"].split("/")[2]
+    response = await client.post(f"/announcements/{announcement_id}/print")
+    from app.models import AnnouncementChannel
+    delivery = (await _load_announcement(announcement_id)).delivery_for(AnnouncementChannel.PRINT)
+    return response, delivery
+
+
+async def test_print_pdf_is_also_saved_to_the_chosen_cloud_folder(client, admin_user, monkeypatch):
+    from datetime import date
+    cloud = _FakeCloud()
+    response, delivery = await _print_with_cloud_folder(client, monkeypatch, cloud)
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+    assert len(cloud.uploads) == 1
+    path, filename, content = cloud.uploads[0]
+    assert path == "Mitteilungen/Aushang"
+    assert filename == f"Wasser_ab_Montag_{date.today().isoformat()}.pdf"
+    assert content == response.content
+    assert f"Saved to the cloud as Mitteilungen/Aushang/{filename}." in delivery.error_message
+
+
+async def test_failed_cloud_upload_still_downloads_the_print_pdf(client, admin_user, monkeypatch):
+    response, delivery = await _print_with_cloud_folder(client, monkeypatch, _FakeCloud(fail=True))
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+    assert delivery.status.value == "SENT"
+    assert "Not saved to the cloud folder 'Mitteilungen/Aushang'" in delivery.error_message
+
+
+async def test_print_pdf_without_a_cloud_folder_only_downloads(client, admin_user, monkeypatch):
+    token = await login(client, "admin@example.com")
+    await _enable_module(client, auth_header(token))
+
+    async def no_provider_expected(db):
+        raise AssertionError("no cloud upload without a chosen folder")
+    monkeypatch.setattr("app.routers.announcements.get_cloud_storage_provider", no_provider_expected)
+
+    await web_login(client, "admin@example.com")
+    create = await client.post("/announcements/new", data={"title": "Kurz", "body_markdown": "Text."})
+    response = await client.post(f"/announcements/{create.headers['location'].split('/')[2]}/print")
+    assert response.status_code == 200
+
+
+async def test_admin_saves_and_clears_the_print_cloud_folder(client, admin_user):
+    from app.database import AsyncSessionLocal
+    from app.print_publisher import load_print_cloud_folder
+
+    await web_login(client, "admin@example.com")
+    response = await client.post(
+        "/admin/integrations/nextcloud/announcements-print-folder", data={"relative_path": "/Mitteilungen//Aushang/"},
+    )
+    assert response.status_code == 303
+    assert "print_folder_saved=1" in response.headers["location"]
+    async with AsyncSessionLocal() as session:
+        assert await load_print_cloud_folder(session) == "Mitteilungen/Aushang"
+
+    response = await client.post(
+        "/admin/integrations/nextcloud/announcements-print-folder", data={"relative_path": "../etc"},
+    )
+    assert "print_folder_error=" in response.headers["location"]
+    async with AsyncSessionLocal() as session:
+        assert await load_print_cloud_folder(session) == "Mitteilungen/Aushang"
+
+    response = await client.post("/admin/integrations/nextcloud/announcements-print-folder", data={"relative_path": ""})
+    assert response.status_code == 303
+    async with AsyncSessionLocal() as session:
+        assert await load_print_cloud_folder(session) is None
+
+
+async def test_integrations_page_shows_the_print_folder_picker(client, admin_user, monkeypatch):
+    from app.cloud_storage import CloudFileEntry
+
+    token = await login(client, "admin@example.com")
+    response = await client.put(
+        "/api/v1/club-settings/modul_cloud_storage", json={"value": "true"}, headers=auth_header(token),
+    )
+    assert response.status_code == 200
+
+    class _Listing(_FakeCloud):
+        async def list_files(self, path):
+            return [CloudFileEntry(name="Aushang", is_directory=True), CloudFileEntry(name="x.pdf", is_directory=False)]
+
+    async def fake_provider(db):
+        return _Listing()
+    monkeypatch.setattr("app.parcel_cloud_folders.get_cloud_storage_provider", fake_provider)
+
+    await web_login(client, "admin@example.com")
+    response = await client.get("/admin/integrations?print_pick=1&pick_path=Mitteilungen")
+    assert response.status_code == 200
+    assert "pick_path=Mitteilungen/Aushang" in response.text
+    assert "x.pdf" not in response.text
+
+
 # ---------------------------------------------------------------------------
 # One action per channel, offered again only when there's something new
 # to deliver (ADR 0087 -- replaces the old draft/published/archived

@@ -186,6 +186,14 @@ Each contact picks its subfolder by name. Unlike parcel folders, access
 follows the `external_contacts` permission row, not full access only.
 See docs/module-external-contacts.md.
 
+## Printed announcements (issue #262)
+
+Every announcement print PDF is also uploaded to one folder
+(`ClubSetting` `announcements_print_cloud_folder`). The folder is set on
+the admin integrations page, either typed in or chosen with the same
+folder browser as the parcel page (`browse_folder_picker`). Details in
+[module-announcements.md](./module-announcements.md#print-channel-built).
+
 ## Scheduled cloud backups (`app/cloud_backup.py`, issue #141)
 
 A second, independent consumer of this connector: `Admin -> System ->
