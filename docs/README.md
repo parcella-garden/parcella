@@ -21,6 +21,7 @@ decisions and reasoning are still fresh.
 
 ## Cross-cutting topics
 
+- [Architecture overview](./architecture.svg) -- one-page diagram of clients, app layers, storage, modules and external services
 - [Architecture Decisions](./ADR/README.md) -- why certain things are built the way they are
 - [Operations](./operations.md) -- Docker, migrations, SMTP setup, troubleshooting
 - [Security](./security.md) -- what protects the app, what a review fixed, what's still open
@@ -63,3 +64,6 @@ Architecture Decisions for details):
     just domain logic for that module), add it as a new numbered file
     in [`docs/ADR/`](./ADR/README.md) rather than folding it into the
     module page -- one file per decision, listed in the ADR index
+12. If the module (or a new connector/external service) changes the big
+    picture, update [`docs/architecture.svg`](./architecture.svg) -- it is
+    hand-maintained plain SVG, edit it in any text editor

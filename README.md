@@ -111,6 +111,16 @@ postcode-before-city vs. UK-style postcode-last).
 
 ---
 
+## Architecture at a glance
+
+[![Parcella architecture overview](docs/architecture.svg)](docs/architecture.svg)
+
+Clients, the `web` container and its layers, storage, toggleable modules and
+the optional external services. The reasoning behind each piece lives in the
+[Architecture Decision Records](docs/ADR/README.md).
+
+---
+
 ## Tech stack
 
 | Component | Technology |
