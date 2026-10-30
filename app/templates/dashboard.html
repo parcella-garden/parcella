@@ -16,6 +16,9 @@
                     <div class="text-muted" style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em;">{{ t('dashboard.members_label') }}</div>
                     <div style="font-size: 1.8rem; font-weight: 700; color: var(--gv-gruen);">{{ stats.members_total }}</div>
                     <div class="text-muted" style="font-size: 0.75rem;">{{ stats.members_active }} {{ t('dashboard.active_suffix') }}</div>
+                    {% if stats.members_average_age is not none %}
+                    <div class="text-muted" style="font-size: 0.75rem;">{{ t('dashboard.average_age', age=stats.members_average_age|number(1)) }}</div>
+                    {% endif %}
                 </div>
             </div>
             <div class="card-footer bg-transparent border-top-0 pt-0">

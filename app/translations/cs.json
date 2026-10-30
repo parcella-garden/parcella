@@ -1694,6 +1694,7 @@
     "title": "Dashboard",
     "members_label": "Členové",
     "active_suffix": "aktivní",
+    "average_age": "Průměrný věk {age} let",
     "new_participations_label": "Nová přihlášení",
     "new_participations_suffix": "k pracovním směnám",
     "show_all": "Zobrazit vše",

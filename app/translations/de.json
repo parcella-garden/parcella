@@ -1694,6 +1694,7 @@
     "title": "Dashboard",
     "members_label": "Mitglieder",
     "active_suffix": "aktiv",
+    "average_age": "Durchschnittsalter {age} Jahre",
     "new_participations_label": "Neue Anmeldungen",
     "new_participations_suffix": "zu Arbeitseinsätzen",
     "show_all": "Alle anzeigen",

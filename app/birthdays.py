@@ -72,6 +72,32 @@ async def upcoming_birthdays(db: AsyncSession, today: Optional[date] = None, wit
     return upcoming
 
 
+# Mean Gregorian year length, so a member's exact age is the same
+# fraction of a year whether or not leap days fall in between.
+DAYS_PER_YEAR = 365.2425
+
+
+def exact_age(birth_date: date, today: date) -> float:
+    """Age in years including the fraction since the last birthday --
+    an average of whole years would understate every member by ~half a
+    year, visibly so at one decimal place."""
+    return (today - birth_date).days / DAYS_PER_YEAR
+
+
+async def average_age(db: AsyncSession, today: Optional[date] = None) -> Optional[float]:
+    """Average exact age of active members (issue #263), or None when no
+    active member has a date of birth on file. Same population as the
+    dashboard's headline member count (active_member_filter()); members
+    without a date of birth are left out rather than guessed at."""
+    today = today or date.today()
+    birth_dates = (await db.scalars(
+        select(Member.date_of_birth).where(active_member_filter(), Member.date_of_birth.is_not(None))
+    )).all()
+    if not birth_dates:
+        return None
+    return sum(exact_age(b, today) for b in birth_dates) / len(birth_dates)
+
+
 async def all_birthdays_for_calendar(db: AsyncSession) -> List[Member]:
     """All active members with a birth date on file, for the full
     birthday calendar/ICS feed (not just the next-N-days dashboard

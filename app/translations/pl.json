@@ -1694,6 +1694,7 @@
     "title": "Panel główny",
     "members_label": "Członkowie",
     "active_suffix": "aktywnych",
+    "average_age": "Średni wiek {age} lat",
     "new_participations_label": "Nowe zgłoszenia",
     "new_participations_suffix": "do prac społecznych",
     "show_all": "Pokaż wszystkie",

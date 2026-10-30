@@ -1694,6 +1694,7 @@
     "title": "Dashboard",
     "members_label": "Members",
     "active_suffix": "active",
+    "average_age": "Average age {age} years",
     "new_participations_label": "New Sign-ups",
     "new_participations_suffix": "in work sessions",
     "show_all": "Show All",

@@ -211,6 +211,24 @@ is one field plus a clause in `apply()`.
 Known gaps: no colors, no tags in the CSV *import*,
 the filter takes one tag at a time (no "A and B").
 
+## Average age on the dashboard (issue #263)
+
+The Members card shows the average age of active members to one
+decimal place (`average_age()` in `app/birthdays.py`; also
+`members_average_age` in `GET /api/v1/stats`).
+
+- **Exact ages**, not whole years: days since birth / 365.2425. An
+  average of completed years would understate every member by about
+  half a year, which shows at one decimal place.
+- **Same population as the card's headline count**
+  (`active_member_filter()`), so pending members with a blank
+  `member_since` count too.
+- Members **without a date of birth are left out**, not guessed at. If
+  nobody has one, the line is hidden (API: `null`).
+- Computed on each dashboard load, nothing stored. The planned
+  reporting module (issue #264) should reuse `exact_age()` rather
+  than re-deriving ages.
+
 ## General-meeting sign-in sheet
 
 `/members/signin-sheet` generates a PDF (`app/meeting_signin_sheet.py`,

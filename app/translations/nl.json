@@ -1694,6 +1694,7 @@
     "title": "Dashboard",
     "members_label": "Leden",
     "active_suffix": "actief",
+    "average_age": "Gemiddelde leeftijd {age} jaar",
     "new_participations_label": "Nieuwe aanmeldingen",
     "new_participations_suffix": "voor werksessies",
     "show_all": "Toon alles",

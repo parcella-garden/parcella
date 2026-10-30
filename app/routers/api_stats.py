@@ -9,6 +9,7 @@ from typing import Optional
 from datetime import date
 
 from app.api_auth import get_current_api_user
+from app.birthdays import average_age
 from app.database import get_db
 from app.models import Member, Parcel, ParcelStatus, MemberParcel
 
@@ -28,6 +29,9 @@ router = APIRouter(
 class DashboardStats(BaseModel):
     members_total: int
     members_active: int
+    # Average exact age of active members with a date of birth on file,
+    # None if there are none (issue #263).
+    members_average_age: Optional[float] = None
     parcels_total: int
     parcels_active: int
     parcels_terminated: int
@@ -90,6 +94,7 @@ async def dashboard_stats(db: AsyncSession = Depends(get_db)):
     return DashboardStats(
         members_total=members_total or 0,
         members_active=members_active or 0,
+        members_average_age=await average_age(db),
         parcels_total=parcels_total or 0,
         parcels_active=parcels_active or 0,
         parcels_terminated=parcels_terminated or 0,

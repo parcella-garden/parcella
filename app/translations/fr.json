@@ -1694,6 +1694,7 @@
     "title": "Tableau de bord",
     "members_label": "Membres",
     "active_suffix": "actifs",
+    "average_age": "Âge moyen {age} ans",
     "new_participations_label": "Nouvelles inscriptions",
     "new_participations_suffix": "aux sessions de travail",
     "show_all": "Afficher tout",

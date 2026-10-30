@@ -16,7 +16,7 @@ from sqlalchemy.orm import selectinload
 from app.config import settings
 from app.database import get_db, AsyncSessionLocal, active_member_filter
 from app.models import User, UserRole, Member, Parcel, ParcelStatus, MemberParcel, Group, GroupMembership
-from app.birthdays import upcoming_birthdays
+from app.birthdays import average_age, upcoming_birthdays
 from app.auth import hash_password, get_current_user
 from app.module_flags import load_module_flags
 from app.nav_order import load_nav_order
@@ -601,10 +601,12 @@ async def startseite(request: Request):
         # transaction" on every dashboard load -- enough to block a backup
         # restore's DROP TABLE until it timed out.
         birthdays_this_week = await upcoming_birthdays(db, within_days=7)
+        members_average_age = await average_age(db)
 
     stats = {
         "members_total": members_total or 0,
         "members_active": members_active or 0,
+        "members_average_age": members_average_age,
         "parcels_active": parcels_active or 0,
         "parcels_terminated": parcels_terminated or 0,
         "parcels_vacant": parcels_vacant or 0,
