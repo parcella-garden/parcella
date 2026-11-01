@@ -70,4 +70,6 @@ Architecture Decisions for details):
     picture, update [`docs/architecture.svg`](./architecture.svg) -- it is
     hand-maintained plain SVG, edit it in any text editor. Every new module
     also gets a row in the module map of
-    [`docs/architecture-application.svg`](./architecture-application.svg)
+    [`docs/architecture-application.svg`](./architecture-application.svg):
+    add it to `rows` in `docs/tools/architecture_application_svg.py` and
+    re-run the script (the SVG is generated, don't edit it by hand)
