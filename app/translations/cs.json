@@ -2266,7 +2266,8 @@
       "no_runs": "Zatím žádná vyúčtování.",
       "delete_confirm": "Smazat toto vyúčtování včetně všech definic položek? Tuto akci nelze vrátit zpět.",
       "all_invoices_button": "Všechny faktury",
-      "success_message": "Hotovo."
+      "success_message": "Hotovo.",
+      "no_runs_filtered": "Filtru neodpovídá žádné vyúčtování."
     },
     "run_detail": {
       "title": "Vyúčtování",

@@ -2266,7 +2266,8 @@
       "no_runs": "Nog geen factuurrondes.",
       "delete_confirm": "Deze factuurronde met alle regeldefinities verwijderen? Dit kan niet ongedaan worden gemaakt.",
       "all_invoices_button": "Alle facturen",
-      "success_message": "Klaar."
+      "success_message": "Klaar.",
+      "no_runs_filtered": "Geen factuurrondes komen overeen met het filter."
     },
     "run_detail": {
       "title": "Factuurronde",

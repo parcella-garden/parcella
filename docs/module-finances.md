@@ -231,6 +231,10 @@ Both invoice lists are searchable/filterable (issue #190):
 `/finances/invoices` (outgoing, across every run) by invoice number,
 recipient, amount range, and payment status; `/finances/incoming-invoices`
 by invoice number, sender, amount range, and payment status.
+`/finances/runs` (the list of invoice runs) filters by year, subject
+and status (issue #266). Both it and the incoming invoices list create
+new entries in a modal opened from a button in the top bar (issues
+#265/#266), so the page itself is just the filterable list.
 `/finances/runs/{id}` (a single run's own invoice table) got the same
 invoice-number/recipient/parcel/amount/status filters as a same-session
 follow-up -- the flat cross-run list doesn't replace the run-scoped

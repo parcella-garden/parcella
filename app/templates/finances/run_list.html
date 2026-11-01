@@ -3,9 +3,19 @@
 {% block page_title %}{{ t('finances.run_list.heading') }}{% endblock %}
 
 {% block topbar_actions %}
-<a href="/finances/invoices" class="btn btn-sm btn-outline-secondary">
-    <i class="bi bi-receipt me-1"></i>{{ t('finances.run_list.all_invoices_button') }}
-</a>
+<div class="d-flex gap-2 flex-wrap">
+    {% if has_perm(request, 'finances', 'write') %}
+    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#newRunModal">
+        <i class="bi bi-plus-lg me-1"></i>{{ t('finances.run_list.new_run_header') }}
+    </button>
+    {% endif %}
+    <a href="/finances/invoices" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-receipt me-1"></i>{{ t('finances.run_list.all_invoices_button') }}
+    </a>
+    <a href="/finances/" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>{{ t('finances.coming_soon.back') }}
+    </a>
+</div>
 {% endblock %}
 
 {% block content %}
@@ -20,44 +30,36 @@
 {% endif %}
 <div class="row g-3">
 
-    {% if has_perm(request, 'finances', 'write') %}
     <div class="col-12">
         <div class="card">
-            <div class="card-header"><i class="bi bi-plus-lg me-2"></i>{{ t('finances.run_list.new_run_header') }}</div>
             <div class="card-body">
-                <form method="post" action="/finances/runs" class="row g-2 align-items-end">
-                    {{ csrf_field() }}
+                <form method="get" class="row g-2 align-items-end">
                     <div class="col-sm-2">
-                        <label class="form-label fw-semibold" style="font-size: 0.85rem;">{{ t('finances.run_list.label_year') }}</label>
-                        <input type="number" name="year" class="form-control form-control-sm" value="{{ current_year }}" required>
+                        <label class="form-label fw-semibold" style="font-size: 0.85rem;" for="filter-year">{{ t('finances.run_list.label_year') }}</label>
+                        <input type="number" name="year" id="filter-year" class="form-control form-control-sm" value="{{ filter_year }}">
                     </div>
                     <div class="col-sm-4">
-                        <label class="form-label fw-semibold" style="font-size: 0.85rem;">{{ t('finances.run_list.label_subject') }}</label>
-                        <input type="text" name="subject" class="form-control form-control-sm" required>
+                        <label class="form-label fw-semibold" style="font-size: 0.85rem;" for="filter-subject">{{ t('finances.run_list.label_subject') }}</label>
+                        <input type="text" name="subject" id="filter-subject" class="form-control form-control-sm" value="{{ filter_subject }}">
                     </div>
                     <div class="col-sm-2">
-                        <label class="form-label fw-semibold" style="font-size: 0.85rem;">{{ t('finances.run_list.label_issued_date') }}</label>
-                        <input type="date" name="issued_date" class="form-control form-control-sm" value="{{ today }}" required>
-                    </div>
-                    <div class="col-sm-2">
-                        <label class="form-label fw-semibold" style="font-size: 0.85rem;">{{ t('finances.run_list.label_due_date') }}</label>
-                        <input type="date" name="due_date" class="form-control form-control-sm" required>
-                    </div>
-                    <div class="col-sm-2">
-                        <button type="submit" class="btn btn-sm btn-primary w-100">
-                            <i class="bi bi-plus-lg me-1"></i>{{ t('finances.run_list.button_create') }}
-                        </button>
+                        <label class="form-label fw-semibold" style="font-size: 0.85rem;" for="filter-status">{{ t('finances.run_list.col_status') }}</label>
+                        <select name="status" id="filter-status" class="form-select form-select-sm">
+                            <option value="" {% if not filter_status %}selected{% endif %}>{{ t('finances.invoice_list.status_all') }}</option>
+                            <option value="draft" {% if filter_status == 'draft' %}selected{% endif %}>{{ t('finances.run_list.status_draft') }}</option>
+                            <option value="finalized" {% if filter_status == 'finalized' %}selected{% endif %}>{{ t('finances.run_list.status_finalized') }}</option>
+                        </select>
                     </div>
                     <div class="col-12">
-                        <label class="form-label fw-semibold" style="font-size: 0.85rem;">{{ t('finances.run_list.label_footer_text') }}</label>
-                        <textarea name="footer_text" class="form-control form-control-sm" rows="2"
-                                  placeholder="{{ t('finances.run_list.footer_placeholder') }}"></textarea>
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-funnel me-1"></i>{{ t('finances.invoice_list.filter_button') }}
+                        </button>
+                        <a href="/finances/runs" class="btn btn-sm btn-outline-secondary">{{ t('finances.invoice_list.reset_button') }}</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-    {% endif %}
 
     <div class="col-12">
         <div class="card">
@@ -105,7 +107,7 @@
                             {% else %}
                             <tr>
                                 <td colspan="5" class="text-center text-muted py-3">
-                                    {{ t('finances.run_list.no_runs') }}
+                                    {{ t('finances.run_list.no_runs_filtered') if filtered else t('finances.run_list.no_runs') }}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -117,4 +119,51 @@
     </div>
 
 </div>
+
+{% if has_perm(request, 'finances', 'write') %}
+{#- Issue #266: a new invoice run is created in this modal, same as the
+    incoming invoices page (#265); the page itself is the filterable list. -#}
+<div class="modal fade" id="newRunModal" tabindex="-1" aria-labelledby="newRunModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-fullscreen-md-down">
+        <form class="modal-content" method="post" action="/finances/runs">
+            {{ csrf_field() }}
+            <div class="modal-header">
+                <h5 class="modal-title" id="newRunModalTitle"><i class="bi bi-plus-lg me-2"></i>{{ t('finances.run_list.new_run_header') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ t('common.cancel') }}"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-2">
+                    <div class="col-sm-3">
+                        <label class="form-label fw-semibold" style="font-size: 0.85rem;" for="new-run-year">{{ t('finances.run_list.label_year') }}</label>
+                        <input type="number" name="year" id="new-run-year" class="form-control form-control-sm" value="{{ current_year }}" required>
+                    </div>
+                    <div class="col-sm-9">
+                        <label class="form-label fw-semibold" style="font-size: 0.85rem;" for="new-run-subject">{{ t('finances.run_list.label_subject') }}</label>
+                        <input type="text" name="subject" id="new-run-subject" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold" style="font-size: 0.85rem;" for="new-run-issued">{{ t('finances.run_list.label_issued_date') }}</label>
+                        <input type="date" name="issued_date" id="new-run-issued" class="form-control form-control-sm" value="{{ today }}" required>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold" style="font-size: 0.85rem;" for="new-run-due">{{ t('finances.run_list.label_due_date') }}</label>
+                        <input type="date" name="due_date" id="new-run-due" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size: 0.85rem;" for="new-run-footer">{{ t('finances.run_list.label_footer_text') }}</label>
+                        <textarea name="footer_text" id="new-run-footer" class="form-control form-control-sm" rows="3"
+                                  placeholder="{{ t('finances.run_list.footer_placeholder') }}"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">{{ t('common.cancel') }}</button>
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i>{{ t('finances.run_list.button_create') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

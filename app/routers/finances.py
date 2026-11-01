@@ -234,20 +234,35 @@ async def finances_dashboard(request: Request, db: AsyncSession = Depends(get_db
 # ---------------------------------------------------------------------------
 
 @router.get("/runs", response_class=HTMLResponse)
-async def run_list(request: Request, db: AsyncSession = Depends(get_db)):
+async def run_list(
+    request: Request, year: str = "", subject: str = "", status: str = "",
+    db: AsyncSession = Depends(get_db),
+):
+    """Issue #266: filterable by year, subject and status, same layout as
+    the incoming invoices list; "New invoice run" is a modal."""
     user = await require_permission(request, db, "finances", "read")
 
-    result = await db.execute(
+    query = (
         select(InvoiceRun)
         .options(selectinload(InvoiceRun.item_definitions))
-        .order_by(InvoiceRun.year.desc())
+        .order_by(InvoiceRun.year.desc(), InvoiceRun.created_at.desc())
     )
+    year = year.strip()
+    if year.isdigit():
+        query = query.where(InvoiceRun.year == int(year))
+    if subject.strip():
+        query = query.where(InvoiceRun.subject.ilike(f"%{subject.strip()}%"))
+    if status in {s.value for s in InvoiceRunStatus}:
+        query = query.where(InvoiceRun.status == InvoiceRunStatus(status))
+    result = await db.execute(query)
     runs = list(result.scalars().all())
 
     return templates.TemplateResponse("finances/run_list.html", {
         "request": request, "user": user, "runs": runs,
         "today": date.today().isoformat(),
         "current_year": date.today().year,
+        "filter_year": year, "filter_subject": subject, "filter_status": status,
+        "filtered": bool(year or subject.strip() or status),
     })
 
 

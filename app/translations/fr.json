@@ -2266,7 +2266,8 @@
       "no_runs": "Aucune série de factures pour le moment.",
       "delete_confirm": "Supprimer cette série de factures ainsi que toutes ses lignes ? Cette action est irréversible.",
       "all_invoices_button": "Toutes les factures",
-      "success_message": "Terminé."
+      "success_message": "Terminé.",
+      "no_runs_filtered": "Aucune série de factures ne correspond au filtre."
     },
     "run_detail": {
       "title": "Série de factures",

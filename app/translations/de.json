@@ -2266,7 +2266,8 @@
       "no_runs": "Noch keine Rechnungsläufe vorhanden.",
       "delete_confirm": "Diesen Rechnungslauf mitsamt allen Positionsdefinitionen löschen? Das kann nicht rückgängig gemacht werden.",
       "all_invoices_button": "Alle Rechnungen",
-      "success_message": "Erledigt."
+      "success_message": "Erledigt.",
+      "no_runs_filtered": "Keine Rechnungsläufe passen zum Filter."
     },
     "run_detail": {
       "title": "Rechnungslauf",

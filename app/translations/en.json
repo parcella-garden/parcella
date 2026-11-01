@@ -2266,7 +2266,8 @@
       "no_runs": "No invoice runs yet.",
       "delete_confirm": "Delete this invoice run and all its item definitions? This cannot be undone.",
       "all_invoices_button": "All invoices",
-      "success_message": "Done."
+      "success_message": "Done.",
+      "no_runs_filtered": "No invoice runs match the filter."
     },
     "run_detail": {
       "title": "Invoice run",

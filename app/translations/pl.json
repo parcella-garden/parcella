@@ -2266,7 +2266,8 @@
       "no_runs": "Brak serii faktur.",
       "delete_confirm": "Usunąć tę serię faktur wraz ze wszystkimi definicjami pozycji? Tej czynności nie można cofnąć.",
       "all_invoices_button": "Wszystkie faktury",
-      "success_message": "Gotowe."
+      "success_message": "Gotowe.",
+      "no_runs_filtered": "Żadna seria faktur nie pasuje do filtra."
     },
     "run_detail": {
       "title": "Seria faktur",
