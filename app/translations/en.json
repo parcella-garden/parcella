@@ -342,7 +342,9 @@
       "search_placeholder": "Search settings...",
       "search_no_results": "No settings match your search.",
       "invoice_number_start_placeholder": "e.g. 20000",
-      "invoice_number_start_help": "Optional. Forces the very next invoice run -- in any year -- to start at this number instead of continuing automatically; checked for collisions with existing numbers only when that run is finalized. Cleared automatically once used, so later runs just continue sequentially from there. Leave blank to always continue automatically."
+      "invoice_number_start_help": "Optional. Forces the very next invoice run -- in any year -- to start at this number instead of continuing automatically; checked for collisions with existing numbers only when that run is finalized. Cleared automatically once used, so later runs just continue sequentially from there. Leave blank to always continue automatically.",
+      "applicant_contact_template_label": "Text of the email to new applicants",
+      "applicant_contact_template_hint": "Used by \"Contact applicant\" on a new application and can still be edited before each send. {name} is replaced by the applicant's name, {club} by the club's name. Leave blank for the built-in text (shown greyed out)."
     },
     "integrations": {
       "title": "Integrations",
@@ -2236,6 +2238,9 @@
       "body": "{author} commented on the purchase request \"{title}\" in {app_name}:",
       "button": "Open the request and reply",
       "external_hint": "To reply, please get in touch with the board."
+    },
+    "applicant_contact": {
+      "subject": "Thank you for registering to our waiting list!"
     }
   },
   "finances": {
@@ -2898,6 +2903,23 @@
       "folder_new": "{path} – active from the handover date",
       "folder_none": "No new folder – set one on the parcel page later.",
       "folder_old_only": "The old tenants' documents folder is retired on the handover date. Someone with full access sets the new one on the parcel page."
+    },
+    "contact": {
+      "header": "Contact applicant",
+      "to": "To:",
+      "subject_label": "Subject:",
+      "body_label": "Message",
+      "hint": "Sending emails this text to the applicant and sets the status to \"Contacted\".",
+      "send": "Send",
+      "confirm": "Send this email to {email} now and set the status to \"Contacted\"?",
+      "sent": "The email was sent and the status set to \"Contacted\".",
+      "default_body": "Hello {name},\n\nthank you for registering to our waiting list for a garden plot. We have received your application and will get back to you as soon as a plot becomes available.\n\nKind regards\nThe board of {club}",
+      "errors": {
+        "not_new": "Only a new application can be contacted this way.",
+        "empty_body": "Please enter a message.",
+        "body_too_long": "The message is too long.",
+        "send_failed": "The email could not be sent -- please check the SMTP settings. The status was not changed."
+      }
     }
   },
   "external_contacts": {

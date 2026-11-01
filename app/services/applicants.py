@@ -14,11 +14,15 @@ from datetime import date, datetime, time, timezone
 from typing import Optional, Sequence, Union
 
 from email_validator import EmailNotValidError, validate_email
+from markupsafe import Markup, escape
 from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.branding import DEFAULT_CLUB_NAME
 from app.change_tracker import ChangeTracker
+from app.email_service import send_email
+from app.i18n import translate
 from app.models import (
     Applicant, ApplicantSource, ApplicantStatus, ChangeHistory, ClubSetting, ExternalContact, ExternalContactTag,
     external_contact_tag_links,
@@ -143,6 +147,62 @@ async def delete_applicant(db, applicant: Applicant) -> None:
     ))
     await db.delete(applicant)
     await db.commit()
+
+
+# ---------------------------------------------------------------------------
+# Contacting a new applicant by email (issue #267): a boilerplate text,
+# edited per send, goes out over SMTP, then the status moves NEW ->
+# CONTACTED. The text is the club's own (Admin settings -> Applicants)
+# or, left blank there, a translated default.
+# ---------------------------------------------------------------------------
+
+CONTACT_TEMPLATE_SETTING = "applicant_contact_template"
+_MAX_CONTACT_BODY = 20000
+
+
+async def contact_template(db, lang: str) -> str:
+    """The text the "Contact applicant" box starts from, placeholders
+    still in it."""
+    stored = await db.scalar(select(ClubSetting.value).where(ClubSetting.key == CONTACT_TEMPLATE_SETTING))
+    return (stored or "").strip() or translate("applicants.contact.default_body", lang)
+
+
+async def fill_contact_template(db, template: str, applicant: Applicant) -> str:
+    """Replaces {name} (first + last name) and {club} (the club's name).
+    Plain str.replace, never str.format(): the text is the board's own
+    and may contain any other braces. Without a name, "{name}" goes
+    away together with the space before it, so "Hello {name}," reads
+    "Hello,"."""
+    name = " ".join(part for part in (applicant.first_name, applicant.last_name) if part)
+    if not name:
+        template = re.sub(r"[ \t]*\{name\}", "", template)
+    club = await db.scalar(select(ClubSetting.value).where(ClubSetting.key == "verein_name"))
+    return template.replace("{name}", name).replace("{club}", club or DEFAULT_CLUB_NAME)
+
+
+async def send_contact_email(
+    db, applicant: Applicant, *, body: Optional[str], lang: str, changed_by_id: Optional[str],
+) -> Applicant:
+    """Emails `body` to the applicant and sets the status to CONTACTED.
+    Only for NEW applications -- the button is the first step of the
+    workflow, not a general mailer (that's "Write to the selected
+    applicants", ADR 0112). When SMTP fails, nothing changes, so the
+    board can try again."""
+    if applicant.status != ApplicantStatus.NEW:
+        raise ServiceError("applicants.contact.errors.not_new", http_status=409)
+    body = (body or "").strip()
+    if not body:
+        raise ServiceError("applicants.contact.errors.empty_body")
+    if len(body) > _MAX_CONTACT_BODY:
+        raise ServiceError("applicants.contact.errors.body_too_long")
+
+    html = f'<html><body style="font-family: sans-serif;">{escape(body).replace(chr(10), Markup("<br>"))}</body></html>'
+    sent = await send_email(
+        applicant.email, translate("email.applicant_contact.subject", lang), html, text_body=body, db=db,
+    )
+    if not sent:
+        raise ServiceError("applicants.contact.errors.send_failed", http_status=502)
+    return await update_applicant(db, applicant, changed_by_id=changed_by_id, status=ApplicantStatus.CONTACTED)
 
 
 # ---------------------------------------------------------------------------

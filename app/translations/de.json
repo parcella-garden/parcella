@@ -342,7 +342,9 @@
       "search_placeholder": "Einstellungen durchsuchen...",
       "search_no_results": "Keine Einstellungen entsprechen Ihrer Suche.",
       "invoice_number_start_placeholder": "z. B. 20000",
-      "invoice_number_start_help": "Optional. Erzwingt, dass der nächste Rechnungslauf -- unabhängig vom Jahr -- mit dieser Nummer beginnt, anstatt automatisch fortzusetzen; Kollisionen mit bestehenden Nummern werden erst beim Abschließen dieses Laufs geprüft. Wird nach Verwendung automatisch geleert, sodass spätere Läufe einfach fortlaufend weiterzählen. Leer lassen, um immer automatisch fortzusetzen."
+      "invoice_number_start_help": "Optional. Erzwingt, dass der nächste Rechnungslauf -- unabhängig vom Jahr -- mit dieser Nummer beginnt, anstatt automatisch fortzusetzen; Kollisionen mit bestehenden Nummern werden erst beim Abschließen dieses Laufs geprüft. Wird nach Verwendung automatisch geleert, sodass spätere Läufe einfach fortlaufend weiterzählen. Leer lassen, um immer automatisch fortzusetzen.",
+      "applicant_contact_template_label": "Text der E-Mail an neue Bewerber",
+      "applicant_contact_template_hint": "Wird bei „Bewerber kontaktieren“ einer neuen Bewerbung vorgeschlagen und kann vor jedem Senden noch angepasst werden. {name} wird durch den Namen des Bewerbers ersetzt, {club} durch den Vereinsnamen. Leer lassen für den eingebauten Text (grau angezeigt)."
     },
     "integrations": {
       "title": "Integrationen",
@@ -2236,6 +2238,9 @@
       "body": "{author} hat den Einkaufswunsch „{title}“ in {app_name} kommentiert:",
       "button": "Einkaufswunsch öffnen und antworten",
       "external_hint": "Zum Antworten wende dich bitte an den Vorstand."
+    },
+    "applicant_contact": {
+      "subject": "Vielen Dank für Ihre Anmeldung auf unserer Warteliste!"
     }
   },
   "finances": {
@@ -2898,6 +2903,23 @@
       "folder_new": "{path} – aktiv ab dem Übergabedatum",
       "folder_none": "Kein neuer Ordner – später auf der Parzellenseite festlegen.",
       "folder_old_only": "Der Dokumentenordner der bisherigen Pächter wird am Übergabedatum stillgelegt. Den neuen legt jemand mit Vollzugriff auf der Parzellenseite fest."
+    },
+    "contact": {
+      "header": "Bewerber kontaktieren",
+      "to": "An:",
+      "subject_label": "Betreff:",
+      "body_label": "Nachricht",
+      "hint": "Beim Senden geht dieser Text per E-Mail an den Bewerber, und der Status wird auf „Kontaktiert“ gesetzt.",
+      "send": "Senden",
+      "confirm": "Diese E-Mail jetzt an {email} senden und den Status auf „Kontaktiert“ setzen?",
+      "sent": "Die E-Mail wurde gesendet und der Status auf „Kontaktiert“ gesetzt.",
+      "default_body": "Hallo {name},\n\nvielen Dank für Ihre Anmeldung auf unserer Warteliste für einen Garten. Wir haben Ihre Bewerbung erhalten und melden uns, sobald ein Garten frei wird.\n\nMit freundlichen Grüßen\nDer Vorstand des {club}",
+      "errors": {
+        "not_new": "Nur eine neue Bewerbung kann auf diesem Weg kontaktiert werden.",
+        "empty_body": "Bitte geben Sie eine Nachricht ein.",
+        "body_too_long": "Die Nachricht ist zu lang.",
+        "send_failed": "Die E-Mail konnte nicht gesendet werden – bitte prüfen Sie die SMTP-Einstellungen. Der Status wurde nicht geändert."
+      }
     }
   },
   "external_contacts": {

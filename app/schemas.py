@@ -972,6 +972,13 @@ class ApplicantOut(BaseModel):
     updated_at: datetime
 
 
+class ApplicantContact(BaseModel):
+    """Emails a NEW applicant and sets the status to CONTACTED (issue
+    #267). Without `body`, the club's boilerplate (Admin settings ->
+    Applicants, or the built-in text) is sent, {name}/{club} filled in."""
+    body: Optional[str] = Field(None, max_length=20000)
+
+
 class ApplicantParcelHandover(BaseModel):
     """Hands a TERMINATED parcel over to this applicant (and optional
     co-applicants) -- ADR 0101."""

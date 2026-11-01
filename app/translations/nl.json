@@ -342,7 +342,9 @@
       "search_placeholder": "Instellingen zoeken...",
       "search_no_results": "Geen instellingen komen overeen met uw zoekopdracht.",
       "invoice_number_start_placeholder": "bijv. 20000",
-      "invoice_number_start_help": "Optioneel. Dwingt af dat de volgende factuurronde -- ongeacht het jaar -- met dit nummer begint in plaats van automatisch door te tellen; botsingen met bestaande nummers worden pas gecontroleerd bij het afronden van die ronde. Wordt na gebruik automatisch geleegd, zodat latere rondes gewoon doortellen. Laat leeg om altijd automatisch door te tellen."
+      "invoice_number_start_help": "Optioneel. Dwingt af dat de volgende factuurronde -- ongeacht het jaar -- met dit nummer begint in plaats van automatisch door te tellen; botsingen met bestaande nummers worden pas gecontroleerd bij het afronden van die ronde. Wordt na gebruik automatisch geleegd, zodat latere rondes gewoon doortellen. Laat leeg om altijd automatisch door te tellen.",
+      "applicant_contact_template_label": "Tekst van de e-mail aan nieuwe aanvragers",
+      "applicant_contact_template_hint": "Wordt voorgesteld bij \"Aanvrager contacteren\" op een nieuwe aanvraag en kan voor elke verzending nog worden aangepast. {name} wordt vervangen door de naam van de aanvrager, {club} door de naam van de vereniging. Laat leeg voor de ingebouwde tekst (grijs weergegeven)."
     },
     "integrations": {
       "title": "Integraties",
@@ -2236,6 +2238,9 @@
       "body": "{author} heeft gereageerd op het aankoopverzoek \"{title}\" in {app_name}:",
       "button": "Verzoek openen en antwoorden",
       "external_hint": "Neem contact op met het bestuur om te antwoorden."
+    },
+    "applicant_contact": {
+      "subject": "Bedankt voor je aanmelding op onze wachtlijst!"
     }
   },
   "finances": {
@@ -2898,6 +2903,23 @@
       "folder_new": "{path} – actief vanaf de overdrachtsdatum",
       "folder_none": "Geen nieuwe map – stel er later een in op de perceelpagina.",
       "folder_old_only": "De documentenmap van de huidige pachters wordt op de overdrachtsdatum buiten gebruik gesteld. Iemand met volledige toegang stelt de nieuwe in op de perceelpagina."
+    },
+    "contact": {
+      "header": "Aanvrager contacteren",
+      "to": "Aan:",
+      "subject_label": "Onderwerp:",
+      "body_label": "Bericht",
+      "hint": "Bij verzenden gaat deze tekst per e-mail naar de aanvrager en wordt de status op \"Gecontacteerd\" gezet.",
+      "send": "Verzenden",
+      "confirm": "Deze e-mail nu naar {email} sturen en de status op \"Gecontacteerd\" zetten?",
+      "sent": "De e-mail is verzonden en de status op \"Gecontacteerd\" gezet.",
+      "default_body": "Hallo {name},\n\nbedankt voor je aanmelding op onze wachtlijst voor een tuin. We hebben je aanvraag ontvangen en nemen contact op zodra er een tuin vrijkomt.\n\nMet vriendelijke groet\nHet bestuur van {club}",
+      "errors": {
+        "not_new": "Alleen een nieuwe aanvraag kan op deze manier worden gecontacteerd.",
+        "empty_body": "Vul een bericht in.",
+        "body_too_long": "Het bericht is te lang.",
+        "send_failed": "De e-mail kon niet worden verzonden -- controleer de SMTP-instellingen. De status is niet gewijzigd."
+      }
     }
   },
   "external_contacts": {

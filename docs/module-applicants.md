@@ -154,6 +154,41 @@ sending, once per address (two applications from the same address get
 one email). See "Messages to picked applicants" in
 [module-announcements.md](./module-announcements.md).
 
+## Contacting a new applicant (issue #267)
+
+On a `NEW` application, users with write on `applicants` see a
+"Contact applicant" box on the detail page: the email's text in an
+editable textarea and a Send button. Sending emails the text over SMTP
+to the applicant (subject: the translated
+`email.applicant_contact.subject`, "Thank you for registering to our
+waiting list!") and sets the status to `CONTACTED` -- written to the
+status history like any other change. If SMTP fails, nothing changes
+and the page keeps the edited text, so the board can try again. On any
+other status the box is gone: it's the first step of the workflow, not
+a general mailer (that's "Writing to applicants" above).
+
+- **The text** starts from Admin settings → Applicants → "Text of the
+  email to new applicants" (`applicant_contact_template`) or, left
+  blank there, the translated `applicants.contact.default_body`.
+  `{name}` becomes first + last name (without a name it disappears
+  with the space before it: "Hello {name}," → "Hello,"), `{club}` the
+  club's name. Placeholders are replaced with plain `str.replace`, not
+  `str.format()`, so any other braces in the club's text are left
+  alone.
+- **Language**: the subject and the built-in text follow the sending
+  user's interface language -- an applicant has no language of their
+  own.
+- **One text for every language**, deliberately: a club that set its
+  own text writes in its own language. Per-language boilerplates
+  would add a settings field per language for little gain.
+- The plain text goes out as the text part; the HTML part is the same
+  text, escaped, line breaks as `<br>`.
+- **API**: `POST /api/v1/applicants/{id}/contact` with an optional
+  `body` (without one, the boilerplate is sent, placeholders filled).
+  409 when the application isn't `NEW`, 502 when SMTP fails.
+- Logic: `send_contact_email()`, `contact_template()`,
+  `fill_contact_template()` in `app/services/applicants.py`.
+
 ## Known gaps
 
 - Handing over a parcel copies only name, email and phone. Address, IBAN
@@ -162,4 +197,7 @@ one email). See "Messages to picked applicants" in
 - No email to the board on a new application; the dashboard card and the
   nav entry are the signal.
 - No automatic email to the applicant (confirmation, status updates);
-  the board can write to picked applicants by hand (see above).
+  the board sends the first contact by hand ("Contacting a new
+  applicant") and can write to picked applicants (see above).
+- The contact email isn't stored -- only the status change to
+  `CONTACTED` shows that it went out, not what it said.

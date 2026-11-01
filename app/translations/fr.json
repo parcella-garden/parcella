@@ -342,7 +342,9 @@
       "search_placeholder": "Rechercher dans les paramètres...",
       "search_no_results": "Aucun paramètre ne correspond à votre recherche.",
       "invoice_number_start_placeholder": "p. ex. 20000",
-      "invoice_number_start_help": "Facultatif. Force la prochaine série de factures -- quelle que soit l'année -- à commencer à ce numéro au lieu de continuer automatiquement ; les collisions avec les numéros existants ne sont vérifiées qu'au moment de la finalisation de cette série. Effacé automatiquement une fois utilisé, afin que les séries suivantes continuent simplement la numérotation. Laissez vide pour toujours continuer automatiquement."
+      "invoice_number_start_help": "Facultatif. Force la prochaine série de factures -- quelle que soit l'année -- à commencer à ce numéro au lieu de continuer automatiquement ; les collisions avec les numéros existants ne sont vérifiées qu'au moment de la finalisation de cette série. Effacé automatiquement une fois utilisé, afin que les séries suivantes continuent simplement la numérotation. Laissez vide pour toujours continuer automatiquement.",
+      "applicant_contact_template_label": "Texte de l'e-mail aux nouveaux candidats",
+      "applicant_contact_template_hint": "Proposé par « Contacter le candidat » sur une nouvelle candidature et modifiable avant chaque envoi. {name} est remplacé par le nom du candidat, {club} par le nom de l'association. Laisser vide pour le texte intégré (affiché en grisé)."
     },
     "integrations": {
       "title": "Intégrations",
@@ -2236,6 +2238,9 @@
       "body": "{author} a commenté la demande d'achat « {title} » dans {app_name} :",
       "button": "Ouvrir la demande et répondre",
       "external_hint": "Pour répondre, veuillez contacter le bureau."
+    },
+    "applicant_contact": {
+      "subject": "Merci de vous être inscrit(e) sur notre liste d'attente !"
     }
   },
   "finances": {
@@ -2898,6 +2903,23 @@
       "folder_new": "{path} – actif à partir de la date de remise",
       "folder_none": "Pas de nouveau dossier – à définir plus tard sur la page de la parcelle.",
       "folder_old_only": "Le dossier de documents des anciens locataires est retiré à la date de remise. Une personne disposant d'un accès complet définit le nouveau sur la page de la parcelle."
+    },
+    "contact": {
+      "header": "Contacter le candidat",
+      "to": "À :",
+      "subject_label": "Objet :",
+      "body_label": "Message",
+      "hint": "L'envoi transmet ce texte par e-mail au candidat et passe le statut à « Contacté ».",
+      "send": "Envoyer",
+      "confirm": "Envoyer cet e-mail maintenant à {email} et passer le statut à « Contacté » ?",
+      "sent": "L'e-mail a été envoyé et le statut passé à « Contacté ».",
+      "default_body": "Bonjour {name},\n\nmerci de vous être inscrit(e) sur notre liste d'attente pour une parcelle. Nous avons bien reçu votre candidature et reviendrons vers vous dès qu'une parcelle se libère.\n\nCordialement\nLe bureau de {club}",
+      "errors": {
+        "not_new": "Seule une nouvelle candidature peut être contactée de cette façon.",
+        "empty_body": "Veuillez saisir un message.",
+        "body_too_long": "Le message est trop long.",
+        "send_failed": "L'e-mail n'a pas pu être envoyé -- veuillez vérifier les paramètres SMTP. Le statut n'a pas été modifié."
+      }
     }
   },
   "external_contacts": {

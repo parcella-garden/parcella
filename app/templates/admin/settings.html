@@ -291,6 +291,12 @@
                        name="applicant_retention_months" id="applicant_retention_months"
                        value="{{ settings_map.get('applicant_retention_months', '') or '' }}">
                 <div class="form-text">{{ t('admin.settings.applicant_retention_hint') }}</div>
+
+                <label class="form-label fw-semibold mt-3" for="applicant_contact_template">{{ t('admin.settings.applicant_contact_template_label') }}</label>
+                <textarea class="form-control" rows="8" maxlength="20000"
+                          name="applicant_contact_template" id="applicant_contact_template"
+                          placeholder="{{ t('applicants.contact.default_body') }}">{{ settings_map.get('applicant_contact_template', '') or '' }}</textarea>
+                <div class="form-text">{{ t('admin.settings.applicant_contact_template_hint') }}</div>
             </div>
             </div>
         </div>

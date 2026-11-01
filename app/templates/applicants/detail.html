@@ -61,6 +61,31 @@
     </div>
 
     <div class="col-lg-5">
+        {% if contacted %}
+        <div class="alert alert-success"><i class="bi bi-envelope-check me-1"></i>{{ t('applicants.contact.sent') }}</div>
+        {% endif %}
+        {% if can_write and applicant.status.value == 'NEW' %}
+        {#- Issue #267: first contact by email; sending moves the status to Contacted. -#}
+        <form method="post" action="/applicants/{{ applicant.id }}/contact"
+              onsubmit="return confirm({{ t('applicants.contact.confirm', email=applicant.email)|tojson|forceescape }});">
+            {{ csrf_field() }}
+            <div class="card mb-3">
+                <div class="card-header"><i class="bi bi-envelope me-2"></i>{{ t('applicants.contact.header') }}</div>
+                <div class="card-body">
+                    <div class="text-muted mb-2" style="font-size: 0.85rem;">
+                        {{ t('applicants.contact.to') }} <strong>{{ applicant.email }}</strong><br>
+                        {{ t('applicants.contact.subject_label') }} {{ t('email.applicant_contact.subject') }}
+                    </div>
+                    <label class="form-label visually-hidden" for="contact-body">{{ t('applicants.contact.body_label') }}</label>
+                    <textarea id="contact-body" name="body" class="form-control" rows="10" maxlength="20000" required>{{ contact_body }}</textarea>
+                    <div class="form-text">{{ t('applicants.contact.hint') }}</div>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>{{ t('applicants.contact.send') }}</button>
+                </div>
+            </div>
+        </form>
+        {% endif %}
         {% if can_write and has_perm(request, 'members_parcels', 'write') and is_open %}
         <div class="card mb-3">
             <div class="card-body">

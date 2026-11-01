@@ -21,14 +21,16 @@ from sqlalchemy import select
 from app.database import get_db
 from app.models import Applicant, ApplicantSource, ApplicantStatus, User
 from app.api_auth import require_api_permission
-from app.i18n import t_for
+from app.i18n import DEFAULT_LANGUAGE, t_for
 from app.module_flags import load_module_flags, require_module
 from app.services.errors import ServiceError
-from app.services.applicants import create_applicant, delete_applicant, update_applicant
+from app.services.applicants import (
+    contact_template, create_applicant, delete_applicant, fill_contact_template, send_contact_email, update_applicant,
+)
 from app.services.parcel_handover import hand_over_parcel, plan_handover
 from app.permissions import get_user_permissions, has_permission, is_full_access_user
 from app.schemas import (
-    ApplicantCreate, ApplicantOut, ApplicantParcelHandover, ApplicantParcelHandoverOut, ApplicantUpdate,
+    ApplicantContact, ApplicantCreate, ApplicantOut, ApplicantParcelHandover, ApplicantParcelHandoverOut, ApplicantUpdate,
 )
 
 router = APIRouter(
@@ -108,6 +110,25 @@ async def applicant_delete(
 ):
     await delete_applicant(db, await _get_or_404(db, applicant_id))
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/{applicant_id}/contact", response_model=ApplicantOut, summary="Email a new applicant (status -> CONTACTED)")
+async def applicant_contact(
+    applicant_id: str, payload: ApplicantContact, request: Request,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_api_permission("applicants", "write")),
+):
+    applicant = await _get_or_404(db, applicant_id)
+    lang = getattr(request.state, "language", DEFAULT_LANGUAGE)
+    body = payload.body
+    if body is None:
+        body = await fill_contact_template(db, await contact_template(db, lang), applicant)
+    try:
+        return await send_contact_email(db, applicant, body=body, lang=lang, changed_by_id=user.id)
+    except ServiceError as e:
+        if e.http_status in (status.HTTP_409_CONFLICT, status.HTTP_502_BAD_GATEWAY):
+            raise HTTPException(status_code=e.http_status, detail=t_for(request, e.key, **e.params))
+        raise _service_error(request, e)
 
 
 @router.post(

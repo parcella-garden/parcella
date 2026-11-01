@@ -66,7 +66,7 @@ from app.cloud_backup import (
     get_cloud_backup_settings, save_cloud_backup_settings, run_cloud_backup_now,
     is_backup_filename, FREQUENCY_CHOICES,
 )
-from app.services.applicants import RETENTION_SETTING, parse_retention_months
+from app.services.applicants import CONTACT_TEMPLATE_SETTING, RETENTION_SETTING, parse_retention_months
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 from app.templating import templates
@@ -1236,6 +1236,13 @@ async def settings_save(
         await _upsert_club_setting(
             db, RETENTION_SETTING, str(months) if months else "",
             "Months after the last status change before an applicant is deleted (blank = never)",
+        )
+    # Issue #267: the "Contact applicant" boilerplate; blank = the
+    # translated default. Same "only when on the form" guard as above.
+    if "applicant_contact_template" in form:
+        await _upsert_club_setting(
+            db, CONTACT_TEMPLATE_SETTING, (form.get("applicant_contact_template") or "").strip()[:20000],
+            "Boilerplate for the email to a new applicant (blank = built-in text)",
         )
 
     # Board members (issue #111): full resync, not incremental add/remove

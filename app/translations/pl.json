@@ -342,7 +342,9 @@
       "search_placeholder": "Szukaj ustawień...",
       "search_no_results": "Żadne ustawienia nie pasują do wyszukiwania.",
       "invoice_number_start_placeholder": "np. 20000",
-      "invoice_number_start_help": "Opcjonalne. Wymusza, aby następna seria faktur -- niezależnie od roku -- rozpoczynała się od tego numeru zamiast kontynuować automatycznie; kolizje z istniejącymi numerami są sprawdzane dopiero przy finalizacji tej serii. Po użyciu jest automatycznie czyszczone, więc kolejne serie po prostu kontynuują numerację. Pozostaw puste, aby zawsze kontynuować automatycznie."
+      "invoice_number_start_help": "Opcjonalne. Wymusza, aby następna seria faktur -- niezależnie od roku -- rozpoczynała się od tego numeru zamiast kontynuować automatycznie; kolizje z istniejącymi numerami są sprawdzane dopiero przy finalizacji tej serii. Po użyciu jest automatycznie czyszczone, więc kolejne serie po prostu kontynuują numerację. Pozostaw puste, aby zawsze kontynuować automatycznie.",
+      "applicant_contact_template_label": "Treść e-maila do nowych kandydatów",
+      "applicant_contact_template_hint": "Używana przez „Skontaktuj się z kandydatem” przy nowym zgłoszeniu; przed każdym wysłaniem można ją jeszcze zmienić. {name} zostanie zastąpione imieniem i nazwiskiem kandydata, {club} nazwą stowarzyszenia. Pozostaw puste, aby użyć wbudowanego tekstu (pokazanego na szaro)."
     },
     "integrations": {
       "title": "Integracje",
@@ -2236,6 +2238,9 @@
       "body": "{author} skomentował(a) wniosek zakupowy „{title}” w {app_name}:",
       "button": "Otwórz wniosek i odpowiedz",
       "external_hint": "Aby odpowiedzieć, skontaktuj się z zarządem."
+    },
+    "applicant_contact": {
+      "subject": "Dziękujemy za zapisanie się na naszą listę oczekujących!"
     }
   },
   "finances": {
@@ -2898,6 +2903,23 @@
       "folder_new": "{path} – aktywny od dnia przekazania",
       "folder_none": "Brak nowego folderu – ustaw go później na stronie działki.",
       "folder_old_only": "Folder dokumentów dotychczasowych dzierżawców zostanie wycofany w dniu przekazania. Nowy ustawia osoba z pełnym dostępem na stronie działki."
+    },
+    "contact": {
+      "header": "Skontaktuj się z kandydatem",
+      "to": "Do:",
+      "subject_label": "Temat:",
+      "body_label": "Wiadomość",
+      "hint": "Wysłanie przesyła ten tekst e-mailem do kandydata i ustawia status na „Skontaktowano”.",
+      "send": "Wyślij",
+      "confirm": "Wysłać teraz ten e-mail do {email} i ustawić status na „Skontaktowano”?",
+      "sent": "E-mail został wysłany, a status ustawiony na „Skontaktowano”.",
+      "default_body": "Dzień dobry {name},\n\ndziękujemy za zapisanie się na naszą listę oczekujących na działkę. Otrzymaliśmy Państwa zgłoszenie i odezwiemy się, gdy tylko zwolni się działka.\n\nZ poważaniem\nZarząd {club}",
+      "errors": {
+        "not_new": "W ten sposób można skontaktować się tylko z nowym zgłoszeniem.",
+        "empty_body": "Proszę wpisać wiadomość.",
+        "body_too_long": "Wiadomość jest za długa.",
+        "send_failed": "Nie udało się wysłać e-maila – proszę sprawdzić ustawienia SMTP. Status nie został zmieniony."
+      }
     }
   },
   "external_contacts": {

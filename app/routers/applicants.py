@@ -29,10 +29,13 @@ from app.permissions import require_permission
 from app.module_flags import require_module
 from app.templating import templates
 from app.services.errors import ServiceError
-from app.services.applicants import create_applicant, delete_applicant, find_red_flags, update_applicant
+from app.services.applicants import (
+    contact_template, create_applicant, delete_applicant, fill_contact_template, find_red_flags,
+    send_contact_email, update_applicant,
+)
 from app.services.parcel_handover import hand_over_parcel, plan_handover, terminated_parcels
 from app.parcel_cloud_folders import browse_folder_picker
-from app.i18n import t_for
+from app.i18n import DEFAULT_LANGUAGE, t_for
 
 router = APIRouter(
     prefix="/applicants",
@@ -151,7 +154,7 @@ async def _red_flags(request: Request, db: AsyncSession, applicants) -> dict:
     return await find_red_flags(db, applicants)
 
 
-async def _detail_context(request, db, user, applicant, error=None) -> dict:
+async def _detail_context(request, db, user, applicant, error=None, contact_body=None) -> dict:
     others = (await db.execute(
         select(Applicant)
         .where(Applicant.email == applicant.email, Applicant.id != applicant.id)
@@ -169,7 +172,17 @@ async def _detail_context(request, db, user, applicant, error=None) -> dict:
         "statuses": list(ApplicantStatus), "error": error, "today": date.today(),
         "is_open": applicant.status in APPLICANT_OPEN_STATUSES,
         "red_flags": (await _red_flags(request, db, [applicant])).get(applicant.id, []),
+        # Issue #267: the "Contact applicant" box, only on a NEW application.
+        "contact_body": contact_body if contact_body is not None else (
+            await fill_contact_template(db, await contact_template(db, _lang(request)), applicant)
+            if applicant.status == ApplicantStatus.NEW else ""
+        ),
+        "contacted": request.query_params.get("contacted") == "1",
     }
+
+
+def _lang(request: Request) -> str:
+    return getattr(request.state, "language", DEFAULT_LANGUAGE)
 
 
 @router.get("/{applicant_id}", response_class=HTMLResponse)
@@ -199,6 +212,26 @@ async def applicant_update(applicant_id: str, request: Request, db: AsyncSession
             status_code=e.http_status,
         )
     return RedirectResponse(url=f"/applicants/{applicant_id}", status_code=303)
+
+
+@router.post("/{applicant_id}/contact")
+async def applicant_contact(applicant_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    """Issue #267: email the (edited) boilerplate to a NEW applicant,
+    then set the status to CONTACTED."""
+    user = await require_permission(request, db, "applicants", "write")
+    applicant = await _get_or_404(db, applicant_id)
+    body = (await request.form()).get("body") or ""
+    try:
+        await send_contact_email(db, applicant, body=body, lang=_lang(request), changed_by_id=user.id)
+    except ServiceError as e:
+        # send_contact_email() raises before it changes anything -- no
+        # rollback (it would also expire `user`, which the page needs).
+        return templates.TemplateResponse(
+            "applicants/detail.html",
+            await _detail_context(request, db, user, applicant, error=e.key, contact_body=body),
+            status_code=e.http_status,
+        )
+    return RedirectResponse(url=f"/applicants/{applicant_id}?contacted=1", status_code=303)
 
 
 @router.post("/{applicant_id}/delete")

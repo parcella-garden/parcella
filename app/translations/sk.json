@@ -342,7 +342,9 @@
       "search_placeholder": "Hľadať v nastaveniach...",
       "search_no_results": "Žiadne nastavenia nezodpovedajú vyhľadávaniu.",
       "invoice_number_start_placeholder": "napr. 20000",
-      "invoice_number_start_help": "Voliteľné. Vynúti, aby ďalšie vyúčtovanie -- bez ohľadu na rok -- začalo týmto číslom namiesto automatického pokračovania; kolízie s existujúcimi číslami sa kontrolujú až pri finalizácii tohto vyúčtovania. Po použití sa automaticky vymaže, takže ďalšie vyúčtovania jednoducho pokračujú v číslovaní. Nechajte prázdne pre vždy automatické pokračovanie."
+      "invoice_number_start_help": "Voliteľné. Vynúti, aby ďalšie vyúčtovanie -- bez ohľadu na rok -- začalo týmto číslom namiesto automatického pokračovania; kolízie s existujúcimi číslami sa kontrolujú až pri finalizácii tohto vyúčtovania. Po použití sa automaticky vymaže, takže ďalšie vyúčtovania jednoducho pokračujú v číslovaní. Nechajte prázdne pre vždy automatické pokračovanie.",
+      "applicant_contact_template_label": "Text e-mailu novým žiadateľom",
+      "applicant_contact_template_hint": "Používa sa pri „Kontaktovať žiadateľa“ pri novej žiadosti a pred každým odoslaním ho možno ešte upraviť. {name} sa nahradí menom žiadateľa, {club} názvom spolku. Nechajte prázdne pre vstavaný text (zobrazený sivo)."
     },
     "integrations": {
       "title": "Integrácie",
@@ -2236,6 +2238,9 @@
       "body": "{author} okomentoval(a) požiadavku na nákup „{title}“ v {app_name}:",
       "button": "Otvoriť požiadavku a odpovedať",
       "external_hint": "Ak chcete odpovedať, obráťte sa prosím na výbor."
+    },
+    "applicant_contact": {
+      "subject": "Ďakujeme za registráciu do nášho poradovníka!"
     }
   },
   "finances": {
@@ -2898,6 +2903,23 @@
       "folder_new": "{path} – aktívny odo dňa odovzdania",
       "folder_none": "Žiadny nový priečinok – nastavte ho neskôr na stránke parcely.",
       "folder_old_only": "Priečinok dokumentov doterajších nájomcov bude v deň odovzdania vyradený. Nový nastaví niekto s plným prístupom na stránke parcely."
+    },
+    "contact": {
+      "header": "Kontaktovať žiadateľa",
+      "to": "Komu:",
+      "subject_label": "Predmet:",
+      "body_label": "Správa",
+      "hint": "Odoslaním sa tento text pošle žiadateľovi e-mailom a stav sa nastaví na „Kontaktovaný“.",
+      "send": "Odoslať",
+      "confirm": "Odoslať tento e-mail teraz na {email} a nastaviť stav na „Kontaktovaný“?",
+      "sent": "E-mail bol odoslaný a stav nastavený na „Kontaktovaný“.",
+      "default_body": "Dobrý deň {name},\n\nďakujeme za registráciu do nášho poradovníka na záhradku. Vašu žiadosť sme dostali a ozveme sa, hneď ako sa nejaká záhradka uvoľní.\n\nS pozdravom\nVýbor {club}",
+      "errors": {
+        "not_new": "Týmto spôsobom možno kontaktovať len novú žiadosť.",
+        "empty_body": "Zadajte prosím správu.",
+        "body_too_long": "Správa je príliš dlhá.",
+        "send_failed": "E-mail sa nepodarilo odoslať – skontrolujte prosím nastavenia SMTP. Stav nebol zmenený."
+      }
     }
   },
   "external_contacts": {
