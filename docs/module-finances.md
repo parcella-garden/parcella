@@ -319,7 +319,9 @@ filter (linked to an outgoing/incoming invoice, or not) reusing the
 
 `IncomingInvoice` (issue #178) is the mirror image of `Invoice` -- a
 bill the club *received* from a supplier/vendor -- but far simpler:
-recorded directly by hand at `/finances/incoming-invoices`, no
+recorded directly by hand at `/finances/incoming-invoices` (in a modal
+opened from the "Record incoming invoice" button next to "Back", issue
+#265 -- the page itself is just the filterable list), no
 generation/finalization phases, no payment/reminder tracking. A single
 invoice can carry several cost positions (`IncomingInvoiceLineItem`),
 each with its own free-text `description` (what was actually bought --

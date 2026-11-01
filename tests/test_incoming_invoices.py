@@ -244,3 +244,36 @@ async def test_incoming_invoice_upload_and_download_use_configured_folder(client
     r_download = await client.get(f"/finances/incoming-invoices/{invoice.id}/download")
     assert r_download.status_code == 200
     assert r_download.content == b"pdf bytes"
+
+
+async def test_new_incoming_invoice_form_is_a_modal_behind_a_topbar_button(client, admin_user):
+    """Issue #265: the page is the filterable list; recording a new
+    incoming invoice opens a modal from a button next to "Back", and
+    only for users who may write."""
+    from app.auth import hash_password
+    from app.models import Group, GroupMembership, GroupModulePermission, User, UserRole
+
+    await _enable_finances_module()
+    await web_login(client)
+    page = (await client.get("/finances/incoming-invoices")).text
+    assert 'data-bs-target="#newIncomingInvoiceModal"' in page
+    modal = page[page.index('id="newIncomingInvoiceModal"'):]
+    assert 'action="/finances/incoming-invoices"' in modal  # the form lives inside the modal
+    assert page.index('name="invoice_date"') > page.index('id="newIncomingInvoiceModal"')
+
+    async with AsyncSessionLocal() as session:
+        user = User(
+            email="reader@example.com", name="Reader",
+            password_hash=hash_password("testpasswort123"), role=UserRole.READONLY,
+        )
+        group = Group(name="Finance readers")
+        session.add_all([user, group])
+        await session.flush()
+        session.add(GroupModulePermission(group_id=group.id, module="finances", can_read=True))
+        session.add(GroupMembership(user_id=user.id, group_id=group.id))
+        await session.commit()
+    await client.get("/auth/logout")
+    await web_login(client, "reader@example.com")
+    page = await client.get("/finances/incoming-invoices")
+    assert page.status_code == 200
+    assert "newIncomingInvoiceModal" not in page.text
