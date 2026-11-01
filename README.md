@@ -119,6 +119,11 @@ Clients, the `web` container and its layers, storage, toggleable modules and
 the optional external services. The reasoning behind each piece lives in the
 [Architecture Decision Records](docs/ADR/README.md).
 
+For the inside of the application -- the request lifecycle through the
+middleware chain, and per module its router, template folder, REST API
+router, domain logic and models -- see the
+[application architecture](docs/architecture-application.svg).
+
 ---
 
 ## Tech stack

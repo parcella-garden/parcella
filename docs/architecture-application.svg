@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Parcella application architecture: request lifecycle, module map (router / templates / API / domain logic / models), presentation, helpers, data layer, background loops. Companion to architecture.svg (the system-level overview). Hand-maintained: update the module map when a module, router, template folder or service is added. -->
+<svg viewBox="0 0 1600 1200" width="1600" height="1200" xmlns="http://www.w3.org/2000/svg">
+<rect width="1600" height="1200" fill="#ffffff"/>
+<defs>
+  <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#616e7c"/></marker>
+</defs>
+<text x="32" y="44" font-size="22" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Parcella: Application Architecture</text>
+<text x="32" y="62" font-size="10.5" fill="#52606d" font-family="DejaVu Sans, Helvetica, sans-serif">Inside the web container: how a request travels through app/main.py, which router, template folder, API router, service and models make up each module, and the shared layers underneath. System-level picture: docs/architecture.svg</text>
+
+<!-- ===== Band A: request lifecycle ===== -->
+<text x="32" y="98" font-size="11" font-weight="700" fill="#52606d" font-family="DejaVu Sans, Helvetica, sans-serif" letter-spacing="0.9">REQUEST LIFECYCLE  (app/main.py)</text>
+<rect x="32" y="110" width="150" height="99.5" rx="6" fill="#eef4fb" stroke="#6b9bd1" stroke-width="1"/>
+<text x="42" y="129" font-size="11.5" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Client</text>
+<text x="42" y="146.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Browser: session</text>
+<text x="42" y="159.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">cookie + CSRF token</text>
+<text x="42" y="173.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">API client: JWT</text>
+<text x="42" y="186.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Website: public</text>
+<text x="42" y="200.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">form token + ALTCHA</text>
+<rect x="206" y="110" width="470" height="162" rx="8" fill="#fbfcfd" stroke="#7b8794" stroke-width="1.2" stroke-dasharray="6 4"/>
+<text x="218" y="129" font-size="11.5" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">HTTP middleware, outermost first</text>
+<text x="218" y="143" font-size="8.5" fill="#52606d" font-family="DejaVu Sans, Helvetica, sans-serif">@app.middleware("http"); the last one registered runs first</text>
+<rect x="218" y="154" width="88" height="44" rx="4" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="224" y="168" font-size="8.3" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">1  sec. headers</text>
+<text x="224" y="181" font-size="7.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">CSP, nosniff</text>
+<rect x="309" y="154" width="88" height="44" rx="4" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="315" y="168" font-size="8.3" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">2  CSRF</text>
+<text x="315" y="181" font-size="7.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">double-submit</text>
+<text x="315" y="192" font-size="7.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">/api/** exempt</text>
+<rect x="400" y="154" width="88" height="44" rx="4" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="406" y="168" font-size="8.3" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">3  branding</text>
+<text x="406" y="181" font-size="7.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">club name, logo</text>
+<rect x="491" y="154" width="88" height="44" rx="4" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="497" y="168" font-size="8.3" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">4  password</text>
+<text x="497" y="181" font-size="7.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">forced change</text>
+<rect x="582" y="154" width="88" height="44" rx="4" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="588" y="168" font-size="8.3" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">5  nav counts</text>
+<text x="588" y="181" font-size="7.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">badge numbers</text>
+<rect x="218" y="204" width="88" height="44" rx="4" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="224" y="218" font-size="8.3" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">6  permissions</text>
+<text x="224" y="231" font-size="7.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">matrix + groups</text>
+<rect x="309" y="204" width="88" height="44" rx="4" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="315" y="218" font-size="8.3" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">7  l10n</text>
+<text x="315" y="231" font-size="7.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">region, currency</text>
+<rect x="400" y="204" width="88" height="44" rx="4" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="406" y="218" font-size="8.3" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">8  language</text>
+<text x="406" y="231" font-size="7.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">7 locales</text>
+<rect x="491" y="204" width="88" height="44" rx="4" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="497" y="218" font-size="8.3" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">9  nav order</text>
+<text x="497" y="231" font-size="7.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">menu ordering</text>
+<rect x="582" y="204" width="88" height="44" rx="4" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="588" y="218" font-size="8.3" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">10  module flags</text>
+<text x="588" y="231" font-size="7.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">modul_* settings</text>
+<text x="218" y="260" font-size="8.3" fill="#52606d" font-family="DejaVu Sans, Helvetica, sans-serif">Result on request.state: module_flags, permissions, locale, region, club_name, nav_counts</text>
+<path d="M182,150 L203,150" stroke="#616e7c" stroke-width="1.2" fill="none" marker-end="url(#a)"/>
+<rect x="700" y="110" width="210" height="149" rx="6" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="710" y="129" font-size="11.5" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Router + dependencies</text>
+<text x="710" y="146" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">router-level: require_module()</text>
+<text x="720" y="159" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">→ 404 when the module is off</text>
+<text x="710" y="172" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">get_db() → AsyncSession</text>
+<text x="710" y="185" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">HTML: require_permission(</text>
+<text x="720" y="198" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">module, level)</text>
+<text x="720" y="211" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">/ require_system_admin()</text>
+<text x="710" y="224" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">API: get_current_api_user (JWT)</text>
+<text x="720" y="237" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">+ require_api_permission()</text>
+<text x="710" y="250" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">public: token, origin, rate limit</text>
+<path d="M676,150 L697,150" stroke="#616e7c" stroke-width="1.2" fill="none" marker-end="url(#a)"/>
+<rect x="934" y="110" width="230" height="136" rx="6" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="944" y="129" font-size="11.5" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Route handler</text>
+<text x="944" y="146" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Query with selectinload() for every</text>
+<text x="954" y="159" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">relationship the template touches</text>
+<text x="944" y="172" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Business rules → app/services/*</text>
+<text x="954" y="185" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">raises ServiceError(key, **params)</text>
+<text x="944" y="198" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Field edits → ChangeTracker</text>
+<text x="954" y="211" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">→ ChangeHistory (audit log)</text>
+<text x="944" y="224" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">db.commit(); redirect (PRG) on POST</text>
+<text x="944" y="237" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Messages: t_for(request, key)</text>
+<path d="M910,150 L931,150" stroke="#616e7c" stroke-width="1.2" fill="none" marker-end="url(#a)"/>
+<rect x="1188" y="110" width="380" height="136" rx="6" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="1198" y="129" font-size="11.5" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Response</text>
+<text x="1198" y="146" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">HTML: templates.TemplateResponse("&lt;module&gt;/&lt;page&gt;.html", ctx)</text>
+<text x="1208" y="159" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">~130 call sites; one shared Jinja env (app/templating.py)</text>
+<text x="1198" y="172" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">API: Pydantic response_model from app/schemas.py</text>
+<text x="1198" y="185" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Files: StreamingResponse / FileResponse</text>
+<text x="1208" y="198" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">PDF (WeasyPrint), CSV, ICS, ZIP backups</text>
+<text x="1208" y="211" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">header via content_disposition() (security_headers.py)</text>
+<text x="1198" y="224" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Errors: 403/404 handlers → fehler.html</text>
+<text x="1208" y="237" font-size="8.6" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">ServiceError → HTML 400 / API 422 (ADR 0070)</text>
+<path d="M1164,150 L1185,150" stroke="#616e7c" stroke-width="1.2" fill="none" marker-end="url(#a)"/>
+
+<!-- ===== Band B: module map ===== -->
+<text x="32" y="296" font-size="11" font-weight="700" fill="#52606d" font-family="DejaVu Sans, Helvetica, sans-serif" letter-spacing="0.9">MODULE MAP  (one row per module; every router lives in app/routers/, templates in app/templates/)</text>
+<rect x="32" y="306" width="1536" height="465" rx="6" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<rect x="32" y="306" width="1536" height="24" rx="6" fill="#f5f7fa" stroke="#9aa5b1" stroke-width="1"/>
+<text x="40" y="322" font-size="9.2" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Module</text>
+<text x="180" y="322" font-size="9.2" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Flag  modul_&lt;name&gt;</text>
+<text x="316" y="322" font-size="9.2" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">HTML router · URL prefix</text>
+<text x="552" y="322" font-size="9.2" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Templates</text>
+<text x="766" y="322" font-size="9.2" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">REST API router</text>
+<text x="966" y="322" font-size="9.2" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Domain logic (app/…)</text>
+<text x="1296" y="322" font-size="9.2" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Main models (models.py)</text>
+<rect x="33" y="331" width="5" height="19" fill="#5aa36f"/>
+<text x="44" y="344.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Dashboard</text>
+<text x="180" y="344.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">always on</text>
+<text x="316" y="344.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">main.py · /</text>
+<text x="552" y="344.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">dashboard.html</text>
+<text x="766" y="344.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_stats · /api/v1/stats</text>
+<text x="966" y="344.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">nav_counts, birthdays, stat cards (ADR 0019)</text>
+<text x="1296" y="344.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">aggregates, no own tables</text>
+<rect x="33" y="351" width="1534" height="21" fill="#f9fafb"/>
+<rect x="33" y="352" width="5" height="19" fill="#5aa36f"/>
+<text x="44" y="365.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Auth &amp; login</text>
+<text x="180" y="365.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">always on</text>
+<text x="316" y="365.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">auth.py · /auth</text>
+<text x="552" y="365.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">auth/ login, invitation, …</text>
+<text x="766" y="365.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_auth · /api/v1/auth</text>
+<text x="966" y="365.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">auth (session, invitations), login_throttle, api_auth</text>
+<text x="1296" y="365.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">User, Invitation</text>
+<rect x="33" y="373" width="5" height="19" fill="#5aa36f"/>
+<text x="44" y="386.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Members</text>
+<text x="180" y="386.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">always on</text>
+<text x="316" y="386.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">members.py · /members</text>
+<text x="552" y="386.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">members/ list, detail, form, …</text>
+<text x="766" y="386.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_members · /api/v1/members</text>
+<text x="966" y="386.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">services/members, member_filters, member_matching, avatars</text>
+<text x="1296" y="386.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Member, MemberTag, MemberPhone, MemberEmail</text>
+<rect x="33" y="393" width="1534" height="21" fill="#f9fafb"/>
+<rect x="33" y="394" width="5" height="19" fill="#5aa36f"/>
+<text x="44" y="407.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Parcels &amp; leases</text>
+<text x="180" y="407.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">always on</text>
+<text x="316" y="407.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">parcels.py · /parcels</text>
+<text x="552" y="407.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">parcels/ list, detail, assignment</text>
+<text x="766" y="407.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_parcels · /api/v1/parcels</text>
+<text x="966" y="407.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">services/parcels, parcel_handover, area_utils</text>
+<text x="1296" y="407.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Parcel, MemberParcel (tenancy, historized)</text>
+<rect x="33" y="415" width="5" height="19" fill="#5aa36f"/>
+<text x="44" y="428.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Admin &amp; groups</text>
+<text x="180" y="428.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">system admin</text>
+<text x="316" y="428.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">admin.py · /admin, admin_groups.py</text>
+<text x="552" y="428.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">admin/ settings, groups, …</text>
+<text x="766" y="428.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_club_settings, provider settings</text>
+<text x="966" y="428.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">backup, provider_registry, sample_data, update_check</text>
+<text x="1296" y="428.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">ClubSetting, Group, GroupModulePermission, …</text>
+<rect x="33" y="435" width="1534" height="21" fill="#f9fafb"/>
+<rect x="33" y="436" width="5" height="19" fill="#6b9bd1"/>
+<text x="44" y="449.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Work hours</text>
+<text x="180" y="449.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">work_hours</text>
+<text x="316" y="449.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">work_hours.py · /work-hours</text>
+<text x="552" y="449.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">work_hours/ (13 pages)</text>
+<text x="766" y="449.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_work_hours · /api/v1/work-hours</text>
+<text x="966" y="449.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">services/work_hours, work_hours_evaluation (any())</text>
+<text x="1296" y="449.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">WorkSession, SessionParticipation, ClubRole, …</text>
+<rect x="33" y="457" width="5" height="19" fill="#6b9bd1"/>
+<text x="44" y="470.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Water / electricity</text>
+<text x="180" y="470.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">water, electricity</text>
+<text x="316" y="470.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">metering.py factory · /water, /electricity</text>
+<text x="552" y="470.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">metering/ (shared by both)</text>
+<text x="766" y="470.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_metering factory, same prefixes</text>
+<text x="966" y="470.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">services/metering, meter_utils (monotonicity), csv</text>
+<text x="1296" y="470.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">MeteringPoint, Meter, MeterReading, prices</text>
+<rect x="33" y="477" width="1534" height="21" fill="#f9fafb"/>
+<rect x="33" y="478" width="5" height="19" fill="#6b9bd1"/>
+<text x="44" y="491.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Insurance</text>
+<text x="180" y="491.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">insurance</text>
+<text x="316" y="491.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">insurance.py · /insurance</text>
+<text x="552" y="491.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">insurance/ overview, evaluation</text>
+<text x="766" y="491.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_insurance · /api/v1/insurance</text>
+<text x="966" y="491.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">services/insurance, insurance_utils (cost calc)</text>
+<text x="1296" y="491.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">InsuranceConfiguration, ParcelInsurance, …</text>
+<rect x="33" y="499" width="5" height="19" fill="#6b9bd1"/>
+<text x="44" y="512.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Purchase requests</text>
+<text x="180" y="512.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">purchase_requests</text>
+<text x="316" y="512.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">purchase_requests.py</text>
+<text x="552" y="512.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">purchase_requests/ incl. confirm</text>
+<text x="766" y="512.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_purchase_requests</text>
+<text x="966" y="512.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">services/purchase_requests (two-person approval)</text>
+<text x="1296" y="512.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">PurchaseRequest, …Approval, …Comment</text>
+<rect x="33" y="519" width="1534" height="21" fill="#f9fafb"/>
+<rect x="33" y="520" width="5" height="19" fill="#6b9bd1"/>
+<text x="44" y="533.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Calendar</text>
+<text x="180" y="533.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">calendar</text>
+<text x="316" y="533.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">calendar.py · /calendar + .ics</text>
+<text x="552" y="533.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">calendar/ community, birthdays</text>
+<text x="766" y="533.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">ICS + JSON feeds (in calendar.py)</text>
+<text x="966" y="533.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">ics_utils, birthdays, birthday_calendar_pdf</text>
+<text x="1296" y="533.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">CalendarEvent, CouncilPresence, CouncilAbsence</text>
+<rect x="33" y="541" width="5" height="19" fill="#6b9bd1"/>
+<text x="44" y="554.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Inventory</text>
+<text x="180" y="554.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">inventory</text>
+<text x="316" y="554.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">inventory.py · /inventory</text>
+<text x="552" y="554.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">inventory/ list, loans, …</text>
+<text x="766" y="554.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_inventory · /api/v1/inventory</text>
+<text x="966" y="554.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">services/inventory</text>
+<text x="1296" y="554.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">InventoryCategory, InventoryItem, ItemLoan</text>
+<rect x="33" y="561" width="1534" height="21" fill="#f9fafb"/>
+<rect x="33" y="562" width="5" height="19" fill="#6b9bd1"/>
+<text x="44" y="575.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Tasks</text>
+<text x="180" y="575.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">tasks</text>
+<text x="316" y="575.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">tasks.py · /tasks</text>
+<text x="552" y="575.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">tasks/ board, tags</text>
+<text x="766" y="575.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_tasks · /api/v1/tasks</text>
+<text x="966" y="575.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">task_board, task_report, task_sync</text>
+<text x="1296" y="575.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">TaskList, Task, TaskTag, TaskAssignee, …</text>
+<rect x="33" y="583" width="5" height="19" fill="#6b9bd1"/>
+<text x="44" y="596.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Applicants</text>
+<text x="180" y="596.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">applicants</text>
+<text x="316" y="596.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">applicants.py · /applicants</text>
+<text x="552" y="596.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">applicants/ list, detail, assign</text>
+<text x="766" y="596.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_applicants · /api/v1/applicants</text>
+<text x="966" y="596.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">services/applicants</text>
+<text x="1296" y="596.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Applicant</text>
+<rect x="33" y="603" width="1534" height="21" fill="#f9fafb"/>
+<rect x="33" y="604" width="5" height="19" fill="#6b9bd1"/>
+<text x="44" y="617.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">External contacts</text>
+<text x="180" y="617.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">external_contacts</text>
+<text x="316" y="617.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">external_contacts.py · /contacts</text>
+<text x="552" y="617.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">external_contacts/</text>
+<text x="766" y="617.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_external_contacts</text>
+<text x="966" y="617.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">services/external_contacts, contact_documents</text>
+<text x="1296" y="617.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">ExternalContact (+ Tag, Phone, Email)</text>
+<rect x="33" y="625" width="5" height="19" fill="#6b9bd1"/>
+<text x="44" y="638.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Reporting</text>
+<text x="180" y="638.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">reporting</text>
+<text x="316" y="638.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">reporting.py · /reporting</text>
+<text x="552" y="638.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">reporting/index.html</text>
+<text x="766" y="638.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_reporting · /api/v1/reporting</text>
+<text x="966" y="638.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">reporting (read-only aggregates over time)</text>
+<text x="1296" y="638.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">reads other modules' tables</text>
+<rect x="33" y="645" width="1534" height="21" fill="#f9fafb"/>
+<rect x="33" y="646" width="5" height="19" fill="#d9a35b"/>
+<text x="44" y="659.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Finances</text>
+<text x="180" y="659.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">finances</text>
+<text x="316" y="659.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">finances.py · /finances (59 routes)</text>
+<text x="552" y="659.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">finances/ (20 pages)</text>
+<text x="766" y="659.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">none yet</text>
+<text x="966" y="659.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">invoice_generation/_pdf/_matching/_delivery, bookings</text>
+<text x="1296" y="659.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">InvoiceRun, Invoice, AccountTransaction, …</text>
+<rect x="33" y="667" width="5" height="19" fill="#d9a35b"/>
+<text x="44" y="680.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Announcements</text>
+<text x="180" y="680.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">announcements</text>
+<text x="316" y="680.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">announcements.py · /announcements</text>
+<text x="552" y="680.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">announcements/ list, form</text>
+<text x="766" y="680.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_website · /api/v1/website</text>
+<text x="966" y="680.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">announcement_mailer/_letters, print_publisher</text>
+<text x="1296" y="680.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Announcement, AnnouncementDelivery</text>
+<rect x="33" y="687" width="1534" height="21" fill="#f9fafb"/>
+<rect x="33" y="688" width="5" height="19" fill="#d9a35b"/>
+<text x="44" y="701.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Helpdesk bridge</text>
+<text x="180" y="701.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">freescout_bridge</text>
+<text x="316" y="701.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">support.py · /support</text>
+<text x="552" y="701.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">support/ list, detail</text>
+<text x="766" y="701.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_helpdesk · /api/v1/helpdesk</text>
+<text x="966" y="701.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">helpdesk/ (6 providers), helpdesk/sync</text>
+<text x="1296" y="701.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">HelpdeskConversationLink, …CustomerId</text>
+<rect x="33" y="709" width="5" height="19" fill="#d9a35b"/>
+<text x="44" y="722.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Cloud storage</text>
+<text x="180" y="722.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">cloud_storage</text>
+<text x="316" y="722.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">per-route checks in parcels, contacts</text>
+<text x="552" y="722.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">admin/integrations, backup_cloud</text>
+<text x="766" y="722.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_cloud_storage</text>
+<text x="966" y="722.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">cloud_storage (WebDAV, Nextcloud, S3), cloud_backup</text>
+<text x="1296" y="722.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">ParcelCloudFolder</text>
+<rect x="33" y="729" width="1534" height="21" fill="#f9fafb"/>
+<rect x="33" y="730" width="5" height="19" fill="#d9a35b"/>
+<text x="44" y="743.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Deck sync</text>
+<text x="180" y="743.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">deck_sync</text>
+<text x="316" y="743.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">configured under /admin</text>
+<text x="552" y="743.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">admin/integrations</text>
+<text x="766" y="743.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">none</text>
+<text x="966" y="743.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">deck_sync → task_sync (one-way mirror, ADR 0086)</text>
+<text x="1296" y="743.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">ExternalTaskLink</text>
+<rect x="33" y="751" width="5" height="19" fill="#d9a35b"/>
+<text x="44" y="764.5" font-size="8.8" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Public APIs</text>
+<text x="180" y="764.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans Mono, Menlo, monospace">public_signup_api, …</text>
+<text x="316" y="764.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">none (JSON only)</text>
+<text x="552" y="764.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">none</text>
+<text x="766" y="764.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_public · /api/v1/public</text>
+<text x="966" y="764.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">public_api_auth, form_altcha, rate_limit</text>
+<text x="1296" y="764.5" font-size="8.8" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">writes Member, Applicant</text>
+<line x1="172" y1="306" x2="172" y2="771" stroke="#e4e7eb" stroke-width="1"/>
+<line x1="308" y1="306" x2="308" y2="771" stroke="#e4e7eb" stroke-width="1"/>
+<line x1="544" y1="306" x2="544" y2="771" stroke="#e4e7eb" stroke-width="1"/>
+<line x1="758" y1="306" x2="758" y2="771" stroke="#e4e7eb" stroke-width="1"/>
+<line x1="958" y1="306" x2="958" y2="771" stroke="#e4e7eb" stroke-width="1"/>
+<line x1="1288" y1="306" x2="1288" y2="771" stroke="#e4e7eb" stroke-width="1"/>
+<line x1="32" y1="435" x2="1568" y2="435" stroke="#9aa5b1" stroke-width="1"/>
+<line x1="32" y1="645" x2="1568" y2="645" stroke="#9aa5b1" stroke-width="1"/>
+<rect x="32" y="779" width="10" height="10" fill="#5aa36f"/>
+<text x="48" y="787" font-size="8.8" fill="#52606d" font-family="DejaVu Sans, Helvetica, sans-serif">Core, always on</text>
+<rect x="172" y="779" width="10" height="10" fill="#6b9bd1"/>
+<text x="188" y="787" font-size="8.8" fill="#52606d" font-family="DejaVu Sans, Helvetica, sans-serif">Toggleable, on by default</text>
+<rect x="362" y="779" width="10" height="10" fill="#d9a35b"/>
+<text x="378" y="787" font-size="8.8" fill="#52606d" font-family="DejaVu Sans, Helvetica, sans-serif">Opt-in: opens a public endpoint, stores outbound credentials or handles money</text>
+<text x="1568" y="787" font-size="8.8" fill="#52606d" text-anchor="end" font-family="DejaVu Sans, Helvetica, sans-serif">Module off → require_module() raises 404 for every route of its router; nav entry hidden via request.state.module_flags</text>
+
+<!-- ===== Band C: shared layers ===== -->
+<text x="32" y="821" font-size="11" font-weight="700" fill="#52606d" font-family="DejaVu Sans, Helvetica, sans-serif" letter-spacing="0.9">PRESENTATION</text>
+<text x="424" y="821" font-size="11" font-weight="700" fill="#52606d" font-family="DejaVu Sans, Helvetica, sans-serif" letter-spacing="0.9">CROSS-CUTTING HELPERS  (app/*.py)</text>
+<text x="816" y="821" font-size="11" font-weight="700" fill="#52606d" font-family="DejaVu Sans, Helvetica, sans-serif" letter-spacing="0.9">DATA LAYER</text>
+<text x="1208" y="821" font-size="11" font-weight="700" fill="#52606d" font-family="DejaVu Sans, Helvetica, sans-serif" letter-spacing="0.9">BACKGROUND LOOPS &amp; CONNECTORS</text>
+<rect x="32" y="833" width="370" height="167.0" rx="6" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="42" y="852" font-size="11.5" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Jinja2 templates · app/templating.py</text>
+<text x="42" y="869.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">One shared Jinja2Templates instance for all routers</text>
+<text x="42" y="882.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Globals: t(), has_perm(), is_full_access(), is_system_admin(),</text>
+<text x="52" y="896.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">csrf_field(), csrf_token(), nav_count(), avatar_url(),</text>
+<text x="52" y="909.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">address() / address_lines() / address_html(), tag_name()</text>
+<text x="42" y="923.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Filters: money, number (l10n), sanitize_html</text>
+<text x="42" y="936.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">base.html: sidebar nav (flag- and permission-gated),</text>
+<text x="52" y="950.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">blocks title · extra_head · page_title · topbar_actions</text>
+<text x="52" y="963.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">· content · extra_scripts; every page extends it</text>
+<text x="42" y="977.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Partials start with _ : _avatar, _fields, _status_badge, …</text>
+<text x="42" y="990.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Bootstrap 5, responsive tables (.table-responsive)</text>
+<rect x="32" y="1010.0" width="370" height="72.5" rx="6" fill="#f5f7fa" stroke="#b6c0cc" stroke-width="1"/>
+<text x="42" y="1029.0" font-size="11.5" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Text and assets</text>
+<text x="42" y="1046.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">app/translations/{en,de,pl,cs,sk,fr,nl}.json, en is base</text>
+<text x="42" y="1059.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">i18n.py: translate(), t_for(request, key, **kw)</text>
+<text x="42" y="1073.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">app/static: favicons, public uploads (logo, announcements)</text>
+<rect x="424" y="833" width="370" height="126.5" rx="6" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="434" y="852" font-size="11.5" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Security</text>
+<text x="434" y="869.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">auth.py: password hashing, signed session cookie,</text>
+<text x="444" y="882.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">invitations · login_throttle.py · rate_limit.py</text>
+<text x="434" y="896.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">permissions.py: web matrix (ADMIN/BOARD bypass, groups)</text>
+<text x="434" y="909.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">api_auth.py: JWT roles, separate system</text>
+<text x="434" y="923.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">csrf.py (ADR 0064) · security_headers.py (CSP,</text>
+<text x="444" y="936.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">content_disposition()) · html_sanitizer.py</text>
+<text x="434" y="950.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">crypto_utils.py: Fernet for stored credentials</text>
+<rect x="424" y="975" width="370" height="126.5" rx="6" fill="#ffffff" stroke="#9aa5b1" stroke-width="1"/>
+<text x="434" y="994" font-size="11.5" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Shared building blocks</text>
+<text x="434" y="1011.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">module_flags.py: MODULE_DEFAULTS, require_module()</text>
+<text x="434" y="1024.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">provider_registry.py: one active provider per kind</text>
+<text x="434" y="1038.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">change_tracker.py: field-level audit log</text>
+<text x="434" y="1051.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">l10n.py: region, currency, address formatting</text>
+<text x="434" y="1065.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">csv_utils.py · pdf_utils.py + pdf_chrome.py (WeasyPrint)</text>
+<text x="434" y="1078.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">email_service.py (aiosmtplib) · ics_utils.py</text>
+<text x="434" y="1092.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">nav_counts.py · nav_order.py · branding.py</text>
+<rect x="816" y="833" width="370" height="113.0" rx="6" fill="#eaf6ee" stroke="#5aa36f" stroke-width="1"/>
+<text x="826" y="852" font-size="11.5" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Database access</text>
+<text x="826" y="869.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">database.py: async engine (asyncpg), AsyncSessionLocal,</text>
+<text x="836" y="882.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">get_db() dependency, one session per request</text>
+<text x="826" y="896.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Shared SQL filters: active_member_filter(),</text>
+<text x="836" y="909.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">current_tenant_filter(), tenant_in_year_filter()</text>
+<text x="826" y="923.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">services/*: framework-free business rules shared by</text>
+<text x="836" y="936.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">HTML and API routers (ADR 0070), ServiceError</text>
+<rect x="816" y="961" width="370" height="113.0" rx="6" fill="#eaf6ee" stroke="#5aa36f" stroke-width="1"/>
+<text x="826" y="980" font-size="11.5" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Schema</text>
+<text x="826" y="997.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">models.py: 76 SQLAlchemy 2 models, 23 enums</text>
+<text x="836" y="1010.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">enum columns store the member NAME, uppercase</text>
+<text x="826" y="1024.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">schemas.py: Pydantic models for the REST API</text>
+<text x="826" y="1037.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">migrations/versions: 115 Alembic revisions, IDs ≤ 32 chars</text>
+<text x="836" y="1051.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">docker-entrypoint.sh runs alembic upgrade head</text>
+<text x="826" y="1064.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">ClubSetting: key/value for settings, flags, providers</text>
+<rect x="816" y="1089" width="370" height="59.0" rx="6" fill="#eaf6ee" stroke="#5aa36f" stroke-width="1"/>
+<text x="826" y="1108" font-size="11.5" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Files</text>
+<text x="826" y="1125.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">./data/uploads: logos, avatars, attachments</text>
+<text x="826" y="1138.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">app/private_uploads: never served via /static</text>
+<rect x="1208" y="833" width="360" height="126.5" rx="6" fill="#f1edf9" stroke="#8b72c4" stroke-width="1"/>
+<text x="1218" y="852" font-size="11.5" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Lifespan tasks (asyncio, no cron)</text>
+<text x="1218" y="869.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Helpdesk polling: every 5 min</text>
+<text x="1218" y="882.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Update check (GitHub releases): every 6 h</text>
+<text x="1218" y="896.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Scheduled cloud backup: checks every 15 min</text>
+<text x="1218" y="909.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Nextcloud Deck sync: every 15 min</text>
+<text x="1218" y="923.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Parcel cloud-folder schedule: every 1 h</text>
+<text x="1218" y="936.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Each loop catches its own errors and does nothing</text>
+<text x="1228" y="950.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">when its module isn't configured</text>
+<rect x="1208" y="975" width="360" height="140.0" rx="6" fill="#fdf3e7" stroke="#d9a35b" stroke-width="1"/>
+<text x="1218" y="994" font-size="11.5" font-weight="700" fill="#1f2933" font-family="DejaVu Sans, Helvetica, sans-serif">Provider registries</text>
+<text x="1218" y="1011.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">HELPDESK: FreeScout, Zammad, Zendesk, Freshdesk,</text>
+<text x="1228" y="1024.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">osTicket, Znuny  (app/helpdesk/)</text>
+<text x="1218" y="1038.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">WEBSITE: WordPress, Parcella plugin, Markdown folder</text>
+<text x="1228" y="1051.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">(app/website_connectors/)</text>
+<text x="1218" y="1065.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">CLOUD_STORAGE: WebDAV, Nextcloud, S3</text>
+<text x="1228" y="1078.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">(app/cloud_storage.py)</text>
+<text x="1218" y="1092.0" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">Settings: &lt;prefix&gt;_&lt;type&gt;_&lt;field&gt; ClubSettings,</text>
+<text x="1228" y="1105.5" font-size="9" fill="#3e4c59" font-family="DejaVu Sans, Helvetica, sans-serif">secrets encrypted; Admin → Integrations</text>
+<text x="32" y="1178" font-size="9" fill="#52606d" font-family="DejaVu Sans, Helvetica, sans-serif">Design rationale: docs/ADR/ · per-module details: docs/module-*.md · module checklist: docs/README.md</text>
+<text x="1568" y="1178" font-size="9" fill="#52606d" text-anchor="end" font-family="DejaVu Sans, Helvetica, sans-serif">Read from main @ 5d188a3 (v6.1.0)</text>
+</svg>
