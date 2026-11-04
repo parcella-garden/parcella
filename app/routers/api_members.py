@@ -241,7 +241,11 @@ async def member_update(
     member = await _get_member_or_404(db, member_id)
     await update_member(db, member, **data.model_dump(exclude_unset=True))
     await db.commit()
-    await db.refresh(member, attribute_names=["phone_numbers", "email_addresses"])
+    # updated_at is set by the database (onupdate) and so expired by the
+    # commit; without reloading it here, serializing the response lazy-
+    # loads it outside the async context and every PUT was a 500
+    # (MissingGreenlet), found while adding issue #269's field.
+    await db.refresh(member, attribute_names=["updated_at", "phone_numbers", "email_addresses"])
     return member
 
 

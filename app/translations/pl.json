@@ -654,7 +654,9 @@
       "notes_header": "Notatki",
       "notes_placeholder": "Notatki wewnętrzne…",
       "button_save_changes": "Zapisz zmiany",
-      "button_create": "Utwórz członka"
+      "button_create": "Utwórz członka",
+      "label_birthday_present_declined": "Nie chce prezentów urodzinowych",
+      "birthday_present_declined_help": "Widoczne na liście urodzin, aby osoby odpowiedzialne za prezenty o tym wiedziały."
     },
     "detail": {
       "button_edit": "Edytuj",
@@ -1778,7 +1780,9 @@
       "pdf_button": "Drukuj PDF (cały rok)",
       "pdf_heading": "Kalendarz urodzin {year}",
       "pdf_col_day": "Dzień",
-      "pdf_empty": "Brak urodzin w systemie."
+      "pdf_empty": "Brak urodzin w systemie.",
+      "col_present": "Prezent",
+      "no_present": "Bez prezentu"
     },
     "council_presence": {
       "title": "Obecność zarządu",

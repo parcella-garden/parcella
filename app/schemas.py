@@ -98,6 +98,7 @@ class MemberBase(BaseModel):
     member_since: Optional[date] = None
     member_until: Optional[date] = None
     email_notifications: bool = True
+    birthday_present_declined: bool = False
     notes: Optional[str] = None
 
 
@@ -117,6 +118,7 @@ class MemberUpdate(BaseModel):
     member_since: Optional[date] = None
     member_until: Optional[date] = None
     email_notifications: Optional[bool] = None
+    birthday_present_declined: Optional[bool] = None
     notes: Optional[str] = None
 
 

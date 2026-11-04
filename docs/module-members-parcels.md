@@ -211,6 +211,22 @@ is one field plus a clause in `apply()`.
 Known gaps: no colors, no tags in the CSV *import*,
 the filter takes one tag at a time (no "A and B").
 
+## Declining birthday presents (issue #269)
+
+`Member.birthday_present_declined` (boolean, default false, migration
+0116): the member doesn't want birthday presents. It's a checkbox on the
+member forms, a yes/no line on the detail page and in the API
+(`MemberBase`/`MemberUpdate`), and a "No present" badge in the Present
+column of `/calendar/birthdays`.
+
+Only the opt-out is stored. Who gets a present in the first place
+(board every year, everyone else on milestone birthdays, ...) is club
+policy that differs between associations, so it isn't modelled; the
+birthday list shows milestones and tags, and the people handing out
+presents apply their own rule.
+
+Known gap: not in the member CSV import or export yet.
+
 ## Average age on the dashboard (issue #263)
 
 The Members card shows the average age of active members to one

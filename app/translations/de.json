@@ -654,7 +654,9 @@
       "notes_header": "Notizen",
       "notes_placeholder": "Interne Notizen…",
       "button_save_changes": "Änderungen speichern",
-      "button_create": "Mitglied anlegen"
+      "button_create": "Mitglied anlegen",
+      "label_birthday_present_declined": "Möchte keine Geburtstagsgeschenke",
+      "birthday_present_declined_help": "Wird in der Geburtstagsliste angezeigt, damit die Zuständigen für Geschenke Bescheid wissen."
     },
     "detail": {
       "button_edit": "Bearbeiten",
@@ -1778,7 +1780,9 @@
       "pdf_button": "PDF drucken (ganzes Jahr)",
       "pdf_heading": "Geburtstagskalender {year}",
       "pdf_col_day": "Tag",
-      "pdf_empty": "Keine Geburtstage hinterlegt."
+      "pdf_empty": "Keine Geburtstage hinterlegt.",
+      "col_present": "Geschenk",
+      "no_present": "Kein Geschenk"
     },
     "council_presence": {
       "title": "Vorstandspräsenz",

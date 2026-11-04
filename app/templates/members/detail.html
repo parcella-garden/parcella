@@ -71,6 +71,15 @@
                         <span class="badge" style="background: #f3f4f6; color: #6b7280;">{{ t('members.detail.no') }}</span>
                         {% endif %}
                     </dd>
+
+                    <dt class="col-sm-5 text-muted">{{ t('members.form.label_birthday_present_declined') }}</dt>
+                    <dd class="col-sm-7">
+                        {% if member.birthday_present_declined %}
+                        <span class="badge" style="background: #fee2e2; color: #991b1b;"><i class="bi bi-gift me-1"></i>{{ t('members.detail.yes') }}</span>
+                        {% else %}
+                        <span class="badge" style="background: #f3f4f6; color: #6b7280;">{{ t('members.detail.no') }}</span>
+                        {% endif %}
+                    </dd>
                 </dl>
             </div>
         </div>

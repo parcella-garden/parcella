@@ -114,6 +114,17 @@
                             </label>
                         </div>
                     </div>
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="birthday_present_declined"
+                                   id="birthday-present-declined" aria-describedby="birthday-present-declined-help"
+                                   {% if member and member.birthday_present_declined %}checked{% endif %}>
+                            <label class="form-check-label" for="birthday-present-declined">
+                                {{ t('members.form.label_birthday_present_declined') }}
+                            </label>
+                            <div class="form-text" id="birthday-present-declined-help">{{ t('members.form.birthday_present_declined_help') }}</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

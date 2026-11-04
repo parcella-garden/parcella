@@ -654,7 +654,9 @@
       "notes_header": "Notes",
       "notes_placeholder": "Internal notes…",
       "button_save_changes": "Save changes",
-      "button_create": "Create member"
+      "button_create": "Create member",
+      "label_birthday_present_declined": "Declines birthday presents",
+      "birthday_present_declined_help": "Shown on the birthday list, so whoever takes care of presents knows."
     },
     "detail": {
       "button_edit": "Edit",
@@ -1778,7 +1780,9 @@
       "pdf_button": "Print PDF (entire year)",
       "pdf_heading": "Birthday Calendar {year}",
       "pdf_col_day": "Day",
-      "pdf_empty": "No birthdays on file."
+      "pdf_empty": "No birthdays on file.",
+      "col_present": "Present",
+      "no_present": "No present"
     },
     "council_presence": {
       "title": "Council Presence",
