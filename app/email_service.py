@@ -19,9 +19,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.config import settings
-from app.models import ClubSetting
+from app.models import ClubSetting, EmailLogStatus
 from app.crypto_utils import decrypt, DecryptionError
 from app.branding import DEFAULT_CLUB_NAME
+from app.email_log import record_email
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +98,12 @@ async def send_email(
     text/html alternative nested inside, rather than "alternative" at
     the top level -- the correct MIME structure for attachments to
     survive alongside a text/html body.
+
+    Every attempt is written to the email log (issue #270, ADR 0120)
+    with the SMTP result -- SENT means the server accepted it, not that
+    it arrived.
     """
+    attachment_count = len(attachments or [])
     if db is not None:
         config = await load_smtp_configuration(db)
     else:
@@ -114,6 +120,7 @@ async def send_email(
     if not config["host"] or not config["user"]:
         logger.warning("SMTP not configured -- email will not be sent.")
         logger.info(f"[DEV] To: {recipient} | Subject: {subject}")
+        await record_email(recipient, subject, EmailLogStatus.FAILED, "SMTP not configured", attachment_count)
         return False
 
     if attachments:
@@ -148,7 +155,9 @@ async def send_email(
             start_tls=config["tls"],
         )
         logger.info(f"Email sent to {recipient}")
-        return True
     except Exception as e:
         logger.error(f"Email error sending to {recipient}: {e}")
+        await record_email(recipient, subject, EmailLogStatus.FAILED, f"{type(e).__name__}: {e}", attachment_count)
         return False
+    await record_email(recipient, subject, EmailLogStatus.SENT, attachment_count=attachment_count)
+    return True

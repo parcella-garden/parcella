@@ -4,6 +4,7 @@ Admin router: user management, invitations, club settings.
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 import urllib.parse
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Request, Form, Depends, HTTPException, File, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
@@ -34,7 +35,13 @@ from app.task_sync import (
 )
 from app.deck_sync import sync_deck_tasks
 from app.i18n import AVAILABLE_LANGUAGES, t_for
-from app.l10n import AVAILABLE_REGIONS, AVAILABLE_CURRENCIES
+from app.l10n import AVAILABLE_REGIONS, AVAILABLE_CURRENCIES, REGION_TIMEZONES, DEFAULT_REGION, load_current_region
+from app.email_log import (
+    RETENTION_SETTING as EMAIL_LOG_RETENTION_SETTING, MAX_RETENTION_DAYS as EMAIL_LOG_MAX_RETENTION_DAYS,
+    load_retention_days as load_email_log_retention_days, parse_retention_days as parse_email_log_retention_days,
+    parse_status as parse_email_log_status, query_email_logs,
+)
+from app.models import EmailLogStatus
 from app.branding import save_logo_upload, remove_logo_file
 from app.avatars import save_avatar_upload, remove_avatar_file
 from app.nav_order import NAV_ORDER_DEFAULTS
@@ -180,6 +187,33 @@ async def admin_system_page(request: Request, db: AsyncSession = Depends(get_db)
     update_status = await get_update_status(db)
     return templates.TemplateResponse("admin/system.html", {
         "request": request, "user": user, "update_status": update_status,
+    })
+
+
+EMAIL_LOG_PAGE_SIZE = 50
+
+
+@router.get("/email-log", response_class=HTMLResponse)
+async def admin_email_log(
+    request: Request, status: str = "", q: str = "", page: int = 1, db: AsyncSession = Depends(get_db),
+):
+    """Outgoing emails with their SMTP result (issue #270, ADR 0120),
+    newest first, 50 per page, filterable by status and recipient."""
+    user = await require_system_admin(request, db)
+    status_filter = parse_email_log_status(status)
+    page = max(page, 1)
+    rows, total = await query_email_logs(
+        db, status=status_filter, recipient=q[:320],
+        limit=EMAIL_LOG_PAGE_SIZE, offset=(page - 1) * EMAIL_LOG_PAGE_SIZE,
+    )
+    region = await load_current_region(db)
+    tz = ZoneInfo(REGION_TIMEZONES.get(region, REGION_TIMEZONES[DEFAULT_REGION]))
+    return templates.TemplateResponse("admin/email_log.html", {
+        "request": request, "user": user, "rows": rows, "total": total, "tz": tz,
+        "status": status_filter.name if status_filter else "", "q": q[:320], "page": page,
+        "page_count": max((total + EMAIL_LOG_PAGE_SIZE - 1) // EMAIL_LOG_PAGE_SIZE, 1),
+        "statuses": list(EmailLogStatus),
+        "retention_days": await load_email_log_retention_days(db),
     })
 
 
@@ -1036,6 +1070,8 @@ async def settings_page(request: Request, db: AsyncSession = Depends(get_db)):
             "request": request,
             "user": user,
             "settings_map": settings_map,
+            "email_log_retention_days": parse_email_log_retention_days(settings_map.get(EMAIL_LOG_RETENTION_SETTING)),
+            "email_log_max_retention_days": EMAIL_LOG_MAX_RETENTION_DAYS,
             "fields": resolved_fields,
             "finance_fields": resolved_finance_fields,
             "invoice_number_format_examples": INVOICE_NUMBER_FORMAT_EXAMPLES,
@@ -1236,6 +1272,14 @@ async def settings_save(
         await _upsert_club_setting(
             db, RETENTION_SETTING, str(months) if months else "",
             "Months after the last status change before an applicant is deleted (blank = never)",
+        )
+    # Issue #270: email log retention in days (1-3650, otherwise the
+    # 90-day default). Same "only when on the form" guard.
+    if "email_log_retention_days" in form:
+        await _upsert_club_setting(
+            db, EMAIL_LOG_RETENTION_SETTING,
+            str(parse_email_log_retention_days(form.get("email_log_retention_days"))),
+            "Days an email log entry is kept before it is deleted",
         )
     # Issue #267: the "Contact applicant" boilerplate; blank = the
     # translated default. Same "only when on the form" guard as above.

@@ -61,7 +61,8 @@
     "applicants": "Candidats",
     "work_hours_transfers": "Transferts d'heures",
     "external_contacts": "Contacts externes",
-    "reporting": "Rapports"
+    "reporting": "Rapports",
+    "email_log": "Journal des e-mails"
   },
   "errors": {
     "user_not_found": "Utilisateur non trouvé",
@@ -344,7 +345,10 @@
       "invoice_number_start_placeholder": "p. ex. 20000",
       "invoice_number_start_help": "Facultatif. Force la prochaine série de factures -- quelle que soit l'année -- à commencer à ce numéro au lieu de continuer automatiquement ; les collisions avec les numéros existants ne sont vérifiées qu'au moment de la finalisation de cette série. Effacé automatiquement une fois utilisé, afin que les séries suivantes continuent simplement la numérotation. Laissez vide pour toujours continuer automatiquement.",
       "applicant_contact_template_label": "Texte de l'e-mail aux nouveaux candidats",
-      "applicant_contact_template_hint": "Proposé par « Contacter le candidat » sur une nouvelle candidature et modifiable avant chaque envoi. {name} est remplacé par le nom du candidat, {club} par le nom de l'association. Laisser vide pour le texte intégré (affiché en grisé)."
+      "applicant_contact_template_hint": "Proposé par « Contacter le candidat » sur une nouvelle candidature et modifiable avant chaque envoi. {name} est remplacé par le nom du candidat, {club} par le nom de l'association. Laisser vide pour le texte intégré (affiché en grisé).",
+      "email_log_header": "Journal des e-mails",
+      "email_log_retention_label": "Conserver les entrées du journal des e-mails (jours)",
+      "email_log_retention_hint": "Les entrées plus anciennes sont supprimées automatiquement, car les adresses des destinataires sont des données personnelles. Par défaut 90 jours."
     },
     "integrations": {
       "title": "Intégrations",
@@ -565,6 +569,28 @@
         "external_contacts": "Contacts externes",
         "reporting": "Rapports"
       }
+    },
+    "email_log": {
+      "title": "Journal des e-mails",
+      "intro": "Chaque e-mail envoyé par Parcella, avec la réponse du serveur de messagerie. « Envoyé » signifie que le serveur l'a accepté ; un rebond qui revient plus tard n'apparaît pas ici. Les entrées sont conservées {days} jours.",
+      "retention_link": "Modifier",
+      "search_placeholder": "Rechercher un destinataire…",
+      "status_any": "Tous les statuts",
+      "status_sent": "Envoyé",
+      "status_failed": "Échec",
+      "filter_button": "Filtrer",
+      "reset_filter": "Réinitialiser",
+      "card_title": "E-mails sortants",
+      "total": "{count} entrées",
+      "col_sent_at": "Date/heure",
+      "col_recipient": "Destinataire",
+      "col_subject": "Objet",
+      "col_status": "Statut",
+      "attachments": "{count} pièce(s) jointe(s)",
+      "empty": "Aucun e-mail enregistré pour l'instant.",
+      "newer": "Plus récents",
+      "older": "Plus anciens",
+      "page_of": "Page {page} sur {pages}"
     }
   },
   "members": {
@@ -1777,12 +1803,12 @@
       "round_badge": "Anniversaire rond",
       "turning_label": "{age}",
       "empty": "Aucun anniversaire à venir enregistré.",
-      "pdf_button": "Imprimer le PDF (année entière)",
-      "pdf_heading": "Calendrier des anniversaires {year}",
-      "pdf_col_day": "Jour",
-      "pdf_empty": "Aucun anniversaire enregistré.",
+      "pdf_button": "Imprimer le PDF",
+      "pdf_heading": "Anniversaires du {start} au {end}",
       "col_present": "Cadeau",
-      "no_present": "Pas de cadeau"
+      "no_present": "Pas de cadeau",
+      "col_tags": "Étiquettes",
+      "pdf_no_plot": "Sans parcelle"
     },
     "council_presence": {
       "title": "Présence du conseil",

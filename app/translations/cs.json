@@ -61,7 +61,8 @@
     "applicants": "Uchazeči",
     "work_hours_transfers": "Převod hodin",
     "external_contacts": "Externí kontakty",
-    "reporting": "Přehledy"
+    "reporting": "Přehledy",
+    "email_log": "Protokol e-mailů"
   },
   "errors": {
     "user_not_found": "Uživatel nebyl nalezen",
@@ -344,7 +345,10 @@
       "invoice_number_start_placeholder": "např. 20000",
       "invoice_number_start_help": "Volitelné. Vynutí, aby další vyúčtování -- bez ohledu na rok -- začalo tímto číslem místo automatického pokračování; kolize s existujícími čísly se kontrolují až při finalizaci tohoto vyúčtování. Po použití se automaticky vymaže, takže další vyúčtování jednoduše pokračují v číslování. Ponechte prázdné pro vždy automatické pokračování.",
       "applicant_contact_template_label": "Text e-mailu novým žadatelům",
-      "applicant_contact_template_hint": "Používá se u „Kontaktovat žadatele“ u nové žádosti a před každým odesláním ho lze ještě upravit. {name} se nahradí jménem žadatele, {club} názvem spolku. Nechte prázdné pro vestavěný text (zobrazený šedě)."
+      "applicant_contact_template_hint": "Používá se u „Kontaktovat žadatele“ u nové žádosti a před každým odesláním ho lze ještě upravit. {name} se nahradí jménem žadatele, {club} názvem spolku. Nechte prázdné pro vestavěný text (zobrazený šedě).",
+      "email_log_header": "Protokol e-mailů",
+      "email_log_retention_label": "Uchovávat záznamy protokolu e-mailů (dny)",
+      "email_log_retention_hint": "Starší záznamy se automaticky mažou, protože adresy příjemců jsou osobní údaje. Výchozí hodnota 90 dní."
     },
     "integrations": {
       "title": "Integrace",
@@ -565,6 +569,28 @@
         "external_contacts": "Externí kontakty",
         "reporting": "Přehledy"
       }
+    },
+    "email_log": {
+      "title": "Protokol e-mailů",
+      "intro": "Každý e-mail, který Parcella odešle, s odpovědí poštovního serveru. „Odesláno“ znamená, že jej server přijal; nedoručenka, která přijde později, se zde nezobrazí. Záznamy se uchovávají {days} dní.",
+      "retention_link": "Změnit",
+      "search_placeholder": "Hledat příjemce…",
+      "status_any": "Všechny stavy",
+      "status_sent": "Odesláno",
+      "status_failed": "Selhalo",
+      "filter_button": "Filtrovat",
+      "reset_filter": "Zrušit filtr",
+      "card_title": "Odchozí e-maily",
+      "total": "Záznamů: {count}",
+      "col_sent_at": "Datum/čas",
+      "col_recipient": "Příjemce",
+      "col_subject": "Předmět",
+      "col_status": "Stav",
+      "attachments": "Přílohy: {count}",
+      "empty": "Zatím nebyly zaznamenány žádné e-maily.",
+      "newer": "Novější",
+      "older": "Starší",
+      "page_of": "Strana {page} z {pages}"
     }
   },
   "members": {
@@ -1777,12 +1803,12 @@
       "round_badge": "Kulaté",
       "turning_label": "{age}",
       "empty": "Žádné nadcházející narozeniny v systému.",
-      "pdf_button": "Tisk PDF (celý rok)",
-      "pdf_heading": "Kalendář narozenin {year}",
-      "pdf_col_day": "Den",
-      "pdf_empty": "Žádné narozeniny v systému.",
+      "pdf_button": "Tisk PDF",
+      "pdf_heading": "Narozeniny {start} – {end}",
       "col_present": "Dárek",
-      "no_present": "Bez dárku"
+      "no_present": "Bez dárku",
+      "col_tags": "Štítky",
+      "pdf_no_plot": "Bez parcely"
     },
     "council_presence": {
       "title": "Přítomnost výboru",

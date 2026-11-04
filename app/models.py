@@ -3514,3 +3514,34 @@ class Applicant(Base):
 
     def __repr__(self) -> str:
         return f"<Applicant {self.email} {self.status.value}>"
+
+
+class EmailLogStatus(str, enum.Enum):
+    """What the SMTP server said when Parcella handed the message over
+    (issue #270). SENT means accepted for delivery, not delivered: a
+    later bounce arrives as a mail in the sending mailbox, which
+    Parcella doesn't read (ADR 0120)."""
+    SENT = "SENT"
+    FAILED = "FAILED"
+
+
+class EmailLog(Base):
+    """One row per outgoing email (issue #270, ADR 0120), written by
+    app.email_service.send_email(). Deleted after the retention period
+    (`email_log_retention_days`, default 90) -- recipient addresses are
+    personal data."""
+    __tablename__ = "email_logs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    sent_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
+    )
+    recipient: Mapped[str] = mapped_column(String(320), nullable=False, index=True)
+    subject: Mapped[str] = mapped_column(String(500), nullable=False, default="")
+    status: Mapped[EmailLogStatus] = mapped_column(SAEnum(EmailLogStatus), nullable=False, index=True)
+    # The SMTP error (or "SMTP not configured") for a FAILED row.
+    error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    attachment_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<EmailLog {self.recipient} {self.status.value}>"

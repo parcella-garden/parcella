@@ -1280,3 +1280,30 @@ class WebsiteDraftOut(BaseModel):
     external_id: Optional[str] = None
     external_reference: Optional[str] = None
     error_message: Optional[str] = None
+
+
+# ---------------------------------------------------------------------------
+# Email log (issue #270, ADR 0120)
+# ---------------------------------------------------------------------------
+
+class EmailLogOut(BaseModel):
+    """One outgoing email and the SMTP result. SENT = accepted by the
+    mail server, not necessarily delivered."""
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    sent_at: datetime
+    recipient: str
+    subject: str
+    status: str
+    error: Optional[str] = None
+    attachment_count: int
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def _status_name(cls, value):
+        return getattr(value, "name", value)
+
+
+class EmailLogPage(BaseModel):
+    total: int
+    items: List[EmailLogOut]

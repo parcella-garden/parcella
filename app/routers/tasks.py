@@ -174,8 +174,10 @@ async def _render_board(
     # Due month/year filter (issue #119): a dropdown of only the
     # year/month combinations actually present among current due dates
     # ("July 2026", not a raw month/year picker), localized to the
-    # viewer's language the same way the birthday calendar PDF names
-    # months (app/birthday_calendar_pdf.py).
+    # viewer's language. context="stand-alone" matters for languages
+    # with grammatical case: Polish/Czech/Slovak's default "format"
+    # context gives the genitive ("5th of March"), not the nominative
+    # month name a heading needs.
     language = getattr(request.state, "language", DEFAULT_LANGUAGE)
     month_names = get_month_names("wide", context="stand-alone", locale=language)
     due_month_options = [
