@@ -71,6 +71,25 @@ under `localhost` -- sending mail is an outbound connection from the
 container to the mail server, independent of how the app itself is
 reached.
 
+### Email log
+
+`Admin -> Email log` (`/admin/email-log`, issue #270, [ADR
+0120](./ADR/0120-email-log-smtp-result-only.md)) lists every email
+Parcella tried to send: date/time (in the club's time zone), recipient,
+subject, attachment count, and **Sent** or **Failed** with the error. It
+filters by status and by recipient, 50 per page; `GET /api/v1/email-log`
+returns the same for the ADMIN role.
+
+"Sent" means the SMTP server accepted the message. A bounce that comes
+back later (mailbox full, address gone) lands in the sending mailbox and
+is **not** shown here. "Failed" covers what the server refused straight
+away (unknown recipient on the club's own server, authentication or
+relay errors), a server that couldn't be reached, and "SMTP not
+configured".
+
+Entries are deleted after `Admin -> Settings -> Email log` days (default
+90, 1-3650), on regular site use at most once an hour.
+
 ## Backups & restore
 
 A system admin can download a full backup on demand from `/admin/`

@@ -123,3 +123,4 @@ in chronological order.
 117. [Work hours: a member holding several plots owes each plot, hours fill them in order](./0117-work-hours-multi-plot-members-share-out-hours.md)
 118. [Reporting: figures computed live, Chart.js as the chart library](./0118-reporting-live-figures-and-chartjs.md)
 119. [Pull requests and CI on every change](./0119-pull-requests-and-ci-on-every-change.md)
+120. [Email log: the SMTP result, its own session, deleted after 90 days](./0120-email-log-smtp-result-only.md)

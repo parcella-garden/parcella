@@ -61,7 +61,8 @@
     "applicants": "Aanmelders",
     "work_hours_transfers": "Uren overdragen",
     "external_contacts": "Externe contacten",
-    "reporting": "Rapportages"
+    "reporting": "Rapportages",
+    "email_log": "E-maillogboek"
   },
   "errors": {
     "user_not_found": "Gebruiker niet gevonden",
@@ -344,7 +345,10 @@
       "invoice_number_start_placeholder": "bijv. 20000",
       "invoice_number_start_help": "Optioneel. Dwingt af dat de volgende factuurronde -- ongeacht het jaar -- met dit nummer begint in plaats van automatisch door te tellen; botsingen met bestaande nummers worden pas gecontroleerd bij het afronden van die ronde. Wordt na gebruik automatisch geleegd, zodat latere rondes gewoon doortellen. Laat leeg om altijd automatisch door te tellen.",
       "applicant_contact_template_label": "Tekst van de e-mail aan nieuwe aanvragers",
-      "applicant_contact_template_hint": "Wordt voorgesteld bij \"Aanvrager contacteren\" op een nieuwe aanvraag en kan voor elke verzending nog worden aangepast. {name} wordt vervangen door de naam van de aanvrager, {club} door de naam van de vereniging. Laat leeg voor de ingebouwde tekst (grijs weergegeven)."
+      "applicant_contact_template_hint": "Wordt voorgesteld bij \"Aanvrager contacteren\" op een nieuwe aanvraag en kan voor elke verzending nog worden aangepast. {name} wordt vervangen door de naam van de aanvrager, {club} door de naam van de vereniging. Laat leeg voor de ingebouwde tekst (grijs weergegeven).",
+      "email_log_header": "E-maillogboek",
+      "email_log_retention_label": "E-maillogboek bewaren (dagen)",
+      "email_log_retention_hint": "Oudere regels worden automatisch verwijderd, omdat adressen van ontvangers persoonsgegevens zijn. Standaard 90 dagen."
     },
     "integrations": {
       "title": "Integraties",
@@ -565,6 +569,28 @@
         "external_contacts": "Externe contacten",
         "reporting": "Rapportages"
       }
+    },
+    "email_log": {
+      "title": "E-maillogboek",
+      "intro": "Elke e-mail die Parcella verstuurt, met het antwoord van de mailserver. ‘Verzonden’ betekent dat de server hem heeft aangenomen; een bounce die later terugkomt, staat hier niet. Regels worden {days} dagen bewaard.",
+      "retention_link": "Wijzigen",
+      "search_placeholder": "Ontvanger zoeken…",
+      "status_any": "Alle statussen",
+      "status_sent": "Verzonden",
+      "status_failed": "Mislukt",
+      "filter_button": "Filteren",
+      "reset_filter": "Herstellen",
+      "card_title": "Uitgaande e-mails",
+      "total": "{count} regels",
+      "col_sent_at": "Datum/tijd",
+      "col_recipient": "Ontvanger",
+      "col_subject": "Onderwerp",
+      "col_status": "Status",
+      "attachments": "{count} bijlage(n)",
+      "empty": "Nog geen e-mails gelogd.",
+      "newer": "Nieuwer",
+      "older": "Ouder",
+      "page_of": "Pagina {page} van {pages}"
     }
   },
   "members": {

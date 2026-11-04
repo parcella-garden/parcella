@@ -61,7 +61,8 @@
     "applicants": "Uchádzači",
     "work_hours_transfers": "Prevod hodín",
     "external_contacts": "Externé kontakty",
-    "reporting": "Prehľady"
+    "reporting": "Prehľady",
+    "email_log": "Protokol e-mailov"
   },
   "errors": {
     "user_not_found": "Používateľ nebol nájdený",
@@ -344,7 +345,10 @@
       "invoice_number_start_placeholder": "napr. 20000",
       "invoice_number_start_help": "Voliteľné. Vynúti, aby ďalšie vyúčtovanie -- bez ohľadu na rok -- začalo týmto číslom namiesto automatického pokračovania; kolízie s existujúcimi číslami sa kontrolujú až pri finalizácii tohto vyúčtovania. Po použití sa automaticky vymaže, takže ďalšie vyúčtovania jednoducho pokračujú v číslovaní. Nechajte prázdne pre vždy automatické pokračovanie.",
       "applicant_contact_template_label": "Text e-mailu novým žiadateľom",
-      "applicant_contact_template_hint": "Používa sa pri „Kontaktovať žiadateľa“ pri novej žiadosti a pred každým odoslaním ho možno ešte upraviť. {name} sa nahradí menom žiadateľa, {club} názvom spolku. Nechajte prázdne pre vstavaný text (zobrazený sivo)."
+      "applicant_contact_template_hint": "Používa sa pri „Kontaktovať žiadateľa“ pri novej žiadosti a pred každým odoslaním ho možno ešte upraviť. {name} sa nahradí menom žiadateľa, {club} názvom spolku. Nechajte prázdne pre vstavaný text (zobrazený sivo).",
+      "email_log_header": "Protokol e-mailov",
+      "email_log_retention_label": "Uchovávať záznamy protokolu e-mailov (dni)",
+      "email_log_retention_hint": "Staršie záznamy sa automaticky mažú, pretože adresy príjemcov sú osobné údaje. Predvolene 90 dní."
     },
     "integrations": {
       "title": "Integrácie",
@@ -565,6 +569,28 @@
         "external_contacts": "Externé kontakty",
         "reporting": "Prehľady"
       }
+    },
+    "email_log": {
+      "title": "Protokol e-mailov",
+      "intro": "Každý e-mail, ktorý Parcella odošle, s odpoveďou poštového servera. „Odoslané“ znamená, že ho server prijal; nedoručiteľná správa, ktorá príde neskôr, sa tu nezobrazí. Záznamy sa uchovávajú {days} dní.",
+      "retention_link": "Zmeniť",
+      "search_placeholder": "Hľadať príjemcu…",
+      "status_any": "Všetky stavy",
+      "status_sent": "Odoslané",
+      "status_failed": "Zlyhalo",
+      "filter_button": "Filtrovať",
+      "reset_filter": "Zrušiť filter",
+      "card_title": "Odchádzajúce e-maily",
+      "total": "Záznamov: {count}",
+      "col_sent_at": "Dátum/čas",
+      "col_recipient": "Príjemca",
+      "col_subject": "Predmet",
+      "col_status": "Stav",
+      "attachments": "Prílohy: {count}",
+      "empty": "Zatiaľ neboli zaznamenané žiadne e-maily.",
+      "newer": "Novšie",
+      "older": "Staršie",
+      "page_of": "Strana {page} z {pages}"
     }
   },
   "members": {

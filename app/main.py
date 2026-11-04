@@ -32,6 +32,7 @@ from app.permissions import get_user_permissions, is_full_access_user, is_system
 from app.services.work_hours import count_new_participations
 from app.nav_counts import NAV_COUNT_KEYS, load_nav_counts
 from app.services.applicants import maybe_purge_expired_applicants
+from app.email_log import maybe_purge_expired_email_logs
 
 # Loaded at module import time (not only in the lifespan startup
 # event), since ASGI test clients (e.g. httpx with ASGITransport) don't
@@ -47,6 +48,7 @@ from app.routers import auth, members, parcels, admin as admin_router, admin_gro
 from app.routers.metering import create_metering_router
 from app.models import MeteringMedium
 from app.routers import api_auth, api_members, api_parcels, api_club_settings, api_stats
+from app.routers import api_email_log
 from app.routers import api_work_hours, api_insurance, api_helpdesk, api_purchase_requests, api_inventory, api_tasks
 from app.routers import applicants as applicants_router, api_applicants
 from app.routers import external_contacts as external_contacts_router, api_external_contacts
@@ -351,6 +353,8 @@ async def nav_counts_middleware(request: Request, call_next):
             # Issue #255: applicants past the retention period are
             # deleted on regular site use, no cron job (throttled).
             await maybe_purge_expired_applicants(db)
+            # Issue #270: email log rows past their retention, same way.
+            await maybe_purge_expired_email_logs(db)
     response = await call_next(request)
     return response
 
@@ -518,6 +522,7 @@ app.include_router(api_auth.router)
 app.include_router(api_members.router)
 app.include_router(api_parcels.router)
 app.include_router(api_club_settings.router)
+app.include_router(api_email_log.router)
 app.include_router(api_stats.router)
 app.include_router(api_work_hours.router)
 app.include_router(api_insurance.router)

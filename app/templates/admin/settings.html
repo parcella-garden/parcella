@@ -305,6 +305,25 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header settings-card-toggle collapsed" role="button" data-bs-toggle="collapse"
+                 data-bs-target="#settings-card-email-log" aria-expanded="false">
+                <span><i class="bi bi-envelope-paper me-2"></i>{{ t('admin.settings.email_log_header') }}</span>
+                <i class="bi bi-chevron-down settings-card-chevron"></i>
+            </div>
+            <div class="collapse" id="settings-card-email-log" data-bs-parent="#settings-accordion">
+            <div class="card-body">
+                <label class="form-label fw-semibold" for="email_log_retention_days">{{ t('admin.settings.email_log_retention_label') }}</label>
+                <input type="number" min="1" max="{{ email_log_max_retention_days }}" step="1" class="form-control" style="max-width: 160px;"
+                       name="email_log_retention_days" id="email_log_retention_days"
+                       value="{{ email_log_retention_days }}">
+                <div class="form-text">{{ t('admin.settings.email_log_retention_hint') }} <a href="/admin/email-log">{{ t('nav.email_log') }}</a></div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header settings-card-toggle collapsed" role="button" data-bs-toggle="collapse"
                  data-bs-target="#settings-card-club-data" aria-expanded="false">
                 <span><i class="bi bi-building me-2"></i>{{ t('admin.settings.club_data_header') }}</span>
                 <i class="bi bi-chevron-down settings-card-chevron"></i>

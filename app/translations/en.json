@@ -61,7 +61,8 @@
     "applicants": "Applicants",
     "work_hours_transfers": "Hours transfers",
     "external_contacts": "External contacts",
-    "reporting": "Reporting"
+    "reporting": "Reporting",
+    "email_log": "Email log"
   },
   "errors": {
     "user_not_found": "User not found",
@@ -344,7 +345,10 @@
       "invoice_number_start_placeholder": "e.g. 20000",
       "invoice_number_start_help": "Optional. Forces the very next invoice run -- in any year -- to start at this number instead of continuing automatically; checked for collisions with existing numbers only when that run is finalized. Cleared automatically once used, so later runs just continue sequentially from there. Leave blank to always continue automatically.",
       "applicant_contact_template_label": "Text of the email to new applicants",
-      "applicant_contact_template_hint": "Used by \"Contact applicant\" on a new application and can still be edited before each send. {name} is replaced by the applicant's name, {club} by the club's name. Leave blank for the built-in text (shown greyed out)."
+      "applicant_contact_template_hint": "Used by \"Contact applicant\" on a new application and can still be edited before each send. {name} is replaced by the applicant's name, {club} by the club's name. Leave blank for the built-in text (shown greyed out).",
+      "email_log_header": "Email log",
+      "email_log_retention_label": "Keep email log entries for (days)",
+      "email_log_retention_hint": "Older entries are deleted automatically, since recipient addresses are personal data. Default 90 days."
     },
     "integrations": {
       "title": "Integrations",
@@ -565,6 +569,28 @@
         "external_contacts": "External contacts",
         "reporting": "Reporting"
       }
+    },
+    "email_log": {
+      "title": "Email log",
+      "intro": "Every email Parcella sends, with what the mail server answered. \"Sent\" means the server accepted it; a bounce that comes back later isn't shown here. Entries are kept for {days} days.",
+      "retention_link": "Change",
+      "search_placeholder": "Search recipient…",
+      "status_any": "All statuses",
+      "status_sent": "Sent",
+      "status_failed": "Failed",
+      "filter_button": "Filter",
+      "reset_filter": "Reset",
+      "card_title": "Outgoing emails",
+      "total": "{count} entries",
+      "col_sent_at": "Date/time",
+      "col_recipient": "Recipient",
+      "col_subject": "Subject",
+      "col_status": "Status",
+      "attachments": "{count} attachment(s)",
+      "empty": "No emails logged yet.",
+      "newer": "Newer",
+      "older": "Older",
+      "page_of": "Page {page} of {pages}"
     }
   },
   "members": {

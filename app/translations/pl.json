@@ -61,7 +61,8 @@
     "applicants": "Kandydaci",
     "work_hours_transfers": "Przekazywanie godzin",
     "external_contacts": "Kontakty zewnętrzne",
-    "reporting": "Raporty"
+    "reporting": "Raporty",
+    "email_log": "Dziennik e-maili"
   },
   "errors": {
     "user_not_found": "Nie znaleziono użytkownika",
@@ -344,7 +345,10 @@
       "invoice_number_start_placeholder": "np. 20000",
       "invoice_number_start_help": "Opcjonalne. Wymusza, aby następna seria faktur -- niezależnie od roku -- rozpoczynała się od tego numeru zamiast kontynuować automatycznie; kolizje z istniejącymi numerami są sprawdzane dopiero przy finalizacji tej serii. Po użyciu jest automatycznie czyszczone, więc kolejne serie po prostu kontynuują numerację. Pozostaw puste, aby zawsze kontynuować automatycznie.",
       "applicant_contact_template_label": "Treść e-maila do nowych kandydatów",
-      "applicant_contact_template_hint": "Używana przez „Skontaktuj się z kandydatem” przy nowym zgłoszeniu; przed każdym wysłaniem można ją jeszcze zmienić. {name} zostanie zastąpione imieniem i nazwiskiem kandydata, {club} nazwą stowarzyszenia. Pozostaw puste, aby użyć wbudowanego tekstu (pokazanego na szaro)."
+      "applicant_contact_template_hint": "Używana przez „Skontaktuj się z kandydatem” przy nowym zgłoszeniu; przed każdym wysłaniem można ją jeszcze zmienić. {name} zostanie zastąpione imieniem i nazwiskiem kandydata, {club} nazwą stowarzyszenia. Pozostaw puste, aby użyć wbudowanego tekstu (pokazanego na szaro).",
+      "email_log_header": "Dziennik e-maili",
+      "email_log_retention_label": "Przechowuj wpisy dziennika e-maili (dni)",
+      "email_log_retention_hint": "Starsze wpisy są usuwane automatycznie, ponieważ adresy odbiorców to dane osobowe. Domyślnie 90 dni."
     },
     "integrations": {
       "title": "Integracje",
@@ -565,6 +569,28 @@
         "external_contacts": "Kontakty zewnętrzne",
         "reporting": "Raporty"
       }
+    },
+    "email_log": {
+      "title": "Dziennik e-maili",
+      "intro": "Każdy e-mail wysłany przez Parcellę wraz z odpowiedzią serwera pocztowego. „Wysłano” oznacza, że serwer go przyjął; zwrot, który przyjdzie później, nie jest tu widoczny. Wpisy są przechowywane przez {days} dni.",
+      "retention_link": "Zmień",
+      "search_placeholder": "Szukaj odbiorcy…",
+      "status_any": "Wszystkie statusy",
+      "status_sent": "Wysłano",
+      "status_failed": "Błąd",
+      "filter_button": "Filtruj",
+      "reset_filter": "Resetuj",
+      "card_title": "Wychodzące e-maile",
+      "total": "Wpisy: {count}",
+      "col_sent_at": "Data/godzina",
+      "col_recipient": "Odbiorca",
+      "col_subject": "Temat",
+      "col_status": "Status",
+      "attachments": "Załączniki: {count}",
+      "empty": "Brak zarejestrowanych e-maili.",
+      "newer": "Nowsze",
+      "older": "Starsze",
+      "page_of": "Strona {page} z {pages}"
     }
   },
   "members": {
