@@ -1782,7 +1782,8 @@
       "pdf_col_day": "Dag",
       "pdf_empty": "Geen verjaardagen bekend.",
       "col_present": "Cadeau",
-      "no_present": "Geen cadeau"
+      "no_present": "Geen cadeau",
+      "col_tags": "Tags"
     },
     "council_presence": {
       "title": "Aanwezigheid bestuur",

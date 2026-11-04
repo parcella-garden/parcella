@@ -1,5 +1,6 @@
 """
-Issue #269: a member can decline birthday presents. The flag is set on
+Birthday list features: declining presents (issue #269) and member tags
+(issue #271). The present flag is set on
 the member form, shown on the detail page and the birthday list, and
 available through the REST API.
 """
@@ -72,3 +73,32 @@ async def test_declined_presents_flag_in_api(client, admin_user):
     )
     assert updated.status_code == 200, updated.text
     assert updated.json()["birthday_present_declined"] is False
+
+
+async def test_birthday_list_shows_member_tags(client, admin_user):
+    """Issue #271: the birthday list has a Tags column with the member's
+    tags, translated (ADR 0098) and linking to the filtered member list."""
+    from app.models import MemberTag
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    async with AsyncSessionLocal() as session:
+        board = MemberTag(name="Erweiterter Vorstand", translations={"en": "Extended board"})
+        tagged = Member(first_name="Tina", last_name="Tagged", member_since=date(2020, 1, 1),
+                        date_of_birth=_birth_date_in(5, 44))
+        tagged.tags = [board]
+        session.add_all([board, tagged, Member(
+            first_name="Ulla", last_name="Untagged", member_since=date(2020, 1, 1),
+            date_of_birth=_birth_date_in(6, 45),
+        )])
+        await session.commit()
+        tag_id = board.id
+
+    page = (await client.get("/calendar/birthdays")).text
+    assert "Tags" in page
+
+    def row_of(name: str) -> str:
+        return page[page.index(name):].split("</tr>")[0]
+
+    assert "Extended board" in row_of("Tina Tagged")  # English UI -> translated name
+    assert f"/members/?tag={tag_id}" in row_of("Tina Tagged")
+    assert "Extended board" not in row_of("Ulla Untagged")

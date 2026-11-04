@@ -1782,7 +1782,8 @@
       "pdf_col_day": "Dzień",
       "pdf_empty": "Brak urodzin w systemie.",
       "col_present": "Prezent",
-      "no_present": "Bez prezentu"
+      "no_present": "Bez prezentu",
+      "col_tags": "Tagi"
     },
     "council_presence": {
       "title": "Obecność zarządu",

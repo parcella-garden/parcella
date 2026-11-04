@@ -31,6 +31,7 @@
                         <th>{{ t('calendar.birthdays.col_date') }}</th>
                         <th>{{ t('calendar.birthdays.col_name') }}</th>
                         <th>{{ t('calendar.birthdays.col_turning') }}</th>
+                        <th>{{ t('calendar.birthdays.col_tags') }}</th>
                         <th>{{ t('calendar.birthdays.col_present') }}</th>
                     </tr>
                 </thead>
@@ -48,6 +49,12 @@
                         </td>
                         <td>{{ t('calendar.birthdays.turning_label', age=b.turning_age) }}</td>
                         <td>
+                            {% for member_tag in b.member.tags %}
+                            <a href="/members/?tag={{ member_tag.id }}" class="badge text-decoration-none me-1"
+                               style="background: #f3f4f6; color: #374151; font-size: 0.7rem;">{{ tag_name(member_tag) }}</a>
+                            {% endfor %}
+                        </td>
+                        <td>
                             {% if b.member.birthday_present_declined %}
                             <span class="badge" style="background: #fee2e2; color: #991b1b;">
                                 <i class="bi bi-x-circle me-1"></i>{{ t('calendar.birthdays.no_present') }}
@@ -57,7 +64,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="4" class="text-center text-muted py-3">{{ t('calendar.birthdays.empty') }}</td>
+                        <td colspan="5" class="text-center text-muted py-3">{{ t('calendar.birthdays.empty') }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

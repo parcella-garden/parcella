@@ -12,6 +12,7 @@ from typing import List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.database import active_member_filter
 from app.models import Member
@@ -48,10 +49,12 @@ def _next_occurrence(birth_date: date, today: date) -> date:
 
 async def upcoming_birthdays(db: AsyncSession, today: Optional[date] = None, within_days: int = 7) -> List[UpcomingBirthday]:
     """Active members whose next birthday falls within the given window
-    (inclusive of today), sorted by how soon it is."""
+    (inclusive of today), sorted by how soon it is. Tags are loaded for
+    the birthday list (issue #271)."""
     today = today or date.today()
     result = await db.execute(
         select(Member).where(active_member_filter(), Member.date_of_birth.is_not(None))
+        .options(selectinload(Member.tags))
     )
     members = result.scalars().all()
 

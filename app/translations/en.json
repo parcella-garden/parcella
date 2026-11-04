@@ -1782,7 +1782,8 @@
       "pdf_col_day": "Day",
       "pdf_empty": "No birthdays on file.",
       "col_present": "Present",
-      "no_present": "No present"
+      "no_present": "No present",
+      "col_tags": "Tags"
     },
     "council_presence": {
       "title": "Council Presence",
