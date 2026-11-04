@@ -1782,7 +1782,8 @@
       "pdf_col_day": "Deň",
       "pdf_empty": "Žiadne narodeniny v systéme.",
       "col_present": "Darček",
-      "no_present": "Bez darčeka"
+      "no_present": "Bez darčeka",
+      "col_tags": "Štítky"
     },
     "council_presence": {
       "title": "Prítomnosť výboru",

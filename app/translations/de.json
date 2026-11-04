@@ -1782,7 +1782,8 @@
       "pdf_col_day": "Tag",
       "pdf_empty": "Keine Geburtstage hinterlegt.",
       "col_present": "Geschenk",
-      "no_present": "Kein Geschenk"
+      "no_present": "Kein Geschenk",
+      "col_tags": "Tags"
     },
     "council_presence": {
       "title": "Vorstandspräsenz",

@@ -73,6 +73,12 @@ needed (`app/birthdays.py`). Correcting a birth date on the member
 record is instantly reflected everywhere -- there's nothing to keep in
 sync, because nothing is duplicated.
 
+**Member tags in the birthday list (issue #271)**: a Tags column with
+the same badges as `/members/` (translated names, ADR 0098), each
+linking to the member list filtered by that tag. `upcoming_birthdays()`
+loads `Member.tags` with `selectinload`, since the relationship can't be
+lazy-loaded under asyncio.
+
 **Members who decline presents (issue #269)** show a "No present"
 badge in the birthday list's Present column, from
 `Member.birthday_present_declined` (see docs/module-members-parcels.md).

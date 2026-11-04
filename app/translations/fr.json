@@ -1782,7 +1782,8 @@
       "pdf_col_day": "Jour",
       "pdf_empty": "Aucun anniversaire enregistré.",
       "col_present": "Cadeau",
-      "no_present": "Pas de cadeau"
+      "no_present": "Pas de cadeau",
+      "col_tags": "Étiquettes"
     },
     "council_presence": {
       "title": "Présence du conseil",
