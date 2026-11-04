@@ -1777,13 +1777,12 @@
       "round_badge": "Kulaté",
       "turning_label": "{age}",
       "empty": "Žádné nadcházející narozeniny v systému.",
-      "pdf_button": "Tisk PDF (celý rok)",
-      "pdf_heading": "Kalendář narozenin {year}",
-      "pdf_col_day": "Den",
-      "pdf_empty": "Žádné narozeniny v systému.",
+      "pdf_button": "Tisk PDF",
+      "pdf_heading": "Narozeniny {start} – {end}",
       "col_present": "Dárek",
       "no_present": "Bez dárku",
-      "col_tags": "Štítky"
+      "col_tags": "Štítky",
+      "pdf_no_plot": "Bez parcely"
     },
     "council_presence": {
       "title": "Přítomnost výboru",

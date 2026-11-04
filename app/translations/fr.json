@@ -1777,13 +1777,12 @@
       "round_badge": "Anniversaire rond",
       "turning_label": "{age}",
       "empty": "Aucun anniversaire à venir enregistré.",
-      "pdf_button": "Imprimer le PDF (année entière)",
-      "pdf_heading": "Calendrier des anniversaires {year}",
-      "pdf_col_day": "Jour",
-      "pdf_empty": "Aucun anniversaire enregistré.",
+      "pdf_button": "Imprimer le PDF",
+      "pdf_heading": "Anniversaires du {start} au {end}",
       "col_present": "Cadeau",
       "no_present": "Pas de cadeau",
-      "col_tags": "Étiquettes"
+      "col_tags": "Étiquettes",
+      "pdf_no_plot": "Sans parcelle"
     },
     "council_presence": {
       "title": "Présence du conseil",

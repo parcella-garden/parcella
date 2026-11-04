@@ -88,27 +88,28 @@ This is `ROUND_BIRTHDAY_INTERVAL` in `app/birthdays.py` -- change that
 one constant if your association's convention differs (e.g. also
 highlighting 25/75-style anniversaries).
 
-**Two different birthday queries for two different purposes (issue
-#99).** `upcoming_birthdays()` (the web page, `within_days=90` rolling
-window from today) and `birthdays_for_year()` (the print PDF,
-`/calendar/birthdays/pdf`) are deliberately separate functions rather
-than one parameterized query: the web page is a "what's coming up"
-dashboard-style list where entries drop off once their birthday
-passes, while the PDF is a full-year reference meant to be printed once
-and consulted all year, so everyone appears exactly once regardless of
-today's date, grouped by (month, day) in calendar order (Jan-Dec), not
-`Member.date_of_birth`'s literal chronological order (which would sort
-by birth *year* first). `turning_age` in the PDF is "age reached in the
-requested year," not "next occurrence from today" -- a January birthday
-already past in a mid-year printout still correctly shows the age
-turned this year, not next year's.
-`app/birthday_calendar_pdf.py` renders it (WeasyPrint), grouped into
-one heading row per month using `babel.dates.get_month_names(...,
-context="stand-alone")` for the month name in the club's configured
-language -- `context="stand-alone"` matters for languages with
-grammatical case (Polish/Czech/Slovak's default "format" context
-returns the genitive form used in phrases like "5th of March", not the
-nominative name used for a standalone month heading).
+**The print PDF is the web list, arranged by plot (issue #272).**
+Issue #99 had made `/calendar/birthdays/pdf` a whole-year calendar
+grouped by month, from a separate `birthdays_for_year()` query. #272
+replaced that: the people using the printout visit members with
+presents, so they want the same upcoming window as the web page
+(`BIRTHDAY_LIST_DAYS = 90` in `app/birthdays.py`, used by both) and
+the list in the order they walk it. Both now call
+`upcoming_birthdays()`; the PDF passes `with_contact_details=True`
+(current plots, emails, phones eager-loaded) and
+`birthdays_by_parcel()` turns that into one row per member and current
+plot, sorted by plot number in natural order ("2" before "10"), then
+date and name. A member holding several plots appears under each; one
+without a current plot is listed at the end under "No plot". The plot
+number is printed once per group.
+
+Columns: plot, name, birthday, age being turned (milestones
+highlighted), tags (#271), "No present" (#269), postal address,
+primary email, primary phone -- A4 landscape (`@page { size: A4
+landscape; }` in the document's `extra_css`, overriding the shared
+A4 portrait). `birthdays_for_year()` and the `?year=` parameter are
+gone. Every database value is `html.escape()`d before it goes into
+the WeasyPrint HTML; the #99 version put member names in raw.
 
 **Shares its visual template with every other PDF in the app, via
 `app/pdf_chrome.py`.** Requested explicitly: the header/footer chrome

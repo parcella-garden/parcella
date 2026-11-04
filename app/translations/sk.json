@@ -1777,13 +1777,12 @@
       "round_badge": "Okrúhle",
       "turning_label": "{age}",
       "empty": "Žiadne nadchádzajúce narodeniny v systéme.",
-      "pdf_button": "Tlačiť PDF (celý rok)",
-      "pdf_heading": "Kalendár narodenín {year}",
-      "pdf_col_day": "Deň",
-      "pdf_empty": "Žiadne narodeniny v systéme.",
+      "pdf_button": "Tlačiť PDF",
+      "pdf_heading": "Narodeniny {start} – {end}",
       "col_present": "Darček",
       "no_present": "Bez darčeka",
-      "col_tags": "Štítky"
+      "col_tags": "Štítky",
+      "pdf_no_plot": "Bez parcely"
     },
     "council_presence": {
       "title": "Prítomnosť výboru",

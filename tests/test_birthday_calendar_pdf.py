@@ -1,9 +1,9 @@
 """
-Issue #99: a printable birthday calendar PDF covering an entire year
-(/calendar/birthdays/pdf), grouped by month -- unlike the birthdays web
-page, which only lists the next 90 days for the dashboard-style
-"upcoming" use case (see app/birthdays.py's upcoming_birthdays vs
-birthdays_for_year).
+The printable birthday list (/calendar/birthdays/pdf): renders with no
+data, and carries the shared org/register/bank footer (ADR 0045) that
+every PDF shows. Its content -- the web list's 90 days arranged by plot
+(issue #272, which replaced issue #99's whole-year calendar) -- is
+tested in tests/test_birthday_list.py.
 
 Uses the web UI's cookie-based session login, like the other PDF-sheet
 tests, since this route returns a PDF file rather than JSON.
@@ -35,43 +35,7 @@ def _normalized(text: str) -> str:
     return "".join(text.split())
 
 
-async def test_birthday_calendar_pdf_groups_by_month_in_calendar_order(client, admin_user):
-    await web_login(client, "admin@example.com")
-
-    async with AsyncSessionLocal() as session:
-        # Deliberately created in a different order than the calendar
-        # (March, then January) and with birth years far apart, to
-        # prove the PDF sorts by (month, day) -- not creation order,
-        # and not literal chronological date_of_birth.
-        session.add_all([
-            Member(first_name="Maria", last_name="Maerz", date_of_birth=date(1970, 3, 15)),
-            Member(first_name="Jan", last_name="Januar", date_of_birth=date(1995, 1, 5)),
-        ])
-        await session.commit()
-
-    response = await client.get("/calendar/birthdays/pdf?year=2026")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/pdf"
-
-    text = _pdf_text(response.content)
-    normalized = _normalized(text)
-
-    assert _normalized("Jan Januar") in normalized
-    assert _normalized("Maria Maerz") in normalized
-
-    # January's entry must appear before March's entry in reading order.
-    jan_index = normalized.find(_normalized("Januar"))
-    mar_index = normalized.find(_normalized("Maerz"))
-    assert jan_index != -1 and mar_index != -1
-    assert jan_index < mar_index, "January birthdays must be listed before March birthdays"
-
-    # Turning age is computed against the requested year (2026), not
-    # today's actual year or the member's literal birth year gap.
-    assert "31" in text  # Jan Januar: 2026 - 1995
-    assert "56" in text  # Maria Maerz: 2026 - 1970
-
-
-async def test_birthday_calendar_pdf_defaults_to_current_year_and_handles_empty(client, admin_user):
+async def test_birthday_calendar_pdf_handles_empty(client, admin_user):
     await web_login(client, "admin@example.com")
 
     response = await client.get("/calendar/birthdays/pdf")

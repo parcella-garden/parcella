@@ -1777,13 +1777,12 @@
       "round_badge": "Milestone",
       "turning_label": "{age}",
       "empty": "No upcoming birthdays on file.",
-      "pdf_button": "Print PDF (entire year)",
-      "pdf_heading": "Birthday Calendar {year}",
-      "pdf_col_day": "Day",
-      "pdf_empty": "No birthdays on file.",
+      "pdf_button": "Print PDF",
+      "pdf_heading": "Birthdays {start} – {end}",
       "col_present": "Present",
       "no_present": "No present",
-      "col_tags": "Tags"
+      "col_tags": "Tags",
+      "pdf_no_plot": "No plot"
     },
     "council_presence": {
       "title": "Council Presence",

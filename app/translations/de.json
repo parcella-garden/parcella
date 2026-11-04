@@ -1777,13 +1777,12 @@
       "round_badge": "Rund",
       "turning_label": "{age}",
       "empty": "Keine anstehenden Geburtstage hinterlegt.",
-      "pdf_button": "PDF drucken (ganzes Jahr)",
-      "pdf_heading": "Geburtstagskalender {year}",
-      "pdf_col_day": "Tag",
-      "pdf_empty": "Keine Geburtstage hinterlegt.",
+      "pdf_button": "PDF drucken",
+      "pdf_heading": "Geburtstage {start} – {end}",
       "col_present": "Geschenk",
       "no_present": "Kein Geschenk",
-      "col_tags": "Tags"
+      "col_tags": "Tags",
+      "pdf_no_plot": "Ohne Garten"
     },
     "council_presence": {
       "title": "Vorstandspräsenz",
