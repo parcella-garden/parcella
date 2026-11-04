@@ -206,8 +206,16 @@ the club's region setting (`REGION_TIMEZONES` in `app/l10n.py`, one per
 supported country), and `build_community_calendar()` adds the matching
 `VTIMEZONE` via `cal.add_missing_timezones()`. Up to 3.18.0 the times
 were dropped, so every event showed up as all-day in subscribers'
-calendar apps although `community.json` had them. Work sessions are
-still all-day with their time in `DESCRIPTION` -- unchanged so far.
+calendar apps although `community.json` had them.
+
+**Work sessions and council presence slots are timed too (issue
+#268, 6.2.0).** Both used to write "09:00 - 11:00" into `DESCRIPTION`
+and stay all-day, which is what made a council presence slot show up
+as an all-day entry. They now go through the same `start_time`/
+`end_time`/`tz` path as community events, and the council presence
+feed adds its own `VTIMEZONE`. A work session or slot without a time
+stays all-day. Council absence is a date range with no times at all,
+so it's all-day by nature.
 
 ## REST API
 

@@ -352,3 +352,52 @@ async def test_council_absence_for_another_user(client, admin_user, board_user):
     assert both.status_code in (302, 303)
     overview2 = await client.get("/calendar/council-absence")
     assert overview2.text.count("Joint trip") == 2
+
+
+async def test_council_presence_and_work_session_ics_are_timed(client, admin_user, board_user):
+    """Regression for issue #268: a council presence slot (and a work
+    session) with a time used to be written as an all-day event, its
+    time only in DESCRIPTION. Both must now carry the time in DTSTART/
+    DTEND in the club's zone, with a VTIMEZONE; one without a time stays
+    all-day."""
+    import re
+
+    from icalendar import Calendar
+
+    from app.database import AsyncSessionLocal
+    from app.models import SessionType, WorkSession
+
+    await web_login(client, "admin@example.com")
+    day = date.today() + timedelta(days=6)
+    stamp = day.strftime("%Y%m%d")
+    await client.post("/calendar/council-presence/new", data={
+        "user_ids": [admin_user.id], "presence_date": day.isoformat(),
+        "time_from": "09:00", "time_until": "11:30", "note": "Office hours",
+    })
+    await client.post("/calendar/council-presence/new", data={
+        "user_ids": [board_user.id], "presence_date": day.isoformat(),
+    })
+    async with AsyncSessionLocal() as session:
+        session.add(WorkSession(
+            title="Hedge Trimming", type=SessionType.STANDARD, date=day,
+            time_from="08:00", time_until="12:00",
+        ))
+        await session.commit()
+
+    page = await client.get("/calendar/council-presence")
+    token = re.search(r"council-presence\.ics\?token=([\w-]+)", page.text).group(1)
+    ics = (await client.get(f"/calendar/council-presence.ics?token={token}")).text
+    assert f"DTSTART;TZID=Europe/Berlin:{stamp}T090000" in ics
+    assert f"DTEND;TZID=Europe/Berlin:{stamp}T113000" in ics
+    assert "BEGIN:VTIMEZONE" in ics
+
+    events = {str(e["summary"]): e for e in Calendar.from_ical(ics).walk("VEVENT")}
+    timed = events["Test-Admin on-site"]
+    assert str(timed["description"]) == "Office hours"  # no time text left in it
+    all_day = events["Test-Vorstand on-site"]
+    assert all_day.decoded("dtstart") == day
+    assert all_day.decoded("dtend") == day + timedelta(days=1)
+
+    community = (await client.get("/calendar/community.ics")).text
+    assert f"DTSTART;TZID=Europe/Berlin:{stamp}T080000" in community
+    assert f"DTEND;TZID=Europe/Berlin:{stamp}T120000" in community
