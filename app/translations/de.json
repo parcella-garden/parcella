@@ -61,7 +61,8 @@
     "applicants": "Bewerber",
     "work_hours_transfers": "Stundenübertragung",
     "external_contacts": "Externe Kontakte",
-    "reporting": "Auswertungen"
+    "reporting": "Auswertungen",
+    "email_log": "E-Mail-Protokoll"
   },
   "errors": {
     "user_not_found": "Benutzer nicht gefunden",
@@ -344,7 +345,10 @@
       "invoice_number_start_placeholder": "z. B. 20000",
       "invoice_number_start_help": "Optional. Erzwingt, dass der nächste Rechnungslauf -- unabhängig vom Jahr -- mit dieser Nummer beginnt, anstatt automatisch fortzusetzen; Kollisionen mit bestehenden Nummern werden erst beim Abschließen dieses Laufs geprüft. Wird nach Verwendung automatisch geleert, sodass spätere Läufe einfach fortlaufend weiterzählen. Leer lassen, um immer automatisch fortzusetzen.",
       "applicant_contact_template_label": "Text der E-Mail an neue Bewerber",
-      "applicant_contact_template_hint": "Wird bei „Bewerber kontaktieren“ einer neuen Bewerbung vorgeschlagen und kann vor jedem Senden noch angepasst werden. {name} wird durch den Namen des Bewerbers ersetzt, {club} durch den Vereinsnamen. Leer lassen für den eingebauten Text (grau angezeigt)."
+      "applicant_contact_template_hint": "Wird bei „Bewerber kontaktieren“ einer neuen Bewerbung vorgeschlagen und kann vor jedem Senden noch angepasst werden. {name} wird durch den Namen des Bewerbers ersetzt, {club} durch den Vereinsnamen. Leer lassen für den eingebauten Text (grau angezeigt).",
+      "email_log_header": "E-Mail-Protokoll",
+      "email_log_retention_label": "E-Mail-Protokoll aufbewahren (Tage)",
+      "email_log_retention_hint": "Ältere Einträge werden automatisch gelöscht, da Empfängeradressen personenbezogene Daten sind. Standard: 90 Tage."
     },
     "integrations": {
       "title": "Integrationen",
@@ -565,6 +569,28 @@
         "external_contacts": "Externe Kontakte",
         "reporting": "Auswertungen"
       }
+    },
+    "email_log": {
+      "title": "E-Mail-Protokoll",
+      "intro": "Jede E-Mail, die Parcella verschickt, mit der Antwort des Mailservers. „Gesendet“ heißt: Der Server hat sie angenommen; ein später zurückkommender Bounce wird hier nicht angezeigt. Einträge werden {days} Tage aufbewahrt.",
+      "retention_link": "Ändern",
+      "search_placeholder": "Empfänger suchen…",
+      "status_any": "Alle Status",
+      "status_sent": "Gesendet",
+      "status_failed": "Fehlgeschlagen",
+      "filter_button": "Filtern",
+      "reset_filter": "Zurücksetzen",
+      "card_title": "Ausgehende E-Mails",
+      "total": "{count} Einträge",
+      "col_sent_at": "Datum/Uhrzeit",
+      "col_recipient": "Empfänger",
+      "col_subject": "Betreff",
+      "col_status": "Status",
+      "attachments": "{count} Anhang/Anhänge",
+      "empty": "Noch keine E-Mails protokolliert.",
+      "newer": "Neuere",
+      "older": "Ältere",
+      "page_of": "Seite {page} von {pages}"
     }
   },
   "members": {

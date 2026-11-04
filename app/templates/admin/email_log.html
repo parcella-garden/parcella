@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}{{ t('admin.email_log.title') }}{% endblock %}
+{% block page_title %}{{ t('admin.email_log.title') }}{% endblock %}
+
+{% block content %}
+<p class="text-muted" style="font-size: 0.9rem;">
+    <i class="bi bi-info-circle me-1"></i>{{ t('admin.email_log.intro', days=retention_days) }}
+    <a href="/admin/settings">{{ t('admin.email_log.retention_link') }}</a>
+</p>
+
+<form method="get" action="/admin/email-log" class="d-flex flex-wrap gap-2 mb-3">
+    <input type="search" name="q" value="{{ q }}" class="form-control form-control-sm" style="max-width: 280px;"
+           placeholder="{{ t('admin.email_log.search_placeholder') }}" aria-label="{{ t('admin.email_log.search_placeholder') }}">
+    <select name="status" class="form-select form-select-sm" style="max-width: 200px;"
+            aria-label="{{ t('admin.email_log.col_status') }}" onchange="this.form.submit()">
+        <option value="">{{ t('admin.email_log.status_any') }}</option>
+        {% for s in statuses %}
+        <option value="{{ s.name }}" {% if s.name == status %}selected{% endif %}>{{ t('admin.email_log.status_' ~ s.name|lower) }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-search me-1"></i>{{ t('admin.email_log.filter_button') }}</button>
+    {% if q or status %}
+    <a href="/admin/email-log" class="btn btn-sm btn-link">{{ t('admin.email_log.reset_filter') }}</a>
+    {% endif %}
+</form>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-envelope-paper me-2"></i>{{ t('admin.email_log.card_title') }}</span>
+        <span class="text-muted" style="font-size: 0.85rem;">{{ t('admin.email_log.total', count=total) }}</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{{ t('admin.email_log.col_sent_at') }}</th>
+                        <th>{{ t('admin.email_log.col_recipient') }}</th>
+                        <th>{{ t('admin.email_log.col_subject') }}</th>
+                        <th>{{ t('admin.email_log.col_status') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr>
+                        <td class="text-nowrap">{{ row.sent_at.astimezone(tz).strftime('%d.%m.%Y %H:%M:%S') }}</td>
+                        <td class="text-break">{{ row.recipient }}</td>
+                        <td class="text-break">
+                            {{ row.subject }}
+                            {% if row.attachment_count %}
+                            <i class="bi bi-paperclip text-muted ms-1" title="{{ t('admin.email_log.attachments', count=row.attachment_count) }}"
+                               aria-label="{{ t('admin.email_log.attachments', count=row.attachment_count) }}"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if row.status.name == 'SENT' %}
+                            <span class="badge badge-aktiv"><i class="bi bi-check me-1"></i>{{ t('admin.email_log.status_sent') }}</span>
+                            {% else %}
+                            <span class="badge" style="background: #fee2e2; color: #991b1b;"><i class="bi bi-x-circle me-1"></i>{{ t('admin.email_log.status_failed') }}</span>
+                            {% if row.error %}<div class="text-muted text-break mt-1" style="font-size: 0.8rem;">{{ row.error }}</div>{% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="text-center text-muted py-3">{{ t('admin.email_log.empty') }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if page_count > 1 %}
+    <div class="card-footer d-flex justify-content-between align-items-center">
+        {% set base_qs = 'q=' ~ (q|urlencode) ~ '&status=' ~ status %}
+        {% if page > 1 %}
+        <a class="btn btn-sm btn-outline-secondary" href="/admin/email-log?{{ base_qs }}&page={{ page - 1 }}"><i class="bi bi-chevron-left"></i> {{ t('admin.email_log.newer') }}</a>
+        {% else %}<span></span>{% endif %}
+        <span class="text-muted" style="font-size: 0.85rem;">{{ t('admin.email_log.page_of', page=page, pages=page_count) }}</span>
+        {% if page < page_count %}
+        <a class="btn btn-sm btn-outline-secondary" href="/admin/email-log?{{ base_qs }}&page={{ page + 1 }}">{{ t('admin.email_log.older') }} <i class="bi bi-chevron-right"></i></a>
+        {% else %}<span></span>{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
