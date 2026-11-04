@@ -19,7 +19,7 @@ rather than a login, since calendar apps subscribing to a feed URL
 can't do session-cookie authentication either -- the token is the
 practical equivalent of a login for a subscription URL.
 """
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -38,9 +38,13 @@ from app.auth import require_user
 from app.permissions import require_permission
 from app.module_flags import require_module
 from app.i18n import t_for, load_current_language
+from app.l10n import load_current_region
 from app.branding import load_branding
 from app.pdf_chrome import load_org_footer_context
-from app.birthdays import upcoming_birthdays, all_birthdays_for_calendar, birthdays_for_year, ROUND_BIRTHDAY_INTERVAL
+from app.birthdays import (
+    upcoming_birthdays, all_birthdays_for_calendar, birthdays_by_parcel,
+    BIRTHDAY_LIST_DAYS, ROUND_BIRTHDAY_INTERVAL,
+)
 from app.birthday_calendar_pdf import render_birthday_calendar_pdf
 from app.ics_utils import (
     get_or_create_ics_token, verify_ics_token,
@@ -220,7 +224,7 @@ async def community_json(db: AsyncSession = Depends(get_db)):
 @router.get("/birthdays", response_class=HTMLResponse)
 async def birthdays_overview(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "calendar", "read")
-    upcoming = await upcoming_birthdays(db, within_days=90)
+    upcoming = await upcoming_birthdays(db, within_days=BIRTHDAY_LIST_DAYS)
     ics_token = await get_or_create_ics_token(db)
     return templates.TemplateResponse("calendar/birthdays.html", {
         "request": request, "user": user, "upcoming": upcoming,
@@ -230,28 +234,32 @@ async def birthdays_overview(request: Request, db: AsyncSession = Depends(get_db
 
 
 @router.get("/birthdays/pdf")
-async def birthdays_pdf(request: Request, year: Optional[int] = Query(None), db: AsyncSession = Depends(get_db)):
-    """Printable birthday calendar for a whole year (issue #99), grouped
-    by month -- unlike the web view above, which only lists the next 90
-    days. Behind the normal app login/permission check like the web
-    view, not the ICS feeds' separate secret-token scheme, since this
-    is reached from within the logged-in UI, not a calendar-app
-    subscription URL."""
+async def birthdays_pdf(request: Request, db: AsyncSession = Depends(get_db)):
+    """Printable birthday list (issue #272): the same window as the web
+    view above, arranged by plot with contact details for whoever hands
+    out presents. Replaced the whole-year calendar of issue #99. Behind
+    the normal app login/permission check like the web view, not the
+    ICS feeds' separate secret-token scheme, since this is reached from
+    within the logged-in UI, not a calendar-app subscription URL."""
     await require_permission(request, db, "calendar", "read")
-    target_year = year or date.today().year
-    entries = await birthdays_for_year(db, year=target_year)
+    today = date.today()
+    upcoming = await upcoming_birthdays(db, today=today, within_days=BIRTHDAY_LIST_DAYS, with_contact_details=True)
+    rows = birthdays_by_parcel(upcoming)
 
     branding = await load_branding(db)
     logo_path = Path("app" + branding["logo_url"]) if branding["logo_url"] else None
     language = await load_current_language(db)
+    region = await load_current_region(db)
     footer_context = await load_org_footer_context(db, branding["club_name"])
 
-    pdf_bytes = render_birthday_calendar_pdf(target_year, footer_context, logo_path, entries, language)
+    pdf_bytes = render_birthday_calendar_pdf(
+        today, today + timedelta(days=BIRTHDAY_LIST_DAYS), footer_context, logo_path, rows, language, region,
+    )
 
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="birthday-calendar-{target_year}.pdf"'},
+        headers={"Content-Disposition": f'attachment; filename="birthdays-{today.isoformat()}.pdf"'},
     )
 
 

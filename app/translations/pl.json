@@ -1777,13 +1777,12 @@
       "round_badge": "Okrągłe",
       "turning_label": "{age}",
       "empty": "Brak nadchodzących urodzin w systemie.",
-      "pdf_button": "Drukuj PDF (cały rok)",
-      "pdf_heading": "Kalendarz urodzin {year}",
-      "pdf_col_day": "Dzień",
-      "pdf_empty": "Brak urodzin w systemie.",
+      "pdf_button": "Drukuj PDF",
+      "pdf_heading": "Urodziny {start} – {end}",
       "col_present": "Prezent",
       "no_present": "Bez prezentu",
-      "col_tags": "Tagi"
+      "col_tags": "Tagi",
+      "pdf_no_plot": "Bez działki"
     },
     "council_presence": {
       "title": "Obecność zarządu",

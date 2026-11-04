@@ -6,6 +6,7 @@ Deliberately not a stored table -- a member's birthday calendar entry is
 entirely derived from Member.date_of_birth each time it's needed, so
 there's nothing to keep in sync when a member's birth date is corrected.
 """
+import re
 from dataclasses import dataclass
 from datetime import date
 from typing import List, Optional
@@ -15,7 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.database import active_member_filter
-from app.models import Member
+from app.models import Member, MemberParcel
 
 # A birthday is considered "round" (a milestone worth highlighting) when
 # the age being turned is a multiple of this number. 10 matches the
@@ -47,14 +48,23 @@ def _next_occurrence(birth_date: date, today: date) -> date:
     return birth_date.replace(year=today.year + 1)
 
 
-async def upcoming_birthdays(db: AsyncSession, today: Optional[date] = None, within_days: int = 7) -> List[UpcomingBirthday]:
+async def upcoming_birthdays(
+    db: AsyncSession, today: Optional[date] = None, within_days: int = 7, *, with_contact_details: bool = False,
+) -> List[UpcomingBirthday]:
     """Active members whose next birthday falls within the given window
     (inclusive of today), sorted by how soon it is. Tags are loaded for
-    the birthday list (issue #271)."""
+    the birthday list (issue #271); `with_contact_details` also loads
+    current plots, emails and phone numbers for the print PDF (#272)."""
     today = today or date.today()
+    options = [selectinload(Member.tags)]
+    if with_contact_details:
+        options += [
+            selectinload(Member.parcel_assignments).selectinload(MemberParcel.parcel),
+            selectinload(Member.email_addresses),
+            selectinload(Member.phone_numbers),
+        ]
     result = await db.execute(
-        select(Member).where(active_member_filter(), Member.date_of_birth.is_not(None))
-        .options(selectinload(Member.tags))
+        select(Member).where(active_member_filter(), Member.date_of_birth.is_not(None)).options(*options)
     )
     members = result.scalars().all()
 
@@ -73,6 +83,42 @@ async def upcoming_birthdays(db: AsyncSession, today: Optional[date] = None, wit
 
     upcoming.sort(key=lambda b: b.next_occurrence)
     return upcoming
+
+
+# The birthday list's window (web page and print PDF, issue #272).
+BIRTHDAY_LIST_DAYS = 90
+
+
+@dataclass
+class ParcelBirthdayRow:
+    plot_number: Optional[str]  # None: the member has no current plot
+    birthday: UpcomingBirthday
+
+
+def _plot_sort_key(plot_number: Optional[str]):
+    """Natural order ("2" before "10", "3a" after "3"); members without
+    a plot go last."""
+    if plot_number is None:
+        return (1, [])
+    parts = re.split(r"(\d+)", plot_number.strip().lower())
+    return (0, [(0, int(p), "") if p.isdigit() else (1, 0, p) for p in parts if p])
+
+
+def birthdays_by_parcel(upcoming: List[UpcomingBirthday]) -> List[ParcelBirthdayRow]:
+    """The upcoming birthdays (loaded with_contact_details) as one row
+    per member and current plot, sorted by plot number, then date, then
+    name (issue #272). A member holding several plots is listed under
+    each; one without a current plot gets a single row at the end."""
+    rows = []
+    for b in upcoming:
+        plots = sorted({a.parcel.plot_number for a in b.member.parcel_assignments if a.is_current and a.parcel})
+        for plot_number in plots or [None]:
+            rows.append(ParcelBirthdayRow(plot_number=plot_number, birthday=b))
+    rows.sort(key=lambda r: (
+        _plot_sort_key(r.plot_number), r.birthday.next_occurrence,
+        r.birthday.member.last_name, r.birthday.member.first_name,
+    ))
+    return rows
 
 
 # Mean Gregorian year length, so a member's exact age is the same
@@ -110,38 +156,3 @@ async def all_birthdays_for_calendar(db: AsyncSession) -> List[Member]:
         .order_by(Member.date_of_birth)
     )
     return result.scalars().all()
-
-
-@dataclass
-class YearBirthdayEntry:
-    member: Member
-    month: int
-    day: int
-    turning_age: int
-    is_round: bool
-
-
-async def birthdays_for_year(db: AsyncSession, year: Optional[int] = None) -> List[YearBirthdayEntry]:
-    """Every active member with a birth date on file, one entry each,
-    sorted by (month, day) -- Jan 1 through Dec 31 -- for a print/PDF
-    birthday calendar covering the whole year (issue #99). Unlike
-    upcoming_birthdays()'s rolling "next N days from today" window,
-    this has no time-based cutoff: everyone appears exactly once,
-    regardless of whether their birthday this year has already passed.
-    turning_age is the age reached in `year` (defaults to the current
-    year) specifically, not "next occurrence from today"."""
-    year = year or date.today().year
-    result = await db.execute(
-        select(Member).where(active_member_filter(), Member.date_of_birth.is_not(None))
-    )
-    members = result.scalars().all()
-
-    entries = []
-    for m in members:
-        turning_age = year - m.date_of_birth.year
-        entries.append(YearBirthdayEntry(
-            member=m, month=m.date_of_birth.month, day=m.date_of_birth.day,
-            turning_age=turning_age, is_round=(turning_age % ROUND_BIRTHDAY_INTERVAL == 0),
-        ))
-    entries.sort(key=lambda e: (e.month, e.day, e.member.last_name, e.member.first_name))
-    return entries
