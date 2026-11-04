@@ -1,0 +1,40 @@
+name: CI
+
+# Runs the full test suite on every pull request and every push to main
+# (ADR 0119). release.yml calls this same workflow before it publishes an
+# image, so a release and a PR are tested the exact same way.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  # A new push to the same PR cancels the run it supersedes. Release runs
+  # (workflow_call from a tag) get their own group and are never cancelled.
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set UID/GID for the web container
+        run: |
+          echo "UID=$(id -u)" >> .env
+          echo "GID=$(id -g)" >> .env
+
+      - name: Guard against a committed backup dump
+        run: |
+          if git ls-files | grep -qE '(^|/)backups/.*\.(sql|dump)$'; then
+            echo "::error::A backup file is tracked under backups/ -- this must never be committed."
+            exit 1
+          fi
+
+      - name: Run test suite
+        run: ./run_tests.sh

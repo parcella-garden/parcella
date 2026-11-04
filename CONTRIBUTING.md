@@ -32,7 +32,11 @@ they're separate works from Parcella itself (ADR 0108). Contributions to
    larger changes -- this avoids duplicate work.
 2. **Fork & branch**: create a fork, work in a feature branch
    (`git checkout -b feature/my-change`).
-3. **Pull request**: briefly describe what changes and why.
+3. **Pull request**: briefly describe what changes and why, and link
+   the issue (`Fixes #123`). The template asks for the rest. CI runs the
+   full test suite on every PR and has to pass before it can be merged;
+   `main` only changes through pull requests, the maintainers' included
+   (ADR 0119).
 
 ## Development environment
 
@@ -89,12 +93,13 @@ http://localhost:8000/api/docs.
 
 ## Releasing (maintainers)
 
-1. Bump `app_version` in `app/config.py` to the new version number.
-2. Commit that change.
-3. `git tag vX.Y.Z` (must match `app_version` exactly) and `git push origin vX.Y.Z`.
+1. Bump `app_version` in `app/config.py` to the new version number, in a
+   pull request like any other change, and merge it.
+2. On the updated `main`: `git tag vX.Y.Z` (must match `app_version`
+   exactly) and `git push origin vX.Y.Z`.
 
 Pushing the tag triggers `.github/workflows/release.yml`: it runs the full
-test suite, then (only if that passes and the tag matches `app_version`)
+test suite (the same `ci.yml` job every PR runs), then (only if that passes and the tag matches `app_version`)
 builds and pushes `ghcr.io/parcella-garden/parcella:X.Y.Z` and `:latest`. See
 [ADR 0068](./docs/ADR/0068-publish-web-image-to-ghcr-prod-compose-split.md).
 
