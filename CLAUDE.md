@@ -55,22 +55,45 @@ Always trigger a database backup before changing anything.
 
 You never ever expose your user name to Github. Use my handle instead!
 
-**Security review before push, for security-relevant changes.** Before
-pushing changes that add or change routes, forms, permission checks,
-file/URL/header handling, public endpoints, or rendering of
-user-entered data, run `/security-review` on the unpushed commits and
-fix -- or explicitly accept, with a reason -- each finding before the
-push. Order: tests green -> security review -> kermie's smoke test ->
-push. Skip it for pure docs/translation/styling changes. The skill
-diffs against `origin/HEAD`; in a fresh clone run
-`git remote set-head origin --auto` once, or it fails with "ambiguous
-argument 'origin/HEAD...'".
+## Branches and pull requests
+
+Nothing goes straight to `main` any more (ADR 0119): it's protected, needs
+a PR and a green `test` check from `.github/workflows/ci.yml`, and squash
+merges. Per ticket:
+
+1. Branch from an up-to-date `main`: `issue-<N>-<slug>` (short slug for
+   non-ticket work).
+2. Build, `./run_tests.sh` green, docs/ADR as usual.
+3. `/security-review` if the change is security-relevant (below).
+4. Push the branch and open the PR with `gh pr create`, filling in
+   `.github/pull_request_template.md`. Put `Fixes #N` in the body so the
+   issue closes on merge. No "Generated with Claude Code" line and no
+   Co-Authored-By trailer -- PRs and commits read as kermie's.
+5. Wait for CI to go green, then hand the PR link to kermie. **kermie
+   smoke-tests in dev and merges** -- don't merge yourself unless he
+   says so for that PR. After the merge: `git checkout main && git pull`
+   and delete the local branch.
+
+Pushing a branch needs no sign-off; merging to `main` does.
+
+**Security review before opening the PR, for security-relevant
+changes.** For changes that add or change routes, forms, permission
+checks, file/URL/header handling, public endpoints, or rendering of
+user-entered data, run `/security-review` on the branch's commits and
+fix -- or explicitly accept in the PR description, with a reason --
+each finding. Order: tests green -> security review -> push branch + PR
+-> CI green -> kermie's smoke test -> merge. Skip it for pure
+docs/translation/styling changes. The skill diffs against
+`origin/HEAD`; in a fresh clone run `git remote set-head origin --auto`
+once, or it fails with "ambiguous argument 'origin/HEAD...'".
 
 ## Releases
 
-Bump `app_version` in `app/config.py`, commit ("Bump app_version to
-X.Y.Z"), push, then `git tag vX.Y.Z` and push the tag -- this triggers
-`.github/workflows/release.yml` (runs the test suite, then builds and
+Bump `app_version` in `app/config.py` on a branch, commit ("Bump
+app_version to X.Y.Z") and open a PR for it like any other change. Once
+it's merged, `git checkout main && git pull`, then `git tag vX.Y.Z` on
+that merge commit and push the tag -- this triggers
+`.github/workflows/release.yml` (runs the same test job as CI, then builds and
 pushes `ghcr.io/parcella-garden/parcella:X.Y.Z` and `:latest`). Follow
 with `gh release create vX.Y.Z` and real release notes; the admin
 "update available" notice (`app/update_check.py`, ADR 0036) polls
