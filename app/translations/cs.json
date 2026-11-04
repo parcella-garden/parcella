@@ -654,7 +654,9 @@
       "notes_header": "Poznámky",
       "notes_placeholder": "Interní poznámky…",
       "button_save_changes": "Uložit změny",
-      "button_create": "Vytvořit člena"
+      "button_create": "Vytvořit člena",
+      "label_birthday_present_declined": "Nepřeje si narozeninové dárky",
+      "birthday_present_declined_help": "Zobrazí se v seznamu narozenin, aby o tom věděli ti, kdo se starají o dárky."
     },
     "detail": {
       "button_edit": "Upravit",
@@ -1778,7 +1780,9 @@
       "pdf_button": "Tisk PDF (celý rok)",
       "pdf_heading": "Kalendář narozenin {year}",
       "pdf_col_day": "Den",
-      "pdf_empty": "Žádné narozeniny v systému."
+      "pdf_empty": "Žádné narozeniny v systému.",
+      "col_present": "Dárek",
+      "no_present": "Bez dárku"
     },
     "council_presence": {
       "title": "Přítomnost výboru",

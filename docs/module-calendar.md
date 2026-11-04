@@ -73,6 +73,10 @@ needed (`app/birthdays.py`). Correcting a birth date on the member
 record is instantly reflected everywhere -- there's nothing to keep in
 sync, because nothing is duplicated.
 
+**Members who decline presents (issue #269)** show a "No present"
+badge in the birthday list's Present column, from
+`Member.birthday_present_declined` (see docs/module-members-parcels.md).
+
 **"Round" birthday means a multiple of 10 (30th, 40th, 50th, ...).**
 This is `ROUND_BIRTHDAY_INTERVAL` in `app/birthdays.py` -- change that
 one constant if your association's convention differs (e.g. also

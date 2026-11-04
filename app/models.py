@@ -277,6 +277,14 @@ class Member(Base):
     # Communication
     email_notifications: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
+    # The member doesn't want birthday presents (issue #269) -- shown on
+    # the birthday list and its PDF for whoever hands presents out. Who
+    # gets a present at all (board every year, others on milestones...)
+    # is club policy and not modelled.
+    birthday_present_declined: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false", nullable=False
+    )
+
     # Notes (internal)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 

@@ -188,6 +188,7 @@ async def member_create(
     member_since: str = Form(""),
     member_until: str = Form(""),
     email_notifications: bool = Form(False),
+    birthday_present_declined: bool = Form(False),
     email: str = Form(""),
     phone: str = Form(""),
     notes: str = Form(""),
@@ -208,7 +209,8 @@ async def member_create(
         first_name=first_name, last_name=last_name, street=street,
         postal_code=postal_code, city=city, date_of_birth=parse_date(date_of_birth),
         iban=iban, member_since=parse_date(member_since), member_until=parse_date(member_until),
-        email_notifications=email_notifications, notes=notes,
+        email_notifications=email_notifications,
+        birthday_present_declined=birthday_present_declined, notes=notes,
     )
     if email.strip():
         await add_email(db, member.id, address=email.strip(), is_primary=True)
@@ -404,6 +406,7 @@ async def member_update(
     member_since: str = Form(""),
     member_until: str = Form(""),
     email_notifications: bool = Form(False),
+    birthday_present_declined: bool = Form(False),
     notes: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
@@ -426,7 +429,8 @@ async def member_update(
         first_name=first_name, last_name=last_name, street=street,
         postal_code=postal_code, city=city, date_of_birth=parse_date(date_of_birth),
         iban=iban, member_since=parse_date(member_since), member_until=parse_date(member_until),
-        email_notifications=email_notifications, notes=notes,
+        email_notifications=email_notifications,
+        birthday_present_declined=birthday_present_declined, notes=notes,
     )
     if not await _sync_form_tags(request, db, member_id):
         return RedirectResponse(f"/members/{member_id}/edit", status_code=303)

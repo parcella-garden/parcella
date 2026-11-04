@@ -654,7 +654,9 @@
       "notes_header": "Notes",
       "notes_placeholder": "Notes internes…",
       "button_save_changes": "Enregistrer les modifications",
-      "button_create": "Créer un membre"
+      "button_create": "Créer un membre",
+      "label_birthday_present_declined": "Ne souhaite pas de cadeau d'anniversaire",
+      "birthday_present_declined_help": "Affiché dans la liste des anniversaires, pour que les responsables des cadeaux le sachent."
     },
     "detail": {
       "button_edit": "Modifier",
@@ -1778,7 +1780,9 @@
       "pdf_button": "Imprimer le PDF (année entière)",
       "pdf_heading": "Calendrier des anniversaires {year}",
       "pdf_col_day": "Jour",
-      "pdf_empty": "Aucun anniversaire enregistré."
+      "pdf_empty": "Aucun anniversaire enregistré.",
+      "col_present": "Cadeau",
+      "no_present": "Pas de cadeau"
     },
     "council_presence": {
       "title": "Présence du conseil",

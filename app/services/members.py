@@ -60,6 +60,7 @@ async def create_member(
     member_since: Optional[date] = None,
     member_until: Optional[date] = None,
     email_notifications: bool = False,
+    birthday_present_declined: bool = False,
     notes: Optional[str] = None,
 ) -> Member:
     member = Member(
@@ -73,6 +74,7 @@ async def create_member(
         member_since=member_since,
         member_until=member_until,
         email_notifications=email_notifications,
+        birthday_present_declined=birthday_present_declined,
         notes=_clean(notes),
     )
     db.add(member)

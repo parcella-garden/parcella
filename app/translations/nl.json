@@ -654,7 +654,9 @@
       "notes_header": "Notities",
       "notes_placeholder": "Interne notities…",
       "button_save_changes": "Wijzigingen opslaan",
-      "button_create": "Lid aanmaken"
+      "button_create": "Lid aanmaken",
+      "label_birthday_present_declined": "Wil geen verjaardagscadeaus",
+      "birthday_present_declined_help": "Wordt getoond in de verjaardagslijst, zodat wie de cadeaus regelt het weet."
     },
     "detail": {
       "button_edit": "Bewerken",
@@ -1778,7 +1780,9 @@
       "pdf_button": "PDF afdrukken (hele jaar)",
       "pdf_heading": "Verjaardagskalender {year}",
       "pdf_col_day": "Dag",
-      "pdf_empty": "Geen verjaardagen bekend."
+      "pdf_empty": "Geen verjaardagen bekend.",
+      "col_present": "Cadeau",
+      "no_present": "Geen cadeau"
     },
     "council_presence": {
       "title": "Aanwezigheid bestuur",
