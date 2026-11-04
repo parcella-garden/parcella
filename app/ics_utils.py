@@ -169,13 +169,12 @@ async def build_community_calendar(db: AsyncSession, base_url: str) -> Calendar:
         .order_by(WorkSession.date)
     )
     for s in sessions_result.scalars().all():
-        summary = f"Work session: {s.title}"
-        description = s.description
-        if s.time_from:
-            description = f"{s.time_from}" + (f" - {s.time_until}" if s.time_until else "") + (f"\n{description}" if description else "")
+        # Timed like the events above (issue #268); up to 6.1.0 the time
+        # only went into DESCRIPTION and the session showed up as all-day.
         _add_event(
             cal, uid=f"work-session-{s.id}@{base_url}",
-            summary=summary, start=s.date, description=description,
+            summary=f"Work session: {s.title}", start=s.date, description=s.description,
+            start_time=s.time_from, end_time=s.time_until, tz=tz,
         )
 
     cal.add_missing_timezones()  # VTIMEZONE for the timed events' TZID
@@ -198,6 +197,7 @@ async def build_birthday_calendar(db: AsyncSession, base_url: str) -> Calendar:
 
 async def build_council_presence_calendar(db: AsyncSession, base_url: str) -> Calendar:
     cal = _new_calendar("Council Presence")
+    tz = await _club_timezone(db)
     result = await db.execute(
         select(CouncilPresence)
         .options(selectinload(CouncilPresence.user))
@@ -205,15 +205,16 @@ async def build_council_presence_calendar(db: AsyncSession, base_url: str) -> Ca
         .order_by(CouncilPresence.date)
     )
     for p in result.scalars().all():
-        time_note = None
-        if p.time_from:
-            time_note = p.time_from + (f" - {p.time_until}" if p.time_until else "")
+        # A slot with a time is a timed event (issue #268); up to 6.1.0
+        # the time only went into DESCRIPTION, so every slot showed up as
+        # all-day in subscribers' calendar apps.
         summary = f"{p.user.name} on-site" if p.user else "Council on-site"
-        description = "\n".join(filter(None, [time_note, p.note]))
         _add_event(
             cal, uid=f"council-presence-{p.id}@{base_url}",
-            summary=summary, start=p.date, description=description or None,
+            summary=summary, start=p.date, description=p.note or None,
+            start_time=p.time_from, end_time=p.time_until, tz=tz,
         )
+    cal.add_missing_timezones()  # VTIMEZONE for the timed slots' TZID
     return cal
 
 
