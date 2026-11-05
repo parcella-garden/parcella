@@ -1808,7 +1808,17 @@
       "col_present": "Cadeau",
       "no_present": "Geen cadeau",
       "col_tags": "Tags",
-      "pdf_no_plot": "Geen perceel"
+      "pdf_no_plot": "Geen perceel",
+      "range_dates": "{start} – {end}",
+      "filter_range": "Periode",
+      "filter_sort": "Sorteren op",
+      "filter_apply": "Toepassen",
+      "range_month": "Komende maand",
+      "range_quarter": "Komende 3 maanden",
+      "range_year": "Komende 12 maanden",
+      "sort_date": "Sorteren op verjaardag",
+      "sort_name": "Sorteren op achternaam",
+      "sort_plot": "Sorteren op tuinnummer"
     },
     "council_presence": {
       "title": "Aanwezigheid bestuur",

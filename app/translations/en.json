@@ -1808,7 +1808,17 @@
       "col_present": "Present",
       "no_present": "No present",
       "col_tags": "Tags",
-      "pdf_no_plot": "No plot"
+      "pdf_no_plot": "No plot",
+      "range_dates": "{start} – {end}",
+      "filter_range": "Time range",
+      "filter_sort": "Sort by",
+      "filter_apply": "Apply",
+      "range_month": "Next month",
+      "range_quarter": "Next 3 months",
+      "range_year": "Next 12 months",
+      "sort_date": "Sort by birthday",
+      "sort_name": "Sort by last name",
+      "sort_plot": "Sort by plot number"
     },
     "council_presence": {
       "title": "Council Presence",

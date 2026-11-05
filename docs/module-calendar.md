@@ -88,20 +88,37 @@ This is `ROUND_BIRTHDAY_INTERVAL` in `app/birthdays.py` -- change that
 one constant if your association's convention differs (e.g. also
 highlighting 25/75-style anniversaries).
 
-**The print PDF is the web list, arranged by plot (issue #272).**
+**The print PDF prints what the web list shows (issue #272).**
 Issue #99 had made `/calendar/birthdays/pdf` a whole-year calendar
 grouped by month, from a separate `birthdays_for_year()` query. #272
-replaced that: the people using the printout visit members with
-presents, so they want the same upcoming window as the web page
-(`BIRTHDAY_LIST_DAYS = 90` in `app/birthdays.py`, used by both) and
-the list in the order they walk it. Both now call
-`upcoming_birthdays()`; the PDF passes `with_contact_details=True`
-(current plots, emails, phones eager-loaded) and
-`birthdays_by_parcel()` turns that into one row per member and current
-plot, sorted by plot number in natural order ("2" before "10"), then
-date and name. A member holding several plots appears under each; one
-without a current plot is listed at the end under "No plot". The plot
-number is printed once per group.
+replaced that with the same upcoming window as the web page, arranged
+by plot; reopened, it made window and order selectable on
+`/calendar/birthdays` (GET parameters, no stored setting) and the PDF
+button passes both on, so the printout is exactly the filtered list:
+
+- `range` = `month` / `quarter` (default) / `year`: 1, 3 or 12 months
+  counted **forward from today**, inclusive (`today + N months - 1
+  day`, clamped to short months; `birthday_range_end()` in
+  `app/birthdays.py`, windows in `BIRTHDAY_RANGES`). Deliberately not
+  calendar periods ("all of December"): a rolling window never leaves
+  the rest of the current month uncovered between two printouts, and
+  `year` is always every member with a birth date.
+- `sort` = `date` (default) / `name` (last, then first name) /
+  `plot` (natural plot order, "2" before "10"; on the web page by the
+  member's lowest current plot, members without a plot last).
+- Unknown values are a 422 (FastAPI `Literal` validation), not a
+  silent fallback.
+
+The web page keeps its five columns (date, linked name, turning, tags,
+present); plots and contact details are PDF-only, at kermie's request.
+Both call `upcoming_birthdays()` (the page with `with_plots=True` when
+sorting by plot, the PDF with `with_contact_details=True`).
+`birthday_rows()` builds the PDF rows: sorted by plot it delegates to
+`birthdays_by_parcel()` -- one row per member and current plot, so a
+member holding several plots appears under each, the plot number is
+printed once per group, and members without a plot come last under
+"No plot"; sorted any other way it's one row per member in the web
+list's order, with all current plots joined ("3, 12").
 
 Columns: plot, name, birthday, age being turned (milestones
 highlighted), tags (#271), "No present" (#269), postal address,

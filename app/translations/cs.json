@@ -1808,7 +1808,17 @@
       "col_present": "Dárek",
       "no_present": "Bez dárku",
       "col_tags": "Štítky",
-      "pdf_no_plot": "Bez parcely"
+      "pdf_no_plot": "Bez parcely",
+      "range_dates": "{start} – {end}",
+      "filter_range": "Období",
+      "filter_sort": "Řadit podle",
+      "filter_apply": "Použít",
+      "range_month": "Příští měsíc",
+      "range_quarter": "Příští 3 měsíce",
+      "range_year": "Příštích 12 měsíců",
+      "sort_date": "Řadit podle narozenin",
+      "sort_name": "Řadit podle příjmení",
+      "sort_plot": "Řadit podle čísla parcely"
     },
     "council_presence": {
       "title": "Přítomnost výboru",

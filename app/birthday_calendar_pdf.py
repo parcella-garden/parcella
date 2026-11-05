@@ -1,8 +1,8 @@
 """
 Printable birthday list (issue #272, replacing the whole-year calendar
-from issue #99): the same upcoming window as /calendar/birthdays,
-arranged by plot for whoever visits members with presents -- plot
-number first and sorted by it, the members of that plot under it, then
+from issue #99): the window and order chosen on /calendar/birthdays,
+for whoever visits members with presents -- plot number first (grouped
+when sorted by plot), then the member's name, then
 the birthday, the age being turned (milestones highlighted), tags,
 whether the member declines presents (#269), and postal address, email
 and phone.
@@ -55,7 +55,9 @@ def _primary_phone(member) -> Optional[str]:
     return next((p for p in phones if p.is_primary), phones[0]).number
 
 
-def _body_html(heading: str, rows: List[ParcelBirthdayRow], language: str, region: str) -> str:
+def _body_html(
+    heading: str, rows: List[ParcelBirthdayRow], language: str, region: str, group_by_plot: bool = True,
+) -> str:
     def t(key: str, **kwargs) -> str:
         return escape(translate(key, language, **kwargs))
 
@@ -65,7 +67,9 @@ def _body_html(heading: str, rows: List[ParcelBirthdayRow], language: str, regio
     for row in rows:
         b = row.birthday
         m = b.member
-        first_of_plot = row.plot_number != previous_plot
+        # Sorted by plot, each plot number is printed once per group;
+        # sorted any other way, every row shows the member's plots.
+        first_of_plot = row.plot_number != previous_plot or not group_by_plot
         previous_plot = row.plot_number
         plot_text = (escape(row.plot_number) if row.plot_number is not None else no_plot) if first_of_plot else ""
 
@@ -81,7 +85,7 @@ def _body_html(heading: str, rows: List[ParcelBirthdayRow], language: str, regio
         email = escape(primary_email(m) or "")
         phone = escape(_primary_phone(m) or "")
 
-        classes = " ".join(filter(None, ["plot-start" if first_of_plot else "", "round-birthday" if b.is_round else ""]))
+        classes = " ".join(filter(None, ["plot-start" if first_of_plot and group_by_plot else "", "round-birthday" if b.is_round else ""]))
         rows_html.append(
             f'<tr class="{classes}">'
             f'<td class="plot-col">{plot_text}</td>'
@@ -117,16 +121,17 @@ def _body_html(heading: str, rows: List[ParcelBirthdayRow], language: str, regio
 
 def render_birthday_calendar_pdf(
     start: date, end: date, footer_context: OrgFooterContext, logo_path: Optional[Path],
-    rows: List[ParcelBirthdayRow], language: str, region: str,
+    rows: List[ParcelBirthdayRow], language: str, region: str, group_by_plot: bool = True,
 ) -> bytes:
-    """rows should already be sorted by plot -- see
-    app.birthdays.birthdays_by_parcel(); this function doesn't re-sort."""
+    """rows come pre-sorted (app.birthdays.birthday_rows()); this function
+    doesn't re-sort. group_by_plot: rows are sorted by plot, so print
+    each plot number once with a divider above its group."""
     heading = translate(
         "calendar.birthdays.pdf_heading", language,
         start=start.strftime("%d.%m.%Y"), end=end.strftime("%d.%m.%Y"),
     )
     html_doc = wrap_document(
-        _body_html(heading, rows, language, region),
+        _body_html(heading, rows, language, region, group_by_plot),
         footer_context.club_name, logo_path, org_footer_html(footer_context, language), language,
         extra_css=EXTRA_CSS,
     )

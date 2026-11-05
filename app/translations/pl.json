@@ -1808,7 +1808,17 @@
       "col_present": "Prezent",
       "no_present": "Bez prezentu",
       "col_tags": "Tagi",
-      "pdf_no_plot": "Bez działki"
+      "pdf_no_plot": "Bez działki",
+      "range_dates": "{start} – {end}",
+      "filter_range": "Okres",
+      "filter_sort": "Sortuj według",
+      "filter_apply": "Zastosuj",
+      "range_month": "Następny miesiąc",
+      "range_quarter": "Następne 3 miesiące",
+      "range_year": "Następne 12 miesięcy",
+      "sort_date": "Sortuj według urodzin",
+      "sort_name": "Sortuj według nazwiska",
+      "sort_plot": "Sortuj według numeru działki"
     },
     "council_presence": {
       "title": "Obecność zarządu",
