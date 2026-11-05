@@ -4,7 +4,7 @@
 
 {% block topbar_actions %}
 <div class="d-flex gap-2">
-    <a href="/calendar/birthdays/pdf" class="btn btn-sm btn-outline-secondary" target="_blank">
+    <a href="/calendar/birthdays/pdf?range={{ range_key }}&amp;sort={{ sort_key }}" class="btn btn-sm btn-outline-secondary" target="_blank">
         <i class="bi bi-file-earmark-pdf me-1"></i>{{ t('calendar.birthdays.pdf_button') }}
     </a>
     <div class="dropdown">
@@ -22,7 +22,25 @@
 
 {% block content %}
 <div class="card">
-    <div class="card-header"><i class="bi bi-cake2 me-2"></i>{{ t('calendar.birthdays.upcoming_card_title') }}</div>
+    <div class="card-header d-flex flex-wrap align-items-center gap-2">
+        <span><i class="bi bi-cake2 me-2"></i>{{ t('calendar.birthdays.upcoming_card_title') }}</span>
+        <span class="text-muted small">{{ t('calendar.birthdays.range_dates', start=range_start.strftime('%d.%m.%Y'), end=range_end.strftime('%d.%m.%Y')) }}</span>
+        <form method="get" class="d-flex flex-wrap gap-2 ms-md-auto">
+            <label class="visually-hidden" for="birthday-range">{{ t('calendar.birthdays.filter_range') }}</label>
+            <select id="birthday-range" name="range" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                {% for key in range_keys %}
+                <option value="{{ key }}" {% if key == range_key %}selected{% endif %}>{{ t('calendar.birthdays.range_' ~ key) }}</option>
+                {% endfor %}
+            </select>
+            <label class="visually-hidden" for="birthday-sort">{{ t('calendar.birthdays.filter_sort') }}</label>
+            <select id="birthday-sort" name="sort" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                {% for key in sort_keys %}
+                <option value="{{ key }}" {% if key == sort_key %}selected{% endif %}>{{ t('calendar.birthdays.sort_' ~ key) }}</option>
+                {% endfor %}
+            </select>
+            <noscript><button type="submit" class="btn btn-sm btn-outline-secondary">{{ t('calendar.birthdays.filter_apply') }}</button></noscript>
+        </form>
+    </div>
     <div class="card-body p-0">
         <div class="table-responsive">
 <table class="table table-hover mb-0">

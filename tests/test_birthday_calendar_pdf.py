@@ -1,7 +1,7 @@
 """
 The printable birthday list (/calendar/birthdays/pdf): renders with no
 data, and carries the shared org/register/bank footer (ADR 0045) that
-every PDF shows. Its content -- the web list's 90 days arranged by plot
+every PDF shows. Its content -- the web list's window and order (default 3 months)
 (issue #272, which replaced issue #99's whole-year calendar) -- is
 tested in tests/test_birthday_list.py.
 

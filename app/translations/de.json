@@ -1808,7 +1808,17 @@
       "col_present": "Geschenk",
       "no_present": "Kein Geschenk",
       "col_tags": "Tags",
-      "pdf_no_plot": "Ohne Garten"
+      "pdf_no_plot": "Ohne Garten",
+      "range_dates": "{start} – {end}",
+      "filter_range": "Zeitraum",
+      "filter_sort": "Sortierung",
+      "filter_apply": "Anwenden",
+      "range_month": "Nächster Monat",
+      "range_quarter": "Nächste 3 Monate",
+      "range_year": "Nächste 12 Monate",
+      "sort_date": "Nach Geburtstag sortieren",
+      "sort_name": "Nach Nachname sortieren",
+      "sort_plot": "Nach Parzellennummer sortieren"
     },
     "council_presence": {
       "title": "Vorstandspräsenz",

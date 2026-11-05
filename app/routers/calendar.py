@@ -21,7 +21,7 @@ practical equivalent of a login for a subscription URL.
 """
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Request, Form, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
@@ -42,8 +42,8 @@ from app.l10n import load_current_region
 from app.branding import load_branding
 from app.pdf_chrome import load_org_footer_context
 from app.birthdays import (
-    upcoming_birthdays, all_birthdays_for_calendar, birthdays_by_parcel,
-    BIRTHDAY_LIST_DAYS, ROUND_BIRTHDAY_INTERVAL,
+    upcoming_birthdays, all_birthdays_for_calendar, birthday_rows, sort_birthdays, birthday_range_end,
+    BIRTHDAY_RANGES, BIRTHDAY_SORTS, DEFAULT_BIRTHDAY_RANGE, DEFAULT_BIRTHDAY_SORT, ROUND_BIRTHDAY_INTERVAL,
 )
 from app.birthday_calendar_pdf import render_birthday_calendar_pdf
 from app.ics_utils import (
@@ -221,30 +221,53 @@ async def community_json(db: AsyncSession = Depends(get_db)):
 # Birthdays
 # ---------------------------------------------------------------------------
 
+BirthdayRange = Literal["month", "quarter", "year"]
+BirthdaySort = Literal["date", "name", "plot"]
+
+
 @router.get("/birthdays", response_class=HTMLResponse)
-async def birthdays_overview(request: Request, db: AsyncSession = Depends(get_db)):
+async def birthdays_overview(
+    request: Request,
+    range_key: BirthdayRange = Query(DEFAULT_BIRTHDAY_RANGE, alias="range"),
+    sort: BirthdaySort = Query(DEFAULT_BIRTHDAY_SORT),
+    db: AsyncSession = Depends(get_db),
+):
+    """Upcoming birthdays, with the window (next month/quarter/year,
+    counted from today) and order (date/name/plot) picked on the page
+    (issue #272). The PDF button passes the same choices on."""
     user = await require_permission(request, db, "calendar", "read")
-    upcoming = await upcoming_birthdays(db, within_days=BIRTHDAY_LIST_DAYS)
+    today = date.today()
+    end = birthday_range_end(today, range_key)
+    upcoming = await upcoming_birthdays(db, today=today, within_days=(end - today).days, with_plots=(sort == "plot"))
     ics_token = await get_or_create_ics_token(db)
     return templates.TemplateResponse("calendar/birthdays.html", {
-        "request": request, "user": user, "upcoming": upcoming,
+        "request": request, "user": user, "upcoming": sort_birthdays(upcoming, sort),
         "ROUND_BIRTHDAY_INTERVAL": ROUND_BIRTHDAY_INTERVAL,
         "ics_token": ics_token,
+        "range_key": range_key, "sort_key": sort,
+        "range_keys": list(BIRTHDAY_RANGES), "sort_keys": BIRTHDAY_SORTS,
+        "range_start": today, "range_end": end,
     })
 
 
 @router.get("/birthdays/pdf")
-async def birthdays_pdf(request: Request, db: AsyncSession = Depends(get_db)):
-    """Printable birthday list (issue #272): the same window as the web
-    view above, arranged by plot with contact details for whoever hands
-    out presents. Replaced the whole-year calendar of issue #99. Behind
-    the normal app login/permission check like the web view, not the
-    ICS feeds' separate secret-token scheme, since this is reached from
-    within the logged-in UI, not a calendar-app subscription URL."""
+async def birthdays_pdf(
+    request: Request,
+    range_key: BirthdayRange = Query(DEFAULT_BIRTHDAY_RANGE, alias="range"),
+    sort: BirthdaySort = Query(DEFAULT_BIRTHDAY_SORT),
+    db: AsyncSession = Depends(get_db),
+):
+    """Printable birthday list (issue #272): the window and order chosen
+    on the web view above, with plots and contact details for whoever
+    hands out presents. Replaced the whole-year calendar of issue #99.
+    Behind the normal app login/permission check like the web view, not
+    the ICS feeds' separate secret-token scheme, since this is reached
+    from within the logged-in UI, not a calendar-app subscription URL."""
     await require_permission(request, db, "calendar", "read")
     today = date.today()
-    upcoming = await upcoming_birthdays(db, today=today, within_days=BIRTHDAY_LIST_DAYS, with_contact_details=True)
-    rows = birthdays_by_parcel(upcoming)
+    end = birthday_range_end(today, range_key)
+    upcoming = await upcoming_birthdays(db, today=today, within_days=(end - today).days, with_contact_details=True)
+    rows = birthday_rows(upcoming, sort)
 
     branding = await load_branding(db)
     logo_path = Path("app" + branding["logo_url"]) if branding["logo_url"] else None
@@ -253,7 +276,7 @@ async def birthdays_pdf(request: Request, db: AsyncSession = Depends(get_db)):
     footer_context = await load_org_footer_context(db, branding["club_name"])
 
     pdf_bytes = render_birthday_calendar_pdf(
-        today, today + timedelta(days=BIRTHDAY_LIST_DAYS), footer_context, logo_path, rows, language, region,
+        today, end, footer_context, logo_path, rows, language, region, group_by_plot=(sort == "plot"),
     )
 
     return Response(
