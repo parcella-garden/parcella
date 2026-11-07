@@ -35,9 +35,15 @@ RUN chmod +x docker-entrypoint.sh
 # docker compose build --build-arg).
 ARG UID=1000
 ARG GID=1000
+#
+# No USER line on purpose (ADR 0121): the entrypoint starts as root only
+# long enough to fix ownership of the bind-mounted ./data/uploads and
+# ./data/secrets folders (Docker creates missing ones as root), then drops
+# to appuser with setpriv before anything else runs -- the same pattern
+# the official Postgres image uses.
 RUN groupadd -g ${GID} appuser && useradd -u ${UID} -g ${GID} -m appuser \
+    && mkdir -p /app/secrets \
     && chown -R appuser:appuser /app
-USER appuser
 
 EXPOSE 8000
 ENTRYPOINT ["./docker-entrypoint.sh"]

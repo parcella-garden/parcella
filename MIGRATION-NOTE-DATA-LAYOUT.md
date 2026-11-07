@@ -32,7 +32,9 @@ also bundles uploads/ticket attachments.)
    docker compose -f docker-compose.prod.yml stop
    ```
 
-2. Create the new data folders, owned by the right user. Postgres's
+2. *(Not needed from 6.4.0 on: the image fixes ownership itself, see
+   ADR 0121. Still harmless.)* Create the new data folders, owned by
+   the right user. Postgres's
    official image self-heals ownership; the app's own image does not
    (it runs as a fixed non-root uid/gid 1000 with no chown step) --
    pre-create and own these two:
@@ -101,6 +103,5 @@ also bundles uploads/ticket attachments.)
 ## For a completely new / empty installation
 
 No manual step needed -- `./data/` is created automatically on first
-`docker compose up -d` (the permission note in step 2 above still
-applies on a fresh install too: pre-create and `chown` `data/uploads` and
-`data/ticket_attachments` before your first `up -d`).
+`docker compose up -d`, and from 6.4.0 on the image also gives the
+folders to its own user (ADR 0121) -- no `chown` step.

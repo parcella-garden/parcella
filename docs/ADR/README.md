@@ -80,7 +80,7 @@ in chronological order.
 74. [Public contact form → ticket bridge](./0074-public-contact-form-to-ticket-bridge.md)
 75. [Detail page Previous/Next buttons walk the filtered list, not the whole table](./0075-detail-page-previous-next-preserves-list-filter.md)
 76. [Production customizations belong in docker-compose.override.yml, not in docker-compose.prod.yml itself](./0076-docker-compose-override-file-for-prod-customization.md)
-77. [Rename docker-compose.prod.yml to docker-compose.yml; bind-mount all runtime data under ./data/](./0077-docker-compose-rename-and-tidy-data-layout.md)
+77. [Rename docker-compose.prod.yml to docker-compose.yml; bind-mount all runtime data under ./data/](./0077-docker-compose-rename-and-tidy-data-layout.md) (Decision 3 superseded by 0121)
 78. [Accident insurance: per-household-member opt-out, not an atomic household toggle](./0078-accident-insurance-per-household-member-opt-out.md)
 79. [Work-session sign-up notifications: a stateless rolling window, not a notification center](./0079-work-session-signup-notifications-stateless-not-a-notification-center.md)
 80. [Remove the built-in ticket module; add a FreeScout conversation bridge](./0080-remove-builtin-ticket-module-freescout-conversation-bridge.md)
@@ -124,3 +124,4 @@ in chronological order.
 118. [Reporting: figures computed live, Chart.js as the chart library](./0118-reporting-live-figures-and-chartjs.md)
 119. [Pull requests and CI on every change](./0119-pull-requests-and-ci-on-every-change.md)
 120. [Email log: the SMTP result, its own session, deleted after 90 days](./0120-email-log-smtp-result-only.md)
+121. [Zero-config install: localhost-only ports, self-healing entrypoint, generated SECRET_KEY](./0121-zero-config-install.md)
