@@ -161,7 +161,7 @@
       "update_available_heading": "Update beschikbaar: v{version}",
       "update_available_text": "U gebruikt momenteel v{current}; v{latest} is uitgebracht. Zo werkt u bij:",
       "update_docker_folder_placeholder": "/pad/naar/uw/docker-map",
-      "update_customization_warning": "Als u docker-compose.yml rechtstreeks hebt aangepast (bijv. --proxy-headers toegevoegd voor een reverse proxy of de poort gewijzigd), houden \"pull\" en \"up\" alleen geen rekening met toekomstige wijzigingen aan dat bestand -- het kan geslaagd lijken terwijl er niets gebeurt. Zet uw aanpassingen in plaats daarvan in een docker-compose.override.yml -- Compose neemt dit automatisch mee, zonder extra optie. Zie het gedeelte \"Production\" in de README voor de exacte syntax.",
+      "update_customization_warning": "De eerste regel downloadt docker-compose.yml opnieuw, zodat ook correcties aan het bestand zelf (poorten, standaardwaarden) je installatie bereiken -- \"pull\" alleen werkt alleen de image bij. Het bestand wordt overschreven: zet je eigen aanpassingen (poort, reverse proxy, volumes) in een docker-compose.override.yml ernaast, die Compose automatisch inleest. De syntax staat in de sectie \"Production\" van de README.",
       "update_check_now_button": "Nu controleren",
       "update_up_to_date": "Versie v{version} -- up-to-date (laatst gecontroleerd: {checked_at})",
       "update_not_checked_yet": "Versie v{version} -- nog niet op updates gecontroleerd",

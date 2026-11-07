@@ -103,8 +103,13 @@ Nothing is removed and no manual migration is required, so this is a
 MINOR release.
 
 **`docker compose pull` does not update the compose file** (ADR 0076).
-Existing installs keep publishing 5432 until they re-download it, so the
-release notes and the README's update section say so explicitly.
+Existing installs keep publishing 5432 until they re-download it. So the
+documented update -- in the README and in `/admin/system`'s update
+notice -- now starts with `curl -O .../docker-compose.yml` every time,
+not only once for this release. That is safe precisely because of ADR
+0076: the file is never edited locally, customizations live in
+`docker-compose.override.yml`. It also means future fixes to the compose
+file reach existing installs without another special release note.
 
 ## Supersedes (without editing)
 

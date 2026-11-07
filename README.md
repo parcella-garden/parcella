@@ -142,6 +142,18 @@ router, domain logic and models -- see the
 
 ---
 
+## Install (self-hosting)
+
+```bash
+mkdir parcella && cd parcella
+curl -O https://raw.githubusercontent.com/parcella-garden/parcella/main/docker-compose.yml
+docker compose up -d
+```
+
+Then open <http://localhost:8000>. No `.env` needed, nothing exposed
+beyond this machine; for HTTPS, updates and customizing see
+[Production](#production).
+
 ## Quick start (development)
 
 ### 1. Clone and configure the repository
@@ -333,8 +345,9 @@ optional; see [.env.example](./.env.example) for what it can set.
 [MIGRATION-NOTE-DATA-LAYOUT.md](https://github.com/parcella-garden/parcella/blob/main/MIGRATION-NOTE-DATA-LAYOUT.md)
 for the one-time manual migration -- back up first.
 
-**Updating to 6.4.0 or later from an earlier version:** `docker compose
-pull` never updates the compose file itself, so download it once more:
+**Updating:** `docker compose pull` never updates the compose file
+itself, so fetch it again each time (it's never edited locally, so that's
+always safe -- this is also what `/admin/system`'s update notice shows):
 
 ```bash
 curl -O https://raw.githubusercontent.com/parcella-garden/parcella/main/docker-compose.yml
