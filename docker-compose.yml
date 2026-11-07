@@ -1,5 +1,13 @@
 name: parcella
 
+# Zero-config install (ADR 0121): download this file and run
+#   docker compose up -d
+# Nothing else is needed. Parcella is then reachable at
+# http://localhost:8000 on this machine only. For production, put a
+# reverse proxy with HTTPS on the same host in front of 127.0.0.1:8000
+# (see README). Customize via a .env file or a docker-compose.override.yml
+# next to this file -- never by editing this file (ADR 0076).
+
 services:
   db:
     image: postgres:16-alpine
@@ -10,8 +18,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    # No ports: on purpose. Only the web container talks to the
+    # database, over the internal compose network.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-parcella}"]
       interval: 10s
@@ -26,15 +34,23 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-parcella}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-parcella}
-      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
-      ENVIRONMENT: ${ENVIRONMENT:-development}
+      # Empty = generated on first start into ./data/secrets/secret_key.
+      SECRET_KEY: ${SECRET_KEY:-}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      # SMTP is configured in the admin panel (stored in the database).
+      # These are only a fallback for installs that still set them in .env.
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM:-noreply@parcella.local}
       SMTP_TLS: ${SMTP_TLS:-true}
+    # Trusting X-Forwarded-* from anyone is safe only because the port is
+    # bound to 127.0.0.1: nothing but this host (its browser or its
+    # reverse proxy) can connect.
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips=*
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - ./data/uploads:/app/app/static/uploads
+      - ./data/secrets:/app/secrets

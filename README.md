@@ -292,45 +292,68 @@ For an existing installation predating Alembic: see
 Running a club's own instance doesn't require cloning the whole repo or
 building the image yourself. Versioned images are published to
 [GHCR](https://github.com/parcella-garden/parcella/pkgs/container/parcella) on every
-release. Grab just the two files you need:
+release. One file, one command:
 
 ```bash
 mkdir parcella && cd parcella
 curl -O https://raw.githubusercontent.com/parcella-garden/parcella/main/docker-compose.yml
-curl -o .env https://raw.githubusercontent.com/parcella-garden/parcella/main/.env.example
-# edit .env: passwords, SECRET_KEY, ENVIRONMENT=production, SMTP, etc.
-
-# Postgres self-heals ownership on its data dir, but the app image runs as
-# a fixed non-root user (uid/gid 1000) and does not -- pre-create and own
-# this one so the app can write to it on first start:
-mkdir -p data/postgres data/uploads
-sudo chown -R 1000:1000 data/uploads
-
-docker compose run --rm --entrypoint alembic web upgrade head
 docker compose up -d
 ```
 
+Open <http://localhost:8000> on the same machine and log in as
+`admin@parcella.local` / `admin1234`; you're asked to set a new password
+right away. SMTP, branding and everything else are configured in the admin
+panel, not in files.
+
+What happens on first start, so you don't have to:
+
+- the database schema is created and migrated (on every start, too);
+- a random `SECRET_KEY` is generated into `data/secrets/secret_key`;
+- the `data/` folders are created and given to the app's user.
+
+**Nothing is reachable from outside this machine.** The app listens on
+`127.0.0.1:8000` only and the database isn't published at all. For real
+use, put a reverse proxy with HTTPS on the same host in front of it -- see
+[HTTPS in production](#https-in-production) below.
+
 Everything the running instance writes to disk -- Postgres data, uploaded
-logos/avatars/announcement images -- lives under this one `data/` folder
-next to the compose file. No named Docker volumes, no `-f` flags:
+logos/avatars/announcement images, the generated secret key -- lives
+under this one `data/` folder next to the compose file. **Back up the
+whole folder**: without `data/secrets/secret_key`, stored SMTP/Nextcloud/
+WordPress passwords in a database backup can't be decrypted. No named Docker volumes, no `-f` flags:
 `docker-compose.yml` is Compose's own default-discovered filename, so
 every command in this guide, and `/admin/system`'s "update available"
 notice, works with bare `docker compose pull` / `up -d`. Pin
-`PARCELLA_VERSION` in `.env` to a specific release for a reproducible
-deploy instead of always tracking `latest`.
+`PARCELLA_VERSION` in a `.env` file to a specific release for a
+reproducible deploy instead of always tracking `latest`. A `.env` is
+optional; see [.env.example](./.env.example) for what it can set.
 
 **Upgrading from an older install** (named `postgres_data` volume, or no
 `data/uploads` mount yet)? See
 [MIGRATION-NOTE-DATA-LAYOUT.md](https://github.com/parcella-garden/parcella/blob/main/MIGRATION-NOTE-DATA-LAYOUT.md)
 for the one-time manual migration -- back up first.
 
+**Updating to 6.4.0 or later from an earlier version:** `docker compose
+pull` never updates the compose file itself, so download it once more:
+
+```bash
+curl -O https://raw.githubusercontent.com/parcella-garden/parcella/main/docker-compose.yml
+docker compose pull && docker compose up -d
+```
+
+Before 6.4.0 the file published the database on port 5432 to every
+network interface; the new one doesn't publish it at all and binds the
+app to `127.0.0.1`. If you reached the app directly over your LAN on
+port 8000, either put a proxy in front or restore that with a
+`ports: !override` entry in `docker-compose.override.yml` (below). If you
+never set `SECRET_KEY`, one is generated now and your stored passwords
+are re-encrypted with it automatically; everyone has to log in once more.
+
 ### Customizing your deployment: use an override file, not local edits
 
 If your setup needs anything `docker-compose.yml` doesn't already cover
--- most commonly running behind a reverse proxy (add `--proxy-headers
---forwarded-allow-ips=*` to uvicorn's command so it trusts
-`X-Forwarded-*` and reports the right client IP/scheme) or a different
-port -- put that in a
+-- most commonly a different port, or reaching the app from a reverse
+proxy that runs in another container -- put that in a
 **`docker-compose.override.yml`** next to `docker-compose.yml`, not by
 editing `docker-compose.yml` itself.
 
@@ -352,19 +375,18 @@ replacing** -- if you just restate `ports:` in the override, you get
 # docker-compose.override.yml
 services:
   web:
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips=*
     ports: !override
       - "127.0.0.1:8082:8000"
 ```
 
-`--proxy-headers` alone is not enough: uvicorn then only trusts
-forwarded headers from 127.0.0.1, but a host nginx reaches the container
-through the Docker network gateway (e.g. `172.19.0.1`). Without
-`--forwarded-allow-ips`, every visitor looks like that one address, so
-the login throttle and the public form rate limits collapse into a
-single bucket -- a handful of failed logins from anywhere locks everyone
-out. `*` is safe here **only** because the port is bound to `127.0.0.1`,
-so nothing but the local proxy can reach the app.
+The base file already runs uvicorn with `--proxy-headers
+--forwarded-allow-ips=*`, so a proxy on the host needs no extra flags:
+login throttling and the public form rate limits see the real client
+address. Trusting forwarded headers from anyone is safe **only** because
+the port is bound to `127.0.0.1`, so nothing but the local proxy can
+reach the app. **Keep it that way:** never publish the port on
+`0.0.0.0` (e.g. `"8000:8000"`) -- that exposes the app without HTTPS and
+lets any client fake its IP address.
 
 (A custom Postgres data path is no longer a common reason to need an
 override -- the base file already bind-mounts it under `./data/postgres`
@@ -387,17 +409,20 @@ itself never needs local changes, and a future `curl -O` re-fetch of it
 
 ### Environment
 
-For production, set `ENVIRONMENT=production`:
+The published `docker-compose.yml` defaults to `ENVIRONMENT=production`:
+session and CSRF cookies are HTTPS-only (browsers accept that on
+`http://localhost`, so the local trial still works) and HSTS is on.
+`SECRET_KEY` is generated on first start unless you set one in `.env`. An
+explicitly set key always wins; the app refuses to start in production
+with the built-in default key, which is published in this repository.
+Changing the key later logs everyone out and makes stored SMTP/Nextcloud
+credentials unreadable -- keep `data/secrets/` (or your own key) with
+your backups.
 
-```bash
-SECRET_KEY=$(python -c 'import secrets; print(secrets.token_urlsafe(48))')
-ENVIRONMENT=production
-POSTGRES_PASSWORD=<secure-password>
-```
+### HTTPS in production
 
-Both are enforced, not just recommended: with `ENVIRONMENT` set to anything other than `development`, the app refuses to start while `SECRET_KEY` is still the built-in default (which is published in this repository and signs every session cookie and API token). Setting `ENVIRONMENT=production` is also what makes the session and CSRF cookies HTTPS-only and enables HSTS. Keep `SECRET_KEY` with your backups - changing it later logs everyone out and makes stored SMTP/Nextcloud credentials unreadable.
-
-Recommended: put Nginx in front as a reverse proxy with Let's Encrypt (Certbot).
+Put Nginx (or Caddy, or any reverse proxy) with Let's Encrypt on the
+same host, proxying to `127.0.0.1:8000`:
 
 ```nginx
 server {
@@ -408,8 +433,8 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         # Needed for login throttling and the signup API's rate limit to
-        # see the real client address; run uvicorn with --proxy-headers
-        # to trust it (only ever behind a proxy you control).
+        # see the real client address (the compose file already runs
+        # uvicorn with --proxy-headers).
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }

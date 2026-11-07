@@ -34,13 +34,15 @@ class DecryptionError(Exception):
     """
 
 
-def _derived_key() -> bytes:
-    """Derives a Fernet-valid 32-byte key from SECRET_KEY."""
-    digest = hashlib.sha256(settings.secret_key.encode("utf-8")).digest()
-    return base64.urlsafe_b64encode(digest)
+def fernet_for(secret_key: str) -> Fernet:
+    """A Fernet for an arbitrary SECRET_KEY value (a Fernet-valid 32-byte
+    key derived from it). Used directly by app/secret_bootstrap.py to
+    re-encrypt values from the old default key."""
+    digest = hashlib.sha256(secret_key.encode("utf-8")).digest()
+    return Fernet(base64.urlsafe_b64encode(digest))
 
 
-_fernet = Fernet(_derived_key())
+_fernet = fernet_for(settings.secret_key)
 
 
 def _looks_like_fernet_token(value: str) -> bool:
