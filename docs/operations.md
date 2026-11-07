@@ -159,13 +159,14 @@ point, which applies identically whichever path you use.
 
 - **Encrypted fields don't travel.** SMTP/WordPress/Nextcloud
   credentials are stored encrypted with a key derived from `SECRET_KEY`
-  (`app/crypto_utils.py`), which lives only in `.env`, deliberately
-  outside the database and outside this backup. Restore a dump into an
-  instance whose `SECRET_KEY` differs from the one that created it, and
-  those fields decrypt to garbage -- you'll need to re-enter that
-  handful of credentials by hand afterward. Keep a copy of `.env`
-  (or at least `SECRET_KEY`) alongside your backups if you ever expect
-  to restore onto different infrastructure.
+  (`app/crypto_utils.py`), which lives only in `data/secrets/secret_key`
+  (generated, ADR 0121) or in `.env` (if you set `SECRET_KEY` yourself),
+  deliberately outside the database and outside this backup. Restore a
+  dump into an instance whose `SECRET_KEY` differs from the one that
+  created it, and those fields decrypt to garbage -- you'll need to
+  re-enter that handful of credentials by hand afterward. Keep a copy
+  of `data/secrets/` (or `.env`) alongside your backups if you ever
+  expect to restore onto different infrastructure.
 - **Restoring an older backup into a newer Parcella version:** should
   work, but isn't automatic. Restore the dump, then run
   `docker compose run --rm --entrypoint alembic web upgrade head` --
@@ -199,29 +200,40 @@ the account in that state as well -- see
 
 ## Security-relevant settings
 
-- **`SECRET_KEY` is mandatory outside development.** With
-  `ENVIRONMENT` set to anything other than `development`, the app
-  refuses to start while `SECRET_KEY` is still the built-in default
-  (that value is published in the public repository, and it signs
-  session cookies, signs API tokens, and encrypts stored SMTP/Nextcloud/
-  WordPress passwords). Generate one with:
+- **`SECRET_KEY`: generated unless you set one (ADR 0121).** It signs
+  session cookies and API tokens and encrypts stored SMTP/Nextcloud/
+  WordPress passwords. With `SECRET_KEY` empty (the published compose
+  file's default), the entrypoint writes a random key to
+  `./data/secrets/secret_key` (mode 0600) on first start and the app
+  reads it from there. An explicitly set `SECRET_KEY` always wins. With
+  `ENVIRONMENT` set to anything other than `development`, the app still
+  refuses to start on the built-in default key (published in the public
+  repository). Installs that used to run on that default get their
+  stored passwords re-encrypted with the generated key on every start
+  (`python -m app.secret_bootstrap rekey`, idempotent).
 
-  ```bash
-  python -c 'import secrets; print(secrets.token_urlsafe(48))'
-  ```
+  Changing the key later logs everyone out and makes already-encrypted
+  settings unreadable -- keep `data/secrets/` with your backups (see ADR
+  0006/0053). It is deliberately not part of the app's own (possibly
+  cloud-uploaded) backup archive, which already holds the encrypted
+  values.
 
-  Changing it later logs everyone out and makes already-encrypted
-  settings unreadable -- keep it with your backups (see ADR 0006/0053).
+- **`ENVIRONMENT=production` is the published compose file's default.**
+  It is what makes the session and CSRF cookies `Secure` (HTTPS-only;
+  browsers make an exception for `http://localhost`) and what enables
+  the HSTS response header. `docker-compose.dev.yml` keeps
+  `development`.
 
-- **Set `ENVIRONMENT=production` on any real installation.** Beyond the
-  key check, it is what makes the session and CSRF cookies `Secure`
-  (HTTPS-only) and what enables the HSTS response header.
+- **Nothing is published beyond localhost.** The published compose file
+  binds the app to `127.0.0.1:8000` and doesn't publish Postgres at all.
+  Docker writes its own iptables rules, so a published port bypasses
+  `ufw`/firewalld -- a firewall doesn't make `0.0.0.0` bindings safe.
 
 - **Run behind the reverse proxy with forwarded headers.** Login
   throttling and the public signup API's rate limit key on the client
   IP. Behind a proxy, every request appears to come from the proxy
-  unless uvicorn runs with `--proxy-headers` *and* the proxy sets the
-  header:
+  unless uvicorn runs with `--proxy-headers` (the published compose
+  file's default command) *and* the proxy sets the header:
 
   ```nginx
   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -241,9 +253,10 @@ the account in that state as well -- see
 
   Only trust forwarded headers when a trusted proxy really is in front:
   a directly-exposed app would then believe whatever IP a client claims.
-  `--forwarded-allow-ips=*` is fine when the port is published on
-  `127.0.0.1` only (as in the README's override example); otherwise
-  list the proxy's address.
+  `--forwarded-allow-ips=*` (the published compose file's default) is
+  fine only because the port is published on `127.0.0.1`; if you ever
+  publish it more widely, override `command:` and list the proxy's
+  address instead.
 
 - **Content Security Policy.** Bootstrap and Bootstrap Icons load from
   `cdn.jsdelivr.net`, which is pinned in the policy
@@ -261,7 +274,7 @@ the account in that state as well -- see
 | `MissingGreenlet` on start/restart | `scalar_one_or_none()` on a table with multiple rows (e.g. a user-count check) |
 | `MissingGreenlet` on a single page | Lazy-load on a freshly created object without eagerly loaded relationships |
 | CSV import: every row shows "error" | Delimiter mismatch (Excel may save with comma instead of semicolon) |
-| Dev build: root-owned files in the project folder | Container ran as root; set `UID`/`GID` in `.env` before `docker compose -f docker-compose.dev.yml build` (only affects a locally-built image -- the published image always runs as uid/gid 1000, see ADR 0077) |
+| Dev build: root-owned files in the project folder | Container ran as root; set `UID`/`GID` in `.env` before `docker compose -f docker-compose.dev.yml build` (only affects a locally-built image -- the published image's entrypoint fixes ownership of its data folders and drops to uid/gid 1000, see ADR 0121) |
 | Every form POST answers 403 "Security check failed" | CSRF cookie missing or stale -- reload the page; if it persists on a fresh page, check that the reverse proxy isn't stripping cookies |
 | A new form works locally but 403s for everyone else | The form is missing `{{ csrf_field() }}` (see ADR 0064) |
 | Login answers 429 | Too many failed attempts from this address; wait 15 minutes (see ADR 0065) |
