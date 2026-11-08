@@ -29,6 +29,7 @@ import hashlib
 import json
 import re
 import unicodedata
+from email.utils import parsedate_to_datetime
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Iterable, List, Optional
@@ -60,6 +61,25 @@ def fingerprint(last_modified: Optional[str], size: Optional[int]) -> str:
     if not last_modified and size is None:
         return ""
     return f"{last_modified or ''}|{'' if size is None else size}"
+
+
+def date_from_last_modified(value: Optional[str]) -> Optional[date]:
+    """The day a cloud listing says a file was last modified: WebDAV
+    sends an HTTP date ("Wed, 04 Mar 2026 18:00:00 GMT"), S3 ISO 8601
+    ("2026-03-04T18:00:00.000Z"). None if it's missing or unreadable."""
+    if not value:
+        return None
+    try:
+        return parsedate_to_datetime(value).date()
+    except (TypeError, ValueError, IndexError):
+        pass
+    match = _DATE_PREFIX_RE.match(value.strip())
+    if match:
+        try:
+            return date.fromisoformat(match.group(1))
+        except ValueError:
+            return None
+    return None
 
 
 def slugify(text: str) -> str:

@@ -26,6 +26,27 @@ Cloud storage), the folder's `*.md` files are the notes:
 - **File names** are generated once (`2026-03-04-board-meeting.md`,
   ASCII slug, `-2` on a clash) and never changed by Parcella, so a
   retitled note doesn't move under someone's open editor.
+- **Subfolders are categories, both ways** (kermie, follow-up on #286:
+  clubs already keep notes sorted into folders on ownCloud/Nextcloud).
+  The notes folder is read recursively (hidden `.folders` skipped, 8
+  levels deep), and `cloud_filename` holds the path relative to it.
+  The *first* folder level is the category: it wins over a `category:`
+  in the header, matches an existing category by name or any
+  translation, and creates the category if none matches. Files directly
+  in the notes folder take the header's category. Deeper levels
+  (`Vorstandssitzung/2026/`) are kept as they are and mean nothing.
+  Saving a note whose category doesn't match its top folder moves the
+  file (upload into the category's folder, created in the club language
+  if missing, then delete the old one); no category = the notes folder
+  itself. Renaming or deleting a category marks its notes dirty, so the
+  next sync moves their files. A file moved between folders in the cloud
+  is relinked by its `id` and changes category.
+- **The note's date is the day it's about, never the import day**:
+  header `date:`, else a `YYYY-MM-DD-` file name prefix, else the file's
+  last-modified date from the listing (WebDAV HTTP date or S3 ISO
+  timestamp), else today. Once Parcella has written the file, the date
+  is in the header. A later edit in the cloud without a date keeps the
+  date the note already has.
 - **The `notes` table is the index**: title, date, category, tags and
   body are cached there for search, filter, sort and the REST API.
   `cloud_hash` (sha256 of the content last read or written) and
@@ -84,7 +105,8 @@ Cloud storage), the folder's `*.md` files are the notes:
 
 - Unknown front-matter keys (e.g. Obsidian `aliases`) are dropped when
   Parcella rewrites a file.
-- Notes in subfolders of the notes folder are not read.
+- Moving a file leaves its old folder behind, even when empty (the
+  storage interface has no folder delete).
 - Attachments/images are links; nothing is uploaded with a note.
 - Switching the notes folder hides notes whose files aren't in the new
   folder (soft delete); switching back restores them via their `id`.

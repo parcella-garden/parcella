@@ -254,38 +254,61 @@ async def test_api_create_list_get_update_delete(client, admin_user):
 # ---------------------------------------------------------------------------
 
 class _MemoryCloud:
-    """An in-memory notes folder; every write bumps last_modified."""
+    """An in-memory notes folder with subfolders. `files` is keyed by the
+    path relative to the notes folder; every write bumps last_modified."""
 
     def __init__(self):
         self.files = {}
+        self.folders = {"Anhänge"}  # an empty folder, no notes in it
         self.clock = 0
         self.uploads = 0
 
-    def put(self, name, text):
+    def put(self, rel, text, last_modified=None):
         self.clock += 1
-        self.files[name] = (text.encode("utf-8"), f"t{self.clock}")
+        self.files[rel] = (text.encode("utf-8"), last_modified or f"t{self.clock}")
 
-    def text(self, name):
-        return self.files[name][0].decode("utf-8")
+    def text(self, rel):
+        return self.files[rel][0].decode("utf-8")
+
+    @staticmethod
+    def _rel(path, filename=""):
+        assert path == FOLDER or path.startswith(FOLDER + "/"), path
+        folder = path[len(FOLDER) + 1:]
+        return "/".join(p for p in (folder, filename) if p)
 
     async def list_files(self, path):
-        assert path == FOLDER
-        return [CloudFileEntry(name=n, is_directory=False, size=len(c), last_modified=m)
-                for n, (c, m) in self.files.items()] + [CloudFileEntry(name="Anhänge", is_directory=True)]
+        folder = self._rel(path)
+        prefix = f"{folder}/" if folder else ""
+        entries, seen = [], set()
+        for rel, (content, modified) in self.files.items():
+            if not rel.startswith(prefix):
+                continue
+            rest = rel[len(prefix):]
+            if "/" in rest:
+                seen.add(rest.split("/", 1)[0])
+            else:
+                entries.append(CloudFileEntry(name=rest, is_directory=False, size=len(content), last_modified=modified))
+        for known in self.folders:
+            if known.startswith(prefix) and "/" not in known[len(prefix):]:
+                seen.add(known[len(prefix):])
+        return entries + [CloudFileEntry(name=n, is_directory=True) for n in sorted(seen) if n]
+
+    async def create_folder(self, path):
+        self.folders.add(self._rel(path))
 
     async def upload_file(self, path, filename, content):
-        assert path == FOLDER
         self.uploads += 1
         self.clock += 1
-        self.files[filename] = (content, f"t{self.clock}")
+        self.files[self._rel(path, filename)] = (content, f"t{self.clock}")
 
     async def download_file(self, path, filename):
-        if filename not in self.files:
+        rel = self._rel(path, filename)
+        if rel not in self.files:
             raise CloudStorageError("not found")
-        return self.files[filename][0]
+        return self.files[rel][0]
 
     async def delete_file(self, path, filename):
-        self.files.pop(filename, None)
+        self.files.pop(self._rel(path, filename), None)
 
     async def aclose(self):
         pass
@@ -319,7 +342,7 @@ async def test_cloud_save_writes_the_file_and_external_edits_come_back(client, a
     note_id = await _create(client, category_id=category, new_tags="Wasser")
 
     [name] = cloud.files
-    assert name == "2026-03-04-vorstandssitzung-marz.md"
+    assert name == "Board meeting/2026-03-04-vorstandssitzung-marz.md"  # its category's folder
     text = cloud.text(name)
     assert f"id: {note_id}" in text and 'category: "Board meeting"' in text and 'tags: ["Wasser"]' in text
     assert "Wasseruhren tauschen." in text
@@ -370,32 +393,32 @@ async def test_save_is_refused_when_the_file_changed_meanwhile(client, admin_use
 async def test_new_renamed_and_deleted_files(client, admin_user, monkeypatch):
     cloud = await _enable_cloud(client, monkeypatch)
     await _category("Board meeting", de="Vorstandssitzung")
-    cloud.put("protokoll.md", "---\ntitle: Mitgliederversammlung\ndate: 2026-05-01\ncategory: Vorstandssitzung\n"
-                              "tags: [Wahl]\n---\nGewählt wurde ...")
+    cloud.put("Vorstandssitzung/protokoll.md", "---\ntitle: Mitgliederversammlung\ndate: 2026-05-01\n"
+                                               "tags: [Wahl]\n---\nGewählt wurde ...")
     cloud.put("readme.txt", "not a note")
     await _sync(client)
     [note] = await _notes()
     assert note.title == "Mitgliederversammlung" and note.category.name == "Board meeting"  # matched via translation
-    assert [t.name for t in note.tags] == ["Wahl"] and note.cloud_filename == "protokoll.md"
+    assert [t.name for t in note.tags] == ["Wahl"] and note.cloud_filename == "Vorstandssitzung/protokoll.md"
 
     # Edited once in Parcella, the file carries the note id ...
     await client.post(f"/notes/{note.id}/edit", data={
         "title": "Mitgliederversammlung", "note_date": "2026-05-01", "category_id": note.category_id,
         "tag_ids": [note.tags[0].id], "body_markdown": "Gewählt wurde ...",
     })
-    assert f"id: {note.id}" in cloud.text("protokoll.md")
+    assert f"id: {note.id}" in cloud.text("Vorstandssitzung/protokoll.md")  # stays in its matching folder
     # ... so a rename in the cloud keeps the same note.
-    cloud.files["2026-05-01-mv.md"] = cloud.files.pop("protokoll.md")
+    cloud.files["Vorstandssitzung/2026-05-01-mv.md"] = cloud.files.pop("Vorstandssitzung/protokoll.md")
     await _sync(client)
     [renamed] = await _notes()
-    assert renamed.id == note.id and renamed.cloud_filename == "2026-05-01-mv.md"
+    assert renamed.id == note.id and renamed.cloud_filename == "Vorstandssitzung/2026-05-01-mv.md"
 
     # Deleted in the cloud: the note goes (soft) ...
-    content = cloud.files.pop("2026-05-01-mv.md")
+    content = cloud.files.pop("Vorstandssitzung/2026-05-01-mv.md")
     await _sync(client)
     assert await _notes() == []
     # ... and restoring the file brings the same note back.
-    cloud.files["2026-05-01-mv.md"] = content
+    cloud.files["Vorstandssitzung/2026-05-01-mv.md"] = content
     await _sync(client)
     assert [n.id for n in await _notes()] == [note.id]
 
@@ -467,3 +490,65 @@ async def test_failed_listing_deletes_nothing(client, admin_user, monkeypatch):
     response = await client.post("/notes/sync")
     assert "error=" in response.headers["location"]
     assert len(await _notes()) == 1
+
+
+async def test_subfolders_are_categories_and_deeper_folders_are_kept(client, admin_user, monkeypatch):
+    cloud = await _enable_cloud(client, monkeypatch)
+    board = await _category("Board meeting", de="Vorstandssitzung")
+    # The folder wins over the header; deeper folders are read too.
+    cloud.put("Vorstandssitzung/2026/maerz.md", "---\ntitle: März\ndate: 2026-03-04\ncategory: Sonstiges\n---\nText")
+    cloud.put("Gartenbegehung/rundgang.md", "# Rundgang\nAlles grün")  # a folder nobody created as category yet
+    cloud.put("lose.md", "---\ntitle: Lose Notiz\ndate: 2026-01-01\ncategory: Board meeting\n---\n")
+    cloud.put(".papierkorb/alt.md", "# Alt")  # hidden: ignored
+    await _sync(client)
+    by_title = {n.title: n for n in await _notes()}
+    assert set(by_title) == {"März", "Rundgang", "Lose Notiz"}
+    assert by_title["März"].category_id == board  # "Vorstandssitzung" is board's German name
+    assert by_title["Rundgang"].category.name == "Gartenbegehung"
+    assert by_title["Lose Notiz"].category_id == board  # no folder: the header decides
+    assert not any(c.name == "Sonstiges" for c in (await _all_categories()))
+
+    def form(note, **fields):
+        return {"title": note.title, "note_date": note.note_date.isoformat(), "body_markdown": note.body_markdown,
+                "category_id": note.category_id or "", **fields}
+
+    # Saving with the same category keeps the file where it is, deep folder included.
+    await client.post(f"/notes/{by_title['März'].id}/edit", data=form(by_title["März"], body_markdown="Neu"))
+    assert "Neu" in cloud.text("Vorstandssitzung/2026/maerz.md")
+    # Another category: the file moves into that category's folder (created if needed).
+    await client.post(f"/notes/{by_title['März'].id}/edit", data=form(by_title["März"], category_id=by_title["Rundgang"].category_id))
+    assert "Vorstandssitzung/2026/maerz.md" not in cloud.files and "Gartenbegehung/maerz.md" in cloud.files
+    other = await _category("Other")
+    await client.post(f"/notes/{by_title['März'].id}/edit", data=form(by_title["März"], category_id=other))
+    assert "Other/maerz.md" in cloud.files and "Other" in cloud.folders
+    # No category: back to the notes folder itself.
+    await client.post(f"/notes/{by_title['März'].id}/edit", data=form(by_title["März"], category_id=""))
+    assert "maerz.md" in cloud.files and "Other/maerz.md" not in cloud.files
+    # The header category of a loose file moves it into the folder on its first save.
+    await client.post(f"/notes/{by_title['Lose Notiz'].id}/edit", data=form(by_title["Lose Notiz"]))
+    assert "Board meeting/lose.md" in cloud.files and "lose.md" not in cloud.files
+
+    await _sync(client)
+    notes = await _notes()
+    assert len(notes) == 3 and all(not n.cloud_dirty for n in notes)  # moves didn't create copies
+
+
+async def test_imported_note_keeps_its_original_date(client, admin_user, monkeypatch):
+    cloud = await _enable_cloud(client, monkeypatch)
+    cloud.put("protokoll.md", "# Ohne Datum", last_modified="Wed, 04 Mar 2026 18:00:00 GMT")  # WebDAV style
+    cloud.put("s3.md", "# Auch ohne", last_modified="2025-11-30T08:00:00.000Z")  # S3 style
+    cloud.put("2024-06-01-sommerfest.md", "# Sommerfest", last_modified="Wed, 04 Mar 2026 18:00:00 GMT")
+    await _sync(client)
+    dates = {n.title: n.note_date for n in await _notes()}
+    assert dates == {"Ohne Datum": date(2026, 3, 4), "Auch ohne": date(2025, 11, 30), "Sommerfest": date(2024, 6, 1)}
+
+    # A later edit in the cloud without a date header doesn't move it to today.
+    cloud.put("protokoll.md", "# Ohne Datum\nergänzt")
+    await _sync(client)
+    [note] = [n for n in await _notes() if n.title == "Ohne Datum"]
+    assert note.note_date == date(2026, 3, 4)
+
+
+async def _all_categories():
+    async with AsyncSessionLocal() as db:
+        return (await db.scalars(select(TaxonomyCategory))).all()

@@ -29,15 +29,15 @@ from sqlalchemy import Select, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.cloud_storage import CloudStorageError, CloudStorageProvider, get_cloud_storage_provider
+from app.cloud_storage import CloudFileEntry, CloudStorageError, CloudStorageProvider, get_cloud_storage_provider
 from app.i18n import load_current_language
 from app.models import ClubSetting, Note, TaxonomyCategory, TaxonomyTag, User, new_uuid
 from app.module_flags import load_module_flags
 from app.note_files import (
-    ParsedNote, content_hash, fingerprint, note_filename, parse_note_file, render_note_file,
+    ParsedNote, content_hash, date_from_last_modified, fingerprint, note_filename, parse_note_file, render_note_file,
 )
 from app.services.errors import ServiceError
-from app.tag_translations import clean_translations, find_tag_by_name, tag_label
+from app.tag_translations import all_names, clean_translations, find_tag_by_name, tag_label
 
 logger = logging.getLogger(__name__)
 
@@ -282,42 +282,171 @@ def _render(note: Note, language: str) -> bytes:
     ).encode("utf-8")
 
 
-async def _taken_filenames(db: AsyncSession, cloud: NotesCloud, exclude_note_id: str = "") -> set:
-    names = {e.name for e in await cloud.provider.list_files(cloud.folder) if not e.is_directory}
-    names |= set((await db.scalars(
+# --- Paths and category folders --------------------------------------------
+#
+# A note's cloud_filename is its path relative to the notes folder:
+# "x.md" in the folder itself, "Vorstandssitzung/x.md" or
+# "Vorstandssitzung/2026/x.md" below it. The FIRST folder level is the
+# category, in both directions (ADR 0123): a file's folder sets its
+# category (over any `category:` in its header), and a note saved with
+# another category moves into that category's folder. Deeper folders are
+# read and kept as they are, but mean nothing.
+
+def _split(rel: str) -> Tuple[str, str]:
+    """("Vorstandssitzung/2026", "x.md") for "Vorstandssitzung/2026/x.md"."""
+    return tuple(rel.rsplit("/", 1)) if "/" in rel else ("", rel)  # type: ignore[return-value]
+
+
+def _top_folder(rel: str) -> str:
+    return rel.split("/", 1)[0] if "/" in rel else ""
+
+
+def _dir_path(cloud: NotesCloud, folder: str) -> str:
+    return f"{cloud.folder}/{folder}" if folder else cloud.folder
+
+
+def _safe_folder_name(name: str) -> str:
+    """A category name as one folder name: no separators, no "."/".."."""
+    cleaned = " ".join(name.replace("/", "-").replace("\\", "-").split()).strip(" .")
+    return cleaned or "Category"
+
+
+def _folder_names(category: TaxonomyCategory) -> set:
+    """Every folder name that means `category`, lowercased: its name and
+    translations, as typed and as _safe_folder_name makes them."""
+    names = all_names(category)
+    return names | {_safe_folder_name(n).lower() for n in names}
+
+
+def _folder_matches(category: Optional[TaxonomyCategory], top_folder: str) -> bool:
+    if not top_folder:
+        return category is None
+    return category is not None and top_folder.lower() in _folder_names(category)
+
+
+def _folder_for(category: Optional[TaxonomyCategory], top_folders: Sequence[str], language: str) -> str:
+    """The top-level folder a note of `category` belongs in: an existing
+    one that matches (any language), else one named in the club language."""
+    if category is None:
+        return ""
+    names = _folder_names(category)
+    for folder in top_folders:
+        if folder.lower() in names:
+            return folder
+    return _safe_folder_name(tag_label(category, language))
+
+
+async def _category_for_folder(db: AsyncSession, folder: str) -> TaxonomyCategory:
+    for category in await list_categories(db):
+        if folder.lower() in _folder_names(category):
+            return category
+    return await get_or_create_term(db, TaxonomyCategory, folder)
+
+
+@dataclass
+class CloudListing:
+    files: Dict[str, CloudFileEntry]  # relative path -> entry, *.md only
+    top_folders: List[str]
+
+
+MAX_FOLDER_DEPTH = 8
+
+
+async def _walk(cloud: NotesCloud) -> CloudListing:
+    """Every .md file in the notes folder and its subfolders. Hidden
+    entries (".something") are skipped. Raises CloudStorageError if any
+    listing fails -- the sync then changes nothing."""
+    files: Dict[str, CloudFileEntry] = {}
+    top_folders: List[str] = []
+    queue: List[Tuple[str, int]] = [("", 0)]
+    while queue:
+        folder, depth = queue.pop(0)
+        for entry in await cloud.provider.list_files(_dir_path(cloud, folder)):
+            name = entry.name or ""
+            if not name or name.startswith(".") or "/" in name or "\\" in name:
+                continue
+            rel = f"{folder}/{name}" if folder else name
+            if entry.is_directory:
+                if depth == 0:
+                    top_folders.append(name)
+                if depth + 1 < MAX_FOLDER_DEPTH:
+                    queue.append((rel, depth + 1))
+            elif name.lower().endswith(".md"):
+                files[rel] = entry
+    return CloudListing(files=files, top_folders=top_folders)
+
+
+async def _taken_in(db: AsyncSession, cloud: NotesCloud, folder: str, exclude_note_id: str) -> set:
+    try:
+        names = {e.name for e in await cloud.provider.list_files(_dir_path(cloud, folder)) if not e.is_directory}
+    except CloudStorageError:
+        names = set()  # a folder that doesn't exist yet
+    for path in (await db.scalars(
         select(Note.cloud_filename).where(Note.cloud_filename.is_not(None), Note.id != exclude_note_id)
-    )).all())
+    )).all():
+        path_folder, name = _split(path)
+        if path_folder == folder:
+            names.add(name)
     return names
 
 
-async def _push(db: AsyncSession, cloud: NotesCloud, note: Note) -> None:
-    """Writes the note's file (a new one if it has none yet). Raises
-    CloudStorageError; the row is only marked clean once the upload
-    went through."""
+async def _push(db: AsyncSession, cloud: NotesCloud, note: Note) -> Optional[str]:
+    """Writes the note's file -- a new one, or into its category's folder
+    if the category changed (upload there, then delete the old file).
+    Returns the old path after a move. Raises CloudStorageError; the row
+    is only marked clean once the upload went through."""
     content = _render(note, cloud.language)
-    if not note.cloud_filename:
-        note.cloud_filename = note_filename(
-            note.note_date, note.title, await _taken_filenames(db, cloud, exclude_note_id=note.id),
-        )
-    await cloud.provider.upload_file(cloud.folder, note.cloud_filename, content)
+    current = note.cloud_filename
+    moved_from = None
+    if not current or not _folder_matches(note.category, _top_folder(current)):
+        top_folders = [e.name for e in await cloud.provider.list_files(cloud.folder) if e.is_directory]
+        target = _folder_for(note.category, top_folders, cloud.language)
+        if target and target not in top_folders:
+            await cloud.provider.create_folder(_dir_path(cloud, target))
+        taken = await _taken_in(db, cloud, target, note.id)
+        keep = _split(current)[1] if current else ""
+        name = keep if keep and keep.lower() not in {t.lower() for t in taken} else \
+            note_filename(note.note_date, note.title, taken)
+        note.cloud_filename = f"{target}/{name}" if target else name
+        moved_from = current
+    folder, name = _split(note.cloud_filename)
+    await cloud.provider.upload_file(_dir_path(cloud, folder), name, content)
+    if moved_from:
+        try:
+            await _delete(cloud, moved_from)
+        except CloudStorageError as e:
+            # The note lives on at its new place; the old file is imported
+            # as a copy on the next sync rather than lost.
+            logger.warning("Notes: could not delete %s after moving it: %s", moved_from, e)
     note.cloud_hash = content_hash(content)
     # Unknown until the next listing; that sync then sees the hash match
     # and just records the fingerprint, without re-importing.
     note.cloud_fingerprint = None
     note.cloud_synced_at = datetime.now(timezone.utc)
     note.cloud_dirty = False
+    return moved_from
 
 
-async def _download(cloud: NotesCloud, filename: str) -> Tuple[bytes, str]:
-    content = await cloud.provider.download_file(cloud.folder, filename)
+async def _download(cloud: NotesCloud, rel: str) -> Tuple[bytes, str]:
+    folder, name = _split(rel)
+    content = await cloud.provider.download_file(_dir_path(cloud, folder), name)
     return content, content_hash(content)
 
 
-async def _apply_parsed(db: AsyncSession, note: Note, parsed: ParsedNote) -> None:
+async def _delete(cloud: NotesCloud, rel: str) -> None:
+    folder, name = _split(rel)
+    await cloud.provider.delete_file(_dir_path(cloud, folder), name)
+
+
+async def _apply_parsed(db: AsyncSession, note: Note, parsed: ParsedNote, rel: str = "") -> None:
     note.title = parsed.title or note.title or "Note"
     note.note_date = parsed.note_date or note.note_date or date.today()
     note.body_markdown = parsed.body
-    note.category = await get_or_create_term(db, TaxonomyCategory, parsed.category) if parsed.category else None
+    top_folder = _top_folder(rel)
+    if top_folder:  # the folder wins over the header
+        note.category = await _category_for_folder(db, top_folder)
+    else:
+        note.category = await get_or_create_term(db, TaxonomyCategory, parsed.category) if parsed.category else None
     tags = []
     for name in parsed.tags:
         tag = await get_or_create_term(db, TaxonomyTag, name)
@@ -423,7 +552,7 @@ async def refresh_note(db: AsyncSession, note: Note) -> Optional[str]:
     finally:
         await cloud.aclose()
     if digest != note.cloud_hash:
-        await _apply_parsed(db, note, parse_note_file(content, note.cloud_filename))
+        await _apply_parsed(db, note, parse_note_file(content, note.cloud_filename), note.cloud_filename)
         note.cloud_hash = digest
         note.cloud_fingerprint = None
         note.cloud_synced_at = datetime.now(timezone.utc)
@@ -451,7 +580,7 @@ async def update_note(db: AsyncSession, note: Note, user: Optional[User], data: 
                 content, digest = None, None  # file gone: saving recreates it
             if digest is not None and digest != (base_hash or note.cloud_hash):
                 if digest != note.cloud_hash:
-                    await _apply_parsed(db, note, parse_note_file(content, note.cloud_filename))
+                    await _apply_parsed(db, note, parse_note_file(content, note.cloud_filename), note.cloud_filename)
                     note.cloud_hash = digest
                     note.cloud_fingerprint = None
                     await db.flush()
@@ -474,7 +603,7 @@ async def delete_note(db: AsyncSession, note: Note) -> None:
             note.cloud_delete_pending = True
         else:
             try:
-                await cloud.provider.delete_file(cloud.folder, note.cloud_filename)
+                await _delete(cloud, note.cloud_filename)
             finally:
                 await cloud.aclose()
     note.deleted_at = datetime.now(timezone.utc)
@@ -532,8 +661,7 @@ async def sync_from_cloud(db: AsyncSession, *, force: bool = False) -> SyncResul
 
 
 async def _sync(db: AsyncSession, cloud: NotesCloud, result: SyncResult) -> None:
-    entries = await cloud.provider.list_files(cloud.folder)
-    files = {e.name: e for e in entries if not e.is_directory and e.name.lower().endswith(".md")}
+    files = (await _walk(cloud)).files
     notes = list((await db.scalars(
         select(Note).options(*note_load_options()).execution_options(populate_existing=True)
     )).all())
@@ -550,7 +678,7 @@ async def _sync(db: AsyncSession, cloud: NotesCloud, result: SyncResult) -> None
         try:
             content, digest = await _download(cloud, note.cloud_filename)
             if digest == note.cloud_hash:
-                await cloud.provider.delete_file(cloud.folder, note.cloud_filename)
+                await _delete(cloud, note.cloud_filename)
                 handled.add(note.cloud_filename)
                 files.pop(note.cloud_filename, None)
             else:
@@ -568,7 +696,7 @@ async def _sync(db: AsyncSession, cloud: NotesCloud, result: SyncResult) -> None
                 content, digest = await _download(cloud, note.cloud_filename)
                 if digest != note.cloud_hash:
                     await _keep_conflict_copy(db, cloud, note)
-                    await _apply_parsed(db, note, parse_note_file(content, note.cloud_filename))
+                    await _apply_parsed(db, note, parse_note_file(content, note.cloud_filename), note.cloud_filename)
                     note.cloud_hash = digest
                     note.cloud_fingerprint = fingerprint(files[note.cloud_filename].last_modified,
                                                          files[note.cloud_filename].size)
@@ -576,7 +704,9 @@ async def _sync(db: AsyncSession, cloud: NotesCloud, result: SyncResult) -> None
                     result.conflicts += 1
                     handled.add(note.cloud_filename)
                     continue
-            await _push(db, cloud, note)
+            moved_from = await _push(db, cloud, note)
+            if moved_from:
+                files.pop(moved_from, None)
             handled.add(note.cloud_filename)
             result.pushed += 1
         except CloudStorageError as e:
@@ -612,7 +742,10 @@ async def _sync(db: AsyncSession, cloud: NotesCloud, result: SyncResult) -> None
                 note.cloud_delete_pending = False
                 by_filename[name] = note
             else:
-                note = Note(id=new_uuid(), title=parsed.title, note_date=parsed.note_date or date.today(),
+                # The day the note is about: its header or file name, else
+                # the file's own date -- never the day it was imported.
+                note_date = parsed.note_date or date_from_last_modified(entry.last_modified) or date.today()
+                note = Note(id=new_uuid(), title=parsed.title, note_date=note_date,
                             body_markdown="", cloud_filename=name)
                 db.add(note)
                 await db.flush()
@@ -621,11 +754,11 @@ async def _sync(db: AsyncSession, cloud: NotesCloud, result: SyncResult) -> None
                 by_id[note.id] = note
                 result.imported += 1
                 note.cloud_dirty = False
-                await _apply_parsed(db, note, parsed)
+                await _apply_parsed(db, note, parsed, name)
                 note.cloud_hash, note.cloud_fingerprint = digest, current_fp
                 note.cloud_synced_at = datetime.now(timezone.utc)
                 continue
-        await _apply_parsed(db, note, parsed)
+        await _apply_parsed(db, note, parsed, name)
         note.cloud_hash, note.cloud_fingerprint = digest, current_fp
         note.cloud_synced_at = datetime.now(timezone.utc)
         note.cloud_dirty = False

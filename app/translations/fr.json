@@ -437,7 +437,7 @@
       "helpdesk_type_none": "Aucun (pas de helpdesk)",
       "helpdesk_type_hint": "Tous les helpdesks n'offrent pas tout via leur interface ; Parcella n'affiche que ce que le helpdesk choisi sait faire.",
       "notes_folder_header": "Dossier des notes",
-      "notes_folder_help": "Dossier des notes au format Markdown (.md). Une fois défini, les fichiers font foi : les modifications faites dans le cloud apparaissent dans Parcella, et l'enregistrement dans Parcella écrit le fichier. Laisser vide pour garder les notes uniquement dans Parcella.",
+      "notes_folder_help": "Dossier des notes au format Markdown (.md). Une fois défini, les fichiers font foi : les modifications faites dans le cloud apparaissent dans Parcella, et l'enregistrement dans Parcella écrit le fichier. Laisser vide pour garder les notes uniquement dans Parcella. Les sous-dossiers sont des catégories : les notes dans « Réunion du bureau/ » reçoivent cette catégorie, et une note avec une catégorie est enregistrée dans son dossier.",
       "notes_folder_label": "Chemin du dossier"
     },
     "system": {

@@ -437,7 +437,7 @@
       "helpdesk_type_none": "Žiadny (bez helpdesku)",
       "helpdesk_type_hint": "Nie každý helpdesk ponúka cez svoje rozhranie všetko; Parcella zobrazí len to, čo vybraný dokáže.",
       "notes_folder_header": "Priečinok poznámok",
-      "notes_folder_help": "Priečinok pre poznámky ako súbory Markdown (.md). Po nastavení sú súbory hlavnou verziou: zmeny v cloude sa prejavia v Parcelle a uloženie v Parcelle zapíše súbor. Nechajte prázdne, ak chcete poznámky viesť len v Parcelle.",
+      "notes_folder_help": "Priečinok pre poznámky ako súbory Markdown (.md). Po nastavení sú súbory hlavnou verziou: zmeny v cloude sa prejavia v Parcelle a uloženie v Parcelle zapíše súbor. Nechajte prázdne, ak chcete poznámky viesť len v Parcelle. Podpriečinky sú kategórie: poznámky v \"Zasadnutie výboru/\" dostanú túto kategóriu a poznámka s kategóriou sa uloží do jej priečinka.",
       "notes_folder_label": "Cesta k priečinku"
     },
     "system": {

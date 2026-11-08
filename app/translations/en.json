@@ -437,7 +437,7 @@
       "helpdesk_type_none": "None (no helpdesk)",
       "helpdesk_type_hint": "Not every helpdesk offers everything through its interface; Parcella only shows what the chosen one can do.",
       "notes_folder_header": "Notes folder",
-      "notes_folder_help": "Folder for notes as Markdown (.md) files. Once set, the files are the master copy: changes made in the cloud show up in Parcella, and saving in Parcella writes the file. Leave empty to keep notes in Parcella only.",
+      "notes_folder_help": "Folder for notes as Markdown (.md) files. Once set, the files are the master copy: changes made in the cloud show up in Parcella, and saving in Parcella writes the file. Leave empty to keep notes in Parcella only. Subfolders are categories: notes in \"Board meeting/\" get that category, and a note saved with a category goes into its folder.",
       "notes_folder_label": "Folder path"
     },
     "system": {

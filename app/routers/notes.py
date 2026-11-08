@@ -322,7 +322,7 @@ async def note_download(note_id: str, request: Request, db: AsyncSession = Depen
         category=tag_label(note.category, lang) if note.category else None,
         tags=[tag_label(t, lang) for t in note.tags], body=note.body_markdown,
     )
-    filename = note.cloud_filename or f"{note.note_date.isoformat()}-{slugify(note.title)}.md"
+    filename = (note.cloud_filename or "").rsplit("/", 1)[-1] or f"{note.note_date.isoformat()}-{slugify(note.title)}.md"
     return Response(
         content.encode("utf-8"), media_type="text/markdown; charset=utf-8",
         headers={"Content-Disposition": content_disposition(filename)},

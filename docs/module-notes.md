@@ -62,6 +62,11 @@ file later). A partial unique index keeps one live note per file name.
 - **The cloud file is the master** when a folder is set: ADR 0123 has
   the save/conflict/sync rules and the rejected alternatives.
 - **One club-wide taxonomy** instead of a per-module tag pool: ADR 0122.
+- **Subfolders = categories**, both directions: the first folder level
+  below the notes folder is a note's category, saving with another
+  category moves the file, deeper folders are kept (ADR 0123).
+- **Date**: header, else file name prefix, else the file's own
+  last-modified date -- an imported note never gets the import day.
 - **Search** is `ILIKE` over title, body and tag names (wildcards
   escaped), not Postgres full-text: language-agnostic across the seven
   UI languages, and fast enough for a club's notes. Revisit if the
@@ -78,7 +83,7 @@ file later). A partial unique index keeps one live note per file name.
 
 - No dashboard stat card: there's no "needs attention" number for notes.
 - Unknown front-matter keys are dropped when Parcella rewrites a file;
-  subfolders of the notes folder aren't read; no attachments (ADR 0123).
+  no attachments; emptied category folders stay behind (ADR 0123).
 - The taxonomy page lives under `/notes` until the knowledge base (#285)
   gives it a neutral home.
 - Not yet on the website: publishing notes (or knowledge base articles)

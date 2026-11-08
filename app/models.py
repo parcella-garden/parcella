@@ -3633,8 +3633,9 @@ class Note(Base):
     deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # --- Cloud file (ADR 0123) ---
-    # File name inside the notes folder; NULL = never written to the cloud.
-    cloud_filename: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    # Path relative to the notes folder ("x.md", "Board meeting/x.md");
+    # its first folder is the category. NULL = never written to the cloud.
+    cloud_filename: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)
     # "<last_modified>|<size>" from the folder listing when last synced:
     # a cheap "did it change?" check before downloading.
     cloud_fingerprint: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
