@@ -24,9 +24,9 @@ notes                -- one row per note; the index of its cloud file
 note_tag_links       -- note <-> tag
 ```
 
-**`Note`**: `title`, `note_date` + optional `note_time` (club-local wall
-clock: when the meeting was, not when the note was written; that's
-`created_at`/`updated_at`), `category_id`, `body_markdown`,
+**`Note`**: `title`, `note_date` (the day the meeting was, not when the
+note was written; that's `created_at`/`updated_at`; date only, no time
+of day), `category_id`, `body_markdown`,
 `created_by`/`updated_by`, `deleted_at` (soft delete, ADR 0005). The
 `cloud_*` columns track the file: `cloud_filename`, `cloud_hash`
 (sha256 of the content last read/written, the conflict token),

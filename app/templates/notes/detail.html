@@ -24,7 +24,7 @@
     <div class="card-body">
         <h2 class="h4 mb-2">{{ note.title }}</h2>
         <div class="d-flex flex-wrap gap-2 align-items-center text-muted small mb-3">
-            <span><i class="bi bi-calendar-event me-1"></i>{{ note.note_date.strftime('%d.%m.%Y') }}{% if note.note_time %} {{ note.note_time.strftime('%H:%M') }}{% endif %}</span>
+            <span><i class="bi bi-calendar-event me-1"></i>{{ note.note_date.strftime('%d.%m.%Y') }}</span>
             {% if note.category %}<a href="/notes/?category={{ note.category.id }}" class="badge text-bg-light border text-decoration-none">{{ tag_name(note.category) }}</a>{% endif %}
             {% for note_tag in note.tags %}
             <a href="/notes/?tag={{ note_tag.id }}" class="badge rounded-pill text-bg-secondary text-decoration-none">{{ tag_name(note_tag) }}</a>

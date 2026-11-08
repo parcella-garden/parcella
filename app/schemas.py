@@ -5,7 +5,7 @@ The separation from DB models (app/models.py) is deliberate: it lets
 us keep API contracts stable even as internal models change, and have
 different fields for creation vs. response.
 """
-from datetime import date, datetime, time
+from datetime import date, datetime
 from typing import Dict, Optional, List
 from decimal import Decimal
 
@@ -1328,7 +1328,6 @@ class TaxonomyTermCreate(BaseModel):
 class NoteBase(BaseModel):
     title: str = Field(..., max_length=255)
     note_date: date
-    note_time: Optional[time] = None
     category_id: Optional[str] = None
     body_markdown: str = ""
 

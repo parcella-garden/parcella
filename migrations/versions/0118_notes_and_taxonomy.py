@@ -63,7 +63,6 @@ def upgrade() -> None:
         sa.Column("id", sa.String(36), primary_key=True),
         sa.Column("title", sa.String(255), nullable=False),
         sa.Column("note_date", sa.Date(), nullable=False),
-        sa.Column("note_time", sa.Time(), nullable=True),
         sa.Column("category_id", sa.String(36),
                   sa.ForeignKey("taxonomy_categories.id", ondelete="SET NULL"), nullable=True),
         sa.Column("body_markdown", sa.Text(), nullable=False),

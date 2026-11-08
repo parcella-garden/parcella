@@ -3427,7 +3427,6 @@
     "fields": {
       "title": "Názov",
       "date": "Dátum",
-      "time": "Čas",
       "category": "Kategória",
       "tags": "Štítky",
       "body": "Poznámka"

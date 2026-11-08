@@ -6,7 +6,7 @@ master: external edits pulled in, a save refused when the file changed
 meanwhile, renamed/deleted files, and edits made while the cloud was
 off pushed (or kept as a conflict copy) later.
 """
-from datetime import date, time
+from datetime import date
 
 import pytest
 from sqlalchemy import select
@@ -50,7 +50,7 @@ async def _category(name: str, **translations) -> str:
 
 
 async def _create(client, **fields) -> str:
-    data = {"title": "Vorstandssitzung März", "note_date": "2026-03-04", "note_time": "19:00",
+    data = {"title": "Vorstandssitzung März", "note_date": "2026-03-04",
             "body_markdown": "# TOP 1\n\nWasseruhren tauschen.", **fields}
     response = await client.post("/notes/new", data=data)
     assert response.status_code == 303, response.text
@@ -63,19 +63,20 @@ async def _create(client, **fields) -> str:
 
 def test_note_file_round_trip_and_lenient_parsing():
     text = render_note_file(
-        note_id="abc", title='Board: "March"', note_date=date(2026, 3, 4), note_time=time(19, 0),
+        note_id="abc", title='Board: "March"', note_date=date(2026, 3, 4),
         category="Board meeting", tags=["Wasser", "Budget"], body="Hello\n\n| a | b |\n|---|---|\n| 1 | 2 |",
     )
     parsed = parse_note_file(text.encode(), "x.md")
     assert (parsed.note_id, parsed.title, parsed.category) == ("abc", 'Board: "March"', "Board meeting")
-    assert (parsed.note_date, parsed.note_time, parsed.tags) == (date(2026, 3, 4), time(19, 0), ["Wasser", "Budget"])
+    assert (parsed.note_date, parsed.tags) == (date(2026, 3, 4), ["Wasser", "Budget"])
+    assert "date: 2026-03-04" + chr(10) in text
     assert parsed.body.startswith("Hello") and parsed.body.endswith("| 1 | 2 |")
 
-    # Hand-written YAML: unquoted values, single quotes, block list, separate time.
-    hand = "---\ntitle: Mitgliederversammlung 2026\ndate: 2026-05-01 # Samstag\ntime: '10:30'\ncategory: 'Sonstiges'\ntags:\n  - Wahl\n  - Satzung\n---\nText"
+    # Hand-written YAML: unquoted values, single quotes, block list, a time (ignored).
+    hand = "---\ntitle: Mitgliederversammlung 2026\ndate: 2026-05-01T10:30:00+02:00 # Samstag\ncategory: 'Sonstiges'\ntags:\n  - Wahl\n  - Satzung\n---\nText"
     parsed = parse_note_file(hand.encode("utf-8"), "irrelevant.md")
     assert parsed.title == "Mitgliederversammlung 2026" and parsed.note_date == date(2026, 5, 1)
-    assert parsed.note_time == time(10, 30) and parsed.category == "Sonstiges"
+    assert parsed.category == "Sonstiges"
     assert parsed.tags == ["Wahl", "Satzung"] and parsed.body == "Text"
 
     # No header at all: title from the first heading, date from the file name.
@@ -101,7 +102,7 @@ async def test_create_list_search_filter_edit_delete(client, admin_user):
     await web_login(client, "admin@example.com")
 
     first = await _create(client, category_id=board, new_tags="Wasser, Budget")
-    await _create(client, title="Gespräch Stadtwerke", note_date="2026-01-10", note_time="", category_id=other,
+    await _create(client, title="Gespräch Stadtwerke", note_date="2026-01-10", category_id=other,
                   body_markdown="Stromzähler ablesen")
     [budget] = [t for t in (await _notes())[1].tags if t.name == "Budget"]
 
@@ -121,15 +122,15 @@ async def test_create_list_search_filter_edit_delete(client, admin_user):
 
     detail = await client.get(f"/notes/{first}")
     assert detail.status_code == 200
-    assert "<h1>TOP 1</h1>" in detail.text and "04.03.2026 19:00" in detail.text
+    assert "<h1>TOP 1</h1>" in detail.text and "04.03.2026" in detail.text
 
     edited = await client.post(f"/notes/{first}/edit", data={
-        "title": "Vorstandssitzung März (Protokoll)", "note_date": "2026-03-04", "note_time": "",
+        "title": "Vorstandssitzung März (Protokoll)", "note_date": "2026-03-04",
         "category_id": board, "tag_ids": [budget.id], "body_markdown": "Neu",
     })
     assert edited.status_code == 303
     note = next(n for n in await _notes() if n.id == first)
-    assert note.title == "Vorstandssitzung März (Protokoll)" and note.note_time is None
+    assert note.title == "Vorstandssitzung März (Protokoll)"
     assert [t.name for t in note.tags] == ["Budget"] and note.body_markdown == "Neu"
     assert note.cloud_dirty and note.cloud_filename is None  # waits for a notes folder
 
@@ -225,7 +226,7 @@ async def test_api_create_list_get_update_delete(client, admin_user):
     headers = auth_header(token)
     category = (await client.post("/api/v1/notes/categories", json={"name": "Board meeting"}, headers=headers)).json()
     created = await client.post("/api/v1/notes", headers=headers, json={
-        "title": "API-Notiz", "note_date": "2026-04-01", "note_time": "18:30", "category_id": category["id"],
+        "title": "API-Notiz", "note_date": "2026-04-01", "category_id": category["id"],
         "new_tags": ["Strom"], "body_markdown": "Hallo",
     })
     assert created.status_code == 201, created.text

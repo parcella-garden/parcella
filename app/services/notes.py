@@ -22,7 +22,7 @@ import asyncio
 import logging
 import time as time_module
 from dataclasses import dataclass, field
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, timezone
 from typing import Dict, List, Optional, Sequence, Tuple, Type, Union
 
 from sqlalchemy import Select, or_, select
@@ -213,8 +213,8 @@ class NoteFilter:
         if self.date_to:
             query = query.where(Note.note_date <= self.date_to)
         order = {
-            "date_desc": (Note.note_date.desc(), Note.note_time.desc().nulls_last(), Note.title),
-            "date_asc": (Note.note_date.asc(), Note.note_time.asc().nulls_first(), Note.title),
+            "date_desc": (Note.note_date.desc(), Note.title),
+            "date_asc": (Note.note_date.asc(), Note.title),
             "title": (Note.title, Note.note_date.desc()),
             "updated": (Note.updated_at.desc(),),
         }[self.sort]
@@ -275,7 +275,7 @@ class NoteConflict(Exception):
 
 def _render(note: Note, language: str) -> bytes:
     return render_note_file(
-        note_id=note.id, title=note.title, note_date=note.note_date, note_time=note.note_time,
+        note_id=note.id, title=note.title, note_date=note.note_date,
         category=tag_label(note.category, language) if note.category else None,
         tags=[tag_label(t, language) for t in note.tags],
         body=note.body_markdown,
@@ -316,7 +316,6 @@ async def _download(cloud: NotesCloud, filename: str) -> Tuple[bytes, str]:
 async def _apply_parsed(db: AsyncSession, note: Note, parsed: ParsedNote) -> None:
     note.title = parsed.title or note.title or "Note"
     note.note_date = parsed.note_date or note.note_date or date.today()
-    note.note_time = parsed.note_time
     note.body_markdown = parsed.body
     note.category = await get_or_create_term(db, TaxonomyCategory, parsed.category) if parsed.category else None
     tags = []
@@ -343,7 +342,6 @@ async def _reload(db: AsyncSession, note: Note) -> Note:
 class NoteInput:
     title: str
     note_date: Optional[date]
-    note_time: Optional[time] = None
     category_id: str = ""
     tag_ids: List[str] = field(default_factory=list)
     new_tags: List[str] = field(default_factory=list)
@@ -381,7 +379,6 @@ async def _validated(db: AsyncSession, data: NoteInput) -> Tuple[str, date, Opti
 def _assign(note: Note, user: Optional[User], title: str, note_date: date, category, tags, data: NoteInput) -> None:
     note.title = title
     note.note_date = note_date
-    note.note_time = data.note_time
     note.category = category
     note.tags = sorted(tags, key=lambda t: t.name.lower())
     note.body_markdown = (data.body_markdown or "").replace("\r\n", "\n")
@@ -649,7 +646,7 @@ async def _keep_conflict_copy(db: AsyncSession, cloud: NotesCloud, note: Note) -
     so neither version is lost (ADR 0123)."""
     copy = Note(
         id=new_uuid(), title=note.title[:TITLE_MAX_LENGTH - 20] + " (conflict copy)",
-        note_date=note.note_date, note_time=note.note_time, body_markdown=note.body_markdown,
+        note_date=note.note_date, body_markdown=note.body_markdown,
         created_by_user_id=note.updated_by_user_id or note.created_by_user_id,
         updated_by_user_id=note.updated_by_user_id,
     )

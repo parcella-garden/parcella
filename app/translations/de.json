@@ -3427,7 +3427,6 @@
     "fields": {
       "title": "Titel",
       "date": "Datum",
-      "time": "Uhrzeit",
       "category": "Kategorie",
       "tags": "Schlagworte",
       "body": "Notiz"

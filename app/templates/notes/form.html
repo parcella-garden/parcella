@@ -43,13 +43,9 @@
                     <label class="form-label fw-semibold" for="note-title">{{ t('notes.fields.title') }} *</label>
                     <input type="text" name="title" id="note-title" class="form-control" maxlength="255" required value="{{ values.title }}">
                 </div>
-                <div class="col-6 col-md-3">
+                <div class="col-12 col-md-6">
                     <label class="form-label fw-semibold" for="note-date">{{ t('notes.fields.date') }} *</label>
                     <input type="date" name="note_date" id="note-date" class="form-control" required value="{{ values.note_date }}">
-                </div>
-                <div class="col-6 col-md-3">
-                    <label class="form-label fw-semibold" for="note-time">{{ t('notes.fields.time') }}</label>
-                    <input type="time" name="note_time" id="note-time" class="form-control" value="{{ values.note_time }}">
                 </div>
                 <div class="col-12 col-md-6">
                     <label class="form-label fw-semibold" for="note-category">{{ t('notes.fields.category') }}</label>

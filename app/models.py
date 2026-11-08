@@ -8,10 +8,10 @@ Design principles:
 """
 
 import uuid
-from datetime import datetime, date, time, timedelta
+from datetime import datetime, date, timedelta
 from typing import Optional, List
 from sqlalchemy import (
-    String, Integer, Boolean, Date, DateTime, Text, Numeric, Time,
+    String, Integer, Boolean, Date, DateTime, Text, Numeric,
     ForeignKey, Enum as SAEnum, UniqueConstraint, Index, CheckConstraint,
     Column, Table, JSON,
 )
@@ -3604,16 +3604,15 @@ class Note(Base):
     saves out, refusing a save when the file changed meanwhile. Without
     one, this row is the note.
 
-    note_date/note_time are the club-local date and optional time the
-    note is about (the meeting), not when it was written -- that's
-    created_at/updated_at.
+    note_date is the day the note is about (the meeting), not when it
+    was written -- that's created_at/updated_at. Date only, no time of
+    day (kermie's call for #286).
     """
     __tablename__ = "notes"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     note_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
-    note_time: Mapped[Optional[time]] = mapped_column(Time, nullable=True)
     category_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("taxonomy_categories.id", ondelete="SET NULL"), nullable=True, index=True
     )

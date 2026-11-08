@@ -15,8 +15,8 @@ folder set (`ClubSetting notes_cloud_folder`, Admin -> Integrations ->
 Cloud storage), the folder's `*.md` files are the notes:
 
 - **File format** (`app/note_files.py`): Markdown with a YAML-compatible
-  front-matter header -- `id`, `title`, `date` (`YYYY-MM-DD` or
-  `YYYY-MM-DD HH:MM`), `category`, `tags`. Category and tags are
+  front-matter header -- `id`, `title`, `date` (`YYYY-MM-DD`; a time
+  written after it by hand is ignored), `category`, `tags`. Category and tags are
   written by name, in the club language. Parsing is lenient for
   hand-written files (unquoted values, block lists, no header at all:
   title from the first heading or the file name, date from a

@@ -47,7 +47,7 @@ def _cloud_error(request: Request, error: CloudStorageError) -> HTTPException:
 
 def _input(data: NoteCreate) -> NoteInput:
     return NoteInput(
-        title=data.title, note_date=data.note_date, note_time=data.note_time,
+        title=data.title, note_date=data.note_date,
         category_id=data.category_id or "", tag_ids=list(data.tag_ids), new_tags=list(data.new_tags),
         body_markdown=data.body_markdown,
     )

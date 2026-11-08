@@ -6,7 +6,7 @@ A note file is Markdown with a small front-matter header:
     ---
     id: 3f1c...                      (Parcella's note id, for relinking a renamed file)
     title: "Board meeting March"
-    date: 2026-03-04 19:00           (or just 2026-03-04)
+    date: 2026-03-04
     category: "Board meeting"
     tags: ["budget", "water"]
     ---
@@ -16,8 +16,8 @@ A note file is Markdown with a small front-matter header:
 Every value Parcella writes is valid YAML (strings and lists as JSON),
 so Obsidian, Nextcloud Notes and friends read it. Reading is lenient
 on purpose, since people edit these files by hand: unquoted values,
-single quotes, a YAML block list for tags, a separate `time:` key, a
-file with no header at all (then the title comes from the first
+single quotes, a YAML block list for tags, a date followed by a time
+(the time is ignored), a file with no header at all (then the title comes from the first
 heading or the file name). No YAML library: this is the whole grammar
 Parcella needs, and a full YAML parser on files from outside is more
 attack surface than it's worth.
@@ -30,12 +30,11 @@ import json
 import re
 import unicodedata
 from dataclasses import dataclass, field
-from datetime import date, datetime, time
+from datetime import date
 from typing import Iterable, List, Optional
 
 _DATE_PREFIX_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})")
 _HEADING_RE = re.compile(r"^#{1,6}\s+(.+?)\s*#*\s*$")
-_TIME_RE = re.compile(r"^(\d{1,2}):(\d{2})(?::\d{2})?$")
 
 MAX_SLUG_LENGTH = 60
 
@@ -44,7 +43,6 @@ MAX_SLUG_LENGTH = 60
 class ParsedNote:
     title: Optional[str] = None
     note_date: Optional[date] = None
-    note_time: Optional[time] = None
     category: Optional[str] = None
     tags: List[str] = field(default_factory=list)
     note_id: Optional[str] = None
@@ -91,13 +89,10 @@ def _quote(value: str) -> str:
 
 
 def render_note_file(
-    *, note_id: str, title: str, note_date: date, note_time: Optional[time],
+    *, note_id: str, title: str, note_date: date,
     category: Optional[str], tags: List[str], body: str,
 ) -> str:
-    when = note_date.isoformat()
-    if note_time is not None:
-        when += f" {note_time.strftime('%H:%M')}"
-    lines = ["---", f"id: {note_id}", f"title: {_quote(title)}", f"date: {when}"]
+    lines = ["---", f"id: {note_id}", f"title: {_quote(title)}", f"date: {note_date.isoformat()}"]
     if category:
         lines.append(f"category: {_quote(category)}")
     if tags:
@@ -138,34 +133,16 @@ def _flow_list(raw: str) -> List[str]:
     return [item for item in (_scalar(part) for part in value.split(",")) if item]
 
 
-def _parse_date_time(raw: str) -> tuple[Optional[date], Optional[time]]:
-    value = _scalar(raw)
-    if not value:
-        return None, None
-    try:
-        parsed = datetime.fromisoformat(value.replace(" ", "T", 1) if " " in value else value)
-    except ValueError:
-        match = _DATE_PREFIX_RE.match(value)
-        if not match:
-            return None, None
-        try:
-            return date.fromisoformat(match.group(1)), None
-        except ValueError:
-            return None, None
-    if len(value) <= 10:  # date only
-        return parsed.date(), None
-    # Wall-clock time as written; an offset, if any, is ignored (ADR 0123).
-    return parsed.date(), time(parsed.hour, parsed.minute)
-
-
-def _parse_time(raw: str) -> Optional[time]:
-    match = _TIME_RE.match(_scalar(raw))
+def _parse_date(raw: str) -> Optional[date]:
+    """The day; a time written after it (`2026-03-04 19:00`,
+    `2026-03-04T19:00:00+01:00`) is ignored -- notes are dated, not timed."""
+    match = _DATE_PREFIX_RE.match(_scalar(raw))
     if not match:
         return None
-    hour, minute = int(match.group(1)), int(match.group(2))
-    if hour > 23 or minute > 59:
+    try:
+        return date.fromisoformat(match.group(1))
+    except ValueError:
         return None
-    return time(hour, minute)
 
 
 def _split_front_matter(text: str) -> tuple[Optional[List[str]], str]:
@@ -205,10 +182,7 @@ def parse_note_file(content: bytes, filename: str = "") -> ParsedNote:
             elif key == "title":
                 parsed.title = _scalar(raw) or None
             elif key == "date":
-                parsed.note_date, date_time = _parse_date_time(raw)
-                parsed.note_time = parsed.note_time or date_time
-            elif key == "time":
-                parsed.note_time = _parse_time(raw) or parsed.note_time
+                parsed.note_date = _parse_date(raw)
             elif key == "category":
                 parsed.category = _scalar(raw) or None
             elif key == "id":

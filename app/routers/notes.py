@@ -7,7 +7,7 @@ folder is configured (ADR 0123).
 Business logic lives in app/services/notes.py (ADR 0070).
 """
 import urllib.parse
-from datetime import date, time
+from datetime import date
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
@@ -119,13 +119,6 @@ async def notes_sync(request: Request, db: AsyncSession = Depends(get_db)):
 # Create / edit
 # ---------------------------------------------------------------------------
 
-def _parse_time(value: str) -> Optional[time]:
-    try:
-        return time.fromisoformat(value) if value else None
-    except ValueError:
-        return None
-
-
 def _parse_date(value: str) -> Optional[date]:
     try:
         return date.fromisoformat(value) if value else None
@@ -138,7 +131,6 @@ async def _input_from_form(request: Request) -> NoteInput:
     return NoteInput(
         title=str(form.get("title", "")),
         note_date=_parse_date(str(form.get("note_date", ""))),
-        note_time=_parse_time(str(form.get("note_time", ""))),
         category_id=str(form.get("category_id", "")),
         tag_ids=[str(v) for v in form.getlist("tag_ids")],
         new_tags=[part for part in str(form.get("new_tags", "")).split(",") if part.strip()],
@@ -149,7 +141,6 @@ async def _input_from_form(request: Request) -> NoteInput:
 def _entered(data: NoteInput) -> dict:
     return {
         "title": data.title, "note_date": data.note_date.isoformat() if data.note_date else "",
-        "note_time": data.note_time.strftime("%H:%M") if data.note_time else "",
         "category_id": data.category_id, "tag_ids": data.tag_ids,
         "new_tags": ", ".join(t.strip() for t in data.new_tags), "body_markdown": data.body_markdown,
     }
@@ -157,11 +148,10 @@ def _entered(data: NoteInput) -> dict:
 
 def _values_from_note(note: Optional[Note]) -> dict:
     if note is None:
-        return {"title": "", "note_date": date.today().isoformat(), "note_time": "", "category_id": "",
+        return {"title": "", "note_date": date.today().isoformat(), "category_id": "",
                 "tag_ids": [], "new_tags": "", "body_markdown": ""}
     return {
         "title": note.title, "note_date": note.note_date.isoformat(),
-        "note_time": note.note_time.strftime("%H:%M") if note.note_time else "",
         "category_id": note.category_id or "", "tag_ids": [t.id for t in note.tags],
         "new_tags": "", "body_markdown": note.body_markdown,
     }
@@ -328,7 +318,7 @@ async def note_download(note_id: str, request: Request, db: AsyncSession = Depen
     note = await _note_or_404(request, db, note_id)
     lang = getattr(request.state, "language", "en")
     content = render_note_file(
-        note_id=note.id, title=note.title, note_date=note.note_date, note_time=note.note_time,
+        note_id=note.id, title=note.title, note_date=note.note_date,
         category=tag_label(note.category, lang) if note.category else None,
         tags=[tag_label(t, lang) for t in note.tags], body=note.body_markdown,
     )

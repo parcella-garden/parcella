@@ -3427,7 +3427,6 @@
     "fields": {
       "title": "Titel",
       "date": "Datum",
-      "time": "Tijd",
       "category": "Categorie",
       "tags": "Labels",
       "body": "Notitie"
