@@ -6,7 +6,7 @@ master: external edits pulled in, a save refused when the file changed
 meanwhile, renamed/deleted files, and edits made while the cloud was
 off pushed (or kept as a conflict copy) later.
 """
-from datetime import date
+from datetime import date, datetime, timezone
 
 import pytest
 from sqlalchemy import select
@@ -586,23 +586,39 @@ async def test_copied_template_gets_its_file_name_date_not_the_template_timestam
 
 async def test_migration_0119_makes_the_next_sync_redate_existing_notes(client, admin_user, monkeypatch):
     """Notes imported before #302 kept the wrong date; migration 0119
-    forgets the stored hash so the next sync re-reads each file once --
-    but never for a note with an unpushed local edit."""
+    forgets the stored hash so the next sync re-reads each file once
+    (never for a note with an unpushed local edit), and once moves notes
+    stuck on their import day to the file's last-modified date."""
     import importlib.util
     from pathlib import Path
     from sqlalchemy import text, update
 
     cloud = await _enable_cloud(client, monkeypatch)
     cloud.put("20261108 Vorstandssitzung.md", "# Vorstandssitzung", last_modified="Mon, 27 Oct 2025 20:10:48 GMT")
+    cloud.put("Technik.md", "# Technik", last_modified="Sat, 13 Dec 2025 16:37:04 GMT")
+    cloud.put("Ohne Datum.md", "# Ohne Datum", last_modified="Sat, 13 Dec 2025 16:37:04 GMT")
+    cloud.put("Mit Kopf.md", "---\ndate: 2026-03-01\n---\n# Mit Kopf", last_modified="Sat, 13 Dec 2025 16:37:04 GMT")
     await _sync(client)
-    [note] = await _notes()
-    # Simulate the pre-#302 import: the template's timestamp as date.
+    by_file = {n.cloud_filename: n for n in await _notes()}
+    # Simulate the pre-#302 state: the template's timestamp as date, and
+    # the very first imports' "import day" for files without any date.
     async with AsyncSessionLocal() as db:
-        await db.execute(update(Note).where(Note.id == note.id).values(note_date=date(2025, 10, 27)))
+        await db.execute(update(Note).where(Note.id == by_file["20261108 Vorstandssitzung.md"].id)
+                         .values(note_date=date(2025, 10, 27)))
+        for name in ("Technik.md", "Mit Kopf.md"):
+            await db.execute(update(Note).where(Note.id == by_file[name].id)
+                             .values(created_at=datetime(2026, 11, 8, 2, 2, tzinfo=timezone.utc),
+                                     note_date=date(2026, 11, 8)))
+        # Not on its import day: a date someone set on purpose, kept.
+        await db.execute(update(Note).where(Note.id == by_file["Ohne Datum.md"].id)
+                         .values(created_at=datetime(2026, 11, 8, 2, 2, tzinfo=timezone.utc),
+                                 note_date=date(2026, 1, 15)))
         await db.commit()
     reset_sync_throttle()
     await _sync(client)
-    assert (await _notes())[0].note_date == date(2025, 10, 27)  # unchanged file: not re-read
+    dates = {n.cloud_filename: n.note_date for n in await _notes()}
+    assert dates["20261108 Vorstandssitzung.md"] == date(2025, 10, 27)  # unchanged file: not re-read
+    assert dates["Technik.md"] == date(2026, 11, 8)  # no fix without the migration's marker
 
     path = Path(__file__).resolve().parent.parent / "migrations" / "versions" / "0119_notes_reread_dates.py"
     spec = importlib.util.spec_from_file_location("migration_0119", path)
@@ -618,7 +634,15 @@ async def test_migration_0119_makes_the_next_sync_redate_existing_notes(client, 
 
     reset_sync_throttle()
     await _sync(client)
-    assert (await _notes())[0].note_date == date(2026, 11, 8)
+    dates = {n.cloud_filename: n.note_date for n in await _notes()}
+    assert dates == {
+        "20261108 Vorstandssitzung.md": date(2026, 11, 8),  # file-name date
+        "Technik.md": date(2025, 12, 13),  # import day -> the file's own date
+        "Ohne Datum.md": date(2026, 1, 15),  # not the import day: kept
+        "Mit Kopf.md": date(2026, 3, 1),  # header wins
+    }
+    async with AsyncSessionLocal() as db:  # one-time: the marker is gone
+        assert await db.get(ClubSetting, "notes_redate_import_day_pending") is None
 
 
 async def _all_categories():

@@ -74,7 +74,11 @@ file later). A partial unique index keeps one live note per file name.
   original's last-modified time, so a protocol copied from a template
   got the *template's* date and sank out of sight in the date-sorted
   list. Migration 0119 cleared the stored hashes once so the next sync
-  re-read every file with the new rule.
+  re-read every file with the new rule. It also set the one-time
+  ClubSetting `notes_redate_import_day_pending`: that sync moved notes
+  with no date of their own that were still on the day they were
+  imported (the very first imports had no last-modified fallback yet)
+  to the file's last-modified date, then removed the setting.
 - **Search** is `ILIKE` over title, body and tag names (wildcards
   escaped), not Postgres full-text: language-agnostic across the seven
   UI languages, and fast enough for a club's notes. Revisit if the

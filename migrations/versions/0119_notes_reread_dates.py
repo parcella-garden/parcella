@@ -17,6 +17,12 @@ re-reading is safe. Rows with an unpushed local edit (cloud_dirty) are
 left alone: clearing their hash would make that sync treat the file as
 changed underneath them and create a conflict copy. Nothing is written
 to the cloud.
+
+It also sets the ClubSetting `notes_redate_import_day_pending`: while it
+exists, that sync gives a note with no date in its header or file name,
+whose date is still the day it was imported (the very first imports had
+no last-modified fallback yet), the file's last-modified date instead.
+The sync removes the setting once it read every file without an error.
 """
 from typing import Union
 
@@ -33,8 +39,14 @@ def upgrade() -> None:
         "UPDATE notes SET cloud_hash = NULL, cloud_fingerprint = NULL "
         "WHERE cloud_filename IS NOT NULL AND deleted_at IS NULL AND NOT cloud_dirty"
     )
+    op.execute(
+        "INSERT INTO club_settings (key, value, description) VALUES "
+        "('notes_redate_import_day_pending', 'true', "
+        "'One-time: next notes sync re-dates notes stuck on their import day (issue #302)') "
+        "ON CONFLICT (key) DO NOTHING"
+    )
 
 
 def downgrade() -> None:
-    # Nothing to undo: the next sync recomputes hash and fingerprint.
-    pass
+    # The hashes need no undo: the next sync recomputes them.
+    op.execute("DELETE FROM club_settings WHERE key = 'notes_redate_import_day_pending'")
