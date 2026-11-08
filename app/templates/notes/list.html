@@ -16,6 +16,9 @@
         <i class="bi bi-tags me-1"></i>{{ t('taxonomy.manage_link') }}
     </a>
     {% if has_perm(request, 'notes', 'write') %}
+    <a href="/notes/import/bookmarks" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-bookmark-plus me-1"></i>{{ t('notes.bookmarks.import_button') }}
+    </a>
     <a href="/notes/new" class="btn btn-sm btn-primary">
         <i class="bi bi-plus-lg me-1"></i>{{ t('notes.list.new_note') }}
     </a>
@@ -123,6 +126,10 @@
                         </td>
                         <td>
                             <a href="/notes/{{ note.id }}" class="text-decoration-none fw-semibold" style="color: var(--gv-gruen);">{{ note.title }}</a>
+                            {% if note.source_url %}
+                            <a href="{{ note.source_url }}" target="_blank" rel="noopener noreferrer nofollow" class="ms-1 text-muted"
+                               title="{{ t('notes.list.open_source') }}" aria-label="{{ t('notes.list.open_source') }}"><i class="bi bi-box-arrow-up-right"></i></a>
+                            {% endif %}
                             {% if note.cloud_dirty and cloud_folder %}
                             <i class="bi bi-cloud-upload text-warning ms-1" title="{{ t('notes.list.pending_upload') }}"></i>
                             {% endif %}

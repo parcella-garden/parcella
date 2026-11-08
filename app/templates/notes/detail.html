@@ -30,6 +30,12 @@
             <a href="/notes/?tag={{ note_tag.id }}" class="badge rounded-pill text-bg-secondary text-decoration-none">{{ tag_name(note_tag) }}</a>
             {% endfor %}
         </div>
+        {% if note.source_url %}
+        <p class="mb-3 text-break">
+            <i class="bi bi-link-45deg me-1"></i>{{ t('notes.fields.source') }}:
+            <a href="{{ note.source_url }}" target="_blank" rel="noopener noreferrer nofollow">{{ note.source_url }}</a>
+        </p>
+        {% endif %}
         <div class="note-body">{{ body_html }}</div>
     </div>
     <div class="card-footer small text-muted d-flex flex-wrap gap-3">

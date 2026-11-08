@@ -662,3 +662,146 @@ async def test_list_category_badge_filters_like_tags(client, admin_user):
 async def _all_categories():
     async with AsyncSessionLocal() as db:
         return (await db.scalars(select(TaxonomyCategory))).all()
+
+
+# ---------------------------------------------------------------------------
+# Issue #305: a bookmark is a note with a source URL; one-time import of a
+# bookmark export file (Nextcloud Bookmarks, any browser).
+# ---------------------------------------------------------------------------
+
+_BOOKMARK_FILE = """<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarks</TITLE>
+<H1>Bookmarks</H1>
+<DL><p>
+    <DT><A HREF="https://www.gesetze-im-internet.de/bkleingg/" ADD_DATE="1712246400" TAGS="Gesetz,Bund">BKleinGG</A>
+    <DD>Bundeskleingartengesetz &amp; Kommentar
+    <DT><H3 ADD_DATE="1700000000">Rechtliches</H3>
+    <DL><p>
+        <DT><A HREF="https://example.org/urteil" ADD_DATE="1704067200000" TAGS="">Urteil zur Laube</A>
+        <DT><H3>Leipzig</H3>
+        <DL><p>
+            <DT><A HREF="https://example.org/slk" ADD_DATE="1704067200">SLK Recht</A>
+            <DD>Mehrzeilige
+            Beschreibung
+        </DL><p>
+        <DT><A HREF="javascript:alert(1)">Böser Link</A>
+    </DL><p>
+    <DT><A HREF="https://www.gesetze-im-internet.de/bkleingg/" TAGS="Wichtig">BKleinGG doppelt</A>
+</DL><p>
+"""
+
+
+def test_source_url_in_note_file_and_url_safety():
+    from app.note_files import clean_source_url
+
+    text = render_note_file(note_id="a", title="Link", note_date=date(2026, 1, 2), category=None, tags=[],
+                            body="x", source="https://example.org/a?b=1")
+    assert 'source: "https://example.org/a?b=1"' in text
+    assert parse_note_file(text.encode(), "x.md").source == "https://example.org/a?b=1"
+    # "url:" (web clippers) works too; anything but http(s) is dropped.
+    assert parse_note_file(b"---\nurl: https://example.org\n---\nx", "x.md").source == "https://example.org"
+    for bad in ("javascript:alert(1)", "data:text/html,x", "ftp://example.org", "https://", "/relative",
+                "https://exa mple.org", "https://example.org/\tx", "x" * 3000):
+        assert clean_source_url(bad) is None, bad
+        assert parse_note_file(f"---\nsource: {bad}\n---\nx".encode(), "x.md").source is None
+    # render never writes an unsafe value
+    assert "source:" not in render_note_file(note_id="a", title="L", note_date=date(2026, 1, 2), category=None,
+                                             tags=[], body="", source="javascript:alert(1)")
+
+
+def test_parse_bookmark_file_folders_tags_dates_duplicates():
+    from app.bookmark_import import parse_bookmark_file
+
+    bookmarks = parse_bookmark_file(_BOOKMARK_FILE.encode())
+    by_title = {b.title: b for b in bookmarks}
+    assert set(by_title) == {"BKleinGG", "Urteil zur Laube", "SLK Recht", "Böser Link"}  # duplicate merged
+    law = by_title["BKleinGG"]
+    assert law.url == "https://www.gesetze-im-internet.de/bkleingg/"
+    assert law.added == date(2024, 4, 4) and law.description == "Bundeskleingartengesetz & Kommentar"
+    assert law.tags == ["Gesetz", "Bund", "Wichtig"]  # the duplicate's tag merged in
+    assert by_title["Urteil zur Laube"].tags == ["Rechtliches"]  # folder -> tag
+    assert by_title["Urteil zur Laube"].added == date(2024, 1, 1)  # milliseconds
+    slk = by_title["SLK Recht"]
+    assert slk.tags == ["Rechtliches", "Leipzig"] and slk.description == "Mehrzeilige\nBeschreibung"
+    assert by_title["Böser Link"].url is None
+
+
+async def test_bookmark_import_creates_notes_in_root_and_is_safe_to_rerun(client, admin_user, monkeypatch):
+    import base64 as b64
+    import re
+
+    cloud = await _enable_cloud(client, monkeypatch)
+    preview = await client.post("/notes/import/bookmarks/preview",
+                                files={"file": ("bookmarks.html", _BOOKMARK_FILE.encode(), "text/html")})
+    assert preview.status_code == 200
+    assert "3 new, 0 already exist" in preview.text
+    assert "javascript:alert" in preview.text  # shown as text (autoescaped), never as a link
+    assert 'href="javascript:' not in preview.text
+    content_b64 = re.search(r'name="content_b64" value="([^"]+)"', preview.text).group(1)
+    assert b64.b64decode(content_b64) == _BOOKMARK_FILE.encode()
+
+    done = await client.post("/notes/import/bookmarks/finalize", data={"content_b64": content_b64})
+    assert done.status_code == 303 and "error=" not in done.headers["location"]
+    notes = {n.title: n for n in await _notes()}
+    assert set(notes) == {"BKleinGG", "Urteil zur Laube", "SLK Recht"}
+    slk = notes["SLK Recht"]
+    assert slk.source_url == "https://example.org/slk" and slk.category is None
+    assert slk.note_date == date(2024, 1, 1)
+    assert sorted(t.name for t in slk.tags) == ["Leipzig", "Rechtliches"]
+    # Files land in the notes folder root, with the source in the header.
+    assert all("/" not in n.cloud_filename for n in notes.values())
+    assert 'source: "https://example.org/slk"' in cloud.text(slk.cloud_filename)
+
+    # The list links the source; re-running the import changes nothing.
+    page = await client.get("/notes/")
+    assert 'href="https://example.org/slk"' in page.text
+    again = await client.post("/notes/import/bookmarks/finalize", data={"content_b64": content_b64})
+    assert again.status_code == 303
+    assert len(await _notes()) == 3
+
+
+async def test_note_form_and_api_reject_non_http_source(client, admin_user):
+    await web_login(client, "admin@example.com")
+    response = await client.post("/notes/new", data={
+        "title": "Böse", "note_date": "2026-03-04", "source_url": "javascript:alert(1)",
+    })
+    assert response.status_code == 400 and "http:// or https://" in response.text
+    assert await _notes() == []
+
+    note_id = await _create(client, title="Gut", source_url="https://example.org/x")
+    detail = await client.get(f"/notes/{note_id}")
+    assert 'href="https://example.org/x"' in detail.text and 'rel="noopener noreferrer nofollow"' in detail.text
+
+    token = await login(client, "admin@example.com")
+    api = await client.post("/api/v1/notes", headers=auth_header(token), json={
+        "title": "API", "note_date": "2026-04-01", "source_url": "data:text/html,x",
+    })
+    assert api.status_code == 422
+    api = await client.post("/api/v1/notes", headers=auth_header(token), json={
+        "title": "API", "note_date": "2026-04-01", "source_url": "https://example.org/api",
+    })
+    assert api.status_code == 201 and api.json()["source_url"] == "https://example.org/api"
+
+
+async def test_bookmark_import_needs_write_permission(client, admin_user):
+    """Read-only users can't import (every import route checks 'write')."""
+    import base64 as b64
+
+    async with AsyncSessionLocal() as db:
+        reader = User(email="reader@example.com", name="Reader", password_hash=hash_password("testpasswort123"),
+                      role=UserRole.READONLY)
+        group = Group(name="Note readers")
+        db.add_all([reader, group])
+        await db.flush()
+        db.add(GroupModulePermission(group_id=group.id, module="notes", can_read=True))
+        db.add(GroupMembership(user_id=reader.id, group_id=group.id))
+        await db.commit()
+    await web_login(client, "reader@example.com")
+    assert (await client.get("/notes/import/bookmarks")).status_code == 403
+    assert (await client.post("/notes/import/bookmarks/preview",
+                              files={"file": ("b.html", _BOOKMARK_FILE.encode(), "text/html")})).status_code == 403
+    assert (await client.post("/notes/import/bookmarks/finalize",
+                              data={"content_b64": b64.b64encode(_BOOKMARK_FILE.encode()).decode()})).status_code == 403
+    assert await _notes() == []
+    assert "/notes/import/bookmarks" not in (await client.get("/notes/")).text

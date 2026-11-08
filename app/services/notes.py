@@ -32,9 +32,11 @@ from sqlalchemy.orm import selectinload
 from app.cloud_storage import CloudFileEntry, CloudStorageError, CloudStorageProvider, get_cloud_storage_provider
 from app.i18n import load_current_language
 from app.models import ClubSetting, Note, TaxonomyCategory, TaxonomyTag, User, new_uuid
+from app.bookmark_import import Bookmark
 from app.module_flags import load_module_flags
 from app.note_files import (
-    ParsedNote, content_hash, date_from_last_modified, fingerprint, note_filename, parse_note_file, render_note_file,
+    ParsedNote, clean_source_url, content_hash, date_from_last_modified, fingerprint, note_filename, parse_note_file,
+    render_note_file,
 )
 from app.services.errors import ServiceError
 from app.tag_translations import all_names, clean_translations, find_tag_by_name, tag_label
@@ -203,6 +205,7 @@ class NoteFilter:
             query = query.where(or_(
                 Note.title.ilike(pattern, escape="\\"),
                 Note.body_markdown.ilike(pattern, escape="\\"),
+                Note.source_url.ilike(pattern, escape="\\"),
                 Note.tags.any(TaxonomyTag.name.ilike(pattern, escape="\\")),
             ))
         if self.category == "none":
@@ -282,6 +285,7 @@ def _render(note: Note, language: str) -> bytes:
         category=tag_label(note.category, language) if note.category else None,
         tags=[tag_label(t, language) for t in note.tags],
         body=note.body_markdown,
+        source=note.source_url,
     ).encode("utf-8")
 
 
@@ -445,6 +449,7 @@ async def _apply_parsed(db: AsyncSession, note: Note, parsed: ParsedNote, rel: s
     note.title = parsed.title or note.title or "Note"
     note.note_date = parsed.note_date or note.note_date or date.today()
     note.body_markdown = parsed.body
+    note.source_url = parsed.source
     top_folder = _top_folder(rel)
     if top_folder:  # the folder wins over the header
         note.category = await _category_for_folder(db, top_folder)
@@ -478,6 +483,7 @@ class NoteInput:
     tag_ids: List[str] = field(default_factory=list)
     new_tags: List[str] = field(default_factory=list)
     body_markdown: str = ""
+    source_url: str = ""
 
 
 async def _validated(db: AsyncSession, data: NoteInput) -> Tuple[str, date, Optional[TaxonomyCategory], List[TaxonomyTag]]:
@@ -488,6 +494,8 @@ async def _validated(db: AsyncSession, data: NoteInput) -> Tuple[str, date, Opti
         raise ServiceError("notes.errors.title_too_long", max=TITLE_MAX_LENGTH)
     if data.note_date is None:
         raise ServiceError("notes.errors.date_required")
+    if (data.source_url or "").strip() and clean_source_url(data.source_url) is None:
+        raise ServiceError("notes.errors.invalid_source_url")
     category = None
     if data.category_id:
         category = await db.get(TaxonomyCategory, data.category_id)
@@ -514,6 +522,7 @@ def _assign(note: Note, user: Optional[User], title: str, note_date: date, categ
     note.category = category
     note.tags = sorted(tags, key=lambda t: t.name.lower())
     note.body_markdown = (data.body_markdown or "").replace("\r\n", "\n")
+    note.source_url = clean_source_url(data.source_url)
     note.updated_by_user_id = user.id if user else None
 
 
@@ -537,6 +546,73 @@ async def create_note(db: AsyncSession, user: Optional[User], data: NoteInput) -
         await cloud.aclose()
     await db.flush()
     return note
+
+
+# ---------------------------------------------------------------------------
+# Bookmark import (issue #305, ADR 0125): one note per bookmark, in the
+# notes folder root (no category), its folders as extra tags.
+# ---------------------------------------------------------------------------
+
+BOOKMARK_NEW = "new"
+BOOKMARK_EXISTS = "exists"
+BOOKMARK_INVALID = "invalid"
+
+
+async def classify_bookmarks(db: AsyncSession, bookmarks: Sequence[Bookmark]) -> List[Tuple[Bookmark, str]]:
+    """Each bookmark with what the import would do with it: create a
+    note, skip it because a live note already has that source URL (so
+    re-running an import is safe), or skip it as not an http(s) link."""
+    urls = [b.url for b in bookmarks if b.url]
+    existing = set()
+    if urls:
+        existing = set((await db.scalars(
+            select(Note.source_url).where(Note.deleted_at.is_(None), Note.source_url.in_(urls))
+        )).all())
+    result = []
+    for bookmark in bookmarks:
+        if not bookmark.url:
+            result.append((bookmark, BOOKMARK_INVALID))
+        elif bookmark.url in existing:
+            result.append((bookmark, BOOKMARK_EXISTS))
+        else:
+            result.append((bookmark, BOOKMARK_NEW))
+    return result
+
+
+@dataclass
+class BookmarkImportResult:
+    imported: int = 0
+    skipped_existing: int = 0
+    skipped_invalid: int = 0
+    failed: List[str] = field(default_factory=list)
+
+
+async def import_bookmarks(db: AsyncSession, user: Optional[User], bookmarks: Sequence[Bookmark]) -> BookmarkImportResult:
+    """Creates a note per new bookmark through create_note(), so each one
+    is written to the cloud like a note saved by hand. A bookmark whose
+    file can't be written is reported and leaves nothing behind (its own
+    savepoint); the others still go through."""
+    result = BookmarkImportResult()
+    for bookmark, status_ in await classify_bookmarks(db, bookmarks):
+        if status_ == BOOKMARK_INVALID:
+            result.skipped_invalid += 1
+            continue
+        if status_ == BOOKMARK_EXISTS:
+            result.skipped_existing += 1
+            continue
+        data = NoteInput(
+            title=bookmark.title, note_date=bookmark.added or date.today(),
+            body_markdown=bookmark.description, source_url=bookmark.url or "",
+            new_tags=list(bookmark.tags),
+        )
+        try:
+            async with db.begin_nested():
+                await create_note(db, user, data)
+        except (ServiceError, CloudStorageError) as e:
+            result.failed.append(f"{bookmark.title}: {e}")
+            continue
+        result.imported += 1
+    return result
 
 
 async def refresh_note(db: AsyncSession, note: Note) -> Optional[str]:
@@ -805,7 +881,7 @@ async def _keep_conflict_copy(db: AsyncSession, cloud: NotesCloud, note: Note) -
     so neither version is lost (ADR 0123)."""
     copy = Note(
         id=new_uuid(), title=note.title[:TITLE_MAX_LENGTH - 20] + " (conflict copy)",
-        note_date=note.note_date, body_markdown=note.body_markdown,
+        note_date=note.note_date, body_markdown=note.body_markdown, source_url=note.source_url,
         created_by_user_id=note.updated_by_user_id or note.created_by_user_id,
         updated_by_user_id=note.updated_by_user_id,
     )

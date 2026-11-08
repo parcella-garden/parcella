@@ -3425,14 +3425,16 @@
       "col_updated": "Zmieniono",
       "pending_upload": "Jeszcze nie zapisano w chmurze",
       "empty": "Brak notatek.",
-      "empty_filtered": "Żadna notatka nie pasuje do tych filtrów."
+      "empty_filtered": "Żadna notatka nie pasuje do tych filtrów.",
+      "open_source": "Otwórz źródło w nowej karcie"
     },
     "fields": {
       "title": "Tytuł",
       "date": "Data",
       "category": "Kategoria",
       "tags": "Tagi",
-      "body": "Notatka"
+      "body": "Notatka",
+      "source": "Źródło (link)"
     },
     "form": {
       "new_title": "Nowa notatka",
@@ -3444,7 +3446,8 @@
       "cancel": "Anuluj",
       "conflict_header": "W międzyczasie zmieniono w chmurze",
       "conflict_help": "Ktoś zmienił plik tej notatki podczas Twojej edycji. To jest obecna wersja w chmurze; Twój tekst pozostał w formularzu poniżej. Połącz potrzebne treści i zapisz ponownie, aby nadpisać wersję w chmurze.",
-      "conflict_markdown": "Pokaż jako Markdown"
+      "conflict_markdown": "Pokaż jako Markdown",
+      "source_help": "Opcjonalnie: strona internetowa, której dotyczy ta notatka. Notatka ze źródłem jest zakładką."
     },
     "detail": {
       "back": "Wszystkie notatki",
@@ -3473,9 +3476,31 @@
       "unknown_tag": "Ten tag nie istnieje (już).",
       "conflict": "Nie zapisano: notatka została w międzyczasie zmieniona w chmurze.",
       "cloud_save_failed": "Nie zapisano, nie udało się zapisać pliku w chmurze: {detail}",
-      "cloud_delete_failed": "Nie usunięto, nie udało się usunąć pliku w chmurze: {detail}"
+      "cloud_delete_failed": "Nie usunięto, nie udało się usunąć pliku w chmurze: {detail}",
+      "invalid_source_url": "Źródło musi być adresem internetowym zaczynającym się od http:// lub https://."
     },
-    "deleted": "Notatka usunięta."
+    "deleted": "Notatka usunięta.",
+    "bookmarks": {
+      "import_button": "Importuj zakładki",
+      "title": "Importuj zakładki",
+      "back": "Wróć do notatek",
+      "intro": "Prześlij plik eksportu zakładek (HTML). Może go utworzyć Nextcloud Bookmarks i każda przeglądarka. Każda zakładka staje się notatką z linkiem jako źródłem.",
+      "target_cloud": "Nowe notatki zostaną zapisane w głównym folderze notatek {folder} (bez kategorii). Foldery zakładek stają się tagami.",
+      "target_db": "Nowe notatki zostaną zapisane bez kategorii. Foldery zakładek stają się tagami.",
+      "preview_button": "Pokaż podgląd",
+      "help": "Nic nie jest jeszcze zapisywane: następna strona pokaże, co zostanie zaimportowane. Parcella nie otwiera linkowanych stron.",
+      "summary": "{new} nowych, {existing} już istnieje jako notatki (pominięte), {invalid} to nie link internetowy (pominięte).",
+      "import_confirm": "Importuj zakładki ({count})",
+      "other_file": "Wybierz inny plik",
+      "col_status": "Status",
+      "status_new": "nowa",
+      "status_exists": "już jest notatką",
+      "status_invalid": "nie link internetowy",
+      "too_large": "Plik jest większy niż {max_mb} MB.",
+      "none_found": "W tym pliku nie znaleziono zakładek.",
+      "result": "Zaimportowano zakładki: {imported} nowych, {existing} już istniało, {invalid} pominięto (nie link internetowy).",
+      "failed": "Nie udało się zapisać zakładek ({count}): {detail}"
+    }
   },
   "taxonomy": {
     "manage_link": "Kategorie i tagi",

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}{{ t('notes.bookmarks.title') }}{% endblock %}
+{% block page_title %}{{ t('notes.bookmarks.title') }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="/notes/" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>{{ t('notes.bookmarks.back') }}
+</a>
+{% endblock %}
+
+{% block content %}
+
+{% if error %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ error }}
+</div>
+{% endif %}
+
+{% if rows is none %}
+<div class="card mb-3">
+    <div class="card-body">
+        <p>{{ t('notes.bookmarks.intro') }}</p>
+        <p class="text-muted small mb-3">
+            {% if cloud_folder %}{{ t('notes.bookmarks.target_cloud', folder=cloud_folder) }}{% else %}{{ t('notes.bookmarks.target_db') }}{% endif %}
+        </p>
+        <form method="post" action="/notes/import/bookmarks/preview" enctype="multipart/form-data"
+              class="d-flex flex-wrap gap-2 align-items-center">
+            {{ csrf_field() }}
+            <input type="file" name="file" accept=".html,.htm,text/html" class="form-control" required style="max-width: 360px;">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-eye me-1"></i>{{ t('notes.bookmarks.preview_button') }}
+            </button>
+        </form>
+        <div class="form-text mt-2">{{ t('notes.bookmarks.help') }}</div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info mb-3">
+    {{ t('notes.bookmarks.summary', new=count_new, existing=count_exists, invalid=count_invalid) }}
+</div>
+
+<form method="post" action="/notes/import/bookmarks/finalize" class="mb-3">
+    {{ csrf_field() }}
+    <input type="hidden" name="content_b64" value="{{ content_b64 }}">
+    <button type="submit" class="btn btn-primary" {% if not count_new %}disabled{% endif %}>
+        <i class="bi bi-bookmark-check me-1"></i>{{ t('notes.bookmarks.import_confirm', count=count_new) }}
+    </button>
+    <a href="/notes/import/bookmarks" class="btn btn-outline-secondary">{{ t('notes.bookmarks.other_file') }}</a>
+</form>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>{{ t('notes.fields.date') }}</th>
+                    <th>{{ t('notes.fields.title') }}</th>
+                    <th>{{ t('notes.fields.tags') }}</th>
+                    <th>{{ t('notes.bookmarks.col_status') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bookmark, status in rows %}
+                <tr class="{% if status != BOOKMARK_NEW %}text-muted{% endif %}">
+                    <td class="text-nowrap">{{ bookmark.added.strftime('%d.%m.%Y') if bookmark.added else '–' }}</td>
+                    <td class="text-break">
+                        <div class="fw-semibold">{{ bookmark.title }}</div>
+                        <div class="small">{{ bookmark.url or bookmark.raw_url }}</div>
+                        {% if bookmark.description %}<div class="small text-muted">{{ bookmark.description | truncate(160) }}</div>{% endif %}
+                    </td>
+                    <td>
+                        {% for tag_name_ in bookmark.tags %}<span class="badge rounded-pill text-bg-secondary me-1">{{ tag_name_ }}</span>{% endfor %}
+                    </td>
+                    <td class="text-nowrap small">
+                        {% if status == BOOKMARK_NEW %}<span class="badge text-bg-success">{{ t('notes.bookmarks.status_new') }}</span>
+                        {% elif status == BOOKMARK_EXISTS %}<span class="badge text-bg-light border">{{ t('notes.bookmarks.status_exists') }}</span>
+                        {% else %}<span class="badge text-bg-warning">{{ t('notes.bookmarks.status_invalid') }}</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

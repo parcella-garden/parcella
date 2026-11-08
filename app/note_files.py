@@ -7,6 +7,7 @@ A note file is Markdown with a small front-matter header:
     id: 3f1c...                      (Parcella's note id, for relinking a renamed file)
     title: "Board meeting March"
     date: 2026-03-04
+    source: "https://example.org/page"  (optional: the page a bookmark note is about)
     category: "Board meeting"
     tags: ["budget", "water"]
     ---
@@ -29,6 +30,7 @@ import hashlib
 import json
 import re
 import unicodedata
+from urllib.parse import urlsplit
 from email.utils import parsedate_to_datetime
 from dataclasses import dataclass, field
 from datetime import date
@@ -56,7 +58,31 @@ class ParsedNote:
     category: Optional[str] = None
     tags: List[str] = field(default_factory=list)
     note_id: Optional[str] = None
+    source: Optional[str] = None
     body: str = ""
+
+
+SOURCE_URL_MAX_LENGTH = 2048
+
+
+def clean_source_url(raw: Optional[str]) -> Optional[str]:
+    """A note's source link (issue #305), or None if it isn't a usable
+    http(s) URL. Only http/https with a host is accepted -- the value
+    ends up in an href, so `javascript:`, `data:` and friends never get
+    through, whether they come from a hand-edited file, the form, the
+    API or a bookmark import."""
+    value = (raw or "").strip()
+    if not value or len(value) > SOURCE_URL_MAX_LENGTH:
+        return None
+    if any(ch.isspace() or ord(ch) < 32 or ord(ch) == 127 for ch in value):
+        return None
+    try:
+        parts = urlsplit(value)
+    except ValueError:
+        return None
+    if parts.scheme.lower() not in ("http", "https") or not parts.hostname:
+        return None
+    return value
 
 
 def content_hash(content: bytes) -> str:
@@ -135,9 +161,12 @@ def _quote(value: str) -> str:
 
 def render_note_file(
     *, note_id: str, title: str, note_date: date,
-    category: Optional[str], tags: List[str], body: str,
+    category: Optional[str], tags: List[str], body: str, source: Optional[str] = None,
 ) -> str:
     lines = ["---", f"id: {note_id}", f"title: {_quote(title)}", f"date: {note_date.isoformat()}"]
+    source = clean_source_url(source)
+    if source:
+        lines.append(f"source: {_quote(source)}")
     if category:
         lines.append(f"category: {_quote(category)}")
     if tags:
@@ -232,6 +261,10 @@ def parse_note_file(content: bytes, filename: str = "") -> ParsedNote:
                 parsed.category = _scalar(raw) or None
             elif key == "id":
                 parsed.note_id = _scalar(raw) or None
+            elif key in ("source", "url"):
+                # "url:" too: what Obsidian web clippers and many
+                # bookmark exporters write.
+                parsed.source = clean_source_url(_scalar(raw))
         body = body[1:] if body.startswith("\n") else body
 
     parsed.body = body.rstrip("\n")

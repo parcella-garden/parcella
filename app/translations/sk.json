@@ -3425,14 +3425,16 @@
       "col_updated": "Zmenené",
       "pending_upload": "Zatiaľ neuložené v cloude",
       "empty": "Zatiaľ žiadne poznámky.",
-      "empty_filtered": "Týmto filtrom nezodpovedá žiadna poznámka."
+      "empty_filtered": "Týmto filtrom nezodpovedá žiadna poznámka.",
+      "open_source": "Otvoriť zdroj na novej karte"
     },
     "fields": {
       "title": "Názov",
       "date": "Dátum",
       "category": "Kategória",
       "tags": "Štítky",
-      "body": "Poznámka"
+      "body": "Poznámka",
+      "source": "Zdroj (odkaz)"
     },
     "form": {
       "new_title": "Nová poznámka",
@@ -3444,7 +3446,8 @@
       "cancel": "Zrušiť",
       "conflict_header": "Medzitým zmenené v cloude",
       "conflict_help": "Niekto zmenil súbor tejto poznámky, kým ste ju upravovali. Toto je aktuálna verzia v cloude; váš text zostal vo formulári nižšie. Spojte, čo potrebujete, a uložte znova, čím verziu v cloude prepíšete.",
-      "conflict_markdown": "Zobraziť ako Markdown"
+      "conflict_markdown": "Zobraziť ako Markdown",
+      "source_help": "Voliteľné: webová stránka, ktorej sa táto poznámka týka. Poznámka so zdrojom je záložka."
     },
     "detail": {
       "back": "Všetky poznámky",
@@ -3473,9 +3476,31 @@
       "unknown_tag": "Tento štítok (už) neexistuje.",
       "conflict": "Neuložené: poznámka bola medzitým zmenená v cloude.",
       "cloud_save_failed": "Neuložené, súbor v cloude sa nepodarilo zapísať: {detail}",
-      "cloud_delete_failed": "Nezmazané, súbor v cloude sa nepodarilo zmazať: {detail}"
+      "cloud_delete_failed": "Nezmazané, súbor v cloude sa nepodarilo zmazať: {detail}",
+      "invalid_source_url": "Zdroj musí byť webová adresa začínajúca http:// alebo https://."
     },
-    "deleted": "Poznámka zmazaná."
+    "deleted": "Poznámka zmazaná.",
+    "bookmarks": {
+      "import_button": "Importovať záložky",
+      "title": "Importovať záložky",
+      "back": "Späť na poznámky",
+      "intro": "Nahrajte súbor s exportom záložiek (HTML). Vytvorí ho Nextcloud Bookmarks aj každý prehliadač. Z každej záložky sa stane poznámka s odkazom ako zdrojom.",
+      "target_cloud": "Nové poznámky sa uložia do hlavného priečinka poznámok {folder} (bez kategórie). Priečinky záložiek sa stanú štítkami.",
+      "target_db": "Nové poznámky sa uložia bez kategórie. Priečinky záložiek sa stanú štítkami.",
+      "preview_button": "Zobraziť náhľad",
+      "help": "Zatiaľ sa nič neukladá: ďalšia stránka ukáže, čo sa naimportuje. Parcella odkazované stránky neotvára.",
+      "summary": "{new} nových, {existing} už existuje ako poznámky (preskočené), {invalid} nie je webový odkaz (preskočené).",
+      "import_confirm": "Importovať záložky ({count})",
+      "other_file": "Vybrať iný súbor",
+      "col_status": "Stav",
+      "status_new": "nová",
+      "status_exists": "už je poznámkou",
+      "status_invalid": "nie je webový odkaz",
+      "too_large": "Súbor je väčší ako {max_mb} MB.",
+      "none_found": "V tomto súbore sa nenašli žiadne záložky.",
+      "result": "Záložky naimportované: {imported} nových, {existing} už existovalo, {invalid} preskočené (nie je webový odkaz).",
+      "failed": "Nepodarilo sa uložiť záložky ({count}): {detail}"
+    }
   },
   "taxonomy": {
     "manage_link": "Kategórie a štítky",
