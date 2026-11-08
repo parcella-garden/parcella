@@ -62,7 +62,8 @@
     "work_hours_transfers": "Stundenübertragung",
     "external_contacts": "Externe Kontakte",
     "reporting": "Auswertungen",
-    "email_log": "E-Mail-Protokoll"
+    "email_log": "E-Mail-Protokoll",
+    "notes": "Notizen"
   },
   "errors": {
     "user_not_found": "Benutzer nicht gefunden",
@@ -325,7 +326,9 @@
         "external_contacts_name": "Externe Kontakte",
         "external_contacts_desc": "Lieferanten, Handwerker, Behörden: eine Firma plus Ansprechpartner, mit Adresse, IBAN, Telefonnummern, E-Mails, Notizen und Tags. Lässt sich mit Eingangsrechnungen und Einkaufswünschen verknüpfen.",
         "reporting_name": "Auswertungen",
-        "reporting_desc": "Vereinszahlen im Zeitverlauf als Diagramme: Altersgruppen, Mitglieder pro Jahr, beendete Pachtverhältnisse, Bewerbungen, Arbeitsstunden-Ergebnisse, Stundenübertragungen und Stromanschlüsse. Nur lesend, aus den vorhandenen Daten berechnet."
+        "reporting_desc": "Vereinszahlen im Zeitverlauf als Diagramme: Altersgruppen, Mitglieder pro Jahr, beendete Pachtverhältnisse, Bewerbungen, Arbeitsstunden-Ergebnisse, Stundenübertragungen und Stromanschlüsse. Nur lesend, aus den vorhandenen Daten berechnet.",
+        "notes_name": "Notizen",
+        "notes_desc": "Markdown-Notizen zu Sitzungen und allem anderen, mit Kategorien und Schlagworten; als .md-Dateien in der Cloud gespeichert, wenn ein Notizen-Ordner eingerichtet ist."
       },
       "region_header": "Region",
       "region_help": "Bestimmt Zahlen- und Adressformat (z.B. Tausendertrennzeichen, Reihenfolge von PLZ und Ort). Unabhängig von der Oberflächensprache.",
@@ -432,7 +435,10 @@
       "helpdesk_saved": "Helpdesk-Einstellungen gespeichert",
       "helpdesk_type_label": "Helpdesk",
       "helpdesk_type_none": "Keines (kein Helpdesk)",
-      "helpdesk_type_hint": "Nicht jedes Helpdesk bietet über seine Schnittstelle alles an; Parcella zeigt nur, was das gewählte kann."
+      "helpdesk_type_hint": "Nicht jedes Helpdesk bietet über seine Schnittstelle alles an; Parcella zeigt nur, was das gewählte kann.",
+      "notes_folder_header": "Notizen-Ordner",
+      "notes_folder_help": "Ordner für Notizen als Markdown-Dateien (.md). Sobald gesetzt, sind die Dateien das Original: Änderungen in der Cloud erscheinen in Parcella, Speichern in Parcella schreibt die Datei. Leer lassen, um Notizen nur in Parcella zu führen.",
+      "notes_folder_label": "Ordnerpfad"
     },
     "system": {
       "page_title": "System",
@@ -567,7 +573,8 @@
         "freescout_bridge": "Support (Helpdesk)",
         "applicants": "Bewerber",
         "external_contacts": "Externe Kontakte",
-        "reporting": "Auswertungen"
+        "reporting": "Auswertungen",
+        "notes": "Notizen"
       }
     },
     "email_log": {
@@ -3393,6 +3400,103 @@
       "with": "Mit Stromanschluss",
       "without": "Ohne Stromanschluss",
       "series_plots": "Parzellen"
+    }
+  },
+  "notes": {
+    "list": {
+      "title": "Notizen",
+      "new_note": "Neue Notiz",
+      "search_label": "Suche",
+      "search_placeholder": "Titel, Text oder Schlagwort",
+      "any": "Alle",
+      "no_category": "Keine Kategorie",
+      "date_from": "Von",
+      "date_to": "Bis",
+      "sort_label": "Sortierung",
+      "sort_date_desc": "Datum, neueste zuerst",
+      "sort_date_asc": "Datum, älteste zuerst",
+      "sort_title": "Titel",
+      "sort_updated": "Zuletzt geändert",
+      "filter_button": "Anwenden",
+      "reset_button": "Zurücksetzen",
+      "col_updated": "Geändert",
+      "pending_upload": "Noch nicht in der Cloud gespeichert",
+      "empty": "Noch keine Notizen.",
+      "empty_filtered": "Keine Notizen passen zu diesen Filtern."
+    },
+    "fields": {
+      "title": "Titel",
+      "date": "Datum",
+      "time": "Uhrzeit",
+      "category": "Kategorie",
+      "tags": "Schlagworte",
+      "body": "Notiz"
+    },
+    "form": {
+      "new_title": "Neue Notiz",
+      "edit_title": "Notiz bearbeiten",
+      "new_tags_placeholder": "Neue Schlagworte, durch Komma getrennt",
+      "body_placeholder": "In Markdown schreiben …",
+      "cloud_hint": "Wird als Markdown-Datei in {folder} gespeichert.",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "conflict_header": "Inzwischen in der Cloud geändert",
+      "conflict_help": "Jemand hat die Datei dieser Notiz geändert, während du sie bearbeitet hast. Das ist die aktuelle Fassung in der Cloud; dein Text steht weiter unten im Formular. Übernimm, was du brauchst, und speichere erneut, um die Cloud-Fassung zu überschreiben.",
+      "conflict_markdown": "Als Markdown anzeigen"
+    },
+    "detail": {
+      "back": "Alle Notizen",
+      "download": ".md herunterladen",
+      "edit": "Bearbeiten",
+      "delete": "Notiz löschen",
+      "delete_confirm": "Diese Notiz löschen? Ihre Datei in der Cloud wird ebenfalls gelöscht.",
+      "created_by": "Erstellt von {name}, {when}",
+      "updated_by": "Zuletzt geändert von {name}, {when}",
+      "cloud_stale": "Die Cloud-Datei konnte nicht gelesen werden, angezeigt wird der zuletzt abgeglichene Stand: {detail}"
+    },
+    "sync": {
+      "button": "Abgleichen",
+      "button_title": "Änderungen aus dem Cloud-Ordner {folder} einlesen",
+      "summary": "Abgeglichen: {imported} neu, {updated} geändert, {removed} entfernt, {pushed} hochgeladen.",
+      "not_configured": "Im Cloud-Speicher ist kein Notizen-Ordner eingerichtet.",
+      "error": "Cloud-Abgleich fehlgeschlagen: {detail}",
+      "conflict_copies": "{count} Notiz(en) wurden sowohl hier als auch in der Cloud geändert. Die Cloud-Fassung wurde behalten; deine Fassung wurde als eigene Notiz mit dem Zusatz \"conflict copy\" gespeichert."
+    },
+    "errors": {
+      "not_found": "Notiz nicht gefunden.",
+      "title_required": "Bitte einen Titel eingeben.",
+      "title_too_long": "Der Titel darf höchstens {max} Zeichen lang sein.",
+      "date_required": "Bitte ein Datum eingeben.",
+      "unknown_category": "Diese Kategorie gibt es (nicht mehr).",
+      "unknown_tag": "Dieses Schlagwort gibt es (nicht mehr).",
+      "conflict": "Nicht gespeichert: Die Notiz wurde inzwischen in der Cloud geändert.",
+      "cloud_save_failed": "Nicht gespeichert, die Cloud-Datei konnte nicht geschrieben werden: {detail}",
+      "cloud_delete_failed": "Nicht gelöscht, die Cloud-Datei konnte nicht gelöscht werden: {detail}"
+    },
+    "deleted": "Notiz gelöscht."
+  },
+  "taxonomy": {
+    "manage_link": "Kategorien & Schlagworte",
+    "page_title": "Kategorien & Schlagworte",
+    "back_to_notes": "Notizen",
+    "page_hint": "Die Kategorien und Schlagworte des Vereins. Jede Notiz hat eine Kategorie und beliebig viele Schlagworte. Die Wissensdatenbank wird dieselben verwenden.",
+    "categories_header": "Kategorien",
+    "tags_header": "Schlagworte",
+    "name_label": "Name",
+    "rename_button": "Umbenennen",
+    "note_count": "{count} Notiz(en)",
+    "delete_confirm": "\"{name}\" löschen? Die Notizen bleiben erhalten, nur ohne diesen Eintrag.",
+    "delete_button": "Löschen",
+    "empty": "Noch keine.",
+    "new_categories_placeholder": "Neue Kategorie",
+    "new_tags_placeholder": "Neues Schlagwort",
+    "add_button": "Hinzufügen",
+    "saved": "Gespeichert.",
+    "deleted": "Gelöscht.",
+    "errors": {
+      "name_required": "Bitte einen Namen eingeben.",
+      "name_too_long": "Ein Name darf höchstens {max} Zeichen lang sein.",
+      "name_taken": "\"{name}\" gibt es schon."
     }
   }
 }

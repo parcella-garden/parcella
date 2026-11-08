@@ -62,7 +62,8 @@
     "work_hours_transfers": "Převod hodin",
     "external_contacts": "Externí kontakty",
     "reporting": "Přehledy",
-    "email_log": "Protokol e-mailů"
+    "email_log": "Protokol e-mailů",
+    "notes": "Poznámky"
   },
   "errors": {
     "user_not_found": "Uživatel nebyl nalezen",
@@ -325,7 +326,9 @@
         "external_contacts_name": "Externí kontakty",
         "external_contacts_desc": "Dodavatelé, řemeslníci, úřady: firma a kontaktní osoba, s adresou, IBAN, telefonními čísly, e-maily, poznámkami a štítky. Lze je propojit s přijatými fakturami a požadavky na nákup.",
         "reporting_name": "Přehledy",
-        "reporting_desc": "Údaje spolku v čase jako grafy: věkové skupiny, členové po letech, ukončené nájmy, žadatelé, výsledky pracovních hodin, převody hodin a elektrické přípojky. Jen pro čtení, počítáno z existujících dat."
+        "reporting_desc": "Údaje spolku v čase jako grafy: věkové skupiny, členové po letech, ukončené nájmy, žadatelé, výsledky pracovních hodin, převody hodin a elektrické přípojky. Jen pro čtení, počítáno z existujících dat.",
+        "notes_name": "Poznámky",
+        "notes_desc": "Poznámky v Markdownu ze schůzí i k čemukoli jinému, s kategoriemi a štítky; ukládají se jako soubory .md v cloudu, pokud je nastavena složka poznámek."
       },
       "region_header": "Region",
       "region_help": "Určuje formát čísel a adresy (např. oddělovač tisíců, pořadí PSČ a města). Nezávisle na jazyce rozhraní.",
@@ -432,7 +435,10 @@
       "helpdesk_saved": "Nastavení helpdesku uloženo",
       "helpdesk_type_label": "Helpdesk",
       "helpdesk_type_none": "Žádný (bez helpdesku)",
-      "helpdesk_type_hint": "Ne každý helpdesk nabízí přes své rozhraní vše; Parcella zobrazí jen to, co vybraný umí."
+      "helpdesk_type_hint": "Ne každý helpdesk nabízí přes své rozhraní vše; Parcella zobrazí jen to, co vybraný umí.",
+      "notes_folder_header": "Složka poznámek",
+      "notes_folder_help": "Složka pro poznámky jako soubory Markdown (.md). Po nastavení jsou soubory hlavní verzí: změny v cloudu se projeví v Parcelle a uložení v Parcelle zapíše soubor. Ponechte prázdné, chcete-li poznámky vést jen v Parcelle.",
+      "notes_folder_label": "Cesta ke složce"
     },
     "system": {
       "page_title": "Systém",
@@ -567,7 +573,8 @@
         "freescout_bridge": "Podpora (helpdesk)",
         "applicants": "Uchazeči",
         "external_contacts": "Externí kontakty",
-        "reporting": "Přehledy"
+        "reporting": "Přehledy",
+        "notes": "Poznámky"
       }
     },
     "email_log": {
@@ -3393,6 +3400,103 @@
       "with": "S elektrickou přípojkou",
       "without": "Bez elektrické přípojky",
       "series_plots": "Parcely"
+    }
+  },
+  "notes": {
+    "list": {
+      "title": "Poznámky",
+      "new_note": "Nová poznámka",
+      "search_label": "Hledat",
+      "search_placeholder": "Název, text nebo štítek",
+      "any": "Vše",
+      "no_category": "Bez kategorie",
+      "date_from": "Od",
+      "date_to": "Do",
+      "sort_label": "Řadit podle",
+      "sort_date_desc": "Datum, nejnovější první",
+      "sort_date_asc": "Datum, nejstarší první",
+      "sort_title": "Název",
+      "sort_updated": "Poslední změna",
+      "filter_button": "Použít",
+      "reset_button": "Zrušit filtry",
+      "col_updated": "Změněno",
+      "pending_upload": "Zatím neuloženo v cloudu",
+      "empty": "Zatím žádné poznámky.",
+      "empty_filtered": "Těmto filtrům neodpovídá žádná poznámka."
+    },
+    "fields": {
+      "title": "Název",
+      "date": "Datum",
+      "time": "Čas",
+      "category": "Kategorie",
+      "tags": "Štítky",
+      "body": "Poznámka"
+    },
+    "form": {
+      "new_title": "Nová poznámka",
+      "edit_title": "Upravit poznámku",
+      "new_tags_placeholder": "Nové štítky, oddělené čárkou",
+      "body_placeholder": "Pište v Markdownu …",
+      "cloud_hint": "Ukládá se jako soubor Markdown do {folder}.",
+      "save": "Uložit",
+      "cancel": "Zrušit",
+      "conflict_header": "Mezitím změněno v cloudu",
+      "conflict_help": "Někdo změnil soubor této poznámky, zatímco jste ji upravovali. Toto je aktuální verze v cloudu; váš text zůstal ve formuláři níže. Spojte, co potřebujete, a uložte znovu, čímž verzi v cloudu přepíšete.",
+      "conflict_markdown": "Zobrazit jako Markdown"
+    },
+    "detail": {
+      "back": "Všechny poznámky",
+      "download": "Stáhnout .md",
+      "edit": "Upravit",
+      "delete": "Smazat poznámku",
+      "delete_confirm": "Smazat tuto poznámku? Smaže se i její soubor v cloudu.",
+      "created_by": "Vytvořil(a) {name}, {when}",
+      "updated_by": "Naposledy změnil(a) {name}, {when}",
+      "cloud_stale": "Soubor v cloudu nelze přečíst, zobrazena je naposledy synchronizovaná verze: {detail}"
+    },
+    "sync": {
+      "button": "Synchronizovat",
+      "button_title": "Načíst změny ze složky v cloudu {folder}",
+      "summary": "Synchronizováno: {imported} nových, {updated} změněných, {removed} odebraných, {pushed} nahraných.",
+      "not_configured": "V cloudovém úložišti není nastavena složka poznámek.",
+      "error": "Synchronizace s cloudem selhala: {detail}",
+      "conflict_copies": "Poznámky ({count}) byly změněny zde i v cloudu. Verze z cloudu byla ponechána; vaše verze byla uložena jako samostatná poznámka s označením \"conflict copy\"."
+    },
+    "errors": {
+      "not_found": "Poznámka nenalezena.",
+      "title_required": "Zadejte název.",
+      "title_too_long": "Název může mít nejvýše {max} znaků.",
+      "date_required": "Zadejte datum.",
+      "unknown_category": "Tato kategorie (už) neexistuje.",
+      "unknown_tag": "Tento štítek (už) neexistuje.",
+      "conflict": "Neuloženo: poznámka byla mezitím změněna v cloudu.",
+      "cloud_save_failed": "Neuloženo, soubor v cloudu nelze zapsat: {detail}",
+      "cloud_delete_failed": "Nesmazáno, soubor v cloudu nelze smazat: {detail}"
+    },
+    "deleted": "Poznámka smazána."
+  },
+  "taxonomy": {
+    "manage_link": "Kategorie a štítky",
+    "page_title": "Kategorie a štítky",
+    "back_to_notes": "Poznámky",
+    "page_hint": "Kategorie a štítky spolku. Každá poznámka má jednu kategorii a libovolný počet štítků. Znalostní báze bude používat tytéž.",
+    "categories_header": "Kategorie",
+    "tags_header": "Štítky",
+    "name_label": "Název",
+    "rename_button": "Přejmenovat",
+    "note_count": "Poznámky: {count}",
+    "delete_confirm": "Smazat \"{name}\"? Poznámky zůstanou, jen bez této položky.",
+    "delete_button": "Smazat",
+    "empty": "Zatím žádné.",
+    "new_categories_placeholder": "Nová kategorie",
+    "new_tags_placeholder": "Nový štítek",
+    "add_button": "Přidat",
+    "saved": "Uloženo.",
+    "deleted": "Smazáno.",
+    "errors": {
+      "name_required": "Zadejte název.",
+      "name_too_long": "Název může mít nejvýše {max} znaků.",
+      "name_taken": "\"{name}\" už existuje."
     }
   }
 }

@@ -53,6 +53,7 @@ from app.routers import api_work_hours, api_insurance, api_helpdesk, api_purchas
 from app.routers import applicants as applicants_router, api_applicants
 from app.routers import external_contacts as external_contacts_router, api_external_contacts
 from app.routers import reporting as reporting_router, api_reporting
+from app.routers import notes as notes_router, api_notes
 from app.routers import api_public
 from app.routers import api_website, api_cloud_storage
 from app.routers.api_metering import create_metering_api_router
@@ -503,6 +504,7 @@ app.include_router(finances_router.router)
 app.include_router(applicants_router.router)
 app.include_router(external_contacts_router.router)
 app.include_router(reporting_router.router)
+app.include_router(notes_router.router)
 
 # Metering: ONE codebase (app/routers/metering.py), instantiated twice
 # for water and electricity -- see create_metering_router().
@@ -531,6 +533,7 @@ app.include_router(api_tasks.router)
 app.include_router(api_applicants.router)
 app.include_router(api_external_contacts.router)
 app.include_router(api_reporting.router)
+app.include_router(api_notes.router)
 app.include_router(api_helpdesk.router)
 app.include_router(api_helpdesk.legacy_router)
 app.include_router(api_helpdesk.settings_router)

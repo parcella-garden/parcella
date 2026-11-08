@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}{{ t('notes.list.title') }}{% endblock %}
+{% block page_title %}{{ t('notes.list.title') }}{% endblock %}
+
+{% block topbar_actions %}
+<div class="d-flex gap-2 flex-wrap">
+    {% if cloud_folder and request.state.module_flags.cloud_storage %}
+    <form method="post" action="/notes/sync" class="d-inline">
+        {{ csrf_field() }}
+        <button type="submit" class="btn btn-sm btn-outline-secondary" title="{{ t('notes.sync.button_title', folder=cloud_folder) }}">
+            <i class="bi bi-arrow-repeat me-1"></i>{{ t('notes.sync.button') }}
+        </button>
+    </form>
+    {% endif %}
+    <a href="/notes/taxonomy" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-tags me-1"></i>{{ t('taxonomy.manage_link') }}
+    </a>
+    {% if has_perm(request, 'notes', 'write') %}
+    <a href="/notes/new" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>{{ t('notes.list.new_note') }}
+    </a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% if message %}
+<div class="alert alert-success d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-check-circle-fill"></i> {{ message }}
+</div>
+{% endif %}
+{% if error %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ error }}
+</div>
+{% endif %}
+{% for sync_error in sync_errors %}
+<div class="alert alert-warning d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-cloud-slash"></i> {{ t('notes.sync.error', detail=sync_error) }}
+</div>
+{% endfor %}
+{% if sync_conflicts %}
+<div class="alert alert-warning d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-files"></i> {{ t('notes.sync.conflict_copies', count=sync_conflicts) }}
+</div>
+{% endif %}
+
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-12 col-md-4">
+                <label class="form-label small text-muted mb-0" for="notes-q">{{ t('notes.list.search_label') }}</label>
+                <input type="search" name="q" id="notes-q" value="{{ filters.search }}" class="form-control form-control-sm"
+                       placeholder="{{ t('notes.list.search_placeholder') }}">
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small text-muted mb-0" for="notes-category">{{ t('notes.fields.category') }}</label>
+                <select name="category" id="notes-category" class="form-select form-select-sm">
+                    <option value="">{{ t('notes.list.any') }}</option>
+                    <option value="none" {% if filters.category == 'none' %}selected{% endif %}>{{ t('notes.list.no_category') }}</option>
+                    {% for option in categories %}
+                    <option value="{{ option.id }}" {% if option.id == filters.category %}selected{% endif %}>{{ tag_name(option) }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small text-muted mb-0" for="notes-tag">{{ t('notes.fields.tags') }}</label>
+                <select name="tag" id="notes-tag" class="form-select form-select-sm">
+                    <option value="">{{ t('notes.list.any') }}</option>
+                    {% for option in tags %}
+                    <option value="{{ option.id }}" {% if option.id == filters.tag %}selected{% endif %}>{{ tag_name(option) }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small text-muted mb-0" for="notes-from">{{ t('notes.list.date_from') }}</label>
+                <input type="date" name="date_from" id="notes-from" class="form-control form-control-sm"
+                       value="{{ filters.date_from.isoformat() if filters.date_from else '' }}">
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small text-muted mb-0" for="notes-to">{{ t('notes.list.date_to') }}</label>
+                <input type="date" name="date_to" id="notes-to" class="form-control form-control-sm"
+                       value="{{ filters.date_to.isoformat() if filters.date_to else '' }}">
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label small text-muted mb-0" for="notes-sort">{{ t('notes.list.sort_label') }}</label>
+                <select name="sort" id="notes-sort" class="form-select form-select-sm">
+                    {% for option in ['date_desc', 'date_asc', 'title', 'updated'] %}
+                    <option value="{{ option }}" {% if option == filters.sort %}selected{% endif %}>{{ t('notes.list.sort_' ~ option) }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary">{{ t('notes.list.filter_button') }}</button>
+                {% if filters.active or filters.sort != 'date_desc' %}
+                <a href="/notes/" class="btn btn-sm btn-outline-secondary">{{ t('notes.list.reset_button') }}</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        {% if notes %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{{ t('notes.fields.date') }}</th>
+                        <th>{{ t('notes.fields.title') }}</th>
+                        <th>{{ t('notes.fields.category') }}</th>
+                        <th>{{ t('notes.fields.tags') }}</th>
+                        <th class="d-none d-md-table-cell">{{ t('notes.list.col_updated') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for note in notes %}
+                    <tr>
+                        <td class="text-nowrap text-muted">
+                            {{ note.note_date.strftime('%d.%m.%Y') }}{% if note.note_time %} {{ note.note_time.strftime('%H:%M') }}{% endif %}
+                        </td>
+                        <td>
+                            <a href="/notes/{{ note.id }}" class="text-decoration-none fw-semibold" style="color: var(--gv-gruen);">{{ note.title }}</a>
+                            {% if note.cloud_dirty and cloud_folder %}
+                            <i class="bi bi-cloud-upload text-warning ms-1" title="{{ t('notes.list.pending_upload') }}"></i>
+                            {% endif %}
+                        </td>
+                        <td>{% if note.category %}<span class="badge text-bg-light border">{{ tag_name(note.category) }}</span>{% endif %}</td>
+                        <td>
+                            {% for note_tag in note.tags %}
+                            <a href="/notes/?tag={{ note_tag.id }}" class="badge rounded-pill text-bg-secondary text-decoration-none">{{ tag_name(note_tag) }}</a>
+                            {% endfor %}
+                        </td>
+                        <td class="d-none d-md-table-cell text-muted small text-nowrap">{{ note.updated_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center my-4">{{ t('notes.list.empty_filtered') if filters.active else t('notes.list.empty') }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

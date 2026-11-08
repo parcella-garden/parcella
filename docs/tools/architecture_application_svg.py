@@ -201,6 +201,8 @@ rows = [
      "services/external_contacts, contact_documents", "ExternalContact (+ Tag, Phone, Email)"),
     ("on", "Reporting", "reporting", "reporting.py · /reporting", "reporting/index.html", "api_reporting · /api/v1/reporting",
      "reporting (read-only aggregates over time)", "reads other modules' tables"),
+    ("on", "Notes", "notes", "notes.py · /notes", "notes/ list, detail, form, taxonomy", "api_notes · /api/v1/notes",
+     "services/notes (cloud file = master), note_files", "Note, TaxonomyCategory, TaxonomyTag"),
     ("off", "Finances", "finances", "finances.py · /finances (59 routes)", "finances/ (20 pages)", "none yet",
      "invoice_generation/_pdf/_matching/_delivery, bookings", "InvoiceRun, Invoice, AccountTransaction, …"),
     ("off", "Announcements", "announcements", "announcements.py · /announcements", "announcements/ list, form", "api_website · /api/v1/website",

@@ -49,7 +49,12 @@ ALLOWED_PROTOCOLS = ["http", "https", "mailto"]
 APPROX_WORDS_PER_PRINT_PAGE = 350
 
 
-def render_markdown_to_html(markdown_text: str) -> str:
+# Notes (issue #286) also allow tables -- minutes are full of them.
+# Opt-in so announcements keep the narrower set their channels expect.
+TABLE_TAGS = ["table", "thead", "tbody", "tr", "th", "td", "del", "s"]
+
+
+def render_markdown_to_html(markdown_text: str, *, allow_tables: bool = False) -> str:
     """Converts Markdown to sanitized HTML, safe to cache and to push to
     external channels (WordPress, email). Empty/None input yields ''."""
     if not markdown_text:
@@ -63,7 +68,7 @@ def render_markdown_to_html(markdown_text: str) -> str:
 
     cleaned = bleach.clean(
         raw_html,
-        tags=ALLOWED_TAGS,
+        tags=ALLOWED_TAGS + TABLE_TAGS if allow_tables else ALLOWED_TAGS,
         attributes=ALLOWED_ATTRIBUTES,
         protocols=ALLOWED_PROTOCOLS,
         strip=True,

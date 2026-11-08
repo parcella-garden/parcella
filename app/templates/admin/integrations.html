@@ -336,6 +336,28 @@
             </div>
         </div>
         {% endif %}
+
+        <hr class="my-3">
+        <h6 class="fw-semibold">{{ t('admin.integrations.notes_folder_header') }}</h6>
+        <p class="text-muted">{{ t('admin.integrations.notes_folder_help') }}</p>
+
+        {% if notes_folder_saved %}
+        <div class="alert alert-success">{{ t('admin.integrations.external_contacts_folder_saved') }}</div>
+        {% elif notes_folder_error %}
+        <div class="alert alert-danger">{{ notes_folder_error }}</div>
+        {% endif %}
+
+        <form method="post" action="/admin/integrations/nextcloud/notes-folder" class="d-flex gap-2 align-items-end flex-wrap">
+            {{ csrf_field() }}
+            <div style="min-width: 300px;">
+                <label class="form-label fw-semibold" for="notes-folder">{{ t('admin.integrations.notes_folder_label') }}</label>
+                <input type="text" name="relative_path" id="notes-folder" class="form-control"
+                       value="{{ notes_folder_path or '' }}" placeholder="Vorstand/Notizen">
+            </div>
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="bi bi-check-lg me-1"></i>{{ t('admin.integrations.incoming_invoices_folder_save_button') }}
+            </button>
+        </form>
         {% endif %}
     </div>
     </div>

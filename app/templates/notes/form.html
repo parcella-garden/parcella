@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% set page_heading = t('notes.form.edit_title') if note else t('notes.form.new_title') %}
+{% block title %}{{ page_heading }}{% endblock %}
+{% block page_title %}{{ page_heading }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.css">
+<style>
+    /* Same Bootstrap .table collision as in announcements/form.html. */
+    .editor-toolbar button.table { width: auto; margin-bottom: 0; vertical-align: baseline; color: inherit; }
+    .editor-preview table, .note-body table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    .editor-preview th, .editor-preview td, .note-body th, .note-body td { border: 1px solid var(--bs-border-color); padding: .25rem .5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if error %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3"><i class="bi bi-exclamation-triangle-fill"></i> {{ error }}</div>
+{% endif %}
+
+{% if conflict_note %}
+<div class="card border-warning mb-3">
+    <div class="card-header bg-warning-subtle"><i class="bi bi-cloud-arrow-down me-1"></i>{{ t('notes.form.conflict_header') }}</div>
+    <div class="card-body">
+        <p class="small text-muted">{{ t('notes.form.conflict_help') }}</p>
+        <h3 class="h6">{{ conflict_note.title }}</h3>
+        <div class="note-body border rounded p-2 bg-body-tertiary">{{ conflict_html }}</div>
+        <details class="mt-2">
+            <summary class="small">{{ t('notes.form.conflict_markdown') }}</summary>
+            <pre class="small mt-2" style="white-space: pre-wrap;">{{ conflict_note.body_markdown }}</pre>
+        </details>
+    </div>
+</div>
+{% endif %}
+
+<form method="post" action="{{ '/notes/' ~ note.id ~ '/edit' if note else '/notes/new' }}">
+    {{ csrf_field() }}
+    <input type="hidden" name="base_hash" value="{{ base_hash }}">
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold" for="note-title">{{ t('notes.fields.title') }} *</label>
+                    <input type="text" name="title" id="note-title" class="form-control" maxlength="255" required value="{{ values.title }}">
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label fw-semibold" for="note-date">{{ t('notes.fields.date') }} *</label>
+                    <input type="date" name="note_date" id="note-date" class="form-control" required value="{{ values.note_date }}">
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label fw-semibold" for="note-time">{{ t('notes.fields.time') }}</label>
+                    <input type="time" name="note_time" id="note-time" class="form-control" value="{{ values.note_time }}">
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold" for="note-category">{{ t('notes.fields.category') }}</label>
+                    <select name="category_id" id="note-category" class="form-select">
+                        <option value="">{{ t('notes.list.no_category') }}</option>
+                        {% for option in categories %}
+                        <option value="{{ option.id }}" {% if option.id == values.category_id %}selected{% endif %}>{{ tag_name(option) }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold" for="note-new-tags">{{ t('notes.fields.tags') }}</label>
+                    {% if tags %}
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        {% for option in tags %}
+                        <div class="form-check form-check-inline m-0">
+                            <input class="form-check-input" type="checkbox" name="tag_ids" value="{{ option.id }}" id="tag-{{ option.id }}"
+                                   {% if option.id in values.tag_ids %}checked{% endif %}>
+                            <label class="form-check-label" for="tag-{{ option.id }}">{{ tag_name(option) }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <input type="text" name="new_tags" id="note-new-tags" class="form-control" value="{{ values.new_tags }}"
+                           placeholder="{{ t('notes.form.new_tags_placeholder') }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <label class="form-label fw-semibold" for="body_markdown">{{ t('notes.fields.body') }}</label>
+            <textarea name="body_markdown" id="body_markdown" rows="16" class="form-control font-monospace">{{ values.body_markdown }}</textarea>
+            {% if cloud_folder and request.state.module_flags.cloud_storage %}
+            <div class="form-text"><i class="bi bi-cloud me-1"></i>{{ t('notes.form.cloud_hint', folder=cloud_folder) }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>{{ t('notes.form.save') }}</button>
+        <a href="{{ '/notes/' ~ note.id if note else '/notes/' }}" class="btn btn-outline-secondary">{{ t('notes.form.cancel') }}</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.js"></script>
+<script>
+    (function () {
+        const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;
+        // Preview is rendered by the server's sanitizer (POST /notes/preview),
+        // not EasyMDE's built-in renderer: a note can come from a file
+        // someone else wrote in the cloud.
+        function serverPreview(text, preview) {
+            fetch('/notes/preview', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRF-Token': CSRF_TOKEN},
+                body: JSON.stringify({markdown: text}),
+            }).then(r => r.ok ? r.json() : {html: ''}).then(data => {
+                preview.innerHTML = data.html;
+                preview.classList.add('note-body');
+            });
+            return preview.innerHTML || '…';
+        }
+        new EasyMDE({
+            element: document.getElementById('body_markdown'),
+            spellChecker: false,
+            status: false,
+            forceSync: true,
+            previewRender: serverPreview,
+            placeholder: {{ t('notes.form.body_placeholder')|tojson }},
+            // Bootstrap Icons instead of Font Awesome, as in announcements/form.html.
+            toolbar: [
+                {name: "bold", action: EasyMDE.toggleBold, className: "bi bi-type-bold", title: "Bold"},
+                {name: "italic", action: EasyMDE.toggleItalic, className: "bi bi-type-italic", title: "Italic"},
+                {name: "strikethrough", action: EasyMDE.toggleStrikethrough, className: "bi bi-type-strikethrough", title: "Strikethrough"},
+                {name: "heading", action: EasyMDE.toggleHeadingSmaller, className: "bi bi-type-h1", title: "Heading"},
+                "|",
+                {name: "quote", action: EasyMDE.toggleBlockquote, className: "bi bi-quote", title: "Quote"},
+                {name: "unordered-list", action: EasyMDE.toggleUnorderedList, className: "bi bi-list-ul", title: "Generic List"},
+                {name: "ordered-list", action: EasyMDE.toggleOrderedList, className: "bi bi-list-ol", title: "Numbered List"},
+                {name: "code", action: EasyMDE.toggleCodeBlock, className: "bi bi-code-slash", title: "Code"},
+                "|",
+                {name: "link", action: EasyMDE.drawLink, className: "bi bi-link-45deg", title: "Create Link"},
+                {name: "table", action: EasyMDE.drawTable, className: "bi bi-table", title: "Insert Table"},
+                {name: "horizontal-rule", action: EasyMDE.drawHorizontalRule, className: "bi bi-dash-lg", title: "Insert Horizontal Line"},
+                "|",
+                {name: "preview", action: EasyMDE.togglePreview, className: "bi bi-eye", title: "Toggle Preview"},
+                {name: "side-by-side", action: EasyMDE.toggleSideBySide, className: "bi bi-layout-split", title: "Toggle Side by Side"},
+                {name: "fullscreen", action: EasyMDE.toggleFullScreen, className: "bi bi-arrows-fullscreen", title: "Toggle Fullscreen"},
+                "|",
+                {name: "guide", action: "https://www.markdownguide.org/basic-syntax/", className: "bi bi-question-circle", title: "Markdown Guide"},
+            ],
+        });
+    })();
+</script>
+{% endblock %}

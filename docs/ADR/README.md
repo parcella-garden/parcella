@@ -125,3 +125,5 @@ in chronological order.
 119. [Pull requests and CI on every change](./0119-pull-requests-and-ci-on-every-change.md)
 120. [Email log: the SMTP result, its own session, deleted after 90 days](./0120-email-log-smtp-result-only.md)
 121. [Zero-config install: localhost-only ports, self-healing entrypoint, generated SECRET_KEY](./0121-zero-config-install.md)
+122. [One club-wide taxonomy (categories and tags), shared by notes and the knowledge base](./0122-club-wide-taxonomy.md)
+123. [Notes: the .md file in the cloud is the master, the database is its index](./0123-notes-cloud-file-is-the-master.md)

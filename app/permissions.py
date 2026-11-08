@@ -41,7 +41,7 @@ MODULES = [
     "members_parcels", "work_hours", "water", "electricity",
     "insurance", "purchase_requests", "calendar", "inventory",
     "finances", "freescout_bridge", "applicants", "external_contacts",
-    "reporting",
+    "reporting", "notes",
 ]
 
 _EMPTY_PERMISSION = {"read": False, "write": False, "delete": False}

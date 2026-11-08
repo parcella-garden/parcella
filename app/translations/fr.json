@@ -62,7 +62,8 @@
     "work_hours_transfers": "Transferts d'heures",
     "external_contacts": "Contacts externes",
     "reporting": "Rapports",
-    "email_log": "Journal des e-mails"
+    "email_log": "Journal des e-mails",
+    "notes": "Notes"
   },
   "errors": {
     "user_not_found": "Utilisateur non trouvé",
@@ -325,7 +326,9 @@
         "external_contacts_name": "Contacts externes",
         "external_contacts_desc": "Fournisseurs, artisans, administrations : une entreprise et un interlocuteur, avec adresse, IBAN, numéros de téléphone, e-mails, notes et étiquettes. Peuvent être liés aux factures reçues et aux demandes d'achat.",
         "reporting_name": "Rapports",
-        "reporting_desc": "Les chiffres de l'association dans le temps, en graphiques : tranches d'âge, membres par année, baux terminés, candidats, bilan des heures de travail, transferts d'heures et raccordements électriques. Lecture seule, calculé à partir des données existantes."
+        "reporting_desc": "Les chiffres de l'association dans le temps, en graphiques : tranches d'âge, membres par année, baux terminés, candidats, bilan des heures de travail, transferts d'heures et raccordements électriques. Lecture seule, calculé à partir des données existantes.",
+        "notes_name": "Notes",
+        "notes_desc": "Notes en Markdown pour les réunions et tout le reste, avec catégories et étiquettes ; enregistrées comme fichiers .md dans le cloud si un dossier de notes est défini."
       },
       "region_header": "Région",
       "region_help": "Détermine le format des nombres et de l'adresse (par ex. séparateur de milliers, ordre du code postal et de la ville). Indépendant de la langue de l'interface.",
@@ -432,7 +435,10 @@
       "helpdesk_saved": "Paramètres du helpdesk enregistrés",
       "helpdesk_type_label": "Helpdesk",
       "helpdesk_type_none": "Aucun (pas de helpdesk)",
-      "helpdesk_type_hint": "Tous les helpdesks n'offrent pas tout via leur interface ; Parcella n'affiche que ce que le helpdesk choisi sait faire."
+      "helpdesk_type_hint": "Tous les helpdesks n'offrent pas tout via leur interface ; Parcella n'affiche que ce que le helpdesk choisi sait faire.",
+      "notes_folder_header": "Dossier des notes",
+      "notes_folder_help": "Dossier des notes au format Markdown (.md). Une fois défini, les fichiers font foi : les modifications faites dans le cloud apparaissent dans Parcella, et l'enregistrement dans Parcella écrit le fichier. Laisser vide pour garder les notes uniquement dans Parcella.",
+      "notes_folder_label": "Chemin du dossier"
     },
     "system": {
       "page_title": "Système",
@@ -567,7 +573,8 @@
         "freescout_bridge": "Assistance (helpdesk)",
         "applicants": "Candidats",
         "external_contacts": "Contacts externes",
-        "reporting": "Rapports"
+        "reporting": "Rapports",
+        "notes": "Notes"
       }
     },
     "email_log": {
@@ -3393,6 +3400,103 @@
       "with": "Avec raccordement électrique",
       "without": "Sans raccordement électrique",
       "series_plots": "Parcelles"
+    }
+  },
+  "notes": {
+    "list": {
+      "title": "Notes",
+      "new_note": "Nouvelle note",
+      "search_label": "Rechercher",
+      "search_placeholder": "Titre, texte ou étiquette",
+      "any": "Toutes",
+      "no_category": "Sans catégorie",
+      "date_from": "Du",
+      "date_to": "Au",
+      "sort_label": "Trier par",
+      "sort_date_desc": "Date, plus récentes d'abord",
+      "sort_date_asc": "Date, plus anciennes d'abord",
+      "sort_title": "Titre",
+      "sort_updated": "Dernière modification",
+      "filter_button": "Appliquer",
+      "reset_button": "Réinitialiser",
+      "col_updated": "Modifiée",
+      "pending_upload": "Pas encore enregistrée dans le cloud",
+      "empty": "Aucune note pour l'instant.",
+      "empty_filtered": "Aucune note ne correspond à ces filtres."
+    },
+    "fields": {
+      "title": "Titre",
+      "date": "Date",
+      "time": "Heure",
+      "category": "Catégorie",
+      "tags": "Étiquettes",
+      "body": "Note"
+    },
+    "form": {
+      "new_title": "Nouvelle note",
+      "edit_title": "Modifier la note",
+      "new_tags_placeholder": "Nouvelles étiquettes, séparées par des virgules",
+      "body_placeholder": "Écrire en Markdown …",
+      "cloud_hint": "Enregistrée comme fichier Markdown dans {folder}.",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "conflict_header": "Modifiée entre-temps dans le cloud",
+      "conflict_help": "Quelqu'un a modifié le fichier de cette note pendant votre édition. Voici la version actuelle dans le cloud ; votre texte est conservé dans le formulaire ci-dessous. Fusionnez ce dont vous avez besoin et enregistrez à nouveau pour écraser la version du cloud.",
+      "conflict_markdown": "Afficher en Markdown"
+    },
+    "detail": {
+      "back": "Toutes les notes",
+      "download": "Télécharger .md",
+      "edit": "Modifier",
+      "delete": "Supprimer la note",
+      "delete_confirm": "Supprimer cette note ? Son fichier dans le cloud sera également supprimé.",
+      "created_by": "Créée par {name}, {when}",
+      "updated_by": "Modifiée en dernier par {name}, {when}",
+      "cloud_stale": "Impossible de lire le fichier du cloud, affichage de la dernière version synchronisée : {detail}"
+    },
+    "sync": {
+      "button": "Synchroniser",
+      "button_title": "Lire les modifications du dossier cloud {folder}",
+      "summary": "Synchronisé : {imported} nouvelles, {updated} modifiées, {removed} supprimées, {pushed} envoyées.",
+      "not_configured": "Aucun dossier de notes n'est configuré dans le stockage cloud.",
+      "error": "Échec de la synchronisation cloud : {detail}",
+      "conflict_copies": "{count} note(s) ont été modifiées ici et dans le cloud. La version du cloud a été conservée ; votre version a été enregistrée comme note séparée marquée \"conflict copy\"."
+    },
+    "errors": {
+      "not_found": "Note introuvable.",
+      "title_required": "Veuillez saisir un titre.",
+      "title_too_long": "Le titre ne peut pas dépasser {max} caractères.",
+      "date_required": "Veuillez saisir une date.",
+      "unknown_category": "Cette catégorie n'existe pas (ou plus).",
+      "unknown_tag": "Cette étiquette n'existe pas (ou plus).",
+      "conflict": "Non enregistrée : la note a été modifiée entre-temps dans le cloud.",
+      "cloud_save_failed": "Non enregistrée, le fichier du cloud n'a pas pu être écrit : {detail}",
+      "cloud_delete_failed": "Non supprimée, le fichier du cloud n'a pas pu être supprimé : {detail}"
+    },
+    "deleted": "Note supprimée."
+  },
+  "taxonomy": {
+    "manage_link": "Catégories et étiquettes",
+    "page_title": "Catégories et étiquettes",
+    "back_to_notes": "Notes",
+    "page_hint": "Les catégories et étiquettes de l'association. Chaque note a une catégorie et autant d'étiquettes que voulu. La base de connaissances utilisera les mêmes.",
+    "categories_header": "Catégories",
+    "tags_header": "Étiquettes",
+    "name_label": "Nom",
+    "rename_button": "Renommer",
+    "note_count": "{count} note(s)",
+    "delete_confirm": "Supprimer « {name} » ? Les notes sont conservées, sans cette entrée.",
+    "delete_button": "Supprimer",
+    "empty": "Aucune pour l'instant.",
+    "new_categories_placeholder": "Nouvelle catégorie",
+    "new_tags_placeholder": "Nouvelle étiquette",
+    "add_button": "Ajouter",
+    "saved": "Enregistré.",
+    "deleted": "Supprimé.",
+    "errors": {
+      "name_required": "Veuillez saisir un nom.",
+      "name_too_long": "Un nom ne peut pas dépasser {max} caractères.",
+      "name_taken": "« {name} » existe déjà."
     }
   }
 }

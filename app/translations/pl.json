@@ -62,7 +62,8 @@
     "work_hours_transfers": "Przekazywanie godzin",
     "external_contacts": "Kontakty zewnętrzne",
     "reporting": "Raporty",
-    "email_log": "Dziennik e-maili"
+    "email_log": "Dziennik e-maili",
+    "notes": "Notatki"
   },
   "errors": {
     "user_not_found": "Nie znaleziono użytkownika",
@@ -325,7 +326,9 @@
         "external_contacts_name": "Kontakty zewnętrzne",
         "external_contacts_desc": "Dostawcy, rzemieślnicy, urzędy: firma i osoba kontaktowa, z adresem, IBAN, numerami telefonów, e-mailami, notatkami i tagami. Można je powiązać z fakturami przychodzącymi i wnioskami zakupowymi.",
         "reporting_name": "Raporty",
-        "reporting_desc": "Dane stowarzyszenia w czasie jako wykresy: grupy wiekowe, członkowie w poszczególnych latach, zakończone dzierżawy, kandydaci, wyniki godzin pracy, przekazania godzin i przyłącza prądu. Tylko do odczytu, liczone z istniejących danych."
+        "reporting_desc": "Dane stowarzyszenia w czasie jako wykresy: grupy wiekowe, członkowie w poszczególnych latach, zakończone dzierżawy, kandydaci, wyniki godzin pracy, przekazania godzin i przyłącza prądu. Tylko do odczytu, liczone z istniejących danych.",
+        "notes_name": "Notatki",
+        "notes_desc": "Notatki w Markdown ze spotkań i nie tylko, z kategoriami i tagami; zapisywane w chmurze jako pliki .md, jeśli ustawiono folder notatek."
       },
       "region_header": "Region",
       "region_help": "Określa format liczb i adresu (np. separator tysięcy, kolejność kodu pocztowego i miejscowości). Niezależnie od języka interfejsu.",
@@ -432,7 +435,10 @@
       "helpdesk_saved": "Ustawienia helpdesku zapisane",
       "helpdesk_type_label": "Helpdesk",
       "helpdesk_type_none": "Brak (bez helpdesku)",
-      "helpdesk_type_hint": "Nie każdy helpdesk udostępnia wszystko przez swój interfejs; Parcella pokazuje tylko to, co potrafi wybrany."
+      "helpdesk_type_hint": "Nie każdy helpdesk udostępnia wszystko przez swój interfejs; Parcella pokazuje tylko to, co potrafi wybrany.",
+      "notes_folder_header": "Folder notatek",
+      "notes_folder_help": "Folder na notatki jako pliki Markdown (.md). Po ustawieniu pliki są wersją nadrzędną: zmiany w chmurze pojawiają się w Parcelli, a zapis w Parcelli zapisuje plik. Pozostaw puste, aby przechowywać notatki tylko w Parcelli.",
+      "notes_folder_label": "Ścieżka folderu"
     },
     "system": {
       "page_title": "System",
@@ -567,7 +573,8 @@
         "freescout_bridge": "Wsparcie (helpdesk)",
         "applicants": "Kandydaci",
         "external_contacts": "Kontakty zewnętrzne",
-        "reporting": "Raporty"
+        "reporting": "Raporty",
+        "notes": "Notatki"
       }
     },
     "email_log": {
@@ -3393,6 +3400,103 @@
       "with": "Z przyłączem prądu",
       "without": "Bez przyłącza prądu",
       "series_plots": "Działki"
+    }
+  },
+  "notes": {
+    "list": {
+      "title": "Notatki",
+      "new_note": "Nowa notatka",
+      "search_label": "Szukaj",
+      "search_placeholder": "Tytuł, tekst lub tag",
+      "any": "Wszystkie",
+      "no_category": "Bez kategorii",
+      "date_from": "Od",
+      "date_to": "Do",
+      "sort_label": "Sortuj według",
+      "sort_date_desc": "Data, od najnowszych",
+      "sort_date_asc": "Data, od najstarszych",
+      "sort_title": "Tytuł",
+      "sort_updated": "Ostatnia zmiana",
+      "filter_button": "Zastosuj",
+      "reset_button": "Resetuj",
+      "col_updated": "Zmieniono",
+      "pending_upload": "Jeszcze nie zapisano w chmurze",
+      "empty": "Brak notatek.",
+      "empty_filtered": "Żadna notatka nie pasuje do tych filtrów."
+    },
+    "fields": {
+      "title": "Tytuł",
+      "date": "Data",
+      "time": "Godzina",
+      "category": "Kategoria",
+      "tags": "Tagi",
+      "body": "Notatka"
+    },
+    "form": {
+      "new_title": "Nowa notatka",
+      "edit_title": "Edytuj notatkę",
+      "new_tags_placeholder": "Nowe tagi, oddzielone przecinkami",
+      "body_placeholder": "Pisz w Markdown …",
+      "cloud_hint": "Zapisywane jako plik Markdown w {folder}.",
+      "save": "Zapisz",
+      "cancel": "Anuluj",
+      "conflict_header": "W międzyczasie zmieniono w chmurze",
+      "conflict_help": "Ktoś zmienił plik tej notatki podczas Twojej edycji. To jest obecna wersja w chmurze; Twój tekst pozostał w formularzu poniżej. Połącz potrzebne treści i zapisz ponownie, aby nadpisać wersję w chmurze.",
+      "conflict_markdown": "Pokaż jako Markdown"
+    },
+    "detail": {
+      "back": "Wszystkie notatki",
+      "download": "Pobierz .md",
+      "edit": "Edytuj",
+      "delete": "Usuń notatkę",
+      "delete_confirm": "Usunąć tę notatkę? Jej plik w chmurze również zostanie usunięty.",
+      "created_by": "Utworzył(a) {name}, {when}",
+      "updated_by": "Ostatnio zmienił(a) {name}, {when}",
+      "cloud_stale": "Nie udało się odczytać pliku z chmury, pokazano ostatnio zsynchronizowaną wersję: {detail}"
+    },
+    "sync": {
+      "button": "Synchronizuj",
+      "button_title": "Wczytaj zmiany z folderu w chmurze {folder}",
+      "summary": "Zsynchronizowano: {imported} nowych, {updated} zmienionych, {removed} usuniętych, {pushed} przesłanych.",
+      "not_configured": "W magazynie w chmurze nie ustawiono folderu notatek.",
+      "error": "Synchronizacja z chmurą nie powiodła się: {detail}",
+      "conflict_copies": "{count} notatek zmieniono zarówno tutaj, jak i w chmurze. Zachowano wersję z chmury; Twoja wersja została zapisana jako osobna notatka z dopiskiem \"conflict copy\"."
+    },
+    "errors": {
+      "not_found": "Nie znaleziono notatki.",
+      "title_required": "Podaj tytuł.",
+      "title_too_long": "Tytuł może mieć najwyżej {max} znaków.",
+      "date_required": "Podaj datę.",
+      "unknown_category": "Ta kategoria nie istnieje (już).",
+      "unknown_tag": "Ten tag nie istnieje (już).",
+      "conflict": "Nie zapisano: notatka została w międzyczasie zmieniona w chmurze.",
+      "cloud_save_failed": "Nie zapisano, nie udało się zapisać pliku w chmurze: {detail}",
+      "cloud_delete_failed": "Nie usunięto, nie udało się usunąć pliku w chmurze: {detail}"
+    },
+    "deleted": "Notatka usunięta."
+  },
+  "taxonomy": {
+    "manage_link": "Kategorie i tagi",
+    "page_title": "Kategorie i tagi",
+    "back_to_notes": "Notatki",
+    "page_hint": "Kategorie i tagi stowarzyszenia. Każda notatka ma jedną kategorię i dowolną liczbę tagów. Baza wiedzy będzie używać tych samych.",
+    "categories_header": "Kategorie",
+    "tags_header": "Tagi",
+    "name_label": "Nazwa",
+    "rename_button": "Zmień nazwę",
+    "note_count": "Notatki: {count}",
+    "delete_confirm": "Usunąć \"{name}\"? Notatki pozostaną, tylko bez tego wpisu.",
+    "delete_button": "Usuń",
+    "empty": "Brak.",
+    "new_categories_placeholder": "Nowa kategoria",
+    "new_tags_placeholder": "Nowy tag",
+    "add_button": "Dodaj",
+    "saved": "Zapisano.",
+    "deleted": "Usunięto.",
+    "errors": {
+      "name_required": "Podaj nazwę.",
+      "name_too_long": "Nazwa może mieć najwyżej {max} znaków.",
+      "name_taken": "\"{name}\" już istnieje."
     }
   }
 }

@@ -19,6 +19,7 @@ decisions and reasoning are still fresh.
 - [Applicants](./module-applicants.md) -- applications for free garden plots, from the website form or entered by hand
 - [External contacts](./module-external-contacts.md) -- suppliers, craftsmen, authorities; linkable from incoming invoices and purchase requests
 - [Reporting](./module-reporting.md) -- club figures over time as charts (members, plots, applicants, work hours, electricity)
+- [Notes](./module-notes.md) -- Markdown notes (meetings and more) with a club-wide taxonomy; the .md file in the cloud is the master
 
 ## Cross-cutting topics
 

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ note.title }}{% endblock %}
+{% block page_title %}{{ t('notes.list.title') }}{% endblock %}
+
+{% block topbar_actions %}
+<div class="d-flex gap-2 flex-wrap">
+    <a href="/notes/" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{{ t('notes.detail.back') }}</a>
+    <a href="/notes/{{ note.id }}/download" class="btn btn-sm btn-outline-secondary"><i class="bi bi-filetype-md me-1"></i>{{ t('notes.detail.download') }}</a>
+    {% if can_write %}
+    <a href="/notes/{{ note.id }}/edit" class="btn btn-sm btn-primary"><i class="bi bi-pencil me-1"></i>{{ t('notes.detail.edit') }}</a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+{% if error %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3"><i class="bi bi-exclamation-triangle-fill"></i> {{ error }}</div>
+{% endif %}
+{% if cloud_error %}
+<div class="alert alert-warning d-flex gap-2 align-items-center mb-3"><i class="bi bi-cloud-slash"></i> {{ t('notes.detail.cloud_stale', detail=cloud_error) }}</div>
+{% endif %}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h2 class="h4 mb-2">{{ note.title }}</h2>
+        <div class="d-flex flex-wrap gap-2 align-items-center text-muted small mb-3">
+            <span><i class="bi bi-calendar-event me-1"></i>{{ note.note_date.strftime('%d.%m.%Y') }}{% if note.note_time %} {{ note.note_time.strftime('%H:%M') }}{% endif %}</span>
+            {% if note.category %}<a href="/notes/?category={{ note.category.id }}" class="badge text-bg-light border text-decoration-none">{{ tag_name(note.category) }}</a>{% endif %}
+            {% for note_tag in note.tags %}
+            <a href="/notes/?tag={{ note_tag.id }}" class="badge rounded-pill text-bg-secondary text-decoration-none">{{ tag_name(note_tag) }}</a>
+            {% endfor %}
+        </div>
+        <div class="note-body">{{ body_html }}</div>
+    </div>
+    <div class="card-footer small text-muted d-flex flex-wrap gap-3">
+        {% if note.created_by %}<span>{{ t('notes.detail.created_by', name=note.created_by.name, when=note.created_at.strftime('%d.%m.%Y %H:%M')) }}</span>{% endif %}
+        {% if note.updated_by %}<span>{{ t('notes.detail.updated_by', name=note.updated_by.name, when=note.updated_at.strftime('%d.%m.%Y %H:%M')) }}</span>{% endif %}
+        {% if note.cloud_filename and cloud_folder %}
+        <span><i class="bi bi-cloud me-1"></i>{{ cloud_folder }}/{{ note.cloud_filename }}</span>
+        {% elif cloud_folder and note.cloud_dirty %}
+        <span><i class="bi bi-cloud-upload me-1"></i>{{ t('notes.list.pending_upload') }}</span>
+        {% endif %}
+    </div>
+</div>
+
+{% if can_delete %}
+<form method="post" action="/notes/{{ note.id }}/delete"
+      onsubmit="return confirm(this.dataset.confirm);" data-confirm="{{ t('notes.detail.delete_confirm') }}">
+    {{ csrf_field() }}
+    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>{{ t('notes.detail.delete') }}</button>
+</form>
+{% endif %}
+
+<style>
+    .note-body table { width: 100%; margin-bottom: 1rem; border-collapse: collapse; }
+    .note-body th, .note-body td { border: 1px solid var(--bs-border-color); padding: .25rem .5rem; }
+    .note-body img { max-width: 100%; height: auto; }
+    .note-body { overflow-wrap: anywhere; }
+</style>
+{% endblock %}
