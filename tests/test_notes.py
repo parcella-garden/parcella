@@ -643,6 +643,20 @@ async def test_migration_0119_makes_the_next_sync_redate_existing_notes(client, 
     }
     async with AsyncSessionLocal() as db:  # one-time: the marker is gone
         assert await db.get(ClubSetting, "notes_redate_import_day_pending") is None
+async def test_list_category_badge_filters_like_tags(client, admin_user):
+    """Clicking a note's category in the list filters by it, the same
+    way a tag badge already does (and the detail page already did)."""
+    board = await _category("Board meeting")
+    other = await _category("Other")
+    await web_login(client, "admin@example.com")
+    await _create(client, title="Im Vorstand", category_id=board)
+    await _create(client, title="Woanders", category_id=other)
+
+    page = await client.get("/notes/")
+    assert f'href="/notes/?category={board}"' in page.text
+
+    filtered = await client.get(f"/notes/?category={board}")
+    assert "Im Vorstand" in filtered.text and "Woanders" not in filtered.text
 
 
 async def _all_categories():
