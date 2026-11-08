@@ -40,9 +40,8 @@ from app.permissions import require_permission
 from app.i18n import t_for, translate, DEFAULT_LANGUAGE
 from app.module_flags import require_module
 from app.meter_utils import (
-    calculate_consumption, total_consumption_for_type, reading_before_year
+    calculate_consumption, check_monotonicity, total_consumption_for_type, reading_before_year
 )
-from app.services.errors import ServiceError
 from app.services.metering import (
     create_metering_point, update_metering_point, delete_metering_point, exchange_meter, update_meter,
     record_reading, delete_reading, get_price_configuration_for_year, save_price_configuration_for_year,
@@ -62,6 +61,29 @@ def _parse_number(value: str, decimal_places: int) -> Optional[Decimal]:
         return None
     quant = Decimal("1") if decimal_places == 0 else Decimal("1." + "0" * decimal_places)
     return parsed_value.quantize(quant)
+
+
+def _with_query_param(url: str, key: str, value: str) -> str:
+    """Adds (or replaces) one query parameter on a URL that may already
+    carry a query string. Issue #300: the bulk-entry form's return_url
+    is ``/readings?year=2026``, and blindly appending ``?error=...``
+    produced ``?year=2026?error=...`` -- an int-validation 422 shown as
+    raw JSON instead of the readings page."""
+    parts = urllib.parse.urlsplit(url)
+    query = [(k, v) for k, v in urllib.parse.parse_qsl(parts.query, keep_blank_values=True) if k != key]
+    query.append((key, value))
+    return urllib.parse.urlunsplit(parts._replace(query=urllib.parse.urlencode(query)))
+
+
+def _monotonicity_warning_text(request: Request, meter: Meter, reading) -> Optional[str]:
+    """The (non-blocking, ADR 0124) plausibility warning for an already
+    stored reading, or None -- shown as a lasting marker next to the
+    reading, not just once right after saving it."""
+    warning = check_monotonicity(meter, reading.year, Decimal(str(reading.reading)), exclude_id=reading.id)
+    if not warning:
+        return None
+    key, params = warning
+    return t_for(request, key, **params)
 
 
 def _parse_date_flexible(value: str) -> Optional[date]:
@@ -365,6 +387,8 @@ def create_metering_router(
     async def metering_point_detail(
         metering_point_id: str,
         request: Request,
+        error: Optional[str] = None,
+        warning: Optional[str] = None,
         db: AsyncSession = Depends(get_db),
     ):
         user = await require_permission(request, db, modul_name, "read")
@@ -385,6 +409,7 @@ def create_metering_router(
                 readings_with_consumption.append({
                     "reading": z,
                     "consumption": calculate_consumption(current_meter, z.year),
+                    "warning": _monotonicity_warning_text(request, current_meter, z),
                 })
 
         # Previous/Next buttons (issue #212): walk the same order the
@@ -414,6 +439,8 @@ def create_metering_router(
             "MeteringPointType": MeteringPointType,
             "prev_metering_point_id": prev_metering_point_id,
             "next_metering_point_id": next_metering_point_id,
+            "error": error,
+            "warning": warning,
         })
 
     @router.post("/metering-points/{metering_point_id}/edit")
@@ -729,25 +756,31 @@ def create_metering_router(
         if not metering_point:
             raise HTTPException(status_code=404)
 
+        # return_url comes from the form: only ever redirect back inside
+        # this module, never to an arbitrary (or protocol-relative) URL.
+        if not return_url.startswith(f"{url_prefix}/") or return_url.startswith("//") or "\\" in return_url:
+            return_url = f"{url_prefix}/readings"
+
         meter = metering_point.current_meter
         if not meter:
             raise HTTPException(status_code=400, detail=t_for(request, "metering.errors.no_active_meter"))
 
         new_reading = _parse_number(reading, decimal_places)
         if new_reading is None:
-            message = urllib.parse.quote(t_for(request, "metering.errors.invalid_reading"))
-            return RedirectResponse(f"{return_url}?error={message}", status_code=302)
+            message = t_for(request, "metering.errors.invalid_reading")
+            return RedirectResponse(_with_query_param(return_url, "error", message), status_code=302)
 
-        try:
-            await record_reading(
-                db, meter, year=year, reading_date=date.fromisoformat(date_value),
-                reading=new_reading, note=(note.strip() or None), recorded_by_id=user.id,
-            )
-        except ServiceError as e:
-            error = t_for(request, e.key, **e.params)
-            return RedirectResponse(f"{return_url}?error={urllib.parse.quote(error)}", status_code=302)
-
+        _, warning = await record_reading(
+            db, meter, year=year, reading_date=date.fromisoformat(date_value),
+            reading=new_reading, note=(note.strip() or None), recorded_by_id=user.id,
+        )
         await db.commit()
+
+        if warning:
+            # Saved anyway (ADR 0124) -- tell the user why it looks off.
+            key, params = warning
+            message = t_for(request, "metering.warnings.saved_with_warning", reason=t_for(request, key, **params))
+            return RedirectResponse(_with_query_param(return_url, "warning", message), status_code=302)
         return RedirectResponse(return_url, status_code=302)
 
     @router.post("/readings/{reading_id}/delete")
@@ -797,6 +830,7 @@ def create_metering_router(
                         z, year, exclude_id=current_reading.id if current_reading else None
                     ),
                     "entry": current_reading,
+                    "warning": _monotonicity_warning_text(request, z, current_reading) if current_reading else None,
                 })
             return rows
 
@@ -935,14 +969,15 @@ def create_metering_router(
         skipped_no_point = 0
         skipped_no_meter = 0
         skipped_invalid = 0
-        skipped_implausible = 0
+        recorded_with_warning = 0
         skipped_meter_mismatch = 0
         skip_details = []
         reason_invalid_type = t_for(request, "metering.readings_list.csv_import_skip_reason_invalid_type")
         reason_no_point = t_for(request, "metering.readings_list.csv_import_skip_reason_no_point")
         reason_no_meter = t_for(request, "metering.readings_list.csv_import_skip_reason_no_meter")
         reason_invalid_row = t_for(request, "metering.readings_list.csv_import_skip_reason_invalid")
-        reason_implausible = t_for(request, "metering.readings_list.csv_import_skip_reason_implausible")
+        reason_implausible = t_for(request, "metering.readings_list.csv_import_warn_reason_implausible")
+        warning_details = []
         reason_meter_mismatch = t_for(request, "metering.readings_list.csv_import_skip_reason_meter_mismatch")
 
         for row_number, values in enumerate(rows, start=2):
@@ -1000,15 +1035,16 @@ def create_metering_router(
 
             year_int = int(year_str)
             already_had_year = any(r.year == year_int for r in meter.readings)
-            try:
-                new_reading = await record_reading(
-                    db, meter, year=year_int, reading_date=reading_date, reading=reading_value,
-                    note=((values.get("note") or "").strip() or None), recorded_by_id=user.id,
-                )
-            except ServiceError:
-                skipped_implausible += 1
-                skip_details.append(f"{identifier}: {reason_implausible}")
-                continue
+            # Implausible readings are recorded anyway, with a warning
+            # in the summary (issue #300, ADR 0124) -- same rule as
+            # manual entry.
+            new_reading, warning = await record_reading(
+                db, meter, year=year_int, reading_date=reading_date, reading=reading_value,
+                note=((values.get("note") or "").strip() or None), recorded_by_id=user.id,
+            )
+            if warning:
+                recorded_with_warning += 1
+                warning_details.append(f"{identifier}: {reason_implausible}")
 
             if not already_had_year:
                 # record_reading() sets meter_id on the new row directly
@@ -1029,7 +1065,6 @@ def create_metering_router(
             (skipped_no_point, "metering.readings_list.csv_import_skipped_no_point"),
             (skipped_no_meter, "metering.readings_list.csv_import_skipped_no_meter"),
             (skipped_invalid, "metering.readings_list.csv_import_skipped_invalid"),
-            (skipped_implausible, "metering.readings_list.csv_import_skipped_implausible"),
             (skipped_meter_mismatch, "metering.readings_list.csv_import_skipped_meter_mismatch"),
         ):
             if count:
@@ -1038,6 +1073,21 @@ def create_metering_router(
             message += " – " + " | ".join(skip_details[:3])
             if len(skip_details) > 3:
                 message += t_for(request, "metering.readings_list.csv_import_more_skipped", count=len(skip_details) - 3)
+
+        if recorded_with_warning:
+            warning_message = t_for(
+                request, "metering.readings_list.csv_import_recorded_with_warning", count=recorded_with_warning,
+            )
+            warning_message += " – " + " | ".join(warning_details[:3])
+            if len(warning_details) > 3:
+                warning_message += t_for(
+                    request, "metering.readings_list.csv_import_more_skipped", count=len(warning_details) - 3,
+                )
+            return RedirectResponse(
+                f"{url_prefix}/readings?message={urllib.parse.quote(message)}"
+                f"&warning={urllib.parse.quote(warning_message)}",
+                status_code=302,
+            )
 
         return RedirectResponse(
             f"{url_prefix}/readings?message={urllib.parse.quote(message)}",

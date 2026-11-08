@@ -1,6 +1,7 @@
 """
 Tests for metering (water & electricity). Focus: the monotonicity
-check (a reading may not decrease) and consumption calculation.
+check (a reading should not decrease -- a warning, not a block, since
+issue #300 / ADR 0124) and consumption calculation.
 """
 import base64
 from datetime import date
@@ -40,10 +41,12 @@ async def test_metering_point_create_and_reading(client, admin_user):
     assert entry.status_code == 201
 
 
-async def test_reading_may_not_decrease(client, admin_user):
+async def test_decreasing_reading_is_saved_with_warning(client, admin_user):
     """
-    Core rule of the plausibility check: a new reading must be at
-    least as high as the previous one of the same water meter.
+    Core rule of the plausibility check: a new reading should be at
+    least as high as the previous one of the same water meter. Since
+    issue #300 (ADR 0124) a lower one is saved anyway and flagged with
+    a warning -- e.g. last year's value was estimated too high.
     """
     token = await login(client, "admin@example.com")
     headers = auth_header(token)
@@ -61,21 +64,26 @@ async def test_reading_may_not_decrease(client, admin_user):
     )
     assert r1.status_code == 201
 
-    # A lower reading in the following year must be rejected
+    assert r1.json()["warning"] is None
+
+    # A lower reading in the following year is saved, with a warning
     r2 = await client.post(
         f"/api/v1/water/metering-points/{metering_point['id']}/readings",
         json={"year": 2026, "date": "2026-10-01", "reading": "30.0"},
         headers=headers,
     )
-    assert r2.status_code == 422
+    assert r2.status_code == 201
+    assert float(r2.json()["reading"]) == 30.0
+    assert r2.json()["warning"]
 
-    # A higher reading is perfectly fine
+    # Correcting it to a higher reading clears the warning
     r3 = await client.post(
         f"/api/v1/water/metering-points/{metering_point['id']}/readings",
         json={"year": 2026, "date": "2026-10-01", "reading": "75.0"},
         headers=headers,
     )
     assert r3.status_code == 201
+    assert r3.json()["warning"] is None
 
 
 async def test_consumption_calculation(client, admin_user):
@@ -155,12 +163,13 @@ async def test_monotonicity_error_uses_shared_i18n_text_not_hardcoded_german(cli
         json={"year": 2026, "date": "2026-10-01", "reading": "30.0"},
         headers=headers,
     )
-    assert response.status_code == 422
-    detail = response.json()["detail"]
+    # Saved with a warning since issue #300 (ADR 0124), no longer a 422.
+    assert response.status_code == 201
+    detail = response.json()["warning"]
     # Static portions of the shared en.json text -- not asserting exact
     # Decimal formatting of {new_value}/{previous_value}, which depends
     # on DB numeric precision.
-    assert "must not be smaller than the previous reading" in detail
+    assert "is lower than the previous reading" in detail
     assert "Zählerstand" not in detail  # not the old hard-coded-German text
 
 
@@ -546,9 +555,10 @@ async def test_metering_points_csv_export_import_round_trip(client, admin_user):
 
 async def test_readings_csv_export_import_applies_monotonicity_check(client, admin_user):
     """Issue #225: readings CSV import reuses record_reading(), so a
-    bulk-imported reading is rejected by the same monotonicity check a
-    manually entered one would be -- it's skipped, not a hard failure
-    for the whole file."""
+    bulk-imported reading goes through the same monotonicity check a
+    manually entered one would. Since issue #300 (ADR 0124) an
+    implausible row is recorded with a warning in the summary, not
+    skipped."""
     token = await login(client, "admin@example.com")
     headers = auth_header(token)
 
@@ -577,7 +587,7 @@ async def test_readings_csv_export_import_applies_monotonicity_check(client, adm
         "Type;Parcel number;Label;Meter number;Year;Date;Reading;Note\n"
         # Valid: a higher reading for a later year -- must be recorded.
         "CLUB;;Vereinsheim CSV;W-READ-01;2025;2025-10-01;80,0;imported\n"
-        # Implausible: lower than the 2024 reading -- must be skipped, not crash the import.
+        # Implausible: lower than the 2025 reading -- recorded, but warned about.
         "CLUB;;Vereinsheim CSV;W-READ-01;2026;2026-10-01;10,0;imported\n"
     )
     import_response = await client.post(
@@ -590,7 +600,9 @@ async def test_readings_csv_export_import_applies_monotonicity_check(client, adm
         follow_redirects=False,
     )
     assert import_response.status_code in (302, 303)
-    assert "skipped" in import_response.headers["location"]
+    location = import_response.headers["location"]
+    assert "skipped" not in location
+    assert "warning=" in location
 
     from sqlalchemy import select
 
@@ -599,7 +611,7 @@ async def test_readings_csv_export_import_applies_monotonicity_check(client, adm
         meter = result.scalar_one()
         result = await db.execute(select(MeterReading).where(MeterReading.meter_id == meter.id))
         readings = {r.year: float(r.reading) for r in result.scalars().all()}
-        assert readings == {2024: 50.0, 2025: 80.0}
+        assert readings == {2024: 50.0, 2025: 80.0, 2026: 10.0}
 
 
 async def test_readings_import_join_is_parcel_number_not_meter_number(client, admin_user):
@@ -1212,3 +1224,117 @@ async def test_edit_current_meter_via_html_form(client, admin_user):
         assert meter.calibrated_until == 2031
         assert float(meter.initial_reading) == 7.0
         assert meter.is_active is True
+
+
+# ---------------------------------------------------------------------------
+# Issue #300: an implausible (decreasing) reading is saved with a visible
+# warning on both HTML entry pages, instead of being refused invisibly.
+# ---------------------------------------------------------------------------
+
+async def _point_with_2025_reading(medium: MeteringMedium, number: str, value: int) -> str:
+    async with AsyncSessionLocal() as session:
+        point = MeteringPoint(medium=medium, type=MeteringPointType.CLUB, label=f"Club {number}")
+        session.add(point)
+        await session.flush()
+        meter = Meter(metering_point_id=point.id, number=number, is_active=True, initial_reading=0)
+        session.add(meter)
+        await session.flush()
+        # e.g. an estimated value that came out too high
+        session.add(MeterReading(meter_id=meter.id, year=2025, date=date(2025, 10, 1), reading=value))
+        await session.commit()
+        return point.id
+
+
+async def _html_login(client):
+    response = await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"}
+    )
+    assert response.status_code in (302, 303)
+
+
+async def test_readings_page_saves_lower_reading_and_shows_warning(client, admin_user):
+    """Bug #300: the bulk-entry form's return_url is /readings?year=...;
+    the old error redirect appended a second '?error=' to it, so the
+    page answered with raw 422 JSON. Now the reading is saved and the
+    readings page renders a warning banner plus a row marker."""
+    from sqlalchemy import select
+
+    point_id = await _point_with_2025_reading(MeteringMedium.ELECTRICITY, "E-300", 500)
+    await _html_login(client)
+
+    response = await client.post(
+        f"/electricity/metering-points/{point_id}/readings/new",
+        data={"year": "2026", "date": "2026-10-01", "reading": "420",
+              "return_url": "/electricity/readings?year=2026"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 302
+    location = response.headers["location"]
+    assert location.startswith("/electricity/readings?")
+    assert "?error=" not in location and "?warning=" not in location
+
+    page = await client.get(location)
+    assert page.status_code == 200
+    assert "text/html" in page.headers["content-type"]
+    assert "alert-warning" in page.text
+    assert "Reading saved, but please check it" in page.text
+    # Lasting row marker, also without the query-string banner
+    page = await client.get("/electricity/readings?year=2026")
+    assert "is lower than the previous reading" in page.text
+
+    async with AsyncSessionLocal() as session:
+        meter = (await session.execute(select(Meter).where(Meter.number == "E-300"))).scalar_one()
+        readings = (await session.execute(
+            select(MeterReading).where(MeterReading.meter_id == meter.id)
+        )).scalars().all()
+        assert {r.year: float(r.reading) for r in readings} == {2025: 500.0, 2026: 420.0}
+
+
+async def test_metering_point_detail_saves_lower_reading_and_shows_warning(client, admin_user):
+    """Bug #300: the detail page redirected with ?error=... but never
+    rendered it -- the message was only visible in the URL."""
+    point_id = await _point_with_2025_reading(MeteringMedium.WATER, "W-300", 80)
+    await _html_login(client)
+
+    detail_url = f"/water/metering-points/{point_id}"
+    response = await client.post(
+        f"{detail_url}/readings/new",
+        data={"year": "2026", "date": "2026-10-01", "reading": "60,5", "return_url": detail_url},
+        follow_redirects=False,
+    )
+    assert response.status_code == 302
+    location = response.headers["location"]
+    assert location.startswith(f"{detail_url}?warning=")
+
+    page = await client.get(location)
+    assert page.status_code == 200
+    assert "alert-warning" in page.text
+    assert "Reading saved, but please check it" in page.text
+
+    page = await client.get(detail_url)
+    assert "is lower than the previous reading" in page.text
+
+    # An invalid number is still an error -- and now actually shown.
+    response = await client.post(
+        f"{detail_url}/readings/new",
+        data={"year": "2026", "date": "2026-10-01", "reading": "abc", "return_url": detail_url},
+        follow_redirects=False,
+    )
+    page = await client.get(response.headers["location"])
+    assert "alert-danger" in page.text
+    assert "Invalid meter reading" in page.text
+
+
+async def test_reading_create_return_url_stays_inside_module(client, admin_user):
+    """return_url is a form field: never redirect off-site with it."""
+    point_id = await _point_with_2025_reading(MeteringMedium.WATER, "W-300-R", 10)
+    await _html_login(client)
+
+    for evil in ("https://evil.example/", "//evil.example/water/", "/electricity/readings"):
+        response = await client.post(
+            f"/water/metering-points/{point_id}/readings/new",
+            data={"year": "2026", "date": "2026-10-01", "reading": "20", "return_url": evil},
+            follow_redirects=False,
+        )
+        assert response.status_code == 302
+        assert response.headers["location"] == "/water/readings"

@@ -25,14 +25,13 @@ from app.api_auth import require_api_permission
 from app.module_flags import require_module
 from app.i18n import t_for
 from app.meter_utils import calculate_consumption
-from app.services.errors import ServiceError
 from app.services.metering import (
     create_metering_point, update_metering_point, delete_metering_point, exchange_meter, update_meter,
     record_reading, delete_reading, get_price_configuration_for_year, save_price_configuration_for_year,
 )
 from app.schemas import (
     MeteringPointOut, MeteringPointDetailOut, MeteringPointCreate, MeteringPointUpdate,
-    MeterOut, MeterUpdate, MeterSwapRequest, MeterReadingCreate, MeterReadingOut,
+    MeterOut, MeterUpdate, MeterSwapRequest, MeterReadingCreate, MeterReadingOut, MeterReadingRecordedOut,
     ConsumptionRowOut, MeteringPriceConfigurationOut, MeteringPriceConfigurationCreate,
 )
 
@@ -210,10 +209,11 @@ def create_metering_api_router(
         return sorted(meter.readings, key=lambda z: z.year, reverse=True)
 
     @router.post(
-        "/metering-points/{metering_point_id}/readings", response_model=MeterReadingOut,
+        "/metering-points/{metering_point_id}/readings", response_model=MeterReadingRecordedOut,
         status_code=status.HTTP_201_CREATED, summary="Record reading",
         description="Creates a new reading or updates the existing one for the same year. "
-                    "Checks plausibility (the reading must not decrease).",
+                    "Checks plausibility (the reading should not decrease): an implausible "
+                    "reading is still saved, and `warning` explains why it looks off.",
     )
     async def create_reading(
         metering_point_id: str,
@@ -229,17 +229,20 @@ def create_metering_api_router(
         if not meter:
             raise HTTPException(status_code=400, detail="No active meter for this metering point")
 
-        try:
-            reading = await record_reading(
-                db, meter, year=daten.year, reading_date=daten.date, reading=daten.reading,
-                note=daten.note, recorded_by_id=user.id,
-            )
-        except ServiceError as e:
-            raise HTTPException(status_code=422, detail=t_for(request, e.key, **e.params))
-
+        reading, warning = await record_reading(
+            db, meter, year=daten.year, reading_date=daten.date, reading=daten.reading,
+            note=daten.note, recorded_by_id=user.id,
+        )
         await db.commit()
         await db.refresh(reading)
-        return reading
+
+        # Implausible readings are saved anyway (issue #300, ADR 0124);
+        # the reason comes back in `warning` instead of a 422.
+        result = MeterReadingRecordedOut.model_validate(reading)
+        if warning:
+            key, params = warning
+            result.warning = t_for(request, key, **params)
+        return result
 
     @router.delete(
         "/readings/{reading_id}", status_code=status.HTTP_204_NO_CONTENT,

@@ -1282,7 +1282,6 @@
       "csv_import_skipped_no_point": ", {count} ignoré(s) (point de comptage introuvable)",
       "csv_import_skipped_no_meter": ", {count} ignoré(s) (aucun compteur actif)",
       "csv_import_skipped_invalid": ", {count} ignoré(s) (ligne invalide)",
-      "csv_import_skipped_implausible": ", {count} ignoré(s) (relevé non plausible)",
       "import_preview_title_suffix": " relevé : import",
       "import_preview_header": "Associer les colonnes CSV",
       "import_preview_help": "Pour chaque colonne ci-dessous, choisissez à quel champ elle correspond (ou laissez-la ignorée). Type est obligatoire.",
@@ -1301,13 +1300,14 @@
       "csv_import_skip_reason_no_point": "point de mesure introuvable",
       "csv_import_skip_reason_no_meter": "aucun compteur actif",
       "csv_import_skip_reason_invalid": "ligne invalide",
-      "csv_import_skip_reason_implausible": "relevé implausible",
       "csv_import_more_skipped": " (et {count} de plus)",
       "csv_import_skip_reason_meter_mismatch": "numéro de compteur différent",
       "csv_import_skipped_meter_mismatch": ", {count} ignoré(s) (le numéro de compteur ne correspond pas au compteur actuel)",
       "map_field_meter_number": "Meter number",
       "default_year_label": "Année par défaut (facultatif)",
-      "default_year_help": "Utilisée pour toute ligne où Year n'est pas associé ou est vide. La valeur Year propre à une ligne, si associée et renseignée, est toujours prioritaire."
+      "default_year_help": "Utilisée pour toute ligne où Year n'est pas associé ou est vide. La valeur Year propre à une ligne, si associée et renseignée, est toujours prioritaire.",
+      "csv_import_recorded_with_warning": "{count} relevé(s) enregistré(s) avec un avertissement de plausibilité",
+      "csv_import_warn_reason_implausible": "relevé non plausible, veuillez vérifier"
     },
     "evaluation": {
       "title_suffix": " rapport",
@@ -1353,11 +1353,14 @@
       "invalid_reading": "Relevé de compteur invalide",
       "overall_plausibility_overview": "La somme de la consommation des parcelles ({parcels} {unit}) et du club ({club} {unit}) dépasse la consommation du compteur principal ({main} {unit}) pour {year}. Veuillez vérifier les relevés de compteur.",
       "overall_plausibility_evaluation": "La consommation distribuée ({total} {unit}) dépasse la consommation du compteur principal ({main} {unit}).",
-      "reading_below_previous": "Le relevé de compteur ({new_value}) ne doit pas être inférieur au relevé précédent ({previous_value}) du même compteur.",
-      "reading_above_later": "Le relevé de compteur ({new_value}) ne doit pas être supérieur au relevé ultérieur déjà enregistré ({later_value}) du même compteur.",
       "no_active_meter": "Aucun compteur actif pour ce point de mesure",
       "configuration_not_found": "Configuration du prix non trouvée",
       "configuration_year_exists": "Une autre configuration du prix existe déjà pour {year}."
+    },
+    "warnings": {
+      "reading_below_previous": "Le relevé de compteur ({new_value}) est inférieur au relevé précédent ({previous_value}) du même compteur. Un relevé antérieur a-t-il été estimé ? Veuillez vérifier.",
+      "reading_above_later": "Le relevé de compteur ({new_value}) est supérieur au relevé ultérieur déjà enregistré ({later_value}) du même compteur. Veuillez vérifier.",
+      "saved_with_warning": "Relevé enregistré, mais veuillez le vérifier : {reason}"
     }
   },
   "work_hours": {

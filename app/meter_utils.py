@@ -58,9 +58,11 @@ def check_monotonicity(
     meter: Meter, year: int, new_value: Decimal, exclude_id: Optional[str] = None
 ) -> Optional[tuple]:
     """
-    Plausibility check: a meter's reading may not decrease over time.
-    On failure, returns a tuple (translation key, formatting
-    parameters); otherwise None.
+    Plausibility check: a meter's reading should not decrease over time.
+    If it does, returns a tuple (translation key, formatting
+    parameters); otherwise None. Since issue #300 (ADR 0124) this is a
+    non-blocking warning -- callers save the reading anyway and show
+    the message.
 
     A tuple instead of a ready-formatted string, so the result can be
     resolved via app.i18n.translate()/t_for() -- shared by both the
@@ -71,11 +73,11 @@ def check_monotonicity(
     """
     previous_value = reading_before_year(meter, year, exclude_id=exclude_id)
     if new_value < previous_value:
-        return ("metering.errors.reading_below_previous", {"new_value": new_value, "previous_value": previous_value})
+        return ("metering.warnings.reading_below_previous", {"new_value": new_value, "previous_value": previous_value})
 
     later_value = reading_after_year(meter, year, exclude_id=exclude_id)
     if later_value is not None and new_value > later_value:
-        return ("metering.errors.reading_above_later", {"new_value": new_value, "later_value": later_value})
+        return ("metering.warnings.reading_above_later", {"new_value": new_value, "later_value": later_value})
 
     return None
 

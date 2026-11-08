@@ -61,11 +61,18 @@ If a third medium is added in the future (gas?), one more call to
 
 ## Plausibility checks
 
-**Per-meter monotonicity** (hard, blocking): a new reading must not be
-smaller than the previous reading for the *same* meter number -- both
-backward (not smaller than the prior value) and forward (not larger than
-an already-recorded later value, if one exists). See
-`check_monotonicity()` in `app/zaehler_utils.py`.
+**Per-meter monotonicity** (warning, non-blocking since issue #300 --
+[ADR 0124](./ADR/0124-meter-monotonicity-warns-not-blocks.md)): a new
+reading should not be smaller than the previous reading for the *same*
+meter -- both backward (not smaller than the prior value) and forward
+(not larger than an already-recorded later value, if one exists). See
+`check_monotonicity()` in `app/meter_utils.py`. `record_reading()`
+always saves and returns `(reading, warning)`; the warning shows up as
+a banner right after saving (detail page and `/readings`), as a lasting
+marker next to the stored reading on both pages, in the CSV import
+summary, and as `warning` in the API response. It used to block, which
+made it impossible to record a real reading once the previous year's
+value had been estimated too high.
 
 **Overall plausibility** (warning, non-blocking): the sum of parcel and
 club consumption must not exceed the main meter's consumption. This is
@@ -251,8 +258,9 @@ added to the shared router factory so both media get it automatically.
 - Both readings imports go through `record_reading()`
   (`app/services/metering.py`), so a bulk-loaded reading is subject to
   exactly the same monotonicity check as one entered by hand through
-  the UI; a row that fails it is skipped (counted, not silently
-  dropped) rather than aborting the whole file.
+  the UI; a row that fails it is recorded anyway and counted in a
+  separate warning banner with the first few affected rows (ADR 0124 --
+  it used to be skipped).
 - **Pitfall hit building this:** `record_reading()` sets `meter_id` on
   the new `MeterReading` directly rather than through the relationship,
   so the already-eagerly-loaded `meter.readings` Python list doesn't

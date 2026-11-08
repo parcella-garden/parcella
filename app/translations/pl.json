@@ -1282,7 +1282,6 @@
       "csv_import_skipped_no_point": ", {count} pominiętych (punktu pomiarowego nie znaleziono)",
       "csv_import_skipped_no_meter": ", {count} pominiętych (brak aktywnego licznika)",
       "csv_import_skipped_invalid": ", {count} pominiętych (nieprawidłowy wiersz)",
-      "csv_import_skipped_implausible": ", {count} pominiętych (nieprawdopodobny odczyt)",
       "import_preview_title_suffix": " – odczyty: import",
       "import_preview_header": "Mapowanie kolumn CSV",
       "import_preview_help": "Dla każdej kolumny poniżej wybierz, do którego pola należy (lub pozostaw ją zignorowaną). Pole Type jest wymagane.",
@@ -1301,13 +1300,14 @@
       "csv_import_skip_reason_no_point": "nie znaleziono punktu pomiarowego",
       "csv_import_skip_reason_no_meter": "brak aktywnego licznika",
       "csv_import_skip_reason_invalid": "nieprawidłowy wiersz",
-      "csv_import_skip_reason_implausible": "nieprawdopodobny odczyt",
       "csv_import_more_skipped": " (i {count} więcej)",
       "csv_import_skip_reason_meter_mismatch": "niezgodny numer licznika",
       "csv_import_skipped_meter_mismatch": ", {count} pominiętych (numer licznika nie zgadza się z aktualnym licznikiem)",
       "map_field_meter_number": "Meter number",
       "default_year_label": "Rok domyślny (opcjonalnie)",
-      "default_year_help": "Używany dla wierszy, w których kolumna Year nie jest przypisana lub jest pusta. Własna wartość Year w wierszu, jeśli przypisana i wypełniona, zawsze ma pierwszeństwo."
+      "default_year_help": "Używany dla wierszy, w których kolumna Year nie jest przypisana lub jest pusta. Własna wartość Year w wierszu, jeśli przypisana i wypełniona, zawsze ma pierwszeństwo.",
+      "csv_import_recorded_with_warning": "Zapisano {count} odczyt(ów) z ostrzeżeniem o wiarygodności",
+      "csv_import_warn_reason_implausible": "niewiarygodny odczyt, proszę sprawdzić"
     },
     "evaluation": {
       "title_suffix": " – rozliczenie",
@@ -1353,11 +1353,14 @@
       "invalid_reading": "Nieprawidłowy stan licznika",
       "overall_plausibility_overview": "Suma zużycia na działkach ({parcels} {unit}) i przez stowarzyszenie ({club} {unit}) przekracza zużycie z licznika głównego ({main} {unit}) za {year}. Proszę sprawdzić stany liczników.",
       "overall_plausibility_evaluation": "Zużycie rozdzielone ({total} {unit}) przekracza zużycie z licznika głównego ({main} {unit}).",
-      "reading_below_previous": "Stan licznika ({new_value}) nie może być mniejszy niż poprzedni stan ({previous_value}) tego samego licznika.",
-      "reading_above_later": "Stan licznika ({new_value}) nie może być większy niż już zarejestrowany późniejszy stan ({later_value}) tego samego licznika.",
       "no_active_meter": "Brak aktywnego licznika dla tego punktu pomiarowego",
       "configuration_not_found": "Nie znaleziono konfiguracji ceny",
       "configuration_year_exists": "Inna konfiguracja ceny na {year} już istnieje."
+    },
+    "warnings": {
+      "reading_below_previous": "Stan licznika ({new_value}) jest mniejszy niż poprzedni stan ({previous_value}) tego samego licznika. Czy wcześniejszy odczyt był szacowany? Proszę sprawdzić.",
+      "reading_above_later": "Stan licznika ({new_value}) jest większy niż już zapisany późniejszy stan ({later_value}) tego samego licznika. Proszę sprawdzić.",
+      "saved_with_warning": "Odczyt zapisany, ale proszę go sprawdzić: {reason}"
     }
   },
   "work_hours": {

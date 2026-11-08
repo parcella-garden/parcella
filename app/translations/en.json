@@ -1282,7 +1282,6 @@
       "csv_import_skipped_no_point": ", {count} skipped (metering point not found)",
       "csv_import_skipped_no_meter": ", {count} skipped (no active meter)",
       "csv_import_skipped_invalid": ", {count} skipped (invalid row)",
-      "csv_import_skipped_implausible": ", {count} skipped (implausible reading)",
       "import_preview_title_suffix": " readings: import",
       "import_preview_header": "Map CSV columns",
       "import_preview_help": "For each column below, choose which field it belongs to (or leave it ignored). Type is required.",
@@ -1301,13 +1300,14 @@
       "csv_import_skip_reason_no_point": "metering point not found",
       "csv_import_skip_reason_no_meter": "no active meter",
       "csv_import_skip_reason_invalid": "invalid row",
-      "csv_import_skip_reason_implausible": "implausible reading",
       "csv_import_more_skipped": " (and {count} more)",
       "csv_import_skip_reason_meter_mismatch": "meter number mismatch",
       "csv_import_skipped_meter_mismatch": ", {count} skipped (meter number doesn't match current meter)",
       "map_field_meter_number": "Meter number",
       "default_year_label": "Default year (optional)",
-      "default_year_help": "Used for any row where Year isn't mapped or is left blank. A row's own Year column, if mapped and filled in, always takes priority."
+      "default_year_help": "Used for any row where Year isn't mapped or is left blank. A row's own Year column, if mapped and filled in, always takes priority.",
+      "csv_import_recorded_with_warning": "{count} reading(s) recorded with a plausibility warning",
+      "csv_import_warn_reason_implausible": "implausible reading, please check"
     },
     "evaluation": {
       "title_suffix": " report",
@@ -1353,11 +1353,14 @@
       "invalid_reading": "Invalid meter reading",
       "overall_plausibility_overview": "The sum of parcel ({parcels} {unit}) and club consumption ({club} {unit}) exceeds the main meter consumption ({main} {unit}) for {year}. Please check the meter readings.",
       "overall_plausibility_evaluation": "Distributed consumption ({total} {unit}) exceeds main meter consumption ({main} {unit}).",
-      "reading_below_previous": "The meter reading ({new_value}) must not be smaller than the previous reading ({previous_value}) of the same meter.",
-      "reading_above_later": "The meter reading ({new_value}) must not be larger than the already-recorded later reading ({later_value}) of the same meter.",
       "no_active_meter": "No active meter for this metering point",
       "configuration_not_found": "Price configuration not found",
       "configuration_year_exists": "A different price configuration already exists for {year}."
+    },
+    "warnings": {
+      "reading_below_previous": "The meter reading ({new_value}) is lower than the previous reading ({previous_value}) of the same meter. Was an earlier reading estimated? Please check.",
+      "reading_above_later": "The meter reading ({new_value}) is higher than the already-recorded later reading ({later_value}) of the same meter. Please check.",
+      "saved_with_warning": "Reading saved, but please check it: {reason}"
     }
   },
   "work_hours": {

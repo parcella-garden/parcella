@@ -15,11 +15,12 @@ resolved check_monotonicity()'s (key, params) via the deliberately
 German-only format_monotonicity_error_de() instead of the shared i18n
 catalog HTML uses via t_for() -- see meter_utils.py's own docstring for
 why that was a deliberate scope decision at the time, now revisited
-since both surfaces share one code path regardless.
+since both surfaces share one code path regardless. Since issue #300
+(ADR 0124) that check warns instead of blocking.
 """
 from datetime import date
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, Tuple
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,7 +31,6 @@ from app.models import (
     Meter, MeteringMedium, MeteringPoint, MeteringPointType, MeterReading,
     MeteringPriceConfiguration,
 )
-from app.services.errors import ServiceError
 
 
 async def create_metering_point(
@@ -114,15 +114,17 @@ async def exchange_meter(
 async def record_reading(
     db: AsyncSession, meter: Meter, *, year: int, reading_date: date, reading: Decimal,
     note: Optional[str], recorded_by_id: str,
-) -> MeterReading:
+) -> Tuple[MeterReading, Optional[tuple]]:
     """Creates a new reading or updates the existing one for the same
-    year. Checks plausibility (the reading must not decrease) --
-    raises ServiceError((translation_key, params)-shaped, matching
-    meter_utils.check_monotonicity()'s own return shape) if it does."""
-    error_info = check_monotonicity(meter, year, reading)
-    if error_info:
-        key, params = error_info
-        raise ServiceError(key, http_status=400, **params)
+    year. Returns (reading, warning).
+
+    The monotonicity check (a reading must not decrease) is a *warning*,
+    not a block (issue #300, ADR 0124): the reading is always saved, and
+    `warning` is check_monotonicity()'s (translation_key, params) tuple
+    -- or None if the reading is plausible -- for the caller to show.
+    Blocking made it impossible to record a real reading once a prior
+    year's value had been estimated too high."""
+    warning = check_monotonicity(meter, year, reading)
 
     existing = next((z for z in meter.readings if z.year == year), None)
     if existing:
@@ -131,7 +133,7 @@ async def record_reading(
         existing.note = note
         existing.recorded_by_id = recorded_by_id
         await db.flush()
-        return existing
+        return existing, warning
 
     new_reading = MeterReading(
         meter_id=meter.id, year=year, date=reading_date,
@@ -139,7 +141,7 @@ async def record_reading(
     )
     db.add(new_reading)
     await db.flush()
-    return new_reading
+    return new_reading, warning
 
 
 async def delete_reading(db: AsyncSession, reading_id: str) -> Optional[str]:
