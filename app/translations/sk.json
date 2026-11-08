@@ -1282,7 +1282,6 @@
       "csv_import_skipped_no_point": ", {count} preskočených (meracie miesto nenájdené)",
       "csv_import_skipped_no_meter": ", {count} preskočených (žiadny aktívny merač)",
       "csv_import_skipped_invalid": ", {count} preskočených (neplatný riadok)",
-      "csv_import_skipped_implausible": ", {count} preskočených (nepravdepodobný odpočet)",
       "import_preview_title_suffix": " odpočet: import",
       "import_preview_header": "Mapovanie stĺpcov CSV",
       "import_preview_help": "Pre každý stĺpec nižšie vyberte, ku ktorému polú patrí (alebo ho ponechajte ignorovaný). Stĺpec Type je povinný.",
@@ -1301,13 +1300,14 @@
       "csv_import_skip_reason_no_point": "merací bod nenájdený",
       "csv_import_skip_reason_no_meter": "žiadny aktívny merač",
       "csv_import_skip_reason_invalid": "neplatný riadok",
-      "csv_import_skip_reason_implausible": "neplauzibilný stav",
       "csv_import_more_skipped": " (a {count} ďalších)",
       "csv_import_skip_reason_meter_mismatch": "nezhodné číslo merača",
       "csv_import_skipped_meter_mismatch": ", {count} preskočených (číslo merača sa nezhoduje s aktuálnym meračom)",
       "map_field_meter_number": "Meter number",
       "default_year_label": "Predvolený rok (voliteľné)",
-      "default_year_help": "Použije sa pre každý riadok, kde stĺpec Year nie je priradený alebo je prázdny. Vlastná hodnota Year v riadku má vždy prednosť, ak je priradená a vyplnená."
+      "default_year_help": "Použije sa pre každý riadok, kde stĺpec Year nie je priradený alebo je prázdny. Vlastná hodnota Year v riadku má vždy prednosť, ak je priradená a vyplnená.",
+      "csv_import_recorded_with_warning": "{count} odpočet/odpočtov zaznamenaných s upozornením na nevierohodnosť",
+      "csv_import_warn_reason_implausible": "nevierohodný odpočet, skontrolujte, prosím"
     },
     "evaluation": {
       "title_suffix": " správa",
@@ -1353,11 +1353,14 @@
       "invalid_reading": "Neplatný odpočet merača",
       "overall_plausibility_overview": "Súčet spotreby parciel ({parcels} {unit}) a spolku ({club} {unit}) presahuje spotrebu hlavného merača ({main} {unit}) pre {year}. Skontrolujte odpočty meračov.",
       "overall_plausibility_evaluation": "Rozdelená spotreba ({total} {unit}) presahuje spotrebu hlavného merača ({main} {unit}).",
-      "reading_below_previous": "Odpočet merača ({new_value}) nesmie byť menší ako predchádzajúci odpočet ({previous_value}) toho istého merača.",
-      "reading_above_later": "Odpočet merača ({new_value}) nesmie byť väčší ako už zaznamenaný neskorší odpočet ({later_value}) toho istého merača.",
       "no_active_meter": "Pre tento merací bod neexistuje aktívny merač",
       "configuration_not_found": "Konfigurácia ceny nebola nájdená",
       "configuration_year_exists": "Pre rok {year} už existuje iná konfigurácia ceny."
+    },
+    "warnings": {
+      "reading_below_previous": "Odpočet merača ({new_value}) je menší ako predchádzajúci odpočet ({previous_value}) toho istého merača. Bol skorší odpočet odhadnutý? Skontrolujte to, prosím.",
+      "reading_above_later": "Odpočet merača ({new_value}) je väčší ako už zaznamenaný neskorší odpočet ({later_value}) toho istého merača. Skontrolujte to, prosím.",
+      "saved_with_warning": "Odpočet uložený, ale skontrolujte ho, prosím: {reason}"
     }
   },
   "work_hours": {

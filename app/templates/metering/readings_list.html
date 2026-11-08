@@ -48,6 +48,12 @@
 </div>
 {% endif %}
 
+{% if request.query_params.get('warning') %}
+<div class="alert alert-warning d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ request.query_params.get('warning') }}
+</div>
+{% endif %}
+
 {% if request.query_params.get('message') %}
 <div class="alert alert-info d-flex gap-2 align-items-center mb-3">
     <i class="bi bi-info-circle-fill"></i> {{ request.query_params.get('message') }}
@@ -73,6 +79,11 @@
         </span>
         <span class="text-muted" style="font-size: 0.8rem;">{{ t('metering.readings_list.recorded_label') }}</span>
     </div>
+    {% if z.warning %}
+    <div class="w-100 text-warning-emphasis small">
+        <i class="bi bi-exclamation-triangle-fill text-warning"></i> {{ z.warning }}
+    </div>
+    {% endif %}
     {% elif has_perm(request, modul_name, 'write') %}
     <form method="post" action="{{ url_prefix }}/metering-points/{{ z.metering_point.id }}/readings/new"
           class="d-flex gap-2 align-items-center">

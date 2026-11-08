@@ -621,6 +621,13 @@ class MeterReadingOut(BaseModel):
     note: Optional[str] = None
 
 
+class MeterReadingRecordedOut(MeterReadingOut):
+    """Response of "record reading": the stored reading plus a
+    non-blocking plausibility warning (issue #300, ADR 0124) -- None if
+    the reading is plausible."""
+    warning: Optional[str] = None
+
+
 class ConsumptionRowOut(BaseModel):
     """One row of the consumption evaluation (MeteringPoint + calculated consumption)."""
     metering_point_id: str

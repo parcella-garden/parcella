@@ -1282,7 +1282,6 @@
       "csv_import_skipped_no_point": ", {count} přeskočeno (měřicí bod nenalezen)",
       "csv_import_skipped_no_meter": ", {count} přeskočeno (žádný aktivní měřič)",
       "csv_import_skipped_invalid": ", {count} přeskočeno (neplatný řádek)",
-      "csv_import_skipped_implausible": ", {count} přeskočeno (nepravděpodobný odečet)",
       "import_preview_title_suffix": " odečet: import",
       "import_preview_header": "Mapování sloupců CSV",
       "import_preview_help": "U každého sloupce níže vyberte, ke kterému poli patří (nebo jej ponechte ignorovaný). Sloupec Type je povinný.",
@@ -1301,13 +1300,14 @@
       "csv_import_skip_reason_no_point": "měrné místo nenalezeno",
       "csv_import_skip_reason_no_meter": "žádný aktivní měřič",
       "csv_import_skip_reason_invalid": "neplatný řádek",
-      "csv_import_skip_reason_implausible": "neplauzibilní stav",
       "csv_import_more_skipped": " (a {count} dalších)",
       "csv_import_skip_reason_meter_mismatch": "neshodné číslo měřiče",
       "csv_import_skipped_meter_mismatch": ", {count} přeskočeno (číslo měřiče neodpovídá aktuálnímu měřiči)",
       "map_field_meter_number": "Meter number",
       "default_year_label": "Výchozí rok (volitelné)",
-      "default_year_help": "Použije se pro každý řádek, kde sloupec Year není přiřazen nebo je prázdný. Vlastní hodnota Year v řádku má vždy přednost, pokud je přiřazena a vyplněna."
+      "default_year_help": "Použije se pro každý řádek, kde sloupec Year není přiřazen nebo je prázdný. Vlastní hodnota Year v řádku má vždy přednost, pokud je přiřazena a vyplněna.",
+      "csv_import_recorded_with_warning": "{count} odečet/odečtů zaznamenáno s upozorněním na nevěrohodnost",
+      "csv_import_warn_reason_implausible": "nevěrohodný odečet, zkontrolujte prosím"
     },
     "evaluation": {
       "title_suffix": " zpráva",
@@ -1353,11 +1353,14 @@
       "invalid_reading": "Neplatný odečet měřidla",
       "overall_plausibility_overview": "Součet spotřeby parcel ({parcels} {unit}) a spolku ({club} {unit}) přesahuje spotřebu hlavního měřidla ({main} {unit}) pro {year}. Zkontrolujte odečty měřidel.",
       "overall_plausibility_evaluation": "Rozdělená spotřeba ({total} {unit}) přesahuje spotřebu hlavního měřidla ({main} {unit}).",
-      "reading_below_previous": "Odečet měřidla ({new_value}) nesmí být menší než předchozí odečet ({previous_value}) stejného měřidla.",
-      "reading_above_later": "Odečet měřidla ({new_value}) nesmí být větší než již zaznamenaný pozdější odečet ({later_value}) stejného měřidla.",
       "no_active_meter": "Pro toto měrné místo neexistuje aktivní měřidlo",
       "configuration_not_found": "Konfigurace ceny nebyla nalezena",
       "configuration_year_exists": "Pro rok {year} již existuje jiná konfigurace ceny."
+    },
+    "warnings": {
+      "reading_below_previous": "Odečet měřidla ({new_value}) je menší než předchozí odečet ({previous_value}) stejného měřidla. Byl dřívější odečet odhadnut? Zkontrolujte to prosím.",
+      "reading_above_later": "Odečet měřidla ({new_value}) je větší než již zaznamenaný pozdější odečet ({later_value}) stejného měřidla. Zkontrolujte to prosím.",
+      "saved_with_warning": "Odečet uložen, ale zkontrolujte ho prosím: {reason}"
     }
   },
   "work_hours": {

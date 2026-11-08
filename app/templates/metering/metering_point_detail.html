@@ -25,6 +25,18 @@
 {% endblock %}
 
 {% block content %}
+{% if error %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <div>{{ error }}</div>
+</div>
+{% endif %}
+{% if warning %}
+<div class="alert alert-warning d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <div>{{ warning }}</div>
+</div>
+{% endif %}
 <div class="row g-3">
 
     <!-- Zählpunkt-Details -->
@@ -222,7 +234,14 @@
                             <tr>
                                 <td class="fw-semibold">{{ eintrag.reading.year }}</td>
                                 <td class="text-muted">{{ eintrag.reading.date.strftime('%d.%m.%Y') }}</td>
-                                <td>{{ eintrag.reading.reading | fmt(decimal_places) }}</td>
+                                <td>
+                                    {{ eintrag.reading.reading | fmt(decimal_places) }}
+                                    {% if eintrag.warning %}
+                                    <div class="text-warning-emphasis small">
+                                        <i class="bi bi-exclamation-triangle-fill text-warning"></i> {{ eintrag.warning }}
+                                    </div>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     {% if eintrag.consumption is not none %}
                                     {{ eintrag.consumption | fmt(decimal_places) }}

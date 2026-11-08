@@ -1282,7 +1282,6 @@
       "csv_import_skipped_no_point": ", {count} übersprungen (Zählpunkt nicht gefunden)",
       "csv_import_skipped_no_meter": ", {count} übersprungen (kein aktiver Zähler)",
       "csv_import_skipped_invalid": ", {count} übersprungen (ungültige Zeile)",
-      "csv_import_skipped_implausible": ", {count} übersprungen (unplausibler Zählerstand)",
       "import_preview_title_suffix": "-Ablesung: Import",
       "import_preview_header": "CSV-Spalten zuordnen",
       "import_preview_help": "Ordnen Sie jeder Spalte unten das passende Feld zu (oder lassen Sie sie unberücksichtigt). Type ist erforderlich.",
@@ -1301,13 +1300,14 @@
       "csv_import_skip_reason_no_point": "Zählpunkt nicht gefunden",
       "csv_import_skip_reason_no_meter": "kein aktiver Zähler",
       "csv_import_skip_reason_invalid": "ungültige Zeile",
-      "csv_import_skip_reason_implausible": "unplausibler Zählerstand",
       "csv_import_more_skipped": " (und {count} weitere)",
       "csv_import_skip_reason_meter_mismatch": "Zählernummer stimmt nicht überein",
       "csv_import_skipped_meter_mismatch": ", {count} übersprungen (Zählernummer stimmt nicht mit aktuellem Zähler überein)",
       "map_field_meter_number": "Meter number",
       "default_year_label": "Standardjahr (optional)",
-      "default_year_help": "Wird für jede Zeile verwendet, bei der Year nicht zugeordnet oder leer ist. Ein eigener Year-Wert der Zeile hat, falls zugeordnet und ausgefüllt, immer Vorrang."
+      "default_year_help": "Wird für jede Zeile verwendet, bei der Year nicht zugeordnet oder leer ist. Ein eigener Year-Wert der Zeile hat, falls zugeordnet und ausgefüllt, immer Vorrang.",
+      "csv_import_recorded_with_warning": "{count} Zählerstand/Zählerstände mit Plausibilitätswarnung erfasst",
+      "csv_import_warn_reason_implausible": "unplausibler Zählerstand, bitte prüfen"
     },
     "evaluation": {
       "title_suffix": "-Auswertung",
@@ -1353,11 +1353,14 @@
       "invalid_reading": "Ungültiger Zählerstand",
       "overall_plausibility_overview": "Die Summe aus Parzellen- ({parcels} {unit}) und Vereinsverbrauch ({club} {unit}) übersteigt den Hauptzähler-Verbrauch ({main} {unit}) für {year}. Bitte Zählerstände prüfen.",
       "overall_plausibility_evaluation": "Verteilverbrauch ({total} {unit}) übersteigt Hauptzähler-Verbrauch ({main} {unit}).",
-      "reading_below_previous": "Der Zählerstand ({new_value}) darf nicht kleiner sein als der vorherige Stand ({previous_value}) desselben Zählers.",
-      "reading_above_later": "Der Zählerstand ({new_value}) darf nicht größer sein als der bereits erfasste spätere Stand ({later_value}) desselben Zählers.",
       "no_active_meter": "Kein aktiver Zähler für diesen Zählpunkt vorhanden",
       "configuration_not_found": "Preiskonfiguration nicht gefunden",
       "configuration_year_exists": "Für {year} existiert bereits eine andere Preiskonfiguration."
+    },
+    "warnings": {
+      "reading_below_previous": "Der Zählerstand ({new_value}) ist kleiner als der vorherige Stand ({previous_value}) desselben Zählers. Wurde ein früherer Stand geschätzt? Bitte prüfen.",
+      "reading_above_later": "Der Zählerstand ({new_value}) ist größer als der bereits erfasste spätere Stand ({later_value}) desselben Zählers. Bitte prüfen.",
+      "saved_with_warning": "Zählerstand gespeichert, bitte aber prüfen: {reason}"
     }
   },
   "work_hours": {

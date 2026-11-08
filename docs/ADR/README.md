@@ -127,3 +127,4 @@ in chronological order.
 121. [Zero-config install: localhost-only ports, self-healing entrypoint, generated SECRET_KEY](./0121-zero-config-install.md)
 122. [One club-wide taxonomy (categories and tags), shared by notes and the knowledge base](./0122-club-wide-taxonomy.md)
 123. [Notes: the .md file in the cloud is the master, the database is its index](./0123-notes-cloud-file-is-the-master.md)
+124. [Meter readings: a decreasing reading warns, it doesn't block](./0124-meter-monotonicity-warns-not-blocks.md)

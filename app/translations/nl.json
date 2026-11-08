@@ -1282,7 +1282,6 @@
       "csv_import_skipped_no_point": ", {count} overgeslagen (meetpunt niet gevonden)",
       "csv_import_skipped_no_meter": ", {count} overgeslagen (geen actieve meter)",
       "csv_import_skipped_invalid": ", {count} overgeslagen (ongeldige rij)",
-      "csv_import_skipped_implausible": ", {count} overgeslagen (onwaarschijnlijke stand)",
       "import_preview_title_suffix": " stand: import",
       "import_preview_header": "CSV-kolommen koppelen",
       "import_preview_help": "Kies voor elke kolom hieronder bij welk veld deze hoort (of laat hem genegeerd). Type is verplicht.",
@@ -1301,13 +1300,14 @@
       "csv_import_skip_reason_no_point": "meetpunt niet gevonden",
       "csv_import_skip_reason_no_meter": "geen actieve meter",
       "csv_import_skip_reason_invalid": "ongeldige rij",
-      "csv_import_skip_reason_implausible": "onwaarschijnlijke meterstand",
       "csv_import_more_skipped": " (en {count} meer)",
       "csv_import_skip_reason_meter_mismatch": "meternummer komt niet overeen",
       "csv_import_skipped_meter_mismatch": ", {count} overgeslagen (meternummer komt niet overeen met huidige meter)",
       "map_field_meter_number": "Meter number",
       "default_year_label": "Standaardjaar (optioneel)",
-      "default_year_help": "Gebruikt voor elke rij waarin Year niet is gekoppeld of leeg is. Een eigen Year-waarde van de rij heeft, indien gekoppeld en ingevuld, altijd voorrang."
+      "default_year_help": "Gebruikt voor elke rij waarin Year niet is gekoppeld of leeg is. Een eigen Year-waarde van de rij heeft, indien gekoppeld en ingevuld, altijd voorrang.",
+      "csv_import_recorded_with_warning": "{count} meterstand(en) vastgelegd met een plausibiliteitswaarschuwing",
+      "csv_import_warn_reason_implausible": "onwaarschijnlijke meterstand, controleer a.u.b."
     },
     "evaluation": {
       "title_suffix": " rapport",
@@ -1353,11 +1353,14 @@
       "invalid_reading": "Ongeldige meterstand",
       "overall_plausibility_overview": "De som van perceel ({parcels} {unit}) en verenigingsverbruik ({club} {unit}) overschrijdt het hoofdmeterverbruik ({main} {unit}) voor {year}. Controleer de meterstanden.",
       "overall_plausibility_evaluation": "Verdeeld verbruik ({total} {unit}) overschrijdt hoofdmeterverbruik ({main} {unit}).",
-      "reading_below_previous": "De meterstand ({new_value}) mag niet kleiner zijn dan de vorige stand ({previous_value}) van dezelfde meter.",
-      "reading_above_later": "De meterstand ({new_value}) mag niet groter zijn dan de al geregistreerde latere stand ({later_value}) van dezelfde meter.",
       "no_active_meter": "Geen actieve meter voor dit meetpunt",
       "configuration_not_found": "Prijsconfiguratie niet gevonden",
       "configuration_year_exists": "Er bestaat al een andere prijsconfiguratie voor {year}."
+    },
+    "warnings": {
+      "reading_below_previous": "De meterstand ({new_value}) is lager dan de vorige stand ({previous_value}) van dezelfde meter. Is een eerdere stand geschat? Controleer dit a.u.b.",
+      "reading_above_later": "De meterstand ({new_value}) is hoger dan de al vastgelegde latere stand ({later_value}) van dezelfde meter. Controleer dit a.u.b.",
+      "saved_with_warning": "Meterstand opgeslagen, maar controleer hem a.u.b.: {reason}"
     }
   },
   "work_hours": {
