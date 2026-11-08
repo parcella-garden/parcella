@@ -1307,3 +1307,50 @@ class EmailLogOut(BaseModel):
 class EmailLogPage(BaseModel):
     total: int
     items: List[EmailLogOut]
+
+
+# ---------------------------------------------------------------------------
+# Notes and club taxonomy (issue #286, ADR 0122/0123)
+# ---------------------------------------------------------------------------
+
+class TaxonomyTermOut(BaseModel):
+    """A category or a tag of the club taxonomy."""
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    name: str
+    translations: Optional[Dict[str, str]] = None
+
+
+class TaxonomyTermCreate(BaseModel):
+    name: str = Field(..., max_length=100)
+
+
+class NoteBase(BaseModel):
+    title: str = Field(..., max_length=255)
+    note_date: date
+    category_id: Optional[str] = None
+    body_markdown: str = ""
+
+
+class NoteCreate(NoteBase):
+    tag_ids: List[str] = []
+    # Tag names: an existing tag (in any language) is reused, a new one created.
+    new_tags: List[str] = []
+
+
+class NoteUpdate(NoteCreate):
+    # The note's cloud_hash as last read. If the cloud file changed since,
+    # the save is refused with 409 and nothing is overwritten (ADR 0123).
+    # Omitted: compared against what Parcella last synced.
+    base_hash: Optional[str] = None
+
+
+class NoteOut(NoteBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    category: Optional[TaxonomyTermOut] = None
+    tags: List[TaxonomyTermOut] = []
+    created_at: datetime
+    updated_at: datetime
+    cloud_filename: Optional[str] = None
+    cloud_hash: Optional[str] = None

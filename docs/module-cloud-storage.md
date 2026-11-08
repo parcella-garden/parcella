@@ -71,7 +71,9 @@ cloud-backups feature needs both -- creating its own destination
 folder on first run, and pruning old backups beyond a configured
 retention count. Scoped narrowly to that feature managing its own
 backup files in its own configured folder, not a general reversal of
-the reasoning above.
+the reasoning above. The notes module (issue #286, ADR 0123) uses
+`delete_file` the same narrow way: deleting a note deletes the `.md`
+file Parcella manages for it in the configured notes folder.
 
 Every failure mode (network error, 401, 404, unexpected status,
 unparseable XML) raises `CloudStorageError` with a message meant to be

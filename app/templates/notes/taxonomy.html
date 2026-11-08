@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ t('taxonomy.page_title') }}{% endblock %}
+{% block page_title %}{{ t('taxonomy.page_title') }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="/notes/" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>{{ t('taxonomy.back_to_notes') }}
+</a>
+{% endblock %}
+
+{% macro term_list(kind, terms, counts, filter_param) %}
+{% set can_write = has_perm(request, 'notes', 'write') %}
+<div class="card mb-4">
+    <div class="card-header fw-semibold">{{ t('taxonomy.' ~ kind ~ '_header') }}</div>
+    <ul class="list-group list-group-flush">
+        {% for tag in terms %}
+        <li class="list-group-item d-flex flex-wrap gap-2 align-items-center">
+            {% if can_write %}
+            <form method="post" action="/notes/taxonomy/{{ kind }}/{{ tag.id }}/rename" class="d-flex gap-2 flex-grow-1 m-0">
+                {{ csrf_field() }}
+                <input type="text" name="name" value="{{ tag.name }}" class="form-control form-control-sm"
+                       maxlength="100" required aria-label="{{ t('taxonomy.name_label') }}">
+                <button type="submit" class="btn btn-sm btn-outline-primary" title="{{ t('taxonomy.rename_button') }}">
+                    <i class="bi bi-check-lg"></i>
+                </button>
+            </form>
+            {% else %}
+            <span class="flex-grow-1 fw-semibold">{{ tag_name(tag) }}</span>
+            {% endif %}
+            <a href="/notes/?{{ filter_param }}={{ tag.id }}" class="btn btn-sm btn-outline-secondary">
+                {{ t('taxonomy.note_count', count=counts.get(tag.id, 0)) }}
+            </a>
+            {% if has_perm(request, 'notes', 'delete') %}
+            <form method="post" action="/notes/taxonomy/{{ kind }}/{{ tag.id }}/delete" class="m-0"
+                  onsubmit="return confirm({{ t('taxonomy.delete_confirm', name=tag.name)|tojson|forceescape }})">
+                {{ csrf_field() }}
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ t('taxonomy.delete_button') }}">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+            {% endif %}
+            {% with tags_url="/notes/taxonomy/" ~ kind, can_write=has_perm(request, 'notes', 'write') %}{% include "_tag_translations.html" %}{% endwith %}
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">{{ t('taxonomy.empty') }}</li>
+        {% endfor %}
+        {% if can_write %}
+        <li class="list-group-item">
+            <form method="post" action="/notes/taxonomy/{{ kind }}/new" class="d-flex gap-2 m-0">
+                {{ csrf_field() }}
+                <input type="text" name="name" class="form-control form-control-sm" maxlength="100" required
+                       placeholder="{{ t('taxonomy.new_' ~ kind ~ '_placeholder') }}">
+                <button type="submit" class="btn btn-sm btn-primary text-nowrap"><i class="bi bi-plus-lg me-1"></i>{{ t('taxonomy.add_button') }}</button>
+            </form>
+        </li>
+        {% endif %}
+    </ul>
+</div>
+{% endmacro %}
+
+{% block content %}
+<div style="max-width: 760px;">
+    {% if message %}
+    <div class="alert alert-success d-flex gap-2 align-items-center"><i class="bi bi-check-circle-fill"></i> {{ message }}</div>
+    {% endif %}
+    {% if error %}
+    <div class="alert alert-danger d-flex gap-2 align-items-center"><i class="bi bi-exclamation-triangle-fill"></i> {{ error }}</div>
+    {% endif %}
+    <p class="text-muted small">{{ t('taxonomy.page_hint') }}</p>
+    {{ term_list('categories', categories, category_counts, 'category') }}
+    {{ term_list('tags', tags, tag_counts, 'tag') }}
+</div>
+{% endblock %}

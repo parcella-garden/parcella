@@ -88,6 +88,10 @@ MODULE_DEFAULTS: Dict[str, bool] = {
     # default: read-only aggregates of internal data, no public endpoint,
     # no outbound credentials.
     "reporting": True,
+    # Markdown notes (docs/module-notes.md, issue #286). On by default:
+    # internal data, no public endpoint, and the cloud folder it writes
+    # to needs the off-by-default cloud_storage module anyway.
+    "notes": True,
 }
 
 

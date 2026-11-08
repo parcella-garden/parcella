@@ -62,7 +62,8 @@
     "work_hours_transfers": "Uren overdragen",
     "external_contacts": "Externe contacten",
     "reporting": "Rapportages",
-    "email_log": "E-maillogboek"
+    "email_log": "E-maillogboek",
+    "notes": "Notities"
   },
   "errors": {
     "user_not_found": "Gebruiker niet gevonden",
@@ -325,7 +326,9 @@
         "external_contacts_name": "Externe contacten",
         "external_contacts_desc": "Leveranciers, vakmensen, instanties: een bedrijf plus contactpersoon, met adres, IBAN, telefoonnummers, e-mails, notities en labels. Te koppelen aan inkomende facturen en inkoopaanvragen.",
         "reporting_name": "Rapportages",
-        "reporting_desc": "Verenigingscijfers door de tijd als grafieken: leeftijdsgroepen, leden per jaar, beëindigde pachten, aanmeldingen, uitkomsten van werkuren, urenoverdrachten en stroomaansluitingen. Alleen lezen, berekend uit de bestaande gegevens."
+        "reporting_desc": "Verenigingscijfers door de tijd als grafieken: leeftijdsgroepen, leden per jaar, beëindigde pachten, aanmeldingen, uitkomsten van werkuren, urenoverdrachten en stroomaansluitingen. Alleen lezen, berekend uit de bestaande gegevens.",
+        "notes_name": "Notities",
+        "notes_desc": "Markdown-notities voor vergaderingen en al het andere, met categorieën en labels; opgeslagen als .md-bestanden in de cloud als er een notitiemap is ingesteld."
       },
       "region_header": "Regio",
       "region_help": "Bepaalt het getal- en adresformaat (bijv. duizendtalscheidingsteken, volgorde van postcode en plaats). Onafhankelijk van de interfacetaal.",
@@ -432,7 +435,10 @@
       "helpdesk_saved": "Helpdesk-instellingen opgeslagen",
       "helpdesk_type_label": "Helpdesk",
       "helpdesk_type_none": "Geen (geen helpdesk)",
-      "helpdesk_type_hint": "Niet elke helpdesk biedt alles via zijn interface; Parcella toont alleen wat de gekozen helpdesk kan."
+      "helpdesk_type_hint": "Niet elke helpdesk biedt alles via zijn interface; Parcella toont alleen wat de gekozen helpdesk kan.",
+      "notes_folder_header": "Notitiemap",
+      "notes_folder_help": "Map voor notities als Markdown-bestanden (.md). Zodra ingesteld zijn de bestanden leidend: wijzigingen in de cloud verschijnen in Parcella, en opslaan in Parcella schrijft het bestand. Leeg laten om notities alleen in Parcella te bewaren. Submappen zijn categorieën: notities in \"Bestuursvergadering/\" krijgen die categorie, en een notitie met een categorie wordt in die map opgeslagen.",
+      "notes_folder_label": "Mappad"
     },
     "system": {
       "page_title": "Systeem",
@@ -567,7 +573,8 @@
         "freescout_bridge": "Support (helpdesk)",
         "applicants": "Aanmelders",
         "external_contacts": "Externe contacten",
-        "reporting": "Rapportages"
+        "reporting": "Rapportages",
+        "notes": "Notities"
       }
     },
     "email_log": {
@@ -3393,6 +3400,102 @@
       "with": "Met stroomaansluiting",
       "without": "Zonder stroomaansluiting",
       "series_plots": "Tuinen"
+    }
+  },
+  "notes": {
+    "list": {
+      "title": "Notities",
+      "new_note": "Nieuwe notitie",
+      "search_label": "Zoeken",
+      "search_placeholder": "Titel, tekst of label",
+      "any": "Alle",
+      "no_category": "Geen categorie",
+      "date_from": "Van",
+      "date_to": "Tot",
+      "sort_label": "Sorteren op",
+      "sort_date_desc": "Datum, nieuwste eerst",
+      "sort_date_asc": "Datum, oudste eerst",
+      "sort_title": "Titel",
+      "sort_updated": "Laatst gewijzigd",
+      "filter_button": "Toepassen",
+      "reset_button": "Wissen",
+      "col_updated": "Gewijzigd",
+      "pending_upload": "Nog niet in de cloud opgeslagen",
+      "empty": "Nog geen notities.",
+      "empty_filtered": "Geen notities voldoen aan deze filters."
+    },
+    "fields": {
+      "title": "Titel",
+      "date": "Datum",
+      "category": "Categorie",
+      "tags": "Labels",
+      "body": "Notitie"
+    },
+    "form": {
+      "new_title": "Nieuwe notitie",
+      "edit_title": "Notitie bewerken",
+      "new_tags_placeholder": "Nieuwe labels, gescheiden door komma's",
+      "body_placeholder": "Schrijf in Markdown …",
+      "cloud_hint": "Wordt opgeslagen als Markdown-bestand in {folder}.",
+      "save": "Opslaan",
+      "cancel": "Annuleren",
+      "conflict_header": "Intussen gewijzigd in de cloud",
+      "conflict_help": "Iemand heeft het bestand van deze notitie gewijzigd terwijl jij aan het bewerken was. Dit is nu de versie in de cloud; jouw tekst staat nog in het formulier hieronder. Voeg samen wat je nodig hebt en sla opnieuw op om de cloudversie te overschrijven.",
+      "conflict_markdown": "Als Markdown tonen"
+    },
+    "detail": {
+      "back": "Alle notities",
+      "download": ".md downloaden",
+      "edit": "Bewerken",
+      "delete": "Notitie verwijderen",
+      "delete_confirm": "Deze notitie verwijderen? Het bestand in de cloud wordt ook verwijderd.",
+      "created_by": "Aangemaakt door {name}, {when}",
+      "updated_by": "Laatst gewijzigd door {name}, {when}",
+      "cloud_stale": "Het cloudbestand kon niet worden gelezen, de laatst gesynchroniseerde versie wordt getoond: {detail}"
+    },
+    "sync": {
+      "button": "Synchroniseren",
+      "button_title": "Wijzigingen uit de cloudmap {folder} inlezen",
+      "summary": "Gesynchroniseerd: {imported} nieuw, {updated} gewijzigd, {removed} verwijderd, {pushed} geüpload.",
+      "not_configured": "Er is geen notitiemap ingesteld in de cloudopslag.",
+      "error": "Cloudsynchronisatie mislukt: {detail}",
+      "conflict_copies": "{count} notitie(s) zijn zowel hier als in de cloud gewijzigd. De cloudversie is behouden; jouw versie is opgeslagen als aparte notitie met de toevoeging \"conflict copy\"."
+    },
+    "errors": {
+      "not_found": "Notitie niet gevonden.",
+      "title_required": "Vul een titel in.",
+      "title_too_long": "De titel mag maximaal {max} tekens lang zijn.",
+      "date_required": "Vul een datum in.",
+      "unknown_category": "Deze categorie bestaat niet (meer).",
+      "unknown_tag": "Dit label bestaat niet (meer).",
+      "conflict": "Niet opgeslagen: de notitie is intussen in de cloud gewijzigd.",
+      "cloud_save_failed": "Niet opgeslagen, het cloudbestand kon niet worden geschreven: {detail}",
+      "cloud_delete_failed": "Niet verwijderd, het cloudbestand kon niet worden verwijderd: {detail}"
+    },
+    "deleted": "Notitie verwijderd."
+  },
+  "taxonomy": {
+    "manage_link": "Categorieën & labels",
+    "page_title": "Categorieën & labels",
+    "back_to_notes": "Notities",
+    "page_hint": "De categorieën en labels van de vereniging. Elke notitie heeft één categorie en willekeurig veel labels. De kennisbank gaat dezelfde gebruiken.",
+    "categories_header": "Categorieën",
+    "tags_header": "Labels",
+    "name_label": "Naam",
+    "rename_button": "Hernoemen",
+    "note_count": "{count} notitie(s)",
+    "delete_confirm": "\"{name}\" verwijderen? De notities blijven bestaan, alleen zonder dit item.",
+    "delete_button": "Verwijderen",
+    "empty": "Nog geen.",
+    "new_categories_placeholder": "Nieuwe categorie",
+    "new_tags_placeholder": "Nieuw label",
+    "add_button": "Toevoegen",
+    "saved": "Opgeslagen.",
+    "deleted": "Verwijderd.",
+    "errors": {
+      "name_required": "Vul een naam in.",
+      "name_too_long": "Een naam mag maximaal {max} tekens lang zijn.",
+      "name_taken": "\"{name}\" bestaat al."
     }
   }
 }

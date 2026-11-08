@@ -69,6 +69,7 @@ from app.parcel_cloud_folders import browse_folder_picker, sanitize_relative_pat
 from app.print_publisher import PRINT_CLOUD_FOLDER_SETTING, load_print_cloud_folder
 from app.ics_utils import regenerate_ics_token
 from app.contact_documents import EXTERNAL_CONTACTS_FOLDER_SETTING, load_base_folder as load_contacts_base_folder
+from app.services.notes import NOTES_FOLDER_SETTING, load_notes_folder, reset_sync_throttle
 from app.cloud_backup import (
     get_cloud_backup_settings, save_cloud_backup_settings, run_cloud_backup_now,
     is_backup_filename, FREQUENCY_CHOICES,
@@ -953,6 +954,7 @@ MODULE_FIELDS = [
     ("modul_applicants", "admin.settings.modules.applicants_name", "admin.settings.modules.applicants_desc"),
     ("modul_external_contacts", "admin.settings.modules.external_contacts_name", "admin.settings.modules.external_contacts_desc"),
     ("modul_reporting", "admin.settings.modules.reporting_name", "admin.settings.modules.reporting_desc"),
+    ("modul_notes", "admin.settings.modules.notes_name", "admin.settings.modules.notes_desc"),
     ("modul_public_signup_api", "admin.settings.modules.public_signup_api_name", "admin.settings.modules.public_signup_api_desc"),
     ("modul_public_contact_api", "admin.settings.modules.public_contact_api_name", "admin.settings.modules.public_contact_api_desc"),
     ("modul_public_applicant_api", "admin.settings.modules.public_applicant_api_name", "admin.settings.modules.public_applicant_api_desc"),
@@ -1002,6 +1004,7 @@ NAV_ORDER_FIELDS = [
     ("applicants", "nav.applicants"),
     ("external_contacts", "nav.external_contacts"),
     ("reporting", "nav.reporting"),
+    ("notes", "nav.notes"),
 ]
 
 
@@ -1408,6 +1411,9 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
         "print_picker": print_picker,
         "print_folder_saved": request.query_params.get("print_folder_saved"),
         "print_folder_error": request.query_params.get("print_folder_error"),
+        "notes_folder_path": await load_notes_folder(db),
+        "notes_folder_saved": request.query_params.get("notes_folder_saved"),
+        "notes_folder_error": request.query_params.get("notes_folder_error"),
         "helpdesk": await HELPDESK.admin_context(db),
         "helpdesk_saved": request.query_params.get("helpdesk_saved"),
         "helpdesk_error": request.query_params.get("helpdesk_error"),
@@ -1617,6 +1623,39 @@ async def integrations_external_contacts_folder_save(
         ))
     await db.commit()
     return RedirectResponse("/admin/integrations?external_contacts_folder_saved=1", status_code=303)
+
+
+@router.post("/integrations/nextcloud/notes-folder")
+async def integrations_notes_folder_save(
+    request: Request, relative_path: str = Form(""), db: AsyncSession = Depends(get_db),
+):
+    """Issue #286: the cloud folder holding the notes as .md files, the
+    notes' master copy once set (ADR 0123). Blank clears it (notes then
+    live in the database only). Changing it re-syncs against the new
+    folder: notes whose file isn't there are hidden, and come back if
+    the folder is switched back."""
+    await require_system_admin(request, db)
+    from urllib.parse import quote
+
+    entry = await db.scalar(select(ClubSetting).where(ClubSetting.key == NOTES_FOLDER_SETTING))
+    if not relative_path.strip():
+        if entry:
+            await db.delete(entry)
+            await db.commit()
+        return RedirectResponse("/admin/integrations?notes_folder_saved=1#integration-card-nextcloud", status_code=303)
+    try:
+        sanitized = sanitize_relative_path(relative_path)
+    except InvalidCloudPathError as e:
+        return RedirectResponse(
+            f"/admin/integrations?notes_folder_error={quote(str(e))}#integration-card-nextcloud", status_code=303,
+        )
+    if entry:
+        entry.value = sanitized
+    else:
+        db.add(ClubSetting(key=NOTES_FOLDER_SETTING, value=sanitized, description="Cloud folder for notes (.md files)"))
+    await db.commit()
+    reset_sync_throttle()
+    return RedirectResponse("/admin/integrations?notes_folder_saved=1#integration-card-nextcloud", status_code=303)
 
 
 @router.post("/integrations/nextcloud/announcements-print-folder")
