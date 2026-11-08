@@ -35,6 +35,15 @@ from datetime import date
 from typing import Iterable, List, Optional
 
 _DATE_PREFIX_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})")
+# A date at the start of a file name, in the forms clubs actually use
+# (issue #302): "2026-11-08 ...", "20261108 ..." and month-only
+# "202506_..." (the 1st of that month). Not followed by another digit, so
+# a longer number ("2026110812") isn't misread as a date.
+_FILENAME_DATE_RE = re.compile(
+    r"^(?:(?P<y1>\d{4})-(?P<m1>\d{2})-(?P<d1>\d{2})"
+    r"|(?P<y2>\d{4})(?P<m2>\d{2})(?P<d2>\d{2})(?!\d)"
+    r"|(?P<y3>\d{4})(?P<m3>\d{2})(?!\d))"
+)
 _HEADING_RE = re.compile(r"^#{1,6}\s+(.+?)\s*#*\s*$")
 
 MAX_SLUG_LENGTH = 60
@@ -80,6 +89,22 @@ def date_from_last_modified(value: Optional[str]) -> Optional[date]:
         except ValueError:
             return None
     return None
+
+
+def date_from_filename(name: str) -> Optional[date]:
+    """The date a file name starts with (see _FILENAME_DATE_RE), or None.
+    Takes the bare name or a path; only the last segment counts."""
+    stem = name.rsplit("/", 1)[-1]
+    match = _FILENAME_DATE_RE.match(stem)
+    if not match:
+        return None
+    year = match.group("y1") or match.group("y2") or match.group("y3")
+    month = match.group("m1") or match.group("m2") or match.group("m3")
+    day = match.group("d1") or match.group("d2") or "01"
+    try:
+        return date(int(year), int(month), int(day))
+    except ValueError:
+        return None
 
 
 def slugify(text: str) -> str:
@@ -222,12 +247,7 @@ def parse_note_file(content: bytes, filename: str = "") -> ParsedNote:
     if not parsed.title:
         parsed.title = stem or "Note"
     if parsed.note_date is None:
-        match = _DATE_PREFIX_RE.match(stem)
-        if match:
-            try:
-                parsed.note_date = date.fromisoformat(match.group(1))
-            except ValueError:
-                pass
+        parsed.note_date = date_from_filename(stem)
     parsed.title = " ".join(parsed.title.split())[:255]
     parsed.tags = list(dict.fromkeys(" ".join(t.split())[:100] for t in parsed.tags if t.strip()))
     if parsed.category:

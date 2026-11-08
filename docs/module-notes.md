@@ -67,6 +67,14 @@ file later). A partial unique index keeps one live note per file name.
   category moves the file, deeper folders are kept (ADR 0123).
 - **Date**: header, else file name prefix, else the file's own
   last-modified date -- an imported note never gets the import day.
+  The prefix may be `2026-11-08`, `20261108` or month-only `202506`
+  (the 1st of that month), see `date_from_filename()` in
+  `app/note_files.py`. Only `YYYY-MM-DD` was read at first (issue
+  #302), and the fallback bit hard: a copy made in Nextcloud keeps the
+  original's last-modified time, so a protocol copied from a template
+  got the *template's* date and sank out of sight in the date-sorted
+  list. Migration 0119 cleared the stored hashes once so the next sync
+  re-read every file with the new rule.
 - **Search** is `ILIKE` over title, body and tag names (wildcards
   escaped), not Postgres full-text: language-agnostic across the seven
   UI languages, and fast enough for a club's notes. Revisit if the
