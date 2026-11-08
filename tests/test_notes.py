@@ -6,7 +6,7 @@ master: external edits pulled in, a save refused when the file changed
 meanwhile, renamed/deleted files, and edits made while the cloud was
 off pushed (or kept as a conflict copy) later.
 """
-from datetime import date
+from datetime import date, datetime, timezone
 
 import pytest
 from sqlalchemy import select
@@ -18,7 +18,7 @@ from app.database import AsyncSessionLocal
 from app.models import (
     ClubSetting, Group, GroupMembership, GroupModulePermission, Note, TaxonomyCategory, TaxonomyTag, User, UserRole,
 )
-from app.note_files import note_filename, parse_note_file, render_note_file
+from app.note_files import date_from_filename, note_filename, parse_note_file, render_note_file
 from app.services.notes import reset_sync_throttle
 from tests.conftest import auth_header, login
 from tests.test_detail_page_navigation import web_login
@@ -547,6 +547,102 @@ async def test_imported_note_keeps_its_original_date(client, admin_user, monkeyp
     await _sync(client)
     [note] = [n for n in await _notes() if n.title == "Ohne Datum"]
     assert note.note_date == date(2026, 3, 4)
+
+
+def test_date_from_filename_formats():
+    """Issue #302: the date forms clubs put in front of file names."""
+    assert date_from_filename("2026-11-08-vorstand.md") == date(2026, 11, 8)
+    assert date_from_filename("20261108 Vorstandssitzung.md") == date(2026, 11, 8)
+    assert date_from_filename("20250730_Ergebnise_Gartenbegehung.md") == date(2025, 7, 30)
+    assert date_from_filename("202506_gartenbegehungen.md") == date(2025, 6, 1)  # month only: the 1st
+    assert date_from_filename("Protokolle Vorstandssitzung/20261025 Vorstandssitzung.md") == date(2026, 10, 25)
+    for not_a_date in ("Technik.md", "template_vorstandssitzungen.md", "2026110812 Zahl.md",
+                       "20261340 falsch.md", "202613_falsch.md", "2026 Jahresplan.md"):
+        assert date_from_filename(not_a_date) is None, not_a_date
+    # A date header still wins over the file name.
+    parsed = parse_note_file(b"---\ndate: 2026-01-02\n---\n# X", "20261108 X.md")
+    assert parsed.note_date == date(2026, 1, 2)
+
+
+async def test_copied_template_gets_its_file_name_date_not_the_template_timestamp(client, admin_user, monkeypatch):
+    """Bug #302: a protocol created in Nextcloud by copying a template
+    keeps the template's last-modified time. Its file name says
+    20261108, but only YYYY-MM-DD was read, so the note landed on the
+    template's date, buried among last year's protocols."""
+    cloud = await _enable_cloud(client, monkeypatch)
+    template = "# Vorstandssitzung\n\n- Datum:"
+    old = "Mon, 27 Oct 2025 20:10:48 GMT"
+    cloud.put("Protokolle Vorstandssitzung/template_vorstandssitzungen.md", template, last_modified=old)
+    cloud.put("Protokolle Vorstandssitzung/20261108 Vorstandssitzung.md", template, last_modified=old)
+    cloud.put("Gartenbegehungen/202506_gartenbegehungen.md", "# Begehung", last_modified=old)
+    await _sync(client)
+    dates = {n.cloud_filename: n.note_date for n in await _notes()}
+    assert dates == {
+        "Protokolle Vorstandssitzung/template_vorstandssitzungen.md": date(2025, 10, 27),
+        "Protokolle Vorstandssitzung/20261108 Vorstandssitzung.md": date(2026, 11, 8),
+        "Gartenbegehungen/202506_gartenbegehungen.md": date(2025, 6, 1),
+    }
+
+
+async def test_migration_0119_makes_the_next_sync_redate_existing_notes(client, admin_user, monkeypatch):
+    """Notes imported before #302 kept the wrong date; migration 0119
+    forgets the stored hash so the next sync re-reads each file once
+    (never for a note with an unpushed local edit), and once moves notes
+    stuck on their import day to the file's last-modified date."""
+    import importlib.util
+    from pathlib import Path
+    from sqlalchemy import text, update
+
+    cloud = await _enable_cloud(client, monkeypatch)
+    cloud.put("20261108 Vorstandssitzung.md", "# Vorstandssitzung", last_modified="Mon, 27 Oct 2025 20:10:48 GMT")
+    cloud.put("Technik.md", "# Technik", last_modified="Sat, 13 Dec 2025 16:37:04 GMT")
+    cloud.put("Ohne Datum.md", "# Ohne Datum", last_modified="Sat, 13 Dec 2025 16:37:04 GMT")
+    cloud.put("Mit Kopf.md", "---\ndate: 2026-03-01\n---\n# Mit Kopf", last_modified="Sat, 13 Dec 2025 16:37:04 GMT")
+    await _sync(client)
+    by_file = {n.cloud_filename: n for n in await _notes()}
+    # Simulate the pre-#302 state: the template's timestamp as date, and
+    # the very first imports' "import day" for files without any date.
+    async with AsyncSessionLocal() as db:
+        await db.execute(update(Note).where(Note.id == by_file["20261108 Vorstandssitzung.md"].id)
+                         .values(note_date=date(2025, 10, 27)))
+        for name in ("Technik.md", "Mit Kopf.md"):
+            await db.execute(update(Note).where(Note.id == by_file[name].id)
+                             .values(created_at=datetime(2026, 11, 8, 2, 2, tzinfo=timezone.utc),
+                                     note_date=date(2026, 11, 8)))
+        # Not on its import day: a date someone set on purpose, kept.
+        await db.execute(update(Note).where(Note.id == by_file["Ohne Datum.md"].id)
+                         .values(created_at=datetime(2026, 11, 8, 2, 2, tzinfo=timezone.utc),
+                                 note_date=date(2026, 1, 15)))
+        await db.commit()
+    reset_sync_throttle()
+    await _sync(client)
+    dates = {n.cloud_filename: n.note_date for n in await _notes()}
+    assert dates["20261108 Vorstandssitzung.md"] == date(2025, 10, 27)  # unchanged file: not re-read
+    assert dates["Technik.md"] == date(2026, 11, 8)  # no fix without the migration's marker
+
+    path = Path(__file__).resolve().parent.parent / "migrations" / "versions" / "0119_notes_reread_dates.py"
+    spec = importlib.util.spec_from_file_location("migration_0119", path)
+    migration = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(migration)
+    statements = []
+    monkeypatch.setattr(migration, "op", type("Op", (), {"execute": staticmethod(statements.append)}))
+    migration.upgrade()
+    async with AsyncSessionLocal() as db:
+        for statement in statements:
+            await db.execute(text(statement))
+        await db.commit()
+
+    reset_sync_throttle()
+    await _sync(client)
+    dates = {n.cloud_filename: n.note_date for n in await _notes()}
+    assert dates == {
+        "20261108 Vorstandssitzung.md": date(2026, 11, 8),  # file-name date
+        "Technik.md": date(2025, 12, 13),  # import day -> the file's own date
+        "Ohne Datum.md": date(2026, 1, 15),  # not the import day: kept
+        "Mit Kopf.md": date(2026, 3, 1),  # header wins
+    }
+    async with AsyncSessionLocal() as db:  # one-time: the marker is gone
+        assert await db.get(ClubSetting, "notes_redate_import_day_pending") is None
 
 
 async def _all_categories():

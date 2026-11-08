@@ -20,7 +20,7 @@ Cloud storage), the folder's `*.md` files are the notes:
   written by name, in the club language. Parsing is lenient for
   hand-written files (unquoted values, block lists, no header at all:
   title from the first heading or the file name, date from a
-  `YYYY-MM-DD-` file name prefix). No YAML library: this small grammar
+  file name prefix, see below). No YAML library: this small grammar
   is all that's needed, and a full YAML parser on files from outside
   is attack surface for nothing.
 - **File names** are generated once (`2026-03-04-board-meeting.md`,
@@ -42,7 +42,8 @@ Cloud storage), the folder's `*.md` files are the notes:
   next sync moves their files. A file moved between folders in the cloud
   is relinked by its `id` and changes category.
 - **The note's date is the day it's about, never the import day**:
-  header `date:`, else a `YYYY-MM-DD-` file name prefix, else the file's
+  header `date:`, else a file name prefix (`YYYY-MM-DD`, `YYYYMMDD` or
+  `YYYYMM`; the last two added in issue #302), else the file's
   last-modified date from the listing (WebDAV HTTP date or S3 ISO
   timestamp), else today. Once Parcella has written the file, the date
   is in the header. A later edit in the cloud without a date keeps the

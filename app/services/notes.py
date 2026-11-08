@@ -42,6 +42,9 @@ from app.tag_translations import all_names, clean_translations, find_tag_by_name
 logger = logging.getLogger(__name__)
 
 NOTES_FOLDER_SETTING = "notes_cloud_folder"
+# Set once by migration 0119 (issue #302): the next full sync re-dates
+# notes that got their import day as date (see _import_day_fix()).
+REDATE_IMPORT_DAY_SETTING = "notes_redate_import_day_pending"
 TITLE_MAX_LENGTH = 255
 TAXONOMY_NAME_MAX_LENGTH = 100
 # The list page syncs at most this often on its own; "Sync now" forces it.
@@ -660,8 +663,19 @@ async def sync_from_cloud(db: AsyncSession, *, force: bool = False) -> SyncResul
     return result
 
 
+def _was_import_day(note: Note) -> bool:
+    """True if the note's date is the day its row was created -- what
+    the very first notes imports (before the last-modified fallback)
+    gave every file without a date of its own."""
+    if note.created_at is None:
+        return False
+    created = note.created_at if note.created_at.tzinfo else note.created_at.replace(tzinfo=timezone.utc)
+    return note.note_date in {created.astimezone(timezone.utc).date(), created.astimezone().date()}
+
+
 async def _sync(db: AsyncSession, cloud: NotesCloud, result: SyncResult) -> None:
     files = (await _walk(cloud)).files
+    redate_setting = await db.get(ClubSetting, REDATE_IMPORT_DAY_SETTING)
     notes = list((await db.scalars(
         select(Note).options(*note_load_options()).execution_options(populate_existing=True)
     )).all())
@@ -731,6 +745,12 @@ async def _sync(db: AsyncSession, cloud: NotesCloud, result: SyncResult) -> None
             note.cloud_fingerprint = current_fp
             continue
         parsed = parse_note_file(content, name)
+        if (redate_setting is not None and note is not None and parsed.note_date is None
+                and _was_import_day(note)):
+            # One-time fix (issue #302): no date in the header or the file
+            # name, and the note still has the day it was imported -- use
+            # the file's own date, as an import does today.
+            parsed.note_date = date_from_last_modified(entry.last_modified) or None
         if note is None:
             relinked = by_id.get(parsed.note_id or "")
             # A renamed (or restored) file: same note, new name. Not when
@@ -771,6 +791,12 @@ async def _sync(db: AsyncSession, cloud: NotesCloud, result: SyncResult) -> None
                 and note.cloud_filename not in files and note.cloud_filename not in handled):
             note.deleted_at = datetime.now(timezone.utc)
             result.removed += 1
+
+    # The one-time re-dating is done once a sync read every file without
+    # an error; otherwise the next sync retries the files that failed
+    # (their hash is still unset, so they're re-read).
+    if redate_setting is not None and not result.errors:
+        await db.delete(redate_setting)
 
 
 async def _keep_conflict_copy(db: AsyncSession, cloud: NotesCloud, note: Note) -> None:
