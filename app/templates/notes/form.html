@@ -72,6 +72,12 @@
                     <input type="text" name="new_tags" id="note-new-tags" class="form-control" value="{{ values.new_tags }}"
                            placeholder="{{ t('notes.form.new_tags_placeholder') }}">
                 </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold" for="note-source">{{ t('notes.fields.source') }}</label>
+                    <input type="url" name="source_url" id="note-source" class="form-control" maxlength="2048"
+                           value="{{ values.source_url }}" placeholder="https://">
+                    <div class="form-text">{{ t('notes.form.source_help') }}</div>
+                </div>
             </div>
         </div>
     </div>

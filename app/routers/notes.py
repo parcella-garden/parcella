@@ -6,16 +6,19 @@ folder is configured (ADR 0123).
 
 Business logic lives in app/services/notes.py (ADR 0070).
 """
+import base64
+import binascii
 import urllib.parse
 from datetime import date
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from markupsafe import Markup
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.announcement_utils import render_markdown_to_html
+from app.bookmark_import import MAX_BOOKMARK_FILE_BYTES, parse_bookmark_file
 from app.cloud_storage import CloudStorageError
 from app.database import get_db
 from app.i18n import AVAILABLE_LANGUAGES, t_for
@@ -26,9 +29,10 @@ from app.permissions import has_permission, require_permission
 from app.security_headers import content_disposition
 from app.services.errors import ServiceError
 from app.services.notes import (
-    NoteConflict, NoteFilter, NoteInput, count_term_notes, create_note, create_term, delete_note, delete_term,
-    get_note, list_categories, list_tags, load_notes_folder, note_load_options, refresh_note,
-    rename_term, set_term_translations, sync_from_cloud, update_note,
+    BOOKMARK_EXISTS, BOOKMARK_INVALID, BOOKMARK_NEW,
+    NoteConflict, NoteFilter, NoteInput, classify_bookmarks, count_term_notes, create_note, create_term, delete_note,
+    delete_term, get_note, import_bookmarks, list_categories, list_tags, load_notes_folder, note_load_options,
+    refresh_note, rename_term, set_term_translations, sync_from_cloud, update_note,
 )
 from app.tag_translations import tag_label
 from app.templating import templates
@@ -116,6 +120,68 @@ async def notes_sync(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 # ---------------------------------------------------------------------------
+# Bookmark import (issue #305, ADR 0125): the standard bookmark export
+# file (Nextcloud Bookmarks, any browser) -> one note per bookmark in the
+# notes folder root. Two steps: preview, then import. The file round-trips
+# as a hidden base64 field, like the CSV import wizards (ADR 0083).
+# ---------------------------------------------------------------------------
+
+@router.get("/import/bookmarks", response_class=HTMLResponse)
+async def bookmarks_import_page(request: Request, db: AsyncSession = Depends(get_db)):
+    user = await require_permission(request, db, MODULE, "write")
+    return templates.TemplateResponse("notes/import_bookmarks.html", {
+        "request": request, "user": user, "rows": None, "cloud_folder": await load_notes_folder(db),
+        "error": request.query_params.get("error", ""),
+    })
+
+
+@router.post("/import/bookmarks/preview", response_class=HTMLResponse)
+async def bookmarks_import_preview(
+    request: Request, file: UploadFile = File(...), db: AsyncSession = Depends(get_db),
+):
+    user = await require_permission(request, db, MODULE, "write")
+    content = await file.read(MAX_BOOKMARK_FILE_BYTES + 1)
+    if len(content) > MAX_BOOKMARK_FILE_BYTES:
+        return _redirect("/notes/import/bookmarks", error=t_for(
+            request, "notes.bookmarks.too_large", max_mb=MAX_BOOKMARK_FILE_BYTES // (1024 * 1024)))
+    bookmarks = parse_bookmark_file(content)
+    if not bookmarks:
+        return _redirect("/notes/import/bookmarks", error=t_for(request, "notes.bookmarks.none_found"))
+    rows = await classify_bookmarks(db, bookmarks)
+    return templates.TemplateResponse("notes/import_bookmarks.html", {
+        "request": request, "user": user, "rows": rows, "cloud_folder": await load_notes_folder(db),
+        "content_b64": base64.b64encode(content).decode("ascii"),
+        "count_new": sum(1 for _, s in rows if s == BOOKMARK_NEW),
+        "count_exists": sum(1 for _, s in rows if s == BOOKMARK_EXISTS),
+        "count_invalid": sum(1 for _, s in rows if s == BOOKMARK_INVALID),
+        "BOOKMARK_NEW": BOOKMARK_NEW, "BOOKMARK_EXISTS": BOOKMARK_EXISTS, "error": "",
+    })
+
+
+@router.post("/import/bookmarks/finalize")
+async def bookmarks_import_finalize(
+    request: Request, content_b64: str = Form(...), db: AsyncSession = Depends(get_db),
+):
+    user = await require_permission(request, db, MODULE, "write")
+    try:
+        content = base64.b64decode(content_b64, validate=True)
+    except (binascii.Error, ValueError):
+        return _redirect("/notes/import/bookmarks", error=t_for(request, "notes.bookmarks.none_found"))
+    if len(content) > MAX_BOOKMARK_FILE_BYTES:
+        return _redirect("/notes/import/bookmarks", error=t_for(
+            request, "notes.bookmarks.too_large", max_mb=MAX_BOOKMARK_FILE_BYTES // (1024 * 1024)))
+    result = await import_bookmarks(db, user, parse_bookmark_file(content))
+    await db.commit()
+    message = t_for(request, "notes.bookmarks.result", imported=result.imported,
+                    existing=result.skipped_existing, invalid=result.skipped_invalid)
+    if result.failed:
+        return _redirect("/notes/", message=message, error=t_for(
+            request, "notes.bookmarks.failed", count=len(result.failed),
+            detail=" | ".join(result.failed[:3])[:400]))
+    return _redirect("/notes/", message=message)
+
+
+# ---------------------------------------------------------------------------
 # Create / edit
 # ---------------------------------------------------------------------------
 
@@ -135,6 +201,7 @@ async def _input_from_form(request: Request) -> NoteInput:
         tag_ids=[str(v) for v in form.getlist("tag_ids")],
         new_tags=[part for part in str(form.get("new_tags", "")).split(",") if part.strip()],
         body_markdown=str(form.get("body_markdown", "")),
+        source_url=str(form.get("source_url", "")),
     )
 
 
@@ -143,17 +210,18 @@ def _entered(data: NoteInput) -> dict:
         "title": data.title, "note_date": data.note_date.isoformat() if data.note_date else "",
         "category_id": data.category_id, "tag_ids": data.tag_ids,
         "new_tags": ", ".join(t.strip() for t in data.new_tags), "body_markdown": data.body_markdown,
+        "source_url": data.source_url,
     }
 
 
 def _values_from_note(note: Optional[Note]) -> dict:
     if note is None:
         return {"title": "", "note_date": date.today().isoformat(), "category_id": "",
-                "tag_ids": [], "new_tags": "", "body_markdown": ""}
+                "tag_ids": [], "new_tags": "", "body_markdown": "", "source_url": ""}
     return {
         "title": note.title, "note_date": note.note_date.isoformat(),
         "category_id": note.category_id or "", "tag_ids": [t.id for t in note.tags],
-        "new_tags": "", "body_markdown": note.body_markdown,
+        "new_tags": "", "body_markdown": note.body_markdown, "source_url": note.source_url or "",
     }
 
 

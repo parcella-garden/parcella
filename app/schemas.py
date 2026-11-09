@@ -1337,6 +1337,8 @@ class NoteBase(BaseModel):
     note_date: date
     category_id: Optional[str] = None
     body_markdown: str = ""
+    # The web page the note is about (a bookmark, issue #305). http(s) only.
+    source_url: Optional[str] = Field(None, max_length=2048)
 
 
 class NoteCreate(NoteBase):

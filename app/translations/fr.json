@@ -3425,14 +3425,16 @@
       "col_updated": "Modifiée",
       "pending_upload": "Pas encore enregistrée dans le cloud",
       "empty": "Aucune note pour l'instant.",
-      "empty_filtered": "Aucune note ne correspond à ces filtres."
+      "empty_filtered": "Aucune note ne correspond à ces filtres.",
+      "open_source": "Ouvrir la source dans un nouvel onglet"
     },
     "fields": {
       "title": "Titre",
       "date": "Date",
       "category": "Catégorie",
       "tags": "Étiquettes",
-      "body": "Note"
+      "body": "Note",
+      "source": "Source (lien)"
     },
     "form": {
       "new_title": "Nouvelle note",
@@ -3444,7 +3446,8 @@
       "cancel": "Annuler",
       "conflict_header": "Modifiée entre-temps dans le cloud",
       "conflict_help": "Quelqu'un a modifié le fichier de cette note pendant votre édition. Voici la version actuelle dans le cloud ; votre texte est conservé dans le formulaire ci-dessous. Fusionnez ce dont vous avez besoin et enregistrez à nouveau pour écraser la version du cloud.",
-      "conflict_markdown": "Afficher en Markdown"
+      "conflict_markdown": "Afficher en Markdown",
+      "source_help": "Facultatif : la page web dont parle cette note. Une note avec une source est un favori."
     },
     "detail": {
       "back": "Toutes les notes",
@@ -3473,9 +3476,31 @@
       "unknown_tag": "Cette étiquette n'existe pas (ou plus).",
       "conflict": "Non enregistrée : la note a été modifiée entre-temps dans le cloud.",
       "cloud_save_failed": "Non enregistrée, le fichier du cloud n'a pas pu être écrit : {detail}",
-      "cloud_delete_failed": "Non supprimée, le fichier du cloud n'a pas pu être supprimé : {detail}"
+      "cloud_delete_failed": "Non supprimée, le fichier du cloud n'a pas pu être supprimé : {detail}",
+      "invalid_source_url": "La source doit être une adresse web commençant par http:// ou https://."
     },
-    "deleted": "Note supprimée."
+    "deleted": "Note supprimée.",
+    "bookmarks": {
+      "import_button": "Importer des favoris",
+      "title": "Importer des favoris",
+      "back": "Retour aux notes",
+      "intro": "Téléversez un fichier d'export de favoris (HTML). Nextcloud Bookmarks et tous les navigateurs savent le créer. Chaque favori devient une note avec le lien comme source.",
+      "target_cloud": "Les nouvelles notes sont enregistrées à la racine du dossier de notes {folder} (sans catégorie). Les dossiers de favoris deviennent des étiquettes.",
+      "target_db": "Les nouvelles notes sont enregistrées sans catégorie. Les dossiers de favoris deviennent des étiquettes.",
+      "preview_button": "Afficher l'aperçu",
+      "help": "Rien n'est encore enregistré : la page suivante montre ce qui sera importé. Parcella n'ouvre pas les pages liées.",
+      "summary": "{new} nouveaux, {existing} existent déjà comme notes (ignorés), {invalid} ne sont pas des liens web (ignorés).",
+      "import_confirm": "Importer {count} favori(s)",
+      "other_file": "Choisir un autre fichier",
+      "col_status": "Statut",
+      "status_new": "nouveau",
+      "status_exists": "déjà une note",
+      "status_invalid": "pas un lien web",
+      "too_large": "Le fichier dépasse {max_mb} Mo.",
+      "none_found": "Aucun favori trouvé dans ce fichier.",
+      "result": "Favoris importés : {imported} nouveaux, {existing} existaient déjà, {invalid} ignorés (pas un lien web).",
+      "failed": "{count} favori(s) n'ont pas pu être enregistrés : {detail}"
+    }
   },
   "taxonomy": {
     "manage_link": "Catégories et étiquettes",

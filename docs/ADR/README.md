@@ -128,3 +128,4 @@ in chronological order.
 122. [One club-wide taxonomy (categories and tags), shared by notes and the knowledge base](./0122-club-wide-taxonomy.md)
 123. [Notes: the .md file in the cloud is the master, the database is its index](./0123-notes-cloud-file-is-the-master.md)
 124. [Meter readings: a decreasing reading warns, it doesn't block](./0124-meter-monotonicity-warns-not-blocks.md)
+125. [Bookmarks are notes with a source; Parcella never fetches the pages](./0125-bookmarks-are-notes-with-a-source.md)

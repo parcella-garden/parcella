@@ -3617,6 +3617,9 @@ class Note(Base):
         String(36), ForeignKey("taxonomy_categories.id", ondelete="SET NULL"), nullable=True, index=True
     )
     body_markdown: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # The web page a note is about -- a bookmark is a note with a source
+    # (issue #305, ADR 0125). http(s) only, see note_files.clean_source_url.
+    source_url: Mapped[Optional[str]] = mapped_column(String(2048), nullable=True, index=True)
 
     created_by_user_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True

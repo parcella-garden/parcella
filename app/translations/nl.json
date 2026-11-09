@@ -3425,14 +3425,16 @@
       "col_updated": "Gewijzigd",
       "pending_upload": "Nog niet in de cloud opgeslagen",
       "empty": "Nog geen notities.",
-      "empty_filtered": "Geen notities voldoen aan deze filters."
+      "empty_filtered": "Geen notities voldoen aan deze filters.",
+      "open_source": "Bron openen in een nieuw tabblad"
     },
     "fields": {
       "title": "Titel",
       "date": "Datum",
       "category": "Categorie",
       "tags": "Labels",
-      "body": "Notitie"
+      "body": "Notitie",
+      "source": "Bron (link)"
     },
     "form": {
       "new_title": "Nieuwe notitie",
@@ -3444,7 +3446,8 @@
       "cancel": "Annuleren",
       "conflict_header": "Intussen gewijzigd in de cloud",
       "conflict_help": "Iemand heeft het bestand van deze notitie gewijzigd terwijl jij aan het bewerken was. Dit is nu de versie in de cloud; jouw tekst staat nog in het formulier hieronder. Voeg samen wat je nodig hebt en sla opnieuw op om de cloudversie te overschrijven.",
-      "conflict_markdown": "Als Markdown tonen"
+      "conflict_markdown": "Als Markdown tonen",
+      "source_help": "Optioneel: de webpagina waar deze notitie over gaat. Een notitie met een bron is een bladwijzer."
     },
     "detail": {
       "back": "Alle notities",
@@ -3473,9 +3476,31 @@
       "unknown_tag": "Dit label bestaat niet (meer).",
       "conflict": "Niet opgeslagen: de notitie is intussen in de cloud gewijzigd.",
       "cloud_save_failed": "Niet opgeslagen, het cloudbestand kon niet worden geschreven: {detail}",
-      "cloud_delete_failed": "Niet verwijderd, het cloudbestand kon niet worden verwijderd: {detail}"
+      "cloud_delete_failed": "Niet verwijderd, het cloudbestand kon niet worden verwijderd: {detail}",
+      "invalid_source_url": "De bron moet een webadres zijn dat begint met http:// of https://."
     },
-    "deleted": "Notitie verwijderd."
+    "deleted": "Notitie verwijderd.",
+    "bookmarks": {
+      "import_button": "Bladwijzers importeren",
+      "title": "Bladwijzers importeren",
+      "back": "Terug naar notities",
+      "intro": "Upload een exportbestand met bladwijzers (HTML). Nextcloud Bookmarks en elke browser kunnen dat maken. Elke bladwijzer wordt een notitie met de link als bron.",
+      "target_cloud": "Nieuwe notities worden opgeslagen in de hoofdmap van de notities {folder} (zonder categorie). Bladwijzermappen worden tags.",
+      "target_db": "Nieuwe notities worden zonder categorie opgeslagen. Bladwijzermappen worden tags.",
+      "preview_button": "Voorbeeld tonen",
+      "help": "Er wordt nog niets opgeslagen: de volgende pagina toont wat er geïmporteerd wordt. Parcella opent de gelinkte pagina's niet.",
+      "summary": "{new} nieuw, {existing} bestaan al als notitie (overgeslagen), {invalid} geen weblink (overgeslagen).",
+      "import_confirm": "{count} bladwijzer(s) importeren",
+      "other_file": "Ander bestand kiezen",
+      "col_status": "Status",
+      "status_new": "nieuw",
+      "status_exists": "al een notitie",
+      "status_invalid": "geen weblink",
+      "too_large": "Het bestand is groter dan {max_mb} MB.",
+      "none_found": "Geen bladwijzers gevonden in dit bestand.",
+      "result": "Bladwijzers geïmporteerd: {imported} nieuw, {existing} bestonden al, {invalid} overgeslagen (geen weblink).",
+      "failed": "{count} bladwijzer(s) konden niet worden opgeslagen: {detail}"
+    }
   },
   "taxonomy": {
     "manage_link": "Categorieën & labels",

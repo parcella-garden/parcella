@@ -3425,14 +3425,16 @@
       "col_updated": "Changed",
       "pending_upload": "Not yet saved to the cloud",
       "empty": "No notes yet.",
-      "empty_filtered": "No notes match these filters."
+      "empty_filtered": "No notes match these filters.",
+      "open_source": "Open source in a new tab"
     },
     "fields": {
       "title": "Title",
       "date": "Date",
       "category": "Category",
       "tags": "Tags",
-      "body": "Note"
+      "body": "Note",
+      "source": "Source (link)"
     },
     "form": {
       "new_title": "New note",
@@ -3444,7 +3446,8 @@
       "cancel": "Cancel",
       "conflict_header": "Changed in the cloud meanwhile",
       "conflict_help": "Someone changed this note's file while you were editing. This is the version in the cloud now; your text is kept in the form below. Merge what you need and save again to overwrite the cloud version.",
-      "conflict_markdown": "Show as Markdown"
+      "conflict_markdown": "Show as Markdown",
+      "source_help": "Optional: the web page this note is about. A note with a source is a bookmark."
     },
     "detail": {
       "back": "All notes",
@@ -3473,9 +3476,31 @@
       "unknown_tag": "This tag doesn't exist (any more).",
       "conflict": "Not saved: the note was changed in the cloud in the meantime.",
       "cloud_save_failed": "Not saved, the cloud file could not be written: {detail}",
-      "cloud_delete_failed": "Not deleted, the cloud file could not be deleted: {detail}"
+      "cloud_delete_failed": "Not deleted, the cloud file could not be deleted: {detail}",
+      "invalid_source_url": "The source must be a web address starting with http:// or https://."
     },
-    "deleted": "Note deleted."
+    "deleted": "Note deleted.",
+    "bookmarks": {
+      "import_button": "Import bookmarks",
+      "title": "Import bookmarks",
+      "back": "Back to notes",
+      "intro": "Upload a bookmark export file (HTML). Nextcloud Bookmarks and every browser can create one. Each bookmark becomes a note with the link as its source.",
+      "target_cloud": "New notes are saved in the root of the notes folder {folder} (no category). Bookmark folders become tags.",
+      "target_db": "New notes are saved without a category. Bookmark folders become tags.",
+      "preview_button": "Show preview",
+      "help": "Nothing is saved yet: the next page shows what will be imported. Parcella doesn't open the linked pages.",
+      "summary": "{new} new, {existing} already exist as notes (skipped), {invalid} not a web link (skipped).",
+      "import_confirm": "Import {count} bookmark(s)",
+      "other_file": "Choose another file",
+      "col_status": "Status",
+      "status_new": "new",
+      "status_exists": "already a note",
+      "status_invalid": "not a web link",
+      "too_large": "The file is larger than {max_mb} MB.",
+      "none_found": "No bookmarks found in this file.",
+      "result": "Bookmarks imported: {imported} new, {existing} already existed, {invalid} skipped (not a web link).",
+      "failed": "{count} bookmark(s) could not be saved: {detail}"
+    }
   },
   "taxonomy": {
     "manage_link": "Categories & tags",

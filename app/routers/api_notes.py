@@ -49,7 +49,7 @@ def _input(data: NoteCreate) -> NoteInput:
     return NoteInput(
         title=data.title, note_date=data.note_date,
         category_id=data.category_id or "", tag_ids=list(data.tag_ids), new_tags=list(data.new_tags),
-        body_markdown=data.body_markdown,
+        body_markdown=data.body_markdown, source_url=data.source_url or "",
     )
 
 

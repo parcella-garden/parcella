@@ -3425,14 +3425,16 @@
       "col_updated": "Geändert",
       "pending_upload": "Noch nicht in der Cloud gespeichert",
       "empty": "Noch keine Notizen.",
-      "empty_filtered": "Keine Notizen passen zu diesen Filtern."
+      "empty_filtered": "Keine Notizen passen zu diesen Filtern.",
+      "open_source": "Quelle in neuem Tab öffnen"
     },
     "fields": {
       "title": "Titel",
       "date": "Datum",
       "category": "Kategorie",
       "tags": "Schlagworte",
-      "body": "Notiz"
+      "body": "Notiz",
+      "source": "Quelle (Link)"
     },
     "form": {
       "new_title": "Neue Notiz",
@@ -3444,7 +3446,8 @@
       "cancel": "Abbrechen",
       "conflict_header": "Inzwischen in der Cloud geändert",
       "conflict_help": "Jemand hat die Datei dieser Notiz geändert, während du sie bearbeitet hast. Das ist die aktuelle Fassung in der Cloud; dein Text steht weiter unten im Formular. Übernimm, was du brauchst, und speichere erneut, um die Cloud-Fassung zu überschreiben.",
-      "conflict_markdown": "Als Markdown anzeigen"
+      "conflict_markdown": "Als Markdown anzeigen",
+      "source_help": "Optional: die Webseite, um die es in dieser Notiz geht. Eine Notiz mit Quelle ist ein Lesezeichen."
     },
     "detail": {
       "back": "Alle Notizen",
@@ -3473,9 +3476,31 @@
       "unknown_tag": "Dieses Schlagwort gibt es (nicht mehr).",
       "conflict": "Nicht gespeichert: Die Notiz wurde inzwischen in der Cloud geändert.",
       "cloud_save_failed": "Nicht gespeichert, die Cloud-Datei konnte nicht geschrieben werden: {detail}",
-      "cloud_delete_failed": "Nicht gelöscht, die Cloud-Datei konnte nicht gelöscht werden: {detail}"
+      "cloud_delete_failed": "Nicht gelöscht, die Cloud-Datei konnte nicht gelöscht werden: {detail}",
+      "invalid_source_url": "Die Quelle muss eine Webadresse sein, die mit http:// oder https:// beginnt."
     },
-    "deleted": "Notiz gelöscht."
+    "deleted": "Notiz gelöscht.",
+    "bookmarks": {
+      "import_button": "Lesezeichen importieren",
+      "title": "Lesezeichen importieren",
+      "back": "Zurück zu den Notizen",
+      "intro": "Lade eine Lesezeichen-Exportdatei (HTML) hoch. Nextcloud Bookmarks und jeder Browser können sie erstellen. Jedes Lesezeichen wird eine Notiz mit dem Link als Quelle.",
+      "target_cloud": "Neue Notizen werden im Hauptordner der Notizen {folder} gespeichert (ohne Kategorie). Lesezeichen-Ordner werden zu Schlagwörtern.",
+      "target_db": "Neue Notizen werden ohne Kategorie gespeichert. Lesezeichen-Ordner werden zu Schlagwörtern.",
+      "preview_button": "Vorschau anzeigen",
+      "help": "Noch wird nichts gespeichert: Die nächste Seite zeigt, was importiert wird. Parcella öffnet die verlinkten Seiten nicht.",
+      "summary": "{new} neu, {existing} schon als Notiz vorhanden (übersprungen), {invalid} kein Weblink (übersprungen).",
+      "import_confirm": "{count} Lesezeichen importieren",
+      "other_file": "Andere Datei wählen",
+      "col_status": "Status",
+      "status_new": "neu",
+      "status_exists": "schon eine Notiz",
+      "status_invalid": "kein Weblink",
+      "too_large": "Die Datei ist größer als {max_mb} MB.",
+      "none_found": "In dieser Datei wurden keine Lesezeichen gefunden.",
+      "result": "Lesezeichen importiert: {imported} neu, {existing} waren schon vorhanden, {invalid} übersprungen (kein Weblink).",
+      "failed": "{count} Lesezeichen konnten nicht gespeichert werden: {detail}"
+    }
   },
   "taxonomy": {
     "manage_link": "Kategorien & Schlagworte",

@@ -26,7 +26,8 @@ note_tag_links       -- note <-> tag
 
 **`Note`**: `title`, `note_date` (the day the meeting was, not when the
 note was written; that's `created_at`/`updated_at`; date only, no time
-of day), `category_id`, `body_markdown`,
+of day), `category_id`, `body_markdown`, `source_url` (the web page the
+note is about: a bookmark is a note with a source, ADR 0125),
 `created_by`/`updated_by`, `deleted_at` (soft delete, ADR 0005). The
 `cloud_*` columns track the file: `cloud_filename`, `cloud_hash`
 (sha256 of the content last read/written, the conflict token),
@@ -42,13 +43,16 @@ file later). A partial unique index keeps one live note per file name.
 ## Code
 
 - `app/note_files.py` -- the file format: render/parse front matter,
-  file names, hashes. Pure, no I/O.
+  file names, hashes, `clean_source_url()` (http/https only). Pure, no I/O.
+- `app/bookmark_import.py` -- parser for the standard bookmark export
+  file (Netscape HTML). Pure, no I/O, never fetches a page.
 - `app/services/notes.py` -- taxonomy CRUD, `NoteFilter`
   (search/filter/sort), create/update/delete, `refresh_note`,
   `sync_from_cloud`. Shared by both routers (ADR 0070).
 - `app/routers/notes.py` -- web UI under `/notes` (list, detail, form,
   `.md` download, `/notes/taxonomy`, `POST /notes/preview`,
-  `POST /notes/sync`).
+  `POST /notes/sync`, `/notes/import/bookmarks` with `/preview` and
+  `/finalize`).
 - `app/routers/api_notes.py` -- REST API under `/api/v1/notes`
   (list with the same filters, CRUD, categories, tags, sync). `PUT`
   takes an optional `base_hash`; a changed cloud file is a 409, an
@@ -90,6 +94,14 @@ file later). A partial unique index keeps one live note per file name.
 - **Editor**: EasyMDE 2.18 (same as announcements), with its toggle
   between writing, preview and side-by-side -- the "switch" the issue
   asks for.
+
+- **Bookmarks** (ADR 0125): a note with a `source:` header. The
+  one-time import takes the export file of Nextcloud Bookmarks or any
+  browser and creates one note per bookmark in the notes folder root,
+  with no category. The date comes from `ADD_DATE`, the text from the
+  description, and folders become extra tags. URLs that already have
+  a note are skipped. Parcella never fetches the pages; summarizing
+  them is for the external AI (#307).
 
 ## Known gaps
 
