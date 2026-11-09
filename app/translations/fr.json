@@ -63,7 +63,8 @@
     "external_contacts": "Contacts externes",
     "reporting": "Rapports",
     "email_log": "Journal des e-mails",
-    "notes": "Notes"
+    "notes": "Notes",
+    "api_tokens": "Jetons API"
   },
   "errors": {
     "user_not_found": "Utilisateur non trouvé",
@@ -3524,6 +3525,47 @@
       "name_required": "Veuillez saisir un nom.",
       "name_too_long": "Un nom ne peut pas dépasser {max} caractères.",
       "name_taken": "« {name} » existe déjà."
+    }
+  },
+  "api_tokens": {
+    "title": "Mes jetons API",
+    "title_admin": "Jetons API",
+    "back_to_profile": "Retour au profil",
+    "created": "Jeton créé.",
+    "created_for": "Jeton créé pour {name}.",
+    "shown_once": "Copiez-le maintenant : il n'est affiché qu'une seule fois et ne pourra plus être récupéré. Traitez-le comme un mot de passe.",
+    "intro": "Un jeton API personnel permet à une intégration (par exemple un assistant IA via MCP, ou un script) d'utiliser l'API REST en votre nom, avec exactement vos droits, sans votre mot de passe. Révoquez-le dès qu'il n'est plus nécessaire. Changer votre mot de passe met fin à tous vos jetons.",
+    "intro_admin": "Les jetons API de tous les utilisateurs. Vous pouvez révoquer chacun d'eux et en créer un pour un compte qui ne se connecte pas lui-même, comme un utilisateur dédié à une intégration. Donnez à cet utilisateur un groupe avec uniquement les droits dont l'intégration a besoin.",
+    "new_heading": "Nouveau jeton",
+    "field_user": "Utilisateur",
+    "user_help": "Impossible de créer des jetons pour d'autres comptes disposant d'un accès complet : un jeton agit discrètement au nom de cette personne.",
+    "field_name": "Nom",
+    "name_placeholder": "ex. base de connaissances Claude",
+    "field_expires": "Expire",
+    "expiry_days": "après {days} jours",
+    "expiry_never": "jamais",
+    "create_button": "Créer le jeton",
+    "col_created": "Créé",
+    "col_last_used": "Dernière utilisation",
+    "col_status": "Statut",
+    "never_used": "jamais",
+    "status_active": "actif",
+    "status_expired": "expiré",
+    "status_revoked": "révoqué",
+    "status_invalidated": "terminé",
+    "status_invalidated_help": "Le mot de passe a été modifié après la création de ce jeton.",
+    "revoke_button": "Révoquer",
+    "revoke_confirm": "Révoquer ce jeton ? Tout ce qui l'utilise cessera immédiatement de fonctionner.",
+    "empty": "Aucun jeton API pour l'instant.",
+    "profile_link_text": "Jetons API pour les intégrations",
+    "profile_link": "Gérer",
+    "errors": {
+      "name_required": "Veuillez donner un nom au jeton.",
+      "name_too_long": "Le nom ne peut pas dépasser {max} caractères.",
+      "invalid_expiry": "Veuillez choisir une durée valide.",
+      "user_inactive": "Ce compte est désactivé.",
+      "not_found": "Jeton introuvable.",
+      "not_for_full_access_user": "Impossible de créer des jetons pour un autre compte disposant d'un accès complet."
     }
   }
 }

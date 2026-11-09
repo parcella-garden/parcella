@@ -63,7 +63,8 @@
     "external_contacts": "Externé kontakty",
     "reporting": "Prehľady",
     "email_log": "Protokol e-mailov",
-    "notes": "Poznámky"
+    "notes": "Poznámky",
+    "api_tokens": "API tokeny"
   },
   "errors": {
     "user_not_found": "Používateľ nebol nájdený",
@@ -3524,6 +3525,47 @@
       "name_required": "Zadajte názov.",
       "name_too_long": "Názov môže mať najviac {max} znakov.",
       "name_taken": "\"{name}\" už existuje."
+    }
+  },
+  "api_tokens": {
+    "title": "Moje API tokeny",
+    "title_admin": "API tokeny",
+    "back_to_profile": "Späť na profil",
+    "created": "Token vytvorený.",
+    "created_for": "Token vytvorený pre {name}.",
+    "shown_once": "Skopírujte si ho teraz: zobrazí sa iba tentoraz a neskôr ho nemožno znova získať. Zaobchádzajte s ním ako s heslom.",
+    "intro": "Osobný API token umožňuje integrácii (napr. AI asistentovi cez MCP alebo skriptu) používať REST API vo vašom mene, s presne vašimi oprávneniami a bez vášho hesla. Zrušte ho, keď už nie je potrebný. Zmena hesla ukončí všetky vaše tokeny.",
+    "intro_admin": "API tokeny všetkých používateľov. Každý z nich môžete zrušiť a vytvoriť token pre účet, ktorý sa sám neprihlasuje, napr. samostatného používateľa integrácie. Dajte mu skupinu iba s oprávneniami, ktoré integrácia potrebuje.",
+    "new_heading": "Nový token",
+    "field_user": "Používateľ",
+    "user_help": "Pre iné účty s plným prístupom nemožno tokeny vytvárať: token koná nepozorovane v mene tejto osoby.",
+    "field_name": "Názov",
+    "name_placeholder": "napr. znalostná báza Claude",
+    "field_expires": "Platnosť",
+    "expiry_days": "{days} dní",
+    "expiry_never": "bez obmedzenia",
+    "create_button": "Vytvoriť token",
+    "col_created": "Vytvorené",
+    "col_last_used": "Naposledy použitý",
+    "col_status": "Stav",
+    "never_used": "nikdy",
+    "status_active": "aktívny",
+    "status_expired": "vypršal",
+    "status_revoked": "zrušený",
+    "status_invalidated": "ukončený",
+    "status_invalidated_help": "Heslo bolo zmenené po vytvorení tohto tokenu.",
+    "revoke_button": "Zrušiť",
+    "revoke_confirm": "Zrušiť tento token? Všetko, čo ho používa, okamžite prestane fungovať.",
+    "empty": "Zatiaľ žiadne API tokeny.",
+    "profile_link_text": "API tokeny pre integrácie",
+    "profile_link": "Spravovať",
+    "errors": {
+      "name_required": "Zadajte prosím názov tokenu.",
+      "name_too_long": "Názov môže mať najviac {max} znakov.",
+      "invalid_expiry": "Zvoľte prosím platnú dobu platnosti.",
+      "user_inactive": "Tento účet je deaktivovaný.",
+      "not_found": "Token sa nenašiel.",
+      "not_for_full_access_user": "Pre iný účet s plným prístupom nemožno tokeny vytvárať."
     }
   }
 }

@@ -63,7 +63,8 @@
     "external_contacts": "Externí kontakty",
     "reporting": "Přehledy",
     "email_log": "Protokol e-mailů",
-    "notes": "Poznámky"
+    "notes": "Poznámky",
+    "api_tokens": "API tokeny"
   },
   "errors": {
     "user_not_found": "Uživatel nebyl nalezen",
@@ -3524,6 +3525,47 @@
       "name_required": "Zadejte název.",
       "name_too_long": "Název může mít nejvýše {max} znaků.",
       "name_taken": "\"{name}\" už existuje."
+    }
+  },
+  "api_tokens": {
+    "title": "Moje API tokeny",
+    "title_admin": "API tokeny",
+    "back_to_profile": "Zpět na profil",
+    "created": "Token vytvořen.",
+    "created_for": "Token vytvořen pro {name}.",
+    "shown_once": "Zkopírujte si ho hned: zobrazí se jen tentokrát a později ho nelze znovu získat. Zacházejte s ním jako s heslem.",
+    "intro": "Osobní API token umožňuje integraci (např. AI asistentovi přes MCP nebo skriptu) používat REST API vaším jménem, s přesně vašimi oprávněními a bez vašeho hesla. Zrušte ho, jakmile už není potřeba. Změna hesla ukončí všechny vaše tokeny.",
+    "intro_admin": "API tokeny všech uživatelů. Každý z nich můžete zrušit a vytvořit token pro účet, který se sám nepřihlašuje, např. samostatného uživatele integrace. Dejte mu skupinu jen s oprávněními, která integrace potřebuje.",
+    "new_heading": "Nový token",
+    "field_user": "Uživatel",
+    "user_help": "Pro jiné účty s plným přístupem nelze tokeny vytvářet: token jedná nepozorovaně jménem této osoby.",
+    "field_name": "Název",
+    "name_placeholder": "např. znalostní báze Claude",
+    "field_expires": "Platnost",
+    "expiry_days": "{days} dní",
+    "expiry_never": "bez omezení",
+    "create_button": "Vytvořit token",
+    "col_created": "Vytvořeno",
+    "col_last_used": "Naposledy použit",
+    "col_status": "Stav",
+    "never_used": "nikdy",
+    "status_active": "aktivní",
+    "status_expired": "vypršel",
+    "status_revoked": "zrušen",
+    "status_invalidated": "ukončen",
+    "status_invalidated_help": "Heslo bylo změněno po vytvoření tohoto tokenu.",
+    "revoke_button": "Zrušit",
+    "revoke_confirm": "Zrušit tento token? Vše, co ho používá, okamžitě přestane fungovat.",
+    "empty": "Zatím žádné API tokeny.",
+    "profile_link_text": "API tokeny pro integrace",
+    "profile_link": "Spravovat",
+    "errors": {
+      "name_required": "Zadejte prosím název tokenu.",
+      "name_too_long": "Název může mít nejvýše {max} znaků.",
+      "invalid_expiry": "Zvolte prosím platnou dobu platnosti.",
+      "user_inactive": "Tento účet je deaktivován.",
+      "not_found": "Token nenalezen.",
+      "not_for_full_access_user": "Pro jiný účet s plným přístupem nelze tokeny vytvářet."
     }
   }
 }

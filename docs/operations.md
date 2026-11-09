@@ -201,8 +201,10 @@ the account in that state as well -- see
 ## Security-relevant settings
 
 - **`SECRET_KEY`: generated unless you set one (ADR 0121).** It signs
-  session cookies and API tokens and encrypts stored SMTP/Nextcloud/
-  WordPress passwords. With `SECRET_KEY` empty (the published compose
+  session cookies and the 24-hour login JWTs, and encrypts stored
+  SMTP/Nextcloud/WordPress passwords. Personal API tokens (`pct_...`,
+  ADR 0126) don't depend on it: they're stored as a hash and survive a
+  key change. With `SECRET_KEY` empty (the published compose
   file's default), the entrypoint writes a random key to
   `./data/secrets/secret_key` (mode 0600) on first start and the app
   reads it from there. An explicitly set `SECRET_KEY` always wins. With

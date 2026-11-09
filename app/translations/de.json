@@ -63,7 +63,8 @@
     "external_contacts": "Externe Kontakte",
     "reporting": "Auswertungen",
     "email_log": "E-Mail-Protokoll",
-    "notes": "Notizen"
+    "notes": "Notizen",
+    "api_tokens": "API-Tokens"
   },
   "errors": {
     "user_not_found": "Benutzer nicht gefunden",
@@ -3524,6 +3525,47 @@
       "name_required": "Bitte einen Namen eingeben.",
       "name_too_long": "Ein Name darf höchstens {max} Zeichen lang sein.",
       "name_taken": "\"{name}\" gibt es schon."
+    }
+  },
+  "api_tokens": {
+    "title": "Meine API-Tokens",
+    "title_admin": "API-Tokens",
+    "back_to_profile": "Zurück zum Profil",
+    "created": "Token erstellt.",
+    "created_for": "Token für {name} erstellt.",
+    "shown_once": "Jetzt kopieren: Er wird nur dieses eine Mal angezeigt und lässt sich später nicht mehr abrufen. Behandeln Sie ihn wie ein Passwort.",
+    "intro": "Mit einem persönlichen API-Token kann eine Anbindung (zum Beispiel ein KI-Assistent über MCP oder ein Skript) die REST-API in Ihrem Namen nutzen, mit genau Ihren Rechten und ohne Ihr Passwort. Widerrufen Sie ihn, sobald er nicht mehr gebraucht wird. Eine Passwortänderung beendet alle Ihre Tokens.",
+    "intro_admin": "Die API-Tokens aller Benutzer. Sie können jeden widerrufen und einen für ein Konto erstellen, das sich nicht selbst anmeldet, etwa einen eigenen Benutzer für eine Anbindung. Geben Sie diesem Benutzer eine Gruppe mit nur den Rechten, die die Anbindung braucht.",
+    "new_heading": "Neuer Token",
+    "field_user": "Benutzer",
+    "user_help": "Für andere Konten mit Vollzugriff lassen sich keine Tokens erstellen: Ein Token handelt unbemerkt im Namen dieser Person.",
+    "field_name": "Name",
+    "name_placeholder": "z. B. Claude Wissensdatenbank",
+    "field_expires": "Läuft ab",
+    "expiry_days": "nach {days} Tagen",
+    "expiry_never": "nie",
+    "create_button": "Token erstellen",
+    "col_created": "Erstellt",
+    "col_last_used": "Zuletzt benutzt",
+    "col_status": "Status",
+    "never_used": "nie",
+    "status_active": "aktiv",
+    "status_expired": "abgelaufen",
+    "status_revoked": "widerrufen",
+    "status_invalidated": "beendet",
+    "status_invalidated_help": "Das Passwort wurde nach dem Erstellen dieses Tokens geändert.",
+    "revoke_button": "Widerrufen",
+    "revoke_confirm": "Diesen Token widerrufen? Alles, was ihn nutzt, funktioniert sofort nicht mehr.",
+    "empty": "Noch keine API-Tokens.",
+    "profile_link_text": "API-Tokens für Anbindungen",
+    "profile_link": "Verwalten",
+    "errors": {
+      "name_required": "Bitte geben Sie dem Token einen Namen.",
+      "name_too_long": "Der Name darf höchstens {max} Zeichen lang sein.",
+      "invalid_expiry": "Bitte wählen Sie eine gültige Laufzeit.",
+      "user_inactive": "Dieses Konto ist deaktiviert.",
+      "not_found": "Token nicht gefunden.",
+      "not_for_full_access_user": "Für ein anderes Konto mit Vollzugriff lassen sich keine Tokens erstellen."
     }
   }
 }

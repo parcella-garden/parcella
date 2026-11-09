@@ -63,7 +63,8 @@
     "external_contacts": "External contacts",
     "reporting": "Reporting",
     "email_log": "Email log",
-    "notes": "Notes"
+    "notes": "Notes",
+    "api_tokens": "API tokens"
   },
   "errors": {
     "user_not_found": "User not found",
@@ -3524,6 +3525,47 @@
       "name_required": "Please enter a name.",
       "name_too_long": "A name can be at most {max} characters long.",
       "name_taken": "\"{name}\" already exists."
+    }
+  },
+  "api_tokens": {
+    "title": "My API tokens",
+    "title_admin": "API tokens",
+    "back_to_profile": "Back to profile",
+    "created": "Token created.",
+    "created_for": "Token created for {name}.",
+    "shown_once": "Copy it now: it is shown only this once and can't be retrieved later. Treat it like a password.",
+    "intro": "A personal API token lets an integration (for example an AI assistant via MCP, or a script) use the REST API as you, with exactly your permissions, without your password. Revoke it as soon as it's no longer needed. Changing your password ends all your tokens.",
+    "intro_admin": "All users' API tokens. You can revoke any of them, and create one for an account that doesn't log in itself, such as a dedicated integration user. Give that user a group with only the permissions the integration needs.",
+    "new_heading": "New token",
+    "field_user": "User",
+    "user_help": "Tokens can't be created for other accounts with full access: a token acts silently in that person's name.",
+    "field_name": "Name",
+    "name_placeholder": "e.g. Claude knowledge base",
+    "field_expires": "Expires",
+    "expiry_days": "after {days} days",
+    "expiry_never": "never",
+    "create_button": "Create token",
+    "col_created": "Created",
+    "col_last_used": "Last used",
+    "col_status": "Status",
+    "never_used": "never",
+    "status_active": "active",
+    "status_expired": "expired",
+    "status_revoked": "revoked",
+    "status_invalidated": "ended",
+    "status_invalidated_help": "The password was changed after this token was created.",
+    "revoke_button": "Revoke",
+    "revoke_confirm": "Revoke this token? Anything using it stops working immediately.",
+    "empty": "No API tokens yet.",
+    "profile_link_text": "API tokens for integrations",
+    "profile_link": "Manage",
+    "errors": {
+      "name_required": "Please give the token a name.",
+      "name_too_long": "The name can be at most {max} characters long.",
+      "invalid_expiry": "Please choose a valid expiry.",
+      "user_inactive": "This account is deactivated.",
+      "not_found": "Token not found.",
+      "not_for_full_access_user": "Tokens can't be created for another account with full access."
     }
   }
 }

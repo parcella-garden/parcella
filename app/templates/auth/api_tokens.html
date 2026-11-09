@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}{{ t('api_tokens.title_admin') if admin_view else t('api_tokens.title') }}{% endblock %}
+{% block page_title %}{{ t('api_tokens.title_admin') if admin_view else t('api_tokens.title') }}{% endblock %}
+
+{% block topbar_actions %}
+{% if not admin_view %}
+<a href="/auth/change-password" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>{{ t('api_tokens.back_to_profile') }}
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if error %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-circle-fill"></i> {{ error }}
+</div>
+{% endif %}
+
+{% if new_token %}
+<div class="alert alert-success mb-3">
+    <div class="fw-semibold mb-1">
+        <i class="bi bi-check-circle-fill me-1"></i>
+        {% if new_token_user %}{{ t('api_tokens.created_for', name=new_token_user.name) }}{% else %}{{ t('api_tokens.created') }}{% endif %}
+    </div>
+    <div class="mb-2">{{ t('api_tokens.shown_once') }}</div>
+    <code id="new_api_token" class="d-block p-2 bg-body border rounded text-break user-select-all">{{ new_token }}</code>
+</div>
+{% endif %}
+
+<p class="text-muted" style="font-size: 0.9rem;">
+    <i class="bi bi-info-circle me-1"></i>{{ t('api_tokens.intro_admin') if admin_view else t('api_tokens.intro') }}
+</p>
+
+<div class="card mb-3" style="max-width: 640px;">
+    <div class="card-header"><i class="bi bi-plus-lg me-2"></i>{{ t('api_tokens.new_heading') }}</div>
+    <div class="card-body">
+        <form method="post" action="{{ form_action }}" class="row g-2 align-items-end">
+            {{ csrf_field() }}
+            {% if admin_view %}
+            <div class="col-12">
+                <label class="form-label fw-semibold" for="token_user">{{ t('api_tokens.field_user') }}</label>
+                <select name="user_id" id="token_user" class="form-select" required>
+                    {% for candidate in eligible_users %}
+                    <option value="{{ candidate.id }}" {% if candidate.id == user.id %}selected{% endif %}>{{ candidate.name }} ({{ candidate.email }})</option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">{{ t('api_tokens.user_help') }}</div>
+            </div>
+            {% endif %}
+            <div class="col-sm-7">
+                <label class="form-label fw-semibold" for="token_name">{{ t('api_tokens.field_name') }}</label>
+                <input type="text" name="name" id="token_name" class="form-control" maxlength="100" required
+                       placeholder="{{ t('api_tokens.name_placeholder') }}">
+            </div>
+            <div class="col-sm-5">
+                <label class="form-label fw-semibold" for="token_expiry">{{ t('api_tokens.field_expires') }}</label>
+                <select name="expires_in" id="token_expiry" class="form-select">
+                    {% for days in expiry_choices %}
+                    {% if days %}
+                    <option value="{{ days }}" {% if days == default_expiry %}selected{% endif %}>{{ t('api_tokens.expiry_days', days=days) }}</option>
+                    {% else %}
+                    <option value="never">{{ t('api_tokens.expiry_never') }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-key me-1"></i>{{ t('api_tokens.create_button') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    {% if rows %}
+    <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>{{ t('api_tokens.field_name') }}</th>
+                    {% if admin_view %}<th>{{ t('api_tokens.field_user') }}</th>{% endif %}
+                    <th>{{ t('api_tokens.col_created') }}</th>
+                    <th>{{ t('api_tokens.col_last_used') }}</th>
+                    <th>{{ t('api_tokens.field_expires') }}</th>
+                    <th>{{ t('api_tokens.col_status') }}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for token, status in rows %}
+                <tr class="{% if status != 'active' %}text-muted{% endif %}">
+                    <td class="text-break">
+                        <div class="fw-semibold">{{ token.name }}</div>
+                        <code class="small">{{ token.token_prefix }}…</code>
+                    </td>
+                    {% if admin_view %}<td class="text-break">{{ token.user.name if token.user else '–' }}</td>{% endif %}
+                    <td class="text-nowrap small">{{ token.created_at.strftime('%d.%m.%Y') }}</td>
+                    <td class="text-nowrap small">{{ token.last_used_at.strftime('%d.%m.%Y %H:%M') if token.last_used_at else t('api_tokens.never_used') }}</td>
+                    <td class="text-nowrap small">{{ token.expires_at.strftime('%d.%m.%Y') if token.expires_at else t('api_tokens.expiry_never') }}</td>
+                    <td class="text-nowrap small">
+                        {% if status == 'active' %}<span class="badge text-bg-success">{{ t('api_tokens.status_active') }}</span>
+                        {% elif status == 'expired' %}<span class="badge text-bg-secondary">{{ t('api_tokens.status_expired') }}</span>
+                        {% elif status == 'revoked' %}<span class="badge text-bg-secondary">{{ t('api_tokens.status_revoked') }}</span>
+                        {% else %}<span class="badge text-bg-warning" title="{{ t('api_tokens.status_invalidated_help') }}">{{ t('api_tokens.status_invalidated') }}</span>{% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if status == 'active' %}
+                        <form method="post" action="{{ form_action }}/{{ token.id }}/revoke"
+                              onsubmit="return confirm(this.dataset.confirm);" data-confirm="{{ t('api_tokens.revoke_confirm') }}">
+                            {{ csrf_field() }}
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-x-circle me-1"></i>{{ t('api_tokens.revoke_button') }}
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-muted">{{ t('api_tokens.empty') }}</div>
+    {% endif %}
+</div>
+
+{% endblock %}

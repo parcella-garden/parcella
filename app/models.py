@@ -106,6 +106,46 @@ class User(Base):
         return f"<User {self.email} ({self.role})>"
 
 
+class ApiToken(Base):
+    """A personal API token (issue #306, ADR 0126): long-lived, revocable,
+    for integrations such as the MCP connector (#307) that can't log in
+    with a password every day.
+
+    Only the SHA-256 of the token is stored; the token itself is shown
+    once, on creation. It acts with exactly its user's permissions --
+    there are no scopes; a narrower token means a narrower user.
+
+    `session_version` is the user's session_version when the token was
+    made. A password change or an admin password reset bumps the user's
+    value, which ends every token issued before, the same way it ends the
+    session cookies. Revoking sets `revoked_at` (historization, ADR 0005);
+    the row stays so the list shows what existed and when it was used.
+    """
+    __tablename__ = "api_tokens"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    # The first characters of the token, to tell tokens apart in the list.
+    token_prefix: Mapped[str] = mapped_column(String(16), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    session_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_by_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_used_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    revoked_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
+    created_by: Mapped[Optional["User"]] = relationship("User", foreign_keys=[created_by_id])
+
+
 class Invitation(Base):
     __tablename__ = "invitations"
 

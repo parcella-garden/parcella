@@ -16,6 +16,8 @@ from app.auth import (
     verify_invitation_token, create_invitation_token, get_current_user, require_admin, require_user
 )
 from app.avatars import save_avatar_upload, remove_avatar_file
+from app.services import api_tokens
+from app.services.errors import ServiceError
 from app.config import settings
 from app.i18n import t_for
 from app.login_throttle import (
@@ -299,3 +301,64 @@ async def invitation_accept(
         secure=not settings.is_development,
     )
     return response
+
+
+# ---------------------------------------------------------------------------
+# Personal API tokens (issue #306, ADR 0126) -- any logged-in user manages
+# their own; system admins see and revoke everyone's on /admin/api-tokens
+# (app/routers/admin.py). Both render auth/api_tokens.html. Creation and
+# revocation are web-only (cookie session + CSRF): a token can't mint
+# further tokens, so a leaked one can't make itself permanent.
+# ---------------------------------------------------------------------------
+
+async def _api_tokens_page(request, db, user, *, new_token=None, error=None, status_code=200):
+    tokens = await api_tokens.list_tokens(db, user)
+    response = templates.TemplateResponse(
+        "auth/api_tokens.html",
+        {
+            "request": request, "user": user, "admin_view": False,
+            "rows": [(tok, api_tokens.token_status(tok, tok.user)) for tok in tokens],
+            "new_token": new_token, "error": error,
+            "expiry_choices": api_tokens.EXPIRY_CHOICES_DAYS,
+            "default_expiry": api_tokens.DEFAULT_EXPIRY_DAYS,
+            "form_action": "/auth/api-tokens",
+        },
+        status_code=status_code,
+    )
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@router.get("/api-tokens", response_class=HTMLResponse)
+async def api_tokens_page(request: Request, db: AsyncSession = Depends(get_db)):
+    user = await require_user(request, db)
+    return await _api_tokens_page(request, db, user)
+
+
+@router.post("/api-tokens", response_class=HTMLResponse)
+async def api_token_create(
+    request: Request,
+    name: str = Form(""),
+    expires_in: str = Form(""),
+    db: AsyncSession = Depends(get_db),
+):
+    user = await require_user(request, db)
+    try:
+        days = api_tokens.parse_expiry_days(expires_in)
+        _, raw = await api_tokens.create_token(db, user, name, days, created_by=user)
+    except ServiceError as e:
+        return await _api_tokens_page(
+            request, db, user, error=t_for(request, e.key, **e.params), status_code=e.http_status,
+        )
+    return await _api_tokens_page(request, db, user, new_token=raw)
+
+
+@router.post("/api-tokens/{token_id}/revoke")
+async def api_token_revoke(token_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    user = await require_user(request, db)
+    try:
+        token = await api_tokens.get_token(db, token_id, owner=user)
+    except ServiceError:
+        raise HTTPException(status_code=404, detail=t_for(request, "api_tokens.errors.not_found"))
+    await api_tokens.revoke_token(db, token)
+    return RedirectResponse("/auth/api-tokens", status_code=302)

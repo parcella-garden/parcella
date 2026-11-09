@@ -63,7 +63,8 @@
     "external_contacts": "Kontakty zewnętrzne",
     "reporting": "Raporty",
     "email_log": "Dziennik e-maili",
-    "notes": "Notatki"
+    "notes": "Notatki",
+    "api_tokens": "Tokeny API"
   },
   "errors": {
     "user_not_found": "Nie znaleziono użytkownika",
@@ -3524,6 +3525,47 @@
       "name_required": "Podaj nazwę.",
       "name_too_long": "Nazwa może mieć najwyżej {max} znaków.",
       "name_taken": "\"{name}\" już istnieje."
+    }
+  },
+  "api_tokens": {
+    "title": "Moje tokeny API",
+    "title_admin": "Tokeny API",
+    "back_to_profile": "Powrót do profilu",
+    "created": "Token utworzony.",
+    "created_for": "Token utworzony dla {name}.",
+    "shown_once": "Skopiuj go teraz: jest wyświetlany tylko ten jeden raz i nie można go później odczytać. Traktuj go jak hasło.",
+    "intro": "Osobisty token API pozwala integracji (np. asystentowi AI przez MCP lub skryptowi) korzystać z REST API w Twoim imieniu, z dokładnie Twoimi uprawnieniami, bez Twojego hasła. Unieważnij go, gdy nie jest już potrzebny. Zmiana hasła kończy wszystkie Twoje tokeny.",
+    "intro_admin": "Tokeny API wszystkich użytkowników. Możesz unieważnić każdy z nich i utworzyć token dla konta, które samo się nie loguje, np. osobnego użytkownika integracji. Przypisz mu grupę tylko z uprawnieniami, których integracja potrzebuje.",
+    "new_heading": "Nowy token",
+    "field_user": "Użytkownik",
+    "user_help": "Nie można tworzyć tokenów dla innych kont z pełnym dostępem: token działa niezauważenie w imieniu tej osoby.",
+    "field_name": "Nazwa",
+    "name_placeholder": "np. baza wiedzy Claude",
+    "field_expires": "Wygasa",
+    "expiry_days": "po {days} dniach",
+    "expiry_never": "nigdy",
+    "create_button": "Utwórz token",
+    "col_created": "Utworzono",
+    "col_last_used": "Ostatnio użyty",
+    "col_status": "Status",
+    "never_used": "nigdy",
+    "status_active": "aktywny",
+    "status_expired": "wygasły",
+    "status_revoked": "unieważniony",
+    "status_invalidated": "zakończony",
+    "status_invalidated_help": "Hasło zostało zmienione po utworzeniu tego tokenu.",
+    "revoke_button": "Unieważnij",
+    "revoke_confirm": "Unieważnić ten token? Wszystko, co go używa, natychmiast przestanie działać.",
+    "empty": "Brak tokenów API.",
+    "profile_link_text": "Tokeny API dla integracji",
+    "profile_link": "Zarządzaj",
+    "errors": {
+      "name_required": "Nadaj tokenowi nazwę.",
+      "name_too_long": "Nazwa może mieć maksymalnie {max} znaków.",
+      "invalid_expiry": "Wybierz prawidłowy okres ważności.",
+      "user_inactive": "To konto jest dezaktywowane.",
+      "not_found": "Nie znaleziono tokenu.",
+      "not_for_full_access_user": "Nie można tworzyć tokenów dla innego konta z pełnym dostępem."
     }
   }
 }
