@@ -49,9 +49,44 @@ def _shown_token(html: str) -> str:
 
 async def _create_own_token(client, name="Script", expires_in="365"):
     response = await client.post("/auth/api-tokens", data={"name": name, "expires_in": expires_in})
-    assert response.status_code == 200, response.text
-    assert response.headers.get("cache-control") == "no-store"
-    return _shown_token(response.text)
+    # Post/Redirect/Get: the POST never renders the token itself.
+    assert response.status_code == 303, response.text
+    assert response.headers["location"] == "/auth/api-tokens"
+    page = await client.get("/auth/api-tokens")
+    assert page.status_code == 200
+    assert page.headers.get("cache-control") == "no-store"
+    return _shown_token(page.text)
+
+
+async def test_reload_after_create_neither_mints_nor_reshows_token(client, admin_user):
+    """Smoke-test bug on PR #309: the create POST answered with the page,
+    so F5 re-submitted the form and minted a second token."""
+    await _web_login(client, "admin@example.com", "testpasswort123")
+    response = await client.post("/auth/api-tokens", data={"name": "Once", "expires_in": "30"})
+    assert response.status_code == 303
+    assert "pct_" not in response.text and "pct_" not in response.headers["location"]
+    set_cookie = response.headers["set-cookie"].lower()
+    assert "httponly" in set_cookie and "samesite=strict" in set_cookie and "path=/auth/api-tokens" in set_cookie
+
+    raw = _shown_token((await client.get("/auth/api-tokens")).text)
+    # Reloading the page the browser landed on is a GET: no new token,
+    # and the raw value isn't shown a second time.
+    again = await client.get("/auth/api-tokens")
+    assert raw not in again.text and "new_api_token" not in again.text
+    async with AsyncSessionLocal() as session:
+        assert len((await session.execute(select(ApiToken))).scalars().all()) == 1
+
+
+async def test_forged_new_token_cookie_shows_nothing(client, admin_user, member_user):
+    """The one-time cookie is only displayed if it is one of the page's own
+    tokens: someone else's token (or junk) shows nothing."""
+    async with _new_client() as other:
+        await _web_login(other, member_user.email, "memberpass123")
+        others_raw = await _create_own_token(other)
+    await _web_login(client, "admin@example.com", "testpasswort123")
+    client.cookies.set(api_tokens.NEW_TOKEN_COOKIE, others_raw, path="/auth/api-tokens")
+    page = await client.get("/auth/api-tokens")
+    assert others_raw not in page.text and "new_api_token" not in page.text
 
 
 async def test_token_created_once_stored_hashed_and_accepted_by_api(client, admin_user):
@@ -181,8 +216,12 @@ async def test_admin_creates_token_for_integration_user_and_revokes_any(client, 
     response = await client.post("/admin/api-tokens", data={
         "user_id": member_user.id, "name": "KI-Assistent", "expires_in": "90",
     })
-    assert response.status_code == 200, response.text
-    raw = _shown_token(response.text)
+    assert response.status_code == 303, response.text
+    assert response.headers["location"] == "/admin/api-tokens"
+    page = await client.get("/admin/api-tokens")
+    raw = _shown_token(page.text)
+    assert member_user.name in page.text
+    assert raw not in (await client.get("/admin/api-tokens")).text
     async with AsyncSessionLocal() as session:
         token = (await session.execute(select(ApiToken))).scalar_one()
         assert token.user_id == member_user.id and token.created_by_id == admin_user.id

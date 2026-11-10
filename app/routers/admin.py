@@ -1789,8 +1789,10 @@ async def integrations_deck_sync_now(request: Request, db: AsyncSession = Depend
 # would let one admin act as another unnoticed.
 # ---------------------------------------------------------------------------
 
-async def _admin_api_tokens_page(request, db, admin, *, new_token=None, new_token_user=None, error=None, status_code=200):
+async def _admin_api_tokens_page(request, db, admin, *, error=None, status_code=200):
     tokens = await api_tokens.list_tokens(db)
+    new_token, new_token_row = api_tokens.read_new_token(request, tokens)
+    new_token_user = new_token_row.user if new_token_row is not None else None
     users = (await db.execute(select(User).where(User.is_active.is_(True)).order_by(User.name))).scalars().all()
     eligible = [u for u in users if u.id == admin.id or not await is_full_access_user(db, u)]
     response = templates.TemplateResponse(
@@ -1807,6 +1809,7 @@ async def _admin_api_tokens_page(request, db, admin, *, new_token=None, new_toke
         status_code=status_code,
     )
     response.headers["Cache-Control"] = "no-store"
+    api_tokens.clear_new_token_cookie(request, response, "/admin/api-tokens")
     return response
 
 
@@ -1837,7 +1840,10 @@ async def admin_api_token_create(
         return await _admin_api_tokens_page(
             request, db, admin, error=t_for(request, e.key, **e.params), status_code=e.http_status,
         )
-    return await _admin_api_tokens_page(request, db, admin, new_token=raw, new_token_user=target)
+    # Post/Redirect/Get, see the user-side handler in app/routers/auth.py.
+    response = RedirectResponse("/admin/api-tokens", status_code=303)
+    api_tokens.set_new_token_cookie(response, raw, "/admin/api-tokens", secure=not settings.is_development)
+    return response
 
 
 @router.post("/api-tokens/{token_id}/revoke")

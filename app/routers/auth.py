@@ -311,8 +311,9 @@ async def invitation_accept(
 # further tokens, so a leaked one can't make itself permanent.
 # ---------------------------------------------------------------------------
 
-async def _api_tokens_page(request, db, user, *, new_token=None, error=None, status_code=200):
+async def _api_tokens_page(request, db, user, *, error=None, status_code=200):
     tokens = await api_tokens.list_tokens(db, user)
+    new_token, _ = api_tokens.read_new_token(request, tokens)
     response = templates.TemplateResponse(
         "auth/api_tokens.html",
         {
@@ -326,6 +327,7 @@ async def _api_tokens_page(request, db, user, *, new_token=None, error=None, sta
         status_code=status_code,
     )
     response.headers["Cache-Control"] = "no-store"
+    api_tokens.clear_new_token_cookie(request, response, "/auth/api-tokens")
     return response
 
 
@@ -350,7 +352,11 @@ async def api_token_create(
         return await _api_tokens_page(
             request, db, user, error=t_for(request, e.key, **e.params), status_code=e.http_status,
         )
-    return await _api_tokens_page(request, db, user, new_token=raw)
+    # Post/Redirect/Get: a reload must not re-submit the form and mint
+    # another token. The raw token crosses the redirect in a one-time cookie.
+    response = RedirectResponse("/auth/api-tokens", status_code=303)
+    api_tokens.set_new_token_cookie(response, raw, "/auth/api-tokens", secure=not settings.is_development)
+    return response
 
 
 @router.post("/api-tokens/{token_id}/revoke")

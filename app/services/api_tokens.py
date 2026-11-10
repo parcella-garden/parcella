@@ -151,3 +151,43 @@ async def revoke_token(db: AsyncSession, token: ApiToken) -> None:
     if token.revoked_at is None:
         token.revoked_at = _now()
         await db.commit()
+
+
+# ---------------------------------------------------------------------------
+# Showing a new token exactly once, across a redirect (Post/Redirect/Get).
+# Answering the create POST with the page directly made F5 re-submit the
+# form and silently mint another token. So the POST redirects, and the raw
+# token rides along in a short-lived cookie: HttpOnly, SameSite=Strict,
+# scoped to the tokens page, deleted on the first read. It never goes into
+# a URL (history, logs, Referer). The page only shows a value whose hash
+# matches a token in its own list, so a forged cookie displays nothing.
+# ---------------------------------------------------------------------------
+
+NEW_TOKEN_COOKIE = "new_api_token"
+NEW_TOKEN_COOKIE_MAX_AGE = 120  # seconds; just long enough for the redirect
+
+
+def set_new_token_cookie(response, raw: str, path: str, secure: bool) -> None:
+    response.set_cookie(
+        NEW_TOKEN_COOKIE, raw, max_age=NEW_TOKEN_COOKIE_MAX_AGE, path=path,
+        httponly=True, samesite="strict", secure=secure,
+    )
+
+
+def read_new_token(request, tokens: List[ApiToken]) -> Tuple[Optional[str], Optional[ApiToken]]:
+    """Return (raw, token) from the one-time cookie, only if the raw value
+    belongs to one of `tokens`. The caller deletes the cookie on its
+    response with clear_new_token_cookie()."""
+    raw = request.cookies.get(NEW_TOKEN_COOKIE)
+    if not looks_like_api_token(raw):
+        return None, None
+    digest = hash_token(raw)
+    for token in tokens:
+        if token.token_hash == digest:
+            return raw, token
+    return None, None
+
+
+def clear_new_token_cookie(request, response, path: str) -> None:
+    if NEW_TOKEN_COOKIE in request.cookies:
+        response.delete_cookie(NEW_TOKEN_COOKIE, path=path, httponly=True, samesite="strict")
