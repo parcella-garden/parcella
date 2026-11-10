@@ -11,10 +11,18 @@ in again every day and shouldn't hold a password.
 - **A personal token per user** (`api_tokens` table, migration 0121):
   name, created, created by, last used, optional expiry (30/90/365 days
   or never; 365 is the default), revoked.
-  - The token is `pct_` + 256 random bits. It's shown once, on the page
-    that created it (`Cache-Control: no-store`, never in a URL), and
-    stored only as its SHA-256. A fast hash is enough because the input
-    is random, and it allows an indexed lookup.
+  - The token is `pct_` + 256 random bits. It's shown once
+    (`Cache-Control: no-store`, never in a URL) and stored only as its
+    SHA-256. A fast hash is enough because the input is random, and it
+    allows an indexed lookup.
+  - Creating one is Post/Redirect/Get. The first version answered the
+    POST with the page itself, so F5 re-submitted the form and silently
+    minted a second token (found in the smoke test). The raw token now
+    crosses the redirect in a one-time cookie: HttpOnly,
+    SameSite=Strict, scoped to the tokens page, 2-minute max-age,
+    deleted on first read. The page shows it only if its hash matches
+    one of the tokens that page lists, so a planted or leftover cookie
+    shows nothing.
   - The prefix tells `get_current_api_user` which kind it is. Anything
     else is still treated as a login JWT, so existing clients are
     unaffected.
