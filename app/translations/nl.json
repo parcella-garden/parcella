@@ -63,7 +63,8 @@
     "external_contacts": "Externe contacten",
     "reporting": "Rapportages",
     "email_log": "E-maillogboek",
-    "notes": "Notities"
+    "notes": "Notities",
+    "api_tokens": "API-tokens"
   },
   "errors": {
     "user_not_found": "Gebruiker niet gevonden",
@@ -3524,6 +3525,47 @@
       "name_required": "Vul een naam in.",
       "name_too_long": "Een naam mag maximaal {max} tekens lang zijn.",
       "name_taken": "\"{name}\" bestaat al."
+    }
+  },
+  "api_tokens": {
+    "title": "Mijn API-tokens",
+    "title_admin": "API-tokens",
+    "back_to_profile": "Terug naar profiel",
+    "created": "Token aangemaakt.",
+    "created_for": "Token aangemaakt voor {name}.",
+    "shown_once": "Kopieer hem nu: hij wordt maar één keer getoond en kan later niet meer worden opgevraagd. Behandel hem als een wachtwoord.",
+    "intro": "Met een persoonlijke API-token kan een koppeling (bijvoorbeeld een AI-assistent via MCP, of een script) de REST-API namens jou gebruiken, met precies jouw rechten en zonder jouw wachtwoord. Trek hem in zodra hij niet meer nodig is. Een wachtwoordwijziging beëindigt al je tokens.",
+    "intro_admin": "De API-tokens van alle gebruikers. Je kunt elk ervan intrekken en er een aanmaken voor een account dat zelf niet inlogt, zoals een aparte gebruiker voor een koppeling. Geef die gebruiker een groep met alleen de rechten die de koppeling nodig heeft.",
+    "new_heading": "Nieuwe token",
+    "field_user": "Gebruiker",
+    "user_help": "Voor andere accounts met volledige toegang kunnen geen tokens worden aangemaakt: een token handelt ongemerkt namens die persoon.",
+    "field_name": "Naam",
+    "name_placeholder": "bijv. Claude kennisbank",
+    "field_expires": "Verloopt",
+    "expiry_days": "na {days} dagen",
+    "expiry_never": "nooit",
+    "create_button": "Token aanmaken",
+    "col_created": "Aangemaakt",
+    "col_last_used": "Laatst gebruikt",
+    "col_status": "Status",
+    "never_used": "nooit",
+    "status_active": "actief",
+    "status_expired": "verlopen",
+    "status_revoked": "ingetrokken",
+    "status_invalidated": "beëindigd",
+    "status_invalidated_help": "Het wachtwoord is gewijzigd nadat deze token werd aangemaakt.",
+    "revoke_button": "Intrekken",
+    "revoke_confirm": "Deze token intrekken? Alles wat hem gebruikt, werkt meteen niet meer.",
+    "empty": "Nog geen API-tokens.",
+    "profile_link_text": "API-tokens voor koppelingen",
+    "profile_link": "Beheren",
+    "errors": {
+      "name_required": "Geef de token een naam.",
+      "name_too_long": "De naam mag maximaal {max} tekens lang zijn.",
+      "invalid_expiry": "Kies een geldige looptijd.",
+      "user_inactive": "Dit account is gedeactiveerd.",
+      "not_found": "Token niet gevonden.",
+      "not_for_full_access_user": "Voor een ander account met volledige toegang kunnen geen tokens worden aangemaakt."
     }
   }
 }

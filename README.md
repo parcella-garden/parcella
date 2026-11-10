@@ -223,6 +223,13 @@ curl http://localhost:8000/api/v1/members \
 
 Tokens are valid for 24 hours. The Swagger UI has an "Authorize" button for convenient testing.
 
+For integrations that run for longer (a script, an AI assistant via MCP),
+create a **personal API token** instead: profile → *API tokens* (admins:
+*Administration → API tokens*). It starts with `pct_`, is shown once,
+goes in the same `Authorization: Bearer` header, acts with exactly its
+user's permissions, and works until it expires or is revoked (or the
+user's password changes). See ADR 0126.
+
 ### Key endpoints
 
 | Method | Path | Description |

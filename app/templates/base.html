@@ -525,6 +525,7 @@
                 <a href="/admin/system" class="{% if '/admin/system' in request.url.path or '/admin/backup' in request.url.path %}aktiv{% endif %}">{{ t('nav.system') }}</a>
                 <a href="/admin/users/" class="{% if '/admin/users' in request.url.path %}aktiv{% endif %}">{{ t('nav.users') }}</a>
                 <a href="/admin/groups/" class="{% if '/admin/groups' in request.url.path %}aktiv{% endif %}">{{ t('nav.groups') }}</a>
+                <a href="/admin/api-tokens" class="{% if '/admin/api-tokens' in request.url.path %}aktiv{% endif %}">{{ t('nav.api_tokens') }}</a>
                 <a href="/admin/settings" class="{% if '/admin/settings' in request.url.path %}aktiv{% endif %}">{{ t('nav.settings') }}</a>
                 <a href="/admin/integrations" class="{% if '/admin/integrations' in request.url.path %}aktiv{% endif %}">{{ t('nav.integrations') }}</a>
                 <a href="/admin/email-log" class="{% if '/admin/email-log' in request.url.path %}aktiv{% endif %}">{{ t('nav.email_log') }}</a>

@@ -3,7 +3,8 @@ JWT authentication for the REST API.
 
 Separate from the web UI's cookie-based session authentication (see
 app/auth.py). The API uses classic bearer tokens in the Authorization
-header.
+header: either a 24-hour JWT from the password login, or a personal API
+token (`pct_...`, app/services/api_tokens.py, ADR 0126).
 
 Authorization is a separate concern from authentication: require_api_role
 and its ready-made combinations (require_write_access, require_admin_api)
@@ -29,6 +30,7 @@ from app.models import User, UserRole
 from app.auth import verify_password
 from app.i18n import t_for
 from app.permissions import get_user_permissions, has_permission, is_full_access_user
+from app.services import api_tokens
 
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_VALID_MINUTES = 60 * 24  # 24 Stunden
@@ -81,6 +83,14 @@ async def get_current_api_user(
 
     if not token:
         raise unauthorized
+
+    # Personal API tokens (issue #306, ADR 0126) are told apart by their
+    # prefix; everything else must be a login JWT.
+    if api_tokens.looks_like_api_token(token):
+        user = await api_tokens.authenticate(db, token)
+        if user is None:
+            raise unauthorized
+        return user
 
     payload = decode_access_token(token)
     if not payload:
