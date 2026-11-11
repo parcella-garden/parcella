@@ -9,9 +9,10 @@ come across, and what the linked sites say should end up in notes.
 ## Decision
 
 - **A bookmark is a note with a `source`.** No separate bookmark table:
-  `notes.source_url` plus a `source:` line in the note file's header
-  (ADR 0123), read back on sync like every other field (`url:` is
-  accepted too, which is what web clippers write). A bookmark has a title,
+  `notes.source_url` (since ADR 0127 only there; at first also a
+  `source:` line in the note file's header, ADR 0123 -- a header from
+  a file that turns up in the notes folder is still read on import,
+  `url:` too, which is what web clippers write). A bookmark has a title,
   a date, tags and a text, the same as a note, and it should be found by
   the same search and filters. A second entity would duplicate all of
   that, and the AI connector would need two sets of tools.
