@@ -438,7 +438,7 @@
       "helpdesk_type_none": "Geen (geen helpdesk)",
       "helpdesk_type_hint": "Niet elke helpdesk biedt alles via zijn interface; Parcella toont alleen wat de gekozen helpdesk kan.",
       "notes_folder_header": "Notitiemap",
-      "notes_folder_help": "Map voor notities als Markdown-bestanden (.md). Zodra ingesteld zijn de bestanden leidend: wijzigingen in de cloud verschijnen in Parcella, en opslaan in Parcella schrijft het bestand. Leeg laten om notities alleen in Parcella te bewaren. Submappen zijn categorieën: notities in \"Bestuursvergadering/\" krijgen die categorie, en een notitie met een categorie wordt in die map opgeslagen.",
+      "notes_folder_help": "Map voor notities als Markdown-bestanden (.md). Zodra ingesteld bevat elk bestand de tekst van een notitie en is daarvoor leidend: tekstwijzigingen in de cloud verschijnen in Parcella. Titel, datum, tags en bron blijven in Parcella en worden niet in het bestand geschreven. Leeg laten om notities alleen in Parcella te bewaren. Submappen zijn categorieën: notities in \"Bestuursvergadering/\" krijgen die categorie, en een notitie met een categorie wordt in die map opgeslagen.",
       "notes_folder_label": "Mappad"
     },
     "system": {

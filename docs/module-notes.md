@@ -4,8 +4,9 @@ Markdown notes for general meetings, board meetings, meetings with
 externals and anything else (issue #286): written in Parcella with an
 editor and live preview, filed under one category and any number of
 tags from the club taxonomy, searchable, filterable and sortable. With
-a notes folder in the connected cloud storage, each note is a `.md`
-file there, and that file is the master. Later part of the knowledge
+a notes folder in the connected cloud storage, each note's text is a
+`.md` file there, and that file is the master for the text; title,
+date, category, tags and source live in Parcella (ADR 0127). Later part of the knowledge
 base (#285).
 
 Module flag `notes`, on by default: internal data, no public endpoint,
@@ -42,7 +43,9 @@ file later). A partial unique index keeps one live note per file name.
 
 ## Code
 
-- `app/note_files.py` -- the file format: render/parse front matter,
+- `app/note_files.py` -- the file formats: `render_note_body()` (the
+  cloud file: text only), `render_note_file()` (the download, with a
+  front-matter header), the lenient parser for files from elsewhere,
   file names, hashes, `clean_source_url()` (http/https only). Pure, no I/O.
 - `app/bookmark_import.py` -- parser for the standard bookmark export
   file (Netscape HTML). Pure, no I/O, never fetches a page.
@@ -63,13 +66,21 @@ file later). A partial unique index keeps one live note per file name.
 
 ## Key decisions
 
-- **The cloud file is the master** when a folder is set: ADR 0123 has
-  the save/conflict/sync rules and the rejected alternatives.
+- **The cloud file is the master for the text** when a folder is set:
+  ADR 0123 has the save/conflict/sync rules. **The metadata is
+  Parcella's** (ADR 0127, issue #311): the file holds nothing but the
+  text, so a save that only changes title, date, tags or source never
+  touches the cloud -- a file locked in a Nextcloud editor (HTTP 423)
+  can't block it. Files with a header (from before, or from another
+  tool) are adopted with it and rewritten as text only; migration 0122
+  did that once for all existing files (ClubSetting
+  `notes_strip_headers_pending`). A renamed or moved file is relinked
+  by its content.
 - **One club-wide taxonomy** instead of a per-module tag pool: ADR 0122.
 - **Subfolders = categories**, both directions: the first folder level
   below the notes folder is a note's category, saving with another
   category moves the file, deeper folders are kept (ADR 0123).
-- **Date**: header, else file name prefix, else the file's own
+- **Date** (of a file adopted from the cloud): header, else file name prefix, else the file's own
   last-modified date -- an imported note never gets the import day.
   The prefix may be `2026-11-08`, `20261108` or month-only `202506`
   (the 1st of that month), see `date_from_filename()` in
@@ -95,7 +106,7 @@ file later). A partial unique index keeps one live note per file name.
   between writing, preview and side-by-side -- the "switch" the issue
   asks for.
 
-- **Bookmarks** (ADR 0125): a note with a `source:` header. The
+- **Bookmarks** (ADR 0125): a note with a source URL. The
   one-time import takes the export file of Nextcloud Bookmarks or any
   browser and creates one note per bookmark in the notes folder root,
   with no category. The date comes from `ADD_DATE`, the text from the
@@ -106,8 +117,11 @@ file later). A partial unique index keeps one live note per file name.
 ## Known gaps
 
 - No dashboard stat card: there's no "needs attention" number for notes.
-- Unknown front-matter keys are dropped when Parcella rewrites a file;
+- Unknown front-matter keys are dropped when Parcella strips a header;
   no attachments; emptied category folders stay behind (ADR 0123).
+- Editing a file's header in Nextcloud changes nothing in Parcella; a
+  rename *and* a text edit between two syncs, or several identical
+  texts renamed at once, come back as new notes (ADR 0127).
 - The taxonomy page lives under `/notes` until the knowledge base (#285)
   gives it a neutral home.
 - Not yet on the website: publishing notes (or knowledge base articles)

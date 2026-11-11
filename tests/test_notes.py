@@ -4,7 +4,9 @@ the happy path in the database only, search/filter/sort, sanitized
 rendering, permissions, the REST API -- and the cloud file being the
 master: external edits pulled in, a save refused when the file changed
 meanwhile, renamed/deleted files, and edits made while the cloud was
-off pushed (or kept as a conflict copy) later.
+off pushed (or kept as a conflict copy) later. Since issue #311 (ADR
+0127) the file holds only the text: metadata edits never touch the
+cloud, old headers are stripped, renamed files are relinked by content.
 """
 from datetime import date, datetime, timezone
 
@@ -18,7 +20,7 @@ from app.database import AsyncSessionLocal
 from app.models import (
     ClubSetting, Group, GroupMembership, GroupModulePermission, Note, TaxonomyCategory, TaxonomyTag, User, UserRole,
 )
-from app.note_files import date_from_filename, note_filename, parse_note_file, render_note_file
+from app.note_files import date_from_filename, note_filename, parse_note_file, render_note_body, render_note_file
 from app.services.notes import reset_sync_throttle
 from tests.conftest import auth_header, login
 from tests.test_detail_page_navigation import web_login
@@ -344,14 +346,15 @@ async def test_cloud_save_writes_the_file_and_external_edits_come_back(client, a
     [name] = cloud.files
     assert name == "Board meeting/2026-03-04-vorstandssitzung-marz.md"  # its category's folder
     text = cloud.text(name)
-    assert f"id: {note_id}" in text and 'category: "Board meeting"' in text and 'tags: ["Wasser"]' in text
-    assert "Wasseruhren tauschen." in text
+    assert text == "# TOP 1\n\nWasseruhren tauschen.\n"  # the text only: metadata stays in Parcella (ADR 0127)
 
-    # Edited in the cloud: the next sync (or opening the note) shows it.
-    cloud.put(name, text.replace("Wasseruhren tauschen.", "Wasseruhren bis Mai tauschen.").replace('["Wasser"]', '["Wasser", "Frist"]'))
+    # Edited in the cloud: the next sync (or opening the note) shows it;
+    # the metadata Parcella holds is untouched.
+    cloud.put(name, text.replace("Wasseruhren tauschen.", "Wasseruhren bis Mai tauschen."))
     await _sync(client)
     [note] = await _notes()
-    assert "bis Mai" in note.body_markdown and sorted(t.name for t in note.tags) == ["Frist", "Wasser"]
+    assert "bis Mai" in note.body_markdown and [t.name for t in note.tags] == ["Wasser"]
+    assert note.title == "Vorstandssitzung März" and note.category.name == "Board meeting"
 
     cloud.put(name, cloud.text(name).replace("bis Mai", "bis Juni"))
     assert "bis Juni" in (await client.get(f"/notes/{note_id}")).text
@@ -401,17 +404,14 @@ async def test_new_renamed_and_deleted_files(client, admin_user, monkeypatch):
     assert note.title == "Mitgliederversammlung" and note.category.name == "Board meeting"  # matched via translation
     assert [t.name for t in note.tags] == ["Wahl"] and note.cloud_filename == "Vorstandssitzung/protokoll.md"
 
-    # Edited once in Parcella, the file carries the note id ...
-    await client.post(f"/notes/{note.id}/edit", data={
-        "title": "Mitgliederversammlung", "note_date": "2026-05-01", "category_id": note.category_id,
-        "tag_ids": [note.tags[0].id], "body_markdown": "Gewählt wurde ...",
-    })
-    assert f"id: {note.id}" in cloud.text("Vorstandssitzung/protokoll.md")  # stays in its matching folder
-    # ... so a rename in the cloud keeps the same note.
+    # Adopted with its header's metadata, the header is stripped right away.
+    assert cloud.text("Vorstandssitzung/protokoll.md") == "Gewählt wurde ...\n"  # stays in its matching folder
+    # A rename in the cloud keeps the same note: relinked by its content.
     cloud.files["Vorstandssitzung/2026-05-01-mv.md"] = cloud.files.pop("Vorstandssitzung/protokoll.md")
     await _sync(client)
     [renamed] = await _notes()
     assert renamed.id == note.id and renamed.cloud_filename == "Vorstandssitzung/2026-05-01-mv.md"
+    assert renamed.title == "Mitgliederversammlung" and [t.name for t in renamed.tags] == ["Wahl"]
 
     # Deleted in the cloud: the note goes (soft) ...
     content = cloud.files.pop("Vorstandssitzung/2026-05-01-mv.md")
@@ -524,9 +524,9 @@ async def test_subfolders_are_categories_and_deeper_folders_are_kept(client, adm
     # No category: back to the notes folder itself.
     await client.post(f"/notes/{by_title['März'].id}/edit", data=form(by_title["März"], category_id=""))
     assert "maerz.md" in cloud.files and "Other/maerz.md" not in cloud.files
-    # The header category of a loose file moves it into the folder on its first save.
-    await client.post(f"/notes/{by_title['Lose Notiz'].id}/edit", data=form(by_title["Lose Notiz"]))
-    assert "Board meeting/lose.md" in cloud.files and "lose.md" not in cloud.files
+    # The header category of a loose file moved it into the category's
+    # (existing, German-named) folder when the header was stripped.
+    assert "Vorstandssitzung/lose.md" in cloud.files and "lose.md" not in cloud.files
 
     await _sync(client)
     notes = await _notes()
@@ -597,7 +597,6 @@ async def test_migration_0119_makes_the_next_sync_redate_existing_notes(client, 
     cloud.put("20261108 Vorstandssitzung.md", "# Vorstandssitzung", last_modified="Mon, 27 Oct 2025 20:10:48 GMT")
     cloud.put("Technik.md", "# Technik", last_modified="Sat, 13 Dec 2025 16:37:04 GMT")
     cloud.put("Ohne Datum.md", "# Ohne Datum", last_modified="Sat, 13 Dec 2025 16:37:04 GMT")
-    cloud.put("Mit Kopf.md", "---\ndate: 2026-03-01\n---\n# Mit Kopf", last_modified="Sat, 13 Dec 2025 16:37:04 GMT")
     await _sync(client)
     by_file = {n.cloud_filename: n for n in await _notes()}
     # Simulate the pre-#302 state: the template's timestamp as date, and
@@ -605,7 +604,7 @@ async def test_migration_0119_makes_the_next_sync_redate_existing_notes(client, 
     async with AsyncSessionLocal() as db:
         await db.execute(update(Note).where(Note.id == by_file["20261108 Vorstandssitzung.md"].id)
                          .values(note_date=date(2025, 10, 27)))
-        for name in ("Technik.md", "Mit Kopf.md"):
+        for name in ("Technik.md",):
             await db.execute(update(Note).where(Note.id == by_file[name].id)
                              .values(created_at=datetime(2026, 11, 8, 2, 2, tzinfo=timezone.utc),
                                      note_date=date(2026, 11, 8)))
@@ -639,8 +638,7 @@ async def test_migration_0119_makes_the_next_sync_redate_existing_notes(client, 
         "20261108 Vorstandssitzung.md": date(2026, 11, 8),  # file-name date
         "Technik.md": date(2025, 12, 13),  # import day -> the file's own date
         "Ohne Datum.md": date(2026, 1, 15),  # not the import day: kept
-        "Mit Kopf.md": date(2026, 3, 1),  # header wins
-    }
+    }  # (a header date is taken on import and the header stripped, ADR 0127)
     async with AsyncSessionLocal() as db:  # one-time: the marker is gone
         assert await db.get(ClubSetting, "notes_redate_import_day_pending") is None
 async def test_list_category_badge_filters_like_tags(client, admin_user):
@@ -749,9 +747,10 @@ async def test_bookmark_import_creates_notes_in_root_and_is_safe_to_rerun(client
     assert slk.source_url == "https://example.org/slk" and slk.category is None
     assert slk.note_date == date(2024, 1, 1)
     assert sorted(t.name for t in slk.tags) == ["Leipzig", "Rechtliches"]
-    # Files land in the notes folder root, with the source in the header.
+    # Files land in the notes folder root, holding just the text; the
+    # source stays in Parcella (ADR 0127).
     assert all("/" not in n.cloud_filename for n in notes.values())
-    assert 'source: "https://example.org/slk"' in cloud.text(slk.cloud_filename)
+    assert cloud.text(slk.cloud_filename) == "Mehrzeilige\nBeschreibung\n"
 
     # The list links the source; re-running the import changes nothing.
     page = await client.get("/notes/")
@@ -805,3 +804,175 @@ async def test_bookmark_import_needs_write_permission(client, admin_user):
                               data={"content_b64": b64.b64encode(_BOOKMARK_FILE.encode()).decode()})).status_code == 403
     assert await _notes() == []
     assert "/notes/import/bookmarks" not in (await client.get("/notes/")).text
+
+
+# ---------------------------------------------------------------------------
+# Issue #311 (ADR 0127): metadata lives in Parcella, the cloud file holds
+# only the text.
+# ---------------------------------------------------------------------------
+
+def _locked(*args, **kwargs):
+    raise CloudStorageError("The file is locked in Nextcloud (HTTP 423)")
+
+
+def _form(note, **fields):
+    return {"title": note.title, "note_date": note.note_date.isoformat(), "body_markdown": note.body_markdown,
+            "category_id": note.category_id or "", "tag_ids": [t.id for t in note.tags], **fields}
+
+
+async def test_metadata_only_edit_never_touches_the_cloud(client, admin_user, monkeypatch):
+    """The prod bug: changing title/tags/date/source of a note whose file
+    was locked in a Nextcloud editor failed with HTTP 423."""
+    cloud = await _enable_cloud(client, monkeypatch)
+    category = await _category("Board meeting")
+    note_id = await _create(client, category_id=category)
+    [note] = await _notes()
+    [name] = cloud.files
+    before = cloud.files[name]
+
+    async def locked(*args, **kwargs):
+        _locked()
+
+    cloud.upload_file = cloud.download_file = cloud.delete_file = cloud.list_files = locked
+    saved = await client.post(f"/notes/{note_id}/edit", data=_form(
+        note, title="Neuer Titel", note_date="2026-04-01", new_tags="Frist", source_url="https://example.org/x",
+    ))
+    assert saved.status_code == 303, saved.text
+    [note] = await _notes()
+    assert note.title == "Neuer Titel" and note.note_date == date(2026, 4, 1)
+    assert [t.name for t in note.tags] == ["Frist"] and note.source_url == "https://example.org/x"
+    assert not note.cloud_dirty and cloud.files[name] == before
+
+    # Text changes do need the file: then the lock is reported, nothing saved.
+    refused = await client.post(f"/notes/{note_id}/edit", data=_form(note, body_markdown="Neu"))
+    assert refused.status_code == 502 and "locked" in refused.text
+    [note] = await _notes()
+    assert note.body_markdown == "# TOP 1\n\nWasseruhren tauschen."
+
+
+async def test_category_move_with_a_locked_old_file_changes_nothing(client, admin_user, monkeypatch):
+    cloud = await _enable_cloud(client, monkeypatch)
+    board = await _category("Board meeting")
+    other = await _category("Other")
+    note_id = await _create(client, category_id=board)
+    [note] = await _notes()
+    real_delete = cloud.delete_file
+
+    async def delete_unless_old(path, filename):
+        if path.endswith("/Board meeting"):  # the old file is open in an editor
+            _locked()
+        await real_delete(path, filename)
+
+    cloud.delete_file = delete_unless_old
+
+    refused = await client.post(f"/notes/{note_id}/edit", data=_form(note, category_id=other))
+    assert refused.status_code == 502
+    # No second copy left behind: the new upload was taken back.
+    assert list(cloud.files) == ["Board meeting/2026-03-04-vorstandssitzung-marz.md"]
+    [note] = await _notes()
+    assert note.category_id == board and note.cloud_filename == "Board meeting/2026-03-04-vorstandssitzung-marz.md"
+
+
+async def test_only_category_changes_move_files(client, admin_user, monkeypatch):
+    cloud = await _enable_cloud(client, monkeypatch)
+    board = await _category("Board meeting")
+    await _create(client, category_id=board, new_tags="Wasser")
+    [note] = await _notes()
+    tag_id = note.tags[0].id
+    uploads = cloud.uploads
+
+    await client.post(f"/notes/taxonomy/tags/{tag_id}/rename", data={"name": "Wasserleitung"})
+    await client.post(f"/notes/taxonomy/categories/{board}/translations", data={"name_de": "Vorstand"})
+    [note] = await _notes()
+    assert not note.cloud_dirty  # the folder "Board meeting" still matches
+    await client.post(f"/notes/taxonomy/categories/{board}/rename", data={"name": "Vorstandssitzung"})
+    [note] = await _notes()
+    assert note.cloud_dirty  # "Board meeting/" doesn't match any more
+    await _sync(client)
+    [note] = await _notes()
+    assert note.cloud_filename == "Vorstandssitzung/2026-03-04-vorstandssitzung-marz.md" and not note.cloud_dirty
+    assert cloud.uploads == uploads + 1
+
+
+async def test_header_strip_after_migration_0122(client, admin_user, monkeypatch):
+    """Files written before ADR 0127 carry a header. Migration 0122 sets a
+    marker; the next sync reads every file, takes over header edits made
+    in the cloud since the last sync once, and rewrites each as text."""
+    import importlib.util
+    from pathlib import Path
+    from sqlalchemy import text, update
+
+    cloud = await _enable_cloud(client, monkeypatch)
+    await _create(client, title="Unverändert")
+    await _create(client, title="In der Cloud geändert")
+    by_title = {n.title: n for n in await _notes()}
+    # Simulate pre-0127 files: a header in front of the text, hash matching.
+    from app.note_files import content_hash
+    async with AsyncSessionLocal() as db:
+        for title, note in by_title.items():
+            legacy = render_note_file(note_id=note.id, title=title, note_date=note.note_date, category=None,
+                                      tags=["Alt"], body=note.body_markdown).encode()
+            cloud.files[note.cloud_filename] = (legacy, f"legacy-{title}")
+            await db.execute(update(Note).where(Note.id == note.id).values(
+                cloud_hash=content_hash(legacy), cloud_fingerprint=f"legacy-{title}|{len(legacy)}"))
+        await db.commit()
+    changed = by_title["In der Cloud geändert"].cloud_filename
+    cloud.put(changed, cloud.text(changed).replace('title: "In der Cloud geändert"', 'title: "Neu benannt"'))
+
+    path = Path(__file__).resolve().parent.parent / "migrations" / "versions" / "0122_notes_strip_headers.py"
+    spec = importlib.util.spec_from_file_location("migration_0122", path)
+    migration = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(migration)
+    statements = []
+    monkeypatch.setattr(migration, "op", type("Op", (), {"execute": staticmethod(statements.append)}))
+    migration.upgrade()
+    async with AsyncSessionLocal() as db:
+        for statement in statements:
+            await db.execute(text(statement))
+        await db.commit()
+
+    await _sync(client)
+    notes = {n.title: n for n in await _notes()}
+    assert set(notes) == {"Unverändert", "Neu benannt"}
+    assert [t.name for t in notes["Unverändert"].tags] == []  # unchanged file: Parcella's metadata kept
+    assert [t.name for t in notes["Neu benannt"].tags] == ["Alt"]  # edited in the cloud: taken over once
+    for note in notes.values():
+        assert cloud.text(note.cloud_filename) == "# TOP 1\n\nWasseruhren tauschen.\n" and not note.cloud_dirty
+    async with AsyncSessionLocal() as db:
+        assert await db.get(ClubSetting, "notes_strip_headers_pending") is None
+
+
+async def test_header_in_a_linked_file_is_ignored_and_stripped(client, admin_user, monkeypatch):
+    cloud = await _enable_cloud(client, monkeypatch)
+    await _create(client, new_tags="Wasser")
+    [name] = cloud.files
+    cloud.put(name, '---\ntitle: "Anders"\ntags: [Fremd]\n---\nNeuer Text')
+    await _sync(client)
+    [note] = await _notes()
+    assert note.title == "Vorstandssitzung März" and [t.name for t in note.tags] == ["Wasser"]
+    assert note.body_markdown == "Neuer Text" and cloud.text(name) == "Neuer Text\n"
+
+
+async def test_relink_by_content_needs_one_non_empty_match(client, admin_user, monkeypatch):
+    cloud = await _enable_cloud(client, monkeypatch)
+    await _create(client, title="Leer A", body_markdown="")
+    await _create(client, title="Leer B", body_markdown="")
+    await _create(client, title="Gleich 1", body_markdown="Gleich")
+    await _create(client, title="Gleich 2", body_markdown="Gleich")
+    by_title = {n.title: n for n in await _notes()}
+    for title in by_title:
+        rel = by_title[title].cloud_filename
+        cloud.files["umbenannt-" + rel] = cloud.files.pop(rel)
+    await _sync(client)
+    notes = await _notes()
+    # Nothing could be told apart: the old notes go, the files come in as new.
+    assert {n.id for n in notes}.isdisjoint({n.id for n in by_title.values()})
+    assert len(notes) == 4
+
+
+def test_body_file_keeps_a_leading_horizontal_rule():
+    body = "---\n\nText\n\n---\nEnde"
+    assert render_note_body(body) == body + "\n"
+    parsed = parse_note_file(render_note_body(body).encode(), "x.md")
+    assert not parsed.had_header and parsed.body == body
+    assert render_note_body("") == "" and render_note_body("a\r\nb\n\n") == "a\nb\n"

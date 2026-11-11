@@ -1,5 +1,12 @@
 # Notes: the .md file in the cloud is the master, the database is its index
 
+> **Partly superseded by [ADR 0127](./0127-notes-metadata-in-parcella-cloud-file-holds-the-text.md)
+> (issue #311):** the file now holds only the note's text. Title, date,
+> category, tags and source live in Parcella, there is no front-matter
+> header and no `id:` (renames are relinked by content), and a
+> metadata-only save doesn't touch the cloud. Folder = category, the
+> hash conflict check and the sync rules below still apply.
+
 **Context:** issue #286. Notes "shall be stored in a defined folder of
 my cloud file hosting (if configured)" and "shall be searchable,
 filterable and sortable". Two ways to read that: Parcella keeps notes
