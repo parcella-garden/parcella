@@ -99,6 +99,7 @@ def likely_fits_one_print_page(markdown_text: str) -> bool:
 
 def channel_fingerprint(
     channel: str, title: str, body_markdown: str, print_text_override: str | None, summary: str | None = None,
+    print_qr_code: bool = False,
 ) -> str:
     """Hash of exactly the text a channel delivers, stored on its
     AnnouncementDelivery at send time. Comparing it with the current
@@ -118,10 +119,14 @@ def channel_fingerprint(
     The summary (issue #317, ADR 0129) belongs to email and blog only, and
     is appended only when there is one -- so every fingerprint stored
     before it existed still matches, and 0092's frozen copy stays valid.
+    The print QR switch (ADR 0133) follows the same rule: appended to
+    PRINT only when it's on.
     """
     parts = [channel, title, body_markdown]
     if channel == "PRINT":
         parts.append(print_text_override or "")
+        if print_qr_code:
+            parts.append("qr")
     elif summary and channel in ("EMAIL", "BLOG"):
         parts.append("summary:" + summary)
     return hashlib.sha256("\x1f".join(parts).encode("utf-8")).hexdigest()

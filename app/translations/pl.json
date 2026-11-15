@@ -1924,7 +1924,8 @@
   "announcements": {
     "print": {
       "byline": "Opublikowano {date} przez: {author}",
-      "byline_date_only": "Opublikowano {date}"
+      "byline_date_only": "Opublikowano {date}",
+      "read_online": "Przeczytaj całe ogłoszenie online:"
     },
     "list": {
       "title": "Ogłoszenia",
@@ -1958,6 +1959,8 @@
       "print_override_hint": "Pozostaw puste, aby wydrukować pełny tekst powyżej. Jeśli nie zmieści się na jednej stronie, zostanie tu zaproponowana skrócona wersja -- można ją edytować.",
       "print_fits": "Mieści się na jednej stronie wydruku.",
       "print_too_long": "Prawdopodobnie za długie na jedną stronę -- rozważ skrócenie.",
+      "label_print_qr": "Kod QR do wpisu na stronie",
+      "print_qr_hint": "Drukuje kod QR do wpisu na stronie, nawet jeśli tekst mieści się na jednej stronie – gdy tekst do druku jest tylko zapowiedzią. Można drukować przed publikacją: kod prowadzi do wpisu, gdy tylko pojawi się on online.",
       "save_button": "Zapisz",
       "cancel_button": "Anuluj",
       "channels_title": "Kanały dystrybucji",
@@ -2019,6 +2022,10 @@
       "hint": "Tylko e-mail. Wybór jest stały: kandydaci zaznaczeni później nie zostaną dodani.",
       "send_email_confirm": "Wysłać teraz tę wiadomość e-mailem na {count} adres(y) kandydatów? Tego nie można cofnąć.",
       "list_badge": "Kandydaci"
+    },
+    "link": {
+      "title": "Jeszcze nie online",
+      "not_online": "To ogłoszenie nie jest jeszcze na stronie. Spróbuj ponownie później."
     }
   },
   "inventory": {

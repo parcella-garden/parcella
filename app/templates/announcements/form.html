@@ -25,6 +25,7 @@
 {% set title_value = entered.title if entered else (announcement.title if announcement else '') %}
 {% set body_value = entered.body_markdown if entered else (announcement.body_markdown if announcement else '') %}
 {% set print_override_value = entered.print_text_override if entered else ((announcement.print_text_override or '') if announcement else '') %}
+{% set print_qr_value = entered.print_qr_code if entered else (announcement.print_qr_code if announcement else false) %}
 {% set summary_value = entered.summary if entered else ((announcement.summary or '') if announcement else '') %}
 {% set image_alt_value = entered.image_alt if entered else ((announcement.image_alt or '') if announcement else '') %}
 {% set letters_for_all_value = entered.letters_for_all if entered else (announcement and announcement.letters_for_all) %}
@@ -112,8 +113,11 @@
 
             <div class="mb-3">
                 <label class="form-label" for="summary">{{ t('announcements.form.label_summary') }}</label>
-                <textarea name="summary" id="summary" class="form-control" rows="2" maxlength="300">{{ summary_value }}</textarea>
-                <div class="form-text">{{ t('announcements.form.summary_hint') }}</div>
+                <textarea name="summary" id="summary" class="form-control" rows="2" maxlength="300" data-recommended="160">{{ summary_value }}</textarea>
+                <div class="d-flex justify-content-between gap-3">
+                    <div class="form-text">{{ t('announcements.form.summary_hint') }}</div>
+                    <div class="form-text text-nowrap" id="summary_count" aria-live="polite"></div>
+                </div>
             </div>
 
             <div class="mb-3">
@@ -146,7 +150,7 @@
             {% if announcement and not announcement.is_targeted %}
             <div class="mb-3">
                 <label class="form-label">{{ t('announcements.form.label_print_override') }}</label>
-                <textarea name="print_text_override" class="form-control" rows="6">{{ print_override_value }}</textarea>
+                <textarea name="print_text_override" id="print_text_override" rows="6">{{ print_override_value }}</textarea>
                 <div class="form-text">
                     {{ t('announcements.form.print_override_hint') }}
                     {% if fits_one_page %}
@@ -154,6 +158,11 @@
                     {% else %}
                     <span class="text-warning"><i class="bi bi-exclamation-triangle"></i> {{ t('announcements.form.print_too_long') }}</span>
                     {% endif %}
+                </div>
+                <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" name="print_qr_code" value="true" id="print_qr_code" {% if print_qr_value %}checked{% endif %}>
+                    <label class="form-check-label" for="print_qr_code"><i class="bi bi-qr-code"></i> {{ t('announcements.form.label_print_qr') }}</label>
+                    <div class="form-text">{{ t('announcements.form.print_qr_hint') }}</div>
                 </div>
             </div>
             {% endif %}
@@ -381,17 +390,27 @@
         });
     })();
 
-    new EasyMDE({
-        element: document.getElementById('body_markdown'),
-        spellChecker: false,
-        status: false,
-        placeholder: "{{ t('announcements.form.body_placeholder') }}",
-        // EasyMDE's default toolbar hardcodes Font Awesome icon classes
-        // (fa fa-bold, ...), which this project never loads -- it uses
-        // Bootstrap Icons everywhere else. Override each button's
-        // className to the bi-* equivalent instead of pulling in a
-        // second icon font.
-        toolbar: [
+    // Live character count under the summary: "n / 300", orange above the
+    // length the hint recommends for search engines.
+    (function () {
+        const field = document.getElementById('summary');
+        const counter = document.getElementById('summary_count');
+        if (!field || !counter) return;
+        const max = Number(field.maxLength);
+        const recommended = Number(field.dataset.recommended);
+        function update() {
+            const n = field.value.length;
+            counter.textContent = n + ' / ' + max;
+            counter.classList.toggle('text-warning', n > recommended);
+        }
+        field.addEventListener('input', update);
+        update();
+    })();
+
+    // One toolbar for both editors (body and print text); the print text
+    // leaves out "Insert Image", since the PDF only embeds the banner.
+    function markdownToolbar(withImage) {
+        return [
             {name: "bold", action: EasyMDE.toggleBold, className: "bi bi-type-bold", title: "Bold"},
             {name: "italic", action: EasyMDE.toggleItalic, className: "bi bi-type-italic", title: "Italic"},
             {name: "strikethrough", action: EasyMDE.toggleStrikethrough, className: "bi bi-type-strikethrough", title: "Strikethrough"},
@@ -403,7 +422,7 @@
             {name: "ordered-list", action: EasyMDE.toggleOrderedList, className: "bi bi-list-ol", title: "Numbered List"},
             "|",
             {name: "link", action: EasyMDE.drawLink, className: "bi bi-link-45deg", title: "Create Link"},
-            {name: "image", action: EasyMDE.drawImage, className: "bi bi-image", title: "Insert Image"},
+            ...(withImage ? [{name: "image", action: EasyMDE.drawImage, className: "bi bi-image", title: "Insert Image"}] : []),
             {name: "table", action: EasyMDE.drawTable, className: "bi bi-table", title: "Insert Table"},
             {name: "horizontal-rule", action: EasyMDE.drawHorizontalRule, className: "bi bi-dash-lg", title: "Insert Horizontal Line"},
             "|",
@@ -412,7 +431,31 @@
             {name: "fullscreen", action: EasyMDE.toggleFullScreen, className: "bi bi-arrows-fullscreen", title: "Toggle Fullscreen"},
             "|",
             {name: "guide", action: "https://www.markdownguide.org/basic-syntax/", className: "bi bi-question-circle", title: "Markdown Guide"},
-        ],
+        ];
+    }
+
+    new EasyMDE({
+        element: document.getElementById('body_markdown'),
+        spellChecker: false,
+        status: false,
+        placeholder: "{{ t('announcements.form.body_placeholder') }}",
+        // EasyMDE's default toolbar hardcodes Font Awesome icon classes
+        // (fa fa-bold, ...), which this project never loads -- it uses
+        // Bootstrap Icons everywhere else. Override each button's
+        // className to the bi-* equivalent instead of pulling in a
+        // second icon font.
+        toolbar: markdownToolbar(true),
     });
+
+    const printText = document.getElementById('print_text_override');
+    if (printText) {
+        new EasyMDE({
+            element: printText,
+            spellChecker: false,
+            status: false,
+            minHeight: "150px",
+            toolbar: markdownToolbar(false),
+        });
+    }
 </script>
 {% endblock %}

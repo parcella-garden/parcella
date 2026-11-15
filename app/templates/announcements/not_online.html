@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ t('announcements.link.title') }}{% endblock %}
+
+{% block content %}
+{# Public page behind a printed QR code (ADR 0133): no announcement
+   details here, the visitor may not be a member. #}
+<div class="min-vh-100 d-flex align-items-center justify-content-center" style="background: #f4f7f4;">
+    <div class="text-center" style="width: 100%; max-width: 420px; padding: 1rem;">
+        <img src="{{ request.state.logo_url or '/static/favicon.png' }}" alt="{{ request.state.club_name }}"
+             style="height: 48px; width: auto; max-width: 100%;">
+        <h1 class="mt-3" style="font-size: 1.4rem; font-weight: 700; color: var(--gv-gruen);">{{ request.state.club_name }}</h1>
+        <div class="card shadow-sm mt-3">
+            <div class="card-body p-4">
+                <i class="bi bi-hourglass-split" style="font-size: 2rem; color: #9ca3af;"></i>
+                <p class="mt-2 mb-0">{{ t('announcements.link.not_online') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

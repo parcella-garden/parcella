@@ -2194,6 +2194,16 @@ class Announcement(Base):
     # website excerpt/teaser. See docs/ADR/0129.
     summary: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
     print_text_override: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    # A QR code to the published website post on the printed notice even
+    # when the text fits as-is -- for a print text that's only a teaser.
+    # Off: the QR code appears only when the text had to be shortened.
+    # See docs/ADR/0133.
+    print_qr_code: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
+    # The random part of the announcement's short link /a/<token>, which
+    # the printed QR code points to: it forwards to the website post once
+    # that's public, so a notice can be printed before the post goes live.
+    # Created on the first print with a website connector. ADR 0133.
+    public_link_token: Mapped[Optional[str]] = mapped_column(String(43), unique=True, nullable=True)
     # Issue #242: a message to filtered members instead of club news.
     # NULL = the classic announcement to every active member with
     # "email info" (blog/email/print channels). Otherwise a stored
