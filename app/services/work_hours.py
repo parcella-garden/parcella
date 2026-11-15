@@ -20,6 +20,7 @@ about newly created SessionParticipation rows (see
 notify_new_participation/notify_new_participations_digest below) --
 otherwise still no audit trail here.
 """
+import logging
 import math
 from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
@@ -33,11 +34,17 @@ from app.database import tenant_in_year_filter
 from app.email_service import send_email
 from app.i18n import translate
 from app.models import (
-    ClubRole, ExemptionReason, HoursTransfer, Member, MemberClubRole, MemberParcel, Parcel, ParcelStatus,
+    ClubSetting, ClubRole, ExemptionReason, HoursTransfer, Member, MemberClubRole, MemberParcel, Parcel, ParcelStatus,
     ParticipationStatus, SessionParticipation, SessionType, Sponsorship, TaskWorkload,
     User, UserRole, WorkHoursConfiguration, WorkHoursMode, WorkSession, WorkTask,
 )
 from app.services.errors import ServiceError
+from app.announcement_mailer import primary_email
+from app.i18n import load_current_language
+from babel.dates import format_date
+from markupsafe import escape
+
+logger = logging.getLogger(__name__)
 
 # Issue #217: how many days a SessionParticipation counts as "new" for
 # the dashboard tile / nav badge / session-detail "New" badge -- a
@@ -626,6 +633,120 @@ async def notify_new_participations_digest(db: AsyncSession, count: int, lang: s
         </body></html>
         """
         await send_email(recipient.email, subject, html, db=db)
+
+
+# ---------------------------------------------------------------------------
+# Sign-up confirmation to the registrant (issue #313, ADR 0130)
+# ---------------------------------------------------------------------------
+
+SIGNUP_CONFIRMATION_ENABLED_KEY = "work_hours_signup_confirmation_enabled"
+SIGNUP_CONFIRMATION_TEXT_KEY = "work_hours_signup_confirmation_text"
+SIGNUP_CONFIRMATION_TEXT_MAX_LENGTH = 5000
+SIGNUP_CONFIRMATION_REMARKS_MAX_LENGTH = 500
+
+
+async def load_signup_confirmation_settings(db: AsyncSession) -> tuple[bool, str]:
+    """(enabled, boilerplate). Enabled unless switched off; the
+    boilerplate is "" when none was set (the translated default is
+    used then)."""
+    rows = (await db.execute(
+        select(ClubSetting).where(ClubSetting.key.in_([SIGNUP_CONFIRMATION_ENABLED_KEY, SIGNUP_CONFIRMATION_TEXT_KEY]))
+    )).scalars().all()
+    values = {row.key: row.value or "" for row in rows}
+    enabled = values.get(SIGNUP_CONFIRMATION_ENABLED_KEY, "true").strip().lower() in ("true", "1", "ja", "an")
+    return enabled, values.get(SIGNUP_CONFIRMATION_TEXT_KEY, "")
+
+
+async def save_signup_confirmation_settings(db: AsyncSession, enabled: bool, text: str) -> None:
+    text = (text or "").replace("\r\n", "\n").strip()[:SIGNUP_CONFIRMATION_TEXT_MAX_LENGTH]
+    for key, value in ((SIGNUP_CONFIRMATION_ENABLED_KEY, "true" if enabled else "false"),
+                       (SIGNUP_CONFIRMATION_TEXT_KEY, text)):
+        entry = (await db.execute(select(ClubSetting).where(ClubSetting.key == key))).scalar_one_or_none()
+        if entry:
+            entry.value = value
+        else:
+            db.add(ClubSetting(key=key, value=value))
+    await db.flush()
+
+
+def _paragraphs_html(text: str) -> str:
+    """Plain text -> escaped HTML paragraphs (blank line = new
+    paragraph, single newline = <br>)."""
+    blocks = [b.strip() for b in text.replace("\r\n", "\n").split("\n\n") if b.strip()]
+    return "".join(f"<p>{'<br>'.join(str(escape(line)) for line in block.splitlines())}</p>" for block in blocks)
+
+
+def build_signup_confirmation(
+    member: Member, session: WorkSession, boilerplate: str, remarks: str, lang: str,
+) -> tuple[str, str]:
+    """(subject, html) of one confirmation. Everything user-entered --
+    member name, session title, the board's boilerplate, the visitor's
+    remarks -- is escaped; the subject is the fixed translated template
+    with the session's date only, never the remarks (they come from a
+    public form and stay out of mail headers)."""
+    try:
+        date_text = format_date(session.date, format="long", locale=lang)
+    except Exception:  # unknown locale: ISO date is still unambiguous
+        date_text = session.date.isoformat()
+    subject = translate("email.signup_confirmation.subject", lang, date=date_text)
+
+    text = boilerplate.strip() or translate("email.signup_confirmation.default_text", lang)
+    time_text = ""
+    if session.time_from and session.time_until:
+        time_text = f"{session.time_from}–{session.time_until}"
+    elif session.time_from:
+        time_text = session.time_from
+    details = [f"<strong>{escape(session.title)}</strong>", escape(date_text)]
+    if time_text:
+        details.append(escape(time_text))
+    remarks = remarks.strip()
+    if len(remarks) > SIGNUP_CONFIRMATION_REMARKS_MAX_LENGTH:
+        remarks = remarks[:SIGNUP_CONFIRMATION_REMARKS_MAX_LENGTH].rstrip() + " …"
+    remarks_block = ""
+    if remarks:
+        remarks_block = (
+            f"<p>{escape(translate('email.signup_confirmation.remarks_intro', lang))}</p>"
+            f'<blockquote style="border-left: 3px solid #d1d5db; margin: 0; padding-left: 12px; color: #4b5563;">'
+            f"{_paragraphs_html(remarks)}</blockquote>"
+        )
+    html = f"""
+    <html><body style="font-family: sans-serif; color: #1f2937; max-width: 600px;">
+    <p>{escape(translate("email.signup_confirmation.greeting", lang, name=member.full_name))}</p>
+    {_paragraphs_html(text)}
+    <p>{"<br>".join(str(d) for d in details)}</p>
+    {remarks_block}
+    </body></html>
+    """
+    return subject, html
+
+
+async def send_signup_confirmations(
+    db: AsyncSession, registrations: list[tuple[WorkSession, list[Member]]], remarks: str,
+) -> int:
+    """Confirms a public work-session sign-up to the members it
+    registered (issue #313): one email per member and session, only to
+    the address stored on the member (email_addresses must be loaded),
+    never to an address typed into the public form -- otherwise anyone
+    could make Parcella mail anyone (ADR 0130). Members without an
+    address are skipped. Returns the number of emails sent. Never
+    raises: a mail problem must not undo a stored registration."""
+    enabled, boilerplate = await load_signup_confirmation_settings(db)
+    if not enabled:
+        return 0
+    lang = await load_current_language(db)
+    sent = 0
+    for session, members in registrations:
+        for member in members:
+            address = primary_email(member)
+            if not address:
+                continue
+            subject, html = build_signup_confirmation(member, session, boilerplate, remarks or "", lang)
+            try:
+                if await send_email(address, subject, html, db=db):
+                    sent += 1
+            except Exception:
+                logger.exception("Sign-up confirmation to member %s failed", member.id)
+    return sent
 
 
 async def update_participation(db: AsyncSession, participation: SessionParticipation, **fields) -> SessionParticipation:

@@ -1481,7 +1481,13 @@
       "mode_short_parcel": "Pachtvertrag",
       "mode_short_member": "Mitglied",
       "delete_confirm": "Konfiguration für {year} wirklich löschen?",
-      "no_config": "Noch keine Konfiguration vorhanden."
+      "no_config": "Noch keine Konfiguration vorhanden.",
+      "confirmation_title": "Bestätigungs-E-Mail zur Anmeldung",
+      "confirmation_desc": "Wird nach einer Anmeldung über das Webseiten-Formular verschickt – an die hinterlegten E-Mail-Adressen der angemeldeten Mitglieder (nie an die im Formular eingetippte Adresse). Titel, Datum und Uhrzeit des Einsatzes und die Anmerkungen werden unter deinem Text angefügt.",
+      "confirmation_enabled": "Bestätigungs-E-Mail verschicken",
+      "confirmation_text_label": "Dein Text",
+      "confirmation_text_hint": "Reiner Text; eine Leerzeile beginnt einen neuen Absatz. Leer lassen, um den grau angezeigten Text zu verwenden.",
+      "confirmation_saved": "Bestätigung zur Anmeldung gespeichert."
     },
     "configuration_form": {
       "title": "Konfiguration bearbeiten",
@@ -2104,6 +2110,8 @@
       "checkout_quantity": "Menge",
       "checkout_date": "Datum",
       "checkout_fee": "Gebühr",
+      "checkout_fee_hint": "Optional. Nur eine Zahl, z. B. 5 oder 2,50.",
+      "checkout_fee_hint_default": "Optional. Nur eine Zahl, z. B. 5 oder 2,50. Leer gelassen gilt die Standardgebühr von {fee}.",
       "checkout_note": "Notiz",
       "checkout_button": "Ausleihen",
       "none_available": "Aktuell nichts zum Ausleihen verfügbar.",
@@ -2129,7 +2137,10 @@
     "errors": {
       "item_not_borrowable": "Dieser Gegenstand ist nicht als ausleihbar markiert.",
       "member_required": "Es muss ein Mitglied ausgewählt werden.",
-      "insufficient_quantity": "Nur {available} von {total} sind gerade verfügbar."
+      "insufficient_quantity": "Nur {available} von {total} sind gerade verfügbar.",
+      "invalid_amount": "Bitte Beträge nur als Zahl eingeben, z. B. 5 oder 2,50 – ohne Währungszeichen oder Text.",
+      "invalid_date": "Bitte ein gültiges Datum eingeben.",
+      "invalid_quantity": "Bitte als Anzahl eine ganze Zahl ab 1 eingeben."
     }
   },
   "tasks": {
@@ -2332,6 +2343,12 @@
     },
     "applicant_contact": {
       "subject": "Vielen Dank für Ihre Anmeldung auf unserer Warteliste!"
+    },
+    "signup_confirmation": {
+      "subject": "AW: Deine Anmeldung zum Arbeitseinsatz am {date}",
+      "greeting": "Hallo {name},",
+      "default_text": "vielen Dank für deine Anmeldung zu unserem Arbeitseinsatz. Wir haben sie erhalten und freuen uns auf dich.",
+      "remarks_intro": "Deine Anmerkungen:"
     }
   },
   "finances": {

@@ -114,6 +114,10 @@
             <div class="card-body">
                 {% if item.available_quantity > 0 %}
                 {% if has_perm(request, 'inventory', 'write') %}
+                {% set entered = checkout_entered or {} %}
+                {% if checkout_error %}
+                <div class="alert alert-danger py-2" role="alert">{{ checkout_error }}</div>
+                {% endif %}
                 <form method="post" action="/inventory/{{ item.id }}/loans/checkout">
                     {{ csrf_field() }}
                     <div class="row g-2">
@@ -122,26 +126,29 @@
                             <select name="member_id" class="form-select form-select-sm" required>
                                 <option value="">{{ t('inventory.form.select_member') }}</option>
                                 {% for member in members %}
-                                <option value="{{ member.id }}">{{ member.full_name }}</option>
+                                <option value="{{ member.id }}"{% if entered.member_id == member.id %} selected{% endif %}>{{ member.full_name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">{{ t('inventory.detail.checkout_quantity') }}</label>
-                            <input type="number" name="quantity" class="form-control form-control-sm" min="1" max="{{ item.available_quantity }}" value="1">
+                            <input type="number" name="quantity" class="form-control form-control-sm" min="1" max="{{ item.available_quantity }}" value="{{ entered.quantity or 1 }}">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">{{ t('inventory.detail.checkout_date') }}</label>
-                            <input type="date" name="borrowed_date" class="form-control form-control-sm" value="{{ today }}">
+                            <input type="date" name="borrowed_date" class="form-control form-control-sm" value="{{ entered.borrowed_date or today }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">{{ t('inventory.detail.checkout_fee') }}</label>
-                            <input type="text" name="fee_charged" class="form-control form-control-sm"
+                            <input type="text" name="fee_charged" id="fee_charged" class="form-control form-control-sm"
+                                   inputmode="decimal" pattern="\s*[0-9]+([.,][0-9]{1,2})?\s*" aria-describedby="fee_charged_hint"
+                                   value="{{ entered.fee_charged or '' }}"
                                    placeholder="{{ item.default_loan_fee if item.default_loan_fee is not none else '' }}">
+                            <div class="form-text" id="fee_charged_hint">{% if item.default_loan_fee is not none %}{{ t('inventory.detail.checkout_fee_hint_default', fee=item.default_loan_fee|float|money) }}{% else %}{{ t('inventory.detail.checkout_fee_hint') }}{% endif %}</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">{{ t('inventory.detail.checkout_note') }}</label>
-                            <input type="text" name="note" class="form-control form-control-sm">
+                            <input type="text" name="note" class="form-control form-control-sm" value="{{ entered.note or '' }}">
                         </div>
                     </div>
                     <button type="submit" class="btn btn-sm btn-primary mt-2">{{ t('inventory.detail.checkout_button') }}</button>

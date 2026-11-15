@@ -1481,7 +1481,13 @@
       "mode_short_parcel": "Location",
       "mode_short_member": "Membre",
       "delete_confirm": "Voulez-vous vraiment supprimer la configuration pour {year} ?",
-      "no_config": "Pas encore de configuration."
+      "no_config": "Pas encore de configuration.",
+      "confirmation_title": "E-mail de confirmation d'inscription",
+      "confirmation_desc": "Envoyé après une inscription via le formulaire du site, aux adresses e-mail enregistrées des membres inscrits (jamais à l'adresse saisie dans le formulaire). Le titre, la date et l'heure de la session ainsi que les remarques sont ajoutés sous votre texte.",
+      "confirmation_enabled": "Envoyer un e-mail de confirmation",
+      "confirmation_text_label": "Votre texte",
+      "confirmation_text_hint": "Texte brut ; une ligne vide commence un nouveau paragraphe. Laissez vide pour utiliser le texte affiché en gris.",
+      "confirmation_saved": "Confirmation d'inscription enregistrée."
     },
     "configuration_form": {
       "title": "Modifier la configuration",
@@ -2104,6 +2110,8 @@
       "checkout_quantity": "Quantité",
       "checkout_date": "Date",
       "checkout_fee": "Frais",
+      "checkout_fee_hint": "Facultatif. Un nombre uniquement, p. ex. 5 ou 2,50.",
+      "checkout_fee_hint_default": "Facultatif. Un nombre uniquement, p. ex. 5 ou 2,50. Laissé vide, les frais par défaut de {fee} s'appliquent.",
       "checkout_note": "Note",
       "checkout_button": "Emprunter",
       "none_available": "Rien de disponible à l'emprunt pour le moment.",
@@ -2129,7 +2137,10 @@
     "errors": {
       "item_not_borrowable": "Cet article n'est pas marqué comme empruntable.",
       "member_required": "Un membre doit être sélectionné.",
-      "insufficient_quantity": "Seulement {available} sur {total} disponible(s) actuellement."
+      "insufficient_quantity": "Seulement {available} sur {total} disponible(s) actuellement.",
+      "invalid_amount": "Veuillez saisir les montants uniquement sous forme de nombre, p. ex. 5 ou 2,50, sans symbole monétaire ni texte.",
+      "invalid_date": "Veuillez saisir une date valide.",
+      "invalid_quantity": "Veuillez saisir comme quantité un nombre entier d'au moins 1."
     }
   },
   "tasks": {
@@ -2332,6 +2343,12 @@
     },
     "applicant_contact": {
       "subject": "Merci de vous être inscrit(e) sur notre liste d'attente !"
+    },
+    "signup_confirmation": {
+      "subject": "RE : votre inscription à la journée de travail du {date}",
+      "greeting": "Bonjour {name},",
+      "default_text": "merci pour votre inscription à notre journée de travail. Nous l'avons bien reçue et nous réjouissons de vous y voir.",
+      "remarks_intro": "Vos remarques :"
     }
   },
   "finances": {

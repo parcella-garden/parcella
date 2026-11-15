@@ -1481,7 +1481,13 @@
       "mode_short_parcel": "Nájem",
       "mode_short_member": "Člen",
       "delete_confirm": "Opravdu chcete smazat konfiguraci pro {year}?",
-      "no_config": "Zatím žádná konfigurace."
+      "no_config": "Zatím žádná konfigurace.",
+      "confirmation_title": "Potvrzovací e-mail k přihlášce",
+      "confirmation_desc": "Odešle se po přihlášce přes formulář na webu – na uložené e-mailové adresy přihlášených členů (nikdy na adresu zadanou do formuláře). Název, datum a čas termínu a poznámky se připojí pod váš text.",
+      "confirmation_enabled": "Odesílat potvrzovací e-mail",
+      "confirmation_text_label": "Váš text",
+      "confirmation_text_hint": "Prostý text; prázdný řádek začíná nový odstavec. Nechte prázdné pro text zobrazený šedě.",
+      "confirmation_saved": "Potvrzení přihlášky uloženo."
     },
     "configuration_form": {
       "title": "Upravit konfiguraci",
@@ -2104,6 +2110,8 @@
       "checkout_quantity": "Množství",
       "checkout_date": "Datum",
       "checkout_fee": "Poplatek",
+      "checkout_fee_hint": "Volitelné. Pouze číslo, např. 5 nebo 2,50.",
+      "checkout_fee_hint_default": "Volitelné. Pouze číslo, např. 5 nebo 2,50. Když zůstane prázdné, platí výchozí poplatek {fee}.",
       "checkout_note": "Poznámka",
       "checkout_button": "Půjčit",
       "none_available": "Momentálně nic k zapůjčení k dispozici.",
@@ -2129,7 +2137,10 @@
     "errors": {
       "item_not_borrowable": "Tato položka není označena jako půjčitelná.",
       "member_required": "Musí být vybrán člen.",
-      "insufficient_quantity": "Nyní je k dispozici pouze {available} z {total}."
+      "insufficient_quantity": "Nyní je k dispozici pouze {available} z {total}.",
+      "invalid_amount": "Částky zadávejte pouze jako číslo, např. 5 nebo 2,50, bez symbolu měny a textu.",
+      "invalid_date": "Zadejte platné datum.",
+      "invalid_quantity": "Jako množství zadejte celé číslo od 1."
     }
   },
   "tasks": {
@@ -2332,6 +2343,12 @@
     },
     "applicant_contact": {
       "subject": "Děkujeme za registraci na náš pořadník!"
+    },
+    "signup_confirmation": {
+      "subject": "Re: Vaše přihláška na brigádu dne {date}",
+      "greeting": "Dobrý den, {name},",
+      "default_text": "děkujeme za přihlášku na naši brigádu. Obdrželi jsme ji a těšíme se na vás.",
+      "remarks_intro": "Vaše poznámky:"
     }
   },
   "finances": {
