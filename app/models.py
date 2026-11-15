@@ -2138,6 +2138,10 @@ class Announcement(Base):
     body_markdown: Mapped[str] = mapped_column(Text, nullable=False)
     body_html: Mapped[str] = mapped_column(Text, nullable=False, default="")
     image_filename: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    # Issue #318: alt text for the banner image. NULL = none given; the
+    # website channels then fall back to the title (what the CMS plugins
+    # always did), Parcella's own pages keep alt="". See docs/ADR/0128.
+    image_alt: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     print_text_override: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     # Issue #242: a message to filtered members instead of club news.
     # NULL = the classic announcement to every active member with
@@ -2253,6 +2257,9 @@ class AnnouncementDelivery(Base):
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     content_fingerprint: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     image_filename: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    # The alt text as delivered (issue #318), compared like image_filename
+    # so an alt-only edit marks the channel as changed.
+    image_alt: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     pdf_filename: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     qr_pending: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
     created_at: Mapped[datetime] = mapped_column(

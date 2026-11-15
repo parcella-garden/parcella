@@ -30,7 +30,7 @@ final class ParcellaConnector extends CMSPlugin implements SubscriberInterface
 {
     use DatabaseAwareTrait;
 
-    public const VERSION = '1.0.0';
+    public const VERSION = '1.1.0';
     private const IMAGE_FOLDER = 'images/parcella';
 
     public static function getSubscribedEvents(): array
@@ -217,6 +217,16 @@ final class ParcellaConnector extends CMSPlugin implements SubscriberInterface
     {
         $image = $draft['image'];
         if ($image['state'] === 'unchanged') {
+            // Same image, maybe a new alt text (null = keep the current one);
+            // only for the image slots that are actually filled.
+            if ($draft['image_alt'] !== null) {
+                foreach (['image_intro', 'image_fulltext'] as $slot) {
+                    if (($current[$slot] ?? '') !== '') {
+                        $current[$slot . '_alt'] = $draft['image_alt'];
+                    }
+                }
+            }
+
             return $current;
         }
         $fields = array_merge($current, [
@@ -233,7 +243,7 @@ final class ParcellaConnector extends CMSPlugin implements SubscriberInterface
             }
             $relative = self::IMAGE_FOLDER . '/' . $name;
             $fields['image_intro'] = $fields['image_fulltext'] = $relative;
-            $fields['image_intro_alt'] = $fields['image_fulltext_alt'] = $draft['title'];
+            $fields['image_intro_alt'] = $fields['image_fulltext_alt'] = $draft['image_alt'] ?? $draft['title'];
         }
 
         return $fields;

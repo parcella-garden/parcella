@@ -30,7 +30,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 final class DraftEndpoint implements MiddlewareInterface
 {
-    public const VERSION = '1.0.0';
+    public const VERSION = '1.1.0';
     private const NEWS_TABLE = 'tx_news_domain_model_news';
     private const SOURCE_TABLE = 'tx_parcellaconnector_source';
 
@@ -177,10 +177,19 @@ final class DraftEndpoint implements MiddlewareInterface
     private function applyImage(int $newsUid, int $pid, array $draft): void
     {
         $image = $draft['image'];
+        $references = $this->connectionPool->getConnectionForTable('sys_file_reference');
         if ($image['state'] === 'unchanged') {
+            // Same image, maybe a new alt text (null = keep the current one).
+            if ($draft['image_alt'] !== null) {
+                $references->update(
+                    'sys_file_reference',
+                    ['alternative' => $draft['image_alt'], 'tstamp' => time()],
+                    ['uid_foreign' => $newsUid, 'tablenames' => self::NEWS_TABLE, 'fieldname' => 'fal_media', 'deleted' => 0],
+                );
+            }
+
             return;
         }
-        $references = $this->connectionPool->getConnectionForTable('sys_file_reference');
         $references->update(
             'sys_file_reference',
             ['deleted' => 1, 'tstamp' => time()],
@@ -205,7 +214,7 @@ final class DraftEndpoint implements MiddlewareInterface
                 'fieldname' => 'fal_media',
                 'sorting_foreign' => 1,
                 'showinpreview' => 1,
-                'alternative' => $draft['title'],
+                'alternative' => $draft['image_alt'] ?? $draft['title'],
                 'crdate' => $now,
                 'tstamp' => $now,
             ]);
