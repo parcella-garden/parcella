@@ -153,11 +153,13 @@ def slugify(text: str) -> str:
 
 
 def note_filename(note_date: date, title: str, taken: Iterable[str]) -> str:
-    """`2026-03-04-board-meeting-march.md`, with -2, -3, ... appended if
+    """`20260304-board-meeting-march.md`, with -2, -3, ... appended if
     that name is taken (compared ignoring case: some backends are
-    case-insensitive)."""
+    case-insensitive). The compact date (issue #316) sorts the same and
+    matches the website's Markdown posts; date_from_filename() reads it
+    as well as the older `2026-03-04-` names, which are never renamed."""
     taken_lower = {name.lower() for name in taken}
-    stem = f"{note_date.isoformat()}-{slugify(title)}"
+    stem = f"{note_date:%Y%m%d}-{slugify(title)}"
     candidate = f"{stem}.md"
     counter = 2
     while candidate.lower() in taken_lower:
