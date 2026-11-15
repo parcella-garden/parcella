@@ -66,6 +66,15 @@
                     {% endfor %}
                 </select>
             </div>
+            {% if request.state.module_flags.mcp %}
+            <div class="col-12">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="mcp_only" value="true" id="token_mcp_only">
+                    <label class="form-check-label" for="token_mcp_only">{{ t('api_tokens.field_mcp_only') }}</label>
+                </div>
+                <div class="form-text">{{ t('api_tokens.mcp_only_help') }}</div>
+            </div>
+            {% endif %}
             <div class="col-12">
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-key me-1"></i>{{ t('api_tokens.create_button') }}
@@ -96,6 +105,7 @@
                     <td class="text-break">
                         <div class="fw-semibold">{{ token.name }}</div>
                         <code class="small">{{ token.token_prefix }}…</code>
+                        {% if token.mcp_only %}<span class="badge text-bg-info ms-1">{{ t('api_tokens.badge_mcp_only') }}</span>{% endif %}
                     </td>
                     {% if admin_view %}<td class="text-break">{{ token.user.name if token.user else '–' }}</td>{% endif %}
                     <td class="text-nowrap small">{{ token.created_at.strftime('%d.%m.%Y') }}</td>

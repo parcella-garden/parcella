@@ -330,7 +330,9 @@
         "reporting_name": "Rapportages",
         "reporting_desc": "Verenigingscijfers door de tijd als grafieken: leeftijdsgroepen, leden per jaar, beëindigde pachten, aanmeldingen, uitkomsten van werkuren, urenoverdrachten en stroomaansluitingen. Alleen lezen, berekend uit de bestaande gegevens.",
         "notes_name": "Notities",
-        "notes_desc": "Markdown-notities voor vergaderingen en al het andere, met categorieën en labels; opgeslagen als .md-bestanden in de cloud als er een notitiemap is ingesteld."
+        "notes_desc": "Markdown-notities voor vergaderingen en al het andere, met categorieën en labels; opgeslagen als .md-bestanden in de cloud als er een notitiemap is ingesteld.",
+        "mcp_name": "MCP-connector voor AI-clients",
+        "mcp_desc": "Laat een AI-client (Claude, ChatGPT, …) notities zoeken, lezen en schrijven via MCP – alleen notities die met de vrijgavetag voor AI zijn vrijgegeven, niets anders. Vereist een API-token ‘Alleen MCP-connector’. Standaard uit: het geeft notities van de vereniging aan een externe dienst."
       },
       "region_header": "Regio",
       "region_help": "Bepaalt het getal- en adresformaat (bijv. duizendtalscheidingsteken, volgorde van postcode en plaats). Onafhankelijk van de interfacetaal.",
@@ -3623,6 +3625,9 @@
       "user_inactive": "Dit account is gedeactiveerd.",
       "not_found": "Token niet gevonden.",
       "not_for_full_access_user": "Voor een ander account met volledige toegang kunnen geen tokens worden aangemaakt."
-    }
+    },
+    "field_mcp_only": "Alleen MCP-connector (voor een AI-client)",
+    "mcp_only_help": "Werkt alleen op het MCP-eindpunt en alleen met notities die voor AI zijn vrijgegeven (tag ‘ki-freigegeben’). Elke andere API-route weigert hem. Voor Claude, ChatGPT of een andere MCP-client – nooit een gewoon token.",
+    "badge_mcp_only": "Alleen MCP"
   }
 }

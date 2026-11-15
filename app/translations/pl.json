@@ -330,7 +330,9 @@
         "reporting_name": "Raporty",
         "reporting_desc": "Dane stowarzyszenia w czasie jako wykresy: grupy wiekowe, członkowie w poszczególnych latach, zakończone dzierżawy, kandydaci, wyniki godzin pracy, przekazania godzin i przyłącza prądu. Tylko do odczytu, liczone z istniejących danych.",
         "notes_name": "Notatki",
-        "notes_desc": "Notatki w Markdown ze spotkań i nie tylko, z kategoriami i tagami; zapisywane w chmurze jako pliki .md, jeśli ustawiono folder notatek."
+        "notes_desc": "Notatki w Markdown ze spotkań i nie tylko, z kategoriami i tagami; zapisywane w chmurze jako pliki .md, jeśli ustawiono folder notatek.",
+        "mcp_name": "Konektor MCP dla klientów AI",
+        "mcp_desc": "Pozwala klientowi AI (Claude, ChatGPT, …) wyszukiwać, czytać i zapisywać notatki przez MCP – tylko notatki udostępnione dla AI tagiem udostępnienia, nic więcej. Wymaga tokenu API „Tylko konektor MCP”. Domyślnie wyłączony: przekazuje notatki stowarzyszenia zewnętrznej usłudze."
       },
       "region_header": "Region",
       "region_help": "Określa format liczb i adresu (np. separator tysięcy, kolejność kodu pocztowego i miejscowości). Niezależnie od języka interfejsu.",
@@ -3623,6 +3625,9 @@
       "user_inactive": "To konto jest dezaktywowane.",
       "not_found": "Nie znaleziono tokenu.",
       "not_for_full_access_user": "Nie można tworzyć tokenów dla innego konta z pełnym dostępem."
-    }
+    },
+    "field_mcp_only": "Tylko konektor MCP (dla klienta AI)",
+    "mcp_only_help": "Działa tylko na punkcie końcowym MCP i tylko z notatkami udostępnionymi dla AI (tag „ki-freigegeben”). Każda inna trasa API go odrzuca. Dla Claude, ChatGPT lub innego klienta MCP – nigdy zwykły token.",
+    "badge_mcp_only": "Tylko MCP"
   }
 }

@@ -957,6 +957,7 @@ MODULE_FIELDS = [
     ("modul_external_contacts", "admin.settings.modules.external_contacts_name", "admin.settings.modules.external_contacts_desc"),
     ("modul_reporting", "admin.settings.modules.reporting_name", "admin.settings.modules.reporting_desc"),
     ("modul_notes", "admin.settings.modules.notes_name", "admin.settings.modules.notes_desc"),
+    ("modul_mcp", "admin.settings.modules.mcp_name", "admin.settings.modules.mcp_desc"),
     ("modul_public_signup_api", "admin.settings.modules.public_signup_api_name", "admin.settings.modules.public_signup_api_desc"),
     ("modul_public_contact_api", "admin.settings.modules.public_contact_api_name", "admin.settings.modules.public_contact_api_desc"),
     ("modul_public_applicant_api", "admin.settings.modules.public_applicant_api_name", "admin.settings.modules.public_applicant_api_desc"),
@@ -1825,6 +1826,7 @@ async def admin_api_token_create(
     user_id: str = Form(""),
     name: str = Form(""),
     expires_in: str = Form(""),
+    mcp_only: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
     admin = await require_system_admin(request, db)
@@ -1835,7 +1837,7 @@ async def admin_api_token_create(
         if target.id != admin.id and await is_full_access_user(db, target):
             raise ServiceError("api_tokens.errors.not_for_full_access_user", http_status=403)
         days = api_tokens.parse_expiry_days(expires_in)
-        _, raw = await api_tokens.create_token(db, target, name, days, created_by=admin)
+        _, raw = await api_tokens.create_token(db, target, name, days, created_by=admin, mcp_only=mcp_only == "true")
     except ServiceError as e:
         return await _admin_api_tokens_page(
             request, db, admin, error=t_for(request, e.key, **e.params), status_code=e.http_status,

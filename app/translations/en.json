@@ -330,7 +330,9 @@
         "reporting_name": "Reporting",
         "reporting_desc": "Club figures over time as charts: age groups, members per year, ended leases, applicants, work-hours outcomes, hours transfers and electricity connections. Read-only, computed from the existing data.",
         "notes_name": "Notes",
-        "notes_desc": "Markdown notes for meetings and anything else, with categories and tags; stored as .md files in the cloud when a notes folder is set."
+        "notes_desc": "Markdown notes for meetings and anything else, with categories and tags; stored as .md files in the cloud when a notes folder is set.",
+        "mcp_name": "MCP connector for AI clients",
+        "mcp_desc": "Lets an AI client (Claude, ChatGPT, …) search, read and write notes through MCP — only notes released for AI with the release tag, never anything else. Needs an \"MCP connector only\" API token. Off by default: it hands club notes to a third-party service."
       },
       "region_header": "Region",
       "region_help": "Determines number and address format (e.g. thousands separator, order of postal code and city). Independent of the interface language.",
@@ -3623,6 +3625,9 @@
       "user_inactive": "This account is deactivated.",
       "not_found": "Token not found.",
       "not_for_full_access_user": "Tokens can't be created for another account with full access."
-    }
+    },
+    "field_mcp_only": "MCP connector only (for an AI client)",
+    "mcp_only_help": "Works only on the MCP endpoint and only with notes released for AI (tag \"ki-freigegeben\"). Every other API route rejects it. Use it for Claude, ChatGPT or another MCP client — never an ordinary token.",
+    "badge_mcp_only": "MCP only"
   }
 }

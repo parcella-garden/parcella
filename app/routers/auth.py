@@ -342,12 +342,13 @@ async def api_token_create(
     request: Request,
     name: str = Form(""),
     expires_in: str = Form(""),
+    mcp_only: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_user(request, db)
     try:
         days = api_tokens.parse_expiry_days(expires_in)
-        _, raw = await api_tokens.create_token(db, user, name, days, created_by=user)
+        _, raw = await api_tokens.create_token(db, user, name, days, created_by=user, mcp_only=mcp_only == "true")
     except ServiceError as e:
         return await _api_tokens_page(
             request, db, user, error=t_for(request, e.key, **e.params), status_code=e.http_status,
