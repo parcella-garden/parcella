@@ -29,6 +29,14 @@ registered (see "Matching logic" in docs/module-public-api.md).
   for them (header-injection shape, see CLAUDE.md). Everything
   user-entered (member name, session title, boilerplate, remarks) is
   escaped into the HTML.
+- **The visitor's remarks are quoted only on a unique name match**, and
+  capped at 500 characters (found by the security review). Plot numbers
+  are public, and an unmatched sign-up mails *every* resident of the
+  parcel. Quoting the remarks there would let a stranger put a phishing
+  text ("fee overdue, pay to IBAN …") into a mail the club itself sends
+  to all its members. A unique match needs a resident's real name, which
+  the public site never shows, so it's the member's own text coming
+  back to them. Unmatched remarks still reach the board in Parcella.
 - **Settings: two ClubSetting keys** (`work_hours_signup_confirmation_enabled`,
   default on, and `..._text`), edited in a card on
   `/work-hours/configuration` (work-hours write permission). An empty

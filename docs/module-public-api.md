@@ -95,7 +95,9 @@ mailed. The subject is "RE: your registration to work session on
 {date}". The body is the board's text from the "Sign-up confirmation
 email" card on `/work-hours/configuration` (on by default; empty = the
 translated default text), followed by the session's title, date and
-time and the visitor's remarks, quoted and escaped. A failed send is
+time and the visitor's remarks, quoted and escaped. The remarks are
+only included when the name matched one member uniquely, and are capped
+at 500 characters (anti-phishing, see ADR 0130). A failed send is
 logged and never undoes the registration.
 `send_signup_confirmations()` lives in `app/services/work_hours.py`.
 

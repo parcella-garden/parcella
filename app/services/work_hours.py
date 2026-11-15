@@ -642,6 +642,7 @@ async def notify_new_participations_digest(db: AsyncSession, count: int, lang: s
 SIGNUP_CONFIRMATION_ENABLED_KEY = "work_hours_signup_confirmation_enabled"
 SIGNUP_CONFIRMATION_TEXT_KEY = "work_hours_signup_confirmation_text"
 SIGNUP_CONFIRMATION_TEXT_MAX_LENGTH = 5000
+SIGNUP_CONFIRMATION_REMARKS_MAX_LENGTH = 500
 
 
 async def load_signup_confirmation_settings(db: AsyncSession) -> tuple[bool, str]:
@@ -698,8 +699,11 @@ def build_signup_confirmation(
     details = [f"<strong>{escape(session.title)}</strong>", escape(date_text)]
     if time_text:
         details.append(escape(time_text))
+    remarks = remarks.strip()
+    if len(remarks) > SIGNUP_CONFIRMATION_REMARKS_MAX_LENGTH:
+        remarks = remarks[:SIGNUP_CONFIRMATION_REMARKS_MAX_LENGTH].rstrip() + " …"
     remarks_block = ""
-    if remarks.strip():
+    if remarks:
         remarks_block = (
             f"<p>{escape(translate('email.signup_confirmation.remarks_intro', lang))}</p>"
             f'<blockquote style="border-left: 3px solid #d1d5db; margin: 0; padding-left: 12px; color: #4b5563;">'

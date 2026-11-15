@@ -366,8 +366,11 @@ async def _process_signup(
         # an ambiguous name match), see docs/ADR/0079.
         await notify_new_participations_digest(db, created_count, _lang(request))
         # Issue #313: confirm to the registered members themselves, at
-        # their stored address only (ADR 0130). Never raises.
-        await send_signup_confirmations(db, registrations, payload.remarks or "")
+        # their stored address only (ADR 0130). Never raises. The
+        # visitor's remarks are quoted only on a unique name match:
+        # otherwise anyone who knows a (public) plot number could put
+        # their text into a mail the club sends to every resident.
+        await send_signup_confirmations(db, registrations, (payload.remarks or "") if was_matched else "")
     else:
         await db.rollback()
 

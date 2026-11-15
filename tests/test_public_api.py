@@ -768,16 +768,35 @@ async def test_signup_confirmation_goes_only_to_the_matched_member_on_file(clien
 
 
 async def test_signup_confirmation_goes_to_every_resident_on_an_ambiguous_name(client, admin_user, monkeypatch):
+    """Without a unique name match the remarks are NOT quoted: a stranger
+    who knows a public plot number must not get their text into a mail
+    the club sends to every resident (phishing via the club's sender)."""
     _headers, _gerd, _erika, session = await _signup_setup(client)
     sent = _capture_emails(monkeypatch)
 
     await client.post(
         "/api/v1/public/work-sessions/signup",
-        json={"parcel_number": "G042", "name": "Familie Muster", "session_ids": [session["id"]]},
+        json={"parcel_number": "G042", "name": "Familie Muster", "session_ids": [session["id"]],
+              "remarks": "Fee overdue, pay to IBAN DE00 1234 at https://evil.example"},
         headers={"X-Parcella-API-Token": "test-public-api-token"},
     )
-    recipients = {s[0] for s in sent if s[0].endswith("@example.org")}
-    assert recipients == {"gerd@example.org", "erika@example.org"}
+    to_members = [s for s in sent if s[0].endswith("@example.org")]
+    assert {s[0] for s in to_members} == {"gerd@example.org", "erika@example.org"}
+    for _to, _subject, html in to_members:
+        assert "IBAN" not in html and "evil.example" not in html
+
+
+async def test_signup_confirmation_caps_long_remarks(client, admin_user, monkeypatch):
+    _headers, _gerd, _erika, session = await _signup_setup(client)
+    sent = _capture_emails(monkeypatch)
+    await client.post(
+        "/api/v1/public/work-sessions/signup",
+        json={"parcel_number": "G042", "name": "Gerd Mustergärtner", "session_ids": [session["id"]],
+              "remarks": "x" * 2000},
+        headers={"X-Parcella-API-Token": "test-public-api-token"},
+    )
+    html = next(s[2] for s in sent if s[0] == "gerd@example.org")
+    assert "x" * 500 + " …" in html and "x" * 501 not in html
 
 
 async def test_signup_confirmation_uses_the_boilerplate_and_can_be_switched_off(client, admin_user, monkeypatch):
