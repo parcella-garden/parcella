@@ -6,7 +6,7 @@
     <copyright>Parcella contributors</copyright>
     <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
     <authorUrl>https://github.com/parcella-garden/parcella</authorUrl>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <description>PLG_SYSTEM_PARCELLACONNECTOR_XML_DESCRIPTION</description>
     <namespace path="src">Parcella\Plugin\System\ParcellaConnector</namespace>
     <scriptfile>script.php</scriptfile>

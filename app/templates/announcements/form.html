@@ -25,6 +25,7 @@
 {% set title_value = entered.title if entered else (announcement.title if announcement else '') %}
 {% set body_value = entered.body_markdown if entered else (announcement.body_markdown if announcement else '') %}
 {% set print_override_value = entered.print_text_override if entered else ((announcement.print_text_override or '') if announcement else '') %}
+{% set image_alt_value = entered.image_alt if entered else ((announcement.image_alt or '') if announcement else '') %}
 {% set letters_for_all_value = entered.letters_for_all if entered else (announcement and announcement.letters_for_all) %}
 {% if error %}
 <div class="alert alert-danger">
@@ -112,7 +113,7 @@
                 <label class="form-label">{{ t('announcements.form.label_image') }}</label>
                 {% if announcement and announcement.image_url %}
                 <div class="mb-2">
-                    <img src="{{ announcement.image_url }}" alt="" style="max-width: 200px; max-height: 200px; border-radius: 4px;" class="d-block mb-2">
+                    <img src="{{ announcement.image_url }}" alt="{{ announcement.image_alt or '' }}" style="max-width: 200px; max-height: 200px; border-radius: 4px;" class="d-block mb-2">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="true" name="remove_image" id="remove_image">
                         <label class="form-check-label" for="remove_image">{{ t('announcements.form.remove_image') }}</label>
@@ -123,6 +124,10 @@
                        data-max-bytes="{{ announcement_max_image_bytes }}">
                 <div class="invalid-feedback" id="image_too_large">{{ t('announcements.form.error_image_too_large') }}</div>
                 <div class="form-text">{{ t('announcements.form.image_hint') }}</div>
+                <label class="form-label mt-2" for="image_alt">{{ t('announcements.form.label_image_alt') }}</label>
+                <input type="text" name="image_alt" id="image_alt" class="form-control" maxlength="255"
+                       value="{{ image_alt_value }}">
+                <div class="form-text">{{ t('announcements.form.image_alt_hint') }}</div>
             </div>
 
             <div class="mb-3">

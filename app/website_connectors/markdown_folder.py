@@ -31,7 +31,7 @@ from app.website_connectors.base import (
 # key (draft, categories, author, date, url, ...) is left exactly as the
 # human last saved it, the same way the WordPress connector keeps
 # categories and the publish status.
-OWNED_KEYS = ("title", "summary", "image")
+OWNED_KEYS = ("title", "summary", "image", "image_alt")
 
 _POST_FILENAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*\.md$")
 _TRANSLITERATIONS = {"ä": "ae", "ö": "oe", "ü": "ue", "Ä": "Ae", "Ö": "Oe", "Ü": "Ue", "ß": "ss"}
@@ -196,7 +196,13 @@ class MarkdownFolderPublisher(WebsiteConnector):
             lines["summary"] = f"summary: {yaml_string(summary)}"
         if image_path:
             lines["image"] = f"image: {yaml_string(image_path)}"
+        if image_path and content.image_alt:
+            lines["image_alt"] = self._alt_line(content)
         return lines
+
+    @staticmethod
+    def _alt_line(content: DraftContent) -> str:
+        return f"image_alt: {yaml_string(content.image_alt)}"
 
     async def _read(self, filename: str) -> str:
         if not _POST_FILENAME_RE.match(filename or ""):
@@ -252,7 +258,7 @@ class MarkdownFolderPublisher(WebsiteConnector):
             header.append(f"author: {yaml_string(self.author)}")
         if self.categories:
             header.append("categories: [" + ", ".join(yaml_string(c) for c in self.categories) + "]")
-        header += [owned[k] for k in ("summary", "image") if k in owned]
+        header += [owned[k] for k in ("summary", "image", "image_alt") if k in owned]
         if content.source_id:
             header.append(f"parcella_announcement: {yaml_string(content.source_id)}")
         header.append("draft: true")
@@ -262,6 +268,7 @@ class MarkdownFolderPublisher(WebsiteConnector):
 
     async def update_post(
         self, post_id: str, content: DraftContent, image_changed: bool = False,
+        alt_changed: bool = False,
     ) -> DraftResult:
         header, _old_body = split_front_matter(await self._read(post_id))
 
@@ -269,7 +276,15 @@ class MarkdownFolderPublisher(WebsiteConnector):
         if image_changed:
             image_path = await self._upload_image(content, date.today())
         owned = self._owned_lines(content, image_path)
-        replace = set(OWNED_KEYS) if image_changed else {"title", "summary"}
+        replace = {"title", "summary"}
+        if image_changed:
+            replace = set(OWNED_KEYS)
+        elif alt_changed:
+            # Same image, new alt text: only "image_alt" is rewritten, and
+            # only while the post still has an image line at all.
+            replace.add("image_alt")
+            if content.image_alt and any(_line_key(l) == "image" for l in header):
+                owned["image_alt"] = self._alt_line(content)
 
         new_header, placed = [], set()
         for line in header:

@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 final class EndpointController extends ControllerBase {
 
-  public const VERSION = '1.0.0';
+  public const VERSION = '1.1.0';
 
   public function __construct(
     private readonly KeyValueStoreInterface $sources,
@@ -167,7 +167,14 @@ final class EndpointController extends ControllerBase {
     $image = $draft['image'];
     // The image is optional: a content type without an image field just
     // gets the text.
-    if (!$node->hasField($imageField) || $image['state'] === 'unchanged') {
+    if (!$node->hasField($imageField)) {
+      return;
+    }
+    if ($image['state'] === 'unchanged') {
+      // Same image, maybe a new alt text (null = keep the current one).
+      if ($draft['image_alt'] !== NULL && !$node->get($imageField)->isEmpty()) {
+        $node->get($imageField)->first()->set('alt', $draft['image_alt']);
+      }
       return;
     }
     if ($image['state'] === 'remove') {
@@ -181,7 +188,7 @@ final class EndpointController extends ControllerBase {
       $directory . '/' . ParcellaProtocol::storedFilename($image['extension']),
       FileExists::Rename,
     );
-    $node->set($imageField, ['target_id' => $file->id(), 'alt' => $draft['title']]);
+    $node->set($imageField, ['target_id' => $file->id(), 'alt' => $draft['image_alt'] ?? $draft['title']]);
   }
 
   /**

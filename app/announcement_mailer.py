@@ -60,6 +60,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import List, Optional, Tuple
 
+from markupsafe import escape
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -203,7 +204,7 @@ def build_announcement_email_html(
     real thing, without changing the actual announcement content being
     previewed."""
     image_block = (
-        f'<p><img src="{image_url}" alt="" style="max-width: 100%; height: auto; border-radius: 4px;"></p>'
+        f'<p><img src="{image_url}" alt="{escape(announcement.image_alt or "")}" style="max-width: 100%; height: auto; border-radius: 4px;"></p>'
         if image_url else ""
     )
     banner = (

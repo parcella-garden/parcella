@@ -1903,6 +1903,8 @@
       "label_image": "Obrázok",
       "remove_image": "Odstrániť obrázok",
       "image_hint": "PNG, JPEG alebo WebP, do 5 MB. Používa sa ako obrázok príspevku na webe a zobrazuje sa v e-maile.",
+      "label_image_alt": "Popis obrázka (alternatívny text)",
+      "image_alt_hint": "Opíšte, čo je na obrázku – pre ľudí s čítačkou obrazovky a pre vyhľadávače. Ak zostane prázdny, web dostane nadpis.",
       "label_body": "Text",
       "body_hint": "Písané v Markdowne. Rovnaký text sa použije pre koncept na webe aj pre e-mail členom.",
       "body_placeholder": "Sem napíšte text oznamu...",
