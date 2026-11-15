@@ -64,7 +64,8 @@
     "reporting": "Rapports",
     "email_log": "Journal des e-mails",
     "notes": "Notes",
-    "api_tokens": "Jetons API"
+    "api_tokens": "Jetons API",
+    "calendar_custom": "Mes calendriers"
   },
   "errors": {
     "user_not_found": "Utilisateur non trouvé",
@@ -1873,9 +1874,43 @@
       "entry_not_found": "Entrée introuvable",
       "invalid_token": "Jeton d'accès invalide ou manquant",
       "not_your_entry": "Vous ne pouvez supprimer que vos propres entrées",
-      "no_member_selected": "Sélectionnez au moins un membre du conseil"
+      "no_member_selected": "Sélectionnez au moins un membre du conseil",
+      "calendar_archived": "Ce calendrier est archivé.",
+      "calendar_not_found": "Calendrier introuvable.",
+      "invalid_date": "Veuillez saisir une date valide."
     },
-    "ics_subscribe_button": "S'abonner (ICS)"
+    "ics_subscribe_button": "S'abonner (ICS)",
+    "custom": {
+      "active_label": "Actif (décocher pour archiver)",
+      "archived_badge": "Archivé",
+      "archived_notice": "Ce calendrier est archivé : ses entrées restent, mais on ne peut plus en ajouter.",
+      "color_label": "Couleur",
+      "create_button": "Créer le calendrier",
+      "delete_event": "Supprimer l'entrée",
+      "description_label": "Description",
+      "edit": "Modifier",
+      "empty": "Aucun calendrier pour l'instant.",
+      "full_access_only_badge": "Bureau uniquement",
+      "full_access_only_label": "Visible uniquement par le bureau et les utilisateurs à accès complet",
+      "ics_private_label": "Adresse d'abonnement privée (à ne pas partager)",
+      "index_title": "Calendriers",
+      "list_title": "Calendriers",
+      "name_label": "Nom",
+      "name_placeholder": "p. ex. réservations du local",
+      "new_title": "Nouveau calendrier"
+    },
+    "resources": {
+      "col_item": "Objet",
+      "col_loans": "Statut",
+      "col_status": "Actuellement prêté",
+      "desc": "Objets de l'association empruntables et qui les a en ce moment.",
+      "empty": "Aucun objet de l'association empruntable.",
+      "loan_line": "depuis le {since} : {name} ({quantity}×)",
+      "status_free": "Disponible",
+      "status_out": "Prêté",
+      "status_partly": "{available} sur {total} disponibles",
+      "title": "Ressources"
+    }
   },
   "announcements": {
     "print": {

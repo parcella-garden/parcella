@@ -64,7 +64,8 @@
     "reporting": "Prehľady",
     "email_log": "Protokol e-mailov",
     "notes": "Poznámky",
-    "api_tokens": "API tokeny"
+    "api_tokens": "API tokeny",
+    "calendar_custom": "Vlastné kalendáre"
   },
   "errors": {
     "user_not_found": "Používateľ nebol nájdený",
@@ -1873,9 +1874,43 @@
       "entry_not_found": "Záznam nenájdený",
       "invalid_token": "Neplatný alebo chýbajúci prístupový token",
       "not_your_entry": "Môžete mazať iba vlastné záznamy",
-      "no_member_selected": "Vyberte aspoň jedného člena výboru"
+      "no_member_selected": "Vyberte aspoň jedného člena výboru",
+      "calendar_archived": "Tento kalendár je archivovaný.",
+      "calendar_not_found": "Kalendár sa nenašiel.",
+      "invalid_date": "Zadajte platný dátum."
     },
-    "ics_subscribe_button": "Odoberať (ICS)"
+    "ics_subscribe_button": "Odoberať (ICS)",
+    "custom": {
+      "active_label": "Aktívny (odškrtnite na archiváciu)",
+      "archived_badge": "Archivované",
+      "archived_notice": "Tento kalendár je archivovaný: záznamy zostávajú, nové nemožno pridať.",
+      "color_label": "Farba",
+      "create_button": "Vytvoriť kalendár",
+      "delete_event": "Zmazať záznam",
+      "description_label": "Popis",
+      "edit": "Upraviť",
+      "empty": "Zatiaľ žiadne kalendáre.",
+      "full_access_only_badge": "Len výbor",
+      "full_access_only_label": "Viditeľné len pre výbor a používateľov s plným prístupom",
+      "ics_private_label": "Súkromná adresa odberu (nezdieľajte)",
+      "index_title": "Kalendáre",
+      "list_title": "Kalendáre",
+      "name_label": "Názov",
+      "name_placeholder": "napr. rezervácie klubovne",
+      "new_title": "Nový kalendár"
+    },
+    "resources": {
+      "col_item": "Predmet",
+      "col_loans": "Stav",
+      "col_status": "Práve zapožičané",
+      "desc": "Predmety spolku na zapožičanie a kto ich práve má.",
+      "empty": "Žiadne predmety spolku na zapožičanie.",
+      "loan_line": "od {since}: {name} ({quantity}×)",
+      "status_free": "K dispozícii",
+      "status_out": "Zapožičané",
+      "status_partly": "K dispozícii {available} z {total}",
+      "title": "Zdroje"
+    }
   },
   "announcements": {
     "print": {

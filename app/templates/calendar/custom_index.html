@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}{{ t('calendar.custom.index_title') }}{% endblock %}
+{% block page_title %}{{ t('calendar.custom.index_title') }}{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="{% if can_manage %}col-lg-7{% else %}col-12{% endif %}">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-calendar3 me-2"></i>{{ t('calendar.custom.list_title') }}</div>
+            <ul class="list-group list-group-flush">
+                {% if show_resources %}
+                <li class="list-group-item">
+                    <a href="/calendar/resources" class="text-decoration-none fw-semibold">
+                        <i class="bi bi-box-seam me-2"></i>{{ t('calendar.resources.title') }}
+                    </a>
+                    <div class="text-muted small">{{ t('calendar.resources.desc') }}</div>
+                </li>
+                {% endif %}
+                {% for c in calendars %}
+                <li class="list-group-item">
+                    <div class="d-flex align-items-start gap-2">
+                        <span class="rounded-circle d-inline-block mt-1 flex-shrink-0" style="width: 12px; height: 12px; background: {{ c.color }};"></span>
+                        <div class="flex-grow-1">
+                            {% if c.is_active %}
+                            <a href="/calendar/custom/{{ c.id }}" class="text-decoration-none fw-semibold">{{ c.name }}</a>
+                            {% else %}
+                            <span class="fw-semibold text-muted">{{ c.name }}</span>
+                            <span class="badge text-bg-secondary ms-1">{{ t('calendar.custom.archived_badge') }}</span>
+                            {% endif %}
+                            {% if c.full_access_only %}<span class="badge text-bg-light ms-1"><i class="bi bi-lock"></i> {{ t('calendar.custom.full_access_only_badge') }}</span>{% endif %}
+                            {% if c.description %}<div class="text-muted small">{{ c.description }}</div>{% endif %}
+                            {% if can_manage %}
+                            <details class="mt-2">
+                                <summary class="small text-muted">{{ t('calendar.custom.edit') }}</summary>
+                                <form method="post" action="/calendar/custom/{{ c.id }}/edit" class="mt-2">
+                                    {{ csrf_field() }}
+                                    {% set prefix = 'c' ~ loop.index %}
+                                    <div class="row g-2">
+                                        <div class="col-sm-8"><input type="text" name="name" class="form-control form-control-sm" maxlength="100" value="{{ c.name }}" required aria-label="{{ t('calendar.custom.name_label') }}"></div>
+                                        <div class="col-sm-4"><input type="color" name="color" class="form-control form-control-sm form-control-color w-100" value="{{ c.color }}" aria-label="{{ t('calendar.custom.color_label') }}"></div>
+                                        <div class="col-12"><input type="text" name="description" class="form-control form-control-sm" value="{{ c.description or '' }}" aria-label="{{ t('calendar.custom.description_label') }}" placeholder="{{ t('calendar.custom.description_label') }}"></div>
+                                    </div>
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="full_access_only" value="true" id="{{ prefix }}_fa" {% if c.full_access_only %}checked{% endif %}>
+                                        <label class="form-check-label small" for="{{ prefix }}_fa">{{ t('calendar.custom.full_access_only_label') }}</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="is_active" value="true" id="{{ prefix }}_active" {% if c.is_active %}checked{% endif %}>
+                                        <label class="form-check-label small" for="{{ prefix }}_active">{{ t('calendar.custom.active_label') }}</label>
+                                    </div>
+                                    <button type="submit" class="btn btn-sm btn-primary mt-2">{{ t('common.save') }}</button>
+                                </form>
+                            </details>
+                            {% endif %}
+                        </div>
+                    </div>
+                </li>
+                {% else %}
+                {% if not show_resources %}
+                <li class="list-group-item text-muted">{{ t('calendar.custom.empty') }}</li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    {% if can_manage %}
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-plus-lg me-2"></i>{{ t('calendar.custom.new_title') }}</div>
+            <div class="card-body">
+                <form method="post" action="/calendar/custom/new">
+                    {{ csrf_field() }}
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold" for="new_name">{{ t('calendar.custom.name_label') }} <span class="text-danger">*</span></label>
+                        <input type="text" name="name" id="new_name" class="form-control" maxlength="100" required
+                               placeholder="{{ t('calendar.custom.name_placeholder') }}">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold" for="new_color">{{ t('calendar.custom.color_label') }}</label>
+                        <input type="color" name="color" id="new_color" class="form-control form-control-color" value="#2e7d32">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold" for="new_desc">{{ t('calendar.custom.description_label') }}</label>
+                        <input type="text" name="description" id="new_desc" class="form-control">
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="full_access_only" value="true" id="new_fa">
+                        <label class="form-check-label" for="new_fa">{{ t('calendar.custom.full_access_only_label') }}</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check-lg me-1"></i>{{ t('calendar.custom.create_button') }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

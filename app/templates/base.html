@@ -438,6 +438,7 @@
                 <a href="/calendar/birthdays" class="{% if '/calendar/birthdays' in request.url.path %}aktiv{% endif %}">{{ t('nav.calendar_birthdays') }}</a>
                 <a href="/calendar/council-presence" class="{% if '/calendar/council-presence' in request.url.path %}aktiv{% endif %}">{{ t('nav.calendar_council_presence') }}</a>
                 <a href="/calendar/council-absence" class="{% if '/calendar/council-absence' in request.url.path %}aktiv{% endif %}">{{ t('nav.calendar_council_absence') }}</a>
+                <a href="/calendar/custom" class="{% if '/calendar/custom' in request.url.path or '/calendar/resources' in request.url.path %}aktiv{% endif %}">{{ t('nav.calendar_custom') }}</a>
             </div>
         </div>
         {% endif %}

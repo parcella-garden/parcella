@@ -145,7 +145,10 @@ async def build_community_calendar(db: AsyncSession, base_url: str) -> Calendar:
     tz = await _club_timezone(db)
 
     events_result = await db.execute(
-        select(CalendarEvent).where(CalendarEvent.start_date >= date.today()).order_by(CalendarEvent.start_date)
+        select(CalendarEvent)
+        # Community only: custom calendars (issue #314) are never public.
+        .where(CalendarEvent.start_date >= date.today(), CalendarEvent.calendar_id.is_(None))
+        .order_by(CalendarEvent.start_date)
     )
     for e in events_result.scalars().all():
         # Times entered for an event (e.g. 10:00-12:00) make it a timed
@@ -232,5 +235,26 @@ async def build_council_absence_calendar(db: AsyncSession, base_url: str) -> Cal
             cal, uid=f"council-absence-{a.id}@{base_url}",
             summary=summary, start=a.start_date, end=a.end_date,
             description=a.note,
+        )
+    return cal
+
+
+async def build_custom_calendar(db: AsyncSession, calendar, base_url: str) -> Calendar:
+    """One admin-defined calendar (issue #314): present/future entries,
+    timed when times were given, like the community feed. Private: the
+    caller has checked the ICS token."""
+    cal = _new_calendar(calendar.name)
+    tz = await _club_timezone(db)
+    result = await db.execute(
+        select(CalendarEvent)
+        .where(CalendarEvent.calendar_id == calendar.id, CalendarEvent.start_date >= date.today())
+        .order_by(CalendarEvent.start_date)
+    )
+    for e in result.scalars().all():
+        _add_event(
+            cal, uid=f"calendar-event-{e.id}@{base_url}",
+            summary=e.title, start=e.start_date, end=e.end_date or e.start_date,
+            description=e.description, location=e.location,
+            start_time=e.start_time, end_time=e.end_time, tz=tz,
         )
     return cal
