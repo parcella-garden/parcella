@@ -123,6 +123,8 @@ class Handler(BaseHTTPRequestHandler):
             "status": "draft",  # always unpublished -- a human publishes in the CMS
             "title": payload["title"], "markdown": payload["markdown"], "html": payload["html"],
             "source_id": payload.get("source_id"), "image": payload.get("image"),
+            # Alt text for the image; empty = use the title (ADR 0128).
+            "image_alt": payload.get("image_alt") or payload["title"],
         }
         save_store(drafts)
         self._respond(201, public_draft(new_id, drafts[new_id]))
@@ -142,6 +144,8 @@ class Handler(BaseHTTPRequestHandler):
         draft.update(title=payload["title"], markdown=payload["markdown"], html=payload["html"])
         if "image" in payload:  # absent = unchanged, null = remove, object = replace
             draft["image"] = payload["image"]
+        if "image_alt" in payload or "image" in payload:  # absent (both) = keep the alt text
+            draft["image_alt"] = payload.get("image_alt") or payload["title"]
         # draft["status"] is deliberately left alone.
         save_store(drafts)
         self._respond(200, public_draft(draft_id, draft))

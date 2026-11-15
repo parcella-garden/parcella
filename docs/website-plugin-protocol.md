@@ -83,7 +83,8 @@ Request:
   "summary": "",
   "language": "de",
   "source_id": "6f1c...-announcement-uuid",
-  "image": {"filename": "4b2e....png", "mime": "image/png", "data_base64": "iVBORw0..."}
+  "image": {"filename": "4b2e....png", "mime": "image/png", "data_base64": "iVBORw0..."},
+  "image_alt": "Three green compost bins next to the fence"
 }
 ```
 
@@ -91,6 +92,10 @@ Request:
   text. `html` is already sanitized by Parcella.
 - `image` is `null` when there is none. Allowed MIME types: `image/png`,
   `image/jpeg`, `image/webp`. Parcella limits images to 5 MB.
+- `image_alt` (optional, since Parcella with ADR 0128) is the image's alt
+  text: one line, at most 255 characters, already falling back to the
+  title when the board gave none. Put it into the CMS's alt field for
+  the image. If it's missing (older Parcella), use the title.
 - `source_id` identifies the announcement. A plugin may use it to avoid
   duplicates (if a draft for this `source_id` already exists, return it
   instead of creating a second one).
@@ -124,6 +129,12 @@ The same body as `POST`. The `image` key has three states:
 - **absent**: the image didn't change, so keep the current one;
 - **`null`**: the image was removed, so remove it;
 - **an object**: a new image, so replace the current one.
+
+`image_alt` works the same way: **absent** means keep the current alt
+text. When present, give the image (the new one or, if `image` is
+absent, the current one) this alt text. Parcella sends it only when it
+changed, so an alt text someone improved in the CMS survives other
+updates.
 
 Update title and text. **Never change the publish state**: a post a
 human has published stays published. Keep anything Parcella doesn't

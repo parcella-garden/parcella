@@ -40,6 +40,12 @@ announcement_deliveries   -- one row per (announcement, channel) send attempt
 - `image_filename` is a single header/featured image, reused across
   all three channels (WordPress featured image, inline in the email,
   and in the PDF's layout).
+- `image_alt` (issue #318, ADR 0128) is that image's optional alt text,
+  one line and at most 255 characters, cleared together with the image.
+  The email and the PDF use it. The website channels get it, or the
+  title when it's empty. An alt-only edit counts as a change, and the
+  website update then sets the existing image's alt text instead of
+  uploading the image again.
 
 `AnnouncementDelivery` tracks channel state rather than duplicating
 content per channel: one row per (announcement, channel), upserted
@@ -50,7 +56,7 @@ There is **no announcement-level status** (a `DRAFT`/`PUBLISHED`/
 `ARCHIVED` column existed until migration 0092 but never left "draft"
 -- see docs/ADR/0087). What went out where is per channel only. Each
 successful delivery also records what it delivered
-(`content_fingerprint`, `image_filename`), and PRINT keeps the
+(`content_fingerprint`, `image_filename`, `image_alt`), and PRINT keeps the
 generated file (`pdf_filename`) plus `qr_pending`, which is used to decide
 whether a channel's action is offered again. See "One action per channel" below.
 `external_reference` holds whatever pointer a later phase needs back
