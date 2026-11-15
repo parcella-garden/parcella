@@ -212,3 +212,56 @@ async def test_restore_requires_admin(client):
         follow_redirects=False,
     )
     assert resp.status_code == 303
+
+
+async def _restore(client, zip_bytes):
+    return await client.post(
+        "/admin/backup/restore",
+        data={"confirm_phrase": "RESTORE"},
+        files={"backup_zip": ("backup.zip", zip_bytes, "application/zip")},
+        follow_redirects=False,
+    )
+
+
+async def test_restore_re_encrypts_settings_from_the_backups_key(client, admin_user):
+    """Issue #327 / ADR 0134: a backup from another instance comes with that
+    instance's key. The restored passwords are re-encrypted with this
+    instance's key, so they keep working -- no key swap, no restart."""
+    from sqlalchemy import select
+    from app.config import settings
+    from app.crypto_utils import decrypt, fernet_for
+    from app.models import ClubSetting
+
+    other_key = "the-key-of-the-old-server-" + "x" * 30
+    async with AsyncSessionLocal() as session:
+        session.add(ClubSetting(
+            key="website_wordpress_app_password",
+            value=fernet_for(other_key).encrypt(b"abcd 1234").decode("utf-8"), description="test",
+        ))
+        session.add(ClubSetting(key="club_name", value="KGV Test", description="test"))
+        await session.commit()
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as zf:
+        zf.writestr("backup.sql", "SELECT 1;")
+        zf.writestr("secrets/secret_key", other_key + "\n")
+
+    await web_login(client, "admin@example.com")
+    response = await _restore(client, buffer.getvalue())
+    assert response.status_code == 302 and "success=1" in response.headers["location"]
+
+    async with AsyncSessionLocal() as session:
+        rows = {s.key: s.value for s in (await session.execute(select(ClubSetting))).scalars()}
+    assert rows["club_name"] == "KGV Test"  # plaintext untouched
+    assert decrypt(rows["website_wordpress_app_password"]) == "abcd 1234"
+    assert other_key != settings.secret_key
+
+
+async def test_restore_rejects_an_oversized_secret_key_file(client, admin_user):
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as zf:
+        zf.writestr("backup.sql", "SELECT 1;")
+        zf.writestr("secrets/secret_key", "k" * 5000)
+    await web_login(client, "admin@example.com")
+    response = await _restore(client, buffer.getvalue())
+    assert "success=1" not in response.headers.get("location", "")

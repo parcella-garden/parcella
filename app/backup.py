@@ -29,6 +29,10 @@ PSQL_BINARY = "psql"  # module-level constant so tests can monkeypatch it
 RESTORE_CONFIRM_PHRASE = "RESTORE"
 MAX_RESTORE_UPLOAD_BYTES = 200 * 1024 * 1024
 MAX_RESTORE_UNCOMPRESSED_BYTES = 2 * 1024 * 1024 * 1024
+# Issue #327 / ADR 0134: the encryption key travels with the backup, so the
+# stored SMTP/website/cloud passwords still work after a restore elsewhere.
+SECRET_KEY_MEMBER = "secrets/secret_key"
+MAX_SECRET_KEY_BYTES = 1024
 
 
 class BackupError(Exception):
@@ -48,7 +52,11 @@ async def build_backup_zip() -> Tuple[str, bytes]:
     rows but not themselves part of the dump -- into a single in-memory
     zip. That directory is also bind-mounted under ./data/ in
     docker-compose.yml (see ADR 0077), but this backup remains useful as
-    an out-of-band copy, e.g. when moving to a new host. Returns (filename,
+    an out-of-band copy, e.g. when moving to a new host. Since issue #327
+    (ADR 0134) it also holds the SECRET_KEY in use (secrets/secret_key):
+    together with the dump that's all of ./data/ that matters, and the
+    encrypted settings in the dump stay readable on a new host. Whoever
+    has the zip can read those settings -- store it accordingly. Returns (filename,
     zip_bytes). Raises BackupError on any pg_dump failure/timeout --
     never returns partial/corrupt bytes."""
     db_url = urllib.parse.urlsplit(settings.database_url)
@@ -80,6 +88,8 @@ async def build_backup_zip() -> Tuple[str, bytes]:
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr(f"parcella-backup-{timestamp}.sql", stdout)
+        # The effective key, whether it came from .env or data/secrets/.
+        zf.writestr(SECRET_KEY_MEMBER, settings.secret_key + "\n")
         for base_dir, prefix in ((UPLOAD_DIR, "uploads"),):
             if base_dir.is_dir():
                 for file_path in sorted(base_dir.rglob("*")):
@@ -114,6 +124,7 @@ def _validate_restore_zip(zf: zipfile.ZipFile):
     become an actual symlink on disk."""
     total = 0
     sql_members = []
+    secret_key = None
     dir_entries = {prefix: [] for prefix in _RESTORE_DIR_PREFIXES}
     for info in zf.infolist():
         if info.is_dir():
@@ -126,6 +137,13 @@ def _validate_restore_zip(zf: zipfile.ZipFile):
             raise RestoreZipError("zip expands too large")
         if "/" not in name and name.endswith(".sql"):
             sql_members.append(name)
+        elif name == SECRET_KEY_MEMBER:
+            if info.file_size > MAX_SECRET_KEY_BYTES:
+                raise RestoreZipError("secret key file too large")
+            try:
+                secret_key = zf.read(info).decode("utf-8").strip() or None
+            except UnicodeDecodeError as e:
+                raise RestoreZipError("secret key file is not text") from e
         else:
             for prefix, base_dir in _RESTORE_DIR_PREFIXES.items():
                 if name.startswith(f"{prefix}/"):
@@ -137,7 +155,7 @@ def _validate_restore_zip(zf: zipfile.ZipFile):
                 raise RestoreZipError(f"unexpected member: {name!r}")
     if len(sql_members) != 1:
         raise RestoreZipError(f"expected exactly one top-level .sql file, found {len(sql_members)}")
-    return zf.read(sql_members[0]), dir_entries["uploads"]
+    return zf.read(sql_members[0]), dir_entries["uploads"], secret_key
 
 
 def _mirror_replace_dir(zf: zipfile.ZipFile, target_dir: Path, entries) -> None:
@@ -165,7 +183,8 @@ async def restore_from_zip_bytes(zip_bytes: bytes) -> None:
     """Validates the zip, runs psql --single-transaction (a failure
     rolls back the whole script, database untouched), disposes the
     engine on success (stale prepared-statement-cache fix -- see ADR
-    0054), then mirror-replaces UPLOAD_DIR.
+    0054), re-encrypts the stored settings if the backup came with a
+    different SECRET_KEY (issue #327), then mirror-replaces UPLOAD_DIR.
 
     Raises RestoreZipError (bad zip shape/zip-slip) or BackupError
     (psql failure/timeout); OSError propagates unchanged from the
@@ -182,7 +201,7 @@ async def restore_from_zip_bytes(zip_bytes: bytes) -> None:
     except zipfile.BadZipFile as e:
         raise RestoreZipError("not a valid zip archive") from e
 
-    sql_bytes, upload_entries = _validate_restore_zip(zf)
+    sql_bytes, upload_entries, backup_secret_key = _validate_restore_zip(zf)
 
     db_url = urllib.parse.urlsplit(settings.database_url)
     env = {**os.environ, "PGPASSWORD": db_url.password or ""}
@@ -215,5 +234,18 @@ async def restore_from_zip_bytes(zip_bytes: bytes) -> None:
     # change result type").
     from app.database import engine
     await engine.dispose()
+
+    # Issue #327 / ADR 0134: the restored settings are encrypted with the
+    # key of the instance that made the backup. Re-encrypt them with this
+    # instance's key instead of switching keys: no restart, nobody logged
+    # out, and a key set in .env keeps winning. Same key: nothing to do.
+    if backup_secret_key and backup_secret_key != settings.secret_key:
+        from app.secret_bootstrap import rekey_database
+        try:
+            await rekey_database(settings.database_url, settings.secret_key, old_key=backup_secret_key)
+        except Exception as e:
+            raise BackupError(
+                f"The database was restored, but re-encrypting its stored passwords failed: {str(e)[:300]}"
+            ) from e
 
     _mirror_replace_dir(zf, UPLOAD_DIR, upload_entries)

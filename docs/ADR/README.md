@@ -136,3 +136,4 @@ in chronological order.
 130. [Work-session sign-up confirmation: only to addresses on file](./0130-work-session-signup-confirmation-email.md)
 131. [Custom calendars: events with a calendar_id, never public; resources view](./0131-custom-calendars-and-resource-view.md)
 132. [MCP connector: released notes only, MCP-only tokens, hand-written server](./0132-mcp-connector-released-notes-only.md)
+134. [The backup includes the encryption key; a restore re-encrypts](./0134-backup-includes-the-secret-key.md)

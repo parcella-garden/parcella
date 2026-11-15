@@ -81,7 +81,9 @@ default; use `exec -u appuser` where it matters.
 database. Storing it next to them would make every DB dump (including the
 app's own cloud backup archive) self-decrypting. For the same reason the
 key file is not added to the app's backup archive; the docs say to back
-up the whole `data/` folder.
+up the whole `data/` folder. *(Superseded by ADR 0134, issue #327: the
+backup zip now carries the key, and a restore re-encrypts the stored
+settings. The key still lives in a file, not in the database.)*
 
 **Why the secret folder isn't under `app/static/`:** everything there is
 served publicly by `StaticFiles`.

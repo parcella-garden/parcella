@@ -95,12 +95,16 @@ Entries are deleted after `Admin -> Settings -> Email log` days (default
 A system admin can download a full backup on demand from `/admin/`
 ("Download backup" -- see
 [ADR 0053](./ADR/0053-admin-backup-download-only.md)). It's a zip
-containing a one-click `pg_dump` (plain SQL, readable text) plus
-everything under `app/static/uploads/` (the branding logo, announcement
-images, user avatars) -- nothing is ever written to server disk, so there's no backup
-file to find or clean up on the server itself; the downloaded `.zip` is
-the only copy, and it's the admin's responsibility to store it
-somewhere safe.
+containing a one-click `pg_dump` (plain SQL, readable text), everything
+under `app/static/uploads/` (the branding logo, announcement images, user
+avatars) and, since issue #327, the encryption key in use
+(`secrets/secret_key`, ADR 0134) -- together that's everything in
+`./data/` that matters (`data/postgres/` itself is left out: the dump is
+the consistent form of it). Nothing is ever written to server disk, so
+there's no backup file to find or clean up on the server itself; the
+downloaded `.zip` is the only copy, and it's the admin's responsibility
+to store it somewhere safe. **It holds the key to the stored
+SMTP/website/cloud passwords**, so treat it like those passwords.
 
 **Automatic backups to a connected cloud solution:** `Admin -> System ->
 Cloud backups` (`/admin/backup/cloud` -- see
@@ -157,16 +161,14 @@ point, which applies identically whichever path you use.
 
 **What the backup does *not* cover -- read this before relying on one:**
 
-- **Encrypted fields don't travel.** SMTP/WordPress/Nextcloud
-  credentials are stored encrypted with a key derived from `SECRET_KEY`
-  (`app/crypto_utils.py`), which lives only in `data/secrets/secret_key`
-  (generated, ADR 0121) or in `.env` (if you set `SECRET_KEY` yourself),
-  deliberately outside the database and outside this backup. Restore a
-  dump into an instance whose `SECRET_KEY` differs from the one that
-  created it, and those fields decrypt to garbage -- you'll need to
-  re-enter that handful of credentials by hand afterward. Keep a copy
-  of `data/secrets/` (or `.env`) alongside your backups if you ever
-  expect to restore onto different infrastructure.
+- **Encrypted fields travel with the key (ADR 0134).** SMTP/WordPress/
+  Nextcloud credentials are stored encrypted with a key derived from
+  `SECRET_KEY` (`app/crypto_utils.py`). The backup carries that key, and
+  restoring it on an instance with a different key re-encrypts those
+  settings with the instance's own key -- no restart, nobody logged out.
+  Only a *manual* restore (`psql` + `cp`, below) skips that step: there,
+  either copy `secrets/secret_key` from the zip to `data/secrets/` before
+  starting the container, or re-enter the credentials afterward.
 - **Restoring an older backup into a newer Parcella version:** should
   work, but isn't automatic. Restore the dump, then run
   `docker compose run --rm --entrypoint alembic web upgrade head` --
@@ -215,10 +217,9 @@ the account in that state as well -- see
   (`python -m app.secret_bootstrap rekey`, idempotent).
 
   Changing the key later logs everyone out and makes already-encrypted
-  settings unreadable -- keep `data/secrets/` with your backups (see ADR
-  0006/0053). It is deliberately not part of the app's own (possibly
-  cloud-uploaded) backup archive, which already holds the encrypted
-  values.
+  settings unreadable. Since issue #327 the key is part of every backup
+  (download and cloud, ADR 0134), so a restore re-encrypts the stored
+  settings onto whatever key the restoring instance uses.
 
 - **`ENVIRONMENT=production` is the published compose file's default.**
   It is what makes the session and CSRF cookies `Secure` (HTTPS-only;

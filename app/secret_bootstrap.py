@@ -81,17 +81,20 @@ def ensure_secret_file(path: Optional[Path] = None) -> tuple[str, bool]:
     return key, True
 
 
-def rekey_values(rows: list[tuple[str, str]], new_key: str) -> dict[str, str]:
+def rekey_values(
+    rows: list[tuple[str, str]], new_key: str, old_key: str = DEFAULT_SECRET_KEY,
+) -> dict[str, str]:
     """Given (key, value) rows, returns {key: new_value} for every value that
-    decrypts with the public default key, re-encrypted with new_key.
-    Plaintext and values encrypted with any other key are left out."""
+    decrypts with old_key (by default the public default key), re-encrypted
+    with new_key. Plaintext and values encrypted with any other key are left
+    out. Also used by a backup restore (issue #327) with the backup's key."""
     from cryptography.fernet import InvalidToken
 
     from app.crypto_utils import _looks_like_fernet_token, fernet_for
 
-    if new_key == DEFAULT_SECRET_KEY:
+    if new_key == old_key:
         return {}
-    old, new = fernet_for(DEFAULT_SECRET_KEY), fernet_for(new_key)
+    old, new = fernet_for(old_key), fernet_for(new_key)
     updates = {}
     for key, value in rows:
         if not value or not _looks_like_fernet_token(value):
@@ -104,9 +107,10 @@ def rekey_values(rows: list[tuple[str, str]], new_key: str) -> dict[str, str]:
     return updates
 
 
-async def rekey_database(database_url: str, new_key: str) -> int:
-    """Applies rekey_values to club_settings. Returns the number of rows
-    changed; 0 when the table doesn't exist yet."""
+async def rekey_database(database_url: str, new_key: str, old_key: str = DEFAULT_SECRET_KEY) -> int:
+    """Applies rekey_values to club_settings (the only place Parcella stores
+    encrypted values). Returns the number of rows changed; 0 when the table
+    doesn't exist yet."""
     import asyncpg
 
     conn = await asyncpg.connect(database_url.replace("postgresql+asyncpg://", "postgresql://"))
@@ -115,7 +119,7 @@ async def rekey_database(database_url: str, new_key: str) -> int:
         if not exists:
             return 0
         rows = await conn.fetch("SELECT key, value FROM club_settings WHERE value IS NOT NULL")
-        updates = rekey_values([(r["key"], r["value"]) for r in rows], new_key)
+        updates = rekey_values([(r["key"], r["value"]) for r in rows], new_key, old_key)
         if updates:
             async with conn.transaction():
                 await conn.executemany(

@@ -76,3 +76,14 @@ async def test_backup_download_shows_error_when_pg_dump_binary_missing(client, a
 
     assert resp.status_code == 302
     assert "error=" in resp.headers["location"]
+
+
+async def test_backup_contains_the_secret_key(client, admin_user):
+    """Issue #327 / ADR 0134: the zip carries the key in use, so the
+    encrypted settings in the dump stay readable after a restore elsewhere."""
+    from app.config import settings
+
+    await web_login(client, "admin@example.com")
+    resp = await client.post("/admin/backup/download")
+    zf = zipfile.ZipFile(io.BytesIO(resp.content))
+    assert zf.read("secrets/secret_key").decode("utf-8").strip() == settings.secret_key
