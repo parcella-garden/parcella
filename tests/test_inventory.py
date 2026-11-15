@@ -437,3 +437,80 @@ async def test_insufficient_quantity_error_is_shared_and_formatted(client, admin
     assert response.status_code == 400
     expected = translate("inventory.errors.insufficient_quantity", "en", available=2, total=2)
     assert response.json()["detail"] == expected
+
+
+# ---------------------------------------------------------------------------
+# Issue #315: text in the loan fee field was an Internal Server Error
+# ---------------------------------------------------------------------------
+
+async def _borrowable_item_and_member(client, default_loan_fee=None):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    member = (await client.post(
+        "/api/v1/members", json={"first_name": "Petra", "last_name": "Testperson"}, headers=headers,
+    )).json()
+    payload = {"name": "Hedge trimmer", "is_borrowable": True, "quantity_total": 1}
+    if default_loan_fee is not None:
+        payload["default_loan_fee"] = default_loan_fee
+    item = (await client.post("/api/v1/inventory/items", json=payload, headers=headers)).json()
+    await web_login(client, "admin@example.com")
+    return item, member
+
+
+async def test_loan_fee_with_text_shows_a_message_instead_of_a_500(client, admin_user):
+    item, member = await _borrowable_item_and_member(client)
+
+    for bad_fee in ("5 €", "five", "NaN", "-3", "Infinity"):
+        response = await client.post(f"/inventory/{item['id']}/loans/checkout", data={
+            "member_id": member["id"], "quantity": "1", "borrowed_date": "2026-07-01",
+            "fee_charged": bad_fee, "note": "for the hedge",
+        })
+        assert response.status_code == 400, bad_fee
+        assert "Please enter amounts as a number only" in response.text
+        # What was typed is still there, and nothing was lent out.
+        assert 'value="for the hedge"' in response.text
+        assert f'value="{member["id"]}" selected' in response.text
+
+    detail = await client.get(f"/inventory/{item['id']}")
+    assert "for the hedge" not in detail.text
+
+
+async def test_loan_fee_with_a_comma_is_accepted(client, admin_user):
+    item, member = await _borrowable_item_and_member(client, default_loan_fee=5)
+    detail = await client.get(f"/inventory/{item['id']}")
+    assert "the default fee of" in detail.text
+
+    response = await client.post(f"/inventory/{item['id']}/loans/checkout", data={
+        "member_id": member["id"], "quantity": "1", "borrowed_date": "2026-07-01", "fee_charged": " 2,50 ",
+    })
+    assert response.status_code == 303
+
+    from decimal import Decimal
+    from sqlalchemy import select
+    from app.database import AsyncSessionLocal
+    from app.models import ItemLoan
+    async with AsyncSessionLocal() as session:
+        loan = (await session.execute(select(ItemLoan).where(ItemLoan.item_id == item["id"]))).scalar_one()
+        assert loan.fee_charged == Decimal("2.50")
+
+
+async def test_bad_quantity_or_date_on_checkout_is_a_message_too(client, admin_user):
+    item, member = await _borrowable_item_and_member(client)
+    for field, value, message in (
+        ("quantity", "two", "whole number of 1 or more"),
+        ("quantity", "0", "whole number of 1 or more"),
+        ("borrowed_date", "yesterday", "valid date"),
+    ):
+        data = {"member_id": member["id"], "quantity": "1", "borrowed_date": "2026-07-01", field: value}
+        response = await client.post(f"/inventory/{item['id']}/loans/checkout", data=data)
+        assert response.status_code == 400, (field, value)
+        assert message in response.text
+
+
+async def test_item_form_with_text_in_an_amount_shows_a_message(client, admin_user):
+    await web_login(client, "admin@example.com")
+    response = await client.post("/inventory/new", data={
+        "name": "Lawn mower", "owner_type": "CLUB", "purchase_price": "199 Euro",
+    })
+    assert response.status_code == 400
+    assert "Please enter amounts as a number only" in response.text

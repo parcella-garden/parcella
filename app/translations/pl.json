@@ -2064,6 +2064,8 @@
       "checkout_quantity": "Ilość",
       "checkout_date": "Data",
       "checkout_fee": "Opłata",
+      "checkout_fee_hint": "Opcjonalnie. Tylko liczba, np. 5 lub 2,50.",
+      "checkout_fee_hint_default": "Opcjonalnie. Tylko liczba, np. 5 lub 2,50. Jeśli pole zostanie puste, obowiązuje opłata domyślna {fee}.",
       "checkout_note": "Notatka",
       "checkout_button": "Wypożycz",
       "none_available": "Obecnie nic nie jest dostępne do wypożyczenia.",
@@ -2089,7 +2091,10 @@
     "errors": {
       "item_not_borrowable": "Ten przedmiot nie jest oznaczony jako wypożyczalny.",
       "member_required": "Należy wybrać członka.",
-      "insufficient_quantity": "Dostępne jest tylko {available} z {total} w tej chwili."
+      "insufficient_quantity": "Dostępne jest tylko {available} z {total} w tej chwili.",
+      "invalid_amount": "Kwoty podawaj wyłącznie jako liczbę, np. 5 lub 2,50, bez symbolu waluty i tekstu.",
+      "invalid_date": "Podaj prawidłową datę.",
+      "invalid_quantity": "Jako ilość podaj liczbę całkowitą równą co najmniej 1."
     }
   },
   "tasks": {

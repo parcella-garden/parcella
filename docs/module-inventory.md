@@ -138,3 +138,29 @@ permissions the same fine-grained, `Group`-based way the HTML side
 does (`require_api_permission`), not the coarser role-only check most
 other API routers still use. `update_category` (API-only, no HTML
 counterpart exists) stays router-local.
+
+## Form input parsing (issue #315)
+
+The web forms parse amounts, dates and quantities themselves:
+`_parse_decimal()`, `_parse_date()` and `_parse_quantity()` in
+`app/routers/inventory.py`. Until issue #315 they called `float()`,
+`date.fromisoformat()` and `int()` bare, so text in the loan fee field
+("5 €") raised a `ValueError`, and the user saw an Internal Server
+Error. Now they raise a `ServiceError` (`inventory.errors.invalid_amount`,
+`invalid_date`, `invalid_quantity`), and amounts accept `5`, `2,50` or
+`2.50`. NaN, Infinity and negative values are refused.
+
+- The item form shows the message in its error alert.
+- A failed checkout re-renders the item page with the message and keeps
+  what was typed, instead of returning a bare JSON error.
+- The fee field explains the format and, when the item has a default
+  fee, says that an empty field charges that fee.
+
+There's deliberately no `db.rollback()` on a failed checkout:
+`checkout_loan()` validates before it changes anything, and a rollback
+would expire the item's eagerly loaded relationships right before the
+template reads them (`MissingGreenlet`). This is the same lazy-load
+trap as described above.
+
+The REST API isn't affected, because Pydantic validates its numbers
+(422).
