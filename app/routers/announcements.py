@@ -145,12 +145,14 @@ def _content_changed_since(announcement: Announcement, delivery: AnnouncementDel
     return (
         delivery.content_fingerprint != _current_fingerprint(announcement, delivery.channel)
         or delivery.image_filename != announcement.image_filename
+        or delivery.image_alt != announcement.image_alt
     )
 
 
 def _record_delivered_content(announcement: Announcement, delivery: AnnouncementDelivery) -> None:
     delivery.content_fingerprint = _current_fingerprint(announcement, delivery.channel)
     delivery.image_filename = announcement.image_filename
+    delivery.image_alt = announcement.image_alt
 
 
 def _channel_action_available(announcement: Announcement, channel: AnnouncementChannel) -> bool:
@@ -346,6 +348,18 @@ async def _new_form_context(
     return await _audience_context(db, preview)
 
 
+IMAGE_ALT_MAX_LENGTH = 255
+
+
+def _clean_image_alt(value) -> Optional[str]:
+    """The banner's alt text (issue #318): one line, at most 255
+    characters, None when empty. It ends up in HTML attributes, email,
+    PDF and other systems' fields, so newlines/tabs are flattened here
+    once; escaping is still each renderer's job."""
+    text = re.sub(r"\s+", " ", str(value or "")).strip()
+    return text[:IMAGE_ALT_MAX_LENGTH] or None
+
+
 def _entered_values(form) -> dict:
     """What the user typed, for re-rendering the form after a validation
     error. Without it a rejected save (e.g. an oversized image) showed
@@ -355,6 +369,7 @@ def _entered_values(form) -> dict:
         "title": form.get("title") or "",
         "body_markdown": form.get("body_markdown") or "",
         "print_text_override": form.get("print_text_override") or "",
+        "image_alt": form.get("image_alt") or "",
         "letters_for_all": form.get("letters_for_all") == "true",
     }
 
@@ -406,6 +421,7 @@ async def announcement_create(
         body_markdown=body_markdown,
         body_html=render_markdown_to_html(body_markdown),
         image_filename=image_filename,
+        image_alt=_clean_image_alt(form.get("image_alt")) if image_filename else None,
         created_by_id=user.id,
     )
     if applicant_ids is not None:
@@ -476,6 +492,9 @@ async def announcement_update(
     announcement.body_markdown = body_markdown
     announcement.body_html = render_markdown_to_html(body_markdown)
     announcement.print_text_override = print_text_override
+    # No image, no alt text: a stale one would otherwise resurface on the
+    # next upload.
+    announcement.image_alt = _clean_image_alt(form.get("image_alt")) if announcement.image_filename else None
     if announcement.is_targeted:
         announcement.letters_for_all = form.get("letters_for_all") == "true"
 
@@ -582,6 +601,7 @@ async def push_website_draft(db: AsyncSession, announcement: Announcement) -> An
     content = DraftContent(
         title=announcement.title, markdown=announcement.body_markdown, html=announcement.body_html,
         image_bytes=image_bytes, image_filename=image_filename, image_mime=image_mime,
+        image_alt=(announcement.image_alt or announcement.title) if image_bytes else "",
         language=await load_current_language(db), source_id=announcement.id,
     )
 
@@ -596,6 +616,7 @@ async def push_website_draft(db: AsyncSession, announcement: Announcement) -> An
                 result = await connector.update_post(
                     delivery.external_id, content,
                     image_changed=delivery.image_filename != announcement.image_filename,
+                    alt_changed=delivery.image_alt != announcement.image_alt,
                 )
             except BlogPostNotFoundError:
                 result = None  # deleted on the website by hand -- start over below

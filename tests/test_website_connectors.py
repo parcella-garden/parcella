@@ -191,6 +191,34 @@ async def test_markdown_update_can_remove_the_image():
     assert _is_draft(header)
 
 
+async def test_markdown_image_alt_is_written_and_updated_alone():
+    """Issue #318: image_alt sits next to image; an alt-only change
+    rewrites just that line and doesn't upload the image again."""
+    connector, storage = _md_connector()
+    result = await connector.publish_draft(_content(
+        image_bytes=_TINY_PNG_BYTES, image_filename="abc.png", image_mime="image/png", image_alt="Ein Wasserhahn",
+    ))
+    header, _ = split_front_matter(storage.text(result.post_id))
+    old_image = _header_value(header, "image")
+    assert _header_value(header, "image_alt") == "Ein Wasserhahn"
+    media_before = [k for k in storage.files if k[0] != "site/content/posts"]
+
+    await connector.update_post(result.post_id, _content(image_alt='Zwei "neue" Hähne'), alt_changed=True)
+    header, _ = split_front_matter(storage.text(result.post_id))
+    assert _header_value(header, "image_alt") == 'Zwei "neue" Hähne'
+    assert _header_value(header, "image") == old_image
+    assert [k for k in storage.files if k[0] != "site/content/posts"] == media_before
+    assert header[-1] == "draft: true"
+
+
+async def test_markdown_alt_change_on_a_post_without_image_adds_nothing():
+    connector, storage = _md_connector()
+    result = await connector.publish_draft(_content())
+    await connector.update_post(result.post_id, _content(image_alt="Kein Bild"), alt_changed=True)
+    header, _ = split_front_matter(storage.text(result.post_id))
+    assert _header_value(header, "image_alt") is None
+
+
 async def test_markdown_update_of_deleted_file_raises_not_found():
     connector, _storage = _md_connector()
     with pytest.raises(BlogPostNotFoundError):
@@ -303,6 +331,26 @@ async def test_plugin_update_without_image_change_sends_no_image_key():
     method, path, body = seen[-1]
     assert (method, path) == ("PUT", "/parcella/v1/drafts/42")
     assert "image" not in body
+    await client.aclose()
+
+
+async def test_plugin_sends_image_alt_with_new_drafts_and_alt_only_changes():
+    """Issue #318: like "image", "image_alt" is absent when it didn't
+    change, so an alt text edited in the CMS survives other updates."""
+    seen = []
+    connector, client = _plugin(seen)
+    await connector.publish_draft(_content(
+        image_bytes=_TINY_PNG_BYTES, image_filename="abc.png", image_mime="image/png", image_alt="Ein Zaun",
+    ))
+    assert seen[-1][2]["image_alt"] == "Ein Zaun"
+
+    await connector.update_post("42", _content(image_alt="Ein neuer Zaun"), alt_changed=True)
+    body = seen[-1][2]
+    assert body["image_alt"] == "Ein neuer Zaun"
+    assert "image" not in body
+
+    await connector.update_post("42", _content(image_alt="Ein neuer Zaun"))
+    assert "image_alt" not in seen[-1][2]
     await client.aclose()
 
 

@@ -51,6 +51,13 @@ check('image accepted as replace', $draft['image']['state'] === 'replace' && $dr
 check('stored file name ignores the sender', (bool) preg_match('/^parcella-[0-9a-f]{16}\.png$/', P::storedFilename('png')));
 check('image key absent = unchanged', P::parseDraft('{"title":"x"}')['image'] === ['state' => 'unchanged']);
 check('image null = remove', P::parseDraft('{"title":"x","image":null}')['image'] === ['state' => 'remove']);
+check('alt absent, new image = title (older Parcella)', $draft['image_alt'] === 'Zaun kaputt');
+check('alt absent, image unchanged = keep (null)', P::parseDraft('{"title":"x"}')['image_alt'] === null);
+check('alt given, image unchanged = applied', P::parseDraft('{"title":"x","image_alt":"Ein Zaun"}')['image_alt'] === 'Ein Zaun');
+check('alt empty = title', P::parseDraft('{"title":"x","image_alt":"  "}')['image_alt'] === 'x');
+check('alt flattened to one line', P::parseDraft(json_encode(['title' => 'x', 'image_alt' => "Zaun
+	im  Winter"]))['image_alt'] === 'Zaun im Winter');
+check('alt capped at 255 characters', mb_strlen(P::parseDraft(json_encode(['title' => 'x', 'image_alt' => str_repeat('ä', 300)]))['image_alt']) === 255);
 
 $rejects = [
     'not JSON' => 'nope',
@@ -59,6 +66,7 @@ $rejects = [
     'bad source id' => '{"title":"x","source_id":"<script>"}',
     'svg not allowed' => json_encode(['title' => 'x', 'image' => ['mime' => 'image/svg+xml', 'data_base64' => base64_encode('<svg/>')]]),
     'php disguised as png' => json_encode(['title' => 'x', 'image' => ['mime' => 'image/png', 'data_base64' => base64_encode('<?php system($_GET[1]);')]]),
+    'alt not a string' => '{"title":"x","image_alt":["a"]}',
     'invalid base64' => json_encode(['title' => 'x', 'image' => ['mime' => 'image/png', 'data_base64' => '***']]),
 ];
 foreach ($rejects as $label => $input) {

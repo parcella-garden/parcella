@@ -29,7 +29,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 final class DraftController
 {
-    public const VERSION = '1.0.0';
+    public const VERSION = '1.1.0';
     private const IMAGE_FOLDER = 'files/parcella';
 
     public function __construct(
@@ -201,6 +201,11 @@ final class DraftController
     {
         $image = $draft['image'];
         if ($image['state'] === 'unchanged') {
+            // Same image, maybe a new alt text (null = keep the current one).
+            if ($draft['image_alt'] !== null) {
+                $this->connection->update('tl_news', ['alt' => $draft['image_alt']], ['id' => $newsId, 'addImage' => 1]);
+            }
+
             return;
         }
         if ($image['state'] === 'remove') {
@@ -221,7 +226,7 @@ final class DraftController
             'addImage' => 1,
             'singleSRC' => $file->uuid,
             'overwriteMeta' => 1,
-            'alt' => $draft['title'],
+            'alt' => $draft['image_alt'] ?? $draft['title'],
         ], ['id' => $newsId]);
     }
 

@@ -94,7 +94,37 @@ class WordPressPublisher(WebsiteConnector):
 
         if response.status_code not in (200, 201):
             raise BlogPublishError(f"Image upload to WordPress failed (HTTP {response.status_code}): {response.text[:200]}")
-        return response.json()["id"]
+        media_id = response.json()["id"]
+        await self._set_alt_text(client, media_id, content.image_alt)
+        return media_id
+
+    async def _set_alt_text(self, client: httpx.AsyncClient, media_id: int, alt_text: str) -> None:
+        """A binary media upload can't carry fields, so the alt text
+        (issue #318) is a second request on the media item."""
+        try:
+            response = await client.post(
+                f"{self.site_url}/wp-json/wp/v2/media/{int(media_id)}",
+                headers=self._auth_header(), json={"alt_text": alt_text},
+            )
+        except httpx.HTTPError as e:
+            raise BlogPublishError(f"Could not reach {self.site_url}: {e}") from e
+        if response.status_code != 200:
+            raise BlogPublishError(f"WordPress rejected the image's alt text (HTTP {response.status_code}): {response.text[:200]}")
+
+    async def _featured_media_id(self, client: httpx.AsyncClient, post_id: str) -> Optional[int]:
+        try:
+            response = await client.get(
+                f"{self.site_url}/wp-json/wp/v2/posts/{post_id}",
+                headers=self._auth_header(), params={"context": "edit", "_fields": "featured_media"},
+            )
+        except httpx.HTTPError as e:
+            raise BlogPublishError(f"Could not reach {self.site_url}: {e}") from e
+        if response.status_code in (404, 410):
+            raise BlogPostNotFoundError(f"WordPress post {post_id} no longer exists.")
+        if response.status_code != 200:
+            raise BlogPublishError(f"Unexpected response from WordPress (HTTP {response.status_code}).")
+        media_id = response.json().get("featured_media")
+        return media_id if isinstance(media_id, int) and media_id > 0 else None
 
     @staticmethod
     def _has_image(content: DraftContent) -> bool:
@@ -124,6 +154,7 @@ class WordPressPublisher(WebsiteConnector):
 
     async def update_post(
         self, post_id: str, content: DraftContent, image_changed: bool = False,
+        alt_changed: bool = False,
     ) -> DraftResult:
         """Pushes changed announcement content into the SAME WordPress
         post instead of creating a second one (ADR 0087). The payload
@@ -133,8 +164,15 @@ class WordPressPublisher(WebsiteConnector):
         SEO plugin fields (Yoast etc. store theirs as separate post
         meta), excerpt, categories and tags set in WordPress survive;
         text edits made directly in WordPress's own editor do not.
+        An alt-only change (issue #318) updates the existing featured
+        image's alt text instead of uploading the image again.
         """
         client = await self._get_client()
+
+        if alt_changed and not image_changed:
+            media_id = await self._featured_media_id(client, post_id)
+            if media_id is not None:
+                await self._set_alt_text(client, media_id, content.image_alt)
 
         payload = {"title": content.title, "content": content.html}
         if image_changed:

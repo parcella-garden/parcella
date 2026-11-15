@@ -1903,6 +1903,8 @@
       "label_image": "Bild",
       "remove_image": "Bild entfernen",
       "image_hint": "PNG, JPEG oder WebP, bis 5 MB. Wird als Bild des Webseiten-Beitrags verwendet und in der E-Mail gezeigt.",
+      "label_image_alt": "Bildbeschreibung (Alt-Text)",
+      "image_alt_hint": "Beschreibe, was auf dem Bild zu sehen ist – für Menschen mit Screenreader und für Suchmaschinen. Leer gelassen, bekommt die Webseite den Titel.",
       "label_body": "Text",
       "body_hint": "In Markdown geschrieben. Derselbe Text wird für den Webseiten-Entwurf und die Mitglieder-E-Mail verwendet.",
       "body_placeholder": "Hier die Mitteilung schreiben...",

@@ -1903,6 +1903,8 @@
       "label_image": "Obraz",
       "remove_image": "Usuń obraz",
       "image_hint": "PNG, JPEG lub WebP, do 5 MB. Używany jako obraz wpisu na stronie i pokazywany w e-mailu.",
+      "label_image_alt": "Opis obrazu (tekst alternatywny)",
+      "image_alt_hint": "Opisz, co widać na obrazie – dla osób korzystających z czytników ekranu i dla wyszukiwarek. Jeśli pole zostanie puste, strona otrzyma tytuł.",
       "label_body": "Treść",
       "body_hint": "Pisany w Markdown. Ten sam tekst jest używany w szkicu na stronie i w e-mailu do członków.",
       "body_placeholder": "Napisz tutaj treść ogłoszenia...",

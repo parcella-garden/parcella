@@ -42,6 +42,9 @@ class DraftContent:
     image_bytes: Optional[bytes] = None
     image_filename: Optional[str] = None
     image_mime: Optional[str] = None
+    # Alt text for the image (issue #318): the announcement's own, or its
+    # title when none was given -- what the CMS plugins always used.
+    image_alt: str = ""
     language: str = "en"
     source_id: str = ""
 
@@ -83,11 +86,15 @@ class WebsiteConnector:
 
     async def update_post(
         self, post_id: str, content: DraftContent, image_changed: bool = False,
+        alt_changed: bool = False,
     ) -> DraftResult:
         """Overwrites title, text and -- only if `image_changed` -- the
         image of an existing draft (a changed image with no image bytes
-        means: remove it). Must NOT touch the publish state. Raises
-        BlogPostNotFoundError if the draft is gone."""
+        means: remove it). `alt_changed` alone means: keep the image,
+        update only its alt text (issue #318) -- an alt text edited on
+        the website itself survives every other update. Must NOT touch
+        the publish state. Raises BlogPostNotFoundError if the draft is
+        gone."""
         raise NotImplementedError
 
     async def get_public_url_if_published(self, post_id: str) -> Optional[str]:
