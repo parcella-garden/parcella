@@ -37,6 +37,9 @@ announcement_deliveries   -- one row per (announcement, channel) send attempt
   page (plus a QR code linking back to the blog post) -- but it always
   remains a real, freely hand-editable field afterward, not just a
   computed preview.
+- `print_qr_code` (bool) asks for the QR code on the printed notice even
+  when the text fits (a teaser); `public_link_token` is the random part
+  of the short link `/a/<token>` that the QR code points to. ADR 0133.
 - `image_filename` is a single header/featured image, reused across
   all three channels (WordPress featured image, inline in the email,
   and in the PDF's layout).
@@ -286,8 +289,8 @@ and the full org/bank footer instead of just the club name.
 **The auto-shorten loop, exactly as originally scoped:**
 1. Render with the full text (the manual `print_text_override` if the
    admin already set one, otherwise the full `body_markdown`).
-2. If that's one page, done -- no QR code, `print_text_override` is
-   left untouched.
+2. If that's one page, done -- no QR code (unless the QR switch is on,
+   see below), `print_text_override` is left untouched.
 3. If not, shorten paragraph-by-paragraph (dropping from the end,
    most content kept first) and re-render each attempt until one fits.
    The QR code and "read the rest online" note are added starting from
@@ -302,16 +305,29 @@ and the full org/bank footer instead of just the club name.
    a human to shorten manually, rather than silently truncating
    mid-sentence or producing a multi-page "one-pager".
 
-**The QR code only appears once, and only if, there's a genuinely
-public website post to point at.** Since drafts aren't public, the
-active connector's `get_public_url_if_published()` is called live, at
-print-generation time, using the BLOG delivery's stored `external_id`
-(WordPress post ID, Markdown file name, or plugin draft id) -- not a
-cached URL. WordPress is asked for the post's `status`/`link`, the
-Markdown connector checks the file for `draft: true` and builds the URL
-from the site address plus the header's `url`, a plugin answers
-`GET /drafts/{id}`. If the post is still a draft (or was never sent),
-the QR code is simply omitted; nothing blocks generating the PDF anyway.
+**The QR code points to Parcella's short link, `/a/<token>` (ADR
+0133).** Originally it pointed straight at the website post and was
+left out until that post was published, since drafts aren't public.
+Now `Announcement.public_link_token` (random, created on the first print
+with a website connector, never changed) gives every announcement a
+stable short link. At scan time it asks the active connector's
+`get_public_url_if_published()` live, using the BLOG delivery's stored
+`external_id` (WordPress post ID, Markdown file name, or plugin draft
+id), and redirects there once the post is public. Until then it shows a
+plain "not on the website yet" page without the title. WordPress is
+asked for the post's `status`/`link`, the Markdown connector checks the
+file for `draft: true` and builds the URL from the site address plus the
+header's `url`, a plugin answers `GET /drafts/{id}`. So the notice can
+be printed before the post goes live. Without a website connector there
+is no QR code at all.
+
+**QR switch for a teaser (`print_qr_code`, ADR 0133).** "QR code to the
+website post" under the print text: the QR code and its note go into
+the very first render, so a short teaser that fits gets them too. Off by
+default; off means the steps above, unchanged. It's part of the PRINT
+fingerprint (only when on), so ticking it offers a new PDF and leaves
+email and website untouched. The print text has the same Markdown editor
+as the body, minus "Insert image".
 
 **Byline (issue #261)**: under the title (and image) the notice reads
 "Published on <date> by <author>". The date is the day the PDF is
