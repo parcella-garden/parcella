@@ -20,6 +20,7 @@ can't do session-cookie authentication either -- the token is the
 practical equivalent of a login for a subscription URL.
 """
 import re
+import secrets
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Literal, Optional
@@ -299,7 +300,13 @@ async def custom_calendar_update(calendar_id: str, request: Request, db: AsyncSe
         calendar.name = name
     calendar.description = (form.get("description") or "").strip() or None
     calendar.color = _clean_color(form.get("color"))
-    calendar.full_access_only = form.get("full_access_only") == "true"
+    full_access_only = form.get("full_access_only") == "true"
+    # A new feed secret whenever the audience changes (old subscribers of
+    # a now board-only calendar must lose access) or on request (e.g.
+    # someone left the board).
+    if full_access_only != calendar.full_access_only or form.get("new_feed_link") == "true":
+        calendar.feed_token = secrets.token_urlsafe(32)
+    calendar.full_access_only = full_access_only
     calendar.is_active = form.get("is_active") == "true"
     await db.commit()
     return RedirectResponse("/calendar/custom", status_code=303)
@@ -316,7 +323,6 @@ async def custom_calendar_overview(calendar_id: str, request: Request, db: Async
     )).scalars().all()
     return templates.TemplateResponse("calendar/custom.html", {
         "request": request, "user": user, "calendar": calendar, "events": events,
-        "ics_token": await get_or_create_ics_token(db),
     })
 
 
@@ -372,12 +378,11 @@ async def custom_calendar_event_delete(
 async def custom_calendar_ics(
     calendar_id: str, request: Request, token: Optional[str] = Query(None), db: AsyncSession = Depends(get_db),
 ):
-    """Private feed: the installation's ICS token, like council presence
-    and absence -- never public like the community feed."""
-    if not verify_ics_token(token, await get_or_create_ics_token(db)):
-        raise HTTPException(status_code=404)
+    """Private feed with the calendar's OWN secret (feed_token), never
+    the installation-wide ICS token: that one is shown to every calendar
+    reader, so it would open board-only calendars to everyone (ADR 0131)."""
     calendar = await db.get(CustomCalendar, calendar_id)
-    if calendar is None or not calendar.is_active:
+    if calendar is None or not calendar.is_active or not verify_ics_token(token, calendar.feed_token):
         raise HTTPException(status_code=404)
     cal = await build_custom_calendar(db, calendar, base_url=request.url.hostname or "parcella.local")
     return _ics_response(cal.to_ical(), "calendar.ics")

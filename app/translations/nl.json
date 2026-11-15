@@ -1897,7 +1897,8 @@
       "list_title": "Agenda's",
       "name_label": "Naam",
       "name_placeholder": "bijv. reserveringen clubhuis",
-      "new_title": "Nieuwe agenda"
+      "new_title": "Nieuwe agenda",
+      "new_feed_link_label": "Nieuw abonnementsadres (oude werken niet meer)"
     },
     "resources": {
       "col_item": "Voorwerp",

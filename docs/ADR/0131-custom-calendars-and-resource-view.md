@@ -26,8 +26,14 @@ reservations yet.
 - **Never public.** The page needs calendar read permission. A
   `full_access_only` calendar answers 404 (not 403) to everyone else,
   so its existence doesn't leak either. Its ICS feed
-  (`/calendar/custom/{id}/feed.ics`) uses the installation's ICS token,
-  like the council feeds.
+  (`/calendar/custom/{id}/feed.ics`) has **its own secret**
+  (`CustomCalendar.feed_token`), deliberately *not* the
+  installation-wide ICS token. That token is shown to every calendar
+  reader (birthdays page etc.), so with it anyone could read a
+  board-only calendar's feed (security review finding). The secret is
+  rotated whenever "board only" is switched, so people who subscribed
+  while the calendar was open lose it, and on request ("New
+  subscription link", e.g. after someone leaves the board).
 - **Archive, don't delete** (ADR 0005). An archived calendar keeps its
   entries, takes no new ones, drops out of the feed and stays listed
   for admins. The FK is `RESTRICT`.

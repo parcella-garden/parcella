@@ -477,6 +477,37 @@ async def test_custom_calendar_ics_needs_the_token(client, admin_user):
     feed = await client.get(f"/calendar/custom/{calendar.id}/feed.ics?token={token}")
     assert feed.status_code == 200 and "Schlüsselübergabe" in feed.text and "X-WR-CALNAME:Vereinsheim" in feed.text
 
+    # The installation-wide ICS token (shown to every calendar reader on
+    # the birthdays page etc.) must NOT open a custom calendar's feed.
+    birthdays = await client.get("/calendar/birthdays")
+    shared = re.search(r"birthdays\.ics\?token=([\w-]+)", birthdays.text).group(1)
+    assert shared != token
+    assert (await client.get(f"/calendar/custom/{calendar.id}/feed.ics?token={shared}")).status_code == 404
+
+
+async def test_making_a_calendar_board_only_cuts_off_old_subscribers(client, admin_user):
+    """Security review #314: someone who subscribed while the calendar
+    was open must lose the feed once it becomes board-only."""
+    import re
+    await web_login(client, "admin@example.com")
+    calendar = await _create_custom_calendar(client)
+    old_token = re.search(r"feed\.ics\?token=([\w-]+)", (await client.get(f"/calendar/custom/{calendar.id}")).text).group(1)
+    assert (await client.get(f"/calendar/custom/{calendar.id}/feed.ics?token={old_token}")).status_code == 200
+
+    await client.post(f"/calendar/custom/{calendar.id}/edit", data={
+        "name": "Vereinsheim", "color": "#1e40af", "is_active": "true", "full_access_only": "true",
+    })
+    assert (await client.get(f"/calendar/custom/{calendar.id}/feed.ics?token={old_token}")).status_code == 404
+    new_token = re.search(r"feed\.ics\?token=([\w-]+)", (await client.get(f"/calendar/custom/{calendar.id}")).text).group(1)
+    assert new_token != old_token
+    assert (await client.get(f"/calendar/custom/{calendar.id}/feed.ics?token={new_token}")).status_code == 200
+
+    # "New subscription link" rotates it again without changing anything else.
+    await client.post(f"/calendar/custom/{calendar.id}/edit", data={
+        "name": "Vereinsheim", "color": "#1e40af", "is_active": "true", "full_access_only": "true", "new_feed_link": "true",
+    })
+    assert (await client.get(f"/calendar/custom/{calendar.id}/feed.ics?token={new_token}")).status_code == 404
+
 
 async def test_board_only_calendar_is_invisible_to_other_users(client, admin_user):
     await web_login(client, "admin@example.com")

@@ -288,8 +288,9 @@ etc.) still have no API and still aren't planned speculatively.
   calendars there (name, colour, description, "board only") and edit
   or archive them. Each one has a page at `/calendar/custom/{id}` with
   the same entry form as the community calendar, and a private ICS feed
-  at `/calendar/custom/{id}/feed.ics?token=...` (the installation's ICS
-  token). Entries are `CalendarEvent` rows with `calendar_id` set.
+  at `/calendar/custom/{id}/feed.ics?token=...` with the calendar's
+  *own* secret (`feed_token`, not the shared ICS token). The secret is
+  rotated when "board only" changes or on request. Entries are `CalendarEvent` rows with `calendar_id` set.
 - **Keep the community calendar to `calendar_id IS NULL`.** Its page,
   the public `community.ics`/`community.json` and its delete route all
   filter on it. Any new community query must do the same, or private

@@ -1897,7 +1897,8 @@
       "list_title": "Kalendáre",
       "name_label": "Názov",
       "name_placeholder": "napr. rezervácie klubovne",
-      "new_title": "Nový kalendár"
+      "new_title": "Nový kalendár",
+      "new_feed_link_label": "Nová adresa odberu (staré prestanú fungovať)"
     },
     "resources": {
       "col_item": "Predmet",

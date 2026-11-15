@@ -1897,7 +1897,8 @@
       "list_title": "Kalender",
       "name_label": "Name",
       "name_placeholder": "z. B. Vereinsheim-Belegung",
-      "new_title": "Neuer Kalender"
+      "new_title": "Neuer Kalender",
+      "new_feed_link_label": "Neue Abo-Adresse (alte funktionieren nicht mehr)"
     },
     "resources": {
       "col_item": "Gegenstand",

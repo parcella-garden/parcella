@@ -1897,7 +1897,8 @@
       "list_title": "Kalendarze",
       "name_label": "Nazwa",
       "name_placeholder": "np. rezerwacje świetlicy",
-      "new_title": "Nowy kalendarz"
+      "new_title": "Nowy kalendarz",
+      "new_feed_link_label": "Nowy adres subskrypcji (stare przestaną działać)"
     },
     "resources": {
       "col_item": "Przedmiot",

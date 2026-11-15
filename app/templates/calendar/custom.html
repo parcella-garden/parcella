@@ -12,7 +12,7 @@
     <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 340px;">
         <label class="form-label small text-muted mb-1">{{ t('calendar.custom.ics_private_label') }}</label>
         <input type="text" class="form-control form-control-sm" readonly onclick="this.select()"
-               value="{{ request.base_url }}calendar/custom/{{ calendar.id }}/feed.ics?token={{ ics_token }}">
+               value="{{ request.base_url }}calendar/custom/{{ calendar.id }}/feed.ics?token={{ calendar.feed_token }}">
     </div>
 </div>
 {% endif %}

@@ -29,6 +29,8 @@ def upgrade() -> None:
         sa.Column("color", sa.String(length=7), nullable=False, server_default="#2e7d32"),
         sa.Column("full_access_only", sa.Boolean(), nullable=False, server_default="false"),
         sa.Column("is_active", sa.Boolean(), nullable=False, server_default="true"),
+        # Per-calendar ICS secret (set by the app on insert).
+        sa.Column("feed_token", sa.String(length=64), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
     )
     op.add_column("calendar_events", sa.Column("calendar_id", sa.String(length=36), nullable=True))

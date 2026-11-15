@@ -1897,7 +1897,8 @@
       "list_title": "Calendars",
       "name_label": "Name",
       "name_placeholder": "e.g. Clubhouse bookings",
-      "new_title": "New calendar"
+      "new_title": "New calendar",
+      "new_feed_link_label": "New subscription link (old ones stop working)"
     },
     "resources": {
       "col_item": "Item",

@@ -7,6 +7,7 @@ Design principles:
 - Audit fields (created_at, updated_at) everywhere
 """
 
+import secrets
 import uuid
 from datetime import datetime, date, timedelta
 from typing import Optional, List
@@ -2061,6 +2062,11 @@ class CustomCalendar(Base):
     color: Mapped[str] = mapped_column(String(7), nullable=False, default="#2e7d32")
     full_access_only: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
+    # The calendar's own ICS secret -- NOT the installation-wide ICS token,
+    # which every calendar reader can see: with that, a board-only
+    # calendar's feed would be open to everyone (security review, #314).
+    # Rotated whenever full_access_only changes, and on request.
+    feed_token: Mapped[str] = mapped_column(String(64), nullable=False, default=lambda: secrets.token_urlsafe(32))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
