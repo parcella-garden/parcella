@@ -30,7 +30,8 @@ Cloud storage), the folder's `*.md` files are the notes:
   file name prefix, see below). No YAML library: this small grammar
   is all that's needed, and a full YAML parser on files from outside
   is attack surface for nothing.
-- **File names** are generated once (`2026-03-04-board-meeting.md`,
+- **File names** are generated once (`2026-03-04-board-meeting.md`;
+  `20260304-board-meeting.md` since issue #316,
   ASCII slug, `-2` on a clash) and never changed by Parcella, so a
   retitled note doesn't move under someone's open editor.
 - **Subfolders are categories, both ways** (kermie, follow-up on #286:
