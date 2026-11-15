@@ -27,6 +27,7 @@ decisions and reasoning are still fresh.
 - [Application architecture](./architecture-application.svg) -- request lifecycle, module map (router, templates, API, domain logic, models), shared layers and background loops
 - [Architecture Decisions](./ADR/README.md) -- why certain things are built the way they are
 - [Operations](./operations.md) -- Docker, migrations, SMTP setup, troubleshooting
+- [Release policy](./release-policy.md) -- patch/minor/major per change, release schedule, merge windows
 - [Security](./security.md) -- what protects the app, what a review fixed, what's still open
 - [Automated Tests](./testing.md) -- testing philosophy, execution, known limits
 - [Website Plugin Protocol](./website-plugin-protocol.md) -- how a CMS plugin receives drafts from Parcella

@@ -89,7 +89,14 @@ once, or it fails with "ambiguous argument 'origin/HEAD...'".
 
 ## Releases
 
-Bump `app_version` in `app/config.py` on a branch, commit ("Bump
+**What goes into which release, and when:** [docs/release-policy.md](./docs/release-policy.md)
+(ADR 0135). In short: every issue gets a release level (patch / minor /
+major) when it moves to Ready -- board field "Release" plus a
+`release: ...` label; patches (no migrations!) every two weeks, minors
+monthly, majors yearly in the winter; minor/major PRs wait for their merge
+window, security fixes ship immediately.
+
+**How to cut one:** bump `app_version` in `app/config.py` on a branch, commit ("Bump
 app_version to X.Y.Z") and open a PR for it like any other change. Once
 it's merged, `git checkout main && git pull`, then `git tag vX.Y.Z` on
 that merge commit and push the tag -- this triggers
