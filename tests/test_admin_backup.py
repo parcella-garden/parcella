@@ -33,7 +33,8 @@ async def test_backup_download_returns_a_valid_zip_with_sql_dump(client, admin_u
 
     zf = zipfile.ZipFile(io.BytesIO(resp.content))
     sql_names = [n for n in zf.namelist() if n.endswith(".sql")]
-    assert len(sql_names) == 1
+    # Issue #327: laid out like the install's ./data/ folder.
+    assert sql_names == ["data/postgres/parcella.sql"]
 
     sql_bytes = zf.read(sql_names[0])
     # Plain-format pg_dump's standard preamble -- proves this is a real,
@@ -57,9 +58,9 @@ async def test_backup_download_bundles_uploaded_files(client, admin_user, monkey
 
     zf = zipfile.ZipFile(io.BytesIO(resp.content))
     names = set(zf.namelist())
-    assert "uploads/logo.png" in names
-    assert "uploads/announcements/example.png" in names
-    assert zf.read("uploads/logo.png") == b"fake-logo-bytes"
+    assert "data/uploads/logo.png" in names
+    assert "data/uploads/announcements/example.png" in names
+    assert zf.read("data/uploads/logo.png") == b"fake-logo-bytes"
 
 
 async def test_backup_download_requires_admin(client):
@@ -86,4 +87,6 @@ async def test_backup_contains_the_secret_key(client, admin_user):
     await web_login(client, "admin@example.com")
     resp = await client.post("/admin/backup/download")
     zf = zipfile.ZipFile(io.BytesIO(resp.content))
-    assert zf.read("secrets/secret_key").decode("utf-8").strip() == settings.secret_key
+    assert zf.read("data/secrets/secret_key").decode("utf-8").strip() == settings.secret_key
+    # Nothing outside data/: the zip mirrors the install's data folder.
+    assert all(name.startswith("data/") for name in zf.namelist())

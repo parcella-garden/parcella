@@ -265,3 +265,33 @@ async def test_restore_rejects_an_oversized_secret_key_file(client, admin_user):
     await web_login(client, "admin@example.com")
     response = await _restore(client, buffer.getvalue())
     assert "success=1" not in response.headers.get("location", "")
+
+
+async def test_restore_accepts_the_data_folder_layout_with_key(client, admin_user, monkeypatch, tmp_path):
+    """Issue #327: data/postgres/*.sql, data/uploads/, data/secrets/secret_key.
+    (The flat layout of older backups is covered by the tests above.)"""
+    upload_dir = tmp_path / "uploads"
+    upload_dir.mkdir()
+    monkeypatch.setattr("app.backup.UPLOAD_DIR", upload_dir)
+    monkeypatch.setattr("app.backup._RESTORE_DIR_PREFIXES", {"uploads": upload_dir})
+    from app.config import settings
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as zf:
+        zf.writestr("data/postgres/parcella.sql", "SELECT 1;")
+        zf.writestr("data/uploads/logo.png", b"from-data-folder")
+        zf.writestr("data/secrets/secret_key", settings.secret_key + "\n")
+
+    await web_login(client, "admin@example.com")
+    response = await _restore(client, buffer.getvalue())
+    assert response.status_code == 302 and "success=1" in response.headers["location"]
+    assert (upload_dir / "logo.png").read_bytes() == b"from-data-folder"
+
+
+async def test_restore_rejects_a_dump_nested_below_data_postgres(client, admin_user):
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as zf:
+        zf.writestr("data/postgres/sub/parcella.sql", "SELECT 1;")
+    await web_login(client, "admin@example.com")
+    response = await _restore(client, buffer.getvalue())
+    assert "success=1" not in response.headers.get("location", "")

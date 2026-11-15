@@ -29,9 +29,15 @@ PSQL_BINARY = "psql"  # module-level constant so tests can monkeypatch it
 RESTORE_CONFIRM_PHRASE = "RESTORE"
 MAX_RESTORE_UPLOAD_BYTES = 200 * 1024 * 1024
 MAX_RESTORE_UNCOMPRESSED_BYTES = 2 * 1024 * 1024 * 1024
-# Issue #327 / ADR 0134: the encryption key travels with the backup, so the
-# stored SMTP/website/cloud passwords still work after a restore elsewhere.
-SECRET_KEY_MEMBER = "secrets/secret_key"
+# Issue #327 / ADR 0134: the zip mirrors the install's ./data/ folder --
+# data/postgres/ (the database, as a dump), data/uploads/ and
+# data/secrets/secret_key, so the stored SMTP/website/cloud passwords still
+# work after a restore elsewhere. Restore also accepts the older layout
+# (top-level *.sql, uploads/, secrets/secret_key).
+DATA_PREFIX = "data/"
+SQL_MEMBER = "data/postgres/parcella.sql"
+UPLOADS_PREFIX = "data/uploads"
+SECRET_KEY_MEMBER = "data/secrets/secret_key"
 MAX_SECRET_KEY_BYTES = 1024
 
 
@@ -50,7 +56,8 @@ async def build_backup_zip() -> Tuple[str, bytes]:
     together with everything under app/static/uploads/ (the branding
     logo, announcement images) -- files referenced by filename from DB
     rows but not themselves part of the dump -- into a single in-memory
-    zip. That directory is also bind-mounted under ./data/ in
+    zip, laid out like the install's ./data/ folder (data/postgres/,
+    data/uploads/, data/secrets/). That directory is also bind-mounted under ./data/ in
     docker-compose.yml (see ADR 0077), but this backup remains useful as
     an out-of-band copy, e.g. when moving to a new host. Since issue #327
     (ADR 0134) it also holds the SECRET_KEY in use (secrets/secret_key):
@@ -87,10 +94,10 @@ async def build_backup_zip() -> Tuple[str, bytes]:
 
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr(f"parcella-backup-{timestamp}.sql", stdout)
+        zf.writestr(SQL_MEMBER, stdout)
         # The effective key, whether it came from .env or data/secrets/.
         zf.writestr(SECRET_KEY_MEMBER, settings.secret_key + "\n")
-        for base_dir, prefix in ((UPLOAD_DIR, "uploads"),):
+        for base_dir, prefix in ((UPLOAD_DIR, UPLOADS_PREFIX),):
             if base_dir.is_dir():
                 for file_path in sorted(base_dir.rglob("*")):
                     if file_path.is_file():
@@ -113,9 +120,11 @@ _RESTORE_DIR_PREFIXES = {"uploads": UPLOAD_DIR}
 
 
 def _validate_restore_zip(zf: zipfile.ZipFile):
-    """Exactly one top-level *.sql member; every other member must start
-    with one of _RESTORE_DIR_PREFIXES ('uploads/') and resolve inside
-    that prefix's directory. Hand-rolled rather than
+    """Exactly one database dump (data/postgres/*.sql, or a top-level *.sql
+    in the older layout); every other member is the key
+    (data/secrets/secret_key or secrets/secret_key) or starts with one of
+    _RESTORE_DIR_PREFIXES ('data/uploads/' or 'uploads/') and resolves
+    inside that prefix's directory. Hand-rolled rather than
     ZipFile.extractall(): Python's extractall silently rewrites a
     '..'-containing name instead of rejecting it, and we want
     fail-closed rejection of a malformed backup, not silent
@@ -129,15 +138,20 @@ def _validate_restore_zip(zf: zipfile.ZipFile):
     for info in zf.infolist():
         if info.is_dir():
             continue
-        name = info.filename
-        if "\x00" in name or name.startswith("/") or name.startswith("\\"):
-            raise RestoreZipError(f"unsafe member name: {name!r}")
+        raw_name = info.filename
+        if "\x00" in raw_name or raw_name.startswith("/") or raw_name.startswith("\\"):
+            raise RestoreZipError(f"unsafe member name: {raw_name!r}")
         total += info.file_size
         if total > MAX_RESTORE_UNCOMPRESSED_BYTES:
             raise RestoreZipError("zip expands too large")
-        if "/" not in name and name.endswith(".sql"):
-            sql_members.append(name)
-        elif name == SECRET_KEY_MEMBER:
+        # Both layouts map onto the same three kinds of member: the data/
+        # one (issue #327) and the older flat one.
+        name = raw_name[len(DATA_PREFIX):] if raw_name.startswith(DATA_PREFIX) else raw_name
+        is_new_layout = raw_name.startswith(DATA_PREFIX)
+        if (is_new_layout and name.startswith("postgres/") and "/" not in name[len("postgres/"):]
+                and name.endswith(".sql")) or (not is_new_layout and "/" not in name and name.endswith(".sql")):
+            sql_members.append(raw_name)
+        elif name == "secrets/secret_key":
             if info.file_size > MAX_SECRET_KEY_BYTES:
                 raise RestoreZipError("secret key file too large")
             try:
@@ -152,9 +166,9 @@ def _validate_restore_zip(zf: zipfile.ZipFile):
                     dir_entries[prefix].append((relative, info))
                     break
             else:
-                raise RestoreZipError(f"unexpected member: {name!r}")
+                raise RestoreZipError(f"unexpected member: {raw_name!r}")
     if len(sql_members) != 1:
-        raise RestoreZipError(f"expected exactly one top-level .sql file, found {len(sql_members)}")
+        raise RestoreZipError(f"expected exactly one database dump (.sql), found {len(sql_members)}")
     return zf.read(sql_members[0]), dir_entries["uploads"], secret_key
 
 

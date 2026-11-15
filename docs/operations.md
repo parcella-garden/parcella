@@ -95,12 +95,11 @@ Entries are deleted after `Admin -> Settings -> Email log` days (default
 A system admin can download a full backup on demand from `/admin/`
 ("Download backup" -- see
 [ADR 0053](./ADR/0053-admin-backup-download-only.md)). It's a zip
-containing a one-click `pg_dump` (plain SQL, readable text), everything
-under `app/static/uploads/` (the branding logo, announcement images, user
-avatars) and, since issue #327, the encryption key in use
-(`secrets/secret_key`, ADR 0134) -- together that's everything in
-`./data/` that matters (`data/postgres/` itself is left out: the dump is
-the consistent form of it). Nothing is ever written to server disk, so
+laid out like the install's `./data/` folder (issue #327, ADR 0134):
+`data/postgres/parcella.sql` (a one-click `pg_dump`, plain SQL, readable
+text -- the consistent form of the database files), `data/uploads/` (the
+branding logo, announcement images, user avatars) and
+`data/secrets/secret_key` (the encryption key in use). Nothing is ever written to server disk, so
 there's no backup file to find or clean up on the server itself; the
 downloaded `.zip` is the only copy, and it's the admin's responsibility
 to store it somewhere safe. **It holds the key to the stored
@@ -132,17 +131,29 @@ backup of the current state *first*.
 **Restoring manually, e.g. when the app itself is unreachable** (container
 won't start, admin panel broken) and the UI isn't an option:
 
+The zip is laid out like the install's `./data/` folder (issue #327):
+`data/postgres/parcella.sql` (the database as a dump -- not the raw
+`data/postgres/` files, which can't be copied safely while the database
+runs), `data/uploads/` and `data/secrets/secret_key`. Backups made before
+that have the flat layout `parcella-backup-<time>.sql`, `uploads/`, no key;
+the admin restore accepts both.
+
 ```bash
 unzip parcella-backup-20260730-143000.zip -d restore/
-docker compose exec -T db psql -U parcella -d parcella < restore/parcella-backup-20260730-143000.sql
+docker compose exec -T db psql -U parcella -d parcella < restore/data/postgres/parcella.sql
 ```
 
-Uploads are a plain host directory now (bind-mounted under `./data/`, no
-`docker cp` needed) -- for a published-image deploy:
+Uploads and the key are plain host directories (bind-mounted under
+`./data/`, no `docker cp` needed) -- for a published-image deploy:
 
 ```bash
-cp -r restore/uploads/. data/uploads/
+cp -r restore/data/uploads/. data/uploads/
+cp restore/data/secrets/secret_key data/secrets/secret_key   # then: docker compose restart web
 ```
+
+Copy the key only when this server's stored passwords should come from
+the backup (a move to a new server) and you didn't set `SECRET_KEY` in
+`.env` -- a key in `.env` always wins.
 
 For a dev/source checkout, the equivalent path is `app/static/uploads/`
 (already live-mounted via `docker-compose.dev.yml`'s `./app` bind mount).

@@ -11,14 +11,19 @@ passwords unreadable and they had to be typed in again.
 
 ## Decision
 
-- **Every backup carries the key in use** as `secrets/secret_key`: the manual
+- **The zip mirrors `./data/`** (kermie's call after a first version kept the
+  old flat names): `data/postgres/parcella.sql`, `data/uploads/…`,
+  `data/secrets/secret_key`. Restore accepts this layout and the older flat
+  one (top-level `*.sql`, `uploads/`, `secrets/secret_key`), so existing
+  backups stay restorable.
+- **Every backup carries the key in use** as `data/secrets/secret_key`: the manual
   download and the scheduled cloud backups alike (kermie's call, over an
   opt-in checkbox and over leaving it out). It's the effective key, whether it
   came from `.env` or from `data/secrets/secret_key`.
-- **`data/postgres/` stays out.** Copying a running database's files gives an
-  inconsistent copy; the `pg_dump` in the zip is the safe form of the same
-  data. With dump, uploads and key, the zip now holds everything in `./data/`
-  that matters.
+- **`data/postgres/` holds a dump, not the raw files.** The web container that
+  builds the backup can't see the database container's files, and copying a
+  running database's files gives an inconsistent copy; the `pg_dump` is the
+  safe form of the same data.
 - **A restore doesn't switch keys, it re-encrypts.** If the zip's key differs
   from the running instance's, the restored settings that decrypt with the
   backup's key are re-encrypted with the instance's own key
@@ -41,8 +46,9 @@ passwords unreadable and they had to be typed in again.
   dump, but not those passwords. Accepted: the zip was already highly
   sensitive, and a backup that can't be restored on a new server without
   re-entering credentials is a worse failure for a small club.
-- The restore validation accepts exactly one extra member,
-  `secrets/secret_key`, at most 1 KB of text. Older zips without it restore
-  as before.
+- The restore validation accepts exactly one key member (either layout), at
+  most 1 KB of text, and exactly one dump directly in `data/postgres/` (or at
+  the top level in the old layout). Older zips without a key restore as
+  before.
 - Supersedes the "deliberately not part of the backup" note on the key in
   ADR 0121 and docs/operations.md.
