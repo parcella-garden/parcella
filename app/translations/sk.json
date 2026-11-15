@@ -1925,7 +1925,8 @@
   "announcements": {
     "print": {
       "byline": "Zverejnené {date}, autor: {author}",
-      "byline_date_only": "Zverejnené {date}"
+      "byline_date_only": "Zverejnené {date}",
+      "read_online": "Celé oznámenie si prečítajte online:"
     },
     "list": {
       "title": "Oznamy",
@@ -1959,6 +1960,8 @@
       "print_override_hint": "Ponechajte prázdne pre tlač celého textu vyššie. Ak sa nezmestí na jednu stranu, tu bude navrhnutá skrátená verzia -- dá sa upraviť.",
       "print_fits": "Zmestí sa na jednu tlačenú stranu.",
       "print_too_long": "Pravdepodobne príliš dlhé na jednu stranu -- zvážte skrátenie.",
+      "label_print_qr": "QR kód k príspevku na webe",
+      "print_qr_hint": "Vytlačí QR kód k príspevku na webe, aj keď sa text zmestí na jednu stranu – pre tlačový text, ktorý je len upútavkou. Tlačiť môžete ešte pred zverejnením: kód vedie na príspevok, hneď ako je online.",
       "save_button": "Uložiť",
       "cancel_button": "Zrušiť",
       "channels_title": "Distribučné kanály",
@@ -2020,6 +2023,10 @@
       "hint": "Iba e-mailom. Výber je pevný: neskôr označení uchádzači sa nepridajú.",
       "send_email_confirm": "Odoslať túto správu teraz e-mailom na {count} adries uchádzačov? Nedá sa to vrátiť späť.",
       "list_badge": "Uchádzači"
+    },
+    "link": {
+      "title": "Zatiaľ nie je online",
+      "not_online": "Toto oznámenie zatiaľ nie je na webe. Skúste to prosím neskôr."
     }
   },
   "inventory": {

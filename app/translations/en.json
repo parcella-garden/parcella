@@ -1925,7 +1925,8 @@
   "announcements": {
     "print": {
       "byline": "Published on {date} by {author}",
-      "byline_date_only": "Published on {date}"
+      "byline_date_only": "Published on {date}",
+      "read_online": "Read the full announcement online:"
     },
     "list": {
       "title": "Announcements",
@@ -1959,6 +1960,8 @@
       "print_override_hint": "Leave empty to print the full text above. If it doesn't fit on one page, a shortened version will be suggested here -- feel free to edit it.",
       "print_fits": "Fits on one printed page.",
       "print_too_long": "Likely too long for one printed page -- consider shortening.",
+      "label_print_qr": "QR code to the website post",
+      "print_qr_hint": "Prints a QR code to the website post even if the text fits on one page, for a print text that's only a teaser. You can print before the post is published: the code leads to it as soon as it's online.",
       "save_button": "Save",
       "cancel_button": "Cancel",
       "channels_title": "Delivery channels",
@@ -2020,6 +2023,10 @@
       "hint": "Email only. The selection is fixed: applicants you tick later are not added.",
       "send_email_confirm": "Send this message by email to {count} applicant address(es) now? This can't be undone.",
       "list_badge": "Applicants"
+    },
+    "link": {
+      "title": "Not online yet",
+      "not_online": "This announcement isn't on the website yet. Please try again later."
     }
   },
   "inventory": {

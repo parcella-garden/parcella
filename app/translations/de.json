@@ -1925,7 +1925,8 @@
   "announcements": {
     "print": {
       "byline": "Veröffentlicht am {date} von {author}",
-      "byline_date_only": "Veröffentlicht am {date}"
+      "byline_date_only": "Veröffentlicht am {date}",
+      "read_online": "Die ganze Mitteilung online lesen:"
     },
     "list": {
       "title": "Mitteilungen",
@@ -1959,6 +1960,8 @@
       "print_override_hint": "Leer lassen, um den vollständigen Text oben zu drucken. Falls er nicht auf eine Seite passt, wird hier eine gekürzte Fassung vorgeschlagen -- frei bearbeitbar.",
       "print_fits": "Passt auf eine gedruckte Seite.",
       "print_too_long": "Wahrscheinlich zu lang für eine gedruckte Seite -- Kürzung empfohlen.",
+      "label_print_qr": "QR-Code zum Website-Beitrag",
+      "print_qr_hint": "Druckt einen QR-Code zum Website-Beitrag, auch wenn der Text auf eine Seite passt – für einen Drucktext, der nur ein Anreißer ist. Sie können schon vor der Veröffentlichung drucken: Der Code führt zum Beitrag, sobald er online ist.",
       "save_button": "Speichern",
       "cancel_button": "Abbrechen",
       "channels_title": "Versandkanäle",
@@ -2020,6 +2023,10 @@
       "hint": "Nur per E-Mail. Die Auswahl steht fest: später angehakte Bewerber kommen nicht dazu.",
       "send_email_confirm": "Diese Nachricht jetzt per E-Mail an {count} Bewerber-Adresse(n) senden? Das lässt sich nicht rückgängig machen.",
       "list_badge": "Bewerber"
+    },
+    "link": {
+      "title": "Noch nicht online",
+      "not_online": "Diese Mitteilung ist noch nicht auf der Website. Bitte versuchen Sie es später noch einmal."
     }
   },
   "inventory": {

@@ -35,6 +35,7 @@ be pushed to a public blog and to every member's inbox, so authoring
 it isn't a general member-facing feature.
 """
 import re
+import secrets
 import urllib.parse
 import uuid
 from datetime import date, datetime, timezone
@@ -56,6 +57,7 @@ from app.member_filters import MemberListFilter
 from app.auth import require_admin
 from app.permissions import require_permission
 from app.module_flags import require_module
+from app.rate_limit import check_and_record, client_ip_key
 from app.announcement_utils import render_markdown_to_html, likely_fits_one_print_page, channel_fingerprint
 from app.announcement_mailer import start_paced_email_send, run_paced_email_send, send_test_email, resolve_audience
 from app.announcement_letters import render_announcement_letters_pdf
@@ -75,6 +77,17 @@ router = APIRouter(
     tags=["announcements"],
     dependencies=[Depends(require_module("announcements"))],
 )
+
+# The short link a printed QR code points to (ADR 0133). Public: whoever
+# scans the notice has no account. Separate router because of the prefix.
+link_router = APIRouter(
+    prefix="/a",
+    tags=["announcements"],
+    dependencies=[Depends(require_module("announcements"))],
+)
+
+_LINK_RATE_LIMIT_MAX = 30
+_LINK_RATE_LIMIT_WINDOW_SECONDS = 60
 
 UPLOAD_DIR = Path("app/static/uploads/announcements")
 ALLOWED_IMAGE_TYPES = {
@@ -138,7 +151,7 @@ def _delete_print_pdf(filename: Optional[str]) -> None:
 def _current_fingerprint(announcement: Announcement, channel: AnnouncementChannel) -> str:
     return channel_fingerprint(
         channel.name, announcement.title, announcement.body_markdown, announcement.print_text_override,
-        summary=announcement.summary,
+        summary=announcement.summary, print_qr_code=announcement.print_qr_code,
     )
 
 
@@ -166,7 +179,7 @@ def _channel_action_available(announcement: Announcement, channel: AnnouncementC
     - EMAIL, SENT -> never again: every member already has it, and a
       second full send is not something to offer after an edit.
     - BLOG, SENT -> only once title/body/image changed since.
-    - PRINT, SENT -> once title/body/print text/image changed since,
+    - PRINT, SENT -> once title/body/print text/QR switch/image changed since,
       when the stored PDF is gone, or when it was shortened without a
       QR code and a blog post exists that may since have been published.
     """
@@ -382,6 +395,7 @@ def _entered_values(form) -> dict:
         "title": form.get("title") or "",
         "body_markdown": form.get("body_markdown") or "",
         "print_text_override": form.get("print_text_override") or "",
+        "print_qr_code": form.get("print_qr_code") == "true",
         "image_alt": form.get("image_alt") or "",
         "summary": form.get("summary") or "",
         "letters_for_all": form.get("letters_for_all") == "true",
@@ -507,6 +521,8 @@ async def announcement_update(
     announcement.body_markdown = body_markdown
     announcement.body_html = render_markdown_to_html(body_markdown)
     announcement.print_text_override = print_text_override
+    if not announcement.is_targeted:
+        announcement.print_qr_code = form.get("print_qr_code") == "true"
     announcement.summary = _clean_summary(form.get("summary"))
     # No image, no alt text: a stale one would otherwise resurface on the
     # next upload.
@@ -691,6 +707,49 @@ async def _get_public_blog_url(db: AsyncSession, announcement: Announcement) -> 
         await connector.aclose()
 
 
+async def _print_qr_url(request: Request, db: AsyncSession, announcement: Announcement) -> Optional[str]:
+    """What the printed QR code points to (ADR 0133): the announcement's
+    own short link /a/<token>, which forwards to the website post once
+    that's public. So the notice can be printed while the post is still
+    a draft, and a slug changed on the website doesn't break the code.
+    None without a website connector: then there's no post to point to.
+    The token is created on first use and never changes, so every PDF of
+    the announcement carries the same link."""
+    if await get_active_type(db) is None:
+        return None
+    if not announcement.public_link_token:
+        announcement.public_link_token = secrets.token_urlsafe(16)
+    return f"{str(request.base_url).rstrip('/')}/a/{announcement.public_link_token}"
+
+
+@link_router.get("/{token}", response_class=HTMLResponse)
+async def announcement_short_link(token: str, request: Request, db: AsyncSession = Depends(get_db)):
+    """Public. Forwards to the website post once it's published (asked
+    live, like everything about the post's URL), else a short "not online
+    yet" page. Says nothing about the announcement itself: not its
+    title, not whether the token belongs to one -- an unknown token gets
+    the same page as a draft. Rate-limited because each hit asks the
+    website."""
+    key = client_ip_key(request, "announcement_link")
+    if not check_and_record(key, _LINK_RATE_LIMIT_MAX, _LINK_RATE_LIMIT_WINDOW_SECONDS):
+        raise HTTPException(status_code=429, detail="Too many requests, please try again later")
+
+    announcement = None
+    if 16 <= len(token) <= 43:
+        announcement = (await db.execute(
+            select(Announcement).where(Announcement.public_link_token == token)
+            .options(selectinload(Announcement.deliveries))
+        )).scalar_one_or_none()
+    if announcement is not None and not announcement.is_targeted:
+        url = await _get_public_blog_url(db, announcement)
+        if url and urllib.parse.urlsplit(url).scheme in ("http", "https"):
+            return RedirectResponse(url=url, status_code=302)
+    return templates.TemplateResponse(
+        "announcements/not_online.html", {"request": request, "user": None},
+        headers={"Cache-Control": "no-store"},
+    )
+
+
 async def _print_byline(db: AsyncSession, announcement: Announcement, language: str) -> str:
     """Issue #261: "Published on <date> by <name>" under the print
     notice's title. The date is the day the PDF is generated, not the
@@ -749,14 +808,14 @@ async def announcement_generate_print_pdf(
     branding = await load_branding(db)
     logo_path = Path("app" + branding["logo_url"]) if branding["logo_url"] else None
     image_path = UPLOAD_DIR / announcement.image_filename if announcement.image_filename else None
-    public_blog_url = await _get_public_blog_url(db, announcement)
+    qr_url = await _print_qr_url(request, db, announcement)
     footer_context = await load_org_footer_context(db, branding["club_name"])
     language = await load_current_language(db)
     byline = await _print_byline(db, announcement, language)
 
     try:
         result = render_announcement_print_pdf(
-            announcement, footer_context, logo_path, image_path, public_blog_url, language, byline,
+            announcement, footer_context, logo_path, image_path, qr_url, language, byline,
         )
     except PrintTooLongError as e:
         delivery.status = AnnouncementDeliveryStatus.FAILED
@@ -777,11 +836,14 @@ async def announcement_generate_print_pdf(
     # has just auto-filled print_text_override, and that shortened
     # version is what this PDF actually contains.
     _record_delivered_content(announcement, delivery)
-    delivery.qr_pending = result.was_shortened and not result.qr_included
+    wants_qr = result.was_shortened or announcement.print_qr_code
+    delivery.qr_pending = wants_qr and not result.qr_included
     if result.was_shortened and result.qr_included:
-        delivery.error_message = "Text was shortened automatically to fit one page; a QR code linking to the published blog post was added."
+        delivery.error_message = "Text was shortened automatically to fit one page; a QR code linking to the website post was added."
     elif result.was_shortened:
-        delivery.error_message = "Text was shortened automatically to fit one page. No QR code was added since the blog post isn't published yet."
+        delivery.error_message = "Text was shortened automatically to fit one page. No QR code was added since there is no website to link to."
+    elif wants_qr and not result.qr_included:
+        delivery.error_message = "No QR code was added since there is no website to link to."
     else:
         delivery.error_message = None
     cloud_note = await _save_print_pdf_to_cloud(request, db, announcement, result.pdf_bytes)

@@ -1734,3 +1734,140 @@ async def test_summary_goes_to_wordpress_as_excerpt_only_when_set(client, admin_
     assert requests_seen[-1][1] == "/wp-json/wp/v2/posts/99"
     assert requests_seen[-1][2]["excerpt"] == "New bins by the shed."
     await mock_client.aclose()
+
+
+# --- Print: QR switch for a teaser (ADR 0133) ---
+
+def _render_print(print_qr_code, public_blog_url, language="en", text="Kurzer Anreißer."):
+    from app.models import Announcement
+    from app.pdf_chrome import OrgFooterContext
+    from app.print_publisher import render_announcement_print_pdf
+    announcement = Announcement(title="Herbstputz", body_markdown="Langer Text.", print_text_override=text,
+                                print_qr_code=print_qr_code)
+    return render_announcement_print_pdf(
+        announcement, OrgFooterContext(club_name="KGV Test"), None, None, public_blog_url, language,
+    )
+
+
+def test_print_qr_switch_adds_the_qr_code_to_a_text_that_fits():
+    with_qr = _render_print(True, "https://blog.example.com/2026/herbst", language="de")
+    assert not with_qr.was_shortened and with_qr.qr_included
+    text = _pdf_text(with_qr.pdf_bytes)
+    assert "Die ganze Mitteilung online lesen" in text and "https://blog.example.com/2026/herbst" in text
+
+    # Switch off: a text that fits stays without QR code, as before.
+    without = _render_print(False, "https://blog.example.com/2026/herbst")
+    assert not without.qr_included and "blog.example.com" not in _pdf_text(without.pdf_bytes)
+
+    # Switch on, but nothing public yet: no QR code, no broken link.
+    pending = _render_print(True, None)
+    assert not pending.qr_included and "online" not in _pdf_text(pending.pdf_bytes).lower()
+
+
+async def test_print_qr_switch_is_saved_and_marks_only_print_as_changed(client, admin_user):
+    from app.announcement_utils import channel_fingerprint
+    from app.models import AnnouncementChannel
+
+    _token, announcement_id = await _setup_announcement(client, title="Aushang", body="Kurzer Text.")
+    assert (await client.post(f"/announcements/{announcement_id}/print")).status_code == 200
+    # Nothing changed -> nothing to regenerate.
+    assert (await client.post(f"/announcements/{announcement_id}/print")).status_code == 409
+
+    page = await client.get(f"/announcements/{announcement_id}/edit")
+    assert 'id="print_qr_code"' in page.text and 'id="print_text_override"' in page.text
+    assert 'id="summary_count"' in page.text  # live character count under the summary
+
+    data = {"title": "Aushang", "body_markdown": "Kurzer Text.", "print_text_override": "Nur ein Anreißer.",
+            "print_qr_code": "true"}
+    assert (await client.post(f"/announcements/{announcement_id}/edit", data=data)).status_code == 303
+    announcement = await _load_announcement(announcement_id)
+    assert announcement.print_qr_code is True
+
+    # Fingerprints: the switch counts for print only, and off == the old hash.
+    assert channel_fingerprint("PRINT", "T", "B", "P") != channel_fingerprint("PRINT", "T", "B", "P", print_qr_code=True)
+    for channel in ("EMAIL", "BLOG"):
+        assert channel_fingerprint(channel, "T", "B", "P") == channel_fingerprint(channel, "T", "B", "P", print_qr_code=True)
+
+    # No public blog post yet: the PDF is made, the QR code is pending.
+    assert (await client.post(f"/announcements/{announcement_id}/print")).status_code == 200
+    delivery = (await _load_announcement(announcement_id)).delivery_for(AnnouncementChannel.PRINT)
+    assert delivery.qr_pending is True and "no qr code" in delivery.error_message.lower()
+
+    # Unticking saves False (an unchecked box sends nothing).
+    data.pop("print_qr_code")
+    assert (await client.post(f"/announcements/{announcement_id}/edit", data=data)).status_code == 303
+    assert (await _load_announcement(announcement_id)).print_qr_code is False
+
+
+async def test_printed_qr_code_uses_the_short_link_which_forwards_once_published(client, admin_user, monkeypatch):
+    """ADR 0133: with a website connector the QR code points to Parcella's
+    own short link, so the notice can be printed while the post is still
+    a draft; the link forwards once the post is public."""
+    import httpx as httpx_module
+    from app.database import AsyncSessionLocal
+    from app.models import AnnouncementDelivery, AnnouncementChannel, AnnouncementDeliveryStatus
+
+    token, announcement_id = await _setup_announcement(client, title="Aushang", body="Kurzer Text.")
+    await _configure_wordpress(client, auth_header(token))
+    data = {"title": "Aushang", "body_markdown": "Kurzer Text.", "print_text_override": "Nur ein Anreißer.",
+            "print_qr_code": "true"}
+    assert (await client.post(f"/announcements/{announcement_id}/edit", data=data)).status_code == 303
+
+    # Printed before any website post exists: the QR code is there anyway.
+    response = await client.post(f"/announcements/{announcement_id}/print")
+    assert response.status_code == 200
+    announcement = await _load_announcement(announcement_id)
+    link_token = announcement.public_link_token
+    assert link_token and len(link_token) >= 16
+    assert f"/a/{link_token}" in _pdf_text(response.content)
+    delivery = announcement.delivery_for(AnnouncementChannel.PRINT)
+    assert delivery.qr_pending is False and delivery.error_message is None
+
+    # Anonymous visitors (whoever scans the notice).
+    client.cookies.clear()
+    # No post yet: the "not online yet" page, without the title.
+    page = await client.get(f"/a/{link_token}", follow_redirects=False)
+    assert page.status_code == 200 and "Aushang" not in page.text
+    # An unknown token gets exactly the same page.
+    unknown = await client.get("/a/" + "x" * 22, follow_redirects=False)
+    not_online = "on the website yet"
+    assert not_online in page.text
+    assert unknown.status_code == 200 and not_online in unknown.text
+
+    async with AsyncSessionLocal() as session:
+        session.add(AnnouncementDelivery(
+            announcement_id=announcement_id, channel=AnnouncementChannel.BLOG,
+            status=AnnouncementDeliveryStatus.SENT, external_id="42",
+        ))
+        await session.commit()
+
+    post_status = {"value": "draft"}
+
+    def handler(request: httpx_module.Request) -> httpx_module.Response:
+        if request.url.path == "/wp-json/wp/v2/posts/42":
+            return httpx_module.Response(200, json={"status": post_status["value"], "link": "https://blog.example.com/2026/aushang"})
+        return httpx_module.Response(404)
+
+    async def fake_get_active_connector(db):
+        from app.website_connectors.wordpress import WordPressPublisher
+        return WordPressPublisher(
+            site_url="https://blog.example.com", username="board", application_password="abcd 1234 efgh 5678",
+            client=httpx_module.AsyncClient(transport=httpx_module.MockTransport(handler)),
+        )
+
+    monkeypatch.setattr("app.routers.announcements.get_active_connector", fake_get_active_connector)
+
+    # Still a draft: no forward.
+    assert (await client.get(f"/a/{link_token}", follow_redirects=False)).status_code == 200
+    # Published: forwarded to the post.
+    post_status["value"] = "publish"
+    forwarded = await client.get(f"/a/{link_token}", follow_redirects=False)
+    assert forwarded.status_code == 302 and forwarded.headers["location"] == "https://blog.example.com/2026/aushang"
+
+
+async def test_short_link_is_rate_limited(client, admin_user):
+    token = await login(client, "admin@example.com")
+    await _enable_module(client, auth_header(token))
+    client.cookies.clear()
+    codes = [(await client.get("/a/" + "y" * 22)).status_code for _ in range(31)]
+    assert codes[:30] == [200] * 30 and codes[30] == 429

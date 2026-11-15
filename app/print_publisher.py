@@ -16,8 +16,10 @@ admin set one, otherwise the full body). If that fits on one page,
 done. If not, shortens paragraph-by-paragraph and re-renders each
 attempt, stopping at the first one that fits -- adding a "read the
 rest online" note with a QR code, but only once shortening actually
-happened (untouched text never gets a QR code slapped on it) and only
-if the website draft has genuinely been published (see
+happened (untouched text never gets a QR code slapped on it) -- unless
+the admin switched the QR code on for this announcement (ADR 0133: a
+print text that's only a teaser), then it's there from the first
+attempt -- and only if the website draft has genuinely been published (see
 WebsiteConnector.get_public_url_if_published in app/website_connectors --
 there's nothing public to point a QR code at until then, so the note
 is simply omitted, not shown with a broken link).
@@ -47,6 +49,7 @@ from weasyprint import HTML
 
 from app.models import Announcement, ClubSetting
 from app.announcement_utils import render_markdown_to_html
+from app.i18n import translate
 from app.pdf_chrome import wrap_document, org_footer_html, OrgFooterContext
 from app.pdf_utils import data_uri_only_fetcher, file_to_data_uri
 
@@ -150,7 +153,8 @@ def render_announcement_print_pdf(
             qr_uri = _qr_data_uri(public_blog_url)
             online_note_html = (
                 f'<div class="online-note"><img src="{qr_uri}">'
-                f'<div>Read the full announcement online:<br>{escape(public_blog_url)}</div></div>'
+                f'<div>{escape(translate("announcements.print.read_online", language))}<br>'
+                f'{escape(public_blog_url)}</div></div>'
             )
         html_doc = _build_html(
             announcement.title, render_markdown_to_html(body_markdown),
@@ -161,9 +165,15 @@ def render_announcement_print_pdf(
 
     source_markdown = announcement.print_text_override or announcement.body_markdown
 
-    doc = render(source_markdown, include_online_note=False)
+    # The QR switch (ADR 0133): the note is part of the very first
+    # attempt, so a teaser that fits gets it too, and the fitting below
+    # already leaves room for it.
+    wants_qr = bool(announcement.print_qr_code)
+    doc = render(source_markdown, include_online_note=wants_qr)
     if len(doc.pages) == 1:
-        return PrintRenderResult(pdf_bytes=doc.write_pdf(), was_shortened=False, qr_included=False)
+        return PrintRenderResult(
+            pdf_bytes=doc.write_pdf(), was_shortened=False, qr_included=wants_qr and bool(public_blog_url),
+        )
 
     # Doesn't fit as-is -- shorten paragraph by paragraph, most content
     # kept first, until it fits or we run out of paragraphs to drop.

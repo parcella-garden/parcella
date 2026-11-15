@@ -1925,7 +1925,8 @@
   "announcements": {
     "print": {
       "byline": "Zveřejněno {date}, autor: {author}",
-      "byline_date_only": "Zveřejněno {date}"
+      "byline_date_only": "Zveřejněno {date}",
+      "read_online": "Celé oznámení si přečtěte online:"
     },
     "list": {
       "title": "Oznámení",
@@ -1959,6 +1960,8 @@
       "print_override_hint": "Ponechte prázdné pro tisk celého textu výše. Pokud se nevejde na jednu stránku, zde bude navržena zkrácená verze -- lze ji upravit.",
       "print_fits": "Vejde se na jednu tištěnou stránku.",
       "print_too_long": "Pravděpodobně příliš dlouhé na jednu stránku -- zvažte zkrácení.",
+      "label_print_qr": "QR kód k příspěvku na webu",
+      "print_qr_hint": "Vytiskne QR kód k příspěvku na webu, i když se text vejde na jednu stranu – pro tiskový text, který je jen upoutávkou. Tisknout můžete ještě před zveřejněním: kód vede na příspěvek, jakmile je online.",
       "save_button": "Uložit",
       "cancel_button": "Zrušit",
       "channels_title": "Distribuční kanály",
@@ -2020,6 +2023,10 @@
       "hint": "Pouze e-mailem. Výběr je pevný: později zaškrtnutí uchazeči se nepřidají.",
       "send_email_confirm": "Odeslat tuto zprávu nyní e-mailem na {count} adres(y) uchazečů? Nelze to vrátit zpět.",
       "list_badge": "Uchazeči"
+    },
+    "link": {
+      "title": "Zatím není online",
+      "not_online": "Toto oznámení zatím není na webu. Zkuste to prosím později."
     }
   },
   "inventory": {
