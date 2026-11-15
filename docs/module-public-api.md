@@ -85,6 +85,20 @@ removing an extra participant from the normal participants table is a
 one-click action the board already knows how to do; a signup that
 silently went nowhere is much harder to notice and fix.
 
+## Confirmation email to the registrant (issue #313, ADR 0130)
+
+After a successful sign-up, every member it **newly** registered gets a
+confirmation at the address stored on the member record. That's just
+the matched member when the name matched uniquely, otherwise every
+resident of the parcel. The address typed into the form is never
+mailed. The subject is "RE: your registration to work session on
+{date}". The body is the board's text from the "Sign-up confirmation
+email" card on `/work-hours/configuration` (on by default; empty = the
+translated default text), followed by the session's title, date and
+time and the visitor's remarks, quoted and escaped. A failed send is
+logged and never undoes the registration.
+`send_signup_confirmations()` lives in `app/services/work_hours.py`.
+
 ## Endpoints
 
 | Method | Path | Auth |

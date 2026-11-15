@@ -61,6 +61,29 @@
                 </form>
             </div>
         </div>
+
+        <div class="card mt-3">
+            <div class="card-header"><i class="bi bi-envelope-check me-2"></i>{{ t('work_hours.configuration.confirmation_title') }}</div>
+            <div class="card-body">
+                {% if confirmation_saved %}
+                <div class="alert alert-success py-2">{{ t('work_hours.configuration.confirmation_saved') }}</div>
+                {% endif %}
+                <p class="text-muted small">{{ t('work_hours.configuration.confirmation_desc') }}</p>
+                <form method="post" action="/work-hours/configuration/signup-confirmation">
+                    {{ csrf_field() }}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="enabled" value="true" id="confirmation_enabled"
+                               {% if confirmation_enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="confirmation_enabled">{{ t('work_hours.configuration.confirmation_enabled') }}</label>
+                    </div>
+                    <label class="form-label" for="confirmation_text">{{ t('work_hours.configuration.confirmation_text_label') }}</label>
+                    <textarea name="text" id="confirmation_text" class="form-control" rows="5" maxlength="5000"
+                              placeholder="{{ t('email.signup_confirmation.default_text') }}">{{ confirmation_text }}</textarea>
+                    <div class="form-text">{{ t('work_hours.configuration.confirmation_text_hint') }}</div>
+                    <button type="submit" class="btn btn-primary btn-sm mt-2">{{ t('common.save') }}</button>
+                </form>
+            </div>
+        </div>
     </div>
     {% endif %}
 

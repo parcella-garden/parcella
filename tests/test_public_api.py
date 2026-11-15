@@ -701,3 +701,132 @@ async def test_contact_honeypot_field_silently_ignored(client, admin_user, monke
     assert response.status_code == 200
     assert response.json() == {"accepted": True, "reason": None, "code": None}
     assert fake_client.calls == []
+
+
+# ---------------------------------------------------------------------------
+# Issue #313: confirmation email to the registered members (ADR 0130)
+# ---------------------------------------------------------------------------
+
+async def _add_email(member_id, address, primary=True):
+    from app.database import AsyncSessionLocal
+    from app.models import MemberEmail
+    async with AsyncSessionLocal() as db:
+        db.add(MemberEmail(member_id=member_id, address=address, is_primary=primary))
+        await db.commit()
+
+
+def _capture_emails(monkeypatch):
+    sent = []
+
+    async def fake_send_email(recipient, subject, html_body, text_body=None, db=None):
+        sent.append((recipient, subject, html_body))
+        return True
+
+    monkeypatch.setattr("app.services.work_hours.send_email", fake_send_email)
+    return sent
+
+
+async def _signup_setup(client):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    await _enable_module(client, headers)
+    await _set_api_token(client, headers)
+    parcel = await _create_parcel(client, headers)
+    gerd = await _create_member(client, headers, "Gerd", "Mustergärtner")
+    erika = await _create_member(client, headers, "Erika", "Musterfrau")
+    await _assign_member_to_parcel(client, headers, gerd["id"], parcel["id"])
+    await _assign_member_to_parcel(client, headers, erika["id"], parcel["id"])
+    await _add_email(gerd["id"], "gerd@example.org")
+    await _add_email(erika["id"], "erika@example.org")
+    session = await _create_session(client, headers, title="Hecke <schneiden>")
+    return headers, gerd, erika, session
+
+
+async def test_signup_confirmation_goes_only_to_the_matched_member_on_file(client, admin_user, monkeypatch):
+    _headers, _gerd, _erika, session = await _signup_setup(client)
+    sent = _capture_emails(monkeypatch)
+
+    response = await client.post(
+        "/api/v1/public/work-sessions/signup",
+        json={
+            "parcel_number": "G042", "name": "Gerd Mustergärtner", "session_ids": [session["id"]],
+            "email": "stranger@evil.example", "remarks": "Bringe <b>Schere</b> mit\nund Handschuhe",
+        },
+        headers={"X-Parcella-API-Token": "test-public-api-token"},
+    )
+    assert response.status_code == 200 and response.json()["results"][0]["accepted"] is True
+
+    to_members = [s for s in sent if s[0] in ("gerd@example.org", "erika@example.org", "stranger@evil.example")]
+    assert [s[0] for s in to_members] == ["gerd@example.org"]  # never the typed address
+    _to, subject, html = to_members[0]
+    assert subject.startswith("RE: your registration to work session on ")
+    assert "Schere" not in subject  # remarks never go into the header
+    assert "Hello Gerd Mustergärtner," in html
+    assert "Hecke &lt;schneiden&gt;" in html
+    assert "Bringe &lt;b&gt;Schere&lt;/b&gt; mit<br>und Handschuhe" in html
+    assert "<b>Schere</b>" not in html
+
+
+async def test_signup_confirmation_goes_to_every_resident_on_an_ambiguous_name(client, admin_user, monkeypatch):
+    _headers, _gerd, _erika, session = await _signup_setup(client)
+    sent = _capture_emails(monkeypatch)
+
+    await client.post(
+        "/api/v1/public/work-sessions/signup",
+        json={"parcel_number": "G042", "name": "Familie Muster", "session_ids": [session["id"]]},
+        headers={"X-Parcella-API-Token": "test-public-api-token"},
+    )
+    recipients = {s[0] for s in sent if s[0].endswith("@example.org")}
+    assert recipients == {"gerd@example.org", "erika@example.org"}
+
+
+async def test_signup_confirmation_uses_the_boilerplate_and_can_be_switched_off(client, admin_user, monkeypatch):
+    headers, _gerd, _erika, session = await _signup_setup(client)
+    sent = _capture_emails(monkeypatch)
+
+    from tests.test_inventory import web_login
+    await web_login(client, "admin@example.com")
+    saved = await client.post("/work-hours/configuration/signup-confirmation", data={
+        "enabled": "true", "text": "Liebe Gärtner*innen,\n\nbitte <festes> Schuhwerk!",
+    })
+    assert saved.status_code == 303
+    page = await client.get("/work-hours/configuration")
+    assert "bitte &lt;festes&gt; Schuhwerk!</textarea>" in page.text
+
+    await client.post(
+        "/api/v1/public/work-sessions/signup",
+        json={"parcel_number": "G042", "name": "Gerd Mustergärtner", "session_ids": [session["id"]]},
+        headers={"X-Parcella-API-Token": "test-public-api-token"},
+    )
+    html = next(s[2] for s in sent if s[0] == "gerd@example.org")
+    assert "<p>Liebe Gärtner*innen,</p><p>bitte &lt;festes&gt; Schuhwerk!</p>" in html
+
+    # Switched off: no confirmation (a second session, so it's a new registration).
+    await client.post("/work-hours/configuration/signup-confirmation", data={"text": "x"})
+    other = await _create_session(client, headers, title="Laub")
+    sent.clear()
+    await client.post(
+        "/api/v1/public/work-sessions/signup",
+        json={"parcel_number": "G042", "name": "Gerd Mustergärtner", "session_ids": [other["id"]]},
+        headers={"X-Parcella-API-Token": "test-public-api-token"},
+    )
+    assert not [s for s in sent if s[0].endswith("@example.org")]
+
+
+async def test_signup_confirmation_failure_does_not_undo_the_registration(client, admin_user, monkeypatch):
+    headers, gerd, _erika, session = await _signup_setup(client)
+
+    async def broken_send_email(recipient, subject, html_body, text_body=None, db=None):
+        if recipient.endswith("@example.org"):  # only the confirmations fail
+            raise RuntimeError("SMTP down")
+        return True
+
+    monkeypatch.setattr("app.services.work_hours.send_email", broken_send_email)
+    response = await client.post(
+        "/api/v1/public/work-sessions/signup",
+        json={"parcel_number": "G042", "name": "Gerd Mustergärtner", "session_ids": [session["id"]]},
+        headers={"X-Parcella-API-Token": "test-public-api-token"},
+    )
+    assert response.status_code == 200 and response.json()["results"][0]["accepted"] is True
+    participations = await _get_session_participations(client, headers, session["id"])
+    assert {p["member_id"] for p in participations} == {gerd["id"]}

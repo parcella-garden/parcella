@@ -1480,7 +1480,13 @@
       "mode_short_parcel": "Dzierżawa",
       "mode_short_member": "Członek",
       "delete_confirm": "Czy na pewno usunąć konfigurację dla {year}?",
-      "no_config": "Nie utworzono jeszcze konfiguracji."
+      "no_config": "Nie utworzono jeszcze konfiguracji.",
+      "confirmation_title": "E-mail z potwierdzeniem zgłoszenia",
+      "confirmation_desc": "Wysyłany po zgłoszeniu przez formularz na stronie – na zapisane adresy e-mail zgłoszonych członków (nigdy na adres wpisany w formularzu). Tytuł, data i godzina terminu oraz uwagi są dodawane pod Twoim tekstem.",
+      "confirmation_enabled": "Wysyłaj e-mail z potwierdzeniem",
+      "confirmation_text_label": "Twój tekst",
+      "confirmation_text_hint": "Zwykły tekst; pusta linia rozpoczyna nowy akapit. Pozostaw puste, aby użyć tekstu pokazanego na szaro.",
+      "confirmation_saved": "Zapisano potwierdzenie zgłoszenia."
     },
     "configuration_form": {
       "title": "Edytuj konfigurację",
@@ -2292,6 +2298,12 @@
     },
     "applicant_contact": {
       "subject": "Dziękujemy za zapisanie się na naszą listę oczekujących!"
+    },
+    "signup_confirmation": {
+      "subject": "Odp.: Twoje zgłoszenie na prace społeczne w dniu {date}",
+      "greeting": "Dzień dobry, {name},",
+      "default_text": "dziękujemy za zgłoszenie na nasze prace społeczne. Otrzymaliśmy je i cieszymy się na spotkanie.",
+      "remarks_intro": "Twoje uwagi:"
     }
   },
   "finances": {

@@ -1480,7 +1480,13 @@
       "mode_short_parcel": "Nájom",
       "mode_short_member": "Člen",
       "delete_confirm": "Naozaj chcete vymazať konfiguráciu pre {year}?",
-      "no_config": "Zatiaľ žiadna konfigurácia."
+      "no_config": "Zatiaľ žiadna konfigurácia.",
+      "confirmation_title": "Potvrdzovací e-mail k prihláške",
+      "confirmation_desc": "Odošle sa po prihláške cez formulár na webe – na uložené e-mailové adresy prihlásených členov (nikdy na adresu zadanú do formulára). Názov, dátum a čas termínu a poznámky sa pripoja pod váš text.",
+      "confirmation_enabled": "Odosielať potvrdzovací e-mail",
+      "confirmation_text_label": "Váš text",
+      "confirmation_text_hint": "Obyčajný text; prázdny riadok začína nový odsek. Nechajte prázdne pre text zobrazený sivou.",
+      "confirmation_saved": "Potvrdenie prihlášky uložené."
     },
     "configuration_form": {
       "title": "Upraviť konfiguráciu",
@@ -2292,6 +2298,12 @@
     },
     "applicant_contact": {
       "subject": "Ďakujeme za registráciu do nášho poradovníka!"
+    },
+    "signup_confirmation": {
+      "subject": "Re: Vaša prihláška na brigádu dňa {date}",
+      "greeting": "Dobrý deň, {name},",
+      "default_text": "ďakujeme za prihlášku na našu brigádu. Dostali sme ju a tešíme sa na vás.",
+      "remarks_intro": "Vaše poznámky:"
     }
   },
   "finances": {
