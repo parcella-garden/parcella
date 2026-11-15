@@ -2066,6 +2066,8 @@
       "checkout_quantity": "Množstvo",
       "checkout_date": "Dátum",
       "checkout_fee": "Poplatok",
+      "checkout_fee_hint": "Voliteľné. Iba číslo, napr. 5 alebo 2,50.",
+      "checkout_fee_hint_default": "Voliteľné. Iba číslo, napr. 5 alebo 2,50. Ak zostane prázdne, platí predvolený poplatok {fee}.",
       "checkout_note": "Poznámka",
       "checkout_button": "Požičať",
       "none_available": "Momentálne nič na požičanie k dispozícii.",
@@ -2091,7 +2093,10 @@
     "errors": {
       "item_not_borrowable": "Táto položka nie je označená ako požičateľná.",
       "member_required": "Musí byť vybraný člen.",
-      "insufficient_quantity": "Momentálne je k dispozícii iba {available} z {total}."
+      "insufficient_quantity": "Momentálne je k dispozícii iba {available} z {total}.",
+      "invalid_amount": "Sumy zadávajte iba ako číslo, napr. 5 alebo 2,50, bez symbolu meny a textu.",
+      "invalid_date": "Zadajte platný dátum.",
+      "invalid_quantity": "Ako množstvo zadajte celé číslo od 1."
     }
   },
   "tasks": {

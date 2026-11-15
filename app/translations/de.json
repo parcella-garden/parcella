@@ -2066,6 +2066,8 @@
       "checkout_quantity": "Menge",
       "checkout_date": "Datum",
       "checkout_fee": "Gebühr",
+      "checkout_fee_hint": "Optional. Nur eine Zahl, z. B. 5 oder 2,50.",
+      "checkout_fee_hint_default": "Optional. Nur eine Zahl, z. B. 5 oder 2,50. Leer gelassen gilt die Standardgebühr von {fee}.",
       "checkout_note": "Notiz",
       "checkout_button": "Ausleihen",
       "none_available": "Aktuell nichts zum Ausleihen verfügbar.",
@@ -2091,7 +2093,10 @@
     "errors": {
       "item_not_borrowable": "Dieser Gegenstand ist nicht als ausleihbar markiert.",
       "member_required": "Es muss ein Mitglied ausgewählt werden.",
-      "insufficient_quantity": "Nur {available} von {total} sind gerade verfügbar."
+      "insufficient_quantity": "Nur {available} von {total} sind gerade verfügbar.",
+      "invalid_amount": "Bitte Beträge nur als Zahl eingeben, z. B. 5 oder 2,50 – ohne Währungszeichen oder Text.",
+      "invalid_date": "Bitte ein gültiges Datum eingeben.",
+      "invalid_quantity": "Bitte als Anzahl eine ganze Zahl ab 1 eingeben."
     }
   },
   "tasks": {

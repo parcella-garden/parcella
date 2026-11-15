@@ -2066,6 +2066,8 @@
       "checkout_quantity": "Aantal",
       "checkout_date": "Datum",
       "checkout_fee": "Vergoeding",
+      "checkout_fee_hint": "Optioneel. Alleen een getal, bijv. 5 of 2,50.",
+      "checkout_fee_hint_default": "Optioneel. Alleen een getal, bijv. 5 of 2,50. Leeg gelaten geldt de standaardvergoeding van {fee}.",
       "checkout_note": "Notitie",
       "checkout_button": "Uitlenen",
       "none_available": "Momenteel niets beschikbaar om te lenen.",
@@ -2091,7 +2093,10 @@
     "errors": {
       "item_not_borrowable": "Dit item is niet gemarkeerd als leenbaar.",
       "member_required": "Er moet een lid worden geselecteerd.",
-      "insufficient_quantity": "Slechts {available} van {total} nu beschikbaar."
+      "insufficient_quantity": "Slechts {available} van {total} nu beschikbaar.",
+      "invalid_amount": "Voer bedragen alleen als getal in, bijv. 5 of 2,50, zonder valutateken of tekst.",
+      "invalid_date": "Voer een geldige datum in.",
+      "invalid_quantity": "Voer als aantal een geheel getal van 1 of meer in."
     }
   },
   "tasks": {

@@ -2066,6 +2066,8 @@
       "checkout_quantity": "Quantité",
       "checkout_date": "Date",
       "checkout_fee": "Frais",
+      "checkout_fee_hint": "Facultatif. Un nombre uniquement, p. ex. 5 ou 2,50.",
+      "checkout_fee_hint_default": "Facultatif. Un nombre uniquement, p. ex. 5 ou 2,50. Laissé vide, les frais par défaut de {fee} s'appliquent.",
       "checkout_note": "Note",
       "checkout_button": "Emprunter",
       "none_available": "Rien de disponible à l'emprunt pour le moment.",
@@ -2091,7 +2093,10 @@
     "errors": {
       "item_not_borrowable": "Cet article n'est pas marqué comme empruntable.",
       "member_required": "Un membre doit être sélectionné.",
-      "insufficient_quantity": "Seulement {available} sur {total} disponible(s) actuellement."
+      "insufficient_quantity": "Seulement {available} sur {total} disponible(s) actuellement.",
+      "invalid_amount": "Veuillez saisir les montants uniquement sous forme de nombre, p. ex. 5 ou 2,50, sans symbole monétaire ni texte.",
+      "invalid_date": "Veuillez saisir une date valide.",
+      "invalid_quantity": "Veuillez saisir comme quantité un nombre entier d'au moins 1."
     }
   },
   "tasks": {

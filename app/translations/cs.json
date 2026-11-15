@@ -2066,6 +2066,8 @@
       "checkout_quantity": "Množství",
       "checkout_date": "Datum",
       "checkout_fee": "Poplatek",
+      "checkout_fee_hint": "Volitelné. Pouze číslo, např. 5 nebo 2,50.",
+      "checkout_fee_hint_default": "Volitelné. Pouze číslo, např. 5 nebo 2,50. Když zůstane prázdné, platí výchozí poplatek {fee}.",
       "checkout_note": "Poznámka",
       "checkout_button": "Půjčit",
       "none_available": "Momentálně nic k zapůjčení k dispozici.",
@@ -2091,7 +2093,10 @@
     "errors": {
       "item_not_borrowable": "Tato položka není označena jako půjčitelná.",
       "member_required": "Musí být vybrán člen.",
-      "insufficient_quantity": "Nyní je k dispozici pouze {available} z {total}."
+      "insufficient_quantity": "Nyní je k dispozici pouze {available} z {total}.",
+      "invalid_amount": "Částky zadávejte pouze jako číslo, např. 5 nebo 2,50, bez symbolu měny a textu.",
+      "invalid_date": "Zadejte platné datum.",
+      "invalid_quantity": "Jako množství zadejte celé číslo od 1."
     }
   },
   "tasks": {

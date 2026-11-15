@@ -20,6 +20,7 @@ accidentally be swallowed by /{item_id} treating "categories" as an
 item ID.
 """
 from datetime import date
+from decimal import Decimal, InvalidOperation
 from typing import Optional
 
 from fastapi import APIRouter, Request, Depends, HTTPException
@@ -49,14 +50,46 @@ router = APIRouter(
 )
 
 
-def _parse_decimal(value: Optional[str]) -> Optional[float]:
+# Form input that isn't a number/date used to raise a bare ValueError --
+# an Internal Server Error, e.g. for "5 €" as a loan fee (issue #315).
+# These raise a ServiceError instead, which the handlers show as a message.
+
+def _parse_decimal(value: Optional[str]) -> Optional[Decimal]:
+    """An amount like "5", "2,50" or "2.50"; empty = None. Anything else
+    (text, a currency sign, NaN/Infinity, a negative amount) is refused."""
     value = (value or "").strip().replace(",", ".")
-    return float(value) if value else None
+    if not value:
+        return None
+    try:
+        amount = Decimal(value)
+    except InvalidOperation:
+        raise ServiceError("inventory.errors.invalid_amount", http_status=400)
+    if not amount.is_finite() or amount < 0:
+        raise ServiceError("inventory.errors.invalid_amount", http_status=400)
+    return amount
 
 
 def _parse_date(value: Optional[str]) -> Optional[date]:
     value = (value or "").strip()
-    return date.fromisoformat(value) if value else None
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        raise ServiceError("inventory.errors.invalid_date", http_status=400)
+
+
+def _parse_quantity(value: Optional[str]) -> int:
+    value = (value or "").strip()
+    if not value:
+        return 1
+    try:
+        quantity = int(value)
+    except ValueError:
+        raise ServiceError("inventory.errors.invalid_quantity", http_status=400)
+    if quantity < 1:
+        raise ServiceError("inventory.errors.invalid_quantity", http_status=400)
+    return quantity
 
 
 async def _get_item_or_404(db: AsyncSession, item_id: str) -> InventoryItem:
@@ -229,7 +262,7 @@ def _item_fields_from_form(form: dict) -> dict:
         current_value=_parse_decimal(form.get("current_value")),
         current_value_updated_at=_parse_date(form.get("current_value_updated_at")),
         replacement_cost=_parse_decimal(form.get("replacement_cost")),
-        quantity_total=int(form.get("quantity_total") or 1),
+        quantity_total=_parse_quantity(form.get("quantity_total")),
         is_borrowable=form.get("is_borrowable") == "true",
         default_loan_fee=_parse_decimal(form.get("default_loan_fee")),
         notes=(form.get("notes") or "").strip() or None,
@@ -308,14 +341,23 @@ async def loan_checkout(item_id: str, request: Request, db: AsyncSession = Depen
         await checkout_loan(
             db, item,
             member_id=(form.get("member_id") or "").strip(),
-            quantity=int(form.get("quantity") or 1),
+            quantity=_parse_quantity(form.get("quantity")),
             borrowed_date=_parse_date(form.get("borrowed_date")),
             fee_charged=_parse_decimal(form.get("fee_charged")),
             note=(form.get("note") or "").strip() or None,
             created_by_id=user.id,
         )
     except ServiceError as e:
-        raise HTTPException(status_code=e.http_status, detail=t_for(request, e.key, **e.params))
+        # Back to the item page with the message and what was typed, not a
+        # bare error response (issue #315).
+        # checkout_loan() validates before it changes anything, so there
+        # is nothing to roll back (a rollback would also expire the item's
+        # eagerly loaded relationships the template needs).
+        return templates.TemplateResponse("inventory/detail.html", {
+            **await _item_detail_context(request, db, user, item),
+            "checkout_error": t_for(request, e.key, **e.params),
+            "checkout_entered": {k: form.get(k) or "" for k in ("member_id", "quantity", "borrowed_date", "fee_charged", "note")},
+        }, status_code=e.http_status)
 
     await db.commit()
     return RedirectResponse(url=f"/inventory/{item.id}", status_code=303)
@@ -330,15 +372,16 @@ async def loan_checkout(item_id: str, request: Request, db: AsyncSession = Depen
 async def item_detail(item_id: str, request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "inventory", "read")
     item = await _get_item_or_404(db, item_id)
+    return templates.TemplateResponse("inventory/detail.html", await _item_detail_context(request, db, user, item))
 
+
+async def _item_detail_context(request: Request, db: AsyncSession, user, item: InventoryItem) -> dict:
     members_result = await db.execute(
         select(Member).where(active_member_filter()).order_by(Member.last_name, Member.first_name)
     )
-
     loans_sorted = sorted(item.loans, key=lambda loan: loan.borrowed_date, reverse=True)
-
-    return templates.TemplateResponse("inventory/detail.html", {
+    return {
         "request": request, "user": user, "item": item,
         "loans": loans_sorted, "members": members_result.scalars().all(),
         "today": date.today().isoformat(),
-    })
+    }

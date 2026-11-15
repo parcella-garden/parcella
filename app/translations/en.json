@@ -2066,6 +2066,8 @@
       "checkout_quantity": "Quantity",
       "checkout_date": "Date",
       "checkout_fee": "Fee",
+      "checkout_fee_hint": "Optional. A number only, e.g. 5 or 2,50.",
+      "checkout_fee_hint_default": "Optional. A number only, e.g. 5 or 2,50. Left empty, the default fee of {fee} applies.",
       "checkout_note": "Note",
       "checkout_button": "Check out",
       "none_available": "None available to borrow right now.",
@@ -2091,7 +2093,10 @@
     "errors": {
       "item_not_borrowable": "This item isn't marked as borrowable.",
       "member_required": "A member must be selected.",
-      "insufficient_quantity": "Only {available} of {total} available right now."
+      "insufficient_quantity": "Only {available} of {total} available right now.",
+      "invalid_amount": "Please enter amounts as a number only, e.g. 5 or 2,50, without a currency sign or text.",
+      "invalid_date": "Please enter a valid date.",
+      "invalid_quantity": "Please enter a whole number of 1 or more as the quantity."
     }
   },
   "tasks": {
