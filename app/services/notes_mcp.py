@@ -228,17 +228,32 @@ async def _category_id(db: AsyncSession, tags: TagNames, name: Optional[str]) ->
 
 async def _tag_input(db: AsyncSession, tags: TagNames, names: Any) -> tuple[List[str], List[str]]:
     """(existing tag ids, new tag names), always including the release
-    and created tags."""
+    and created tags.
+
+    The AI may only use tags it can already see (list_tags) -- matched by
+    exact base name, never through the translation lookup of the notes
+    service, which would resolve a name to a tag used only on unreleased
+    notes and hand back its base name (security review, #307). Any other
+    name is refused with one message, whether such a tag exists or not,
+    so the refusal is no oracle either. New tags are created by people."""
     if names is None:
         names = []
     if not isinstance(names, list) or not all(isinstance(n, str) for n in names):
         raise McpToolError("'tags' must be a list of strings.")
-    wanted = {" ".join(n.split())[:100] for n in names if n.strip()} | {tags.release, tags.created}
+    wanted = {" ".join(n.split())[:100].lower() for n in names if n.strip()}
+    wanted -= {tags.release.lower(), tags.created.lower()}
+    released_ids = _released(tags).with_only_columns(Note.id)
+    visible = {name.lower() for name in await _tags_on_released(db, released_ids)}
+    if wanted - visible:
+        raise McpToolError("Unknown tag. Use only tags from list_tags.")
+    lookup = wanted | {tags.release.lower(), tags.created.lower()}
     existing = (await db.scalars(
-        select(TaxonomyTag).where(func.lower(TaxonomyTag.name).in_([w.lower() for w in wanted]))
+        select(TaxonomyTag).where(func.lower(TaxonomyTag.name).in_(lookup))
     )).all()
     found = {t.name.lower() for t in existing}
-    return [t.id for t in existing], sorted(w for w in wanted if w.lower() not in found)
+    # Only the release/created tags can be missing here (first AI note).
+    new = sorted(n for n in (tags.release, tags.created) if n.lower() not in found)
+    return [t.id for t in existing], new
 
 
 async def create_note_tool(db: AsyncSession, args: Dict[str, Any], user: User) -> Dict[str, Any]:

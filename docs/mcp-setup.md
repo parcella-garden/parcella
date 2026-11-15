@@ -59,6 +59,9 @@ which is a follow-up.
 There is no delete. Mistakes are undone through the cloud folder's
 file versions.
 
+The AI can only use tags that already appear on released notes (see
+`list_tags`). New tags are added by people.
+
 Typical uses:
 - Answer questions with the note's title and date as the source.
 - Open a bookmark note's `source` URL itself, summarise the page, and

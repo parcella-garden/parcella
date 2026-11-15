@@ -15,7 +15,14 @@ Notes contain member names, parcel numbers and private matters.
   - by id, an unreleased note gets the same "not found" as a
     non-existent one;
   - the category and tag lists only show terms used on released notes;
-  - naming a hidden category is answered like an unknown one.
+  - naming a hidden category is answered like an unknown one;
+  - **the AI can only attach tags it can already see**, matched by exact
+    base name. The notes service's own lookup would also match tag
+    *translations* across all tags, so a translation of a tag used
+    only on unreleased notes would attach that tag and reveal its base
+    name (security review finding). Any other name gets one refusal,
+    whether it exists or not, so the refusal can't be used to probe.
+    New tags are made by people.
 - **What goes out is minimal:** title, date, category, tags, body,
   source, plus the note id and an opaque version for the conflict
   check. No author/user fields, no cloud file name, no member or

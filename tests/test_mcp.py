@@ -153,6 +153,20 @@ async def test_ai_creates_and_updates_only_released_notes(client, admin_user):
     assert out["body"] == "Neu: 12. April." and out["title"] == "Wasser im Frühjahr"
     assert {"ki-freigegeben", "ki-erstellt", "wasser"} <= set(out["tags"])
 
+    # A hidden tag -- by base name or by a translation -- is refused with
+    # the same message as a tag that doesn't exist, and never attached.
+    async with AsyncSessionLocal() as db:
+        from sqlalchemy import select
+        from app.models import TaxonomyTag
+        hidden_tag = (await db.execute(select(TaxonomyTag).where(TaxonomyTag.name == "erika-muster"))).scalar_one()
+        hidden_tag.translations = {"en": "Erika family"}
+        await db.commit()
+    answers = [await _tool(client, token, "create_note", title="probe", tags=[name])
+               for name in ("erika-muster", "Erika family", "does-not-exist")]
+    assert all(a["isError"] for a in answers)
+    assert len({a["content"][0]["text"] for a in answers}) == 1
+    assert "erika-muster" not in (await _tool(client, token, "list_tags"))["structuredContent"]["tags"]
+
     # Naming a category it can't see doesn't confirm it exists.
     unknown = await _tool(client, token, "create_note", title="x", category="Vorstand")
     assert unknown["isError"] and "Unknown category" in unknown["content"][0]["text"]
