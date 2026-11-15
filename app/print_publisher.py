@@ -106,9 +106,12 @@ def _split_paragraphs(markdown_text: str) -> List[str]:
 def _build_html(
     title: str, body_html: str, image_data_uri: Optional[str],
     logo_path: Optional[Path], footer_context: OrgFooterContext, language: str, online_note_html: str,
-    byline: Optional[str] = None,
+    byline: Optional[str] = None, image_alt: Optional[str] = None,
 ) -> str:
-    image_block = f'<img class="announcement-image" src="{image_data_uri}">' if image_data_uri else ""
+    image_block = (
+        f'<img class="announcement-image" src="{image_data_uri}" alt="{escape(image_alt or "")}">'
+        if image_data_uri else ""
+    )
     # Title and byline are user-entered plain text: escaped, so a "<" in
     # a title can't turn into markup in the PDF.
     byline_block = f'<p class="byline">{escape(byline)}</p>' if byline else ""
@@ -152,6 +155,7 @@ def render_announcement_print_pdf(
         html_doc = _build_html(
             announcement.title, render_markdown_to_html(body_markdown),
             image_data_uri, logo_path, footer_context, language, online_note_html, byline,
+            image_alt=announcement.image_alt,
         )
         return HTML(string=html_doc, url_fetcher=data_uri_only_fetcher()).render()
 

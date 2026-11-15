@@ -1909,6 +1909,8 @@
       "label_image": "Image",
       "remove_image": "Supprimer l'image",
       "image_hint": "PNG, JPEG ou WebP, jusqu'à 5 Mo. Utilisée comme image de l'article du site et affichée dans l'e-mail.",
+      "label_image_alt": "Description de l'image (texte alternatif)",
+      "image_alt_hint": "Décrivez ce que montre l'image, pour les personnes utilisant un lecteur d'écran et pour les moteurs de recherche. Laissée vide, le site reçoit le titre.",
       "label_body": "Texte",
       "body_hint": "Rédigé en Markdown. Ce même texte sert au brouillon du site et à l'e-mail aux membres.",
       "body_placeholder": "Rédigez votre annonce ici...",

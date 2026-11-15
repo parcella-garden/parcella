@@ -22,6 +22,7 @@ final class ParcellaProtocol
     public const MAX_BODY_BYTES = 10 * 1024 * 1024;
     public const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
     public const MAX_TITLE_LENGTH = 255;
+    public const MAX_IMAGE_ALT_LENGTH = 255;
     public const MAX_SOURCE_ID_LENGTH = 100;
 
     /** Allowed image types and the file extension each one gets. */
@@ -114,6 +115,9 @@ final class ParcellaProtocol
      *   ['state' => 'replace', 'bytes' => ..., 'mime' => ..., 'extension' => ...]
      * The visitor-supplied file name is never used: callers name stored
      * files with storedFilename().
+     * 'image_alt' is the alt text to give the image, already one line and
+     * falling back to the title, or null when the current alt text stays
+     * (key absent and no new image -- older Parcella versions never send it).
      *
      * @throws \InvalidArgumentException with a message safe to send back
      */
@@ -144,6 +148,8 @@ final class ParcellaProtocol
             throw new \InvalidArgumentException('Field "source_id" is invalid.');
         }
 
+        $image = self::parseImage($data);
+
         return [
             'title' => $title,
             'markdown' => self::stringField($data, 'markdown'),
@@ -151,7 +157,8 @@ final class ParcellaProtocol
             'summary' => trim(self::stringField($data, 'summary')),
             'language' => substr(preg_replace('/[^A-Za-z_-]/', '', self::stringField($data, 'language')) ?? '', 0, 10),
             'source_id' => $sourceId,
-            'image' => self::parseImage($data),
+            'image' => $image,
+            'image_alt' => self::parseImageAlt($data, $title, $image['state']),
         ];
     }
 
@@ -169,6 +176,19 @@ final class ParcellaProtocol
         }
 
         return $value;
+    }
+
+    private static function parseImageAlt(array $data, string $title, string $imageState): ?string
+    {
+        if (!array_key_exists('image_alt', $data)) {
+            return $imageState === 'replace' ? $title : null;
+        }
+        $alt = trim(preg_replace('/\s+/u', ' ', self::stringField($data, 'image_alt')) ?? '');
+        if (mb_strlen($alt) > self::MAX_IMAGE_ALT_LENGTH) {
+            $alt = mb_substr($alt, 0, self::MAX_IMAGE_ALT_LENGTH);
+        }
+
+        return $alt === '' ? $title : $alt;
     }
 
     private static function parseImage(array $data): array

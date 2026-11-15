@@ -83,7 +83,7 @@ class ParcellaPluginPublisher(WebsiteConnector):
             raise BlogPublishError(f"Could not reach {self.endpoint_url}: {e}") from e
 
     @staticmethod
-    def _payload(content: DraftContent, include_image: bool) -> dict:
+    def _payload(content: DraftContent, include_image: bool, include_alt: bool = True) -> dict:
         payload = {
             "title": content.title,
             "markdown": content.markdown,
@@ -92,6 +92,9 @@ class ParcellaPluginPublisher(WebsiteConnector):
             "language": content.language,
             "source_id": content.source_id,
         }
+        # Like "image": absent = leave the alt text alone (ADR 0128).
+        if include_image or include_alt:
+            payload["image_alt"] = content.image_alt
         if include_image:
             payload["image"] = None
             if content.image_bytes and content.image_filename and content.image_mime:
@@ -151,9 +154,11 @@ class ParcellaPluginPublisher(WebsiteConnector):
 
     async def update_post(
         self, post_id: str, content: DraftContent, image_changed: bool = False,
+        alt_changed: bool = False,
     ) -> DraftResult:
         response = await self._request(
-            "PUT", f"/drafts/{quote(post_id, safe='')}", self._payload(content, include_image=image_changed),
+            "PUT", f"/drafts/{quote(post_id, safe='')}",
+            self._payload(content, include_image=image_changed, include_alt=alt_changed),
         )
         if response.status_code in (404, 410):
             raise BlogPostNotFoundError(f"Draft {post_id} no longer exists in the CMS.")

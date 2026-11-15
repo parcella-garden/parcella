@@ -671,6 +671,8 @@ def _wordpress_mock_transport(*, media_status=201, post_status=201, users_me_sta
             if media_status not in (200, 201):
                 return httpx_module.Response(media_status, text="media upload failed")
             return httpx_module.Response(media_status, json={"id": 42})
+        if request.url.path == "/wp-json/wp/v2/media/42":  # alt text (issue #318)
+            return httpx_module.Response(200, json={"id": 42})
         if request.url.path == "/wp-json/wp/v2/posts":
             if post_status not in (200, 201):
                 return httpx_module.Response(post_status, text="draft rejected")
@@ -1364,13 +1366,15 @@ def _recording_wordpress_transport(requests_seen, *, existing_post_status=200):
         requests_seen.append((request.method, request.url.path, body))
         if request.url.path == "/wp-json/wp/v2/media":
             return httpx_module.Response(201, json={"id": 42})
+        if request.url.path == "/wp-json/wp/v2/media/42":  # alt text (issue #318)
+            return httpx_module.Response(200, json={"id": 42})
         if request.url.path == "/wp-json/wp/v2/posts":
             return httpx_module.Response(201, json={"id": 99})
         if request.url.path.startswith("/wp-json/wp/v2/posts/"):
             post_id = int(request.url.path.rsplit("/", 1)[1])
             if existing_post_status != 200:
                 return httpx_module.Response(existing_post_status, json={"code": "rest_post_invalid_id"})
-            return httpx_module.Response(200, json={"id": post_id})
+            return httpx_module.Response(200, json={"id": post_id, "featured_media": 42})
         return httpx_module.Response(404, text="not found")
 
     return httpx_module.MockTransport(handler)
@@ -1451,7 +1455,9 @@ async def test_blog_is_updated_in_place_only_after_a_content_change(client, admi
     mock_client = _patch_wordpress(monkeypatch, _recording_wordpress_transport(requests_seen))
 
     assert (await client.post(f"/announcements/{announcement_id}/send/blog")).status_code == 303
-    assert [(m, p) for m, p, _ in requests_seen] == [("POST", "/wp-json/wp/v2/media"), ("POST", "/wp-json/wp/v2/posts")]
+    assert [(m, p) for m, p, _ in requests_seen] == [
+        ("POST", "/wp-json/wp/v2/media"), ("POST", "/wp-json/wp/v2/media/42"), ("POST", "/wp-json/wp/v2/posts"),
+    ]
 
     # Nothing changed -> no button, and the server refuses too.
     page = await client.get(f"/announcements/{announcement_id}/edit")
@@ -1574,3 +1580,92 @@ def test_print_text_change_only_affects_the_print_fingerprint():
         assert channel_fingerprint(channel, "T", "Body", None) == channel_fingerprint(channel, "T", "Body", "Short")
     assert channel_fingerprint("PRINT", "T", "Body", None) != channel_fingerprint("PRINT", "T", "Body", "Short")
     assert channel_fingerprint("BLOG", "T", "Body", None) != channel_fingerprint("BLOG", "T", "Body 2", None)
+
+
+# ---------------------------------------------------------------------------
+# Banner alt text (issue #318)
+# ---------------------------------------------------------------------------
+
+async def test_banner_alt_text_is_saved_escaped_and_cleared_with_the_image(client, admin_user, monkeypatch, tmp_path):
+    monkeypatch.setattr("app.routers.announcements.UPLOAD_DIR", tmp_path)
+    _token, _ = await _setup_announcement(client)
+
+    create = await client.post(
+        "/announcements/new",
+        data={"title": "Compost", "body_markdown": "Text.", "image_alt": 'Three "green"\n bins <b>&</b> a fence'},
+        files={"image": ("bins.png", _TINY_PNG_BYTES, "image/png")},
+    )
+    announcement_id = create.headers["location"].split("/")[2]
+    announcement = await _load_announcement(announcement_id)
+    # Flattened to one line, stored as typed (escaping is the renderers' job).
+    assert announcement.image_alt == 'Three "green" bins <b>&</b> a fence'
+
+    page = await client.get(f"/announcements/{announcement_id}/edit")
+    assert 'alt="Three &#34;green&#34; bins &lt;b&gt;&amp;&lt;/b&gt; a fence"' in page.text
+    assert "<b>&</b>" not in page.text
+
+    from app.announcement_mailer import build_announcement_email_html
+    html = build_announcement_email_html(announcement, "KGV", "https://example.com/x.png")
+    assert 'alt="Three &#34;green&#34; bins &lt;b&gt;&amp;&lt;/b&gt; a fence"' in html
+
+    # Removing the image drops the alt text too.
+    await client.post(
+        f"/announcements/{announcement_id}/edit",
+        data={"title": "Compost", "body_markdown": "Text.", "remove_image": "true", "image_alt": "stale"},
+    )
+    assert (await _load_announcement(announcement_id)).image_alt is None
+
+
+async def test_alt_text_without_an_image_is_not_stored(client, admin_user):
+    _token, announcement_id = await _setup_announcement(client)
+    await client.post(
+        f"/announcements/{announcement_id}/edit",
+        data={"title": "Channel test", "body_markdown": "Content.", "image_alt": "Nothing to describe"},
+    )
+    assert (await _load_announcement(announcement_id)).image_alt is None
+
+
+async def test_blog_alt_only_change_updates_the_media_alt_without_reupload(client, admin_user, monkeypatch, tmp_path):
+    monkeypatch.setattr("app.routers.announcements.UPLOAD_DIR", tmp_path)
+    token, _ = await _setup_announcement(client)
+    await _configure_wordpress(client, auth_header(token))
+
+    create = await client.post(
+        "/announcements/new",
+        data={"title": "Compost", "body_markdown": "Text.", "image_alt": ""},
+        files={"image": ("bins.png", _TINY_PNG_BYTES, "image/png")},
+    )
+    announcement_id = create.headers["location"].split("/")[2]
+
+    requests_seen = []
+    mock_client = _patch_wordpress(monkeypatch, _recording_wordpress_transport(requests_seen))
+
+    assert (await client.post(f"/announcements/{announcement_id}/send/blog")).status_code == 303
+    # No alt text given: WordPress gets the title, as the plugins always did.
+    assert ("POST", "/wp-json/wp/v2/media/42", {"alt_text": "Compost"}) in requests_seen
+
+    # Only the alt text changes -> the blog channel counts as changed ...
+    await client.post(
+        f"/announcements/{announcement_id}/edit",
+        data={"title": "Compost", "body_markdown": "Text.", "image_alt": "Three green compost bins"},
+    )
+    page = await client.get(f"/announcements/{announcement_id}/edit")
+    assert f"/announcements/{announcement_id}/send/blog" in page.text
+
+    # ... and the update sets the existing image's alt text, no new upload.
+    requests_seen.clear()
+    assert (await client.post(f"/announcements/{announcement_id}/send/blog")).status_code == 303
+    assert [(m, p) for m, p, _ in requests_seen] == [
+        ("GET", "/wp-json/wp/v2/posts/99"),
+        ("POST", "/wp-json/wp/v2/media/42"),
+        ("POST", "/wp-json/wp/v2/posts/99"),
+    ]
+    assert requests_seen[1][2] == {"alt_text": "Three green compost bins"}
+    assert "featured_media" not in requests_seen[2][2]
+
+    from app.models import AnnouncementChannel
+    delivery = (await _load_announcement(announcement_id)).delivery_for(AnnouncementChannel.BLOG)
+    assert delivery.image_alt == "Three green compost bins"
+    assert (await client.post(f"/announcements/{announcement_id}/send/blog")).status_code == 409
+
+    await mock_client.aclose()
