@@ -113,8 +113,11 @@
 
             <div class="mb-3">
                 <label class="form-label" for="summary">{{ t('announcements.form.label_summary') }}</label>
-                <textarea name="summary" id="summary" class="form-control" rows="2" maxlength="300">{{ summary_value }}</textarea>
-                <div class="form-text">{{ t('announcements.form.summary_hint') }}</div>
+                <textarea name="summary" id="summary" class="form-control" rows="2" maxlength="300" data-recommended="160">{{ summary_value }}</textarea>
+                <div class="d-flex justify-content-between gap-3">
+                    <div class="form-text">{{ t('announcements.form.summary_hint') }}</div>
+                    <div class="form-text text-nowrap" id="summary_count" aria-live="polite"></div>
+                </div>
             </div>
 
             <div class="mb-3">
@@ -385,6 +388,23 @@
             input.setCustomValidity(tooLarge ? document.getElementById('image_too_large').textContent : '');
             save.disabled = tooLarge;
         });
+    })();
+
+    // Live character count under the summary: "n / 300", orange above the
+    // length the hint recommends for search engines.
+    (function () {
+        const field = document.getElementById('summary');
+        const counter = document.getElementById('summary_count');
+        if (!field || !counter) return;
+        const max = Number(field.maxLength);
+        const recommended = Number(field.dataset.recommended);
+        function update() {
+            const n = field.value.length;
+            counter.textContent = n + ' / ' + max;
+            counter.classList.toggle('text-warning', n > recommended);
+        }
+        field.addEventListener('input', update);
+        update();
     })();
 
     // One toolbar for both editors (body and print text); the print text

@@ -1775,6 +1775,7 @@ async def test_print_qr_switch_is_saved_and_marks_only_print_as_changed(client, 
 
     page = await client.get(f"/announcements/{announcement_id}/edit")
     assert 'id="print_qr_code"' in page.text and 'id="print_text_override"' in page.text
+    assert 'id="summary_count"' in page.text  # live character count under the summary
 
     data = {"title": "Aushang", "body_markdown": "Kurzer Text.", "print_text_override": "Nur ein Anreißer.",
             "print_qr_code": "true"}
