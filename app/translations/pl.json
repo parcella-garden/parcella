@@ -438,7 +438,7 @@
       "helpdesk_type_none": "Brak (bez helpdesku)",
       "helpdesk_type_hint": "Nie każdy helpdesk udostępnia wszystko przez swój interfejs; Parcella pokazuje tylko to, co potrafi wybrany.",
       "notes_folder_header": "Folder notatek",
-      "notes_folder_help": "Folder na notatki jako pliki Markdown (.md). Po ustawieniu pliki są wersją nadrzędną: zmiany w chmurze pojawiają się w Parcelli, a zapis w Parcelli zapisuje plik. Pozostaw puste, aby przechowywać notatki tylko w Parcelli. Podfoldery to kategorie: notatki w \"Posiedzenie zarządu/\" otrzymują tę kategorię, a notatka z kategorią trafia do jej folderu.",
+      "notes_folder_help": "Folder na notatki jako pliki Markdown (.md). Po ustawieniu każdy plik zawiera tekst notatki i jest jego wersją nadrzędną: zmiany tekstu w chmurze pojawiają się w Parcelli. Tytuł, data, tagi i źródło pozostają w Parcelli i nie są zapisywane w pliku. Pozostaw puste, aby przechowywać notatki tylko w Parcelli. Podfoldery to kategorie: notatki w \"Posiedzenie zarządu/\" otrzymują tę kategorię, a notatka z kategorią trafia do jej folderu.",
       "notes_folder_label": "Ścieżka folderu"
     },
     "system": {

@@ -202,6 +202,14 @@ class WebDAVProvider(CloudStorageProvider):
     def _rejected(self) -> CloudStorageError:
         return CloudStorageError(f"{_capitalized(self.label)} rejected the credentials (401 Unauthorized).")
 
+    def _locked(self, filename: str) -> CloudStorageError:
+        """423 Locked (WebDAV): the file is open in an editor in the cloud
+        (Nextcloud Text, Collabora, OnlyOffice) or a lock outlived it."""
+        return CloudStorageError(
+            f"The file '{filename}' is locked in {self.label} (HTTP 423), probably because it's open in an "
+            f"editor there. Close it there, or unlock it in the file list, and try again."
+        )
+
     async def test_connection(self) -> None:
         client = await self._get_client()
         try:
@@ -311,6 +319,8 @@ class WebDAVProvider(CloudStorageProvider):
             raise CloudStorageError(
                 f"{_capitalized(self.label)} rejected the upload (folder '{path}' likely doesn't exist)."
             )
+        if response.status_code == 423:
+            raise self._locked(filename)
         if response.status_code not in (200, 201, 204):
             raise CloudStorageError(f"Upload to {self.label} failed (HTTP {response.status_code}).")
 
@@ -347,6 +357,8 @@ class WebDAVProvider(CloudStorageProvider):
             raise self._rejected()
         if response.status_code in (200, 204, 404):
             return
+        if response.status_code == 423:
+            raise self._locked(filename)
         raise CloudStorageError(f"Delete on {self.label} failed (HTTP {response.status_code}).")
 
     async def create_folder(self, path: str) -> None:

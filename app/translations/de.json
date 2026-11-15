@@ -438,7 +438,7 @@
       "helpdesk_type_none": "Keines (kein Helpdesk)",
       "helpdesk_type_hint": "Nicht jedes Helpdesk bietet über seine Schnittstelle alles an; Parcella zeigt nur, was das gewählte kann.",
       "notes_folder_header": "Notizen-Ordner",
-      "notes_folder_help": "Ordner für Notizen als Markdown-Dateien (.md). Sobald gesetzt, sind die Dateien das Original: Änderungen in der Cloud erscheinen in Parcella, Speichern in Parcella schreibt die Datei. Leer lassen, um Notizen nur in Parcella zu führen. Unterordner sind Kategorien: Notizen in \"Vorstandssitzung/\" erhalten diese Kategorie, und eine Notiz mit Kategorie wird in deren Ordner gespeichert.",
+      "notes_folder_help": "Ordner für Notizen als Markdown-Dateien (.md). Sobald gesetzt, enthält jede Datei den Text einer Notiz und ist dafür das Original: Textänderungen in der Cloud erscheinen in Parcella. Titel, Datum, Schlagwörter und Quelle bleiben in Parcella und werden nicht in die Datei geschrieben. Leer lassen, um Notizen nur in Parcella zu führen. Unterordner sind Kategorien: Notizen in \"Vorstandssitzung/\" erhalten diese Kategorie, und eine Notiz mit Kategorie wird in deren Ordner gespeichert.",
       "notes_folder_label": "Ordnerpfad"
     },
     "system": {

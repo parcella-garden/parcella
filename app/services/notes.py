@@ -3,14 +3,20 @@ Notes (issue #286, docs/module-notes.md) and the club taxonomy they're
 filed under (ADR 0122). Shared by the HTML router (app/routers/notes.py)
 and the REST API (app/routers/api_notes.py), ADR 0070. Callers commit.
 
-The cloud file is the master (ADR 0123). With cloud storage on and a
-notes folder set (ClubSetting NOTES_FOLDER_SETTING):
+With cloud storage on and a notes folder set (ClubSetting
+NOTES_FOLDER_SETTING), each note's text is a .md file there (ADR 0123),
+and that file is the master for the text. Title, date, category, tags
+and source live in the notes table only (ADR 0127); the file holds
+nothing but the text, and its top folder is the category.
 
-- every save writes the note's .md file first and refuses (NoteConflict)
-  when that file changed since the editor was opened -- compared by
-  content hash, so it works the same on WebDAV and S3;
+- a save that changes the text or the category writes the file first
+  and refuses (NoteConflict) when it changed since the editor was
+  opened -- compared by content hash, so it works the same on WebDAV
+  and S3. A save that only changes other metadata doesn't touch the
+  cloud at all;
 - sync_from_cloud() pulls new, changed, renamed and deleted files into
-  the notes table, which is then only Parcella's searchable index;
+  the notes table, and rewrites files that still carry a front-matter
+  header (from before ADR 0127, or written by another tool) as text only;
 - notes saved or deleted while the cloud wasn't set up are pushed (or
   their file deleted) on the next sync, unless the file changed in the
   meantime: the cloud then wins and the local version is kept as a
@@ -36,7 +42,7 @@ from app.bookmark_import import Bookmark
 from app.module_flags import load_module_flags
 from app.note_files import (
     ParsedNote, clean_source_url, content_hash, date_from_last_modified, fingerprint, note_filename, parse_note_file,
-    render_note_file,
+    render_note_body,
 )
 from app.services.errors import ServiceError
 from app.tag_translations import all_names, clean_translations, find_tag_by_name, tag_label
@@ -47,6 +53,9 @@ NOTES_FOLDER_SETTING = "notes_cloud_folder"
 # Set once by migration 0119 (issue #302): the next full sync re-dates
 # notes that got their import day as date (see _import_day_fix()).
 REDATE_IMPORT_DAY_SETTING = "notes_redate_import_day_pending"
+# Set once by migration 0122 (issue #311, ADR 0127): the next full sync
+# reads every file and rewrites the ones with a header as text only.
+STRIP_HEADERS_SETTING = "notes_strip_headers_pending"
 TITLE_MAX_LENGTH = 255
 TAXONOMY_NAME_MAX_LENGTH = 100
 # The list page syncs at most this often on its own; "Sync now" forces it.
@@ -105,14 +114,21 @@ async def create_term(db: AsyncSession, model: TaxonomyModel, raw_name: str):
     return term
 
 
-async def _mark_notes_dirty(db: AsyncSession, note_ids: Sequence[str]) -> None:
-    """A term's name is written into its notes' files: renaming or
-    deleting it changes their content, so they're pushed on the next
-    sync (ADR 0123)."""
-    if not note_ids:
+async def _move_category_files(db: AsyncSession, model: TaxonomyModel, term, deleting: bool = False) -> None:
+    """A category is its notes' top folder (ADR 0123): after renaming,
+    retranslating or deleting it, notes whose file no longer sits in a
+    matching folder are pushed on the next sync, which moves the file.
+    Tags aren't in the files any more (ADR 0127), so they change nothing
+    there."""
+    if model is not TaxonomyCategory:
         return
-    for note in (await db.scalars(select(Note).where(Note.id.in_(note_ids), Note.deleted_at.is_(None)))).all():
-        note.cloud_dirty = True
+    await db.flush()
+    notes = (await db.scalars(select(Note).where(
+        Note.category_id == term.id, Note.deleted_at.is_(None), Note.cloud_filename.is_not(None),
+    ))).all()
+    for note in notes:
+        if not _folder_matches(None if deleting else term, _top_folder(note.cloud_filename)):
+            note.cloud_dirty = True
 
 
 async def _notes_using(db: AsyncSession, model: TaxonomyModel, term_id: str) -> List[str]:
@@ -129,7 +145,7 @@ async def rename_term(db: AsyncSession, model: TaxonomyModel, term, raw_name: st
     if clash is not None:
         raise ServiceError("taxonomy.errors.name_taken", http_status=409, name=clash.name)
     term.name = name
-    await _mark_notes_dirty(db, await _notes_using(db, model, term.id))
+    await _move_category_files(db, model, term)
 
 
 async def set_term_translations(db: AsyncSession, model: TaxonomyModel, term, values: dict) -> None:
@@ -137,13 +153,13 @@ async def set_term_translations(db: AsyncSession, model: TaxonomyModel, term, va
         term, values, await _list(db, model),
         max_length=TAXONOMY_NAME_MAX_LENGTH, error_prefix="taxonomy.errors",
     ) or None
-    await _mark_notes_dirty(db, await _notes_using(db, model, term.id))
+    await _move_category_files(db, model, term)
 
 
 async def delete_term(db: AsyncSession, model: TaxonomyModel, term) -> None:
     """Notes keep existing: a deleted category leaves them uncategorised
     (FK SET NULL), a deleted tag just disappears from them."""
-    await _mark_notes_dirty(db, await _notes_using(db, model, term.id))
+    await _move_category_files(db, model, term, deleting=True)
     await db.delete(term)
     await db.flush()
 
@@ -279,14 +295,9 @@ class NoteConflict(Exception):
         super().__init__("note changed in the cloud")
 
 
-def _render(note: Note, language: str) -> bytes:
-    return render_note_file(
-        note_id=note.id, title=note.title, note_date=note.note_date,
-        category=tag_label(note.category, language) if note.category else None,
-        tags=[tag_label(t, language) for t in note.tags],
-        body=note.body_markdown,
-        source=note.source_url,
-    ).encode("utf-8")
+def _render(note: Note) -> bytes:
+    """The note's file: its text only (ADR 0127)."""
+    return render_note_body(note.body_markdown).encode("utf-8")
 
 
 # --- Paths and category folders --------------------------------------------
@@ -402,7 +413,7 @@ async def _push(db: AsyncSession, cloud: NotesCloud, note: Note) -> Optional[str
     if the category changed (upload there, then delete the old file).
     Returns the old path after a move. Raises CloudStorageError; the row
     is only marked clean once the upload went through."""
-    content = _render(note, cloud.language)
+    content = _render(note)
     current = note.cloud_filename
     moved_from = None
     if not current or not _folder_matches(note.category, _top_folder(current)):
@@ -417,14 +428,24 @@ async def _push(db: AsyncSession, cloud: NotesCloud, note: Note) -> Optional[str
         note.cloud_filename = f"{target}/{name}" if target else name
         moved_from = current
     folder, name = _split(note.cloud_filename)
-    await cloud.provider.upload_file(_dir_path(cloud, folder), name, content)
+    try:
+        await cloud.provider.upload_file(_dir_path(cloud, folder), name, content)
+    except CloudStorageError:
+        note.cloud_filename = current
+        raise
     if moved_from:
         try:
             await _delete(cloud, moved_from)
-        except CloudStorageError as e:
-            # The note lives on at its new place; the old file is imported
-            # as a copy on the next sync rather than lost.
-            logger.warning("Notes: could not delete %s after moving it: %s", moved_from, e)
+        except CloudStorageError:
+            # The old file can't go (locked in an editor, say): take the
+            # new copy back and leave the note where it was, instead of
+            # two files of one note -- the save is refused.
+            try:
+                await _delete(cloud, note.cloud_filename)
+            except CloudStorageError as e:
+                logger.warning("Notes: could not undo the move of %s: %s", moved_from, e)
+            note.cloud_filename = current
+            raise
     note.cloud_hash = content_hash(content)
     # Unknown until the next listing; that sync then sees the hash match
     # and just records the fingerprint, without re-importing.
@@ -445,7 +466,27 @@ async def _delete(cloud: NotesCloud, rel: str) -> None:
     await cloud.provider.delete_file(_dir_path(cloud, folder), name)
 
 
-async def _apply_parsed(db: AsyncSession, note: Note, parsed: ParsedNote, rel: str = "") -> None:
+async def _apply_body(db: AsyncSession, note: Note, parsed: ParsedNote, rel: str) -> None:
+    """A file already linked to `note` changed in the cloud: its text
+    and its folder (the category) are taken over. Title, date, tags and
+    source are Parcella's (ADR 0127) -- a header in the file is ignored
+    and stripped on the next push."""
+    note.body_markdown = parsed.body
+    top_folder = _top_folder(rel)
+    if top_folder:
+        if not _folder_matches(note.category, top_folder):
+            note.category = await _category_for_folder(db, top_folder)
+    else:
+        note.category = None
+    if parsed.had_header:
+        note.cloud_dirty = True
+
+
+async def _adopt_file(db: AsyncSession, note: Note, parsed: ParsedNote, rel: str = "") -> None:
+    """A file new to Parcella becomes `note`: its metadata comes from
+    its header if it has one (an older Parcella file, Obsidian, ...),
+    else its first heading, file name and folder. A header is stripped
+    on the next push (ADR 0127)."""
     note.title = parsed.title or note.title or "Note"
     note.note_date = parsed.note_date or note.note_date or date.today()
     note.body_markdown = parsed.body
@@ -461,6 +502,8 @@ async def _apply_parsed(db: AsyncSession, note: Note, parsed: ParsedNote, rel: s
         if tag not in tags:
             tags.append(tag)
     note.tags = tags
+    if parsed.had_header:
+        note.cloud_dirty = True
 
 
 async def _reload(db: AsyncSession, note: Note) -> Note:
@@ -631,7 +674,13 @@ async def refresh_note(db: AsyncSession, note: Note) -> Optional[str]:
     finally:
         await cloud.aclose()
     if digest != note.cloud_hash:
-        await _apply_parsed(db, note, parse_note_file(content, note.cloud_filename), note.cloud_filename)
+        parsed = parse_note_file(content, note.cloud_filename)
+        if parsed.had_header and await db.get(ClubSetting, STRIP_HEADERS_SETTING) is not None:
+            # Before the one-time strip (migration 0122) the header still
+            # counts, as it does for that sync.
+            await _adopt_file(db, note, parsed, note.cloud_filename)
+        else:
+            await _apply_body(db, note, parsed, note.cloud_filename)
         note.cloud_hash = digest
         note.cloud_fingerprint = None
         note.cloud_synced_at = datetime.now(timezone.utc)
@@ -639,11 +688,24 @@ async def refresh_note(db: AsyncSession, note: Note) -> Optional[str]:
     return None
 
 
+def _file_affected(note: Note, category: Optional[TaxonomyCategory], data: NoteInput) -> bool:
+    """Whether saving `data` changes the note's file: its text, or its
+    folder (the category). Title, date, tags and source aren't in the
+    file (ADR 0127), so changing only those never touches the cloud --
+    which also means a file locked in a cloud editor can't block them."""
+    if not note.cloud_filename or note.cloud_dirty:
+        return True
+    if render_note_body(data.body_markdown or "") != render_note_body(note.body_markdown or ""):
+        return True
+    return not _folder_matches(category, _top_folder(note.cloud_filename))
+
+
 async def update_note(db: AsyncSession, note: Note, user: Optional[User], data: NoteInput, base_hash: str = "") -> Note:
     """`base_hash` is the cloud_hash the editor was opened with. If the
-    file's content differs from it now, the cloud version is loaded into
-    the note and NoteConflict raised instead of overwriting it -- checked
-    before validating, so a conflicting save creates no new tags."""
+    save changes the file and the file's content differs from it now,
+    the cloud version is loaded into the note and NoteConflict raised
+    instead of overwriting it -- checked before validating, so a
+    conflicting save creates no new tags."""
     cloud = await open_notes_cloud(db)
     if cloud is None:
         title, note_date, category, tags = await _validated(db, data)
@@ -652,14 +714,20 @@ async def update_note(db: AsyncSession, note: Note, user: Optional[User], data: 
         await db.flush()
         return note
     try:
-        if note.cloud_filename and not note.cloud_dirty:
+        category = await db.get(TaxonomyCategory, data.category_id) if data.category_id else None
+        if not _file_affected(note, category, data):
+            title, note_date, category, tags = await _validated(db, data)
+            _assign(note, user, title, note_date, category, tags, data)
+            await db.flush()
+            return note
+        if note.cloud_filename:
             try:
                 content, digest = await _download(cloud, note.cloud_filename)
             except CloudStorageError:
                 content, digest = None, None  # file gone: saving recreates it
             if digest is not None and digest != (base_hash or note.cloud_hash):
                 if digest != note.cloud_hash:
-                    await _apply_parsed(db, note, parse_note_file(content, note.cloud_filename), note.cloud_filename)
+                    await _apply_body(db, note, parse_note_file(content, note.cloud_filename), note.cloud_filename)
                     note.cloud_hash = digest
                     note.cloud_fingerprint = None
                     await db.flush()
@@ -752,6 +820,7 @@ def _was_import_day(note: Note) -> bool:
 async def _sync(db: AsyncSession, cloud: NotesCloud, result: SyncResult) -> None:
     files = (await _walk(cloud)).files
     redate_setting = await db.get(ClubSetting, REDATE_IMPORT_DAY_SETTING)
+    strip_setting = await db.get(ClubSetting, STRIP_HEADERS_SETTING)
     notes = list((await db.scalars(
         select(Note).options(*note_load_options()).execution_options(populate_existing=True)
     )).all())
@@ -786,11 +855,11 @@ async def _sync(db: AsyncSession, cloud: NotesCloud, result: SyncResult) -> None
                 content, digest = await _download(cloud, note.cloud_filename)
                 if digest != note.cloud_hash:
                     await _keep_conflict_copy(db, cloud, note)
-                    await _apply_parsed(db, note, parse_note_file(content, note.cloud_filename), note.cloud_filename)
+                    note.cloud_dirty = False  # unless the file has a header to strip
+                    await _apply_body(db, note, parse_note_file(content, note.cloud_filename), note.cloud_filename)
                     note.cloud_hash = digest
                     note.cloud_fingerprint = fingerprint(files[note.cloud_filename].last_modified,
                                                          files[note.cloud_filename].size)
-                    note.cloud_dirty = False
                     result.conflicts += 1
                     handled.add(note.cloud_filename)
                     continue
@@ -802,25 +871,30 @@ async def _sync(db: AsyncSession, cloud: NotesCloud, result: SyncResult) -> None
         except CloudStorageError as e:
             result.errors.append(f"{note.title}: {e}")
 
-    # 3. Pull new, changed and renamed files.
+    # 3. Pull new, changed and renamed files. While the one-time header
+    #    strip (ADR 0127) is pending, every file is read, not only the
+    #    changed ones.
     by_filename = {n.cloud_filename: n for n in notes if n.deleted_at is None and n.cloud_filename}
-    by_id = {n.id: n for n in notes}
+    to_strip: List[Note] = []  # linked files that still carry a header
     for name, entry in files.items():
         if name in handled:
             continue
         current_fp = fingerprint(entry.last_modified, entry.size)
         note = by_filename.get(name)
-        if note is not None and current_fp and note.cloud_fingerprint == current_fp:
+        if (note is not None and current_fp and note.cloud_fingerprint == current_fp
+                and strip_setting is None):
             continue
         try:
             content, digest = await _download(cloud, name)
         except CloudStorageError as e:
             result.errors.append(f"{name}: {e}")
             continue
+        parsed = parse_note_file(content, name)
         if note is not None and digest == note.cloud_hash:
             note.cloud_fingerprint = current_fp
+            if parsed.had_header and note not in to_strip:
+                to_strip.append(note)
             continue
-        parsed = parse_note_file(content, name)
         if (redate_setting is not None and note is not None and parsed.note_date is None
                 and _was_import_day(note)):
             # One-time fix (issue #302): no date in the header or the file
@@ -828,10 +902,10 @@ async def _sync(db: AsyncSession, cloud: NotesCloud, result: SyncResult) -> None
             # the file's own date, as an import does today.
             parsed.note_date = date_from_last_modified(entry.last_modified) or None
         if note is None:
-            relinked = by_id.get(parsed.note_id or "")
-            # A renamed (or restored) file: same note, new name. Not when
-            # that note's own file is still there -- that's a copy.
-            if relinked is not None and (relinked.deleted_at is not None or relinked.cloud_filename not in files):
+            relinked = _relink_target(notes, files, parsed, content, digest)
+            if relinked is not None:
+                # A renamed or moved (or restored) file: same note, new
+                # place -- its metadata stays, its folder sets the category.
                 note = relinked
                 note.cloud_filename = name
                 note.deleted_at = None
@@ -847,17 +921,27 @@ async def _sync(db: AsyncSession, cloud: NotesCloud, result: SyncResult) -> None
                 await db.flush()
                 await _reload(db, note)
                 by_filename[name] = note
-                by_id[note.id] = note
                 result.imported += 1
                 note.cloud_dirty = False
-                await _apply_parsed(db, note, parsed, name)
+                await _adopt_file(db, note, parsed, name)
                 note.cloud_hash, note.cloud_fingerprint = digest, current_fp
                 note.cloud_synced_at = datetime.now(timezone.utc)
+                if note.cloud_dirty:
+                    to_strip.append(note)
                 continue
-        await _apply_parsed(db, note, parsed, name)
+        note.cloud_dirty = False
+        if redate_setting is not None or (strip_setting is not None and parsed.had_header):
+            # A one-time full re-read (migrations 0119 and 0122): the file
+            # is parsed as if new, so a file-name date -- or header edits
+            # made in the cloud since the previous sync -- are taken over
+            # once before the header goes.
+            await _adopt_file(db, note, parsed, name)
+        else:
+            await _apply_body(db, note, parsed, name)
         note.cloud_hash, note.cloud_fingerprint = digest, current_fp
         note.cloud_synced_at = datetime.now(timezone.utc)
-        note.cloud_dirty = False
+        if note.cloud_dirty:
+            to_strip.append(note)
         result.updated += 1
 
     # 4. Files deleted in the cloud: soft-delete their notes. The file
@@ -868,11 +952,49 @@ async def _sync(db: AsyncSession, cloud: NotesCloud, result: SyncResult) -> None
             note.deleted_at = datetime.now(timezone.utc)
             result.removed += 1
 
-    # The one-time re-dating is done once a sync read every file without
-    # an error; otherwise the next sync retries the files that failed
-    # (their hash is still unset, so they're re-read).
+    # 5. Files that still carry a front-matter header are rewritten as
+    #    text only (ADR 0127): their content was read a moment ago, so
+    #    the push goes over exactly that version. A failure (the file is
+    #    locked in an editor, say) leaves the note dirty for the next sync.
+    for note in to_strip:
+        if note.deleted_at is not None:
+            continue
+        try:
+            await _push(db, cloud, note)
+        except CloudStorageError as e:
+            note.cloud_dirty = True
+            result.errors.append(f"{note.cloud_filename}: {e}")
+
+    # The one-time re-dating and header strip are done once a sync read
+    # every file without an error; otherwise the next sync retries the
+    # files that failed (their hash is still unset, so they're re-read).
     if redate_setting is not None and not result.errors:
         await db.delete(redate_setting)
+    if strip_setting is not None and not result.errors:
+        await db.delete(strip_setting)
+
+
+def _relink_target(notes: Sequence[Note], files: Dict[str, CloudFileEntry], parsed: ParsedNote,
+                   content: bytes, digest: str) -> Optional[Note]:
+    """The note a file new to this folder really belongs to, if it was
+    renamed or moved in the cloud: the note its `id` header names (files
+    from before ADR 0127), else the one note whose last-known content is
+    exactly this file's and whose own file is gone. Not when that note's
+    file is still there -- that's a copy -- and not by content when
+    several notes or an empty file would match: guessing wrong would
+    hand one note's metadata to another."""
+    def file_gone(note: Note) -> bool:
+        return note.deleted_at is not None or note.cloud_filename not in files
+
+    if parsed.note_id:
+        for note in notes:
+            if note.id == parsed.note_id:
+                return note if file_gone(note) else None
+    if not content.strip():
+        return None
+    matches = [n for n in notes if n.cloud_hash == digest and n.cloud_filename and file_gone(n)
+               and not n.cloud_delete_pending]
+    return matches[0] if len(matches) == 1 else None
 
 
 async def _keep_conflict_copy(db: AsyncSession, cloud: NotesCloud, note: Note) -> None:

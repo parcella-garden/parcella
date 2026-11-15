@@ -130,3 +130,4 @@ in chronological order.
 124. [Meter readings: a decreasing reading warns, it doesn't block](./0124-meter-monotonicity-warns-not-blocks.md)
 125. [Bookmarks are notes with a source; Parcella never fetches the pages](./0125-bookmarks-are-notes-with-a-source.md)
 126. [Personal API tokens: hashed, revocable, exactly the user's permissions, no scopes](./0126-personal-api-tokens.md)
+127. [Notes: metadata lives in Parcella, the cloud file holds only the text](./0127-notes-metadata-in-parcella-cloud-file-holds-the-text.md)

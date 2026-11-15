@@ -438,7 +438,7 @@
       "helpdesk_type_none": "Žádný (bez helpdesku)",
       "helpdesk_type_hint": "Ne každý helpdesk nabízí přes své rozhraní vše; Parcella zobrazí jen to, co vybraný umí.",
       "notes_folder_header": "Složka poznámek",
-      "notes_folder_help": "Složka pro poznámky jako soubory Markdown (.md). Po nastavení jsou soubory hlavní verzí: změny v cloudu se projeví v Parcelle a uložení v Parcelle zapíše soubor. Ponechte prázdné, chcete-li poznámky vést jen v Parcelle. Podsložky jsou kategorie: poznámky ve \"Schůze výboru/\" dostanou tuto kategorii a poznámka s kategorií se uloží do její složky.",
+      "notes_folder_help": "Složka pro poznámky jako soubory Markdown (.md). Po nastavení obsahuje každý soubor text poznámky a je jeho hlavní verzí: změny textu v cloudu se projeví v Parcelle. Název, datum, štítky a zdroj zůstávají v Parcelle a do souboru se nezapisují. Ponechte prázdné, chcete-li poznámky vést jen v Parcelle. Podsložky jsou kategorie: poznámky ve \"Schůze výboru/\" dostanou tuto kategorii a poznámka s kategorií se uloží do její složky.",
       "notes_folder_label": "Cesta ke složce"
     },
     "system": {

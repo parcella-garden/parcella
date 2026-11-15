@@ -69,6 +69,17 @@ async def test_webdav_listing_works_with_full_url_and_path_hrefs():
     await client.aclose()
 
 
+async def test_webdav_423_says_the_file_is_locked():
+    """Issue #311: a file open in a Nextcloud editor answers 423 Locked."""
+    client = httpx.AsyncClient(transport=httpx.MockTransport(lambda r: httpx.Response(423)))
+    provider = WebDAVProvider("https://dav.example.com/dav", "u", "p", client=client)
+    with pytest.raises(CloudStorageError, match=r"'note\.md' is locked .*open in an editor"):
+        await provider.upload_file("Notizen", "note.md", b"x")
+    with pytest.raises(CloudStorageError, match="is locked"):
+        await provider.delete_file("Notizen", "note.md")
+    await client.aclose()
+
+
 async def test_webdav_rejects_dot_dot_and_reports_bad_credentials():
     client = httpx.AsyncClient(transport=httpx.MockTransport(lambda r: httpx.Response(401)))
     provider = WebDAVProvider("https://dav.example.com/dav", "u", "wrong", client=client)

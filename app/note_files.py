@@ -1,27 +1,36 @@
 """
-The .md file format of a note in the cloud (issue #286, ADR 0123).
+The .md file formats of a note (issue #286, ADR 0123, ADR 0127).
 
-A note file is Markdown with a small front-matter header:
+**In the cloud** a note file holds only the note's text (ADR 0127):
+title, date, category, tags and source live in Parcella's database,
+so editing them never touches the file (render_note_body). Older files
+and files written by other tools may still start with a front-matter
+header:
 
     ---
-    id: 3f1c...                      (Parcella's note id, for relinking a renamed file)
+    id: 3f1c...                      (Parcella's note id, from before ADR 0127)
     title: "Board meeting March"
     date: 2026-03-04
-    source: "https://example.org/page"  (optional: the page a bookmark note is about)
+    source: "https://example.org/page"
     category: "Board meeting"
     tags: ["budget", "water"]
     ---
 
     The body ...
 
-Every value Parcella writes is valid YAML (strings and lists as JSON),
-so Obsidian, Nextcloud Notes and friends read it. Reading is lenient
-on purpose, since people edit these files by hand: unquoted values,
-single quotes, a YAML block list for tags, a date followed by a time
-(the time is ignored), a file with no header at all (then the title comes from the first
-heading or the file name). No YAML library: this is the whole grammar
-Parcella needs, and a full YAML parser on files from outside is more
-attack surface than it's worth.
+parse_note_file still reads such a header, so a file that turns up in
+the notes folder is adopted with its metadata; sync then rewrites it
+as text only. Reading is lenient on purpose, since people edit these
+files by hand: unquoted values, single quotes, a YAML block list for
+tags, a date followed by a time (the time is ignored), a file with no
+header at all (then the title comes from the first heading or the
+file name). No YAML library: this is the whole grammar Parcella
+needs, and a full YAML parser on files from outside is more attack
+surface than it's worth.
+
+**The download** of a single note (render_note_file) keeps the header,
+so an exported note carries its metadata along. Every value written
+there is valid YAML (strings and lists as JSON).
 
 Pure functions only -- no database, no cloud. app/services/notes.py
 does the I/O.
@@ -46,6 +55,7 @@ _FILENAME_DATE_RE = re.compile(
     r"|(?P<y2>\d{4})(?P<m2>\d{2})(?P<d2>\d{2})(?!\d)"
     r"|(?P<y3>\d{4})(?P<m3>\d{2})(?!\d))"
 )
+_KNOWN_KEY_RE = re.compile(r"^(id|title|date|category|tags|source|url)\s*:", re.IGNORECASE)
 _HEADING_RE = re.compile(r"^#{1,6}\s+(.+?)\s*#*\s*$")
 
 MAX_SLUG_LENGTH = 60
@@ -60,6 +70,7 @@ class ParsedNote:
     note_id: Optional[str] = None
     source: Optional[str] = None
     body: str = ""
+    had_header: bool = False  # the file started with a front-matter header
 
 
 SOURCE_URL_MAX_LENGTH = 2048
@@ -159,6 +170,12 @@ def _quote(value: str) -> str:
     return json.dumps(" ".join(value.split()), ensure_ascii=False)
 
 
+def render_note_body(body: str) -> str:
+    """A note's file in the cloud: its text only (ADR 0127)."""
+    text = (body or "").replace("\r\n", "\n").rstrip("\n")
+    return text + "\n" if text else ""
+
+
 def render_note_file(
     *, note_id: str, title: str, note_date: date,
     category: Optional[str], tags: List[str], body: str, source: Optional[str] = None,
@@ -225,8 +242,14 @@ def _split_front_matter(text: str) -> tuple[Optional[List[str]], str]:
         return None, text
     for index in range(1, len(lines)):
         if lines[index].strip() in ("---", "..."):
+            header = lines[1:index]
+            # Only a block with a key Parcella knows is a header: since
+            # the cloud file holds plain text (ADR 0127), a note may well
+            # start with a horizontal rule, and that text must survive.
+            if not any(_KNOWN_KEY_RE.match(line) for line in header):
+                return None, text
             body = "\n".join(lines[index + 1:])
-            return lines[1:index], body
+            return header, body
     return None, text  # no closing line: not a header after all
 
 
@@ -236,6 +259,7 @@ def parse_note_file(content: bytes, filename: str = "") -> ParsedNote:
     parsed = ParsedNote()
 
     if header is not None:
+        parsed.had_header = True
         index = 0
         while index < len(header):
             line = header[index]
