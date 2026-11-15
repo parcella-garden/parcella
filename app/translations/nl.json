@@ -1480,7 +1480,13 @@
       "mode_short_parcel": "Huur",
       "mode_short_member": "Lid",
       "delete_confirm": "Configuratie voor {year} echt verwijderen?",
-      "no_config": "Nog geen configuratie."
+      "no_config": "Nog geen configuratie.",
+      "confirmation_title": "Bevestigingsmail bij aanmelding",
+      "confirmation_desc": "Verstuurd na een aanmelding via het websiteformulier, naar de opgeslagen e-mailadressen van de aangemelde leden (nooit naar het in het formulier getypte adres). Titel, datum en tijd van de werkdag en de opmerkingen worden onder je tekst toegevoegd.",
+      "confirmation_enabled": "Bevestigingsmail versturen",
+      "confirmation_text_label": "Jouw tekst",
+      "confirmation_text_hint": "Platte tekst; een lege regel begint een nieuwe alinea. Laat leeg om de grijs getoonde tekst te gebruiken.",
+      "confirmation_saved": "Aanmeldbevestiging opgeslagen."
     },
     "configuration_form": {
       "title": "Configuratie bewerken",
@@ -2299,6 +2305,12 @@
     },
     "applicant_contact": {
       "subject": "Bedankt voor je aanmelding op onze wachtlijst!"
+    },
+    "signup_confirmation": {
+      "subject": "RE: je aanmelding voor de werkdag op {date}",
+      "greeting": "Hallo {name},",
+      "default_text": "bedankt voor je aanmelding voor onze werkdag. We hebben die ontvangen en kijken ernaar uit je te zien.",
+      "remarks_intro": "Je opmerkingen:"
     }
   },
   "finances": {

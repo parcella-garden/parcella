@@ -34,6 +34,7 @@ from app.module_flags import require_module
 from app.services.errors import ServiceError
 from app.services.work_hours import (
     get_config_for_year, evaluate_year, save_configuration_for_year,
+    load_signup_confirmation_settings, save_signup_confirmation_settings,
     attended_sessions_by_member,
     create_club_role, update_club_role, assign_member_to_club_role,
     create_session, update_session, add_participation, update_participation,
@@ -117,6 +118,7 @@ async def configuration_page(request: Request, db: AsyncSession = Depends(get_db
         select(WorkHoursConfiguration).order_by(WorkHoursConfiguration.year.desc())
     )
     configurations = result.scalars().all()
+    confirmation_enabled, confirmation_text = await load_signup_confirmation_settings(db)
 
     return templates.TemplateResponse(
         "work_hours/configuration.html",
@@ -124,6 +126,9 @@ async def configuration_page(request: Request, db: AsyncSession = Depends(get_db
             "request": request,
             "user": user,
             "configurations": configurations,
+            "confirmation_enabled": confirmation_enabled,
+            "confirmation_text": confirmation_text,
+            "confirmation_saved": request.query_params.get("confirmation_saved") == "1",
             "WorkHoursMode": WorkHoursMode,
             "current_year": date.today().year,
         },
@@ -234,6 +239,19 @@ async def configuration_create(
     )
     await db.commit()
     return RedirectResponse("/work-hours/configuration", status_code=302)
+
+
+@router.post("/configuration/signup-confirmation")
+async def signup_confirmation_save(request: Request, db: AsyncSession = Depends(get_db)):
+    """Issue #313: on/off and the boilerplate of the confirmation email
+    sent after a public work-session sign-up."""
+    await require_permission(request, db, "work_hours", "write")
+    form = await request.form()
+    await save_signup_confirmation_settings(
+        db, enabled=form.get("enabled") == "true", text=str(form.get("text") or ""),
+    )
+    await db.commit()
+    return RedirectResponse("/work-hours/configuration?confirmation_saved=1", status_code=303)
 
 
 # ---------------------------------------------------------------------------

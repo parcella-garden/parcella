@@ -57,7 +57,7 @@ from app.schemas import (
 from app.form_altcha import altcha_required, new_challenge, verify as verify_altcha
 from app.helpdesk import CREATE, HelpdeskError, get_helpdesk
 from app.services.applicants import create_applicant
-from app.services.work_hours import notify_new_participations_digest
+from app.services.work_hours import notify_new_participations_digest, send_signup_confirmations
 from app.i18n import AVAILABLE_LANGUAGES, DEFAULT_LANGUAGE, translate
 
 
@@ -295,7 +295,8 @@ async def _process_signup(
 
     tenants_result = await db.execute(
         select(MemberParcel)
-        .options(selectinload(MemberParcel.member))
+        # email_addresses: for the sign-up confirmation (issue #313).
+        .options(selectinload(MemberParcel.member).selectinload(Member.email_addresses))
         .where(MemberParcel.parcel_id == parcel.id, current_tenant_filter())
     )
     current_tenants = [
@@ -315,6 +316,7 @@ async def _process_signup(
     sessions_by_id = {s.id: s for s in sessions_result.scalars().all()}
 
     created_count = 0
+    registrations: list[tuple[WorkSession, list[Member]]] = []
 
     if not members_to_register:
         for session_id in payload.session_ids:
@@ -350,6 +352,8 @@ async def _process_signup(
                 status=ParticipationStatus.REGISTERED, note=note,
             ))
             created_count += 1
+        if to_create:
+            registrations.append((session, to_create))
 
         results.append(PublicSignupSessionResult(session_id=session_id, accepted=True))
         codes.append(None)
@@ -361,6 +365,12 @@ async def _process_signup(
         # rows in one request (multiple sessions x a whole household on
         # an ambiguous name match), see docs/ADR/0079.
         await notify_new_participations_digest(db, created_count, _lang(request))
+        # Issue #313: confirm to the registered members themselves, at
+        # their stored address only (ADR 0130). Never raises. The
+        # visitor's remarks are quoted only on a unique name match:
+        # otherwise anyone who knows a (public) plot number could put
+        # their text into a mail the club sends to every resident.
+        await send_signup_confirmations(db, registrations, (payload.remarks or "") if was_matched else "")
     else:
         await db.rollback()
 

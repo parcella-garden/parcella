@@ -1480,7 +1480,13 @@
       "mode_short_parcel": "Lease",
       "mode_short_member": "Member",
       "delete_confirm": "Really delete the configuration for {year}?",
-      "no_config": "No configuration yet."
+      "no_config": "No configuration yet.",
+      "confirmation_title": "Sign-up confirmation email",
+      "confirmation_desc": "Sent after a sign-up through the website form, to the registered members' email addresses on file (never to the address typed into the form). The session's title, date and time and the visitor's remarks are added below your text.",
+      "confirmation_enabled": "Send a confirmation email",
+      "confirmation_text_label": "Your text",
+      "confirmation_text_hint": "Plain text; a blank line starts a new paragraph. Leave empty to use the text shown in grey.",
+      "confirmation_saved": "Sign-up confirmation saved."
     },
     "configuration_form": {
       "title": "Edit Configuration",
@@ -2299,6 +2305,12 @@
     },
     "applicant_contact": {
       "subject": "Thank you for registering to our waiting list!"
+    },
+    "signup_confirmation": {
+      "subject": "RE: your registration to work session on {date}",
+      "greeting": "Hello {name},",
+      "default_text": "Thank you for registering for our work session. We have received your registration and look forward to seeing you there.",
+      "remarks_intro": "Your remarks:"
     }
   },
   "finances": {

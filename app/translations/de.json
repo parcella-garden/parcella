@@ -1480,7 +1480,13 @@
       "mode_short_parcel": "Pachtvertrag",
       "mode_short_member": "Mitglied",
       "delete_confirm": "Konfiguration für {year} wirklich löschen?",
-      "no_config": "Noch keine Konfiguration vorhanden."
+      "no_config": "Noch keine Konfiguration vorhanden.",
+      "confirmation_title": "Bestätigungs-E-Mail zur Anmeldung",
+      "confirmation_desc": "Wird nach einer Anmeldung über das Webseiten-Formular verschickt – an die hinterlegten E-Mail-Adressen der angemeldeten Mitglieder (nie an die im Formular eingetippte Adresse). Titel, Datum und Uhrzeit des Einsatzes und die Anmerkungen werden unter deinem Text angefügt.",
+      "confirmation_enabled": "Bestätigungs-E-Mail verschicken",
+      "confirmation_text_label": "Dein Text",
+      "confirmation_text_hint": "Reiner Text; eine Leerzeile beginnt einen neuen Absatz. Leer lassen, um den grau angezeigten Text zu verwenden.",
+      "confirmation_saved": "Bestätigung zur Anmeldung gespeichert."
     },
     "configuration_form": {
       "title": "Konfiguration bearbeiten",
@@ -2299,6 +2305,12 @@
     },
     "applicant_contact": {
       "subject": "Vielen Dank für Ihre Anmeldung auf unserer Warteliste!"
+    },
+    "signup_confirmation": {
+      "subject": "AW: Deine Anmeldung zum Arbeitseinsatz am {date}",
+      "greeting": "Hallo {name},",
+      "default_text": "vielen Dank für deine Anmeldung zu unserem Arbeitseinsatz. Wir haben sie erhalten und freuen uns auf dich.",
+      "remarks_intro": "Deine Anmerkungen:"
     }
   },
   "finances": {
