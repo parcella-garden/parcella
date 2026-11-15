@@ -88,10 +88,12 @@ def test_note_file_round_trip_and_lenient_parsing():
 
 
 def test_note_filename_is_ascii_and_unique():
-    taken = {"2026-03-04-vorstandssitzung-marz.md"}
-    assert note_filename(date(2026, 3, 4), "Vorstandssitzung März", taken) == "2026-03-04-vorstandssitzung-marz-2.md"
-    assert note_filename(date(2026, 3, 4), "../../etc/passwd\r\n", set()) == "2026-03-04-etc-passwd.md"
-    assert note_filename(date(2026, 3, 4), "Łódź ✓", set()) == "2026-03-04-odz.md"
+    taken = {"20260304-vorstandssitzung-marz.md"}
+    assert note_filename(date(2026, 3, 4), "Vorstandssitzung März", taken) == "20260304-vorstandssitzung-marz-2.md"
+    assert note_filename(date(2026, 3, 4), "../../etc/passwd\r\n", set()) == "20260304-etc-passwd.md"
+    assert note_filename(date(2026, 3, 4), "Łódź ✓", set()) == "20260304-odz.md"
+    # Issue #316: the compact date is read back as the note's date.
+    assert date_from_filename(note_filename(date(2026, 11, 8), "Vorstand", set())) == date(2026, 11, 8)
 
 
 # ---------------------------------------------------------------------------
@@ -138,7 +140,7 @@ async def test_create_list_search_filter_edit_delete(client, admin_user):
 
     download = await client.get(f"/notes/{first}/download")
     assert download.status_code == 200 and download.text.startswith("---\nid: " + first)
-    assert "filename*=UTF-8''2026-03-04-vorstandssitzung-marz-protokoll.md" in download.headers["content-disposition"]
+    assert "filename*=UTF-8''20260304-vorstandssitzung-marz-protokoll.md" in download.headers["content-disposition"]
 
     assert (await client.post(f"/notes/{first}/delete")).status_code == 303
     assert [n.title for n in await _notes()] == ["Gespräch Stadtwerke"]
@@ -344,7 +346,7 @@ async def test_cloud_save_writes_the_file_and_external_edits_come_back(client, a
     note_id = await _create(client, category_id=category, new_tags="Wasser")
 
     [name] = cloud.files
-    assert name == "Board meeting/2026-03-04-vorstandssitzung-marz.md"  # its category's folder
+    assert name == "Board meeting/20260304-vorstandssitzung-marz.md"  # its category's folder
     text = cloud.text(name)
     assert text == "# TOP 1\n\nWasseruhren tauschen.\n"  # the text only: metadata stays in Parcella (ADR 0127)
 
@@ -462,7 +464,7 @@ async def test_edits_while_the_cloud_was_off_are_pushed_or_kept_as_conflict_copy
     assert "Offline geändert" in cloud.text(by_title["Wird hochgeladen"].cloud_filename)
     assert by_title["Konflikt"].body_markdown == "# TOP 1\n\nIn der Cloud geändert"  # cloud wins
     assert by_title["Konflikt (conflict copy)"].body_markdown == "Offline geändert"  # nothing lost
-    assert by_title["Ganz neu"].id == new_id and by_title["Ganz neu"].cloud_filename == "2026-06-01-ganz-neu.md"
+    assert by_title["Ganz neu"].id == new_id and by_title["Ganz neu"].cloud_filename == "20260601-ganz-neu.md"
     assert not any("gelöscht" in n or "geloscht" in n for n in cloud.files)
     assert all(not n.cloud_dirty for n in by_title.values())
 
@@ -868,9 +870,9 @@ async def test_category_move_with_a_locked_old_file_changes_nothing(client, admi
     refused = await client.post(f"/notes/{note_id}/edit", data=_form(note, category_id=other))
     assert refused.status_code == 502
     # No second copy left behind: the new upload was taken back.
-    assert list(cloud.files) == ["Board meeting/2026-03-04-vorstandssitzung-marz.md"]
+    assert list(cloud.files) == ["Board meeting/20260304-vorstandssitzung-marz.md"]
     [note] = await _notes()
-    assert note.category_id == board and note.cloud_filename == "Board meeting/2026-03-04-vorstandssitzung-marz.md"
+    assert note.category_id == board and note.cloud_filename == "Board meeting/20260304-vorstandssitzung-marz.md"
 
 
 async def test_only_category_changes_move_files(client, admin_user, monkeypatch):
@@ -890,7 +892,7 @@ async def test_only_category_changes_move_files(client, admin_user, monkeypatch)
     assert note.cloud_dirty  # "Board meeting/" doesn't match any more
     await _sync(client)
     [note] = await _notes()
-    assert note.cloud_filename == "Vorstandssitzung/2026-03-04-vorstandssitzung-marz.md" and not note.cloud_dirty
+    assert note.cloud_filename == "Vorstandssitzung/20260304-vorstandssitzung-marz.md" and not note.cloud_dirty
     assert cloud.uploads == uploads + 1
 
 

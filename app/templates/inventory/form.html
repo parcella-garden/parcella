@@ -7,6 +7,7 @@
 <div class="alert alert-danger">
     {% if error == 'missing_name' %}{{ t('inventory.form.error_missing_name') }}
     {% elif error == 'missing_owner_member' %}{{ t('inventory.form.error_missing_owner_member') }}
+    {% elif error and error.startswith('inventory.errors.') %}{{ t(error) }}
     {% endif %}
 </div>
 {% endif %}

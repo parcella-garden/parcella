@@ -84,7 +84,9 @@ file later). A partial unique index keeps one live note per file name.
   last-modified date -- an imported note never gets the import day.
   The prefix may be `2026-11-08`, `20261108` or month-only `202506`
   (the 1st of that month), see `date_from_filename()` in
-  `app/note_files.py`. Only `YYYY-MM-DD` was read at first (issue
+  `app/note_files.py`. New files are named `YYYYMMDD-<slug>.md` since
+  issue #316 (before: `YYYY-MM-DD-<slug>.md`); existing files keep their
+  names, since Parcella never renames a file. Only `YYYY-MM-DD` was read at first (issue
   #302), and the fallback bit hard: a copy made in Nextcloud keeps the
   original's last-modified time, so a protocol copied from a template
   got the *template's* date and sank out of sight in the date-sorted

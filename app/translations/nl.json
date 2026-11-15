@@ -1483,7 +1483,13 @@
       "mode_short_parcel": "Huur",
       "mode_short_member": "Lid",
       "delete_confirm": "Configuratie voor {year} echt verwijderen?",
-      "no_config": "Nog geen configuratie."
+      "no_config": "Nog geen configuratie.",
+      "confirmation_title": "Bevestigingsmail bij aanmelding",
+      "confirmation_desc": "Verstuurd na een aanmelding via het websiteformulier, naar de opgeslagen e-mailadressen van de aangemelde leden (nooit naar het in het formulier getypte adres). Titel, datum en tijd van de werkdag en de opmerkingen worden onder je tekst toegevoegd.",
+      "confirmation_enabled": "Bevestigingsmail versturen",
+      "confirmation_text_label": "Jouw tekst",
+      "confirmation_text_hint": "Platte tekst; een lege regel begint een nieuwe alinea. Laat leeg om de grijs getoonde tekst te gebruiken.",
+      "confirmation_saved": "Aanmeldbevestiging opgeslagen."
     },
     "configuration_form": {
       "title": "Configuratie bewerken",
@@ -2106,6 +2112,8 @@
       "checkout_quantity": "Aantal",
       "checkout_date": "Datum",
       "checkout_fee": "Vergoeding",
+      "checkout_fee_hint": "Optioneel. Alleen een getal, bijv. 5 of 2,50.",
+      "checkout_fee_hint_default": "Optioneel. Alleen een getal, bijv. 5 of 2,50. Leeg gelaten geldt de standaardvergoeding van {fee}.",
       "checkout_note": "Notitie",
       "checkout_button": "Uitlenen",
       "none_available": "Momenteel niets beschikbaar om te lenen.",
@@ -2131,7 +2139,10 @@
     "errors": {
       "item_not_borrowable": "Dit item is niet gemarkeerd als leenbaar.",
       "member_required": "Er moet een lid worden geselecteerd.",
-      "insufficient_quantity": "Slechts {available} van {total} nu beschikbaar."
+      "insufficient_quantity": "Slechts {available} van {total} nu beschikbaar.",
+      "invalid_amount": "Voer bedragen alleen als getal in, bijv. 5 of 2,50, zonder valutateken of tekst.",
+      "invalid_date": "Voer een geldige datum in.",
+      "invalid_quantity": "Voer als aantal een geheel getal van 1 of meer in."
     }
   },
   "tasks": {
@@ -2334,6 +2345,12 @@
     },
     "applicant_contact": {
       "subject": "Bedankt voor je aanmelding op onze wachtlijst!"
+    },
+    "signup_confirmation": {
+      "subject": "RE: je aanmelding voor de werkdag op {date}",
+      "greeting": "Hallo {name},",
+      "default_text": "bedankt voor je aanmelding voor onze werkdag. We hebben die ontvangen en kijken ernaar uit je te zien.",
+      "remarks_intro": "Je opmerkingen:"
     }
   },
   "finances": {

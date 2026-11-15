@@ -57,6 +57,17 @@ async def _tabellen_erstellen():
 
 
 @pytest_asyncio.fixture(autouse=True)
+async def _reset_rate_limits():
+    """The in-memory rate limiter (app/rate_limit.py) is per process, so
+    without this, sign-ups in earlier tests count against later ones and
+    a test fails with 429 depending only on test order (hit for real
+    when issue #313 added more public sign-up tests)."""
+    from app.rate_limit import _events
+    _events.clear()
+    yield
+
+
+@pytest_asyncio.fixture(autouse=True)
 async def _frische_verbindung():
     """
     Discards the connection pool BEFORE each individual test.
