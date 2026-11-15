@@ -354,6 +354,20 @@ async def test_plugin_sends_image_alt_with_new_drafts_and_alt_only_changes():
     await client.aclose()
 
 
+async def test_plugin_and_markdown_use_the_given_summary():
+    """Issue #317: the board's summary wins over the generated one."""
+    seen = []
+    connector, client = _plugin(seen)
+    await connector.publish_draft(_content(summary="Kurz gesagt: Wasser ab April."))
+    assert seen[-1][2]["summary"] == "Kurz gesagt: Wasser ab April."
+    await client.aclose()
+
+    md, storage = _md_connector()
+    result = await md.publish_draft(_content(summary="Kurz gesagt: Wasser ab April."))
+    header, _ = split_front_matter(storage.text(result.post_id))
+    assert _header_value(header, "summary") == "Kurz gesagt: Wasser ab April."
+
+
 async def test_plugin_update_of_deleted_draft_raises_not_found():
     seen = []
     connector, client = _plugin(seen, update_status=404)

@@ -64,7 +64,8 @@
     "reporting": "Auswertungen",
     "email_log": "E-Mail-Protokoll",
     "notes": "Notizen",
-    "api_tokens": "API-Tokens"
+    "api_tokens": "API-Tokens",
+    "calendar_custom": "Eigene Kalender"
   },
   "errors": {
     "user_not_found": "Benutzer nicht gefunden",
@@ -1879,9 +1880,44 @@
       "entry_not_found": "Eintrag nicht gefunden",
       "invalid_token": "Ungültiges oder fehlendes Zugriffstoken",
       "not_your_entry": "Sie können nur eigene Einträge löschen",
-      "no_member_selected": "Bitte mindestens ein Vorstandsmitglied auswählen"
+      "no_member_selected": "Bitte mindestens ein Vorstandsmitglied auswählen",
+      "calendar_archived": "Dieser Kalender ist archiviert.",
+      "calendar_not_found": "Kalender nicht gefunden.",
+      "invalid_date": "Bitte ein gültiges Datum eingeben."
     },
-    "ics_subscribe_button": "Abonnieren (ICS)"
+    "ics_subscribe_button": "Abonnieren (ICS)",
+    "custom": {
+      "active_label": "Aktiv (Haken entfernen zum Archivieren)",
+      "archived_badge": "Archiviert",
+      "archived_notice": "Dieser Kalender ist archiviert: Seine Einträge bleiben, neue können nicht hinzugefügt werden.",
+      "color_label": "Farbe",
+      "create_button": "Kalender anlegen",
+      "delete_event": "Eintrag löschen",
+      "description_label": "Beschreibung",
+      "edit": "Bearbeiten",
+      "empty": "Noch keine Kalender.",
+      "full_access_only_badge": "Nur Vorstand",
+      "full_access_only_label": "Nur für Vorstand und Benutzer mit Vollzugriff sichtbar",
+      "ics_private_label": "Private Abo-Adresse (nicht weitergeben)",
+      "index_title": "Kalender",
+      "list_title": "Kalender",
+      "name_label": "Name",
+      "name_placeholder": "z. B. Vereinsheim-Belegung",
+      "new_title": "Neuer Kalender",
+      "new_feed_link_label": "Neue Abo-Adresse (alte funktionieren nicht mehr)"
+    },
+    "resources": {
+      "col_item": "Gegenstand",
+      "col_loans": "Status",
+      "col_status": "Derzeit verliehen",
+      "desc": "Ausleihbare Gegenstände im Vereinsbesitz und wer sie gerade hat.",
+      "empty": "Keine ausleihbaren Gegenstände im Vereinsbesitz.",
+      "loan_line": "seit {since}: {name} ({quantity}×)",
+      "status_free": "Verfügbar",
+      "status_out": "Verliehen",
+      "status_partly": "{available} von {total} verfügbar",
+      "title": "Ressourcen"
+    }
   },
   "announcements": {
     "print": {
@@ -1911,6 +1947,8 @@
       "image_hint": "PNG, JPEG oder WebP, bis 5 MB. Wird als Bild des Webseiten-Beitrags verwendet und in der E-Mail gezeigt.",
       "label_image_alt": "Bildbeschreibung (Alt-Text)",
       "image_alt_hint": "Beschreibe, was auf dem Bild zu sehen ist – für Menschen mit Screenreader und für Suchmaschinen. Leer gelassen, bekommt die Webseite den Titel.",
+      "label_summary": "Zusammenfassung",
+      "summary_hint": "Ein bis zwei Sätze, reiner Text. Erscheint in der E-Mail als Vorschauzeile unter dem Betreff und auf der Webseite als Anreißer. Etwa 160 Zeichen sind ideal für Suchmaschinen.",
       "label_body": "Text",
       "body_hint": "In Markdown geschrieben. Derselbe Text wird für den Webseiten-Entwurf und die Mitglieder-E-Mail verwendet.",
       "body_placeholder": "Hier die Mitteilung schreiben...",

@@ -64,7 +64,8 @@
     "reporting": "Raporty",
     "email_log": "Dziennik e-maili",
     "notes": "Notatki",
-    "api_tokens": "Tokeny API"
+    "api_tokens": "Tokeny API",
+    "calendar_custom": "Własne kalendarze"
   },
   "errors": {
     "user_not_found": "Nie znaleziono użytkownika",
@@ -1879,9 +1880,44 @@
       "entry_not_found": "Nie znaleziono wpisu",
       "invalid_token": "Nieprawidłowy lub brakujący token dostępu",
       "not_your_entry": "Możesz usuwać tylko własne wpisy",
-      "no_member_selected": "Wybierz co najmniej jednego członka zarządu"
+      "no_member_selected": "Wybierz co najmniej jednego członka zarządu",
+      "calendar_archived": "Ten kalendarz jest zarchiwizowany.",
+      "calendar_not_found": "Nie znaleziono kalendarza.",
+      "invalid_date": "Podaj prawidłową datę."
     },
-    "ics_subscribe_button": "Subskrybuj (ICS)"
+    "ics_subscribe_button": "Subskrybuj (ICS)",
+    "custom": {
+      "active_label": "Aktywny (odznacz, aby zarchiwizować)",
+      "archived_badge": "Zarchiwizowany",
+      "archived_notice": "Ten kalendarz jest zarchiwizowany: wpisy pozostają, ale nie można dodawać nowych.",
+      "color_label": "Kolor",
+      "create_button": "Utwórz kalendarz",
+      "delete_event": "Usuń wpis",
+      "description_label": "Opis",
+      "edit": "Edytuj",
+      "empty": "Brak kalendarzy.",
+      "full_access_only_badge": "Tylko zarząd",
+      "full_access_only_label": "Widoczny tylko dla zarządu i użytkowników z pełnym dostępem",
+      "ics_private_label": "Prywatny adres subskrypcji (nie udostępniaj)",
+      "index_title": "Kalendarze",
+      "list_title": "Kalendarze",
+      "name_label": "Nazwa",
+      "name_placeholder": "np. rezerwacje świetlicy",
+      "new_title": "Nowy kalendarz",
+      "new_feed_link_label": "Nowy adres subskrypcji (stare przestaną działać)"
+    },
+    "resources": {
+      "col_item": "Przedmiot",
+      "col_loans": "Status",
+      "col_status": "Obecnie wypożyczone",
+      "desc": "Przedmioty stowarzyszenia do wypożyczenia i kto je teraz ma.",
+      "empty": "Brak przedmiotów stowarzyszenia do wypożyczenia.",
+      "loan_line": "od {since}: {name} ({quantity}×)",
+      "status_free": "Dostępny",
+      "status_out": "Wypożyczony",
+      "status_partly": "Dostępne {available} z {total}",
+      "title": "Zasoby"
+    }
   },
   "announcements": {
     "print": {
@@ -1911,6 +1947,8 @@
       "image_hint": "PNG, JPEG lub WebP, do 5 MB. Używany jako obraz wpisu na stronie i pokazywany w e-mailu.",
       "label_image_alt": "Opis obrazu (tekst alternatywny)",
       "image_alt_hint": "Opisz, co widać na obrazie – dla osób korzystających z czytników ekranu i dla wyszukiwarek. Jeśli pole zostanie puste, strona otrzyma tytuł.",
+      "label_summary": "Streszczenie",
+      "summary_hint": "Jedno lub dwa zdania, zwykły tekst. Wyświetlane jako wiersz podglądu pod tematem e-maila i jako zajawka na stronie. Około 160 znaków najlepiej sprawdza się w wyszukiwarkach.",
       "label_body": "Treść",
       "body_hint": "Pisany w Markdown. Ten sam tekst jest używany w szkicu na stronie i w e-mailu do członków.",
       "body_placeholder": "Napisz tutaj treść ogłoszenia...",

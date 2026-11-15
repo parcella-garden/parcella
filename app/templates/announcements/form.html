@@ -25,6 +25,7 @@
 {% set title_value = entered.title if entered else (announcement.title if announcement else '') %}
 {% set body_value = entered.body_markdown if entered else (announcement.body_markdown if announcement else '') %}
 {% set print_override_value = entered.print_text_override if entered else ((announcement.print_text_override or '') if announcement else '') %}
+{% set summary_value = entered.summary if entered else ((announcement.summary or '') if announcement else '') %}
 {% set image_alt_value = entered.image_alt if entered else ((announcement.image_alt or '') if announcement else '') %}
 {% set letters_for_all_value = entered.letters_for_all if entered else (announcement and announcement.letters_for_all) %}
 {% if error %}
@@ -107,6 +108,12 @@
                 <label class="form-label">{{ t('announcements.form.label_title') }}</label>
                 <input type="text" name="title" class="form-control" required
                        value="{{ title_value }}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="summary">{{ t('announcements.form.label_summary') }}</label>
+                <textarea name="summary" id="summary" class="form-control" rows="2" maxlength="300">{{ summary_value }}</textarea>
+                <div class="form-text">{{ t('announcements.form.summary_hint') }}</div>
             </div>
 
             <div class="mb-3">

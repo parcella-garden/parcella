@@ -138,6 +138,8 @@ class WordPressPublisher(WebsiteConnector):
             featured_media_id = await self._upload_media(client, content)
 
         payload = {"title": content.title, "content": content.html, "status": "draft"}
+        if content.summary:
+            payload["excerpt"] = content.summary
         if featured_media_id is not None:
             payload["featured_media"] = featured_media_id
 
@@ -175,6 +177,10 @@ class WordPressPublisher(WebsiteConnector):
                 await self._set_alt_text(client, media_id, content.image_alt)
 
         payload = {"title": content.title, "content": content.html}
+        # Only a summary set in Parcella (issue #317) overwrites the
+        # excerpt; without one, an excerpt written in WordPress stays.
+        if content.summary:
+            payload["excerpt"] = content.summary
         if image_changed:
             if self._has_image(content):
                 payload["featured_media"] = await self._upload_media(client, content)

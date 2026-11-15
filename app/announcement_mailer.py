@@ -212,11 +212,19 @@ def build_announcement_email_html(
         f'font-size: 0.85rem;">{banner_text}</p>'
         if test_banner else ""
     )
+    # The summary (issue #317) as preheader: invisible in the mail itself,
+    # shown by mail clients as the preview line under the subject.
+    preheader = (
+        '<div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">'
+        f'{escape(announcement.summary)}</div>'
+        if announcement.summary else ""
+    )
     return f"""
     <html><body style="font-family: sans-serif; color: #1f2937; max-width: 600px; margin: 0 auto;">
+    {preheader}
     {banner}
-    <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 0.5rem;">{club_name}</p>
-    <h2 style="margin-top: 0;">{announcement.title}</h2>
+    <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 0.5rem;">{escape(club_name)}</p>
+    <h2 style="margin-top: 0;">{escape(announcement.title)}</h2>
     {image_block}
     <div>{announcement.body_html}</div>
     </body></html>

@@ -64,7 +64,8 @@
     "reporting": "Přehledy",
     "email_log": "Protokol e-mailů",
     "notes": "Poznámky",
-    "api_tokens": "API tokeny"
+    "api_tokens": "API tokeny",
+    "calendar_custom": "Vlastní kalendáře"
   },
   "errors": {
     "user_not_found": "Uživatel nebyl nalezen",
@@ -1879,9 +1880,44 @@
       "entry_not_found": "Záznam nenalezen",
       "invalid_token": "Neplatný nebo chybějící přístupový token",
       "not_your_entry": "Můžete mazat pouze vlastní záznamy",
-      "no_member_selected": "Vyberte alespoň jednoho člena výboru"
+      "no_member_selected": "Vyberte alespoň jednoho člena výboru",
+      "calendar_archived": "Tento kalendář je archivován.",
+      "calendar_not_found": "Kalendář nenalezen.",
+      "invalid_date": "Zadejte platné datum."
     },
-    "ics_subscribe_button": "Odebírat (ICS)"
+    "ics_subscribe_button": "Odebírat (ICS)",
+    "custom": {
+      "active_label": "Aktivní (odškrtněte pro archivaci)",
+      "archived_badge": "Archivováno",
+      "archived_notice": "Tento kalendář je archivován: záznamy zůstávají, nové nelze přidat.",
+      "color_label": "Barva",
+      "create_button": "Vytvořit kalendář",
+      "delete_event": "Smazat záznam",
+      "description_label": "Popis",
+      "edit": "Upravit",
+      "empty": "Zatím žádné kalendáře.",
+      "full_access_only_badge": "Jen výbor",
+      "full_access_only_label": "Viditelné jen pro výbor a uživatele s plným přístupem",
+      "ics_private_label": "Soukromá adresa odběru (nesdílejte)",
+      "index_title": "Kalendáře",
+      "list_title": "Kalendáře",
+      "name_label": "Název",
+      "name_placeholder": "např. rezervace klubovny",
+      "new_title": "Nový kalendář",
+      "new_feed_link_label": "Nová adresa odběru (staré přestanou fungovat)"
+    },
+    "resources": {
+      "col_item": "Předmět",
+      "col_loans": "Stav",
+      "col_status": "Právě zapůjčeno",
+      "desc": "Předměty spolku k zapůjčení a kdo je právě má.",
+      "empty": "Žádné předměty spolku k zapůjčení.",
+      "loan_line": "od {since}: {name} ({quantity}×)",
+      "status_free": "K dispozici",
+      "status_out": "Zapůjčeno",
+      "status_partly": "K dispozici {available} z {total}",
+      "title": "Zdroje"
+    }
   },
   "announcements": {
     "print": {
@@ -1911,6 +1947,8 @@
       "image_hint": "PNG, JPEG nebo WebP, do 5 MB. Používá se jako obrázek příspěvku na webu a zobrazuje se v e-mailu.",
       "label_image_alt": "Popis obrázku (alternativní text)",
       "image_alt_hint": "Popište, co je na obrázku – pro lidi se čtečkou obrazovky a pro vyhledávače. Když zůstane prázdný, web dostane nadpis.",
+      "label_summary": "Shrnutí",
+      "summary_hint": "Jedna až dvě věty, prostý text. Zobrazí se jako náhledový řádek pod předmětem e-mailu a jako perex na webu. Pro vyhledávače je ideálních asi 160 znaků.",
       "label_body": "Text",
       "body_hint": "Psáno v Markdownu. Stejný text se použije pro koncept na webu i pro e-mail členům.",
       "body_placeholder": "Napište zde text oznámení...",

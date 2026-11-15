@@ -7,6 +7,7 @@ Design principles:
 - Audit fields (created_at, updated_at) everywhere
 """
 
+import secrets
 import uuid
 from datetime import datetime, date, timedelta
 from typing import Optional, List
@@ -2031,9 +2032,49 @@ class CalendarEvent(Base):
     )
 
     created_by: Mapped[Optional["User"]] = relationship("User")
+    # Issue #314: NULL = the community calendar (public feed!); set = one
+    # of the admin-defined calendars, which never reach the public feed.
+    # See docs/ADR/0131.
+    calendar_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("custom_calendars.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
+    calendar: Mapped[Optional["CustomCalendar"]] = relationship("CustomCalendar", back_populates="events")
 
     def __repr__(self) -> str:
         return f"<CalendarEvent {self.title!r} on {self.start_date}>"
+
+
+class CustomCalendar(Base):
+    """
+    An admin-defined calendar besides the built-in ones (issue #314):
+    "Vorstandssitzungen", "Vereinsheim", ... Its entries are ordinary
+    CalendarEvent rows with calendar_id set. Unlike the community
+    calendar it is never public: the page needs calendar read
+    permission (plus full access if full_access_only), the ICS feed the
+    installation's secret ICS token. Ending one archives it
+    (is_active=False) instead of deleting it and its history (ADR 0005).
+    """
+    __tablename__ = "custom_calendars"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    color: Mapped[str] = mapped_column(String(7), nullable=False, default="#2e7d32")
+    full_access_only: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
+    # The calendar's own ICS secret -- NOT the installation-wide ICS token,
+    # which every calendar reader can see: with that, a board-only
+    # calendar's feed would be open to everyone (security review, #314).
+    # Rotated whenever full_access_only changes, and on request.
+    feed_token: Mapped[str] = mapped_column(String(64), nullable=False, default=lambda: secrets.token_urlsafe(32))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    events: Mapped[List["CalendarEvent"]] = relationship("CalendarEvent", back_populates="calendar")
+
+    def __repr__(self) -> str:
+        return f"<CustomCalendar {self.name!r}>"
 
 
 class CouncilPresence(Base):
@@ -2142,6 +2183,10 @@ class Announcement(Base):
     # website channels then fall back to the title (what the CMS plugins
     # always did), Parcella's own pages keep alt="". See docs/ADR/0128.
     image_alt: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    # Issue #317: a short plain-text summary (one line, max 300 chars).
+    # NULL = none; it's the email's preview line (preheader) and the
+    # website excerpt/teaser. See docs/ADR/0129.
+    summary: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
     print_text_override: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     # Issue #242: a message to filtered members instead of club news.
     # NULL = the classic announcement to every active member with

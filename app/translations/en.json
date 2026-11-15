@@ -64,7 +64,8 @@
     "reporting": "Reporting",
     "email_log": "Email log",
     "notes": "Notes",
-    "api_tokens": "API tokens"
+    "api_tokens": "API tokens",
+    "calendar_custom": "My calendars"
   },
   "errors": {
     "user_not_found": "User not found",
@@ -1879,9 +1880,44 @@
       "entry_not_found": "Entry not found",
       "invalid_token": "Invalid or missing access token",
       "not_your_entry": "You can only delete your own entries",
-      "no_member_selected": "Select at least one council member"
+      "no_member_selected": "Select at least one council member",
+      "calendar_archived": "This calendar is archived.",
+      "calendar_not_found": "Calendar not found.",
+      "invalid_date": "Please enter a valid date."
     },
-    "ics_subscribe_button": "Subscribe (ICS)"
+    "ics_subscribe_button": "Subscribe (ICS)",
+    "custom": {
+      "active_label": "Active (uncheck to archive)",
+      "archived_badge": "Archived",
+      "archived_notice": "This calendar is archived: its entries stay, but no new ones can be added.",
+      "color_label": "Colour",
+      "create_button": "Create calendar",
+      "delete_event": "Delete entry",
+      "description_label": "Description",
+      "edit": "Edit",
+      "empty": "No calendars yet.",
+      "full_access_only_badge": "Board only",
+      "full_access_only_label": "Only visible to the board and full-access users",
+      "ics_private_label": "Private subscription URL (keep it to yourself)",
+      "index_title": "Calendars",
+      "list_title": "Calendars",
+      "name_label": "Name",
+      "name_placeholder": "e.g. Clubhouse bookings",
+      "new_title": "New calendar",
+      "new_feed_link_label": "New subscription link (old ones stop working)"
+    },
+    "resources": {
+      "col_item": "Item",
+      "col_loans": "Status",
+      "col_status": "Currently lent out",
+      "desc": "Club-owned items that can be borrowed, and who has them right now.",
+      "empty": "No borrowable club-owned items.",
+      "loan_line": "since {since}: {name} ({quantity}×)",
+      "status_free": "Available",
+      "status_out": "Lent out",
+      "status_partly": "{available} of {total} available",
+      "title": "Resources"
+    }
   },
   "announcements": {
     "print": {
@@ -1911,6 +1947,8 @@
       "image_hint": "PNG, JPEG, or WebP, up to 5 MB. Used as the website post's image and shown in the email.",
       "label_image_alt": "Image description (alt text)",
       "image_alt_hint": "Describe what the picture shows, for people using screen readers and for search engines. Left empty, websites get the title.",
+      "label_summary": "Summary",
+      "summary_hint": "One or two sentences, plain text. Shown as the preview line under the email subject and as the excerpt on the website. Around 160 characters works best for search engines.",
       "label_body": "Body text",
       "body_hint": "Written in Markdown. This same text is used for both the website draft and the member email.",
       "body_placeholder": "Write your announcement here...",

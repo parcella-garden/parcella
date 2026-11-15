@@ -64,7 +64,8 @@
     "reporting": "Rapportages",
     "email_log": "E-maillogboek",
     "notes": "Notities",
-    "api_tokens": "API-tokens"
+    "api_tokens": "API-tokens",
+    "calendar_custom": "Eigen agenda's"
   },
   "errors": {
     "user_not_found": "Gebruiker niet gevonden",
@@ -1879,9 +1880,44 @@
       "entry_not_found": "Item niet gevonden",
       "invalid_token": "Ongeldig of ontbrekend toegangstoken",
       "not_your_entry": "Je kunt alleen je eigen items verwijderen",
-      "no_member_selected": "Selecteer minstens één bestuurslid"
+      "no_member_selected": "Selecteer minstens één bestuurslid",
+      "calendar_archived": "Deze agenda is gearchiveerd.",
+      "calendar_not_found": "Agenda niet gevonden.",
+      "invalid_date": "Voer een geldige datum in."
     },
-    "ics_subscribe_button": "Abonneren (ICS)"
+    "ics_subscribe_button": "Abonneren (ICS)",
+    "custom": {
+      "active_label": "Actief (vinkje weghalen om te archiveren)",
+      "archived_badge": "Gearchiveerd",
+      "archived_notice": "Deze agenda is gearchiveerd: de items blijven, maar er kunnen geen nieuwe worden toegevoegd.",
+      "color_label": "Kleur",
+      "create_button": "Agenda aanmaken",
+      "delete_event": "Item verwijderen",
+      "description_label": "Beschrijving",
+      "edit": "Bewerken",
+      "empty": "Nog geen agenda's.",
+      "full_access_only_badge": "Alleen bestuur",
+      "full_access_only_label": "Alleen zichtbaar voor het bestuur en gebruikers met volledige toegang",
+      "ics_private_label": "Privé-abonnementsadres (niet delen)",
+      "index_title": "Agenda's",
+      "list_title": "Agenda's",
+      "name_label": "Naam",
+      "name_placeholder": "bijv. reserveringen clubhuis",
+      "new_title": "Nieuwe agenda",
+      "new_feed_link_label": "Nieuw abonnementsadres (oude werken niet meer)"
+    },
+    "resources": {
+      "col_item": "Voorwerp",
+      "col_loans": "Status",
+      "col_status": "Momenteel uitgeleend",
+      "desc": "Uitleenbare voorwerpen van de vereniging en wie ze nu heeft.",
+      "empty": "Geen uitleenbare voorwerpen van de vereniging.",
+      "loan_line": "sinds {since}: {name} ({quantity}×)",
+      "status_free": "Beschikbaar",
+      "status_out": "Uitgeleend",
+      "status_partly": "{available} van {total} beschikbaar",
+      "title": "Middelen"
+    }
   },
   "announcements": {
     "print": {
@@ -1911,6 +1947,8 @@
       "image_hint": "PNG, JPEG of WebP, tot 5 MB. Gebruikt als afbeelding van het websitebericht en getoond in de e-mail.",
       "label_image_alt": "Beschrijving van de afbeelding (alt-tekst)",
       "image_alt_hint": "Beschrijf wat er op de afbeelding staat, voor mensen met een schermlezer en voor zoekmachines. Leeg gelaten krijgt de website de titel.",
+      "label_summary": "Samenvatting",
+      "summary_hint": "Eén of twee zinnen, platte tekst. Getoond als voorbeeldregel onder het onderwerp van de e-mail en als samenvatting op de website. Ongeveer 160 tekens werkt het best voor zoekmachines.",
       "label_body": "Tekst",
       "body_hint": "Geschreven in Markdown. Dezelfde tekst wordt gebruikt voor het websiteconcept en de e-mail aan leden.",
       "body_placeholder": "Schrijf hier je mededeling...",

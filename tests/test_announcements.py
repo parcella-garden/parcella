@@ -1669,3 +1669,68 @@ async def test_blog_alt_only_change_updates_the_media_alt_without_reupload(clien
     assert (await client.post(f"/announcements/{announcement_id}/send/blog")).status_code == 409
 
     await mock_client.aclose()
+
+
+# ---------------------------------------------------------------------------
+# Summary (issue #317)
+# ---------------------------------------------------------------------------
+
+async def test_summary_is_saved_and_becomes_the_escaped_email_preheader(client, admin_user):
+    _token, announcement_id = await _setup_announcement(client)
+    await client.post(
+        f"/announcements/{announcement_id}/edit",
+        data={"title": "Water <on>", "body_markdown": "Content.", "summary": "Water is back\n on <b>Saturday</b> & Sunday"},
+    )
+    announcement = await _load_announcement(announcement_id)
+    assert announcement.summary == "Water is back on <b>Saturday</b> & Sunday"
+
+    page = await client.get(f"/announcements/{announcement_id}/edit")
+    assert "Water is back on &lt;b&gt;Saturday&lt;/b&gt; &amp; Sunday</textarea>" in page.text
+
+    from app.announcement_mailer import build_announcement_email_html
+    html = build_announcement_email_html(announcement, "KGV & Co", None)
+    assert "display: none" in html
+    assert "Water is back on &lt;b&gt;Saturday&lt;/b&gt; &amp; Sunday" in html
+    assert "<b>Saturday</b>" not in html
+    # Title and club name are escaped too now.
+    assert "Water &lt;on&gt;" in html and "KGV &amp; Co" in html
+
+    # Clearing it removes the preheader.
+    await client.post(
+        f"/announcements/{announcement_id}/edit",
+        data={"title": "Water <on>", "body_markdown": "Content.", "summary": "   "},
+    )
+    announcement = await _load_announcement(announcement_id)
+    assert announcement.summary is None
+    assert "display: none" not in build_announcement_email_html(announcement, "KGV", None)
+
+
+def test_summary_fingerprint_keeps_old_hashes_and_skips_print():
+    from app.announcement_utils import channel_fingerprint
+    # No summary -> exactly the pre-#317 hash, so nothing shows as changed.
+    assert channel_fingerprint("BLOG", "T", "B", None) == channel_fingerprint("BLOG", "T", "B", None, summary=None)
+    assert channel_fingerprint("BLOG", "T", "B", None, summary="S") != channel_fingerprint("BLOG", "T", "B", None)
+    assert channel_fingerprint("EMAIL", "T", "B", None, summary="S") != channel_fingerprint("EMAIL", "T", "B", None)
+    assert channel_fingerprint("PRINT", "T", "B", "P", summary="S") == channel_fingerprint("PRINT", "T", "B", "P")
+    assert channel_fingerprint("LETTER", "T", "B", "P", summary="S") == channel_fingerprint("LETTER", "T", "B", "P")
+
+
+async def test_summary_goes_to_wordpress_as_excerpt_only_when_set(client, admin_user, monkeypatch):
+    token, announcement_id = await _setup_announcement(client, title="Compost")
+    await _configure_wordpress(client, auth_header(token))
+    requests_seen = []
+    mock_client = _patch_wordpress(monkeypatch, _recording_wordpress_transport(requests_seen))
+
+    assert (await client.post(f"/announcements/{announcement_id}/send/blog")).status_code == 303
+    assert "excerpt" not in requests_seen[-1][2]
+
+    # A summary-only edit counts as a change and sends the excerpt.
+    await client.post(
+        f"/announcements/{announcement_id}/edit",
+        data={"title": "Compost", "body_markdown": "Content.", "summary": "New bins by the shed."},
+    )
+    requests_seen.clear()
+    assert (await client.post(f"/announcements/{announcement_id}/send/blog")).status_code == 303
+    assert requests_seen[-1][1] == "/wp-json/wp/v2/posts/99"
+    assert requests_seen[-1][2]["excerpt"] == "New bins by the shed."
+    await mock_client.aclose()

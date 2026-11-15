@@ -80,7 +80,7 @@ Request:
   "title": "New compost bins",
   "markdown": "We installed **new** bins.",
   "html": "<p>We installed <strong>new</strong> bins.</p>",
-  "summary": "",
+  "summary": "New bins by the shed, please sort your compost.",
   "language": "de",
   "source_id": "6f1c...-announcement-uuid",
   "image": {"filename": "4b2e....png", "mime": "image/png", "data_base64": "iVBORw0..."},
@@ -92,6 +92,9 @@ Request:
   text. `html` is already sanitized by Parcella.
 - `image` is `null` when there is none. Allowed MIME types: `image/png`,
   `image/jpeg`, `image/webp`. Parcella limits images to 5 MB.
+- `summary` is the announcement's plain-text summary (one line, at most
+  300 characters; issue #317), or `""` when the board gave none. Use it
+  for the CMS's teaser/excerpt/meta description, escaped as plain text.
 - `image_alt` (optional, since Parcella with ADR 0128) is the image's alt
   text: one line, at most 255 characters, already falling back to the
   title when the board gave none. Put it into the CMS's alt field for
