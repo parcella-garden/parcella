@@ -67,6 +67,7 @@ def parse_expiry_days(raw: Optional[str]) -> Optional[int]:
 
 async def create_token(
     db: AsyncSession, user: User, name: str, expires_in_days: Optional[int], created_by: User,
+    mcp_only: bool = False,
 ) -> Tuple[ApiToken, str]:
     """Creates a token for `user` and returns it with its plain value,
     which is never stored and can't be shown again. Commits."""
@@ -86,6 +87,7 @@ async def create_token(
         session_version=user.session_version,
         created_by_id=created_by.id,
         expires_at=(_now() + timedelta(days=expires_in_days)) if expires_in_days else None,
+        mcp_only=mcp_only,
     )
     db.add(token)
     await db.commit()
@@ -103,16 +105,20 @@ def token_status(token: ApiToken, user: User, now: Optional[datetime] = None) ->
     return STATUS_ACTIVE
 
 
-async def authenticate(db: AsyncSession, raw: str) -> Optional[User]:
+async def authenticate(db: AsyncSession, raw: str, mcp: bool = False) -> Optional[User]:
     """The user a token belongs to, or None if it's unknown or no longer
-    valid. Updates last_used_at (coarsely) and commits that alone."""
+    valid. Updates last_used_at (coarsely) and commits that alone.
+
+    `mcp` says which door is asking (ADR 0132): the MCP endpoint only
+    accepts MCP-only tokens, everything else only ordinary ones. A token
+    used at the wrong door is treated exactly like an unknown one."""
     if not looks_like_api_token(raw):
         return None
     result = await db.execute(
         select(ApiToken).where(ApiToken.token_hash == hash_token(raw)).options(selectinload(ApiToken.user))
     )
     token = result.scalar_one_or_none()
-    if token is None:
+    if token is None or token.mcp_only != mcp:
         return None
     user = token.user
     now = _now()

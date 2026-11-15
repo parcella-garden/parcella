@@ -330,7 +330,9 @@
         "reporting_name": "Rapports",
         "reporting_desc": "Les chiffres de l'association dans le temps, en graphiques : tranches d'âge, membres par année, baux terminés, candidats, bilan des heures de travail, transferts d'heures et raccordements électriques. Lecture seule, calculé à partir des données existantes.",
         "notes_name": "Notes",
-        "notes_desc": "Notes en Markdown pour les réunions et tout le reste, avec catégories et étiquettes ; enregistrées comme fichiers .md dans le cloud si un dossier de notes est défini."
+        "notes_desc": "Notes en Markdown pour les réunions et tout le reste, avec catégories et étiquettes ; enregistrées comme fichiers .md dans le cloud si un dossier de notes est défini.",
+        "mcp_name": "Connecteur MCP pour clients IA",
+        "mcp_desc": "Permet à un client IA (Claude, ChatGPT, …) de rechercher, lire et écrire des notes via MCP – uniquement les notes libérées pour l'IA avec l'étiquette de libération, rien d'autre. Nécessite un jeton API « Connecteur MCP uniquement ». Désactivé par défaut : il transmet des notes de l'association à un service tiers."
       },
       "region_header": "Région",
       "region_help": "Détermine le format des nombres et de l'adresse (par ex. séparateur de milliers, ordre du code postal et de la ville). Indépendant de la langue de l'interface.",
@@ -3606,6 +3608,9 @@
       "user_inactive": "Ce compte est désactivé.",
       "not_found": "Jeton introuvable.",
       "not_for_full_access_user": "Impossible de créer des jetons pour un autre compte disposant d'un accès complet."
-    }
+    },
+    "field_mcp_only": "Connecteur MCP uniquement (pour un client IA)",
+    "mcp_only_help": "Ne fonctionne que sur le point d'accès MCP et uniquement avec les notes libérées pour l'IA (étiquette « ki-freigegeben »). Toute autre route de l'API le refuse. Pour Claude, ChatGPT ou un autre client MCP – jamais un jeton ordinaire.",
+    "badge_mcp_only": "MCP uniquement"
   }
 }

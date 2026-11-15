@@ -67,3 +67,5 @@ in again every day and shouldn't hold a password.
 - **OAuth for remote MCP connectors.** Possibly needed by some AI clients
   (#307 checks this); it would sit on top of these tokens, not replace
   them.
+
+**Amended by ADR 0132 (issue #307):** one exception to "no scopes": a token can be MCP-only. It then works only on the MCP endpoint (notes released for AI) and nowhere else in the API.

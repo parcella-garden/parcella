@@ -126,3 +126,19 @@ file later). A partial unique index keeps one live note per file name.
   gives it a neutral home.
 - Not yet on the website: publishing notes (or knowledge base articles)
   is #285's job.
+
+## MCP connector for AI clients (issue #307, ADR 0132)
+
+`/api/v1/mcp` (`app/routers/mcp.py`, tools in `app/services/notes_mcp.py`)
+lets an AI client search, read, create and update notes.
+
+- **Only notes tagged `ki-freigegeben`.** Every tool goes through
+  `_released()`. An unreleased note is "not found" even by id, and
+  never matches a search.
+- **Minimal output.** Title, date, category, tags, body, source, id
+  and version. No author fields, no cloud file name.
+- **AI-written notes are tagged `ki-erstellt`.** There's no delete tool.
+- **Access** needs the off-by-default `mcp` module and an
+  **MCP-only API token**, which the rest of the API rejects.
+- **Setup** for Claude: docs/mcp-setup.md. ChatGPT needs OAuth (follow-up).
+

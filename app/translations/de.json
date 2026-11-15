@@ -330,7 +330,9 @@
         "reporting_name": "Auswertungen",
         "reporting_desc": "Vereinszahlen im Zeitverlauf als Diagramme: Altersgruppen, Mitglieder pro Jahr, beendete Pachtverhältnisse, Bewerbungen, Arbeitsstunden-Ergebnisse, Stundenübertragungen und Stromanschlüsse. Nur lesend, aus den vorhandenen Daten berechnet.",
         "notes_name": "Notizen",
-        "notes_desc": "Markdown-Notizen zu Sitzungen und allem anderen, mit Kategorien und Schlagworten; als .md-Dateien in der Cloud gespeichert, wenn ein Notizen-Ordner eingerichtet ist."
+        "notes_desc": "Markdown-Notizen zu Sitzungen und allem anderen, mit Kategorien und Schlagworten; als .md-Dateien in der Cloud gespeichert, wenn ein Notizen-Ordner eingerichtet ist.",
+        "mcp_name": "MCP-Connector für KI-Clients",
+        "mcp_desc": "Ein KI-Client (Claude, ChatGPT, …) kann Notizen über MCP suchen, lesen und schreiben – nur für KI freigegebene Notizen mit dem Freigabe-Tag, nie etwas anderes. Braucht ein API-Token „Nur MCP-Connector“. Standardmäßig aus: Es gibt Vereinsnotizen an einen Drittanbieter."
       },
       "region_header": "Region",
       "region_help": "Bestimmt Zahlen- und Adressformat (z.B. Tausendertrennzeichen, Reihenfolge von PLZ und Ort). Unabhängig von der Oberflächensprache.",
@@ -3606,6 +3608,9 @@
       "user_inactive": "Dieses Konto ist deaktiviert.",
       "not_found": "Token nicht gefunden.",
       "not_for_full_access_user": "Für ein anderes Konto mit Vollzugriff lassen sich keine Tokens erstellen."
-    }
+    },
+    "field_mcp_only": "Nur MCP-Connector (für einen KI-Client)",
+    "mcp_only_help": "Funktioniert nur am MCP-Endpunkt und nur mit für KI freigegebenen Notizen (Tag „ki-freigegeben“). Jede andere API-Route lehnt ihn ab. Für Claude, ChatGPT oder einen anderen MCP-Client – nie ein normales Token verwenden.",
+    "badge_mcp_only": "Nur MCP"
   }
 }

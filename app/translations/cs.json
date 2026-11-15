@@ -330,7 +330,9 @@
         "reporting_name": "Přehledy",
         "reporting_desc": "Údaje spolku v čase jako grafy: věkové skupiny, členové po letech, ukončené nájmy, žadatelé, výsledky pracovních hodin, převody hodin a elektrické přípojky. Jen pro čtení, počítáno z existujících dat.",
         "notes_name": "Poznámky",
-        "notes_desc": "Poznámky v Markdownu ze schůzí i k čemukoli jinému, s kategoriemi a štítky; ukládají se jako soubory .md v cloudu, pokud je nastavena složka poznámek."
+        "notes_desc": "Poznámky v Markdownu ze schůzí i k čemukoli jinému, s kategoriemi a štítky; ukládají se jako soubory .md v cloudu, pokud je nastavena složka poznámek.",
+        "mcp_name": "Konektor MCP pro klienty AI",
+        "mcp_desc": "Umožní klientovi AI (Claude, ChatGPT, …) vyhledávat, číst a zapisovat poznámky přes MCP – jen poznámky uvolněné pro AI štítkem, nic jiného. Potřebuje API token „Jen konektor MCP“. Ve výchozím stavu vypnuto: předává poznámky spolku službě třetí strany."
       },
       "region_header": "Region",
       "region_help": "Určuje formát čísel a adresy (např. oddělovač tisíců, pořadí PSČ a města). Nezávisle na jazyce rozhraní.",
@@ -3606,6 +3608,9 @@
       "user_inactive": "Tento účet je deaktivován.",
       "not_found": "Token nenalezen.",
       "not_for_full_access_user": "Pro jiný účet s plným přístupem nelze tokeny vytvářet."
-    }
+    },
+    "field_mcp_only": "Jen konektor MCP (pro klienta AI)",
+    "mcp_only_help": "Funguje jen na koncovém bodu MCP a jen s poznámkami uvolněnými pro AI (štítek „ki-freigegeben“). Každá jiná trasa API ho odmítne. Pro Claude, ChatGPT nebo jiného klienta MCP – nikdy běžný token.",
+    "badge_mcp_only": "Jen MCP"
   }
 }

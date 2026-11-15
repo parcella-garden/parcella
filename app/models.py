@@ -142,6 +142,12 @@ class ApiToken(Base):
     expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     last_used_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     revoked_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Issue #307 (ADR 0132, the one exception to "no scopes"): an
+    # MCP-only token works ONLY on the MCP endpoint, which shows notes
+    # released for AI and nothing else. The REST API rejects it, so an AI
+    # client's token can't read unreleased notes through GET /api/v1/notes.
+    # The MCP endpoint accepts nothing but these.
+    mcp_only: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
 
     user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
     created_by: Mapped[Optional["User"]] = relationship("User", foreign_keys=[created_by_id])
