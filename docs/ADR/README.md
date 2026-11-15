@@ -132,3 +132,4 @@ in chronological order.
 126. [Personal API tokens: hashed, revocable, exactly the user's permissions, no scopes](./0126-personal-api-tokens.md)
 127. [Notes: metadata lives in Parcella, the cloud file holds only the text](./0127-notes-metadata-in-parcella-cloud-file-holds-the-text.md)
 128. [Announcement banner alt text: own field, title fallback, alt-only updates](./0128-announcement-banner-alt-text.md)
+129. [Announcement summary: one plain-text field for preheader and excerpt](./0129-announcement-summary.md)

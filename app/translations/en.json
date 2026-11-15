@@ -1905,6 +1905,8 @@
       "image_hint": "PNG, JPEG, or WebP, up to 5 MB. Used as the website post's image and shown in the email.",
       "label_image_alt": "Image description (alt text)",
       "image_alt_hint": "Describe what the picture shows, for people using screen readers and for search engines. Left empty, websites get the title.",
+      "label_summary": "Summary",
+      "summary_hint": "One or two sentences, plain text. Shown as the preview line under the email subject and as the excerpt on the website. Around 160 characters works best for search engines.",
       "label_body": "Body text",
       "body_hint": "Written in Markdown. This same text is used for both the website draft and the member email.",
       "body_placeholder": "Write your announcement here...",

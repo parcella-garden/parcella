@@ -138,6 +138,7 @@ def _delete_print_pdf(filename: Optional[str]) -> None:
 def _current_fingerprint(announcement: Announcement, channel: AnnouncementChannel) -> str:
     return channel_fingerprint(
         channel.name, announcement.title, announcement.body_markdown, announcement.print_text_override,
+        summary=announcement.summary,
     )
 
 
@@ -351,6 +352,18 @@ async def _new_form_context(
 IMAGE_ALT_MAX_LENGTH = 255
 
 
+SUMMARY_MAX_LENGTH = 300
+
+
+def _clean_summary(value) -> Optional[str]:
+    """The announcement's summary (issue #317): plain text, one line, at
+    most 300 characters, None when empty. It goes into an email preheader
+    and website excerpts/meta descriptions, so it's flattened once here;
+    escaping stays each renderer's job."""
+    text = re.sub(r"\s+", " ", str(value or "")).strip()
+    return text[:SUMMARY_MAX_LENGTH] or None
+
+
 def _clean_image_alt(value) -> Optional[str]:
     """The banner's alt text (issue #318): one line, at most 255
     characters, None when empty. It ends up in HTML attributes, email,
@@ -370,6 +383,7 @@ def _entered_values(form) -> dict:
         "body_markdown": form.get("body_markdown") or "",
         "print_text_override": form.get("print_text_override") or "",
         "image_alt": form.get("image_alt") or "",
+        "summary": form.get("summary") or "",
         "letters_for_all": form.get("letters_for_all") == "true",
     }
 
@@ -422,6 +436,7 @@ async def announcement_create(
         body_html=render_markdown_to_html(body_markdown),
         image_filename=image_filename,
         image_alt=_clean_image_alt(form.get("image_alt")) if image_filename else None,
+        summary=_clean_summary(form.get("summary")),
         created_by_id=user.id,
     )
     if applicant_ids is not None:
@@ -492,6 +507,7 @@ async def announcement_update(
     announcement.body_markdown = body_markdown
     announcement.body_html = render_markdown_to_html(body_markdown)
     announcement.print_text_override = print_text_override
+    announcement.summary = _clean_summary(form.get("summary"))
     # No image, no alt text: a stale one would otherwise resurface on the
     # next upload.
     announcement.image_alt = _clean_image_alt(form.get("image_alt")) if announcement.image_filename else None
@@ -602,6 +618,7 @@ async def push_website_draft(db: AsyncSession, announcement: Announcement) -> An
         title=announcement.title, markdown=announcement.body_markdown, html=announcement.body_html,
         image_bytes=image_bytes, image_filename=image_filename, image_mime=image_mime,
         image_alt=(announcement.image_alt or announcement.title) if image_bytes else "",
+        summary=announcement.summary or "",
         language=await load_current_language(db), source_id=announcement.id,
     )
 

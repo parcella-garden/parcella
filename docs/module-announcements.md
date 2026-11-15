@@ -40,6 +40,13 @@ announcement_deliveries   -- one row per (announcement, channel) send attempt
 - `image_filename` is a single header/featured image, reused across
   all three channels (WordPress featured image, inline in the email,
   and in the PDF's layout).
+- `summary` (issue #317, ADR 0129) is an optional one-line plain-text
+  summary (max 300 characters). The email puts it in a hidden preheader
+  (the preview line under the subject). WordPress gets it as `excerpt`,
+  but only when set, so an excerpt written in WordPress otherwise stays.
+  The Markdown folder uses it as `summary:` (falling back to the first
+  paragraph), and the plugins get it in the protocol's `summary` field.
+  It's part of the EMAIL/BLOG fingerprint only when non-empty.
 - `image_alt` (issue #318, ADR 0128) is that image's optional alt text,
   one line and at most 255 characters, cleared together with the image.
   The email and the PDF use it. The website channels get it, or the

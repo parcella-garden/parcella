@@ -1905,6 +1905,8 @@
       "image_hint": "PNG, JPEG of WebP, tot 5 MB. Gebruikt als afbeelding van het websitebericht en getoond in de e-mail.",
       "label_image_alt": "Beschrijving van de afbeelding (alt-tekst)",
       "image_alt_hint": "Beschrijf wat er op de afbeelding staat, voor mensen met een schermlezer en voor zoekmachines. Leeg gelaten krijgt de website de titel.",
+      "label_summary": "Samenvatting",
+      "summary_hint": "Eén of twee zinnen, platte tekst. Getoond als voorbeeldregel onder het onderwerp van de e-mail en als samenvatting op de website. Ongeveer 160 tekens werkt het best voor zoekmachines.",
       "label_body": "Tekst",
       "body_hint": "Geschreven in Markdown. Dezelfde tekst wordt gebruikt voor het websiteconcept en de e-mail aan leden.",
       "body_placeholder": "Schrijf hier je mededeling...",

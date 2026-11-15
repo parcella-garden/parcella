@@ -2142,6 +2142,10 @@ class Announcement(Base):
     # website channels then fall back to the title (what the CMS plugins
     # always did), Parcella's own pages keep alt="". See docs/ADR/0128.
     image_alt: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    # Issue #317: a short plain-text summary (one line, max 300 chars).
+    # NULL = none; it's the email's preview line (preheader) and the
+    # website excerpt/teaser. See docs/ADR/0129.
+    summary: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
     print_text_override: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     # Issue #242: a message to filtered members instead of club news.
     # NULL = the classic announcement to every active member with

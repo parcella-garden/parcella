@@ -97,7 +97,9 @@ def likely_fits_one_print_page(markdown_text: str) -> bool:
 # Per-channel content fingerprint (ADR 0087)
 # ---------------------------------------------------------------------------
 
-def channel_fingerprint(channel: str, title: str, body_markdown: str, print_text_override: str | None) -> str:
+def channel_fingerprint(
+    channel: str, title: str, body_markdown: str, print_text_override: str | None, summary: str | None = None,
+) -> str:
     """Hash of exactly the text a channel delivers, stored on its
     AnnouncementDelivery at send time. Comparing it with the current
     content tells whether the channel is out of date -- a timestamp
@@ -112,8 +114,14 @@ def channel_fingerprint(channel: str, title: str, body_markdown: str, print_text
 
     migrations/versions/0092_announcement_no_status.py backfills with a
     copy of this function -- keep the two in sync if this ever changes.
+
+    The summary (issue #317, ADR 0129) belongs to email and blog only, and
+    is appended only when there is one -- so every fingerprint stored
+    before it existed still matches, and 0092's frozen copy stays valid.
     """
     parts = [channel, title, body_markdown]
     if channel == "PRINT":
         parts.append(print_text_override or "")
+    elif summary and channel in ("EMAIL", "BLOG"):
+        parts.append("summary:" + summary)
     return hashlib.sha256("\x1f".join(parts).encode("utf-8")).hexdigest()
