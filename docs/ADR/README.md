@@ -133,3 +133,4 @@ in chronological order.
 127. [Notes: metadata lives in Parcella, the cloud file holds only the text](./0127-notes-metadata-in-parcella-cloud-file-holds-the-text.md)
 128. [Announcement banner alt text: own field, title fallback, alt-only updates](./0128-announcement-banner-alt-text.md)
 129. [Announcement summary: one plain-text field for preheader and excerpt](./0129-announcement-summary.md)
+131. [Custom calendars: events with a calendar_id, never public; resources view](./0131-custom-calendars-and-resource-view.md)

@@ -19,6 +19,8 @@ rather than a login, since calendar apps subscribing to a feed URL
 can't do session-cookie authentication either -- the token is the
 practical equivalent of a login for a subscription URL.
 """
+import re
+import secrets
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Literal, Optional
@@ -32,8 +34,11 @@ from sqlalchemy.orm import selectinload
 from app.database import get_db
 from app.models import (
     CalendarEvent, CalendarEventType, WorkSession, SessionType,
-    CouncilPresence, CouncilAbsence, User,
+    CouncilPresence, CouncilAbsence, User, CustomCalendar,
+    InventoryItem, InventoryOwnerType, ItemLoan,
 )
+from app.auth import require_admin
+from app.permissions import is_full_access_user, get_user_permissions, has_permission
 from app.auth import require_user
 from app.permissions import require_permission
 from app.module_flags import require_module
@@ -49,7 +54,7 @@ from app.birthday_calendar_pdf import render_birthday_calendar_pdf
 from app.ics_utils import (
     get_or_create_ics_token, verify_ics_token,
     build_community_calendar, build_birthday_calendar,
-    build_council_presence_calendar, build_council_absence_calendar,
+    build_council_presence_calendar, build_council_absence_calendar, build_custom_calendar,
 )
 from app.templating import templates
 
@@ -90,7 +95,9 @@ async def community_overview(request: Request, db: AsyncSession = Depends(get_db
     user = await require_permission(request, db, "calendar", "read")
 
     events_result = await db.execute(
-        select(CalendarEvent).where(CalendarEvent.start_date >= date.today()).order_by(CalendarEvent.start_date)
+        select(CalendarEvent)
+        .where(CalendarEvent.start_date >= date.today(), CalendarEvent.calendar_id.is_(None))
+        .order_by(CalendarEvent.start_date)
     )
     events = events_result.scalars().all()
 
@@ -150,7 +157,9 @@ async def community_event_create(
 @router.post("/community/{event_id}/delete")
 async def community_event_delete(event_id: str, request: Request, db: AsyncSession = Depends(get_db)):
     await require_permission(request, db, "calendar", "delete")
-    result = await db.execute(select(CalendarEvent).where(CalendarEvent.id == event_id))
+    result = await db.execute(
+        select(CalendarEvent).where(CalendarEvent.id == event_id, CalendarEvent.calendar_id.is_(None))
+    )
     event = result.scalar_one_or_none()
     if not event:
         raise HTTPException(status_code=404, detail=t_for(request, "calendar.errors.event_not_found"))
@@ -178,7 +187,9 @@ async def community_json(db: AsyncSession = Depends(get_db)):
     in sync with community_overview() and build_community_calendar()
     above; update all three together if this merge logic ever changes."""
     events_result = await db.execute(
-        select(CalendarEvent).where(CalendarEvent.start_date >= date.today()).order_by(CalendarEvent.start_date)
+        select(CalendarEvent)
+        .where(CalendarEvent.start_date >= date.today(), CalendarEvent.calendar_id.is_(None))
+        .order_by(CalendarEvent.start_date)
     )
     items = [
         {
@@ -215,6 +226,205 @@ async def community_json(db: AsyncSession = Depends(get_db)):
 
     items.sort(key=lambda item: item["date"])
     return items
+
+
+# ---------------------------------------------------------------------------
+# Custom calendars (issue #314, ADR 0131): admin-defined, never public
+# ---------------------------------------------------------------------------
+
+_HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
+
+
+def _clean_color(value: str) -> str:
+    value = (value or "").strip()
+    return value.lower() if _HEX_COLOR_RE.match(value) else "#2e7d32"
+
+
+async def _visible_calendars(db: AsyncSession, user: User, include_archived: bool = False) -> list[CustomCalendar]:
+    query = select(CustomCalendar).order_by(CustomCalendar.name)
+    if not include_archived:
+        query = query.where(CustomCalendar.is_active.is_(True))
+    calendars = (await db.execute(query)).scalars().all()
+    if await is_full_access_user(db, user):
+        return list(calendars)
+    return [c for c in calendars if not c.full_access_only]
+
+
+async def _get_visible_calendar_or_404(request: Request, db: AsyncSession, user: User, calendar_id: str) -> CustomCalendar:
+    """404 -- not 403 -- for a calendar this user may not see, so its
+    existence doesn't leak."""
+    calendar = await db.get(CustomCalendar, calendar_id)
+    if calendar is None or (calendar.full_access_only and not await is_full_access_user(db, user)):
+        raise HTTPException(status_code=404, detail=t_for(request, "calendar.errors.calendar_not_found"))
+    return calendar
+
+
+@router.get("/custom", response_class=HTMLResponse)
+async def custom_calendars_index(request: Request, db: AsyncSession = Depends(get_db)):
+    user = await require_permission(request, db, "calendar", "read")
+    is_admin = await is_full_access_user(db, user)
+    calendars = await _visible_calendars(db, user, include_archived=is_admin)
+    perms = await get_user_permissions(db, user)
+    return templates.TemplateResponse("calendar/custom_index.html", {
+        "request": request, "user": user, "calendars": calendars, "can_manage": is_admin,
+        "show_resources": bool(request.state.module_flags.get("inventory")) and has_permission(perms, "inventory", "read"),
+    })
+
+
+@router.post("/custom/new")
+async def custom_calendar_create(request: Request, db: AsyncSession = Depends(get_db)):
+    await require_admin(request, db)
+    form = await request.form()
+    name = (form.get("name") or "").strip()[:100]
+    if not name:
+        return RedirectResponse("/calendar/custom", status_code=303)
+    db.add(CustomCalendar(
+        name=name, description=(form.get("description") or "").strip() or None,
+        color=_clean_color(form.get("color")), full_access_only=form.get("full_access_only") == "true",
+    ))
+    await db.commit()
+    return RedirectResponse("/calendar/custom", status_code=303)
+
+
+@router.post("/custom/{calendar_id}/edit")
+async def custom_calendar_update(calendar_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    """Rename/recolour, change visibility, archive or reactivate. There's
+    no delete: archiving keeps the calendar's past events (ADR 0005)."""
+    await require_admin(request, db)
+    calendar = await db.get(CustomCalendar, calendar_id)
+    if calendar is None:
+        raise HTTPException(status_code=404, detail=t_for(request, "calendar.errors.calendar_not_found"))
+    form = await request.form()
+    name = (form.get("name") or "").strip()[:100]
+    if name:
+        calendar.name = name
+    calendar.description = (form.get("description") or "").strip() or None
+    calendar.color = _clean_color(form.get("color"))
+    full_access_only = form.get("full_access_only") == "true"
+    # A new feed secret whenever the audience changes (old subscribers of
+    # a now board-only calendar must lose access) or on request (e.g.
+    # someone left the board).
+    if full_access_only != calendar.full_access_only or form.get("new_feed_link") == "true":
+        calendar.feed_token = secrets.token_urlsafe(32)
+    calendar.full_access_only = full_access_only
+    calendar.is_active = form.get("is_active") == "true"
+    await db.commit()
+    return RedirectResponse("/calendar/custom", status_code=303)
+
+
+@router.get("/custom/{calendar_id}", response_class=HTMLResponse)
+async def custom_calendar_overview(calendar_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    user = await require_permission(request, db, "calendar", "read")
+    calendar = await _get_visible_calendar_or_404(request, db, user, calendar_id)
+    events = (await db.execute(
+        select(CalendarEvent)
+        .where(CalendarEvent.calendar_id == calendar.id, CalendarEvent.start_date >= date.today())
+        .order_by(CalendarEvent.start_date, CalendarEvent.start_time)
+    )).scalars().all()
+    return templates.TemplateResponse("calendar/custom.html", {
+        "request": request, "user": user, "calendar": calendar, "events": events,
+    })
+
+
+@router.post("/custom/{calendar_id}/new")
+async def custom_calendar_event_create(
+    calendar_id: str,
+    request: Request,
+    title: str = Form(...),
+    description: str = Form(""),
+    location: str = Form(""),
+    start_date: str = Form(...),
+    start_time: str = Form(""),
+    end_date: str = Form(""),
+    end_time: str = Form(""),
+    db: AsyncSession = Depends(get_db),
+):
+    user = await require_permission(request, db, "calendar", "write")
+    calendar = await _get_visible_calendar_or_404(request, db, user, calendar_id)
+    if not calendar.is_active:
+        raise HTTPException(status_code=409, detail=t_for(request, "calendar.errors.calendar_archived"))
+    try:
+        start = date.fromisoformat(start_date)
+        end = date.fromisoformat(end_date) if end_date else None
+    except ValueError:
+        raise HTTPException(status_code=400, detail=t_for(request, "calendar.errors.invalid_date"))
+    db.add(CalendarEvent(
+        calendar_id=calendar.id, event_type=CalendarEventType.OTHER,
+        title=title.strip()[:255], description=description.strip() or None,
+        location=location.strip()[:255] or None, start_date=start, start_time=_clean_time(start_time),
+        end_date=end, end_time=_clean_time(end_time), created_by_id=user.id,
+    ))
+    await db.commit()
+    return RedirectResponse(f"/calendar/custom/{calendar.id}", status_code=303)
+
+
+@router.post("/custom/{calendar_id}/{event_id}/delete")
+async def custom_calendar_event_delete(
+    calendar_id: str, event_id: str, request: Request, db: AsyncSession = Depends(get_db),
+):
+    user = await require_permission(request, db, "calendar", "delete")
+    calendar = await _get_visible_calendar_or_404(request, db, user, calendar_id)
+    event = (await db.execute(
+        select(CalendarEvent).where(CalendarEvent.id == event_id, CalendarEvent.calendar_id == calendar.id)
+    )).scalar_one_or_none()
+    if event is None:
+        raise HTTPException(status_code=404, detail=t_for(request, "calendar.errors.event_not_found"))
+    await db.delete(event)
+    await db.commit()
+    return RedirectResponse(f"/calendar/custom/{calendar.id}", status_code=303)
+
+
+@router.get("/custom/{calendar_id}/feed.ics")
+async def custom_calendar_ics(
+    calendar_id: str, request: Request, token: Optional[str] = Query(None), db: AsyncSession = Depends(get_db),
+):
+    """Private feed with the calendar's OWN secret (feed_token), never
+    the installation-wide ICS token: that one is shown to every calendar
+    reader, so it would open board-only calendars to everyone (ADR 0131)."""
+    calendar = await db.get(CustomCalendar, calendar_id)
+    if calendar is None or not calendar.is_active or not verify_ics_token(token, calendar.feed_token):
+        raise HTTPException(status_code=404)
+    cal = await build_custom_calendar(db, calendar, base_url=request.url.hostname or "parcella.local")
+    return _ics_response(cal.to_ical(), "calendar.ics")
+
+
+def _clean_time(value: str) -> Optional[str]:
+    value = (value or "").strip()
+    return value if re.fullmatch(r"([01]\d|2[0-3]):[0-5]\d", value) else None
+
+
+# ---------------------------------------------------------------------------
+# Resources (issue #314): club-owned borrowable items and who has them
+# right now. Read-only; loans have no planned period yet, so this shows
+# current loans only (kermie's call, 2026-11-15).
+# ---------------------------------------------------------------------------
+
+@router.get("/resources", response_class=HTMLResponse)
+async def resources_overview(request: Request, db: AsyncSession = Depends(get_db)):
+    user = await require_permission(request, db, "calendar", "read")
+    # Who borrowed what is member data from the inventory module: its own
+    # permission and module switch apply, not just the calendar's.
+    if not request.state.module_flags.get("inventory"):
+        raise HTTPException(status_code=404)
+    await require_permission(request, db, "inventory", "read")
+
+    items = (await db.execute(
+        select(InventoryItem)
+        .where(
+            InventoryItem.owner_type == InventoryOwnerType.CLUB,
+            InventoryItem.is_borrowable.is_(True),
+            InventoryItem.retired_at.is_(None),
+        )
+        .options(selectinload(InventoryItem.category), selectinload(InventoryItem.loans).selectinload(ItemLoan.member))
+        .order_by(InventoryItem.name)
+    )).scalars().all()
+    rows = []
+    for item in items:
+        current = sorted((l for l in item.loans if l.returned_date is None), key=lambda l: l.borrowed_date)
+        rows.append({"item": item, "loans": current})
+    return templates.TemplateResponse("calendar/resources.html", {
+        "request": request, "user": user, "rows": rows,
+    })
 
 
 # ---------------------------------------------------------------------------

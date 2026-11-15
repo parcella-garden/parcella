@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ t('calendar.resources.title') }}{% endblock %}
+{% block page_title %}{{ t('calendar.resources.title') }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="/calendar/custom" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{{ t('common.back') }}</a>
+{% endblock %}
+
+{% block content %}
+<p class="text-muted">{{ t('calendar.resources.desc') }}</p>
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0 align-middle">
+                <thead><tr>
+                    <th>{{ t('calendar.resources.col_item') }}</th>
+                    <th>{{ t('calendar.resources.col_status') }}</th>
+                    <th>{{ t('calendar.resources.col_loans') }}</th>
+                </tr></thead>
+                <tbody>
+                    {% for row in rows %}
+                    {% set item = row.item %}
+                    <tr>
+                        <td>
+                            <a href="/inventory/{{ item.id }}" class="text-decoration-none fw-semibold">{{ item.name }}</a>
+                            {% if item.category %}<div class="text-muted small">{{ item.category.name }}</div>{% endif %}
+                        </td>
+                        <td class="text-nowrap">
+                            {% if item.available_quantity <= 0 %}
+                            <span class="badge text-bg-danger">{{ t('calendar.resources.status_out') }}</span>
+                            {% elif row.loans %}
+                            <span class="badge text-bg-warning">{{ t('calendar.resources.status_partly', available=item.available_quantity, total=item.quantity_total) }}</span>
+                            {% else %}
+                            <span class="badge text-bg-success">{{ t('calendar.resources.status_free') }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% for loan in row.loans %}
+                            <div class="small">
+                                {{ t('calendar.resources.loan_line', since=loan.borrowed_date.strftime('%d.%m.%Y'), name=(loan.member.full_name if loan.member else '–'), quantity=loan.quantity) }}
+                            </div>
+                            {% else %}
+                            <span class="text-muted small">–</span>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" class="text-center text-muted py-3">{{ t('calendar.resources.empty') }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

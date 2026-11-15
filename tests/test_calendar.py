@@ -401,3 +401,179 @@ async def test_council_presence_and_work_session_ics_are_timed(client, admin_use
     community = (await client.get("/calendar/community.ics")).text
     assert f"DTSTART;TZID=Europe/Berlin:{stamp}T080000" in community
     assert f"DTEND;TZID=Europe/Berlin:{stamp}T120000" in community
+
+
+# ---------------------------------------------------------------------------
+# Custom calendars and the resource view (issue #314, ADR 0131)
+# ---------------------------------------------------------------------------
+
+async def _create_custom_calendar(client, name="Vereinsheim", **extra):
+    data = {"name": name, "color": "#1e40af", **extra}
+    assert (await client.post("/calendar/custom/new", data=data)).status_code == 303
+    from sqlalchemy import select
+    from app.database import AsyncSessionLocal
+    from app.models import CustomCalendar
+    async with AsyncSessionLocal() as session:
+        return (await session.execute(select(CustomCalendar).where(CustomCalendar.name == name))).scalar_one()
+
+
+async def _calendar_reader_client(module_perms=("calendar",)):
+    """A logged-in non-board user whose group grants read on the given
+    modules -- the case "board only" and the inventory check are about."""
+    from app.database import AsyncSessionLocal
+    from app.models import Group, GroupMembership, GroupModulePermission, User, UserRole
+    from app.auth import hash_password
+    async with AsyncSessionLocal() as session:
+        user = User(email="reader@example.com", name="Reader", password_hash=hash_password("testpasswort123"),
+                    role=UserRole.READONLY)
+        group = Group(name="Calendar readers")
+        session.add_all([user, group])
+        await session.flush()
+        session.add(GroupMembership(user_id=user.id, group_id=group.id))
+        for module in module_perms:
+            session.add(GroupModulePermission(group_id=group.id, module=module, can_read=True, can_write=False, can_delete=False))
+        await session.commit()
+    from httpx import ASGITransport
+    from app.main import app as fastapi_app
+    from tests.conftest import CsrfAwareClient
+    other = CsrfAwareClient(transport=ASGITransport(app=fastapi_app), base_url="http://testserver")
+    await web_login(other, "reader@example.com")
+    return other
+
+
+async def test_custom_calendar_events_never_reach_the_public_community_feed(client, admin_user):
+    await web_login(client, "admin@example.com")
+    calendar = await _create_custom_calendar(client)
+    day = (date.today() + timedelta(days=5)).isoformat()
+    created = await client.post(f"/calendar/custom/{calendar.id}/new", data={
+        "title": "Kinderfest-Vorbereitung", "start_date": day, "start_time": "18:00", "end_time": "20:00",
+    })
+    assert created.status_code == 303
+
+    page = await client.get(f"/calendar/custom/{calendar.id}")
+    assert "Kinderfest-Vorbereitung" in page.text and "18:00-20:00" in page.text
+
+    for url in ("/calendar/community", "/calendar/community.json", "/calendar/community.ics"):
+        assert "Kinderfest" not in (await client.get(url)).text, url
+
+    # The community delete route can't reach it either.
+    import re
+    event_id = re.search(rf"/calendar/custom/{calendar.id}/([a-f0-9-]{{36}})/delete", page.text).group(1)
+    assert (await client.post(f"/calendar/community/{event_id}/delete")).status_code == 404
+
+
+async def test_custom_calendar_ics_needs_the_token(client, admin_user):
+    await web_login(client, "admin@example.com")
+    calendar = await _create_custom_calendar(client)
+    await client.post(f"/calendar/custom/{calendar.id}/new", data={
+        "title": "Schlüsselübergabe", "start_date": (date.today() + timedelta(days=2)).isoformat(),
+    })
+    assert (await client.get(f"/calendar/custom/{calendar.id}/feed.ics")).status_code == 404
+    assert (await client.get(f"/calendar/custom/{calendar.id}/feed.ics?token=wrong")).status_code == 404
+
+    import re
+    page = await client.get(f"/calendar/custom/{calendar.id}")
+    token = re.search(r"feed\.ics\?token=([\w-]+)", page.text).group(1)
+    feed = await client.get(f"/calendar/custom/{calendar.id}/feed.ics?token={token}")
+    assert feed.status_code == 200 and "Schlüsselübergabe" in feed.text and "X-WR-CALNAME:Vereinsheim" in feed.text
+
+    # The installation-wide ICS token (shown to every calendar reader on
+    # the birthdays page etc.) must NOT open a custom calendar's feed.
+    birthdays = await client.get("/calendar/birthdays")
+    shared = re.search(r"birthdays\.ics\?token=([\w-]+)", birthdays.text).group(1)
+    assert shared != token
+    assert (await client.get(f"/calendar/custom/{calendar.id}/feed.ics?token={shared}")).status_code == 404
+
+
+async def test_making_a_calendar_board_only_cuts_off_old_subscribers(client, admin_user):
+    """Security review #314: someone who subscribed while the calendar
+    was open must lose the feed once it becomes board-only."""
+    import re
+    await web_login(client, "admin@example.com")
+    calendar = await _create_custom_calendar(client)
+    old_token = re.search(r"feed\.ics\?token=([\w-]+)", (await client.get(f"/calendar/custom/{calendar.id}")).text).group(1)
+    assert (await client.get(f"/calendar/custom/{calendar.id}/feed.ics?token={old_token}")).status_code == 200
+
+    await client.post(f"/calendar/custom/{calendar.id}/edit", data={
+        "name": "Vereinsheim", "color": "#1e40af", "is_active": "true", "full_access_only": "true",
+    })
+    assert (await client.get(f"/calendar/custom/{calendar.id}/feed.ics?token={old_token}")).status_code == 404
+    new_token = re.search(r"feed\.ics\?token=([\w-]+)", (await client.get(f"/calendar/custom/{calendar.id}")).text).group(1)
+    assert new_token != old_token
+    assert (await client.get(f"/calendar/custom/{calendar.id}/feed.ics?token={new_token}")).status_code == 200
+
+    # "New subscription link" rotates it again without changing anything else.
+    await client.post(f"/calendar/custom/{calendar.id}/edit", data={
+        "name": "Vereinsheim", "color": "#1e40af", "is_active": "true", "full_access_only": "true", "new_feed_link": "true",
+    })
+    assert (await client.get(f"/calendar/custom/{calendar.id}/feed.ics?token={new_token}")).status_code == 404
+
+
+async def test_board_only_calendar_is_invisible_to_other_users(client, admin_user):
+    await web_login(client, "admin@example.com")
+    secret = await _create_custom_calendar(client, name="Vorstandsklausur", full_access_only="true")
+    open_cal = await _create_custom_calendar(client, name="Vereinsheim")
+
+    reader = await _calendar_reader_client()
+    try:
+        index = await reader.get("/calendar/custom")
+        assert index.status_code == 200
+        assert "Vereinsheim" in index.text and "Vorstandsklausur" not in index.text
+        assert "/calendar/custom/new" not in index.text  # no management form
+        assert (await reader.get(f"/calendar/custom/{secret.id}")).status_code == 404
+        assert (await reader.get(f"/calendar/custom/{open_cal.id}")).status_code == 200
+        # Read-only: may not add entries or create calendars.
+        assert (await reader.post(f"/calendar/custom/{open_cal.id}/new", data={
+            "title": "x", "start_date": date.today().isoformat()})).status_code == 403
+        assert (await reader.post("/calendar/custom/new", data={"name": "Mine"})).status_code == 403
+    finally:
+        await reader.aclose()
+
+
+async def test_archived_calendar_keeps_entries_but_takes_no_new_ones(client, admin_user):
+    await web_login(client, "admin@example.com")
+    calendar = await _create_custom_calendar(client)
+    await client.post(f"/calendar/custom/{calendar.id}/new", data={
+        "title": "Altes Treffen", "start_date": (date.today() + timedelta(days=1)).isoformat(),
+    })
+    archived = await client.post(f"/calendar/custom/{calendar.id}/edit", data={
+        "name": "Vereinsheim", "color": "javascript:alert(1)",  # not a colour -> default
+    })
+    assert archived.status_code == 303
+    from app.database import AsyncSessionLocal
+    from app.models import CustomCalendar
+    async with AsyncSessionLocal() as session:
+        stored = await session.get(CustomCalendar, calendar.id)
+        assert stored.is_active is False and stored.color == "#2e7d32"
+
+    assert "Altes Treffen" in (await client.get(f"/calendar/custom/{calendar.id}")).text
+    refused = await client.post(f"/calendar/custom/{calendar.id}/new", data={
+        "title": "Neu", "start_date": date.today().isoformat(),
+    })
+    assert refused.status_code == 409
+
+
+async def test_resources_view_shows_current_loans_and_needs_inventory_read(client, admin_user):
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    member = (await client.post("/api/v1/members", json={"first_name": "Petra", "last_name": "Leiherin"}, headers=headers)).json()
+    item = (await client.post("/api/v1/inventory/items", json={
+        "name": "Vereinsanhänger", "is_borrowable": True, "quantity_total": 1}, headers=headers)).json()
+    await client.post("/api/v1/inventory/items", json={"name": "Not lendable", "is_borrowable": False}, headers=headers)
+    loan = await client.post(f"/api/v1/inventory/items/{item['id']}/loans", json={
+        "member_id": member["id"], "quantity": 1, "borrowed_date": "2026-11-01"}, headers=headers)
+    assert loan.status_code in (200, 201), loan.text
+
+    await web_login(client, "admin@example.com")
+    page = await client.get("/calendar/resources")
+    assert page.status_code == 200
+    assert "Vereinsanhänger" in page.text and "Petra Leiherin" in page.text and "01.11.2026" in page.text
+    assert "Not lendable" not in page.text
+
+    # Calendar read alone isn't enough: who borrowed what is inventory data.
+    reader = await _calendar_reader_client()
+    try:
+        assert (await reader.get("/calendar/resources")).status_code == 403
+        assert "/calendar/resources" not in (await reader.get("/calendar/custom")).text
+    finally:
+        await reader.aclose()

@@ -281,3 +281,25 @@ etc.) still have no API and still aren't planned speculatively.
   feeds would have grown forever, including years of past meetings,
   diverging from what the list-view pages already correctly showed
   (upcoming only). Fixed to filter consistently with their list views.
+
+## Custom calendars and resources (issue #314, ADR 0131)
+
+- **My calendars** (`/calendar/custom`): full-access users create
+  calendars there (name, colour, description, "board only") and edit
+  or archive them. Each one has a page at `/calendar/custom/{id}` with
+  the same entry form as the community calendar, and a private ICS feed
+  at `/calendar/custom/{id}/feed.ics?token=...` with the calendar's
+  *own* secret (`feed_token`, not the shared ICS token). The secret is
+  rotated when "board only" changes or on request. Entries are `CalendarEvent` rows with `calendar_id` set.
+- **Keep the community calendar to `calendar_id IS NULL`.** Its page,
+  the public `community.ics`/`community.json` and its delete route all
+  filter on it. Any new community query must do the same, or private
+  entries end up on the public website.
+- **Board-only** calendars answer 404 to everyone else.
+- **Archived** calendars keep their entries but take no new ones (409),
+  and their feed is gone.
+- **Resources** (`/calendar/resources`, linked from My calendars):
+  club-owned, borrowable, non-retired items with their open loans. It's
+  read-only and has no time grid, because loans have no planned period.
+  It needs the inventory module and inventory read permission on top of
+  calendar read.
