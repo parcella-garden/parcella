@@ -370,10 +370,16 @@
                     {{ csrf_field() }}
                     <label class="form-label fw-semibold">{{ t('parcels.detail.cloud_folder_path_label') }}</label>
                     <div class="input-group">
-                        <input type="text" name="relative_path" class="form-control"
+                        <input type="text" name="relative_path" id="cloud-folder-path" class="form-control"
                                value="{{ cloud_folder.relative_path if cloud_folder else '' }}"
                                placeholder="{{ t('parcels.detail.cloud_folder_path_placeholder') }}">
-                        <button type="submit" class="btn btn-outline-secondary">
+                        {# Opens the folder dialog (script below); without JavaScript it is the
+                           server-rendered picker further down. #}
+                        <a href="/parcels/{{ parcel.id }}?cloud_pick=1&pick_path={{ ((cloud_folder.relative_path.rsplit('/', 1)[0] if '/' in cloud_folder.relative_path else '') if cloud_folder else '') | urlencode }}#cloud-documents"
+                           class="btn btn-outline-secondary" id="cloud-folder-browse" data-picker-url="/parcels/{{ parcel.id }}/cloud-folder/picker">
+                            <i class="bi bi-folder2-open me-1"></i>{{ t('parcels.detail.cloud_browse_folder_button') }}
+                        </a>
+                        <button type="submit" class="btn btn-outline-primary">
                             {{ t('parcels.detail.cloud_folder_save_button') }}
                         </button>
                     </div>
@@ -382,12 +388,6 @@
                     {% endif %}
                 </form>
 
-                {% if not cloud_picking %}
-                <a href="/parcels/{{ parcel.id }}?cloud_pick=1&pick_path=#cloud-documents"
-                   class="btn btn-sm btn-outline-secondary mb-3">
-                    <i class="bi bi-folder2-open me-1"></i>{{ t('parcels.detail.cloud_browse_folder_button') }}
-                </a>
-                {% endif %}
 
                 {% if cloud_picking %}
                 <div class="card mb-3">
@@ -555,4 +555,178 @@
     {% endif %}
 
 </div>
+
+{% if cloud_storage_enabled %}
+{# Folder dialog for the cloud folder path: one folder level per request
+   (GET .../cloud-folder/picker, JSON), names only ever set via textContent. #}
+<div class="modal fade" id="cloud-folder-modal" tabindex="-1" aria-labelledby="cloud-folder-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cloud-folder-modal-title"><i class="bi bi-folder2-open me-2"></i>{{ t('parcels.detail.cloud_picker_title') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ t('parcels.detail.cloud_picker_cancel_button') }}"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <nav class="mb-2 small d-flex flex-wrap align-items-center gap-1" id="cfm-crumbs" aria-label="breadcrumb"></nav>
+                <label class="visually-hidden" for="cfm-filter">{{ t('parcels.detail.cloud_picker_filter') }}</label>
+                <input type="search" id="cfm-filter" class="form-control form-control-sm mb-2" autocomplete="off"
+                       placeholder="{{ t('parcels.detail.cloud_picker_filter') }}">
+                <div id="cfm-error" class="alert alert-danger d-none"></div>
+                <div id="cfm-loading" class="text-muted small py-3 text-center d-none">
+                    <span class="spinner-border spinner-border-sm me-1"></span>{{ t('parcels.detail.cloud_picker_loading') }}
+                </div>
+                <div class="list-group" id="cfm-list"></div>
+                <div id="cfm-empty" class="text-muted small py-2 d-none"></div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <div class="small text-muted text-truncate" style="max-width: 100%;">
+                    <span id="cfm-selected-label">{{ t('parcels.detail.cloud_picker_selected') }}</span>
+                    <code id="cfm-selected"></code>
+                    <span id="cfm-root-hint">{{ t('parcels.detail.cloud_picker_root_hint') }}</span>
+                </div>
+                <div class="d-flex gap-2 ms-auto">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ t('parcels.detail.cloud_picker_cancel_button') }}</button>
+                    <button type="button" class="btn btn-primary" id="cfm-use">{{ t('parcels.detail.cloud_picker_use_folder_button') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+{% if cloud_storage_enabled %}
+<script>
+(function () {
+    const browse = document.getElementById('cloud-folder-browse');
+    const input = document.getElementById('cloud-folder-path');
+    const modalEl = document.getElementById('cloud-folder-modal');
+    if (!browse || !input || !modalEl) return;
+    const T = {{ {
+        'empty': t('parcels.detail.cloud_picker_empty'),
+        'no_match': t('parcels.detail.cloud_picker_no_match'),
+        'failed': t('parcels.detail.cloud_picker_failed'),
+    }|tojson }};
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    const list = document.getElementById('cfm-list');
+    const crumbs = document.getElementById('cfm-crumbs');
+    const filter = document.getElementById('cfm-filter');
+    const errorBox = document.getElementById('cfm-error');
+    const loading = document.getElementById('cfm-loading');
+    const emptyBox = document.getElementById('cfm-empty');
+    const useButton = document.getElementById('cfm-use');
+    let current = '';
+    let folders = [];
+    let requestNo = 0;
+
+    const join = (base, name) => base ? base + '/' + name : name;
+    const parentOf = (path) => path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '';
+
+    function setSelected(path) {
+        current = path;
+        document.getElementById('cfm-selected').textContent = path;
+        document.getElementById('cfm-selected-label').classList.toggle('d-none', !path);
+        document.getElementById('cfm-root-hint').classList.toggle('d-none', !!path);
+        useButton.disabled = !path;
+    }
+
+    function renderList() {
+        const query = filter.value.trim().toLowerCase();
+        const shown = folders.filter(name => !query || name.toLowerCase().includes(query));
+        const chosen = input.value.trim().replace(/^\/+|\/+$/g, '');
+        list.replaceChildren(...shown.map(name => {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'list-group-item list-group-item-action d-flex align-items-center gap-2';
+            const path = join(current, name);
+            if (path === chosen) item.classList.add('active');
+            const icon = document.createElement('i');
+            icon.className = 'bi bi-folder-fill text-warning';
+            const label = document.createElement('span');
+            label.className = 'flex-grow-1 text-truncate';
+            label.textContent = name;
+            const chevron = document.createElement('i');
+            chevron.className = 'bi bi-chevron-right text-muted';
+            item.append(icon, label, chevron);
+            item.addEventListener('click', () => load(path));
+            item.addEventListener('dblclick', () => choose(path));
+            return item;
+        }));
+        emptyBox.textContent = folders.length ? (shown.length ? '' : T.no_match) : T.empty;
+        emptyBox.classList.toggle('d-none', !!shown.length || loading.classList.contains('d-none') === false);
+    }
+
+    function renderCrumbs(breadcrumbs) {
+        crumbs.replaceChildren();
+        breadcrumbs.forEach((crumb, index) => {
+            if (index) {
+                const sep = document.createElement('span');
+                sep.className = 'text-muted';
+                sep.textContent = '/';
+                crumbs.appendChild(sep);
+            }
+            const last = index === breadcrumbs.length - 1;
+            const el = document.createElement(last ? 'span' : 'button');
+            el.textContent = crumb.name;
+            if (last) { el.className = 'fw-semibold'; }
+            else {
+                el.type = 'button';
+                el.className = 'btn btn-link btn-sm p-0 text-decoration-none';
+                el.addEventListener('click', () => load(crumb.pick_path));
+            }
+            crumbs.appendChild(el);
+        });
+    }
+
+    async function load(path) {
+        const mine = ++requestNo;
+        errorBox.classList.add('d-none');
+        loading.classList.remove('d-none');
+        emptyBox.classList.add('d-none');
+        list.replaceChildren();
+        filter.value = '';
+        let data;
+        try {
+            const response = await fetch(browse.dataset.pickerUrl + '?path=' + encodeURIComponent(path), {credentials: 'same-origin'});
+            data = await response.json();
+        } catch (e) {
+            data = {error: T.failed, folders: null, breadcrumbs: [], path: path};
+        }
+        if (mine !== requestNo) return;   // a newer click won
+        loading.classList.add('d-none');
+        setSelected(data.path || '');
+        renderCrumbs(data.breadcrumbs || []);
+        if (data.error) {
+            errorBox.textContent = data.error;
+            errorBox.classList.remove('d-none');
+        }
+        folders = data.folders || [];
+        renderList();
+        filter.focus();
+    }
+
+    function choose(path) {
+        input.value = path;
+        modal.hide();
+        input.form.requestSubmit();
+    }
+
+    filter.addEventListener('input', renderList);
+    filter.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        const first = list.querySelector('button');
+        if (first) first.click();   // Enter opens the only/first match
+    });
+    useButton.addEventListener('click', () => { if (current) choose(current); });
+    browse.addEventListener('click', (event) => {
+        event.preventDefault();
+        modal.show();
+        // Start where the current folder lives, so it shows up highlighted.
+        load(parentOf(input.value.trim().replace(/^\/+|\/+$/g, '')));
+    });
+})();
+</script>
+{% endif %}
 {% endblock %}

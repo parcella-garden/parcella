@@ -9,7 +9,7 @@ from typing import Optional
 from urllib.parse import quote as urlquote, urlencode
 
 from fastapi import APIRouter, Request, Form, Depends, UploadFile, File, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 from sqlalchemy.orm import selectinload
@@ -584,6 +584,25 @@ async def parcel_cloud_folder_set(
         message = urlquote(str(e))
         return RedirectResponse(f"/parcels/{parcel_id}?cloud_error={message}", status_code=303)
     return RedirectResponse(f"/parcels/{parcel_id}?cloud_folder_saved=1", status_code=303)
+
+
+@router.get("/{parcel_id}/cloud-folder/picker", dependencies=[Depends(require_module("cloud_storage"))])
+async def parcel_cloud_folder_picker(parcel_id: str, request: Request, path: str = "", db: AsyncSession = Depends(get_db)):
+    """The folder dialog on the parcel page: one folder level as JSON
+    (directories only), same data and same board/admin check as the
+    server-rendered ?cloud_pick=1 picker it enhances."""
+    await require_admin(request, db)
+    picker = await browse_folder_picker(
+        db, path,
+        root_label=t_for(request, "parcels.detail.cloud_picker_root_label"),
+        not_configured_message=t_for(request, "parcels.cloud_storage.not_configured"),
+    )
+    return JSONResponse({
+        "path": picker["path"],
+        "breadcrumbs": picker["breadcrumbs"],
+        "folders": None if picker["entries"] is None else sorted((e.name for e in picker["entries"]), key=str.lower),
+        "error": picker["error"],
+    }, headers={"Cache-Control": "private, no-store"})
 
 
 @router.post("/{parcel_id}/cloud-folder/upload", dependencies=[Depends(require_module("cloud_storage"))])

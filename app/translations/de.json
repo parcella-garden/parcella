@@ -914,7 +914,13 @@
       "upcoming_badge": "ab {date}",
       "leaving_badge": "bis {date}",
       "cloud_folder_retires": "Der aktuelle Ordner wird am {date} stillgelegt.",
-      "cloud_folder_scheduled": "Ab dem {date} ist {path} der Dokumentenordner."
+      "cloud_folder_scheduled": "Ab dem {date} ist {path} der Dokumentenordner.",
+      "cloud_picker_title": "Ordner auswählen",
+      "cloud_picker_filter": "Ordner filtern…",
+      "cloud_picker_loading": "Lädt…",
+      "cloud_picker_no_match": "Kein Ordner passt zum Filter.",
+      "cloud_picker_selected": "Ausgewählt:",
+      "cloud_picker_failed": "Die Ordner konnten nicht geladen werden."
     },
     "errors": {
       "parcel_not_found": "Parcel nicht gefunden",

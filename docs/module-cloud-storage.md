@@ -175,9 +175,21 @@ never collides with the `cloud_path` state above. A "Use this folder"
 button at any level posts straight to the existing, unmodified
 `POST /parcels/{id}/cloud-folder` save route -- no new backend route,
 no new validation, just a different value arriving at the same door.
-Deliberately still server-rendered (full page reload), not a JSON/AJAX
-modal, to stay consistent with the browsing pattern above and match
-implementation surface to what was actually asked for.
+Originally deliberately server-rendered (full page reload per folder
+level). That turned out too clumsy for clubs with hundreds of plot
+folders, so the parcel page's "Browse…"
+button (now inside the path field's input group) opens a **folder
+dialog** instead: `GET /parcels/{id}/cloud-folder/picker?path=` returns
+one level as JSON (`path`, `breadcrumbs`, `folders` -- names only,
+sorted -- and `error`), built by the same `browse_folder_picker()` and
+behind the same board/admin check (`require_admin`) and module flag.
+The dialog filters the current level as you type (Enter opens the first
+match), starts in the parent of the currently saved folder so it shows
+up highlighted, and "Use this folder" (or a double click) fills the
+path field and submits the unchanged save route. Folder names are only
+ever set via `textContent`. The `?cloud_pick=1` page stays as the
+no-JavaScript fallback (the button is a link to it), and the handover
+and admin pages still use the server-rendered picker.
 
 ## External contacts' documents (ADR 0097)
 
