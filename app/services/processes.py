@@ -229,6 +229,62 @@ async def move_stage(db: AsyncSession, template: ProcessTemplate, stage_id: str,
     await db.commit()
 
 
+def _reorder(items: list, ids: list[str]) -> None:
+    """Puts `items` in the order of `ids` (drag and drop). The ids must be
+    exactly the items' ids -- a stale page refuses rather than guesses."""
+    by_id = {item.id: item for item in items}
+    if len(ids) != len(by_id) or set(ids) != set(by_id):
+        raise ServiceError(_ERR + "stale_order", http_status=409)
+    items.sort(key=lambda item: ids.index(item.id))
+    _renumber(items)
+
+
+async def reorder_stages(db: AsyncSession, template: ProcessTemplate, ids: list[str], user: Optional[User]) -> None:
+    await _require(db, user, "templates")
+    _reorder(template.stages, ids)
+    await db.commit()
+
+
+async def reorder_fields(
+    db: AsyncSession, template: ProcessTemplate, stage_id: str, ids: list[str], user: Optional[User],
+) -> None:
+    await _require(db, user, "templates")
+    _reorder(_stage(template, stage_id).fields, ids)
+    await db.commit()
+
+
+async def move_field_to_stage(
+    db: AsyncSession, template: ProcessTemplate, field_id: str, stage_id: str, user: Optional[User],
+) -> None:
+    """Moves a field to the end of another stage of the same template."""
+    await _require(db, user, "templates")
+    field = _template_field(template, field_id)
+    target = _stage(template, stage_id)
+    if target is field.stage:
+        return
+    source = field.stage
+    source.fields.remove(field)
+    _renumber(source.fields)
+    field.position = len(target.fields)
+    target.fields.append(field)
+    await db.commit()
+
+
+async def duplicate_field(db: AsyncSession, template: ProcessTemplate, field_id: str, user: Optional[User]) -> ProcessTemplateField:
+    """A copy right below the original, labelled the same."""
+    await _require(db, user, "templates")
+    field = _template_field(template, field_id)
+    stage = field.stage
+    copy = ProcessTemplateField(
+        kind=field.kind, label=field.label, help_text=field.help_text, required=field.required,
+        options=list(field.options) if field.options else None, position=0,
+    )
+    stage.fields.insert(stage.fields.index(field) + 1, copy)
+    _renumber(stage.fields)
+    await db.commit()
+    return copy
+
+
 def _field_kind(value: Any) -> ProcessFieldKind:
     try:
         return ProcessFieldKind(value)

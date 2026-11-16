@@ -3799,7 +3799,26 @@
       "add_field": "Add a field",
       "add_field_submit": "Add the field",
       "add_stage": "Add a stage",
-      "add_stage_submit": "Add"
+      "add_stage_submit": "Add",
+      "stages": "Stages",
+      "details": "Details",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "save_failed": "Couldn't save -- please try again.",
+      "preview": "Preview",
+      "preview_note": "This is how the stage looks in a running process. The inputs are disabled here.",
+      "field_count": "{count} field(s)",
+      "quick_add_placeholder": "New field: type a label, press Enter",
+      "edit_field": "Edit field",
+      "new_field": "New field",
+      "move_to_stage": "Move to stage",
+      "duplicate": "Duplicate",
+      "drag_hint": "Drag to reorder",
+      "no_stages": "No stages yet. Add the first one on the left, e.g. \"Inspection\".",
+      "new_stage_placeholder": "New stage, e.g. \"Inspection\"",
+      "close": "Close",
+      "stage_actions": "Stage actions",
+      "pick_kind": "Type"
     },
     "errors": {
       "not_found": "Process not found.",
@@ -3830,7 +3849,8 @@
       "file_not_found": "File not found.",
       "cloud_upload_failed": "The file couldn't be saved to the cloud.",
       "cloud_download_failed": "The file couldn't be loaded from the cloud.",
-      "cloud_not_configured": "Cloud storage isn't set up."
+      "cloud_not_configured": "Cloud storage isn't set up.",
+      "stale_order": "The order changed in the meantime -- here is the current one."
     },
     "examples": {
       "plot_handover": {

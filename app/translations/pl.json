@@ -3799,7 +3799,26 @@
       "add_field": "Dodaj pole",
       "add_field_submit": "Dodaj pole",
       "add_stage": "Dodaj etap",
-      "add_stage_submit": "Dodaj"
+      "add_stage_submit": "Dodaj",
+      "stages": "Etapy",
+      "details": "Szczegóły",
+      "saving": "Zapisywanie…",
+      "saved": "Zapisano",
+      "save_failed": "Nie udało się zapisać – spróbuj ponownie.",
+      "preview": "Podgląd",
+      "preview_note": "Tak wygląda etap w trwającym procesie. Pola są tutaj wyłączone.",
+      "field_count": "Pola: {count}",
+      "quick_add_placeholder": "Nowe pole: wpisz nazwę i naciśnij Enter",
+      "edit_field": "Edytuj pole",
+      "new_field": "Nowe pole",
+      "move_to_stage": "Przenieś do etapu",
+      "duplicate": "Duplikuj",
+      "drag_hint": "Przeciągnij, aby zmienić kolejność",
+      "no_stages": "Brak etapów. Dodaj pierwszy po lewej, np. „Oględziny”.",
+      "new_stage_placeholder": "Nowy etap, np. „Oględziny”",
+      "close": "Zamknij",
+      "stage_actions": "Działania etapu",
+      "pick_kind": "Typ"
     },
     "errors": {
       "not_found": "Nie znaleziono procesu.",
@@ -3830,7 +3849,8 @@
       "file_not_found": "Nie znaleziono pliku.",
       "cloud_upload_failed": "Nie udało się zapisać pliku w chmurze.",
       "cloud_download_failed": "Nie udało się pobrać pliku z chmury.",
-      "cloud_not_configured": "Magazyn w chmurze nie jest skonfigurowany."
+      "cloud_not_configured": "Magazyn w chmurze nie jest skonfigurowany.",
+      "stale_order": "Kolejność zmieniła się w międzyczasie – oto aktualna."
     },
     "examples": {
       "plot_handover": {

@@ -3799,7 +3799,26 @@
       "add_field": "Ajouter un champ",
       "add_field_submit": "Ajouter le champ",
       "add_stage": "Ajouter une étape",
-      "add_stage_submit": "Ajouter"
+      "add_stage_submit": "Ajouter",
+      "stages": "Étapes",
+      "details": "Détails",
+      "saving": "Enregistrement…",
+      "saved": "Enregistré",
+      "save_failed": "Échec de l'enregistrement – veuillez réessayer.",
+      "preview": "Aperçu",
+      "preview_note": "Voici l'étape telle qu'elle apparaît dans un processus en cours. Les champs sont désactivés ici.",
+      "field_count": "{count} champ(s)",
+      "quick_add_placeholder": "Nouveau champ : saisissez un libellé, puis Entrée",
+      "edit_field": "Modifier le champ",
+      "new_field": "Nouveau champ",
+      "move_to_stage": "Déplacer vers l'étape",
+      "duplicate": "Dupliquer",
+      "drag_hint": "Glisser pour réorganiser",
+      "no_stages": "Pas encore d'étapes. Ajoutez la première à gauche, p. ex. « Visite ».",
+      "new_stage_placeholder": "Nouvelle étape, p. ex. « Visite »",
+      "close": "Fermer",
+      "stage_actions": "Actions de l'étape",
+      "pick_kind": "Type"
     },
     "errors": {
       "not_found": "Procédure introuvable.",
@@ -3830,7 +3849,8 @@
       "file_not_found": "Fichier introuvable.",
       "cloud_upload_failed": "Le fichier n'a pas pu être enregistré dans le cloud.",
       "cloud_download_failed": "Le fichier n'a pas pu être chargé depuis le cloud.",
-      "cloud_not_configured": "Le stockage cloud n'est pas configuré."
+      "cloud_not_configured": "Le stockage cloud n'est pas configuré.",
+      "stale_order": "L'ordre a changé entre-temps – voici l'ordre actuel."
     },
     "examples": {
       "plot_handover": {

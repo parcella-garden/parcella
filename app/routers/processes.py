@@ -8,11 +8,12 @@ app/services/processes.py, which this router and the API share.
 The template routes are declared before /{process_id}, so "templates"
 is never taken for a process id.
 """
+from types import SimpleNamespace
 from typing import Optional
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -151,28 +152,58 @@ async def template_from_example(request: Request, db: AsyncSession = Depends(get
     return _redirect(_template_url(template.id))
 
 
+def _preview_field(field):
+    """A template field shaped like an empty ProcessField, so the preview
+    renders through the very same _field_input.html as a real process."""
+    return SimpleNamespace(
+        id=f"preview-{field.id}", kind=field.kind, label=field.label, help_text=field.help_text,
+        required=field.required, options=field.options, value_text=None, value_number=None, value_date=None,
+        value_bool=None, value_member=None, value_member_id=None, value_applicant_id=None, value_parcel_id=None,
+    )
+
+
 @router.get("/templates/{template_id}", response_class=HTMLResponse)
 async def template_edit_page(template_id: str, request: Request, db: AsyncSession = Depends(get_db)):
     user = await _require_templates(request, db)
     template = await _load_template(request, db, template_id)
+    wanted = request.query_params.get("stage")
+    stage = next((s for s in template.stages if s.id == wanted), template.stages[0] if template.stages else None)
     return templates.TemplateResponse("processes/template_edit.html", {
-        "request": request, "user": user, "template": template,
+        "request": request, "user": user, "template": template, "stage": stage,
+        "preview_fields": [_preview_field(f) for f in stage.fields] if stage else [],
         "usage": await svc.template_usage(db, template.id),
         "subject_kinds": list(ProcessSubjectKind), "field_kinds": list(ProcessFieldKind),
+        "members": [], "applicants": [], "parcels": [], "can_read_applicants": True,
         "error": shown_error(request.query_params.get("error")),
     })
 
 
+def _wants_json(request: Request) -> bool:
+    """The builder's background saves (fetch) ask for JSON; a plain form
+    post without JavaScript still gets the redirect."""
+    return request.headers.get("x-requested-with") == "fetch"
+
+
 async def _template_action(request: Request, db: AsyncSession, template_id: str, action, anchor: str = ""):
-    """Runs one template change and redirects back to the editor."""
+    """Runs one template change, then redirects back to the editor -- or,
+    for the builder's fetch calls, answers {"ok": true, ...} / {"error": ...}."""
     user = await _require_templates(request, db)
     template = await _load_template(request, db, template_id)
     form = await request.form()
     try:
         result = await action(user, template, form)
     except ServiceError as e:
+        if _wants_json(request):
+            await db.rollback()
+            return JSONResponse({"error": t_for(request, e.key)}, status_code=e.http_status or 422)
         return await _fail(request, db, _template_url(template_id), e, anchor)
-    return result or _redirect(_template_url(template_id), anchor)
+    if _wants_json(request):
+        return JSONResponse({"ok": True, **(result if isinstance(result, dict) else {})})
+    if isinstance(result, dict):
+        return _redirect(result.get("url") or _template_url(template_id), result.get("anchor", anchor))
+    stage = str(form.get("return_stage") or "")
+    url = _template_url(template_id) + (f"?stage={quote(stage)}" if stage else "")
+    return result or _redirect(url, anchor)
 
 
 @router.post("/templates/{template_id}")
@@ -194,7 +225,7 @@ async def template_archive(template_id: str, request: Request, db: AsyncSession 
 async def template_delete(template_id: str, request: Request, db: AsyncSession = Depends(get_db)):
     async def action(user, template, form):
         await svc.delete_template(db, template, user)
-        return _redirect("/processes/templates/")
+        return {"url": "/processes/templates/"}
     return await _template_action(request, db, template_id, action)
 
 
@@ -202,8 +233,19 @@ async def template_delete(template_id: str, request: Request, db: AsyncSession =
 async def template_stage_add(template_id: str, request: Request, db: AsyncSession = Depends(get_db)):
     async def action(user, template, form):
         stage = await svc.add_stage(db, template, user, name=form.get("name"), description=form.get("description"))
-        return _redirect(_template_url(template_id), f"stage-{stage.id}")
+        return {"id": stage.id, "url": f"{_template_url(template_id)}?stage={stage.id}"}
     return await _template_action(request, db, template_id, action, "add-stage")
+
+
+def _ids(form) -> list[str]:
+    return [str(v) for v in form.getlist("ids")]
+
+
+@router.post("/templates/{template_id}/stages/order")
+async def template_stages_order(template_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    async def action(user, template, form):
+        await svc.reorder_stages(db, template, _ids(form), user)
+    return await _template_action(request, db, template_id, action)
 
 
 @router.post("/templates/{template_id}/stages/{stage_id}")
@@ -237,7 +279,8 @@ def _field_values(form) -> dict:
 @router.post("/templates/{template_id}/stages/{stage_id}/fields")
 async def template_field_add(template_id: str, stage_id: str, request: Request, db: AsyncSession = Depends(get_db)):
     async def action(user, template, form):
-        await svc.add_field(db, template, stage_id, user, **_field_values(form))
+        field = await svc.add_field(db, template, stage_id, user, **_field_values(form))
+        return {"id": field.id, "url": f"{_template_url(template_id)}?stage={stage_id}", "anchor": f"field-{field.id}"}
     return await _template_action(request, db, template_id, action, f"stage-{stage_id}")
 
 
@@ -260,6 +303,31 @@ async def template_field_move(template_id: str, field_id: str, request: Request,
     async def action(user, template, form):
         await svc.move_field(db, template, field_id, str(form.get("direction") or ""), user)
     return await _template_action(request, db, template_id, action, f"field-{field_id}")
+
+
+@router.post("/templates/{template_id}/stages/{stage_id}/fields/order")
+async def template_fields_order(template_id: str, stage_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    async def action(user, template, form):
+        await svc.reorder_fields(db, template, stage_id, _ids(form), user)
+    return await _template_action(request, db, template_id, action)
+
+
+@router.post("/templates/{template_id}/fields/{field_id}/stage")
+async def template_field_to_stage(template_id: str, field_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    async def action(user, template, form):
+        stage_id = str(form.get("stage_id") or "")
+        await svc.move_field_to_stage(db, template, field_id, stage_id, user)
+        return {"url": f"{_template_url(template_id)}?stage={stage_id}", "anchor": f"field-{field_id}"}
+    return await _template_action(request, db, template_id, action)
+
+
+@router.post("/templates/{template_id}/fields/{field_id}/duplicate")
+async def template_field_duplicate(template_id: str, field_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    async def action(user, template, form):
+        copy = await svc.duplicate_field(db, template, field_id, user)
+        return {"id": copy.id, "anchor": f"field-{copy.id}",
+                "url": f"{_template_url(template_id)}?stage={copy.stage_id}"}
+    return await _template_action(request, db, template_id, action)
 
 
 # ---------------------------------------------------------------------------

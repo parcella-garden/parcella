@@ -3799,7 +3799,26 @@
       "add_field": "Přidat pole",
       "add_field_submit": "Přidat pole",
       "add_stage": "Přidat fázi",
-      "add_stage_submit": "Přidat"
+      "add_stage_submit": "Přidat",
+      "stages": "Fáze",
+      "details": "Podrobnosti",
+      "saving": "Ukládá se…",
+      "saved": "Uloženo",
+      "save_failed": "Uložení se nezdařilo – zkuste to prosím znovu.",
+      "preview": "Náhled",
+      "preview_note": "Takto vypadá fáze v běžícím procesu. Pole jsou zde vypnutá.",
+      "field_count": "Pole: {count}",
+      "quick_add_placeholder": "Nové pole: napište název a stiskněte Enter",
+      "edit_field": "Upravit pole",
+      "new_field": "Nové pole",
+      "move_to_stage": "Přesunout do fáze",
+      "duplicate": "Duplikovat",
+      "drag_hint": "Přetažením změníte pořadí",
+      "no_stages": "Zatím žádné fáze. Přidejte první vlevo, např. „Prohlídka“.",
+      "new_stage_placeholder": "Nová fáze, např. „Prohlídka“",
+      "close": "Zavřít",
+      "stage_actions": "Akce fáze",
+      "pick_kind": "Typ"
     },
     "errors": {
       "not_found": "Proces nenalezen.",
@@ -3830,7 +3849,8 @@
       "file_not_found": "Soubor nenalezen.",
       "cloud_upload_failed": "Soubor se nepodařilo uložit do cloudu.",
       "cloud_download_failed": "Soubor se nepodařilo načíst z cloudu.",
-      "cloud_not_configured": "Cloudové úložiště není nastaveno."
+      "cloud_not_configured": "Cloudové úložiště není nastaveno.",
+      "stale_order": "Pořadí se mezitím změnilo – zde je aktuální."
     },
     "examples": {
       "plot_handover": {

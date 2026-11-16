@@ -1,33 +1,66 @@
 {% extends "base.html" %}
+{#- Process template builder (ADR 0135): stages on the left, the selected
+    stage's fields on the right, one field at a time in a side panel.
+    Changes are saved in the background (fetch with X-Requested-With:
+    fetch -> JSON), then #pb-root is re-rendered from the server; every
+    form still works as a plain post without JavaScript. -#}
 {% block title %}{{ template.name }}{% endblock %}
 {% block page_title %}{{ t('processes.templates.edit_title', name=template.name) }}{% endblock %}
 
+{% set kind_icons = {
+    'TEXT': 'bi-fonts', 'LONG_TEXT': 'bi-text-paragraph', 'NUMBER': 'bi-123', 'MONEY': 'bi-cash-coin',
+    'DATE': 'bi-calendar-event', 'CHECKBOX': 'bi-check2-square', 'CHOICE': 'bi-list-ul', 'FILE': 'bi-paperclip',
+    'MEMBER': 'bi-person', 'APPLICANT': 'bi-person-plus', 'PARCEL': 'bi-geo-alt',
+} %}
+
+{% block extra_head %}
+<style>
+    .pb-handle { cursor: grab; color: var(--bs-secondary-color); touch-action: none; padding: 0 .25rem; }
+    .pb-handle:active { cursor: grabbing; }
+    .pb-ghost { opacity: .4; }
+    .pb-field { cursor: pointer; }
+    .pb-field:hover { background: var(--bs-tertiary-bg); }
+    .pb-kind-icon { width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center;
+                    border-radius: .375rem; background: var(--bs-secondary-bg); flex-shrink: 0; }
+    .pb-kinds { display: grid; grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr)); gap: .4rem; }
+    .pb-kinds .btn { display: flex; flex-direction: column; align-items: center; gap: .15rem; font-size: .8rem; padding: .45rem .25rem; }
+    .pb-kinds .btn i { font-size: 1.15rem; }
+    .pb-stage-name { font-weight: 600; border-color: transparent; background: transparent; }
+    .pb-stage-name:hover, .pb-stage-name:focus { border-color: var(--bs-border-color); background: var(--bs-body-bg); }
+    #pb-status { transition: opacity .3s; }
+    #pb-editor { --bs-offcanvas-width: min(440px, 100vw); }
+</style>
+{% endblock %}
+
 {% block topbar_actions %}
+<span id="pb-status" class="small text-success me-2" style="opacity: 0;" aria-live="polite"></span>
 <a href="/processes/templates/" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{{ t('processes.templates.title') }}</a>
 {% endblock %}
 
-{% macro field_kind_select(selected, id) %}
-<select name="kind" class="form-select form-select-sm" id="{{ id }}">
-    {% for k in field_kinds %}<option value="{{ k.value }}" {% if selected == k.value %}selected{% endif %}>{{ t('processes.field_kind.' ~ k.value) }}</option>{% endfor %}
-</select>
-{% endmacro %}
+{% macro kind_icon(kind) %}<span class="pb-kind-icon"><i class="bi {{ kind_icons[kind] }}"></i></span>{% endmacro %}
 
 {% block content %}
-{% if error %}
-<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
-    <i class="bi bi-exclamation-triangle-fill"></i> {{ t(error) }}
-</div>
-{% endif %}
-
-<div class="alert alert-info d-flex gap-2 align-items-start" style="font-size: 0.9rem;">
-    <i class="bi bi-info-circle-fill"></i>
-    <div>{{ t('processes.templates.snapshot_note', count=usage) }}</div>
+<div id="pb-alert" class="alert alert-danger d-flex gap-2 align-items-center mb-3{% if not error %} d-none{% endif %}" role="alert">
+    <i class="bi bi-exclamation-triangle-fill"></i> <span id="pb-alert-text">{% if error %}{{ t(error) }}{% endif %}</span>
 </div>
 
+<div id="pb-root" data-template-id="{{ template.id }}" data-stage-id="{{ stage.id if stage else '' }}">
+
+{# ---- Template header ---- #}
 <div class="card mb-3">
-    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <span>{{ t('processes.templates.general') }}</span>
-        <span class="d-flex gap-2">
+    <div class="card-body d-flex flex-wrap gap-2 align-items-center justify-content-between">
+        <div class="min-w-0">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="fs-5 fw-semibold">{{ template.name }}</span>
+                <span class="badge text-bg-light border">{{ t('processes.subject_kind.' ~ template.subject_kind.value) }}</span>
+                {% if not template.is_active %}<span class="badge text-bg-secondary">{{ t('processes.templates.archived') }}</span>{% endif %}
+            </div>
+            <div class="text-muted small mt-1">{{ t('processes.templates.snapshot_note', count=usage) }}</div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#pb-details" aria-expanded="false">
+                <i class="bi bi-pencil me-1"></i>{{ t('processes.templates.details') }}
+            </button>
             <form method="post" action="/processes/templates/{{ template.id }}/archive">
                 {{ csrf_field() }}
                 <input type="hidden" name="active" value="{{ '0' if template.is_active else '1' }}">
@@ -42,162 +75,502 @@
                 <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>{{ t('processes.templates.delete') }}</button>
             </form>
             {% endif %}
-        </span>
-    </div>
-    <div class="card-body">
-        <form method="post" action="/processes/templates/{{ template.id }}" class="row g-2">
-            {{ csrf_field() }}
-            <div class="col-md-6">
-                <label class="form-label" for="tpl-name">{{ t('processes.templates.name') }} <span class="text-danger">*</span></label>
-                <input type="text" name="name" id="tpl-name" class="form-control" maxlength="200" required value="{{ template.name }}">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label" for="tpl-subject">{{ t('processes.templates.subject_kind') }}</label>
-                <select name="subject_kind" id="tpl-subject" class="form-select">
-                    {% for k in subject_kinds %}<option value="{{ k.value }}" {% if template.subject_kind == k %}selected{% endif %}>{{ t('processes.subject_kind.' ~ k.value) }}</option>{% endfor %}
-                </select>
-            </div>
-            <div class="col-12">
-                <label class="form-label" for="tpl-description">{{ t('processes.templates.description') }}</label>
-                <textarea name="description" id="tpl-description" class="form-control" rows="2" maxlength="20000">{{ template.description or '' }}</textarea>
-            </div>
-            <div class="col-12"><button type="submit" class="btn btn-sm btn-primary">{{ t('processes.detail.save') }}</button></div>
-        </form>
+        </div>
+        <div class="collapse w-100" id="pb-details">
+            <form method="post" action="/processes/templates/{{ template.id }}" class="row g-2 pt-2 border-top mt-1" data-pb>
+                {{ csrf_field() }}
+                <input type="hidden" name="return_stage" value="{{ stage.id if stage else '' }}">
+                <div class="col-md-6">
+                    <label class="form-label small mb-0" for="tpl-name">{{ t('processes.templates.name') }} <span class="text-danger">*</span></label>
+                    <input type="text" name="name" id="tpl-name" class="form-control form-control-sm" maxlength="200" required value="{{ template.name }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small mb-0" for="tpl-subject">{{ t('processes.templates.subject_kind') }}</label>
+                    <select name="subject_kind" id="tpl-subject" class="form-select form-select-sm">
+                        {% for k in subject_kinds %}<option value="{{ k.value }}" {% if template.subject_kind == k %}selected{% endif %}>{{ t('processes.subject_kind.' ~ k.value) }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label small mb-0" for="tpl-description">{{ t('processes.templates.description') }}</label>
+                    <textarea name="description" id="tpl-description" class="form-control form-control-sm" rows="2" maxlength="20000">{{ template.description or '' }}</textarea>
+                </div>
+                <div class="col-12"><button type="submit" class="btn btn-sm btn-primary">{{ t('processes.detail.save') }}</button></div>
+            </form>
+        </div>
     </div>
 </div>
 
-{% for stage in template.stages %}
-{% set first_stage, last_stage = loop.first, loop.last %}
-<div class="card mb-3" id="stage-{{ stage.id }}">
-    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <span class="fw-semibold">{{ t('processes.templates.stage_n', n=loop.index) }}: {{ stage.name }}</span>
-        <span class="d-flex gap-1">
-            {% for direction, icon in (('up', 'bi-arrow-up'), ('down', 'bi-arrow-down')) %}
-            <form method="post" action="/processes/templates/{{ template.id }}/stages/{{ stage.id }}/move">
-                {{ csrf_field() }}<input type="hidden" name="direction" value="{{ direction }}">
-                <button type="submit" class="btn btn-sm btn-outline-secondary" title="{{ t('processes.templates.move_' ~ direction) }}"
-                        {% if (direction == 'up' and first_stage) or (direction == 'down' and last_stage) %}disabled{% endif %}><i class="bi {{ icon }}"></i></button>
-            </form>
-            {% endfor %}
-            <form method="post" action="/processes/templates/{{ template.id }}/stages/{{ stage.id }}/delete"
-                  onsubmit="return confirm({{ t('processes.templates.stage_delete_confirm')|tojson|forceescape }});">
-                {{ csrf_field() }}
-                <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ t('processes.templates.stage_delete') }}"><i class="bi bi-trash"></i></button>
-            </form>
-        </span>
-    </div>
-    <div class="card-body">
-        <form method="post" action="/processes/templates/{{ template.id }}/stages/{{ stage.id }}" class="row g-2 mb-3">
-            {{ csrf_field() }}
-            <div class="col-md-5">
-                <label class="form-label small mb-0" for="s-name-{{ stage.id }}">{{ t('processes.templates.stage_name') }}</label>
-                <input type="text" name="name" id="s-name-{{ stage.id }}" class="form-control form-control-sm" maxlength="200" required value="{{ stage.name }}">
+<div class="row g-3">
+    {# ---- Stages ---- #}
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">{{ t('processes.templates.stages') }}</span>
+                {% if template.stages|length > 1 %}<span class="text-muted small"><i class="bi bi-grip-vertical"></i> {{ t('processes.templates.drag_hint') }}</span>{% endif %}
             </div>
-            <div class="col-md-5">
-                <label class="form-label small mb-0" for="s-desc-{{ stage.id }}">{{ t('processes.templates.stage_description') }}</label>
-                <input type="text" name="description" id="s-desc-{{ stage.id }}" class="form-control form-control-sm" maxlength="20000" value="{{ stage.description or '' }}">
-            </div>
-            <div class="col-md-2 d-flex align-items-end"><button type="submit" class="btn btn-sm btn-outline-primary w-100">{{ t('processes.detail.save') }}</button></div>
-        </form>
-
-        <div class="fw-semibold mb-2">{{ t('processes.templates.fields') }}</div>
-        {% if not stage.fields %}<p class="text-muted" style="font-size: 0.9rem;">{{ t('processes.templates.no_fields') }}</p>{% endif %}
-        {% for field in stage.fields %}
-        {% set first_field, last_field = loop.first, loop.last %}
-        <div class="border rounded p-2 mb-2" id="field-{{ field.id }}">
-            <form method="post" action="/processes/templates/{{ template.id }}/fields/{{ field.id }}" class="row g-2 align-items-end">
-                {{ csrf_field() }}
-                <div class="col-md-4">
-                    <label class="form-label small mb-0" for="fl-{{ field.id }}">{{ t('processes.templates.field_label') }}</label>
-                    <input type="text" name="label" id="fl-{{ field.id }}" class="form-control form-control-sm" maxlength="200" required value="{{ field.label }}">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small mb-0" for="fk-{{ field.id }}">{{ t('processes.templates.field_kind') }}</label>
-                    {{ field_kind_select(field.kind.value, 'fk-' ~ field.id) }}
-                </div>
-                <div class="col-md-2">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="required" value="1" id="fr-{{ field.id }}" {% if field.required %}checked{% endif %}>
-                        <label class="form-check-label small" for="fr-{{ field.id }}">{{ t('processes.templates.field_required') }}</label>
-                    </div>
-                </div>
-                <div class="col-md-3 d-flex gap-1 justify-content-end">
-                    <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('processes.detail.save') }}</button>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label small mb-0" for="fh-{{ field.id }}">{{ t('processes.templates.field_help') }}</label>
-                    <input type="text" name="help_text" id="fh-{{ field.id }}" class="form-control form-control-sm" maxlength="2000" value="{{ field.help_text or '' }}">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label small mb-0" for="fo-{{ field.id }}">{{ t('processes.templates.field_options') }}</label>
-                    <textarea name="options" id="fo-{{ field.id }}" class="form-control form-control-sm" rows="2">{{ (field.options or [])|join('\n') }}</textarea>
-                </div>
-            </form>
-            <div class="d-flex gap-1 mt-2">
-                {% for direction, icon in (('up', 'bi-arrow-up'), ('down', 'bi-arrow-down')) %}
-                <form method="post" action="/processes/templates/{{ template.id }}/fields/{{ field.id }}/move">
-                    {{ csrf_field() }}<input type="hidden" name="direction" value="{{ direction }}">
-                    <button type="submit" class="btn btn-sm btn-outline-secondary" title="{{ t('processes.templates.move_' ~ direction) }}"
-                            {% if (direction == 'up' and first_field) or (direction == 'down' and last_field) %}disabled{% endif %}><i class="bi {{ icon }}"></i></button>
-                </form>
+            <div class="list-group list-group-flush" id="pb-stages" data-order-url="/processes/templates/{{ template.id }}/stages/order">
+                {% for s in template.stages %}
+                <a href="/processes/templates/{{ template.id }}?stage={{ s.id }}" data-id="{{ s.id }}"
+                   class="list-group-item list-group-item-action d-flex align-items-center gap-2 pb-stage-link{% if stage and s.id == stage.id %} active{% endif %}"
+                   {% if stage and s.id == stage.id %}aria-current="true"{% endif %}>
+                    <span class="pb-handle" title="{{ t('processes.templates.drag_hint') }}"><i class="bi bi-grip-vertical"></i></span>
+                    <span class="badge rounded-pill {% if stage and s.id == stage.id %}text-bg-light{% else %}text-bg-secondary{% endif %}">{{ loop.index }}</span>
+                    <span class="flex-grow-1 text-truncate pb-stage-label">{{ s.name }}</span>
+                    <small class="text-nowrap {% if not (stage and s.id == stage.id) %}text-muted{% endif %}">{{ t('processes.templates.field_count', count=s.fields|length) }}</small>
+                </a>
                 {% endfor %}
-                <form method="post" action="/processes/templates/{{ template.id }}/fields/{{ field.id }}/delete"
-                      onsubmit="return confirm({{ t('processes.templates.field_delete_confirm')|tojson|forceescape }});">
+            </div>
+            <div class="card-body border-top">
+                <form method="post" action="/processes/templates/{{ template.id }}/stages" class="d-flex gap-2" data-pb data-pb-goto="id">
                     {{ csrf_field() }}
-                    <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ t('processes.templates.field_delete') }}"><i class="bi bi-trash"></i></button>
+                    <label class="visually-hidden" for="ns-name">{{ t('processes.templates.stage_name') }}</label>
+                    <input type="text" name="name" id="ns-name" class="form-control form-control-sm" maxlength="200" required
+                           placeholder="{{ t('processes.templates.new_stage_placeholder') }}">
+                    <button type="submit" class="btn btn-sm btn-primary text-nowrap"><i class="bi bi-plus-lg"></i> {{ t('processes.templates.add_stage_submit') }}</button>
                 </form>
             </div>
         </div>
-        {% endfor %}
+    </div>
 
-        <details class="mt-2">
-            <summary class="text-primary" style="cursor: pointer;"><i class="bi bi-plus-lg me-1"></i>{{ t('processes.templates.add_field') }}</summary>
-            <form method="post" action="/processes/templates/{{ template.id }}/stages/{{ stage.id }}/fields" class="row g-2 mt-1">
-                {{ csrf_field() }}
-                <div class="col-md-4">
-                    <label class="form-label small mb-0" for="nl-{{ stage.id }}">{{ t('processes.templates.field_label') }}</label>
-                    <input type="text" name="label" id="nl-{{ stage.id }}" class="form-control form-control-sm" maxlength="200" required>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small mb-0" for="nk-{{ stage.id }}">{{ t('processes.templates.field_kind') }}</label>
-                    {{ field_kind_select('TEXT', 'nk-' ~ stage.id) }}
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="required" value="1" id="nr-{{ stage.id }}">
-                        <label class="form-check-label small" for="nr-{{ stage.id }}">{{ t('processes.templates.field_required') }}</label>
+    {# ---- Selected stage ---- #}
+    <div class="col-lg-8">
+        {% if not stage %}
+        <div class="card"><div class="card-body text-muted">{{ t('processes.templates.no_stages') }}</div></div>
+        {% else %}
+        {% set stage_index = template.stages.index(stage) %}
+        <div class="card" id="stage-{{ stage.id }}">
+            <div class="card-header">
+                <div class="d-flex gap-2 align-items-start">
+                    <span class="badge text-bg-primary mt-2">{{ stage_index + 1 }}</span>
+                    <form method="post" action="/processes/templates/{{ template.id }}/stages/{{ stage.id }}" class="flex-grow-1" data-pb data-pb-autosave>
+                        {{ csrf_field() }}
+                        <input type="hidden" name="return_stage" value="{{ stage.id }}">
+                        <label class="visually-hidden" for="s-name">{{ t('processes.templates.stage_name') }}</label>
+                        <input type="text" name="name" id="s-name" class="form-control pb-stage-name" maxlength="200" required value="{{ stage.name }}">
+                        <label class="visually-hidden" for="s-desc">{{ t('processes.templates.stage_description') }}</label>
+                        <input type="text" name="description" id="s-desc" class="form-control form-control-sm pb-stage-name fw-normal text-muted" maxlength="20000"
+                               value="{{ stage.description or '' }}" placeholder="{{ t('processes.templates.stage_description') }}">
+                        <noscript><button type="submit" class="btn btn-sm btn-outline-primary mt-1">{{ t('processes.detail.save') }}</button></noscript>
+                    </form>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ t('processes.templates.stage_actions') }}">
+                            <i class="bi bi-three-dots-vertical"></i><span class="visually-hidden">{{ t('processes.templates.stage_actions') }}</span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            {% for direction, icon in (('up', 'bi-arrow-up'), ('down', 'bi-arrow-down')) %}
+                            <form method="post" action="/processes/templates/{{ template.id }}/stages/{{ stage.id }}/move" data-pb>
+                                {{ csrf_field() }}<input type="hidden" name="direction" value="{{ direction }}"><input type="hidden" name="return_stage" value="{{ stage.id }}">
+                                <button type="submit" class="dropdown-item"
+                                        {% if (direction == 'up' and stage_index == 0) or (direction == 'down' and stage_index == template.stages|length - 1) %}disabled{% endif %}>
+                                    <i class="bi {{ icon }} me-2"></i>{{ t('processes.templates.move_' ~ direction) }}</button>
+                            </form>
+                            {% endfor %}
+                            <div class="dropdown-divider"></div>
+                            <form method="post" action="/processes/templates/{{ template.id }}/stages/{{ stage.id }}/delete" data-pb data-pb-goto="none"
+                                  onsubmit="return confirm({{ t('processes.templates.stage_delete_confirm')|tojson|forceescape }});">
+                                {{ csrf_field() }}
+                                <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>{{ t('processes.templates.stage_delete') }}</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label small mb-0" for="nh-{{ stage.id }}">{{ t('processes.templates.field_help') }}</label>
-                    <input type="text" name="help_text" id="nh-{{ stage.id }}" class="form-control form-control-sm" maxlength="2000">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label small mb-0" for="no-{{ stage.id }}">{{ t('processes.templates.field_options') }}</label>
-                    <textarea name="options" id="no-{{ stage.id }}" class="form-control form-control-sm" rows="2"></textarea>
-                </div>
-                <div class="col-12"><button type="submit" class="btn btn-sm btn-primary">{{ t('processes.templates.add_field_submit') }}</button></div>
-            </form>
-        </details>
-    </div>
-</div>
-{% endfor %}
+                <ul class="nav nav-tabs card-header-tabs mt-2" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="pb-tab-fields" data-bs-toggle="tab" data-bs-target="#pb-pane-fields" type="button" role="tab">
+                            <i class="bi bi-ui-checks me-1"></i>{{ t('processes.templates.fields') }} <span class="badge text-bg-secondary">{{ stage.fields|length }}</span></button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pb-tab-preview" data-bs-toggle="tab" data-bs-target="#pb-pane-preview" type="button" role="tab">
+                            <i class="bi bi-eye me-1"></i>{{ t('processes.templates.preview') }}</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body tab-content">
+                <div class="tab-pane fade show active" id="pb-pane-fields" role="tabpanel">
+                    {% if not stage.fields %}<p class="text-muted small">{{ t('processes.templates.no_fields') }}</p>{% endif %}
+                    <div class="list-group mb-3" id="pb-fields" data-order-url="/processes/templates/{{ template.id }}/stages/{{ stage.id }}/fields/order">
+                        {% for field in stage.fields %}
+                        <div class="list-group-item d-flex align-items-center gap-2 pb-field" id="field-{{ field.id }}" data-id="{{ field.id }}"
+                             data-label="{{ field.label }}" data-kind="{{ field.kind.value }}" data-required="{{ '1' if field.required else '' }}"
+                             data-help="{{ field.help_text or '' }}" data-options="{{ (field.options or [])|join('\n') }}"
+                             tabindex="0" role="button" aria-label="{{ t('processes.templates.edit_field') }}: {{ field.label }}">
+                            <span class="pb-handle" title="{{ t('processes.templates.drag_hint') }}"><i class="bi bi-grip-vertical"></i></span>
+                            {{ kind_icon(field.kind.value) }}
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="text-truncate">{{ field.label }}</div>
+                                <div class="small text-muted text-truncate">
+                                    {{ t('processes.field_kind.' ~ field.kind.value) }}{% if field.kind.value == 'CHOICE' %} · {{ (field.options or [])|join(', ') }}{% endif %}{% if field.help_text %} · {{ field.help_text }}{% endif %}
+                                </div>
+                            </div>
+                            {% if field.required %}<span class="badge text-bg-warning">{{ t('processes.templates.field_required') }}</span>{% endif %}
+                            <i class="bi bi-chevron-right text-muted"></i>
+                        </div>
+                        {% endfor %}
+                    </div>
 
-<div class="card mb-3" id="add-stage">
-    <div class="card-header">{{ t('processes.templates.add_stage') }}</div>
-    <div class="card-body">
-        <form method="post" action="/processes/templates/{{ template.id }}/stages" class="row g-2">
-            {{ csrf_field() }}
-            <div class="col-md-5">
-                <label class="form-label small mb-0" for="ns-name">{{ t('processes.templates.stage_name') }}</label>
-                <input type="text" name="name" id="ns-name" class="form-control form-control-sm" maxlength="200" required>
+                    <form method="post" action="/processes/templates/{{ template.id }}/stages/{{ stage.id }}/fields" class="d-flex gap-2 flex-wrap" id="pb-quick-add" data-pb>
+                        {{ csrf_field() }}
+                        <input type="hidden" name="return_stage" value="{{ stage.id }}">
+                        <label class="visually-hidden" for="qa-label">{{ t('processes.templates.field_label') }}</label>
+                        <input type="text" name="label" id="qa-label" class="form-control form-control-sm flex-grow-1" style="min-width: 12rem; flex-basis: 12rem;"
+                               maxlength="200" required placeholder="{{ t('processes.templates.quick_add_placeholder') }}">
+                        <label class="visually-hidden" for="qa-kind">{{ t('processes.templates.field_kind') }}</label>
+                        <select name="kind" id="qa-kind" class="form-select form-select-sm" style="width: auto;">
+                            {% for k in field_kinds %}<option value="{{ k.value }}">{{ t('processes.field_kind.' ~ k.value) }}</option>{% endfor %}
+                        </select>
+                        <div class="form-check d-flex align-items-center gap-1 mb-0">
+                            <input class="form-check-input mt-0" type="checkbox" name="required" value="1" id="qa-required">
+                            <label class="form-check-label small" for="qa-required">{{ t('processes.templates.field_required') }}</label>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> {{ t('processes.templates.add_field_submit') }}</button>
+                    </form>
+                </div>
+
+                <div class="tab-pane fade" id="pb-pane-preview" role="tabpanel">
+                    <div class="alert alert-light border small py-2"><i class="bi bi-eye me-1"></i>{{ t('processes.templates.preview_note') }}</div>
+                    {% if stage.description %}<p class="text-muted">{{ stage.description }}</p>{% endif %}
+                    <fieldset disabled>
+                        {% for field in preview_fields %}
+                        <div class="mb-3">
+                            {% include "processes/_field_input.html" %}
+                            {% if field.kind.value == 'FILE' %}<input type="file" class="form-control" aria-label="{{ field.label }}">{% endif %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted small">{{ t('processes.templates.no_fields') }}</p>
+                        {% endfor %}
+                        <button type="button" class="btn btn-primary">{{ t('processes.detail.save') }}</button>
+                    </fieldset>
+                </div>
             </div>
-            <div class="col-md-5">
-                <label class="form-label small mb-0" for="ns-desc">{{ t('processes.templates.stage_description') }}</label>
-                <input type="text" name="description" id="ns-desc" class="form-control form-control-sm" maxlength="20000">
-            </div>
-            <div class="col-md-2 d-flex align-items-end"><button type="submit" class="btn btn-sm btn-primary w-100">{{ t('processes.templates.add_stage_submit') }}</button></div>
-        </form>
+        </div>
+        {% endif %}
     </div>
 </div>
+</div>{# /pb-root #}
+
+{# ---- Field editor side panel (filled by the script) ---- #}
+<div class="offcanvas offcanvas-end" tabindex="-1" id="pb-editor" aria-labelledby="pb-editor-title">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title" id="pb-editor-title">{{ t('processes.templates.edit_field') }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="{{ t('processes.templates.close') }}"></button>
+    </div>
+    <div class="offcanvas-body">
+        <form method="post" id="pb-editor-form" class="d-flex flex-column gap-3">
+            {{ csrf_field() }}
+            <div>
+                <label class="form-label small mb-1" for="pe-label">{{ t('processes.templates.field_label') }} <span class="text-danger">*</span></label>
+                <input type="text" name="label" id="pe-label" class="form-control" maxlength="200" required>
+            </div>
+            <div>
+                <div class="form-label small mb-1" id="pe-kind-label">{{ t('processes.templates.pick_kind') }}</div>
+                <div class="pb-kinds" role="radiogroup" aria-labelledby="pe-kind-label">
+                    {% for k in field_kinds %}
+                    <input type="radio" class="btn-check" name="kind" id="pe-kind-{{ k.value }}" value="{{ k.value }}" autocomplete="off">
+                    <label class="btn btn-outline-secondary" for="pe-kind-{{ k.value }}"><i class="bi {{ kind_icons[k.value] }}"></i>{{ t('processes.field_kind.' ~ k.value) }}</label>
+                    {% endfor %}
+                </div>
+            </div>
+            <div id="pe-options-wrap">
+                <label class="form-label small mb-1" for="pe-options">{{ t('processes.templates.field_options') }} <span class="text-danger">*</span></label>
+                <textarea name="options" id="pe-options" class="form-control" rows="4"></textarea>
+            </div>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" name="required" value="1" id="pe-required">
+                <label class="form-check-label" for="pe-required">{{ t('processes.templates.field_required') }}</label>
+            </div>
+            <div>
+                <label class="form-label small mb-1" for="pe-help">{{ t('processes.templates.field_help') }}</label>
+                <input type="text" name="help_text" id="pe-help" class="form-control" maxlength="2000">
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">{{ t('processes.detail.save') }}</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">{{ t('processes.templates.close') }}</button>
+            </div>
+        </form>
+        <div id="pe-existing" class="border-top mt-4 pt-3 d-flex flex-column gap-2">
+            <div class="d-flex gap-2 align-items-end">
+                <div class="flex-grow-1">
+                    <label class="form-label small mb-1" for="pe-stage">{{ t('processes.templates.move_to_stage') }}</label>
+                    <select id="pe-stage" class="form-select form-select-sm"></select>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="pe-move-stage"><i class="bi bi-box-arrow-right"></i></button>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-pe-move="up"><i class="bi bi-arrow-up me-1"></i>{{ t('processes.templates.move_up') }}</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-pe-move="down"><i class="bi bi-arrow-down me-1"></i>{{ t('processes.templates.move_down') }}</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="pe-duplicate"><i class="bi bi-copy me-1"></i>{{ t('processes.templates.duplicate') }}</button>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-auto" id="pe-delete"><i class="bi bi-trash me-1"></i>{{ t('processes.templates.field_delete') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+(function () {
+    const T = {{ {
+        'saving': t('processes.templates.saving'),
+        'saved': t('processes.templates.saved'),
+        'save_failed': t('processes.templates.save_failed'),
+        'edit_field': t('processes.templates.edit_field'),
+        'new_field': t('processes.templates.new_field'),
+        'field_delete_confirm': t('processes.templates.field_delete_confirm'),
+    }|tojson }};
+    const csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+    const root = () => document.getElementById('pb-root');
+    const templateId = root().dataset.templateId;
+    const base = '/processes/templates/' + encodeURIComponent(templateId);
+    const editorEl = document.getElementById('pb-editor');
+    const editor = bootstrap.Offcanvas.getOrCreateInstance(editorEl);
+    const form = document.getElementById('pb-editor-form');
+    let editing = null;      // field id, or null for a new field
+    let afterRefreshFocus = null;
+    let statusTimer = null;
+
+    function currentStage() { return root().dataset.stageId || ''; }
+
+    function setStatus(text, ok) {
+        const el = document.getElementById('pb-status');
+        el.textContent = '';
+        if (ok) { const i = document.createElement('i'); i.className = 'bi bi-check2 me-1'; el.appendChild(i); }
+        el.appendChild(document.createTextNode(text));
+        el.classList.toggle('text-success', ok !== false);
+        el.style.opacity = 1;
+        clearTimeout(statusTimer);
+        if (ok) statusTimer = setTimeout(() => { el.style.opacity = 0; }, 1800);
+    }
+
+    function showError(message) {
+        document.getElementById('pb-alert-text').textContent = message;
+        document.getElementById('pb-alert').classList.remove('d-none');
+        document.getElementById('pb-status').style.opacity = 0;
+    }
+
+    function clearError() { document.getElementById('pb-alert').classList.add('d-none'); }
+
+    async function post(url, data) {
+        setStatus(T.saving, null);
+        let response, body = {};
+        try {
+            response = await fetch(url, {
+                method: 'POST', body: data, credentials: 'same-origin',
+                headers: {'X-Requested-With': 'fetch', 'X-CSRF-Token': csrf},
+            });
+            body = await response.json().catch(() => ({}));
+        } catch (e) {
+            showError(T.save_failed);
+            throw e;
+        }
+        if (!response.ok || body.error) {
+            showError(body.error || T.save_failed);
+            if (response.status === 409) refresh(currentStage());   // stale order: show the real one
+            throw new Error(body.error || response.status);
+        }
+        clearError();
+        setStatus(T.saved, true);
+        return body;
+    }
+
+    function formData(extra) {
+        const data = new FormData();
+        data.append('csrf_token', csrf);
+        Object.entries(extra || {}).forEach(([k, v]) => {
+            (Array.isArray(v) ? v : [v]).forEach(item => data.append(k, item));
+        });
+        return data;
+    }
+
+    async function refresh(stageId) {
+        const url = base + (stageId ? '?stage=' + encodeURIComponent(stageId) : '');
+        const previewActive = !!document.querySelector('#pb-tab-preview.active');
+        const response = await fetch(url, {credentials: 'same-origin'});
+        const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+        const fresh = doc.getElementById('pb-root');
+        if (!fresh) { window.location.href = url; return; }
+        const detailsOpen = document.getElementById('pb-details').classList.contains('show');
+        root().replaceWith(document.adoptNode(fresh));
+        if (detailsOpen) document.getElementById('pb-details').classList.add('show');
+        history.replaceState(null, '', url);
+        document.title = doc.title;
+        if (previewActive && document.getElementById('pb-tab-preview')) {
+            bootstrap.Tab.getOrCreateInstance(document.getElementById('pb-tab-preview')).show();
+        }
+        init();
+        if (afterRefreshFocus) {
+            const el = document.querySelector(afterRefreshFocus);
+            if (el) { el.focus(); el.scrollIntoView({block: 'nearest'}); }
+            afterRefreshFocus = null;
+        }
+    }
+
+    // ---- Plain forms inside the builder: saved in the background ----
+    document.addEventListener('submit', async (event) => {
+        const f = event.target;
+        if (!f.matches('#pb-root form[data-pb]') || event.defaultPrevented) return;
+        event.preventDefault();
+        const isQuickAdd = f.id === 'pb-quick-add';
+        if (isQuickAdd && f.elements.kind.value === 'CHOICE') {
+            // A choice needs its options first: continue in the side panel.
+            openEditor(null, {label: f.elements.label.value, kind: 'CHOICE', required: f.elements.required.checked});
+            return;
+        }
+        let body;
+        try { body = await post(f.action, new FormData(f)); } catch (e) { return; }
+        let stage = currentStage();
+        if (f.dataset.pbGoto === 'id') stage = body.id;
+        if (f.dataset.pbGoto === 'none') stage = '';
+        if (isQuickAdd) afterRefreshFocus = '#qa-label';
+        if (f.dataset.pbAutosave === undefined || isQuickAdd) await refresh(stage);
+        else refreshStageLabel(f);
+    });
+
+    // Stage name and description save when they change (no reload, keeps focus).
+    document.addEventListener('change', (event) => {
+        const f = event.target.form;
+        if (f && f.matches('#pb-root form[data-pb-autosave]') && f.reportValidity()) f.requestSubmit();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && event.target.matches('#pb-root form[data-pb-autosave] input')) {
+            event.preventDefault();
+            event.target.blur();
+        }
+    });
+
+    function refreshStageLabel(f) {
+        const link = document.querySelector('.pb-stage-link.active .pb-stage-label');
+        if (link) link.textContent = f.elements.name.value;
+    }
+
+    // ---- Stage switching without a reload ----
+    document.addEventListener('click', (event) => {
+        const link = event.target.closest('#pb-root .pb-stage-link');
+        if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0) return;
+        event.preventDefault();
+        refresh(link.dataset.id);
+    });
+
+    // ---- Field rows open the side panel ----
+    function rowValues(row) {
+        return {label: row.dataset.label, kind: row.dataset.kind, required: row.dataset.required === '1',
+                help: row.dataset.help, options: row.dataset.options};
+    }
+    document.addEventListener('click', (event) => {
+        const row = event.target.closest('#pb-root .pb-field');
+        if (!row || event.target.closest('.pb-handle')) return;
+        openEditor(row.dataset.id, rowValues(row));
+    });
+    document.addEventListener('keydown', (event) => {
+        const row = event.target.closest && event.target.closest('#pb-root .pb-field');
+        if (row && event.target === row && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault();
+            openEditor(row.dataset.id, rowValues(row));
+        }
+    });
+
+    function syncOptions() {
+        const kind = (form.querySelector('input[name="kind"]:checked') || {}).value;
+        const isChoice = kind === 'CHOICE';
+        document.getElementById('pe-options-wrap').classList.toggle('d-none', !isChoice);
+        document.getElementById('pe-options').required = isChoice;
+    }
+    form.addEventListener('change', (event) => { if (event.target.name === 'kind') syncOptions(); });
+
+    function openEditor(fieldId, values) {
+        editing = fieldId;
+        clearError();
+        document.getElementById('pb-editor-title').textContent = fieldId ? T.edit_field : T.new_field;
+        form.elements.label.value = values.label || '';
+        const kind = form.querySelector('input[name="kind"][value="' + (values.kind || 'TEXT') + '"]');
+        if (kind) kind.checked = true;
+        form.elements.required.checked = !!values.required;
+        form.elements.help_text.value = values.help || '';
+        form.elements.options.value = values.options || '';
+        syncOptions();
+        document.getElementById('pe-existing').classList.toggle('d-none', !fieldId);
+        if (fieldId) {
+            const select = document.getElementById('pe-stage');
+            select.replaceChildren();
+            document.querySelectorAll('#pb-stages .pb-stage-link').forEach((link, index) => {
+                const option = document.createElement('option');
+                option.value = link.dataset.id;
+                option.textContent = (index + 1) + '. ' + link.querySelector('.pb-stage-label').textContent;
+                option.selected = link.dataset.id === currentStage();
+                select.appendChild(option);
+            });
+            const rows = [...document.querySelectorAll('#pb-fields .pb-field')];
+            const index = rows.findIndex(r => r.dataset.id === fieldId);
+            form.parentElement.querySelector('[data-pe-move="up"]').disabled = index <= 0;
+            form.parentElement.querySelector('[data-pe-move="down"]').disabled = index === rows.length - 1;
+        }
+        editor.show();
+        setTimeout(() => (values.kind === 'CHOICE' && !fieldId ? form.elements.options : form.elements.label).focus(), 250);
+    }
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const url = editing ? base + '/fields/' + encodeURIComponent(editing)
+                            : base + '/stages/' + encodeURIComponent(currentStage()) + '/fields';
+        let body;
+        try { body = await post(url, new FormData(form)); } catch (e) { return; }
+        editor.hide();
+        afterRefreshFocus = '#field-' + (editing || body.id);
+        await refresh(currentStage());
+    });
+
+    async function fieldAction(path, extra) {
+        try { return await post(base + '/fields/' + encodeURIComponent(editing) + path, formData(extra)); }
+        catch (e) { return null; }
+    }
+    form.parentElement.querySelectorAll('[data-pe-move]').forEach(button => button.addEventListener('click', async () => {
+        if (await fieldAction('/move', {direction: button.dataset.peMove})) {
+            const id = editing;
+            await refresh(currentStage());
+            const row = document.getElementById('field-' + id);
+            if (row) openEditor(id, rowValues(row));
+        }
+    }));
+    document.getElementById('pe-duplicate').addEventListener('click', async () => {
+        const body = await fieldAction('/duplicate');
+        if (!body) return;
+        await refresh(currentStage());
+        const row = document.getElementById('field-' + body.id);
+        if (row) openEditor(body.id, rowValues(row));
+    });
+    document.getElementById('pe-delete').addEventListener('click', async () => {
+        if (!confirm(T.field_delete_confirm)) return;
+        if (await fieldAction('/delete')) { editor.hide(); await refresh(currentStage()); }
+    });
+    document.getElementById('pe-move-stage').addEventListener('click', async () => {
+        const target = document.getElementById('pe-stage').value;
+        if (!target || target === currentStage()) return;
+        if (await fieldAction('/stage', {stage_id: target})) {
+            editor.hide();
+            afterRefreshFocus = '#field-' + editing;
+            await refresh(target);
+        }
+    });
+
+    // ---- Drag and drop (SortableJS: mouse and touch) ----
+    function sortable(el) {
+        if (!el || typeof Sortable === 'undefined') return;
+        Sortable.create(el, {
+            handle: '.pb-handle', animation: 150, ghostClass: 'pb-ghost',
+            onEnd: async (event) => {
+                if (event.oldIndex === event.newIndex) return;
+                const ids = [...el.children].map(child => child.dataset.id);
+                try { await post(el.dataset.orderUrl, formData({ids})); } catch (e) { return; }
+                await refresh(currentStage());
+            },
+        });
+    }
+
+    function init() {
+        sortable(document.getElementById('pb-stages'));
+        sortable(document.getElementById('pb-fields'));
+    }
+    init();
+})();
+</script>
 {% endblock %}

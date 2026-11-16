@@ -3799,7 +3799,26 @@
       "add_field": "Feld hinzufügen",
       "add_field_submit": "Feld hinzufügen",
       "add_stage": "Stufe hinzufügen",
-      "add_stage_submit": "Hinzufügen"
+      "add_stage_submit": "Hinzufügen",
+      "stages": "Stufen",
+      "details": "Details",
+      "saving": "Speichert…",
+      "saved": "Gespeichert",
+      "save_failed": "Speichern fehlgeschlagen – bitte noch einmal versuchen.",
+      "preview": "Vorschau",
+      "preview_note": "So sieht die Stufe in einem laufenden Prozess aus. Die Eingaben sind hier deaktiviert.",
+      "field_count": "{count} Feld(er)",
+      "quick_add_placeholder": "Neues Feld: Bezeichnung eingeben, Enter drücken",
+      "edit_field": "Feld bearbeiten",
+      "new_field": "Neues Feld",
+      "move_to_stage": "In Stufe verschieben",
+      "duplicate": "Duplizieren",
+      "drag_hint": "Zum Sortieren ziehen",
+      "no_stages": "Noch keine Stufen. Lege links die erste an, z. B. „Begehung“.",
+      "new_stage_placeholder": "Neue Stufe, z. B. „Begehung“",
+      "close": "Schließen",
+      "stage_actions": "Aktionen für die Stufe",
+      "pick_kind": "Typ"
     },
     "errors": {
       "not_found": "Vorgang nicht gefunden.",
@@ -3830,7 +3849,8 @@
       "file_not_found": "Datei nicht gefunden.",
       "cloud_upload_failed": "Die Datei konnte nicht in der Cloud gespeichert werden.",
       "cloud_download_failed": "Die Datei konnte nicht aus der Cloud geladen werden.",
-      "cloud_not_configured": "Der Cloud-Speicher ist nicht eingerichtet."
+      "cloud_not_configured": "Der Cloud-Speicher ist nicht eingerichtet.",
+      "stale_order": "Die Reihenfolge wurde inzwischen geändert – hier ist die aktuelle."
     },
     "examples": {
       "plot_handover": {

@@ -3799,7 +3799,26 @@
       "add_field": "Pridať pole",
       "add_field_submit": "Pridať pole",
       "add_stage": "Pridať fázu",
-      "add_stage_submit": "Pridať"
+      "add_stage_submit": "Pridať",
+      "stages": "Fázy",
+      "details": "Podrobnosti",
+      "saving": "Ukladá sa…",
+      "saved": "Uložené",
+      "save_failed": "Uloženie zlyhalo – skúste to prosím znova.",
+      "preview": "Náhľad",
+      "preview_note": "Takto vyzerá fáza v bežiacom procese. Polia sú tu vypnuté.",
+      "field_count": "Polia: {count}",
+      "quick_add_placeholder": "Nové pole: napíšte názov a stlačte Enter",
+      "edit_field": "Upraviť pole",
+      "new_field": "Nové pole",
+      "move_to_stage": "Presunúť do fázy",
+      "duplicate": "Duplikovať",
+      "drag_hint": "Potiahnutím zmeníte poradie",
+      "no_stages": "Zatiaľ žiadne fázy. Pridajte prvú vľavo, napr. „Obhliadka“.",
+      "new_stage_placeholder": "Nová fáza, napr. „Obhliadka“",
+      "close": "Zavrieť",
+      "stage_actions": "Akcie fázy",
+      "pick_kind": "Typ"
     },
     "errors": {
       "not_found": "Proces sa nenašiel.",
@@ -3830,7 +3849,8 @@
       "file_not_found": "Súbor sa nenašiel.",
       "cloud_upload_failed": "Súbor sa nepodarilo uložiť do cloudu.",
       "cloud_download_failed": "Súbor sa nepodarilo načítať z cloudu.",
-      "cloud_not_configured": "Cloudové úložisko nie je nastavené."
+      "cloud_not_configured": "Cloudové úložisko nie je nastavené.",
+      "stale_order": "Poradie sa medzitým zmenilo – tu je aktuálne."
     },
     "examples": {
       "plot_handover": {

@@ -183,6 +183,71 @@ async def test_plot_handover_example_via_web(client, admin_user):
     assert (await client.get("/processes/?status=closed")).status_code == 200
 
 
+async def test_template_builder(client, admin_user):
+    """The builder's background saves (JSON), drag-and-drop order, moving
+    and duplicating fields, and the editor page with its preview."""
+    await web_login(client)
+    fetch = {"X-Requested-With": "fetch"}
+    async with AsyncSessionLocal() as db:
+        admin = await _admin(db)
+        template = await _template(db, admin, ("One", [("a", K.TEXT, False), ("b", K.DATE, True), ("c", K.FILE, False)]),
+                                   ("Two", [("d", K.CHECKBOX, False)]))
+        tid = template.id
+        one, two = [s.id for s in template.stages]
+        a, b, c = [f.id for f in template.stages[0].fields]
+        d = template.stages[1].fields[0].id
+    base = f"/processes/templates/{tid}"
+
+    page = await client.get(f"{base}?stage={one}")
+    assert page.status_code == 200 and 'id="pb-root"' in page.text and 'id="f-preview-' in page.text
+    assert '<span class="pb-kind-icon"><i class="bi bi-calendar-event">' in page.text  # the icon map resolved
+
+    # A fetch call gets JSON; the same post without the header still redirects.
+    r = await client.post(f"{base}/stages", data={"name": "Three"}, headers=fetch)
+    assert r.status_code == 200 and r.json()["ok"] and r.json()["id"]
+    three = r.json()["id"]
+    r = await client.post(f"{base}/stages/{one}/fields", data={"label": "e", "kind": "TEXT", "return_stage": one})
+    assert r.status_code == 303 and r.headers["location"].startswith(f"{base}?stage={one}")
+    r = await client.post(f"{base}/stages/{one}/fields", data={"label": "f", "kind": "CHOICE"}, headers=fetch)
+    assert r.status_code == 400 and "option" in r.json()["error"]
+
+    # "stages/order" isn't taken for a stage id.
+    r = await client.post(f"{base}/stages/order", data={"ids": [three, two, one]}, headers=fetch)
+    assert r.status_code == 200
+    async with AsyncSessionLocal() as db:
+        template = await svc.get_template(db, tid)
+        assert [s.id for s in template.stages] == [three, two, one]
+        e = template.stages[2].fields[3].id
+
+    # A stale order (missing or foreign ids) is refused, nothing changes.
+    r = await client.post(f"{base}/stages/order", data={"ids": [one, two]}, headers=fetch)
+    assert r.status_code == 409
+    r = await client.post(f"{base}/stages/{one}/fields/order", data={"ids": [e, c, b, a]}, headers=fetch)
+    assert r.status_code == 200
+
+    # Move to another stage (to its end), duplicate.
+    r = await client.post(f"{base}/fields/{c}/stage", data={"stage_id": two}, headers=fetch)
+    assert r.status_code == 200
+    r = await client.post(f"{base}/fields/{b}/duplicate", headers=fetch)
+    assert r.status_code == 200
+    copy = r.json()["id"]
+    async with AsyncSessionLocal() as db:
+        template = await svc.get_template(db, tid)
+        stages = {s.id: s for s in template.stages}
+        assert [f.id for f in stages[one].fields] == [e, b, copy, a]
+        assert [f.position for f in stages[one].fields] == [0, 1, 2, 3]
+        assert [f.id for f in stages[two].fields] == [d, c]
+        dup = stages[one].fields[2]
+        assert (dup.label, dup.kind, dup.required) == ("b", K.DATE, True)
+
+    # Moving a field into a stage of another template is refused.
+    async with AsyncSessionLocal() as db:
+        other = await _template(db, await _admin(db), ("X", []))
+        other_stage = other.stages[0].id
+    r = await client.post(f"{base}/fields/{a}/stage", data={"stage_id": other_stage}, headers=fetch)
+    assert r.status_code == 404
+
+
 async def test_both_examples_run_end_to_end(admin_user):
     async with AsyncSessionLocal() as db:
         parcel, member, _ = await _subjects(db)
@@ -377,6 +442,8 @@ async def test_permissions(client, admin_user):
     assert (await client.get("/processes/templates/")).status_code == 403
     assert (await client.post("/processes/templates/new", data={"name": "Mine"})).status_code == 403
     assert (await client.post(f"/processes/templates/{template.id}/stages", data={"name": "X"})).status_code == 403
+    assert (await client.post(f"/processes/templates/{template.id}/stages/order", data={"ids": []},
+                              headers={"X-Requested-With": "fetch"})).status_code == 403
 
     await web_login(client)
     assert (await client.post(f"{url}/delete")).status_code == 303

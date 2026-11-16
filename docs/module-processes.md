@@ -72,6 +72,34 @@ MEMBER, APPLICANT, PARCEL.
   `Cache-Control: private, no-store`.
 - Removing a file removes a local file, but only unlinks a cloud file.
 
+## Template builder (UI)
+
+`app/templates/processes/template_edit.html`: stages on the left (drag to
+reorder), the selected stage's fields on the right, a "Preview" tab that
+renders the stage through the same `_field_input.html` a running process
+uses (inputs disabled), and one side panel per field with only the
+settings its type needs (options only for a choice). New fields are
+added by typing a label and pressing Enter; a choice field opens the side
+panel first, since it can't be saved without options.
+
+- Every change is still an ordinary form post to the template routes.
+  The builder sends it with `fetch` and `X-Requested-With: fetch`, which
+  makes `_template_action` answer JSON (`{"ok": true, "id": ...}` or
+  `{"error": "<translated>"}`) instead of a redirect; then it re-renders
+  `#pb-root` from a fresh GET of the editor page, so the HTML comes from
+  one place (the Jinja template), never built in JS. Without JavaScript
+  the same forms post and redirect back to `?stage=<id>`.
+- Drag and drop uses SortableJS from jsDelivr (touch support; the CSP
+  already allows that CDN). The order is sent as the full list of ids;
+  `reorder_stages`/`reorder_fields` refuse a list that isn't exactly the
+  current ids (409 `stale_order`, e.g. a second tab deleted a field) and
+  the page re-renders with the real order. Up/down stays available in
+  the stage menu and the side panel for keyboard users.
+- `/stages/order` is declared before `/stages/{stage_id}`, or "order"
+  would be taken for a stage id.
+- Moving a field to another stage appends it there; duplicating inserts
+  the copy right below the original.
+
 ## Known gaps / ideas
 
 - **Stage actions:** e.g. offer a plot to the waiting list (first to

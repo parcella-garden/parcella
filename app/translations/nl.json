@@ -3799,7 +3799,26 @@
       "add_field": "Veld toevoegen",
       "add_field_submit": "Veld toevoegen",
       "add_stage": "Fase toevoegen",
-      "add_stage_submit": "Toevoegen"
+      "add_stage_submit": "Toevoegen",
+      "stages": "Fasen",
+      "details": "Details",
+      "saving": "Opslaan…",
+      "saved": "Opgeslagen",
+      "save_failed": "Opslaan mislukt – probeer het opnieuw.",
+      "preview": "Voorbeeld",
+      "preview_note": "Zo ziet de fase eruit in een lopend proces. De velden zijn hier uitgeschakeld.",
+      "field_count": "{count} veld(en)",
+      "quick_add_placeholder": "Nieuw veld: typ een naam, druk op Enter",
+      "edit_field": "Veld bewerken",
+      "new_field": "Nieuw veld",
+      "move_to_stage": "Naar fase verplaatsen",
+      "duplicate": "Dupliceren",
+      "drag_hint": "Sleep om te ordenen",
+      "no_stages": "Nog geen fasen. Voeg links de eerste toe, bijv. ‘Inspectie’.",
+      "new_stage_placeholder": "Nieuwe fase, bijv. ‘Inspectie’",
+      "close": "Sluiten",
+      "stage_actions": "Faseacties",
+      "pick_kind": "Type"
     },
     "errors": {
       "not_found": "Proces niet gevonden.",
@@ -3830,7 +3849,8 @@
       "file_not_found": "Bestand niet gevonden.",
       "cloud_upload_failed": "Het bestand kon niet in de cloud worden opgeslagen.",
       "cloud_download_failed": "Het bestand kon niet uit de cloud worden geladen.",
-      "cloud_not_configured": "Cloudopslag is niet ingesteld."
+      "cloud_not_configured": "Cloudopslag is niet ingesteld.",
+      "stale_order": "De volgorde is intussen gewijzigd – hier is de huidige."
     },
     "examples": {
       "plot_handover": {
