@@ -69,8 +69,11 @@ order, and shown under each upload form:
    exactly **one** current plot that has one. Several current plots are
    ambiguous, so they fall through to 2; applicants have no folder. The
    subfolder is named after the template, not the title, which may name
-   a person. Note that plot folders are usually shared with the tenants
-   in the cloud, so they can see these files.
+   a person. Plot folders are usually shared with the tenants in the
+   cloud, so they see these files too -- **intended**: official
+   documents about a plot are open to its tenants for transparency
+   (decided 2026-11-17). A club that wants board-only files leaves the
+   plot folder unset or uses the processes folder instead.
 2. **Cloud:** `<processes_cloud_folder>/<subject-or-title>_<date>_<id8>/`
    when Admin → Integrations → Nextcloud → "Folder for process files"
    is set.
