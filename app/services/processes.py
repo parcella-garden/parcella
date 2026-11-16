@@ -34,12 +34,14 @@ from app.cloud_storage import CloudStorageError, get_cloud_storage_provider
 from app.contact_documents import upload_filename
 from app.i18n import translate
 from app.models import (
-    Applicant, ClubSetting, Member, Parcel, Process, ProcessEvent, ProcessEventKind, ProcessField,
+    Applicant, ClubSetting, Member, MemberParcel, Parcel, Process, ProcessEvent, ProcessEventKind, ProcessField,
     ProcessFieldKind, ProcessFile, ProcessFileStorage, ProcessStage, ProcessStatus, ProcessSubjectKind,
     ProcessTemplate, ProcessTemplateField, ProcessTemplateStage, User,
 )
 from app.module_flags import load_module_flags
-from app.parcel_cloud_folders import InvalidCloudPathError, sanitize_relative_path
+from app.database import current_tenant_filter
+from app.note_files import slugify
+from app.parcel_cloud_folders import InvalidCloudPathError, get_active_folder, sanitize_relative_path
 from app.permissions import get_user_permissions, has_permission, is_full_access_user
 from app.services.errors import ServiceError
 
@@ -855,7 +857,41 @@ async def cloud_base_folder(db: AsyncSession) -> Optional[str]:
         return None
 
 
+async def subject_cloud_folder(db: AsyncSession, process: Process) -> Optional[str]:
+    """The cloud folder already set up for the process's subject: the
+    plot's active folder (parcel page, ADR 0102), or -- for a member --
+    that of their only current plot. None for an applicant, a member with
+    no or several current plots, or a plot without a folder."""
+    if not (await load_module_flags(db)).get("cloud_storage"):
+        return None
+    parcel_id = process.parcel_id
+    if parcel_id is None and process.member_id:
+        parcel_ids = (await db.scalars(
+            select(MemberParcel.parcel_id).where(MemberParcel.member_id == process.member_id, current_tenant_filter())
+        )).all()
+        parcel_id = parcel_ids[0] if len(set(parcel_ids)) == 1 else None
+    if parcel_id is None:
+        return None
+    folder = await get_active_folder(db, parcel_id)
+    if folder is None:
+        return None
+    try:
+        return sanitize_relative_path(folder.relative_path)
+    except InvalidCloudPathError:
+        return None
+
+
+def _process_folder_name(process: Process, label: str) -> str:
+    return f"{slugify(label)[:60]}_{process.created_at:%Y-%m-%d}_{process.id[:8]}"
+
+
 async def _cloud_folder(db: AsyncSession, process: Process) -> Optional[str]:
+    """Where a process's files go in the cloud, or None for local storage:
+    1. a subfolder of the subject's own folder (the plot's), if it has one;
+    2. otherwise a subfolder of the processes folder (admin setting)."""
+    subject_folder = await subject_cloud_folder(db, process)
+    if subject_folder is not None:
+        return f"{subject_folder}/{_process_folder_name(process, process.template_name or process.title or 'process')}"
     base = await cloud_base_folder(db)
     if base is None:
         return None
@@ -864,8 +900,13 @@ async def _cloud_folder(db: AsyncSession, process: Process) -> Optional[str]:
     label = process.parcel.plot_number if process.parcel else (
         process.member.full_name if process.member else process.template_name
     )
-    slug = re.sub(r"[^A-Za-z0-9_-]+", "-", label).strip("-")[:60] or "process"
-    return f"{base}/{slug}_{process.created_at:%Y-%m-%d}_{process.id[:8]}"
+    return f"{base}/{_process_folder_name(process, label or 'process')}"
+
+
+async def upload_folder(db: AsyncSession, process: Process) -> Optional[str]:
+    """Where the next upload goes (shown next to the upload form), or None
+    for Parcella's private storage."""
+    return await _cloud_folder(db, process)
 
 
 def local_path(file: ProcessFile) -> Path:
@@ -893,10 +934,16 @@ async def store_file(
         raise ServiceError(_ERR + "file_type_not_allowed")
 
     original = _safe_name(filename)
-    stored_name = f"{uuid.uuid4().hex}{ALLOWED_FILE_TYPES[content_type]}"
+    extension = ALLOWED_FILE_TYPES[content_type]
+    stored_name = f"{uuid.uuid4().hex}{extension}"
     folder = await _cloud_folder(db, process)
     provider = await get_cloud_storage_provider(db) if folder else None
     if provider is not None:
+        # People browse this folder in the cloud too: a readable, still
+        # unique name instead of a bare uuid.
+        raw = (filename or "").replace("\\", "/").rsplit("/", 1)[-1]
+        stem = raw.rsplit(".", 1)[0] if "." in raw else raw
+        stored_name = f"{_now():%Y%m%d}-{slugify(stem)[:60]}-{uuid.uuid4().hex[:8]}{extension}"
         try:
             await provider.create_folder(folder)
             await provider.upload_file(folder, stored_name, content)

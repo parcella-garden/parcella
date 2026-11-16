@@ -3747,7 +3747,9 @@
       "file_delete": "Bestand verwijderen",
       "file_delete_confirm": "Dit bestand verwijderen?",
       "in_cloud": "Opgeslagen in de cloud",
-      "applicants_hidden": "Alleen zichtbaar met toegang tot de module kandidaten."
+      "applicants_hidden": "Alleen zichtbaar met toegang tot de module kandidaten.",
+      "file_target_cloud": "Opgeslagen in de cloudmap",
+      "file_target_local": "Bewaard in de privéopslag van Parcella (geen cloudmap ingesteld voor dit perceel of voor processen)."
     },
     "subject_card": {
       "header": "Processen",

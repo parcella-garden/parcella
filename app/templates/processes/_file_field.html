@@ -27,6 +27,9 @@
                accept="application/pdf,image/jpeg,image/png,image/webp" aria-label="{{ t('processes.detail.file_choose') }}">
         <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-upload me-1"></i>{{ t('processes.detail.file_upload') }}</button>
     </form>
-    <div class="form-text">{{ t('processes.detail.file_hint') }}</div>
+    <div class="form-text">{{ t('processes.detail.file_hint') }}
+        {% if upload_folder %}<br><i class="bi bi-cloud me-1"></i>{{ t('processes.detail.file_target_cloud') }} <code>{{ upload_folder }}</code>
+        {% else %}<br><i class="bi bi-lock me-1"></i>{{ t('processes.detail.file_target_local') }}{% endif %}
+    </div>
     {% endif %}
 </div>

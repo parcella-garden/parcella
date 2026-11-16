@@ -13,7 +13,8 @@ from sqlalchemy import select
 from app.auth import hash_password
 from app.database import AsyncSessionLocal
 from app.models import (
-    Applicant, ClubSetting, Group, GroupMembership, GroupModulePermission, Member, Parcel, ParcelStatus,
+    Applicant, ClubSetting, Group, GroupMembership, GroupModulePermission, Member, MemberParcel, Parcel,
+    ParcelCloudFolder, ParcelStatus,
     Process, ProcessEvent, ProcessEventKind, ProcessFieldKind as K, ProcessFileStorage, ProcessStatus,
     ProcessSubjectKind, User, UserRole,
 )
@@ -546,6 +547,72 @@ async def test_files_go_to_cloud_when_configured(client, admin_user, monkeypatch
     download = await client.get(f"/processes/{process.id}/files/{record.id}")
     assert download.status_code == 200 and download.content == PDF
     assert "attachment" in download.headers["content-disposition"]
+
+
+async def test_files_go_to_the_subjects_own_folder(client, admin_user, monkeypatch):
+    """A plot (or a member's only current plot) with a cloud folder: the
+    process's files go into a subfolder of it, ahead of the processes
+    folder. Without one, the processes folder is used as before."""
+    uploads = {}
+
+    class FakeProvider:
+        async def create_folder(self, path):
+            pass
+
+        async def upload_file(self, path, filename, content):
+            uploads[(path, filename)] = content
+
+        async def aclose(self):
+            pass
+
+    async def fake_provider(db):
+        return FakeProvider()
+
+    monkeypatch.setattr(svc, "get_cloud_storage_provider", fake_provider)
+    async with AsyncSessionLocal() as db:
+        parcel, member, _ = await _subjects(db)
+        other = Parcel(plot_number="13", status=ParcelStatus.TERMINATED)
+        db.add(other)
+        await db.flush()
+        db.add_all([
+            ClubSetting(key="modul_cloud_storage", value="true", description="test"),
+            ClubSetting(key=svc.CLOUD_FOLDER_SETTING, value="board/processes", description="test"),
+            ParcelCloudFolder(parcel_id=parcel.id, relative_path="kgv/parzellen/12/2024_Mueller"),
+            MemberParcel(member_id=member.id, parcel_id=parcel.id),
+        ])
+        await db.commit()
+        admin = await _admin(db)
+        plot_template = await _template(db, admin, ("One", [("Proof", "FILE", False)]), subject_kind="PARCEL")
+        member_template = await _template(db, admin, ("One", [("Proof", "FILE", False)]), subject_kind="MEMBER")
+
+        async def upload(template_id, subject_id):
+            process = await svc.start_process(db, admin, template_id=template_id, subject_id=subject_id)
+            process = await svc.get_process(db, process.id, lock=True)
+            return process, await svc.store_file(db, process, _field(process, "Proof").id, admin,
+                                                 content=PNG, filename="Zaun Ärger.png")
+
+        process, record = await upload(plot_template.id, parcel.id)
+        assert record.cloud_path.startswith("kgv/parzellen/12/2024_Mueller/test-process_")
+        assert record.stored_name.endswith(".png") and "-zaun-arger-" in record.stored_name
+        assert (record.cloud_path, record.stored_name) in uploads
+        plot_process_id = process.id
+
+        _, record = await upload(member_template.id, member.id)
+        assert record.cloud_path.startswith("kgv/parzellen/12/2024_Mueller/")
+
+        # A plot without a folder: the processes folder, as before.
+        _, record = await upload(plot_template.id, other.id)
+        assert record.cloud_path.startswith("board/processes/13_")
+
+        # A member with two current plots: ambiguous, so the processes folder.
+        db.add(MemberParcel(member_id=member.id, parcel_id=other.id))
+        await db.commit()
+        _, record = await upload(member_template.id, member.id)
+        assert record.cloud_path.startswith("board/processes/otto-gardener_")
+
+    await web_login(client)
+    page = await client.get(f"/processes/{plot_process_id}")
+    assert "kgv/parzellen/12/2024_Mueller/test-process_" in page.text
 
 
 # ---------------------------------------------------------------------------

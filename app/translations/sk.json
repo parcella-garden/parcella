@@ -3747,7 +3747,9 @@
       "file_delete": "Odstrániť súbor",
       "file_delete_confirm": "Odstrániť tento súbor?",
       "in_cloud": "Uložené v cloude",
-      "applicants_hidden": "Viditeľné len s prístupom k modulu uchádzačov."
+      "applicants_hidden": "Viditeľné len s prístupom k modulu uchádzačov.",
+      "file_target_cloud": "Ukladá sa do priečinka v cloude",
+      "file_target_local": "Ukladá sa do súkromného úložiska Parcelly (pre túto parcelu ani pre procesy nie je nastavený priečinok v cloude)."
     },
     "subject_card": {
       "header": "Procesy",

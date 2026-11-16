@@ -3747,7 +3747,9 @@
       "file_delete": "Remove the file",
       "file_delete_confirm": "Remove this file?",
       "in_cloud": "Stored in the cloud",
-      "applicants_hidden": "Only visible with access to the applicants module."
+      "applicants_hidden": "Only visible with access to the applicants module.",
+      "file_target_cloud": "Saved in the cloud folder",
+      "file_target_local": "Kept in Parcella's private storage (no cloud folder set for this plot or for processes)."
     },
     "subject_card": {
       "header": "Processes",

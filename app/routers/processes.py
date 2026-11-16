@@ -410,7 +410,10 @@ async def process_detail(process_id: str, request: Request, db: AsyncSession = D
     process = await _load(request, db, process_id)
     stage = svc.current_stage(process)
     kinds = {f.kind for s in process.stages for f in s.fields} if process.is_open else set()
+    has_file_fields = any(f.kind == ProcessFieldKind.FILE for s in process.stages for f in s.fields)
+    upload_folder = await svc.upload_folder(db, process) if process.is_open and has_file_fields else None
     return templates.TemplateResponse("processes/detail.html", {
+        "upload_folder": upload_folder,
         "request": request, "user": user, "process": process, "stage": stage,
         "missing": svc.missing_fields(stage) if process.is_open else [],
         "can_write": await svc.can(db, user, "write"), "can_delete": await svc.can(db, user, "delete"),

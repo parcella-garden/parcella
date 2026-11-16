@@ -3747,7 +3747,9 @@
       "file_delete": "Usuń plik",
       "file_delete_confirm": "Usunąć ten plik?",
       "in_cloud": "Zapisany w chmurze",
-      "applicants_hidden": "Widoczne tylko z dostępem do modułu kandydatów."
+      "applicants_hidden": "Widoczne tylko z dostępem do modułu kandydatów.",
+      "file_target_cloud": "Zapisywane w folderze w chmurze",
+      "file_target_local": "Przechowywane w prywatnym magazynie Parcelli (brak folderu w chmurze dla tej działki lub dla procesów)."
     },
     "subject_card": {
       "header": "Procesy",

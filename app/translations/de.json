@@ -3747,7 +3747,9 @@
       "file_delete": "Datei entfernen",
       "file_delete_confirm": "Diese Datei entfernen?",
       "in_cloud": "In der Cloud gespeichert",
-      "applicants_hidden": "Nur sichtbar mit Zugriff auf das Bewerbermodul."
+      "applicants_hidden": "Nur sichtbar mit Zugriff auf das Bewerbermodul.",
+      "file_target_cloud": "Wird gespeichert im Cloud-Ordner",
+      "file_target_local": "Wird in Parcellas privatem Speicher abgelegt (kein Cloud-Ordner für diese Parzelle oder für Prozesse eingerichtet)."
     },
     "subject_card": {
       "header": "Vorgänge",

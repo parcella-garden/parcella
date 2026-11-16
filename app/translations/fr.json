@@ -3747,7 +3747,9 @@
       "file_delete": "Retirer le fichier",
       "file_delete_confirm": "Retirer ce fichier ?",
       "in_cloud": "Enregistré dans le cloud",
-      "applicants_hidden": "Visible uniquement avec l'accès au module des candidats."
+      "applicants_hidden": "Visible uniquement avec l'accès au module des candidats.",
+      "file_target_cloud": "Enregistré dans le dossier cloud",
+      "file_target_local": "Conservé dans le stockage privé de Parcella (aucun dossier cloud défini pour cette parcelle ni pour les processus)."
     },
     "subject_card": {
       "header": "Procédures",

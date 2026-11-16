@@ -60,10 +60,21 @@ MEMBER, APPLICANT, PARCEL.
 
 ## Files
 
-- **Cloud:** files go to `<processes_cloud_folder>/<subject-or-title>_<date>_<id8>/`
-  when the cloud storage module is on and Admin → Integrations →
-  Nextcloud → "Folder for process files" is set.
-- **Local:** otherwise they go to `app/static/uploads/private/processes/<process_id>/`.
+Where an upload goes is decided per upload (`_cloud_folder`), in this
+order, and shown under each upload form:
+
+1. **The subject's own folder:** `<plot folder>/<template-slug>_<date>_<id8>/`
+   when the cloud storage module is on and the process is about a plot
+   with an active cloud folder (parcel page), or about a member with
+   exactly **one** current plot that has one. Several current plots are
+   ambiguous, so they fall through to 2; applicants have no folder. The
+   subfolder is named after the template, not the title, which may name
+   a person. Note that plot folders are usually shared with the tenants
+   in the cloud, so they can see these files.
+2. **Cloud:** `<processes_cloud_folder>/<subject-or-title>_<date>_<id8>/`
+   when Admin → Integrations → Nextcloud → "Folder for process files"
+   is set.
+3. **Local:** otherwise they go to `app/static/uploads/private/processes/<process_id>/`.
   That is the persisted `./data/uploads` volume in production, so they
   are in every backup. `app/main.py` blocks `/static/uploads/private/*`
   after normalizing the path.
@@ -71,6 +82,12 @@ MEMBER, APPLICANT, PARCEL.
   to 20 MB. Downloads go through `/processes/{id}/files/{file_id}` with
   `Cache-Control: private, no-store`.
 - Removing a file removes a local file, but only unlinks a cloud file.
+- Cloud files get a readable, still unique name
+  (`20261117-zaun-arger-1a2b3c4d.png`), since people browse these
+  folders in the cloud too; local files keep a bare uuid.
+- Each file stores its own `cloud_path`, so a later folder change (a
+  handover switching the plot's folder, ADR 0102) doesn't break
+  downloads of earlier files.
 
 ## Template builder (UI)
 

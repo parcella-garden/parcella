@@ -3747,7 +3747,9 @@
       "file_delete": "Odebrat soubor",
       "file_delete_confirm": "Odebrat tento soubor?",
       "in_cloud": "Uloženo v cloudu",
-      "applicants_hidden": "Viditelné jen s přístupem k modulu uchazečů."
+      "applicants_hidden": "Viditelné jen s přístupem k modulu uchazečů.",
+      "file_target_cloud": "Ukládá se do cloudové složky",
+      "file_target_local": "Ukládá se do soukromého úložiště Parcelly (pro tuto parcelu ani pro procesy není nastavena cloudová složka)."
     },
     "subject_card": {
       "header": "Procesy",
