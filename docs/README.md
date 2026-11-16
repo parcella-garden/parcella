@@ -20,6 +20,7 @@ decisions and reasoning are still fresh.
 - [External contacts](./module-external-contacts.md) -- suppliers, craftsmen, authorities; linkable from incoming invoices and purchase requests
 - [Reporting](./module-reporting.md) -- club figures over time as charts (members, plots, applicants, work hours, electricity)
 - [Notes](./module-notes.md) -- Markdown notes (meetings and more) with a club-wide taxonomy; the .md file in the cloud is the master
+- [Processes](./module-processes.md) -- club-defined process templates (stages with their own fields), run for a plot, a member or an applicant
 
 ## Cross-cutting topics
 

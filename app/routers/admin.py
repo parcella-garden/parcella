@@ -72,6 +72,7 @@ from app.print_publisher import PRINT_CLOUD_FOLDER_SETTING, load_print_cloud_fol
 from app.ics_utils import regenerate_ics_token
 from app.contact_documents import EXTERNAL_CONTACTS_FOLDER_SETTING, load_base_folder as load_contacts_base_folder
 from app.services.notes import NOTES_FOLDER_SETTING, load_notes_folder, reset_sync_throttle
+from app.services.processes import CLOUD_FOLDER_SETTING as PROCESSES_FOLDER_SETTING
 from app.cloud_backup import (
     get_cloud_backup_settings, save_cloud_backup_settings, run_cloud_backup_now,
     is_backup_filename, FREQUENCY_CHOICES,
@@ -957,6 +958,7 @@ MODULE_FIELDS = [
     ("modul_external_contacts", "admin.settings.modules.external_contacts_name", "admin.settings.modules.external_contacts_desc"),
     ("modul_reporting", "admin.settings.modules.reporting_name", "admin.settings.modules.reporting_desc"),
     ("modul_notes", "admin.settings.modules.notes_name", "admin.settings.modules.notes_desc"),
+    ("modul_processes", "admin.settings.modules.processes_name", "admin.settings.modules.processes_desc"),
     ("modul_mcp", "admin.settings.modules.mcp_name", "admin.settings.modules.mcp_desc"),
     ("modul_public_signup_api", "admin.settings.modules.public_signup_api_name", "admin.settings.modules.public_signup_api_desc"),
     ("modul_public_contact_api", "admin.settings.modules.public_contact_api_name", "admin.settings.modules.public_contact_api_desc"),
@@ -1008,6 +1010,7 @@ NAV_ORDER_FIELDS = [
     ("external_contacts", "nav.external_contacts"),
     ("reporting", "nav.reporting"),
     ("notes", "nav.notes"),
+    ("processes", "nav.processes"),
 ]
 
 
@@ -1417,6 +1420,11 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
         "notes_folder_path": await load_notes_folder(db),
         "notes_folder_saved": request.query_params.get("notes_folder_saved"),
         "notes_folder_error": request.query_params.get("notes_folder_error"),
+        "processes_folder_path": await db.scalar(
+            select(ClubSetting.value).where(ClubSetting.key == PROCESSES_FOLDER_SETTING)
+        ),
+        "processes_folder_saved": request.query_params.get("processes_folder_saved"),
+        "processes_folder_error": request.query_params.get("processes_folder_error"),
         "helpdesk": await HELPDESK.admin_context(db),
         "helpdesk_saved": request.query_params.get("helpdesk_saved"),
         "helpdesk_error": request.query_params.get("helpdesk_error"),
@@ -1659,6 +1667,35 @@ async def integrations_notes_folder_save(
     await db.commit()
     reset_sync_throttle()
     return RedirectResponse("/admin/integrations?notes_folder_saved=1#integration-card-nextcloud", status_code=303)
+
+
+@router.post("/integrations/nextcloud/processes-folder")
+async def integrations_processes_folder_save(
+    request: Request, relative_path: str = Form(""), db: AsyncSession = Depends(get_db),
+):
+    """Issue #331: the cloud folder for process files (ADR 0135), one
+    subfolder per process. Blank clears it -- files then go to the
+    private local directory. Files already uploaded stay where they are."""
+    await require_system_admin(request, db)
+    from urllib.parse import quote
+
+    anchor = "#integration-card-nextcloud"
+    entry = await db.scalar(select(ClubSetting).where(ClubSetting.key == PROCESSES_FOLDER_SETTING))
+    if not relative_path.strip():
+        if entry:
+            await db.delete(entry)
+            await db.commit()
+        return RedirectResponse(f"/admin/integrations?processes_folder_saved=1{anchor}", status_code=303)
+    try:
+        sanitized = sanitize_relative_path(relative_path)
+    except InvalidCloudPathError as e:
+        return RedirectResponse(f"/admin/integrations?processes_folder_error={quote(str(e))}{anchor}", status_code=303)
+    if entry:
+        entry.value = sanitized
+    else:
+        db.add(ClubSetting(key=PROCESSES_FOLDER_SETTING, value=sanitized, description="Cloud folder for process files"))
+    await db.commit()
+    return RedirectResponse(f"/admin/integrations?processes_folder_saved=1{anchor}", status_code=303)
 
 
 @router.post("/integrations/nextcloud/announcements-print-folder")

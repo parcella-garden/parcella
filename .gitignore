@@ -33,6 +33,8 @@ Thumbs.db
 # a pile of these from test runs; don't let that happen again.
 app/static/uploads/announcements/
 app/static/uploads/avatars/
+# Process files (ADR 0135): private, never a repo asset.
+app/static/uploads/private/
 
 # Locally-stored ticket attachments (Nextcloud fallback), same reasoning
 # as the uploads above -- user-uploaded content, never a repo asset.

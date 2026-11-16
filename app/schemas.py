@@ -1363,3 +1363,132 @@ class NoteOut(NoteBase):
     updated_at: datetime
     cloud_filename: Optional[str] = None
     cloud_hash: Optional[str] = None
+
+
+# ---------------------------------------------------------------------------
+# Processes (issue #331, ADR 0135, docs/module-processes.md)
+# ---------------------------------------------------------------------------
+
+class ProcessTemplateFieldOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    position: int
+    label: str
+    help_text: Optional[str] = None
+    kind: str
+    required: bool
+    options: Optional[List[str]] = None
+
+
+class ProcessTemplateStageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    position: int
+    name: str
+    description: Optional[str] = None
+    fields: List[ProcessTemplateFieldOut] = []
+
+
+class ProcessTemplateOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    name: str
+    description: Optional[str] = None
+    subject_kind: str
+    is_active: bool
+    stages: List[ProcessTemplateStageOut] = []
+
+
+class ProcessFileOut(BaseModel):
+    """Metadata only -- the content is behind the web download route."""
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    original_name: str
+    content_type: str
+    size: int
+    storage: str
+    created_at: datetime
+
+
+class ProcessFieldOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    position: int
+    label: str
+    help_text: Optional[str] = None
+    kind: str
+    required: bool
+    options: Optional[List[str]] = None
+    filled: bool = False
+    value_text: Optional[str] = None
+    value_number: Optional[Decimal] = None
+    value_date: Optional[date] = None
+    value_bool: Optional[bool] = None
+    value_member_id: Optional[str] = None
+    value_applicant_id: Optional[str] = None
+    value_parcel_id: Optional[str] = None
+    display_value: str = ""
+    files: List[ProcessFileOut] = []
+    updated_at: Optional[datetime] = None
+
+
+class ProcessStageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    position: int
+    name: str
+    description: Optional[str] = None
+    completed_at: Optional[datetime] = None
+    fields: List[ProcessFieldOut] = []
+
+
+class ProcessEventOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    kind: str
+    stage_name: Optional[str] = None
+    note: Optional[str] = None
+    created_at: datetime
+    user_id: Optional[str] = None
+
+
+class ProcessOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    template_id: Optional[str] = None
+    template_name: str
+    title: str
+    subject_kind: str
+    parcel_id: Optional[str] = None
+    member_id: Optional[str] = None
+    applicant_id: Optional[str] = None
+    status: str
+    current_position: int
+    abort_reason: Optional[str] = None
+    closed_at: Optional[datetime] = None
+    created_at: datetime
+
+
+class ProcessDetailOut(ProcessOut):
+    stages: List[ProcessStageOut] = []
+    events: List[ProcessEventOut] = []
+
+
+class ProcessStart(BaseModel):
+    template_id: str
+    title: Optional[str] = Field(None, max_length=200)
+    subject_id: Optional[str] = Field(None, description="Plot, member or applicant id, as the template's subject_kind asks")
+
+
+class ProcessFieldUpdate(BaseModel):
+    value: Optional[str | bool | int | float] = Field(
+        None, description="Text, number (comma or point), ISO date, true/false, a choice, or a member/applicant/plot id",
+    )
+
+
+class ProcessBack(BaseModel):
+    to_position: int
+    reason: str = Field(..., min_length=1, max_length=4000)
+
+
+class ProcessAbort(BaseModel):
+    reason: str = Field(..., min_length=1, max_length=4000)

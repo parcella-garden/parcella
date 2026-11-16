@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}{{ t('processes.templates.title') }}{% endblock %}
+{% block page_title %}{{ t('processes.templates.title') }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="/processes/" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{{ t('processes.templates.back_to_list') }}</a>
+{% endblock %}
+
+{% block content %}
+{% if error %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ t(error) }}
+</div>
+{% endif %}
+
+<p class="text-muted">{{ t('processes.templates.intro') }}</p>
+
+<div class="row g-3">
+<div class="col-lg-7">
+    <div class="card">
+        <div class="card-header">{{ t('processes.templates.existing') }}</div>
+        {% if templates_list %}
+        <ul class="list-group list-group-flush">
+            {% for tpl in templates_list %}
+            <li class="list-group-item d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                <div>
+                    <a href="/processes/templates/{{ tpl.id }}" class="fw-semibold">{{ tpl.name }}</a>
+                    {% if not tpl.is_active %}<span class="badge bg-secondary ms-1">{{ t('processes.templates.archived') }}</span>{% endif %}
+                    <div class="text-muted" style="font-size: 0.85rem;">
+                        {{ t('processes.subject_kind.' ~ tpl.subject_kind.value) }} ·
+                        {{ t('processes.templates.stage_count', count=tpl.stages|length) }} ·
+                        {{ t('processes.templates.usage', count=usage[tpl.id]) }}
+                    </div>
+                </div>
+                <a href="/processes/templates/{{ tpl.id }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>{{ t('processes.templates.edit') }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="card-body text-muted">{{ t('processes.templates.none') }}</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="col-lg-5">
+    <div class="card mb-3">
+        <div class="card-header">{{ t('processes.templates.new_header') }}</div>
+        <div class="card-body">
+            <form method="post" action="/processes/templates/new">
+                {{ csrf_field() }}
+                <div class="mb-2">
+                    <label class="form-label" for="tpl-name">{{ t('processes.templates.name') }} <span class="text-danger">*</span></label>
+                    <input type="text" name="name" id="tpl-name" class="form-control" maxlength="200" required>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="tpl-subject">{{ t('processes.templates.subject_kind') }}</label>
+                    <select name="subject_kind" id="tpl-subject" class="form-select">
+                        {% for k in subject_kinds %}<option value="{{ k.value }}">{{ t('processes.subject_kind.' ~ k.value) }}</option>{% endfor %}
+                    </select>
+                    <div class="form-text">{{ t('processes.templates.subject_kind_help') }}</div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="tpl-description">{{ t('processes.templates.description') }}</label>
+                    <textarea name="description" id="tpl-description" class="form-control" rows="2" maxlength="20000"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>{{ t('processes.templates.create') }}</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">{{ t('processes.templates.examples_header') }}</div>
+        <div class="card-body">
+            <p class="text-muted" style="font-size: 0.9rem;">{{ t('processes.templates.examples_help') }}</p>
+            {% for key in examples %}
+            <form method="post" action="/processes/templates/example" class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                {{ csrf_field() }}
+                <input type="hidden" name="key" value="{{ key }}">
+                <div>
+                    <div class="fw-semibold">{{ t('processes.examples.' ~ key ~ '.name') }}</div>
+                    <div class="text-muted" style="font-size: 0.85rem;">{{ t('processes.examples.' ~ key ~ '.description') }}</div>
+                </div>
+                <button type="submit" class="btn btn-sm btn-outline-primary text-nowrap">{{ t('processes.templates.use_example') }}</button>
+            </form>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

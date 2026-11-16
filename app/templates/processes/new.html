@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}{{ t('processes.new.title') }}{% endblock %}
+{% block page_title %}{{ t('processes.new.title') }}{% endblock %}
+
+{% block content %}
+{% if error %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ t(error) }}
+</div>
+{% endif %}
+
+<div class="card" style="max-width: 640px;">
+    <div class="card-body">
+        {% if not templates_list %}
+        <p class="text-muted mb-0">{{ t('processes.new.no_templates') }}
+            {% if is_full_access(request) %}<a href="/processes/templates/">{{ t('processes.list.empty_create_template') }}</a>{% endif %}</p>
+        {% else %}
+        {#- Step 1: the template (a GET, so the subject picker below can
+            follow the template's subject kind; works without JS). -#}
+        <form method="get" action="/processes/new" class="mb-3">
+            <input type="hidden" name="subject_id" value="{{ values.subject_id }}">
+            <input type="hidden" name="subject_kind" value="{{ values.subject_kind or '' }}">
+            <label class="form-label fw-semibold" for="p-template">{{ t('processes.new.template_label') }}</label>
+            <div class="d-flex gap-2">
+                <select name="template_id" id="p-template" class="form-select" onchange="this.form.submit()">
+                    <option value="">–</option>
+                    {% for tpl in templates_list %}<option value="{{ tpl.id }}" {% if chosen and chosen.id == tpl.id %}selected{% endif %}>{{ tpl.name }}</option>{% endfor %}
+                </select>
+                <noscript><button type="submit" class="btn btn-outline-secondary">{{ t('processes.new.choose') }}</button></noscript>
+            </div>
+            {% if chosen and chosen.description %}<div class="form-text" style="white-space: pre-line;">{{ chosen.description }}</div>{% endif %}
+        </form>
+
+        {% if chosen %}
+        <form method="post" action="/processes/new">
+            {{ csrf_field() }}
+            <input type="hidden" name="template_id" value="{{ chosen.id }}">
+            {% set kind = chosen.subject_kind.value %}
+            {% if kind != 'NONE' %}
+            <div class="mb-3">
+                <label class="form-label fw-semibold" for="p-subject">{{ t('processes.subject_kind.' ~ kind) }} <span class="text-danger">*</span></label>
+                <select name="subject_id" id="p-subject" class="form-select" required>
+                    <option value="">–</option>
+                    {% if kind == 'PARCEL' %}{% for p in parcels %}<option value="{{ p.id }}" {% if values.subject_id == p.id %}selected{% endif %}>{{ p.plot_number }}</option>{% endfor %}
+                    {% elif kind == 'MEMBER' %}{% for m in members %}<option value="{{ m.id }}" {% if values.subject_id == m.id %}selected{% endif %}>{{ m.last_name }}, {{ m.first_name }}</option>{% endfor %}
+                    {% elif kind == 'APPLICANT' %}{% for a in applicants %}<option value="{{ a.id }}" {% if values.subject_id == a.id %}selected{% endif %}>{{ a.display_name }} · {{ a.email }}</option>{% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            {% endif %}
+            <div class="mb-3">
+                <label class="form-label fw-semibold" for="p-title">{{ t('processes.new.title_label') }}</label>
+                <input type="text" name="title" id="p-title" class="form-control" maxlength="200" value="{{ values.title }}" placeholder="{{ chosen.name }}">
+                <div class="form-text">{{ t('processes.new.title_help') }}</div>
+            </div>
+            <div class="mb-3">
+                <div class="fw-semibold mb-1">{{ t('processes.new.stages_label') }}</div>
+                <ol class="mb-0">{% for s in chosen.stages %}<li>{{ s.name }}</li>{% endfor %}</ol>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-play-fill me-1"></i>{{ t('processes.new.submit') }}</button>
+            <a href="/processes/" class="btn btn-outline-secondary">{{ t('processes.cancel') }}</a>
+        </form>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

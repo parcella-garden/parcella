@@ -92,6 +92,9 @@ MODULE_DEFAULTS: Dict[str, bool] = {
     # internal data, no public endpoint, and the cloud folder it writes
     # to needs the off-by-default cloud_storage module anyway.
     "notes": True,
+    # Club-defined process templates (issue #331, docs/module-processes.md).
+    # No public endpoint, so on by default.
+    "processes": True,
     # MCP connector for AI clients (issue #307, ADR 0132). Off by default:
     # it hands club notes to a third-party AI service, so a club opts in
     # deliberately -- and even then only notes released for AI go out.

@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}{{ template.name }}{% endblock %}
+{% block page_title %}{{ t('processes.templates.edit_title', name=template.name) }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="/processes/templates/" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{{ t('processes.templates.title') }}</a>
+{% endblock %}
+
+{% macro field_kind_select(selected, id) %}
+<select name="kind" class="form-select form-select-sm" id="{{ id }}">
+    {% for k in field_kinds %}<option value="{{ k.value }}" {% if selected == k.value %}selected{% endif %}>{{ t('processes.field_kind.' ~ k.value) }}</option>{% endfor %}
+</select>
+{% endmacro %}
+
+{% block content %}
+{% if error %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ t(error) }}
+</div>
+{% endif %}
+
+<div class="alert alert-info d-flex gap-2 align-items-start" style="font-size: 0.9rem;">
+    <i class="bi bi-info-circle-fill"></i>
+    <div>{{ t('processes.templates.snapshot_note', count=usage) }}</div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span>{{ t('processes.templates.general') }}</span>
+        <span class="d-flex gap-2">
+            <form method="post" action="/processes/templates/{{ template.id }}/archive">
+                {{ csrf_field() }}
+                <input type="hidden" name="active" value="{{ '0' if template.is_active else '1' }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                    {% if template.is_active %}<i class="bi bi-archive me-1"></i>{{ t('processes.templates.archive') }}{% else %}<i class="bi bi-box-arrow-up me-1"></i>{{ t('processes.templates.unarchive') }}{% endif %}
+                </button>
+            </form>
+            {% if usage == 0 %}
+            <form method="post" action="/processes/templates/{{ template.id }}/delete"
+                  onsubmit="return confirm({{ t('processes.templates.delete_confirm')|tojson|forceescape }});">
+                {{ csrf_field() }}
+                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>{{ t('processes.templates.delete') }}</button>
+            </form>
+            {% endif %}
+        </span>
+    </div>
+    <div class="card-body">
+        <form method="post" action="/processes/templates/{{ template.id }}" class="row g-2">
+            {{ csrf_field() }}
+            <div class="col-md-6">
+                <label class="form-label" for="tpl-name">{{ t('processes.templates.name') }} <span class="text-danger">*</span></label>
+                <input type="text" name="name" id="tpl-name" class="form-control" maxlength="200" required value="{{ template.name }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="tpl-subject">{{ t('processes.templates.subject_kind') }}</label>
+                <select name="subject_kind" id="tpl-subject" class="form-select">
+                    {% for k in subject_kinds %}<option value="{{ k.value }}" {% if template.subject_kind == k %}selected{% endif %}>{{ t('processes.subject_kind.' ~ k.value) }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-12">
+                <label class="form-label" for="tpl-description">{{ t('processes.templates.description') }}</label>
+                <textarea name="description" id="tpl-description" class="form-control" rows="2" maxlength="20000">{{ template.description or '' }}</textarea>
+            </div>
+            <div class="col-12"><button type="submit" class="btn btn-sm btn-primary">{{ t('processes.detail.save') }}</button></div>
+        </form>
+    </div>
+</div>
+
+{% for stage in template.stages %}
+{% set first_stage, last_stage = loop.first, loop.last %}
+<div class="card mb-3" id="stage-{{ stage.id }}">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span class="fw-semibold">{{ t('processes.templates.stage_n', n=loop.index) }}: {{ stage.name }}</span>
+        <span class="d-flex gap-1">
+            {% for direction, icon in (('up', 'bi-arrow-up'), ('down', 'bi-arrow-down')) %}
+            <form method="post" action="/processes/templates/{{ template.id }}/stages/{{ stage.id }}/move">
+                {{ csrf_field() }}<input type="hidden" name="direction" value="{{ direction }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary" title="{{ t('processes.templates.move_' ~ direction) }}"
+                        {% if (direction == 'up' and first_stage) or (direction == 'down' and last_stage) %}disabled{% endif %}><i class="bi {{ icon }}"></i></button>
+            </form>
+            {% endfor %}
+            <form method="post" action="/processes/templates/{{ template.id }}/stages/{{ stage.id }}/delete"
+                  onsubmit="return confirm({{ t('processes.templates.stage_delete_confirm')|tojson|forceescape }});">
+                {{ csrf_field() }}
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ t('processes.templates.stage_delete') }}"><i class="bi bi-trash"></i></button>
+            </form>
+        </span>
+    </div>
+    <div class="card-body">
+        <form method="post" action="/processes/templates/{{ template.id }}/stages/{{ stage.id }}" class="row g-2 mb-3">
+            {{ csrf_field() }}
+            <div class="col-md-5">
+                <label class="form-label small mb-0" for="s-name-{{ stage.id }}">{{ t('processes.templates.stage_name') }}</label>
+                <input type="text" name="name" id="s-name-{{ stage.id }}" class="form-control form-control-sm" maxlength="200" required value="{{ stage.name }}">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label small mb-0" for="s-desc-{{ stage.id }}">{{ t('processes.templates.stage_description') }}</label>
+                <input type="text" name="description" id="s-desc-{{ stage.id }}" class="form-control form-control-sm" maxlength="20000" value="{{ stage.description or '' }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end"><button type="submit" class="btn btn-sm btn-outline-primary w-100">{{ t('processes.detail.save') }}</button></div>
+        </form>
+
+        <div class="fw-semibold mb-2">{{ t('processes.templates.fields') }}</div>
+        {% if not stage.fields %}<p class="text-muted" style="font-size: 0.9rem;">{{ t('processes.templates.no_fields') }}</p>{% endif %}
+        {% for field in stage.fields %}
+        {% set first_field, last_field = loop.first, loop.last %}
+        <div class="border rounded p-2 mb-2" id="field-{{ field.id }}">
+            <form method="post" action="/processes/templates/{{ template.id }}/fields/{{ field.id }}" class="row g-2 align-items-end">
+                {{ csrf_field() }}
+                <div class="col-md-4">
+                    <label class="form-label small mb-0" for="fl-{{ field.id }}">{{ t('processes.templates.field_label') }}</label>
+                    <input type="text" name="label" id="fl-{{ field.id }}" class="form-control form-control-sm" maxlength="200" required value="{{ field.label }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small mb-0" for="fk-{{ field.id }}">{{ t('processes.templates.field_kind') }}</label>
+                    {{ field_kind_select(field.kind.value, 'fk-' ~ field.id) }}
+                </div>
+                <div class="col-md-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="required" value="1" id="fr-{{ field.id }}" {% if field.required %}checked{% endif %}>
+                        <label class="form-check-label small" for="fr-{{ field.id }}">{{ t('processes.templates.field_required') }}</label>
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex gap-1 justify-content-end">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('processes.detail.save') }}</button>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small mb-0" for="fh-{{ field.id }}">{{ t('processes.templates.field_help') }}</label>
+                    <input type="text" name="help_text" id="fh-{{ field.id }}" class="form-control form-control-sm" maxlength="2000" value="{{ field.help_text or '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small mb-0" for="fo-{{ field.id }}">{{ t('processes.templates.field_options') }}</label>
+                    <textarea name="options" id="fo-{{ field.id }}" class="form-control form-control-sm" rows="2">{{ (field.options or [])|join('\n') }}</textarea>
+                </div>
+            </form>
+            <div class="d-flex gap-1 mt-2">
+                {% for direction, icon in (('up', 'bi-arrow-up'), ('down', 'bi-arrow-down')) %}
+                <form method="post" action="/processes/templates/{{ template.id }}/fields/{{ field.id }}/move">
+                    {{ csrf_field() }}<input type="hidden" name="direction" value="{{ direction }}">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary" title="{{ t('processes.templates.move_' ~ direction) }}"
+                            {% if (direction == 'up' and first_field) or (direction == 'down' and last_field) %}disabled{% endif %}><i class="bi {{ icon }}"></i></button>
+                </form>
+                {% endfor %}
+                <form method="post" action="/processes/templates/{{ template.id }}/fields/{{ field.id }}/delete"
+                      onsubmit="return confirm({{ t('processes.templates.field_delete_confirm')|tojson|forceescape }});">
+                    {{ csrf_field() }}
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ t('processes.templates.field_delete') }}"><i class="bi bi-trash"></i></button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+
+        <details class="mt-2">
+            <summary class="text-primary" style="cursor: pointer;"><i class="bi bi-plus-lg me-1"></i>{{ t('processes.templates.add_field') }}</summary>
+            <form method="post" action="/processes/templates/{{ template.id }}/stages/{{ stage.id }}/fields" class="row g-2 mt-1">
+                {{ csrf_field() }}
+                <div class="col-md-4">
+                    <label class="form-label small mb-0" for="nl-{{ stage.id }}">{{ t('processes.templates.field_label') }}</label>
+                    <input type="text" name="label" id="nl-{{ stage.id }}" class="form-control form-control-sm" maxlength="200" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small mb-0" for="nk-{{ stage.id }}">{{ t('processes.templates.field_kind') }}</label>
+                    {{ field_kind_select('TEXT', 'nk-' ~ stage.id) }}
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="required" value="1" id="nr-{{ stage.id }}">
+                        <label class="form-check-label small" for="nr-{{ stage.id }}">{{ t('processes.templates.field_required') }}</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small mb-0" for="nh-{{ stage.id }}">{{ t('processes.templates.field_help') }}</label>
+                    <input type="text" name="help_text" id="nh-{{ stage.id }}" class="form-control form-control-sm" maxlength="2000">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small mb-0" for="no-{{ stage.id }}">{{ t('processes.templates.field_options') }}</label>
+                    <textarea name="options" id="no-{{ stage.id }}" class="form-control form-control-sm" rows="2"></textarea>
+                </div>
+                <div class="col-12"><button type="submit" class="btn btn-sm btn-primary">{{ t('processes.templates.add_field_submit') }}</button></div>
+            </form>
+        </details>
+    </div>
+</div>
+{% endfor %}
+
+<div class="card mb-3" id="add-stage">
+    <div class="card-header">{{ t('processes.templates.add_stage') }}</div>
+    <div class="card-body">
+        <form method="post" action="/processes/templates/{{ template.id }}/stages" class="row g-2">
+            {{ csrf_field() }}
+            <div class="col-md-5">
+                <label class="form-label small mb-0" for="ns-name">{{ t('processes.templates.stage_name') }}</label>
+                <input type="text" name="name" id="ns-name" class="form-control form-control-sm" maxlength="200" required>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label small mb-0" for="ns-desc">{{ t('processes.templates.stage_description') }}</label>
+                <input type="text" name="description" id="ns-desc" class="form-control form-control-sm" maxlength="20000">
+            </div>
+            <div class="col-md-2 d-flex align-items-end"><button type="submit" class="btn btn-sm btn-primary w-100">{{ t('processes.templates.add_stage_submit') }}</button></div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{{ t('processes.list.title') }}{% endblock %}
+{% block page_title %}{{ t('processes.list.title') }}{% endblock %}
+
+{% block topbar_actions %}
+<div class="d-flex gap-2 flex-wrap">
+    {% if is_full_access(request) %}
+    <a href="/processes/templates/" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-sliders me-1"></i>{{ t('processes.list.manage_templates') }}
+    </a>
+    {% endif %}
+    {% if has_perm(request, 'processes', 'write') %}
+    <a href="/processes/new" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>{{ t('processes.list.start') }}
+    </a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-6 col-md-3">
+                <label class="form-label small text-muted mb-0" for="p-status">{{ t('processes.list.status_label') }}</label>
+                <select name="status" id="p-status" class="form-select form-select-sm">
+                    {% for s in ('open', 'closed', 'all') %}<option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ t('processes.list.filter_' ~ s) }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-4">
+                <label class="form-label small text-muted mb-0" for="p-template">{{ t('processes.list.template_label') }}</label>
+                <select name="template" id="p-template" class="form-select form-select-sm">
+                    <option value="">{{ t('processes.list.all_templates') }}</option>
+                    {% for tpl in templates_list %}<option value="{{ tpl.id }}" {% if template_id == tpl.id %}selected{% endif %}>{{ tpl.name }}{% if not tpl.is_active %} ({{ t('processes.templates.archived') }}){% endif %}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <button type="submit" class="btn btn-sm btn-outline-primary w-100">{{ t('processes.list.filter_button') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if processes %}
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>{{ t('processes.list.col_title') }}</th>
+                    <th>{{ t('processes.list.col_subject') }}</th>
+                    <th>{{ t('processes.list.col_stage') }}</th>
+                    <th>{{ t('processes.list.col_started') }}</th>
+                    <th>{{ t('processes.list.col_status') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for process in processes %}
+                {% set stage = current_stage(process) %}
+                <tr>
+                    <td>
+                        <a href="/processes/{{ process.id }}" class="fw-semibold">{{ process.title }}</a>
+                        <div class="text-muted" style="font-size: 0.8rem;">{{ process.template_name }}</div>
+                    </td>
+                    <td>{% include "processes/_subject_link.html" %}</td>
+                    <td>
+                        {% if process.is_open and stage %}
+                        {{ stage.name }} <span class="text-muted" style="font-size: 0.8rem;">({{ stage.position + 1 }}/{{ process.stages|length }})</span>
+                        {% else %}<span class="text-muted">–</span>{% endif %}
+                    </td>
+                    <td class="text-muted" style="font-size: 0.85rem;">{{ process.created_at.strftime('%d.%m.%Y') }}</td>
+                    <td>{% include "processes/_status_badge.html" %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card"><div class="card-body text-muted">
+    {{ t('processes.list.empty') }}
+    {% if not templates_list and is_full_access(request) %}<a href="/processes/templates/">{{ t('processes.list.empty_create_template') }}</a>{% endif %}
+</div></div>
+{% endif %}
+{% endblock %}

@@ -325,6 +325,14 @@
         {% endif %}
         {% endmacro %}
 
+        {% macro nav_processes(request) %}
+        {% if request.state.module_flags.processes and has_perm(request, 'processes') %}
+        <a href="/processes/" class="nav-top-link {% if request.url.path.startswith('/processes') %}aktiv{% endif %}">
+            <i class="bi bi-diagram-3"></i> {{ t('nav.processes') }}
+        </a>
+        {% endif %}
+        {% endmacro %}
+
         {% macro nav_work_hours(request) %}
         {% if request.state.module_flags.work_hours and has_perm(request, 'work_hours') %}
         <div class="nav-group" data-group="work_hours">
@@ -511,6 +519,7 @@
             {% elif key == 'external_contacts' %}{{ nav_external_contacts(request) }}
             {% elif key == 'reporting' %}{{ nav_reporting(request) }}
             {% elif key == 'notes' %}{{ nav_notes(request) }}
+            {% elif key == 'processes' %}{{ nav_processes(request) }}
             {% endif %}
         {% endfor %}
 

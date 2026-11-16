@@ -98,7 +98,8 @@ A system admin can download a full backup on demand from `/admin/`
 laid out like the install's `./data/` folder (issue #327, ADR 0134):
 `data/postgres/parcella.sql` (a one-click `pg_dump`, plain SQL, readable
 text -- the consistent form of the database files), `data/uploads/` (the
-branding logo, announcement images, user avatars) and
+branding logo, announcement images, user avatars, and process files kept
+locally under `uploads/private/` -- ADR 0135) and
 `data/secrets/secret_key` (the encryption key in use). Nothing is ever written to server disk, so
 there's no backup file to find or clean up on the server itself; the
 downloaded `.zip` is the only copy, and it's the admin's responsibility

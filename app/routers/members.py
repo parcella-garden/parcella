@@ -27,6 +27,8 @@ from app.csv_utils import (
 )
 from app.member_filters import MemberListFilter
 from app.models import Member, MemberPhone, MemberEmail, MemberParcel, MemberTag, Parcel
+from app.models import ProcessSubjectKind
+from app.routers.processes import subject_processes
 from app.services.errors import ServiceError
 from app.permissions import require_permission
 from app.i18n import AVAILABLE_LANGUAGES, t_for, load_current_language
@@ -370,6 +372,7 @@ async def member_detail(
             "prev_member_id": prev_member_id,
             "next_member_id": next_member_id,
             "nav_query_suffix": f"?{list_query_string}" if list_query_string else "",
+            "subject_processes": await subject_processes(request, db, ProcessSubjectKind.MEMBER, member.id),
         },
     )
 

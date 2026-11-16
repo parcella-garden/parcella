@@ -1,0 +1,4 @@
+{#- Expects `process`. -#}
+{% if process.status.value == 'OPEN' %}<span class="badge bg-primary">{{ t('processes.status.OPEN') }}</span>
+{% elif process.status.value == 'COMPLETED' %}<span class="badge bg-success">{{ t('processes.status.COMPLETED') }}</span>
+{% else %}<span class="badge bg-secondary">{{ t('processes.status.ABORTED') }}</span>{% endif %}

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}{{ process.title }}{% endblock %}
+{% block page_title %}{{ process.title }}{% endblock %}
+
+{% block content %}
+{% if error %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ t(error) }}
+</div>
+{% endif %}
+
+<div class="d-flex flex-wrap gap-3 align-items-center mb-3">
+    {% include "processes/_status_badge.html" %}
+    <span class="text-muted"><i class="bi bi-diagram-3 me-1"></i>{{ process.template_name }}</span>
+    {% include "processes/_subject_link.html" %}
+    <span class="text-muted" style="font-size: 0.85rem;">{{ t('processes.detail.started', date=process.created_at.strftime('%d.%m.%Y'), name=process.created_by.name if process.created_by else '–') }}</span>
+</div>
+
+{#- Progress -#}
+<div class="d-flex flex-wrap gap-1 mb-3" aria-label="{{ t('processes.detail.progress') }}">
+    {% for s in process.stages %}
+    {% if s.completed_at %}{% set cls = 'bg-success' %}{% elif process.is_open and s.position == process.current_position %}{% set cls = 'bg-primary' %}{% else %}{% set cls = 'bg-light text-muted border' %}{% endif %}
+    <a href="#stage-{{ s.id }}" class="badge {{ cls }} text-decoration-none" style="font-size: 0.85rem;">
+        {% if s.completed_at %}<i class="bi bi-check-lg"></i>{% endif %} {{ s.position + 1 }}. {{ s.name }}
+    </a>
+    {% endfor %}
+</div>
+
+{% if process.status.value == 'ABORTED' %}
+<div class="alert alert-secondary"><strong>{{ t('processes.detail.aborted') }}</strong>
+    {% if process.closed_at %}{{ process.closed_at.strftime('%d.%m.%Y') }}{% endif %}
+    {% if process.abort_reason %}<div style="white-space: pre-line;">{{ process.abort_reason }}</div>{% endif %}</div>
+{% elif process.status.value == 'COMPLETED' %}
+<div class="alert alert-success"><i class="bi bi-check-circle-fill me-1"></i>{{ t('processes.detail.completed', date=process.closed_at.strftime('%d.%m.%Y') if process.closed_at else '') }}</div>
+{% endif %}
+
+<div class="row g-3">
+<div class="col-lg-8">
+{% for s in process.stages %}
+{% set reached = s.position <= process.current_position or not process.is_open %}
+{% set is_current = process.is_open and s.position == process.current_position %}
+{% set editable = can_write and process.is_open and s.position <= process.current_position %}
+<div class="card mb-3 {% if is_current %}border-primary{% endif %}" id="stage-{{ s.id }}">
+    <div class="card-header d-flex justify-content-between align-items-center gap-2 flex-wrap">
+        <span class="fw-semibold">{{ s.position + 1 }}. {{ s.name }}</span>
+        {% if s.completed_at %}
+        <span class="text-muted" style="font-size: 0.8rem;"><i class="bi bi-check-lg text-success"></i> {{ s.completed_at.strftime('%d.%m.%Y') }}{% if s.completed_by %} · {{ s.completed_by.name }}{% endif %}</span>
+        {% elif is_current %}<span class="badge bg-primary">{{ t('processes.detail.current_stage') }}</span>
+        {% elif not reached %}<span class="badge bg-light text-muted border">{{ t('processes.detail.upcoming') }}</span>{% endif %}
+    </div>
+    {% if reached %}
+    <div class="card-body">
+        {% if s.description %}<p class="text-muted" style="white-space: pre-line;">{{ s.description }}</p>{% endif %}
+        {% set plain = s.fields|rejectattr('kind', 'equalto', K.FILE)|list %}
+        {% if not s.fields %}<p class="text-muted mb-0">{{ t('processes.detail.no_fields') }}</p>{% endif %}
+        {% if editable and plain %}
+        <form method="post" action="/processes/{{ process.id }}/stages/{{ s.id }}" class="mb-2">
+            {{ csrf_field() }}
+            {% for field in plain %}
+            <div class="mb-3" id="field-{{ field.id }}">{% include "processes/_field_input.html" %}</div>
+            {% endfor %}
+            <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-save me-1"></i>{{ t('processes.detail.save') }}</button>
+        </form>
+        {% elif plain %}
+        <dl class="row mb-2">
+            {% for field in plain %}
+            <dt class="col-sm-5 fw-semibold">{{ field.label }}</dt>
+            <dd class="col-sm-7">{% include "processes/_field_value.html" %}</dd>
+            {% endfor %}
+        </dl>
+        {% endif %}
+        {% for field in s.fields if field.kind == K.FILE %}
+        {% include "processes/_file_field.html" %}
+        {% endfor %}
+    </div>
+    {% if is_current and can_write %}
+    <div class="card-footer bg-transparent">
+        {% if missing %}
+        <div class="text-muted mb-2" style="font-size: 0.85rem;">
+            <i class="bi bi-info-circle me-1"></i>{{ t('processes.detail.missing') }}
+            {% for f in missing %}<a href="#field-{{ f.id }}">{{ f.label }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+        </div>
+        {% endif %}
+        <form method="post" action="/processes/{{ process.id }}/advance">
+            {{ csrf_field() }}
+            <button type="submit" class="btn btn-success" {% if missing %}disabled{% endif %}>
+                {% if loop.last %}<i class="bi bi-flag-fill me-1"></i>{{ t('processes.detail.complete') }}
+                {% else %}<i class="bi bi-arrow-right-circle me-1"></i>{{ t('processes.detail.advance') }}{% endif %}
+            </button>
+        </form>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="card-body text-muted" style="font-size: 0.9rem;">
+        {% if s.fields %}{{ s.fields|map(attribute='label')|join(' · ') }}{% else %}{{ t('processes.detail.no_fields') }}{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endfor %}
+</div>
+
+<div class="col-lg-4">
+    {% if process.is_open and can_write and process.current_position > 0 %}
+    <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-arrow-counterclockwise me-2"></i>{{ t('processes.detail.go_back') }}</div>
+        <div class="card-body">
+            <form method="post" action="/processes/{{ process.id }}/back">
+                {{ csrf_field() }}
+                <label class="form-label" for="back-to">{{ t('processes.detail.go_back_to') }}</label>
+                <select name="to_position" id="back-to" class="form-select form-select-sm mb-2">
+                    {% for s in process.stages if s.position < process.current_position %}<option value="{{ s.position }}" {% if loop.last %}selected{% endif %}>{{ s.position + 1 }}. {{ s.name }}</option>{% endfor %}
+                </select>
+                <label class="form-label" for="back-reason">{{ t('processes.detail.reason') }} <span class="text-danger">*</span></label>
+                <textarea name="reason" id="back-reason" class="form-control form-control-sm mb-2" rows="2" required maxlength="4000"></textarea>
+                <button type="submit" class="btn btn-sm btn-outline-warning">{{ t('processes.detail.go_back_submit') }}</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-clock-history me-2"></i>{{ t('processes.detail.history') }}</div>
+        <ul class="list-group list-group-flush" style="font-size: 0.85rem;">
+            {% for e in process.events %}
+            <li class="list-group-item">
+                <div class="d-flex justify-content-between gap-2">
+                    <strong>{{ t('processes.event.' ~ e.kind.value) }}</strong>
+                    <span class="text-muted text-nowrap">{{ e.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                </div>
+                {% if e.stage_name %}<div class="text-muted">{{ e.stage_name }}</div>{% endif %}
+                {% if e.note %}<div style="white-space: pre-line;">{{ e.note }}</div>{% endif %}
+                {% if e.user %}<div class="text-muted">{{ e.user.name }}</div>{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    {% if can_delete %}
+    <div class="card mb-3 border-danger-subtle">
+        <div class="card-body">
+            {% if process.is_open %}
+            <form method="post" action="/processes/{{ process.id }}/abort" class="mb-3">
+                {{ csrf_field() }}
+                <label class="form-label fw-semibold" for="abort-reason">{{ t('processes.detail.abort') }}</label>
+                <textarea name="reason" id="abort-reason" class="form-control form-control-sm mb-2" rows="2" required maxlength="4000"
+                          placeholder="{{ t('processes.detail.reason') }}"></textarea>
+                <button type="submit" class="btn btn-sm btn-outline-danger"
+                        onclick="return confirm({{ t('processes.detail.abort_confirm')|tojson|forceescape }});">{{ t('processes.detail.abort_submit') }}</button>
+            </form>
+            {% endif %}
+            <form method="post" action="/processes/{{ process.id }}/delete"
+                  onsubmit="return confirm({{ t('processes.detail.delete_confirm')|tojson|forceescape }});">
+                {{ csrf_field() }}
+                <button type="submit" class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-trash me-1"></i>{{ t('processes.detail.delete') }}</button>
+                <div class="form-text">{{ t('processes.detail.delete_help') }}</div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+</div>
+{% endblock %}
