@@ -3746,7 +3746,8 @@
       "file_hint": "PDF, JPEG, PNG alebo WebP, do 20 MB.",
       "file_delete": "Odstrániť súbor",
       "file_delete_confirm": "Odstrániť tento súbor?",
-      "in_cloud": "Uložené v cloude"
+      "in_cloud": "Uložené v cloude",
+      "applicants_hidden": "Viditeľné len s prístupom k modulu uchádzačov."
     },
     "subject_card": {
       "header": "Procesy",

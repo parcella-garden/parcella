@@ -67,19 +67,25 @@ async def _fail(request: Request, db: AsyncSession, url: str, error: ServiceErro
     return RedirectResponse(url=_with_error(url, error.key, anchor), status_code=303)
 
 
+def _can_read_applicants(request: Request) -> bool:
+    permissions = getattr(request.state, "permissions", {}) or {}
+    return bool(permissions.get("applicants", {}).get("read"))
+
+
 def _redirect(url: str, anchor: str = "") -> RedirectResponse:
     return RedirectResponse(url=url + (f"#{anchor}" if anchor else ""), status_code=303)
 
 
-async def _choices(db: AsyncSession, kinds: set) -> dict:
+async def _choices(request: Request, db: AsyncSession, kinds: set) -> dict:
     """Options for the member/applicant/plot pickers -- only the lists a
-    page actually needs."""
-    out: dict = {}
+    page actually needs. Applicants only for users who may read the
+    applicants module (their names and emails are that module's data)."""
+    out: dict = {"can_read_applicants": _can_read_applicants(request)}
     if kinds & {ProcessFieldKind.MEMBER, ProcessSubjectKind.MEMBER}:
         out["members"] = (await db.scalars(
             select(Member).where(active_member_filter()).order_by(Member.last_name, Member.first_name)
         )).all()
-    if kinds & {ProcessFieldKind.APPLICANT, ProcessSubjectKind.APPLICANT}:
+    if out["can_read_applicants"] and kinds & {ProcessFieldKind.APPLICANT, ProcessSubjectKind.APPLICANT}:
         out["applicants"] = (await db.scalars(select(Applicant).order_by(Applicant.applied_at.desc()))).all()
     if kinds & {ProcessFieldKind.PARCEL, ProcessSubjectKind.PARCEL}:
         out["parcels"] = (await db.scalars(select(Parcel).order_by(Parcel.plot_number))).all()
@@ -286,7 +292,7 @@ async def _new_context(request: Request, db: AsyncSession, user, values: dict, e
         chosen = active[0]
     return {
         "request": request, "user": user, "templates_list": active, "chosen": chosen, "values": values,
-        "error": error, **(await _choices(db, {chosen.subject_kind} if chosen else set())),
+        "error": error, **(await _choices(request, db, {chosen.subject_kind} if chosen else set())),
     }
 
 
@@ -342,7 +348,7 @@ async def process_detail(process_id: str, request: Request, db: AsyncSession = D
         "can_write": await svc.can(db, user, "write"), "can_delete": await svc.can(db, user, "delete"),
         "subject_label": svc.subject_label(process), "error": shown_error(request.query_params.get("error")),
         "is_filled": svc.is_filled, "K": ProcessFieldKind, "ProcessStatus": ProcessStatus,
-        **(await _choices(db, kinds)),
+        **(await _choices(request, db, kinds)),
     })
 
 

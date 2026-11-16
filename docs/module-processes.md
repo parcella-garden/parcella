@@ -8,7 +8,8 @@ plot, a member or an applicant.
 - Module flag: `modul_processes` (default on: no public endpoint).
 - Permission module: `processes`. Read to look, write to start and work
   on processes, delete to abort or delete one. Templates need full access
-  (ADMIN/BOARD).
+  (ADMIN/BOARD). Picking or seeing applicants also needs read on
+  `applicants`.
 - Web: `/processes/` (list), `/processes/new`, `/processes/{id}`,
   `/processes/templates/` (editor). The plot, member and applicant pages
   show a "Processes" card with a start link.

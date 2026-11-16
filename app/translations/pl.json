@@ -3746,7 +3746,8 @@
       "file_hint": "PDF, JPEG, PNG lub WebP, do 20 MB.",
       "file_delete": "Usuń plik",
       "file_delete_confirm": "Usunąć ten plik?",
-      "in_cloud": "Zapisany w chmurze"
+      "in_cloud": "Zapisany w chmurze",
+      "applicants_hidden": "Widoczne tylko z dostępem do modułu kandydatów."
     },
     "subject_card": {
       "header": "Procesy",

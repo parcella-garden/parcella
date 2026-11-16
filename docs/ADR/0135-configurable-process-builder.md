@@ -46,6 +46,12 @@ work-hours exemption. kermie stopped it before it was pushed.
   the task board's lists (ADR 0044). Working on processes uses the
   normal permission matrix on `processes`: read to look, write to start
   and fill in, delete to abort or delete one.
+- **Applicant data stays the applicants module's.** Choosing an
+  applicant (as a field value or as the subject), and seeing an
+  applicant's name or email in a process, needs read on `applicants`
+  as well, on the web and in the API. Otherwise a group given only
+  `processes` access would see the whole applicant list (security
+  review).
 - **The plot handover ships as an example**, next to a member
   onboarding example. "Use" creates an ordinary template in the user's
   language from `processes.examples.*`, which the club then changes
@@ -59,7 +65,11 @@ work-hours exemption. kermie stopped it before it was pushed.
   404 for `/static/uploads/private/*`, after normalizing the path:
   collapsing `//` and resolving `./` and `../`, because a literal prefix
   check is sidestepped by `/static/uploads//private/...` (found in the
-  security review of the first version). The only way to a file is the
+  security review of the first version). It checks the decoded
+  `scope["path"]`, the same path StaticFiles resolves, and not
+  `request.url.path`. The latter is re-parsed with `urlsplit`, so a
+  decoded `%23`/`%3F` (`/static/uploads/%23/../private/...`) cut it short
+  and slipped past (found in this version's security review). The only way to a file is the
   permission-checked download route. The file type is sniffed from its
   magic bytes (PDF, JPEG, PNG, WebP), the stored name is generated, and
   the download header uses `content_disposition()`.

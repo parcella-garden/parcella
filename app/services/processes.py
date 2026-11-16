@@ -598,6 +598,7 @@ async def set_field(
     elif field.kind == K.MEMBER:
         field.value_member_id = await _reference(db, Member, value)
     elif field.kind == K.APPLICANT:
+        await _require_applicants_read(db, user)
         field.value_applicant_id = await _reference(db, Applicant, value)
     elif field.kind == K.PARCEL:
         field.value_parcel_id = await _reference(db, Parcel, value)
@@ -633,9 +634,18 @@ async def set_fields(db: AsyncSession, process: Process, values: dict[str, Any],
 # Processes: lifecycle
 # ---------------------------------------------------------------------------
 
-async def _subject(db: AsyncSession, kind: ProcessSubjectKind, subject_id: Optional[str]) -> dict:
+async def _require_applicants_read(db: AsyncSession, user: Optional[User]) -> None:
+    """Picking an applicant shows and links applicant data -- that's the
+    applicants module's, so it needs read there too (security review)."""
+    if user is None or not has_permission(await get_user_permissions(db, user), "applicants", "read"):
+        raise ServiceError("errors.no_permission", http_status=403)
+
+
+async def _subject(db: AsyncSession, kind: ProcessSubjectKind, subject_id: Optional[str], user: Optional[User]) -> dict:
     if kind == ProcessSubjectKind.NONE:
         return {}
+    if kind == ProcessSubjectKind.APPLICANT:
+        await _require_applicants_read(db, user)
     model, column = {
         ProcessSubjectKind.PARCEL: (Parcel, "parcel_id"),
         ProcessSubjectKind.MEMBER: (Member, "member_id"),
@@ -660,7 +670,7 @@ async def start_process(
         template_id=template.id, template_name=template.name, subject_kind=template.subject_kind,
         title=_clean(title, _MAX_NAME) or template.name, status=ProcessStatus.OPEN, current_position=0,
         created_by_id=user.id if user else None,
-        **await _subject(db, template.subject_kind, subject_id),
+        **await _subject(db, template.subject_kind, subject_id, user),
     )
     for t_stage in template.stages:
         stage = ProcessStage(position=t_stage.position, name=t_stage.name, description=t_stage.description)

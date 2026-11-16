@@ -3746,7 +3746,8 @@
       "file_hint": "PDF, JPEG, PNG ou WebP, 20 Mo maximum.",
       "file_delete": "Retirer le fichier",
       "file_delete_confirm": "Retirer ce fichier ?",
-      "in_cloud": "Enregistré dans le cloud"
+      "in_cloud": "Enregistré dans le cloud",
+      "applicants_hidden": "Visible uniquement avec l'accès au module des candidats."
     },
     "subject_card": {
       "header": "Procédures",

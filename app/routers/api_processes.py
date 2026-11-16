@@ -16,6 +16,7 @@ from app.database import get_db
 from app.i18n import t_for
 from app.models import Process, User
 from app.module_flags import require_module
+from app.permissions import get_user_permissions, has_permission
 from app.schemas import (
     ProcessAbort, ProcessBack, ProcessDetailOut, ProcessFieldUpdate, ProcessOut, ProcessStart, ProcessTemplateOut,
 )
@@ -42,14 +43,25 @@ def _service_error(request: Request, error: ServiceError) -> HTTPException:
     return HTTPException(status_code=code, detail=detail)
 
 
-def _detail(process: Process) -> ProcessDetailOut:
+def _detail(process: Process, can_read_applicants: bool) -> ProcessDetailOut:
+    """Applicant names and ids only for users who may read the applicants
+    module (security review) -- "filled" is still reported."""
     out = ProcessDetailOut.model_validate(process)
+    if not can_read_applicants:
+        out.applicant_id = None
     by_id = {f.id: f for s in process.stages for f in s.fields}
     for stage in out.stages:
         for field in stage.fields:
             field.filled = svc.is_filled(by_id[field.id])
-            field.display_value = svc.display_value(by_id[field.id])
+            if field.kind == "APPLICANT" and not can_read_applicants:
+                field.value_applicant_id = None
+            else:
+                field.display_value = svc.display_value(by_id[field.id])
     return out
+
+
+async def _applicants_ok(db: AsyncSession, user: User) -> bool:
+    return has_permission(await get_user_permissions(db, user), "applicants", "read")
 
 
 async def _load(request: Request, db: AsyncSession, process_id: str, *, lock: bool = False) -> Process:
@@ -94,7 +106,7 @@ async def process_start(
     except ServiceError as e:
         await db.rollback()
         raise _service_error(request, e)
-    return _detail(process)
+    return _detail(process, await _applicants_ok(db, user))
 
 
 @router.get("/{process_id}", response_model=ProcessDetailOut, summary="A process with its stages, fields and history")
@@ -102,17 +114,17 @@ async def process_detail(
     process_id: str, request: Request, db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission(svc.MODULE, "read")),
 ):
-    return _detail(await _load(request, db, process_id))
+    return _detail(await _load(request, db, process_id), await _applicants_ok(db, user))
 
 
-async def _change(request: Request, db: AsyncSession, process_id: str, action) -> ProcessDetailOut:
+async def _change(request: Request, db: AsyncSession, process_id: str, action, user: User) -> ProcessDetailOut:
     process = await _load(request, db, process_id, lock=True)
     try:
         await action(process)
     except ServiceError as e:
         await db.rollback()
         raise _service_error(request, e)
-    return _detail(await svc.get_process(db, process_id))
+    return _detail(await svc.get_process(db, process_id), await _applicants_ok(db, user))
 
 
 @router.put("/{process_id}/fields/{field_id}", response_model=ProcessDetailOut, summary="Set a field's value")
@@ -122,7 +134,7 @@ async def process_field_set(
 ):
     async def action(process):
         await svc.set_field(db, process, field_id, data.value, user)
-    return await _change(request, db, process_id, action)
+    return await _change(request, db, process_id, action, user)
 
 
 @router.post("/{process_id}/advance", response_model=ProcessDetailOut, summary="Complete the current stage")
@@ -132,7 +144,7 @@ async def process_advance(
 ):
     async def action(process):
         await svc.advance(db, process, user)
-    return await _change(request, db, process_id, action)
+    return await _change(request, db, process_id, action, user)
 
 
 @router.post("/{process_id}/back", response_model=ProcessDetailOut, summary="Go back to an earlier stage")
@@ -142,7 +154,7 @@ async def process_back(
 ):
     async def action(process):
         await svc.go_back(db, process, data.to_position, data.reason, user)
-    return await _change(request, db, process_id, action)
+    return await _change(request, db, process_id, action, user)
 
 
 @router.post("/{process_id}/abort", response_model=ProcessDetailOut, summary="Abort the process")
@@ -152,4 +164,4 @@ async def process_abort(
 ):
     async def action(process):
         await svc.abort(db, process, data.reason, user)
-    return await _change(request, db, process_id, action)
+    return await _change(request, db, process_id, action, user)

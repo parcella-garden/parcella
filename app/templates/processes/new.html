@@ -36,7 +36,9 @@
             {{ csrf_field() }}
             <input type="hidden" name="template_id" value="{{ chosen.id }}">
             {% set kind = chosen.subject_kind.value %}
-            {% if kind != 'NONE' %}
+            {% if kind == 'APPLICANT' and not can_read_applicants %}
+            <div class="alert alert-warning">{{ t('processes.detail.applicants_hidden') }}</div>
+            {% elif kind != 'NONE' %}
             <div class="mb-3">
                 <label class="form-label fw-semibold" for="p-subject">{{ t('processes.subject_kind.' ~ kind) }} <span class="text-danger">*</span></label>
                 <select name="subject_id" id="p-subject" class="form-select" required>

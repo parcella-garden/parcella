@@ -536,3 +536,54 @@ async def test_api(client, admin_user):
     listing = await client.get("/api/v1/processes?status=all", headers=h)
     assert [p["id"] for p in listing.json()] == [process["id"]]
     assert (await client.get("/api/v1/processes", headers=h)).json() == []
+
+
+# ---------------------------------------------------------------------------
+# Security review regressions
+# ---------------------------------------------------------------------------
+
+async def test_private_uploads_block_uses_the_decoded_scope_path():
+    """A decoded "%23"/"%3F" made request.url.path stop early while
+    StaticFiles still resolved the full path to the private file."""
+    from starlette.requests import Request
+    from app.main import private_uploads_blocked
+
+    async def call_next(request):
+        return "passed"
+
+    for path in ("/static/uploads/#/../private/processes/x/f.pdf", "/static/uploads/?/../private/processes/x/f.pdf",
+                 "/static/uploads//private/x", "/static/uploads/./private/x", "/static/a/../uploads/private/x"):
+        scope = {"type": "http", "method": "GET", "path": path, "raw_path": path.encode(), "query_string": b"",
+                 "headers": [(b"host", b"testserver")], "scheme": "http", "server": ("testserver", 80)}
+        response = await private_uploads_blocked(Request(scope), call_next)
+        assert response != "passed" and response.status_code == 404, path
+    ok = Request({"type": "http", "method": "GET", "path": "/static/uploads/logo.png", "raw_path": b"",
+                  "query_string": b"", "headers": [], "scheme": "http", "server": ("testserver", 80)})
+    assert await private_uploads_blocked(ok, call_next) == "passed"
+
+
+async def test_applicant_data_needs_applicants_read(client, admin_user):
+    async with AsyncSessionLocal() as db:
+        _, _, applicant = await _subjects(db)
+        admin = await _admin(db)
+        template = await _template(db, admin, ("One", [("Tenant", "APPLICANT", False)]))
+        process = await svc.start_process(db, admin, template_id=template.id)
+        await svc.set_field(db, await svc.get_process(db, process.id, lock=True), process.stages[0].fields[0].id,
+                            applicant.id, admin)
+        applicant_template = await _template(db, admin, ("One", []), subject_kind="APPLICANT")
+        writer = await _user(db, "writer@example.org", read=True, write=True)
+        aid, pid, atid, fid = applicant.id, process.id, applicant_template.id, process.stages[0].fields[0].id
+        with pytest.raises(ServiceError) as e:
+            await svc.start_process(db, writer, template_id=atid, subject_id=aid)
+        assert e.value.http_status == 403
+        await db.rollback()
+        writer = (await db.execute(select(User).where(User.email == "writer@example.org"))).scalar_one()
+        p = await svc.get_process(db, pid, lock=True)
+        with pytest.raises(ServiceError) as e:
+            await svc.set_field(db, p, fid, aid, writer)
+        assert e.value.http_status == 403
+
+    await web_login(client, "writer@example.org")
+    for url in (f"/processes/{pid}", f"/processes/new?template_id={atid}"):
+        page = await client.get(url)
+        assert page.status_code == 200 and "ann@example.org" not in page.text and "Ann" not in page.text, url

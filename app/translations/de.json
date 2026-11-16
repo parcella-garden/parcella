@@ -3746,7 +3746,8 @@
       "file_hint": "PDF, JPEG, PNG oder WebP, bis 20 MB.",
       "file_delete": "Datei entfernen",
       "file_delete_confirm": "Diese Datei entfernen?",
-      "in_cloud": "In der Cloud gespeichert"
+      "in_cloud": "In der Cloud gespeichert",
+      "applicants_hidden": "Nur sichtbar mit Zugriff auf das Bewerbermodul."
     },
     "subject_card": {
       "header": "Vorgänge",

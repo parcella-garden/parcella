@@ -1,5 +1,6 @@
 {#- Expects `process`: a link to the plot, member or applicant it's about. -#}
 {% if process.parcel %}<a href="/parcels/{{ process.parcel.id }}"><i class="bi bi-grid-3x3-gap me-1"></i>{{ t('processes.subject_prefix.PARCEL') }} {{ process.parcel.plot_number }}</a>
 {% elif process.member %}<a href="/members/{{ process.member.id }}"><i class="bi bi-person me-1"></i>{{ process.member.full_name }}</a>
+{% elif process.applicant and not has_perm(request, 'applicants') %}<span class="text-muted"><i class="bi bi-person-raised-hand me-1"></i>{{ t('processes.subject_kind.APPLICANT') }}</span>
 {% elif process.applicant %}<a href="/applicants/{{ process.applicant.id }}"><i class="bi bi-person-raised-hand me-1"></i>{{ process.applicant.display_name }}</a>
 {% elif process.subject_kind.value != 'NONE' %}<span class="text-muted">{{ t('processes.subject_removed') }}</span>{% endif %}

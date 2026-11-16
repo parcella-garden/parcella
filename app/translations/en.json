@@ -3746,7 +3746,8 @@
       "file_hint": "PDF, JPEG, PNG or WebP, up to 20 MB.",
       "file_delete": "Remove the file",
       "file_delete_confirm": "Remove this file?",
-      "in_cloud": "Stored in the cloud"
+      "in_cloud": "Stored in the cloud",
+      "applicants_hidden": "Only visible with access to the applicants module."
     },
     "subject_card": {
       "header": "Processes",

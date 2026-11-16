@@ -3746,7 +3746,8 @@
       "file_hint": "PDF, JPEG, PNG of WebP, tot 20 MB.",
       "file_delete": "Bestand verwijderen",
       "file_delete_confirm": "Dit bestand verwijderen?",
-      "in_cloud": "Opgeslagen in de cloud"
+      "in_cloud": "Opgeslagen in de cloud",
+      "applicants_hidden": "Alleen zichtbaar met toegang tot de module kandidaten."
     },
     "subject_card": {
       "header": "Processen",

@@ -488,9 +488,15 @@ _PRIVATE_UPLOADS_PREFIX = "/static/uploads/private"
 
 @app.middleware("http")
 async def private_uploads_blocked(request: Request, call_next):
-    path = posixpath.normpath(re.sub(r"/+", "/", request.url.path))
-    if path == _PRIVATE_UPLOADS_PREFIX or path.startswith(_PRIVATE_UPLOADS_PREFIX + "/"):
-        return PlainTextResponse("Not Found", status_code=404)
+    # scope["path"] is the decoded path StaticFiles itself resolves.
+    # request.url.path is not: it is re-parsed with urlsplit, so a decoded
+    # "%23" or "%3F" ("/static/uploads/%23/../private/...") would cut it
+    # short and slip past the check (security review).
+    candidates = {request.scope.get("path") or "", request.url.path}
+    for raw in candidates:
+        path = posixpath.normpath(re.sub(r"/+", "/", raw))
+        if path == _PRIVATE_UPLOADS_PREFIX or path.startswith(_PRIVATE_UPLOADS_PREFIX + "/"):
+            return PlainTextResponse("Not Found", status_code=404)
     return await call_next(request)
 
 

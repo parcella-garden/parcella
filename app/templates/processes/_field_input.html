@@ -36,6 +36,8 @@
     {% if field.value_member and field.value_member not in members %}<option value="{{ field.value_member.id }}" selected>{{ field.value_member.full_name }}</option>{% endif %}
     {% for m in members %}<option value="{{ m.id }}" {% if field.value_member_id == m.id %}selected{% endif %}>{{ m.last_name }}, {{ m.first_name }}</option>{% endfor %}
 </select>
+{% elif k == 'APPLICANT' and not can_read_applicants %}
+<div class="form-control-plaintext text-muted">{{ t('processes.detail.applicants_hidden') }}</div>
 {% elif k == 'APPLICANT' %}
 <select class="form-select" name="{{ name }}" id="{{ fid }}">
     <option value="">–</option>
