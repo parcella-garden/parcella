@@ -3784,7 +3784,7 @@ class Note(Base):
 
 
 # ---------------------------------------------------------------------------
-# Processes (issue #331, ADR 0135, docs/module-processes.md): a club builds
+# Processes (issue #331, ADR 0136, docs/module-processes.md): a club builds
 # its own process templates -- ordered stages, each with its own field set --
 # and runs them, optionally attached to a plot, a member or an applicant.
 # A running process is a snapshot of its template (stages and fields are
@@ -3989,7 +3989,7 @@ class ProcessStage(Base):
 class ProcessField(Base):
     """A field of a running process: the definition copied from the
     template plus its value -- one row, one typed value column per kind
-    (ADR 0135)."""
+    (ADR 0136)."""
     __tablename__ = "process_fields"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
@@ -4034,7 +4034,7 @@ class ProcessField(Base):
 class ProcessFile(Base):
     """A file attached to a FILE field. Stored in the club's cloud folder
     when one is set, otherwise under the private uploads directory --
-    never served from /static (ADR 0135)."""
+    never served from /static (ADR 0136)."""
     __tablename__ = "process_files"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)

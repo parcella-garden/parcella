@@ -477,7 +477,7 @@ async def csrf_middleware(request: Request, call_next):
     return response
 
 
-# Private uploads (process files, ADR 0135) live on the persisted uploads
+# Private uploads (process files, ADR 0136) live on the persisted uploads
 # volume next to the public ones, but are never served from /static --
 # only through their permission-checked download routes. The path is
 # normalized first: a literal prefix check alone is sidestepped with

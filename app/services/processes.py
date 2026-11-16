@@ -1,5 +1,5 @@
 """
-Processes (issue #331, ADR 0135, docs/module-processes.md): a club builds
+Processes (issue #331, ADR 0136, docs/module-processes.md): a club builds
 its own process templates -- ordered stages, each with its own field set
 -- and runs processes from them, optionally attached to a plot, a member
 or an applicant. Called by app/routers/processes.py (HTML) and
@@ -810,7 +810,7 @@ async def delete_process(db: AsyncSession, process: Process, user: Optional[User
 # processes_cloud_folder is set, otherwise a private local directory on the
 # persisted uploads volume (./data/uploads, ADR 0077) -- part of every
 # backup, and blocked from /static in app/main.py. The only way to a file
-# is read_file() behind the permission-checked download route (ADR 0135).
+# is read_file() behind the permission-checked download route (ADR 0136).
 # ---------------------------------------------------------------------------
 
 LOCAL_DIR = Path("app/static/uploads/private/processes")

@@ -1,6 +1,6 @@
 # Module: Processes
 
-Club-defined, step-by-step processes (issue #331, [ADR 0135](./ADR/0135-configurable-process-builder.md)).
+Club-defined, step-by-step processes (issue #331, [ADR 0136](./ADR/0136-configurable-process-builder.md)).
 A **template** describes a process as ordered **stages**, each with its
 own **fields**. A **process** is one run of a template, optionally about a
 plot, a member or an applicant.
@@ -125,7 +125,7 @@ panel first, since it can't be saved without options.
 - **Stage actions:** e.g. offer a plot to the waiting list (first to
   accept wins), generate a payment reference, change an applicant's
   status. These were in the first, hard-coded handover version and were
-  dropped (ADR 0135).
+  dropped (ADR 0136).
 - **Per-stage or per-field permissions** (e.g. only the treasurer
   confirms the deposit).
 - Due dates and reminders, notifications.

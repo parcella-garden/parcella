@@ -4,7 +4,7 @@ Revision ID: 0128_processes
 Revises: 0127_announcement_print_qr
 Create Date: 2026-11-16
 
-Issue #331 / ADR 0135: club-defined process templates (ordered stages,
+Issue #331 / ADR 0136: club-defined process templates (ordered stages,
 each with its own field set) and the processes run from them. A running
 process is a snapshot of its template -- its stages and fields are
 copied on start -- so editing a template never changes a running
