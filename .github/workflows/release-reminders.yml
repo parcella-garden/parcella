@@ -1,0 +1,110 @@
+name: Release reminders
+
+# Reminder issues for the release trains in docs/release-policy.md:
+# - the 10th: the merge window for minor PRs opens
+# - the 15th (a weekend moves it to Monday): the minor release is due
+#   (15 December: the yearly major slot, when breaking changes are waiting)
+# - every other Monday (even ISO weeks): the patch release is due, but only
+#   when merged `release: patch` PRs are waiting since the last release
+# The issue is assigned to the repository variable RELEASE_REMINDER_ASSIGNEE
+# (if set). No issue is opened twice: an open one with the same title wins.
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: 'Send this reminder now (testing)'
+        type: choice
+        options: [window, minor, patch]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  remind:
+    if: github.repository == 'parcella-garden/parcella'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ASSIGNEE: ${{ vars.RELEASE_REMINDER_ASSIGNEE }}
+      FORCED: ${{ inputs.kind }}
+    steps:
+      - name: Work out what is due today
+        id: due
+        run: |
+          day=$(date -u +%-d); dow=$(date -u +%u); week=$(date -u +%-V); month=$(date -u +%Y-%m)
+          dow15=$(date -u -d "$month-15" +%u)
+          minor_day=15; [ "$dow15" = 6 ] && minor_day=17; [ "$dow15" = 7 ] && minor_day=16
+          kind=""
+          if [ -n "$FORCED" ]; then kind="$FORCED"
+          elif [ "$day" = "$minor_day" ]; then kind=minor
+          elif [ "$day" = 10 ]; then kind=window
+          elif [ "$dow" = 1 ] && [ $((week % 2)) = 0 ]; then kind=patch
+          fi
+          echo "kind=$kind" >> "$GITHUB_OUTPUT"
+          echo "Today: day $day, weekday $dow, ISO week $week -> '${kind:-nothing due}'"
+
+      - name: Open the reminder issue
+        if: steps.due.outputs.kind != ''
+        env:
+          KIND: ${{ steps.due.outputs.kind }}
+        run: |
+          set -euo pipefail
+          last_tag=$(gh release list --limit 1 --exclude-drafts --exclude-pre-releases --json tagName -q '.[0].tagName')
+          last_date=$(gh release view "$last_tag" --json publishedAt -q .publishedAt)  # full timestamp: same-day merges after the release count
+          list() { gh pr list --state "$1" --label "$2" ${3:+--search "$3"} --limit 100 \
+                     --json number,title -q '.[] | "- #\(.number) \(.title)"'; }
+          open_minor=$(list open "release: minor"); open_major=$(list open "release: major")
+          merged_patch=$(list merged "release: patch" "merged:>$last_date")
+          merged_since=$(gh pr list --state merged --search "merged:>$last_date" --limit 100 \
+                           --json number,title -q '.[] | "- #\(.number) \(.title)"')
+          month_name=$(date -u +"%B %Y")
+
+          case "$KIND" in
+            window)
+              title="Merge window open: minor release on the 15th ($month_name)"
+              body="The merge window for minor PRs is open (docs/release-policy.md). Merge the green, smoke-tested ones before the 15th.
+
+          **Open minor PRs:**
+          ${open_minor:-none}"
+              ;;
+            minor)
+              title="Minor release due ($month_name)"
+              extra=""
+              if [ "$(date -u +%m)" = 12 ]; then
+                extra="
+
+          **15 December is the yearly major slot.** Open major PRs:
+          ${open_major:-none}"
+              fi
+              body="The monthly minor release is due (docs/release-policy.md). Last release: $last_tag. No empty releases: close this if nothing was merged.
+
+          **Merged since $last_tag:**
+          ${merged_since:-nothing}
+
+          **Minor PRs still open:**
+          ${open_minor:-none}$extra"
+              ;;
+            patch)
+              if [ -z "$merged_patch" ] && [ -z "$FORCED" ]; then
+                echo "No merged patch PRs since $last_tag: no patch release, no reminder."; exit 0
+              fi
+              title="Patch release due ($(date -u +%Y-%m-%d))"
+              body="Patch PRs merged since $last_tag are waiting for a patch release (docs/release-policy.md):
+          ${merged_patch:-none}
+
+          If minor work is already on main, release it as a minor instead."
+              ;;
+          esac
+
+          if gh issue list --state open --label release-reminder --search "in:title \"$title\"" --json title -q '.[].title' | grep -qxF "$title"; then
+            echo "Already open: $title"; exit 0
+          fi
+          gh label create release-reminder --color 5319e7 --description "Release train reminder (docs/release-policy.md)" 2>/dev/null || true
+          body=$(printf '%s\n' "$body" | sed 's/^          //')
+          gh issue create --title "$title" --body "$body" --label release-reminder ${ASSIGNEE:+--assignee "$ASSIGNEE"}
