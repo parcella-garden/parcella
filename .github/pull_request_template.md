@@ -4,6 +4,8 @@
 
 Fixes #
 
+**Release level:** patch / minor / major <!-- see docs/release-policy.md; also set the `release: ...` label -->
+
 ## How to check it
 
 <!-- Where to click in the dev environment to see the change working. -->
