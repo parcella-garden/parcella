@@ -914,7 +914,13 @@
       "upcoming_badge": "à partir du {date}",
       "leaving_badge": "jusqu'au {date}",
       "cloud_folder_retires": "Le dossier actuel est retiré le {date}.",
-      "cloud_folder_scheduled": "À partir du {date}, {path} devient le dossier de documents."
+      "cloud_folder_scheduled": "À partir du {date}, {path} devient le dossier de documents.",
+      "cloud_picker_title": "Choisir un dossier",
+      "cloud_picker_filter": "Filtrer les dossiers…",
+      "cloud_picker_loading": "Chargement…",
+      "cloud_picker_no_match": "Aucun dossier ne correspond au filtre.",
+      "cloud_picker_selected": "Sélectionné :",
+      "cloud_picker_failed": "Impossible de charger les dossiers."
     },
     "errors": {
       "parcel_not_found": "Parcelle introuvable",

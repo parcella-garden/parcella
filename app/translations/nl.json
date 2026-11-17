@@ -914,7 +914,13 @@
       "upcoming_badge": "vanaf {date}",
       "leaving_badge": "tot {date}",
       "cloud_folder_retires": "De huidige map wordt op {date} buiten gebruik gesteld.",
-      "cloud_folder_scheduled": "Vanaf {date} is {path} de documentenmap."
+      "cloud_folder_scheduled": "Vanaf {date} is {path} de documentenmap.",
+      "cloud_picker_title": "Map kiezen",
+      "cloud_picker_filter": "Mappen filteren…",
+      "cloud_picker_loading": "Laden…",
+      "cloud_picker_no_match": "Geen map komt overeen met het filter.",
+      "cloud_picker_selected": "Geselecteerd:",
+      "cloud_picker_failed": "De mappen konden niet worden geladen."
     },
     "errors": {
       "parcel_not_found": "Perceel niet gevonden",
