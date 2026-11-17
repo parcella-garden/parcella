@@ -245,6 +245,7 @@ async def electricity_report(db: AsyncSession, today: date) -> Report:
             Parcel.status == ParcelStatus.ACTIVE,
             MeteringPoint.medium == MeteringMedium.ELECTRICITY,
             MeteringPoint.type == MeteringPointType.PARCEL,
+            MeteringPoint.is_active.is_(True),  # switched off = no power (issue #336)
         )
     ) or 0
     return Report(

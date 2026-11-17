@@ -97,6 +97,37 @@ initial_reading) -- no new row, no `removed_at`, no history entry.
 Reach for exchange only for an actual physical meter swap; reach for
 edit for "I mistyped this."
 
+## Switching a metering point off (issue #336)
+
+A connection without supply for a while (water shut off, a plot's power
+disconnected, for however long) is **switched off**, not deleted
+(historization, ADR 0005): `metering_points.is_active` plus
+`inactive_since` (the date it was switched off, default today). It is
+the point's own state and independent of `meters.is_active`, which only
+tracks meter exchanges.
+
+A switched-off point:
+
+- drops out of reading entry (`/readings`) and its CSV export, and out of
+  the overview's "readings missing" count -- **unless it already has a
+  reading for that year**, so a final reading stays visible and editable
+  (`needs_reading()` in `app/services/metering.py`);
+- is greyed out with a "Switched off" badge in the list, which has an
+  All / Active / Switched off filter;
+- doesn't count as "has power" in the electricity report.
+
+Billing needs no special case: a point without a reading for the year
+yields no consumption, so nothing is invoiced; a final reading before
+switching off is still billed. Meters and readings stay untouched;
+switching back on clears `inactive_since`.
+
+Web: the switch sits on the detail page (write permission), as
+`POST /<medium>/metering-points/{id}/active`. API: `is_active` /
+`inactive_since` in `MeteringPointOut`, settable via `PUT`, and an
+`active=true|false` filter on the list. The points CSV export has
+"Active" / "Inactive since" columns; the import wizard doesn't map them
+(new points always start active).
+
 ## Billing price configuration
 
 `MeteringPriceConfiguration` (one row per `(medium, year)`, unique

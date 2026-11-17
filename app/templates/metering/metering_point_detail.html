@@ -56,6 +56,18 @@
                         {% endif %}
                     </dd>
 
+                    <dt class="col-sm-4 text-muted">{{ t('metering.points_list.col_status') }}</dt>
+                    <dd class="col-sm-8">
+                        {% if metering_point.is_active %}
+                        <span class="badge badge-aktiv">{{ t('metering.points_list.status_active') }}</span>
+                        {% else %}
+                        <span class="badge text-bg-secondary">{{ t('metering.points_list.status_inactive') }}</span>
+                        {% if metering_point.inactive_since %}
+                        <span class="text-muted ms-1" style="font-size: 0.85rem;">{{ t('metering.point_detail.inactive_since', date=metering_point.inactive_since.strftime('%d.%m.%Y')) }}</span>
+                        {% endif %}
+                        {% endif %}
+                    </dd>
+
                     {% if metering_point.parcel %}
                     <dt class="col-sm-4 text-muted">{{ t('metering.point_detail.label_parcel') }}</dt>
                     <dd class="col-sm-8">
@@ -83,6 +95,27 @@
                     <button type="submit" class="btn btn-sm btn-outline-primary">
                         <i class="bi bi-check-lg me-1"></i>{{ t('metering.point_detail.save_button') }}
                     </button>
+                </form>
+                <hr>
+                {# Issue #336: switch off for a while instead of deleting #}
+                <form method="post" action="{{ url_prefix }}/metering-points/{{ metering_point.id }}/active">
+                    {{ csrf_field() }}
+                    {% if metering_point.is_active %}
+                    <input type="hidden" name="active" value="0">
+                    <label class="form-label fw-semibold" style="font-size: 0.85rem;" for="inactive-since">{{ t('metering.point_detail.deactivate_since_label') }}</label>
+                    <div class="d-flex gap-2 align-items-start">
+                        <input type="date" id="inactive-since" name="since" class="form-control form-control-sm" style="max-width: 11rem;" value="{{ today }}">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary text-nowrap">
+                            <i class="bi bi-pause-circle me-1"></i>{{ t('metering.point_detail.deactivate_button') }}
+                        </button>
+                    </div>
+                    <div class="form-text">{{ t('metering.point_detail.deactivate_help') }}</div>
+                    {% else %}
+                    <input type="hidden" name="active" value="1">
+                    <button type="submit" class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-play-circle me-1"></i>{{ t('metering.point_detail.activate_button') }}
+                    </button>
+                    {% endif %}
                 </form>
                 {% endif %}
             </div>

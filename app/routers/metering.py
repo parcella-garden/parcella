@@ -45,6 +45,7 @@ from app.meter_utils import (
 from app.services.metering import (
     create_metering_point, update_metering_point, delete_metering_point, exchange_meter, update_meter,
     record_reading, delete_reading, get_price_configuration_for_year, save_price_configuration_for_year,
+    set_metering_point_active, needs_reading,
 )
 
 from app.templating import templates
@@ -273,7 +274,7 @@ def create_metering_router(
         open_readings_count = 0
         for a in all_points:
             z = a.current_meter
-            if z and not any(zs.year == year for zs in z.readings):
+            if z and a.is_active and not any(zs.year == year for zs in z.readings):
                 open_readings_count += 1
 
         available_years = sorted({
@@ -306,10 +307,13 @@ def create_metering_router(
     @router.get("/metering-points", response_class=HTMLResponse)
     async def metering_points_list(
         request: Request, type: Optional[str] = None, missing: Optional[str] = None,
+        status: Optional[str] = None,
         db: AsyncSession = Depends(get_db),
     ):
         user = await require_permission(request, db, modul_name, "read")
         all_points = await _load_all_metering_points(db)
+        if status not in ("active", "inactive"):
+            status = None
 
         parcels_without_metering_point = None
         if missing:
@@ -319,6 +323,8 @@ def create_metering_router(
             filtered_points = all_points
             if type in {t.value for t in MeteringPointType}:
                 filtered_points = [p for p in filtered_points if p.type.value == type]
+            if status:
+                filtered_points = [p for p in filtered_points if p.is_active == (status == "active")]
             filtered_points.sort(key=_metering_point_sort_key)
 
         return templates.TemplateResponse("metering/metering_points_list.html", {
@@ -331,6 +337,7 @@ def create_metering_router(
             # switches the page to the parcels-without-a-point view
             # instead (there's no MeteringPoint row to filter to for those).
             "type_filter": None if missing else type,
+            "status_filter": None if missing else status,
             "missing_filter": bool(missing),
             "parcels_without_metering_point": parcels_without_metering_point,
         })
@@ -463,6 +470,33 @@ def create_metering_router(
         await db.commit()
         return RedirectResponse(f"{url_prefix}/metering-points/{metering_point_id}", status_code=302)
 
+    @router.post("/metering-points/{metering_point_id}/active")
+    async def metering_point_set_active(
+        metering_point_id: str,
+        request: Request,
+        active: str = Form(...),
+        since: str = Form(""),
+        db: AsyncSession = Depends(get_db),
+    ):
+        """Switch the point off (no supply for a while) or back on --
+        issue #336. Off keeps all meters and readings."""
+        await require_permission(request, db, modul_name, "write")
+        result = await db.execute(
+            select(MeteringPoint).where(MeteringPoint.id == metering_point_id, MeteringPoint.medium == medium)
+        )
+        metering_point = result.scalar_one_or_none()
+        if not metering_point:
+            raise HTTPException(status_code=404)
+        since_date = None
+        if since.strip():
+            try:
+                since_date = date.fromisoformat(since.strip())
+            except ValueError:
+                since_date = None
+        set_metering_point_active(metering_point, active == "1", since_date)
+        await db.commit()
+        return RedirectResponse(f"{url_prefix}/metering-points/{metering_point_id}", status_code=303)
+
     @router.post("/metering-points/{metering_point_id}/delete")
     async def metering_point_delete(
         metering_point_id: str,
@@ -496,7 +530,7 @@ def create_metering_router(
         writer = csv.writer(output, delimiter=";")
         writer.writerow([
             "Type", "Parcel number", "Label", "Meter number",
-            "Installed on", "Calibrated until", "Initial reading",
+            "Installed on", "Calibrated until", "Initial reading", "Active", "Inactive since",
         ])
 
         for a in sorted(all_points, key=_metering_point_sort_key):
@@ -509,6 +543,8 @@ def create_metering_router(
                 z.installed_at.isoformat() if z and z.installed_at else "",
                 z.calibrated_until if z and z.calibrated_until else "",
                 f"{z.initial_reading:.{decimal_places}f}".replace(".", ",") if z else "",
+                "yes" if a.is_active else "no",
+                a.inactive_since.isoformat() if a.inactive_since else "",
             ])
 
         output.seek(0)
@@ -819,9 +855,9 @@ def create_metering_router(
             filtered = [a for a in all_points if a.type == type]
             rows = []
             for a in filtered:
-                z = a.current_meter
-                if not z:
+                if not needs_reading(a, year):
                     continue
+                z = a.current_meter
                 current_reading = next((zs for zs in z.readings if zs.year == year), None)
                 rows.append({
                     "metering_point": a,
@@ -879,9 +915,9 @@ def create_metering_router(
         ])
 
         for a in sorted(all_points, key=_metering_point_sort_key):
-            z = a.current_meter
-            if not z:
+            if not needs_reading(a, year):
                 continue
+            z = a.current_meter
             entry = next((zs for zs in z.readings if zs.year == year), None)
             writer.writerow([
                 a.type.value,

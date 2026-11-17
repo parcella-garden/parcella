@@ -1207,7 +1207,10 @@
       "csv_import_skip_reason_exists": "už existuje",
       "csv_import_skip_reason_invalid_type": "neplatný typ",
       "csv_import_skip_reason_parcel_not_found": "parcela nenájdená",
-      "csv_import_more_skipped": " (a {count} ďalších)"
+      "csv_import_more_skipped": " (a {count} ďalších)",
+      "status_inactive": "Vypnuté",
+      "filter_all": "Všetky",
+      "filter_active": "Aktívne"
     },
     "point_form": {
       "title_new": "Nový merací bod pre {medium}",
@@ -1279,7 +1282,12 @@
       "col_removed": "Odstránený",
       "col_last_reading": "Posledný odpočet",
       "edit_meter_button": "Upraviť merač",
-      "edit_meter_save_button": "Uložiť"
+      "edit_meter_save_button": "Uložiť",
+      "inactive_since": "od {date}",
+      "deactivate_since_label": "Vypnúť od",
+      "deactivate_button": "Vypnúť",
+      "deactivate_help": "Dočasne bez dodávky? Vypnuté odberné miesto vypadne zo zadávania odpočtov a z počtu chýbajúcich odpočtov. Meradlá a odpočty zostávajú.",
+      "activate_button": "Znova zapnúť"
     },
     "readings_list": {
       "title_suffix": " odpočet",

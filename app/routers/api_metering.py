@@ -56,12 +56,15 @@ def create_metering_api_router(
     @router.get("/metering-points", response_model=List[MeteringPointOut], summary="List metering points")
     async def list_metering_points(
         type: Optional[str] = Query(None, description="MAIN_METER, PARCEL, or CLUB"),
+        active: Optional[bool] = Query(None, description="true: only active points, false: only switched-off ones"),
         db: AsyncSession = Depends(get_db),
         user: User = Depends(require_api_permission(modul_name, "read")),
     ):
         query = select(MeteringPoint).where(MeteringPoint.medium == medium)
         if type:
             query = query.where(MeteringPoint.type == MeteringPointType(type))
+        if active is not None:
+            query = query.where(MeteringPoint.is_active == active)
         result = await db.execute(query)
         return result.scalars().all()
 

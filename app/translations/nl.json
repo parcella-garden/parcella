@@ -1207,7 +1207,10 @@
       "csv_import_skip_reason_exists": "bestaat al",
       "csv_import_skip_reason_invalid_type": "ongeldig type",
       "csv_import_skip_reason_parcel_not_found": "perceel niet gevonden",
-      "csv_import_more_skipped": " (en {count} meer)"
+      "csv_import_more_skipped": " (en {count} meer)",
+      "status_inactive": "Uitgeschakeld",
+      "filter_all": "Alle",
+      "filter_active": "Actief"
     },
     "point_form": {
       "title_new": "Nieuw {medium} meetpunt",
@@ -1279,7 +1282,12 @@
       "col_removed": "Verwijderd",
       "col_last_reading": "Laatste stand",
       "edit_meter_button": "Meter bewerken",
-      "edit_meter_save_button": "Opslaan"
+      "edit_meter_save_button": "Opslaan",
+      "inactive_since": "sinds {date}",
+      "deactivate_since_label": "Uitschakelen per",
+      "deactivate_button": "Uitschakelen",
+      "deactivate_help": "Hier een tijd geen levering? Een uitgeschakeld meetpunt valt uit de standeninvoer en de telling van ontbrekende standen. Meters en standen blijven bewaard.",
+      "activate_button": "Weer inschakelen"
     },
     "readings_list": {
       "title_suffix": " stand",

@@ -1338,3 +1338,68 @@ async def test_reading_create_return_url_stays_inside_module(client, admin_user)
         )
         assert response.status_code == 302
         assert response.headers["location"] == "/water/readings"
+
+
+async def test_metering_point_can_be_switched_off_and_on(client, admin_user):
+    """Issue #336: a point without supply for a while is switched off
+    instead of deleted -- it leaves reading entry (unless it already has
+    a reading that year), the open-readings count and the API's active
+    filter; meters and readings stay; switching on again clears the date."""
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+    year = date.today().year
+
+    off = (await client.post(
+        "/api/v1/water/metering-points",
+        json={"type": "CLUB", "label": "Winter tap", "number": "W-OFF", "initial_reading": "0"},
+        headers=headers,
+    )).json()
+    on = (await client.post(
+        "/api/v1/water/metering-points",
+        json={"type": "CLUB", "label": "Clubhouse tap", "number": "W-ON", "initial_reading": "0"},
+        headers=headers,
+    )).json()
+
+    assert (await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )).status_code in (302, 303)
+
+    overview_before = (await client.get("/water/", params={"year": year})).text
+
+    response = await client.post(
+        f"/water/metering-points/{off['id']}/active", data={"active": "0", "since": f"{year}-01-15"},
+    )
+    assert response.status_code == 303
+
+    async with AsyncSessionLocal() as db:
+        point = await db.get(MeteringPoint, off["id"])
+        assert point.is_active is False and point.inactive_since == date(year, 1, 15)
+
+    # Reading entry and its CSV export skip it, the list marks it.
+    readings = (await client.get("/water/readings", params={"year": year})).text
+    assert "Clubhouse tap" in readings and "Winter tap" not in readings
+    export = (await client.get("/water/readings/export/csv", params={"year": year})).text
+    assert "W-ON" in export and "W-OFF" not in export
+    listing = (await client.get("/water/metering-points", params={"status": "inactive"})).text
+    assert "Winter tap" in listing and "Clubhouse tap" not in listing
+    listing = (await client.get("/water/metering-points", params={"status": "active"})).text
+    assert "Clubhouse tap" in listing and "Winter tap" not in listing
+    assert overview_before != (await client.get("/water/", params={"year": year})).text
+
+    # API: field in the output, active filter, switch back on.
+    api_list = (await client.get("/api/v1/water/metering-points?active=false", headers=headers)).json()
+    assert [p["id"] for p in api_list] == [off["id"]]
+    assert api_list[0]["inactive_since"] == f"{year}-01-15"
+
+    # A final reading recorded on a switched-off point stays visible in entry.
+    assert (await client.post(
+        f"/api/v1/water/metering-points/{off['id']}/readings",
+        json={"year": year, "date": f"{year}-01-15", "reading": "3.0"},
+        headers=headers,
+    )).status_code == 201
+    assert "Winter tap" in (await client.get("/water/readings", params={"year": year})).text
+
+    updated = (await client.put(
+        f"/api/v1/water/metering-points/{off['id']}", json={"is_active": True}, headers=headers,
+    )).json()
+    assert updated["is_active"] is True and updated["inactive_since"] is None

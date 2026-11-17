@@ -58,14 +58,48 @@ async def create_metering_point(
 
 
 async def update_metering_point(db: AsyncSession, metering_point: MeteringPoint, **fields) -> MeteringPoint:
-    """Partial update -- only keys present in `fields` (label/notes)
-    are changed. HTML always sends both (full-form semantics); the API
+    """Partial update -- only keys present in `fields` (label/notes,
+    is_active/inactive_since) are changed. HTML always sends both (full-form semantics); the API
     is a genuine partial update (PUT with exclude_unset)."""
     for key in ("label", "notes"):
         if key in fields:
             setattr(metering_point, key, fields[key])
+    if "is_active" in fields and fields["is_active"] is not None:
+        set_metering_point_active(metering_point, fields["is_active"], fields.get("inactive_since"))
+    elif fields.get("inactive_since") is not None and not metering_point.is_active:
+        metering_point.inactive_since = fields["inactive_since"]
     await db.flush()
     return metering_point
+
+
+def set_metering_point_active(
+    metering_point: MeteringPoint, active: bool, since: Optional[date] = None,
+) -> MeteringPoint:
+    """Switch a metering point off (no supply for a while, issue #336)
+    or back on. Off records since when (default today); on clears it.
+    Switching to the state it already has changes nothing, so a repeated
+    "off" keeps the original date unless a new one is given."""
+    if active:
+        metering_point.is_active = True
+        metering_point.inactive_since = None
+    else:
+        if metering_point.is_active or since is not None:
+            metering_point.inactive_since = since or date.today()
+        metering_point.is_active = False
+    return metering_point
+
+
+def needs_reading(metering_point: MeteringPoint, year: int) -> bool:
+    """Whether the reading lists should ask for this point's reading in
+    `year`: it has a current meter and is active -- or, switched off, it
+    already has a reading that year (a final reading stays visible and
+    editable)."""
+    meter = metering_point.current_meter
+    if not meter:
+        return False
+    if metering_point.is_active:
+        return True
+    return any(r.year == year for r in meter.readings)
 
 
 async def delete_metering_point(db: AsyncSession, metering_point: MeteringPoint) -> None:

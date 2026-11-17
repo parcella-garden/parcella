@@ -1207,7 +1207,10 @@
       "csv_import_skip_reason_exists": "existe déjà",
       "csv_import_skip_reason_invalid_type": "type invalide",
       "csv_import_skip_reason_parcel_not_found": "parcelle introuvable",
-      "csv_import_more_skipped": " (et {count} de plus)"
+      "csv_import_more_skipped": " (et {count} de plus)",
+      "status_inactive": "Désactivé",
+      "filter_all": "Tous",
+      "filter_active": "Actifs"
     },
     "point_form": {
       "title_new": "Nouveau point de mesure {medium}",
@@ -1279,7 +1282,12 @@
       "col_removed": "Retiré",
       "col_last_reading": "Dernier relevé",
       "edit_meter_button": "Modifier le compteur",
-      "edit_meter_save_button": "Enregistrer"
+      "edit_meter_save_button": "Enregistrer",
+      "inactive_since": "depuis le {date}",
+      "deactivate_since_label": "Désactiver à partir du",
+      "deactivate_button": "Désactiver",
+      "deactivate_help": "Pas d’alimentation ici pendant un temps ? Un point désactivé disparaît de la saisie des relevés et du décompte des relevés manquants. Compteurs et relevés sont conservés.",
+      "activate_button": "Réactiver"
     },
     "readings_list": {
       "title_suffix": " relevé",

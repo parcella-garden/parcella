@@ -1207,7 +1207,10 @@
       "csv_import_skip_reason_exists": "już istnieje",
       "csv_import_skip_reason_invalid_type": "nieprawidłowy typ",
       "csv_import_skip_reason_parcel_not_found": "nie znaleziono działki",
-      "csv_import_more_skipped": " (i {count} więcej)"
+      "csv_import_more_skipped": " (i {count} więcej)",
+      "status_inactive": "Wyłączony",
+      "filter_all": "Wszystkie",
+      "filter_active": "Aktywne"
     },
     "point_form": {
       "title_new": "Nowy punkt pomiarowy ({medium})",
@@ -1279,7 +1282,12 @@
       "col_removed": "Zdemontowano",
       "col_last_reading": "Ostatni stan",
       "edit_meter_button": "Edytuj licznik",
-      "edit_meter_save_button": "Zapisz"
+      "edit_meter_save_button": "Zapisz",
+      "inactive_since": "od {date}",
+      "deactivate_since_label": "Wyłącz od",
+      "deactivate_button": "Wyłącz",
+      "deactivate_help": "Brak zasilania przez pewien czas? Wyłączony punkt pomiarowy znika z wprowadzania odczytów i z licznika brakujących odczytów. Liczniki i odczyty pozostają.",
+      "activate_button": "Włącz ponownie"
     },
     "readings_list": {
       "title_suffix": " – odczyty",
