@@ -416,6 +416,13 @@ a filtered `/members/` list -- "everyone tagged *water responsible*",
   title -- a quote or a non-latin-1 character in a Content-Disposition
   header breaks the response.
 
+- **Hand-picked members** (issue #337, ADR 0137): "Write to selected"
+  on `/members/` sends the list's filter plus the ticked `ids`;
+  `_targeted_audience_query()` folds them into one filter, stored the
+  same way. The form shows "N picked by hand" next to the filter badges.
+  Picked ids still go through the rest of the filter at send time, so a
+  picked member who no longer matches it (or was deleted) drops out.
+
 Known gaps: no per-recipient delivery log (channel-level, as for club
 news); the audience isn't frozen at send time -- someone tagged between
 sending the email and generating the letters is included in the

@@ -9,11 +9,18 @@ and the list's query string -- and each new filter had to be threaded
 through all of them by hand. They now all take a MemberListFilter.
 Announcements to filtered members (issue #242) store one as JSON
 (to_dict/from_dict) and resolve it to recipients with the same apply().
+
+Issue #337: `ids` narrows the filter to members ticked by hand on the
+list (e.g. 12 of the 102 who allow club emails) -- for the CSV export
+and "write to the selected members". It intersects with the other
+fields, so a picked member who no longer matches drops out.
 """
 from dataclasses import asdict, dataclass, fields
 from datetime import date
-from typing import Optional
+from typing import List, Optional
 from urllib.parse import urlencode
+
+from fastapi import HTTPException, Query
 
 from sqlalchemy import Select, and_, or_, select
 
@@ -27,6 +34,22 @@ def has_tag_condition(tag_id: str):
     return Member.id.in_(select(member_tag_links.c.member_id).where(member_tag_links.c.tag_id == tag_id))
 
 
+# A sanity cap on one hand-picked selection, not a product limit (same
+# as MAX_PICKED_APPLICANTS for announcements to applicants, ADR 0112).
+MAX_PICKED_MEMBERS = 2000
+
+
+def clean_member_ids(ids) -> tuple:
+    """Hand-picked member ids as given (query string or stored JSON):
+    blanks and anything longer than an id dropped, duplicates removed,
+    order kept. Too many is a 400, never a silent cut."""
+    cleaned = tuple(dict.fromkeys(str(i).strip() for i in (ids or ()) if i and len(str(i).strip()) <= 36))
+    cleaned = tuple(i for i in cleaned if i)
+    if len(cleaned) > MAX_PICKED_MEMBERS:
+        raise HTTPException(status_code=400, detail="Too many members selected")
+    return cleaned
+
+
 @dataclass(frozen=True)
 class MemberListFilter:
     search: str = ""
@@ -34,6 +57,10 @@ class MemberListFilter:
     active_only: bool = False
     email_info_only: bool = False
     tag: str = ""  # MemberTag.id, "" = any
+    ids: tuple = ()  # Member.id values ticked by hand (issue #337), () = no selection
+
+    def __post_init__(self):
+        object.__setattr__(self, "ids", clean_member_ids(self.ids))
 
     @classmethod
     def from_query(
@@ -43,9 +70,13 @@ class MemberListFilter:
         active_only: bool = False,
         email_info_only: bool = False,
         tag: str = "",
+        ids: List[str] = Query(default=[]),
     ) -> "MemberListFilter":
         """FastAPI dependency: `filters: MemberListFilter = Depends(MemberListFilter.from_query)`."""
-        return cls(search.strip(), include_inactive, active_only, email_info_only, tag.strip())
+        # Called directly from Python too, where the Query() default is
+        # still the marker object rather than a list.
+        ids = tuple(ids) if isinstance(ids, (list, tuple)) else ()
+        return cls(search.strip(), include_inactive, active_only, email_info_only, tag.strip(), ids)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -60,6 +91,10 @@ class MemberListFilter:
     def is_empty(self) -> bool:
         return self == MemberListFilter()
 
+    def without_ids(self) -> "MemberListFilter":
+        """The same filter with the hand-picked selection dropped."""
+        return MemberListFilter(self.search, self.include_inactive, self.active_only, self.email_info_only, self.tag)
+
     def query_string(self) -> str:
         """The filter as a query string (no leading '?', empty if
         nothing is set). Issue #202: carried from each list row onto
@@ -73,8 +108,8 @@ class MemberListFilter:
             if value is True:
                 params[f.name] = "true"
             elif value:
-                params[f.name] = value
-        return urlencode(params)
+                params[f.name] = list(value) if isinstance(value, tuple) else value
+        return urlencode(params, doseq=True)
 
     def apply(self) -> Select:
         """WHERE/ORDER BY for the member list, shared with its CSV export
@@ -165,5 +200,8 @@ class MemberListFilter:
 
         if self.tag:
             query = query.where(has_tag_condition(self.tag))
+
+        if self.ids:
+            query = query.where(Member.id.in_(self.ids))
 
         return query

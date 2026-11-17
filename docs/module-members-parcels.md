@@ -211,6 +211,22 @@ is one field plus a clause in `apply()`.
 Known gaps: no colors, no tags in the CSV *import*,
 the filter takes one tag at a time (no "A and B").
 
+**Picking members by hand (issue #337, [ADR 0137](./ADR/0137-hand-picked-members-in-the-list-filter.md)).**
+Every row of `/members/` has a checkbox, with "Select all" / "Select
+none" and a counter above the table. "Export selected" and (announcements
+module on, board/admin) "Write to selected" act on the ticked rows only --
+e.g. filter for everyone who allows club emails, then tick 12 of the 102.
+The selection is one more `MemberListFilter` field, `ids`: it narrows the
+other filters (it doesn't replace them), travels in the query string as
+repeated `ids=`, and the list itself honours it too (`/members/?ids=...`
+shows only the picked members, with a "Show the whole list" link) -- that's
+where the message's "show list" link leads. Ids are cleaned on the way in
+(blank/overlong dropped, duplicates removed) and capped at
+`MAX_PICKED_MEMBERS` (2000, a 400 beyond).
+
+Known gaps: ticks don't survive changing the filter (the page reloads);
+no "picked" option in the REST API's member list.
+
 ## Declining birthday presents (issue #269)
 
 `Member.birthday_present_declined` (boolean, default false, migration

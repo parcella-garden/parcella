@@ -243,13 +243,15 @@ async def _form_context(db: AsyncSession, announcement: Optional[Announcement]) 
 def _filter_from_query_string(query_string: str) -> MemberListFilter:
     """The /members/ filter as carried over in a query string (the list
     page's own MemberListFilter.query_string())."""
-    params = {k: v[-1] for k, v in urllib.parse.parse_qs(query_string or "").items()}
+    parsed = urllib.parse.parse_qs(query_string or "")
+    params = {k: v[-1] for k, v in parsed.items()}
     return MemberListFilter.from_query(
         search=params.get("search", ""),
         include_inactive=params.get("include_inactive") == "true",
         active_only=params.get("active_only") == "true",
         email_info_only=params.get("email_info_only") == "true",
         tag=params.get("tag", ""),
+        ids=parsed.get("ids", []),
     )
 
 
@@ -319,7 +321,14 @@ def _targeted_audience_query(params) -> Optional[str]:
     if params.get("audience") != "1":
         return None
     query = params.get("audience_query", "") or ""
-    return None if _filter_from_query_string(query).is_empty() else query
+    picked = params.getlist("ids") if hasattr(params, "getlist") else []
+    if picked:
+        # Issue #337: members ticked on /members/ come as separate ids
+        # next to the list's filter; fold them into one filter.
+        query = _filter_from_query_string(query).without_ids().query_string()
+        query = "&".join(q for q in (query, urllib.parse.urlencode({"ids": picked}, doseq=True)) if q)
+    audience_filter = _filter_from_query_string(query)
+    return None if audience_filter.is_empty() else audience_filter.query_string()
 
 
 # A sanity cap on one hand-picked selection, not a product limit.

@@ -90,6 +90,10 @@ async def members_list(
             "tag": filters.tag,
             "all_tags": all_tags,
             "list_query_string": filters.query_string(),
+            # Issue #337: members ticked by hand; the pick form carries the
+            # rest of the filter, so export / "write to" see the same list.
+            "filter_without_ids": filters.without_ids(),
+            "picked_ids": set(filters.ids),
         },
     )
 

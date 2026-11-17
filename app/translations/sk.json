@@ -670,7 +670,15 @@
       "map_field_notes": "Poznámky",
       "csv_mapping_required_error": "Pred importom prosím priraďte stĺpce mena a priezviska.",
       "csv_empty_error": "Tento súbor CSV sa zdá byť prázdny.",
-      "write_to_members": "Napísať týmto členom ({count})"
+      "write_to_members": "Napísať týmto členom ({count})",
+      "col_select": "Vybrať",
+      "select_all": "Vybrať všetky",
+      "select_none": "Zrušiť výber",
+      "selected_count": "Vybraté: {count}",
+      "export_selected": "Exportovať vybraté",
+      "write_to_selected": "Napísať vybratým",
+      "picked_notice": "Zobrazení sú len vybratí členovia ({count}).",
+      "picked_show_all": "Zobraziť celý zoznam"
     },
     "form": {
       "title_edit": "Upraviť {name}",
@@ -2037,7 +2045,8 @@
       "channel_letter": "Listy",
       "letter_hint": "Jedno PDF s listom pre každého príjemcu, do obálok s okienkom. Vytvorí sa po kliknutí, neukladá sa.",
       "letter_button": "Vytvoriť listy ({count})",
-      "list_badge": "Vybraní členovia"
+      "list_badge": "Vybraní členovia",
+      "filter_picked": "Ručne vybraté: {count}"
     },
     "applicants": {
       "header": "Správa na {count} adries uchádzačov",

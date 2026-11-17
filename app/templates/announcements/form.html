@@ -84,6 +84,7 @@
                 {% if audience_filter.include_inactive %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_inactive') }}</span>{% endif %}
                 {% if audience_filter.active_only %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_active_only') }}</span>{% endif %}
                 {% if audience_filter.email_info_only %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_email_info_only') }}</span>{% endif %}
+                {% if audience_filter.ids %}<span class="badge ms-1 text-bg-light border"><i class="bi bi-check2-square"></i> {{ t('announcements.audience.filter_picked', count=audience_filter.ids|length) }}</span>{% endif %}
             </div>
             <ul class="list-unstyled mb-2">
                 <li><i class="bi bi-envelope me-1"></i>{{ t('announcements.audience.by_email', count=audience.email|length) }}</li>

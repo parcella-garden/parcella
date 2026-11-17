@@ -132,3 +132,69 @@ async def test_unfiltered_list_is_club_news_not_a_targeted_message(client, admin
         "title": "Alle", "body_markdown": "Hallo", "audience": "1", "audience_query": "",
     })
     assert not (await _announcement(response.headers["location"].split("/")[2])).is_targeted
+
+
+async def test_hand_picked_members_for_export_and_message(client, admin_user, monkeypatch):
+    """Issue #337: filter the list (here: all with email), tick some rows
+    by hand, then export or write to exactly those. The picked ids
+    intersect with the filter and are stored with it."""
+    from app.member_filters import MemberListFilter
+
+    tag_id, ids = await _setup(client)
+    picked = [ids["Optout"], ids["Unbeteiligt"]]
+
+    page = await client.get(f"/members/?tag={tag_id}")
+    assert 'id="member-pick"' in page.text and 'name="ids"' in page.text
+
+    # The pick form's export: filter fields + ticked ids. Udo isn't tagged,
+    # so he drops out although he was "picked".
+    export = await client.get("/members/export/csv", params=[("tag", tag_id), *[("ids", i) for i in picked]])
+    assert export.status_code == 200
+    assert "Optout" in export.text and "Papier" not in export.text and "Unbeteiligt" not in export.text
+
+    # Without a tag filter both picked members are in, nobody else.
+    export = await client.get("/members/export/csv", params=[("ids", i) for i in picked])
+    assert "Optout" in export.text and "Unbeteiligt" in export.text and "Papier" not in export.text
+
+    # The list shows only the picked ones, with a way back.
+    page = await client.get("/members/", params=[("ids", i) for i in picked])
+    assert "Unbeteiligt" in page.text and "Papier" not in page.text and "Show the whole list" in page.text
+
+    # "Write to selected": the pick form sends audience_query + ids.
+    preview = await client.get("/announcements/new", params=[
+        ("audience", "1"), ("audience_query", ""), *[("ids", i) for i in picked],
+    ])
+    assert preview.status_code == 200 and "2 picked by hand" in preview.text
+
+    response = await client.post("/announcements/new", data={
+        "title": "Picked", "body_markdown": "Nur an euch.", "audience": "1",
+        "audience_query": MemberListFilter(ids=tuple(picked)).query_string(),
+    })
+    assert response.status_code == 303
+    stored = await _announcement(response.headers["location"].split("/")[2])
+    assert sorted(stored.audience_filter["ids"]) == sorted(picked)
+
+    sent_to = []
+
+    async def fake_send_email(to, subject, html_body, text_body=None, db=None):
+        sent_to.append(to)
+        return True
+
+    monkeypatch.setattr("app.announcement_mailer.send_email", fake_send_email)
+    assert (await client.post(f"/announcements/{stored.id}/send/email")).status_code == 303
+    assert sorted(sent_to) == ["olga@example.org", "udo@example.org"]
+
+
+def test_member_filter_ids_round_trip_and_cleaning():
+    import pytest
+    from fastapi import HTTPException
+    from app.member_filters import MAX_PICKED_MEMBERS, MemberListFilter
+
+    f = MemberListFilter(email_info_only=True, ids=("a", "a", " ", "x" * 37, "b"))
+    assert f.ids == ("a", "b")
+    assert MemberListFilter.from_dict(f.to_dict()) == f  # stored JSON list comes back as the same filter
+    assert f.query_string() == "email_info_only=true&ids=a&ids=b"
+    assert f.without_ids() == MemberListFilter(email_info_only=True)
+    assert not MemberListFilter(ids=("a",)).is_empty() and MemberListFilter.from_dict({"ids": []}).is_empty()
+    with pytest.raises(HTTPException):
+        MemberListFilter(ids=tuple(str(i) for i in range(MAX_PICKED_MEMBERS + 1)))
