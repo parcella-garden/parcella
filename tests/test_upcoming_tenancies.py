@@ -11,19 +11,24 @@ from sqlalchemy import select
 from app.database import AsyncSessionLocal, current_or_upcoming_tenant_filter, current_tenant_filter
 from app.models import Member, MemberParcel, Parcel
 
-TODAY = date.today()
-CASES = {
-    # name: (assigned_from, assigned_until, current, upcoming, former)
-    "open_ended": (None, None, True, False, False),
-    "started_today": (TODAY, None, True, False, False),
-    "starts_tomorrow": (TODAY + timedelta(days=1), None, False, True, False),
-    "notice_given": (TODAY - timedelta(days=100), TODAY + timedelta(days=5), True, False, False),
-    "ended_today": (TODAY - timedelta(days=100), TODAY, False, False, True),
-    "ended_before_it_began": (TODAY + timedelta(days=10), TODAY - timedelta(days=1), False, False, True),
-}
+def _cases() -> dict:
+    """Built when the test runs, not when the file is collected: a CI run
+    that crosses midnight would otherwise compare against yesterday's
+    date (starts_tomorrow then already started today)."""
+    today = date.today()
+    return {
+        # name: (assigned_from, assigned_until, current, upcoming, former)
+        "open_ended": (None, None, True, False, False),
+        "started_today": (today, None, True, False, False),
+        "starts_tomorrow": (today + timedelta(days=1), None, False, True, False),
+        "notice_given": (today - timedelta(days=100), today + timedelta(days=5), True, False, False),
+        "ended_today": (today - timedelta(days=100), today, False, False, True),
+        "ended_before_it_began": (today + timedelta(days=10), today - timedelta(days=1), False, False, True),
+    }
 
 
 async def test_current_upcoming_former_python_and_sql_agree():
+    CASES = _cases()
     async with AsyncSessionLocal() as db:
         parcel = Parcel(plot_number="U1")
         db.add(parcel)

@@ -921,7 +921,13 @@
       "upcoming_badge": "od {date}",
       "leaving_badge": "do {date}",
       "cloud_folder_retires": "Aktuálny priečinok bude vyradený {date}.",
-      "cloud_folder_scheduled": "Od {date} bude priečinkom dokumentov {path}."
+      "cloud_folder_scheduled": "Od {date} bude priečinkom dokumentov {path}.",
+      "cloud_picker_title": "Vyberte priečinok",
+      "cloud_picker_filter": "Filtrovať priečinky…",
+      "cloud_picker_loading": "Načítava sa…",
+      "cloud_picker_no_match": "Filtru nezodpovedá žiadny priečinok.",
+      "cloud_picker_selected": "Vybraté:",
+      "cloud_picker_failed": "Priečinky sa nepodarilo načítať."
     },
     "errors": {
       "parcel_not_found": "Záhradka nenájdená",

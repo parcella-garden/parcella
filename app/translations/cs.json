@@ -921,7 +921,13 @@
       "upcoming_badge": "od {date}",
       "leaving_badge": "do {date}",
       "cloud_folder_retires": "Aktuální složka bude vyřazena {date}.",
-      "cloud_folder_scheduled": "Od {date} bude složkou dokumentů {path}."
+      "cloud_folder_scheduled": "Od {date} bude složkou dokumentů {path}.",
+      "cloud_picker_title": "Vyberte složku",
+      "cloud_picker_filter": "Filtrovat složky…",
+      "cloud_picker_loading": "Načítá se…",
+      "cloud_picker_no_match": "Filtru neodpovídá žádná složka.",
+      "cloud_picker_selected": "Vybráno:",
+      "cloud_picker_failed": "Složky se nepodařilo načíst."
     },
     "errors": {
       "parcel_not_found": "Zahrádka nenalezena",

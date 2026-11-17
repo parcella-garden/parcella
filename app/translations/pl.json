@@ -921,7 +921,13 @@
       "upcoming_badge": "od {date}",
       "leaving_badge": "do {date}",
       "cloud_folder_retires": "Bieżący folder zostanie wycofany {date}.",
-      "cloud_folder_scheduled": "Od {date} folderem dokumentów będzie {path}."
+      "cloud_folder_scheduled": "Od {date} folderem dokumentów będzie {path}.",
+      "cloud_picker_title": "Wybierz folder",
+      "cloud_picker_filter": "Filtruj foldery…",
+      "cloud_picker_loading": "Ładowanie…",
+      "cloud_picker_no_match": "Żaden folder nie pasuje do filtra.",
+      "cloud_picker_selected": "Wybrano:",
+      "cloud_picker_failed": "Nie udało się wczytać folderów."
     },
     "errors": {
       "parcel_not_found": "Nie znaleziono działki",

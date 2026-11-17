@@ -700,3 +700,41 @@ async def test_picker_mode_cloud_storage_error_shows_alert(client, admin_user, m
     response = await client.get(f"/parcels/{parcel['id']}", params={"cloud_pick": "1"})
     assert response.status_code == 200
     assert "Nextcloud is temporarily unreachable." in response.text
+
+
+async def test_folder_dialog_json(client, admin_user, monkeypatch):
+    """The folder dialog on the parcel page: one level as JSON, folders
+    only and sorted, traversal falls back to the root, board/admin only."""
+    from app.auth import hash_password
+    from app.cloud_storage import CloudFileEntry
+    from app.models import User, UserRole
+
+    parcel, provider = await _setup_folder_with_recording_provider(
+        client, admin_user, monkeypatch,
+        files_by_path={"kgv_dokumente": [
+            CloudFileEntry(name="parzellen", is_directory=True),
+            CloudFileEntry(name="Aushang", is_directory=True),
+            CloudFileEntry(name="satzung.pdf", is_directory=False),
+        ]},
+    )
+    url = f"/parcels/{parcel['id']}/cloud-folder/picker"
+
+    page = await client.get(f"/parcels/{parcel['id']}")
+    assert 'id="cloud-folder-modal"' in page.text and f'data-picker-url="{url}"' in page.text
+
+    response = await client.get(url, params={"path": "kgv_dokumente"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["path"] == "kgv_dokumente" and data["error"] is None
+    assert data["folders"] == ["Aushang", "parzellen"]
+    assert [c["pick_path"] for c in data["breadcrumbs"]] == ["", "kgv_dokumente"]
+
+    response = await client.get(url, params={"path": "../etc"})
+    assert response.json()["path"] == "" and provider.list_files_calls[-1] == ""
+
+    async with AsyncSessionLocal() as session:
+        session.add(User(email="readonly-picker@example.com", name="Nur Lesen",
+                         password_hash=hash_password("testpasswort123"), role=UserRole.READONLY))
+        await session.commit()
+    await web_login(client, "readonly-picker@example.com")
+    assert (await client.get(url)).status_code == 403

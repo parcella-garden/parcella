@@ -921,7 +921,13 @@
       "upcoming_badge": "from {date}",
       "leaving_badge": "until {date}",
       "cloud_folder_retires": "The current folder is retired on {date}.",
-      "cloud_folder_scheduled": "From {date} on, {path} becomes the documents folder."
+      "cloud_folder_scheduled": "From {date} on, {path} becomes the documents folder.",
+      "cloud_picker_title": "Choose a folder",
+      "cloud_picker_filter": "Filter folders…",
+      "cloud_picker_loading": "Loading…",
+      "cloud_picker_no_match": "No folder matches the filter.",
+      "cloud_picker_selected": "Selected:",
+      "cloud_picker_failed": "The folders couldn't be loaded."
     },
     "errors": {
       "parcel_not_found": "Parcel not found",
