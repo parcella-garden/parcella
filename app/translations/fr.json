@@ -670,7 +670,15 @@
       "map_field_notes": "Notes",
       "csv_mapping_required_error": "Veuillez associer les colonnes du prénom et du nom avant d'importer.",
       "csv_empty_error": "Ce fichier CSV semble vide.",
-      "write_to_members": "Écrire à ces {count} membres"
+      "write_to_members": "Écrire à ces {count} membres",
+      "col_select": "Sélectionner",
+      "select_all": "Tout sélectionner",
+      "select_none": "Tout désélectionner",
+      "selected_count": "{count} sélectionné(s)",
+      "export_selected": "Exporter la sélection",
+      "write_to_selected": "Écrire à la sélection",
+      "picked_notice": "Seuls les {count} membres sélectionnés sont affichés.",
+      "picked_show_all": "Afficher toute la liste"
     },
     "form": {
       "title_edit": "Modifier {name}",
@@ -2029,7 +2037,8 @@
       "channel_letter": "Courriers",
       "letter_hint": "Un PDF avec un courrier par destinataire, pour enveloppes à fenêtre. Créé au clic, jamais enregistré.",
       "letter_button": "Créer {count} courrier(s)",
-      "list_badge": "Membres filtrés"
+      "list_badge": "Membres filtrés",
+      "filter_picked": "{count} choisi(s) à la main"
     },
     "applicants": {
       "header": "Message à {count} adresse(s) de candidats",

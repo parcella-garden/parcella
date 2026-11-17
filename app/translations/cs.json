@@ -670,7 +670,15 @@
       "map_field_notes": "Poznámky",
       "csv_mapping_required_error": "Před importem prosím přiřaďte sloupce jména a příjmení.",
       "csv_empty_error": "Tento soubor CSV se zdá být prázdný.",
-      "write_to_members": "Napsat těmto členům ({count})"
+      "write_to_members": "Napsat těmto členům ({count})",
+      "col_select": "Vybrat",
+      "select_all": "Vybrat vše",
+      "select_none": "Zrušit výběr",
+      "selected_count": "Vybráno: {count}",
+      "export_selected": "Exportovat vybrané",
+      "write_to_selected": "Napsat vybraným",
+      "picked_notice": "Zobrazeni jsou jen vybraní členové ({count}).",
+      "picked_show_all": "Zobrazit celý seznam"
     },
     "form": {
       "title_edit": "Upravit {name}",
@@ -2029,7 +2037,8 @@
       "channel_letter": "Dopisy",
       "letter_hint": "Jedno PDF s dopisem pro každého příjemce, do obálek s okénkem. Vytvoří se po kliknutí, neukládá se.",
       "letter_button": "Vytvořit dopisy ({count})",
-      "list_badge": "Vybraní členové"
+      "list_badge": "Vybraní členové",
+      "filter_picked": "Ručně vybráno: {count}"
     },
     "applicants": {
       "header": "Zpráva na {count} adres(y) uchazečů",

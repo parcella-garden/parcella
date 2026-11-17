@@ -140,3 +140,4 @@ in chronological order.
 134. [The backup includes the encryption key; a restore re-encrypts](./0134-backup-includes-the-secret-key.md)
 135. [Release trains, and a release level for every change up front](./0135-release-trains-and-semver-triage.md)
 136. [Processes: a configurable process builder instead of a hard-coded plot handover](./0136-configurable-process-builder.md)
+137. [Hand-picked members are part of the member-list filter](./0137-hand-picked-members-in-the-list-filter.md)

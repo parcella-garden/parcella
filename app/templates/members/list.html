@@ -105,6 +105,45 @@
 </div>
 {% endif %}
 
+{% if picked_ids %}
+<div class="alert alert-info d-flex gap-2 align-items-center justify-content-between flex-wrap mb-3" style="font-size: 0.875rem;">
+    <span><i class="bi bi-check2-square me-1"></i>{{ t('members.list.picked_notice', count=picked_ids|length) }}</span>
+    <a href="/members/{% if filter_without_ids.query_string() %}?{{ filter_without_ids.query_string() }}{% endif %}"
+       class="btn btn-sm btn-outline-secondary">{{ t('members.list.picked_show_all') }}</a>
+</div>
+{% endif %}
+
+{#- Issue #337: tick members by hand for the CSV export or a message.
+    The checkboxes sit in the table rows and join this form via form=. -#}
+{% if members %}
+{% set can_write_to = request.state.module_flags.announcements and is_full_access(request) %}
+<form id="member-pick" method="get" action="/members/export/csv"
+      class="d-flex gap-2 align-items-center flex-wrap mb-2">
+    {% if filter_without_ids.search %}<input type="hidden" name="search" value="{{ filter_without_ids.search }}">{% endif %}
+    {% if filter_without_ids.include_inactive %}<input type="hidden" name="include_inactive" value="true">{% endif %}
+    {% if filter_without_ids.active_only %}<input type="hidden" name="active_only" value="true">{% endif %}
+    {% if filter_without_ids.email_info_only %}<input type="hidden" name="email_info_only" value="true">{% endif %}
+    {% if filter_without_ids.tag %}<input type="hidden" name="tag" value="{{ filter_without_ids.tag }}">{% endif %}
+    {% if can_write_to %}
+    <input type="hidden" name="audience" value="1">
+    <input type="hidden" name="audience_query" value="{{ filter_without_ids.query_string() }}">
+    {% endif %}
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="pick-all">{{ t('members.list.select_all') }}</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="pick-none">{{ t('members.list.select_none') }}</button>
+    <span class="text-muted small" id="pick-count" data-template="{{ t('members.list.selected_count', count='__N__') }}">{{ t('members.list.selected_count', count=picked_ids|length) }}</span>
+    <span class="ms-auto d-flex gap-2 flex-wrap">
+        <button type="submit" class="btn btn-sm btn-outline-secondary pick-action" disabled>
+            <i class="bi bi-download me-1"></i>{{ t('members.list.export_selected') }}
+        </button>
+        {% if can_write_to %}
+        <button type="submit" formaction="/announcements/new" class="btn btn-sm btn-outline-primary pick-action" disabled>
+            <i class="bi bi-envelope-paper me-1"></i>{{ t('members.list.write_to_selected') }}
+        </button>
+        {% endif %}
+    </span>
+</form>
+{% endif %}
+
 <!-- Tabelle -->
 <div class="card">
     <div class="card-body p-0">
@@ -112,6 +151,7 @@
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
+                        <th style="width: 1%;"><span class="visually-hidden">{{ t('members.list.col_select') }}</span></th>
                         <th>{{ t('members.list.col_name') }}</th>
                         <th>{{ t('members.list.col_member_since') }}</th>
                         <th>{{ t('members.list.col_parcels') }}</th>
@@ -122,6 +162,9 @@
                 <tbody>
                     {% for m in members %}
                     <tr>
+                        <td><input type="checkbox" class="form-check-input pick-member" form="member-pick"
+                                   name="ids" value="{{ m.id }}" {% if m.id in picked_ids %}checked{% endif %}
+                                   aria-label="{{ t('members.list.col_select') }}: {{ m.last_name }}, {{ m.first_name }}"></td>
                         <td>
                             <a href="/members/{{ m.id }}{% if list_query_string %}?{{ list_query_string }}{% endif %}"
                                class="text-decoration-none fw-semibold"
@@ -171,7 +214,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">
+                        <td colspan="6" class="text-center py-5 text-muted">
                             {% if search %}
                             <i class="bi bi-search d-block mb-2" style="font-size: 1.5rem;"></i>
                             {{ t('members.list.empty_search', query=search) }}
@@ -227,4 +270,29 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.getElementById('member-pick');
+    if (!form) return;
+    var boxes = Array.prototype.slice.call(document.querySelectorAll('.pick-member'));
+    var count = document.getElementById('pick-count');
+    var actions = Array.prototype.slice.call(form.querySelectorAll('.pick-action'));
+    function update() {
+        var n = boxes.filter(function (b) { return b.checked; }).length;
+        count.textContent = count.dataset.template.replace('__N__', n);
+        actions.forEach(function (a) { a.disabled = n === 0; });
+    }
+    function setAll(checked) {
+        boxes.forEach(function (b) { b.checked = checked; });
+        update();
+    }
+    document.getElementById('pick-all').addEventListener('click', function () { setAll(true); });
+    document.getElementById('pick-none').addEventListener('click', function () { setAll(false); });
+    boxes.forEach(function (b) { b.addEventListener('change', update); });
+    update();
+});
+</script>
 {% endblock %}

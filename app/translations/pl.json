@@ -670,7 +670,15 @@
       "map_field_notes": "Notatki",
       "csv_mapping_required_error": "Przed importem przypisz kolumny imienia i nazwiska.",
       "csv_empty_error": "Ten plik CSV wydaje się być pusty.",
-      "write_to_members": "Napisz do tych członków ({count})"
+      "write_to_members": "Napisz do tych członków ({count})",
+      "col_select": "Zaznacz",
+      "select_all": "Zaznacz wszystkie",
+      "select_none": "Odznacz wszystkie",
+      "selected_count": "Zaznaczono: {count}",
+      "export_selected": "Eksportuj zaznaczonych",
+      "write_to_selected": "Napisz do zaznaczonych",
+      "picked_notice": "Wyświetlani są tylko zaznaczeni członkowie ({count}).",
+      "picked_show_all": "Pokaż całą listę"
     },
     "form": {
       "title_edit": "Edytuj {name}",
@@ -2029,7 +2037,8 @@
       "channel_letter": "Listy",
       "letter_hint": "Jeden PDF z listem dla każdego odbiorcy, do kopert z okienkiem. Tworzony po kliknięciu, nigdy nie zapisywany.",
       "letter_button": "Utwórz listy: {count}",
-      "list_badge": "Wybrani członkowie"
+      "list_badge": "Wybrani członkowie",
+      "filter_picked": "Ręcznie wybrano: {count}"
     },
     "applicants": {
       "header": "Wiadomość na {count} adres(y) kandydatów",

@@ -670,7 +670,15 @@
       "map_field_notes": "Notes",
       "csv_mapping_required_error": "Please map both the first name and last name columns before importing.",
       "csv_empty_error": "That CSV file appears to be empty.",
-      "write_to_members": "Write to these {count} members"
+      "write_to_members": "Write to these {count} members",
+      "col_select": "Select",
+      "select_all": "Select all",
+      "select_none": "Select none",
+      "selected_count": "{count} selected",
+      "export_selected": "Export selected",
+      "write_to_selected": "Write to selected",
+      "picked_notice": "Showing only the {count} selected members.",
+      "picked_show_all": "Show the whole list"
     },
     "form": {
       "title_edit": "Edit {name}",
@@ -2029,7 +2037,8 @@
       "channel_letter": "Letters",
       "letter_hint": "One PDF with a letter per recipient, for windowed envelopes. Generated when you click, never stored.",
       "letter_button": "Generate {count} letter(s)",
-      "list_badge": "Filtered members"
+      "list_badge": "Filtered members",
+      "filter_picked": "{count} picked by hand"
     },
     "applicants": {
       "header": "Message to {count} applicant address(es)",

@@ -670,7 +670,15 @@
       "map_field_notes": "Notizen",
       "csv_mapping_required_error": "Bitte ordnen Sie vor dem Import sowohl Vorname als auch Nachname zu.",
       "csv_empty_error": "Diese CSV-Datei scheint leer zu sein.",
-      "write_to_members": "Diesen {count} Mitgliedern schreiben"
+      "write_to_members": "Diesen {count} Mitgliedern schreiben",
+      "col_select": "Auswählen",
+      "select_all": "Alle auswählen",
+      "select_none": "Auswahl aufheben",
+      "selected_count": "{count} ausgewählt",
+      "export_selected": "Auswahl exportieren",
+      "write_to_selected": "An Auswahl schreiben",
+      "picked_notice": "Es werden nur die {count} ausgewählten Mitglieder angezeigt.",
+      "picked_show_all": "Ganze Liste anzeigen"
     },
     "form": {
       "title_edit": "{name} bearbeiten",
@@ -2029,7 +2037,8 @@
       "channel_letter": "Briefe",
       "letter_hint": "Ein PDF mit einem Brief je Empfänger, für Fensterumschläge. Wird beim Klick erzeugt und nicht gespeichert.",
       "letter_button": "{count} Brief(e) erzeugen",
-      "list_badge": "Gefilterte Mitglieder"
+      "list_badge": "Gefilterte Mitglieder",
+      "filter_picked": "{count} von Hand ausgewählt"
     },
     "applicants": {
       "header": "Nachricht an {count} Bewerber-Adresse(n)",
