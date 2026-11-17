@@ -85,6 +85,16 @@
     {% endif %}
 </div>
 {% else %}
+{# Issue #336: switched-off points (no supply for a while) #}
+{% set status_base = url_prefix ~ '/metering-points' ~ ('?type=' ~ type_filter ~ '&' if type_filter else '?') %}
+<div class="btn-group btn-group-sm mb-3" role="group" aria-label="{{ t('metering.points_list.col_status') }}">
+    <a href="{{ url_prefix }}/metering-points{{ '?type=' ~ type_filter if type_filter else '' }}"
+       class="btn {{ 'btn-secondary' if not status_filter else 'btn-outline-secondary' }}">{{ t('metering.points_list.filter_all') }}</a>
+    <a href="{{ status_base }}status=active"
+       class="btn {{ 'btn-secondary' if status_filter == 'active' else 'btn-outline-secondary' }}">{{ t('metering.points_list.filter_active') }}</a>
+    <a href="{{ status_base }}status=inactive"
+       class="btn {{ 'btn-secondary' if status_filter == 'inactive' else 'btn-outline-secondary' }}">{{ t('metering.points_list.status_inactive') }}</a>
+</div>
 <div class="card">
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -101,7 +111,7 @@
                 </thead>
                 <tbody>
                     {% for a in metering_points %}
-                    <tr>
+                    <tr{% if not a.is_active %} class="text-muted"{% endif %}>
                         <td>
                             {% if a.type.value == 'MAIN_METER' %}
                             <span class="badge" style="background: #dbeafe; color: #1e40af;">{{ t('metering.points_list.type_main_meter') }}</span>
@@ -123,7 +133,9 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if a.current_meter %}
+                            {% if not a.is_active %}
+                            <span class="badge text-bg-secondary"{% if a.inactive_since %} title="{{ t('metering.point_detail.inactive_since', date=a.inactive_since.strftime('%d.%m.%Y')) }}"{% endif %}>{{ t('metering.points_list.status_inactive') }}</span>
+                            {% elif a.current_meter %}
                             <span class="badge badge-aktiv">{{ t('metering.points_list.status_active') }}</span>
                             {% else %}
                             <span class="badge" style="background: #fee2e2; color: #991b1b;">{{ t('metering.points_list.status_no_meter') }}</span>

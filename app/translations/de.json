@@ -1207,7 +1207,10 @@
       "csv_import_skip_reason_exists": "bereits vorhanden",
       "csv_import_skip_reason_invalid_type": "ungültiger Typ",
       "csv_import_skip_reason_parcel_not_found": "Parzelle nicht gefunden",
-      "csv_import_more_skipped": " (und {count} weitere)"
+      "csv_import_more_skipped": " (und {count} weitere)",
+      "status_inactive": "Abgeschaltet",
+      "filter_all": "Alle",
+      "filter_active": "Aktiv"
     },
     "point_form": {
       "title_new": "Neuer {medium}-Zählpunkt",
@@ -1279,7 +1282,12 @@
       "col_removed": "Ausgebaut",
       "col_last_reading": "Letzter Stand",
       "edit_meter_button": "Zähler bearbeiten",
-      "edit_meter_save_button": "Speichern"
+      "edit_meter_save_button": "Speichern",
+      "inactive_since": "seit {date}",
+      "deactivate_since_label": "Abschalten ab",
+      "deactivate_button": "Abschalten",
+      "deactivate_help": "Hier vorübergehend keine Versorgung? Ein abgeschalteter Zählpunkt fällt aus der Zählerstandserfassung und der Zählung fehlender Stände. Zähler und Stände bleiben erhalten.",
+      "activate_button": "Wieder einschalten"
     },
     "readings_list": {
       "title_suffix": "-Ablesung",

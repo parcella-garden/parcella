@@ -546,6 +546,10 @@ class MeteringPointCreate(MeteringPointBase):
 class MeteringPointUpdate(BaseModel):
     label: Optional[str] = None
     notes: Optional[str] = None
+    is_active: Optional[bool] = Field(
+        None, description="false switches the point off for a while (issue #336); true switches it back on",
+    )
+    inactive_since: Optional[date] = Field(None, description="When switching off: since when (default today)")
 
 
 class MeterOut(BaseModel):
@@ -563,6 +567,8 @@ class MeteringPointOut(MeteringPointBase):
     model_config = ConfigDict(from_attributes=True)
     id: str
     medium: str
+    is_active: bool = True
+    inactive_since: Optional[date] = None
 
 
 class MeteringPointDetailOut(MeteringPointOut):

@@ -1411,6 +1411,13 @@ class MeteringPoint(Base):
     label: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    # Issue #336: a point without supply for a while (water shut off for
+    # the winter, a plot's power disconnected) is switched off rather
+    # than deleted (ADR 0005) -- it drops out of reading entry and the
+    # "readings missing" count, its history stays. Independent of the
+    # meter's own is_active, which only tracks meter exchanges.
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true", nullable=False)
+    inactive_since: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
