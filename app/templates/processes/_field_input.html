@@ -1,0 +1,53 @@
+{#- Input for `field` (a ProcessField, not FILE) inside the stage form. -#}
+{%- set k = field.kind.value -%}
+{%- set name = 'field-' ~ field.id -%}
+{%- set fid = 'f-' ~ field.id -%}
+{% if k == 'CHECKBOX' %}
+<div class="form-check">
+    <input class="form-check-input" type="checkbox" name="{{ name }}" id="{{ fid }}" value="1" {% if field.value_bool %}checked{% endif %}>
+    <label class="form-check-label" for="{{ fid }}">{{ field.label }}{% if field.required %} <span class="text-danger">*</span>{% endif %}</label>
+</div>
+{% else %}
+<label class="form-label fw-semibold mb-1" for="{{ fid }}">{{ field.label }}{% if field.required %} <span class="text-danger">*</span>{% endif %}</label>
+{% if k == 'TEXT' %}
+<input type="text" class="form-control" name="{{ name }}" id="{{ fid }}" maxlength="1000" value="{{ field.value_text or '' }}">
+{% elif k == 'LONG_TEXT' %}
+<textarea class="form-control" name="{{ name }}" id="{{ fid }}" rows="3" maxlength="20000">{{ field.value_text or '' }}</textarea>
+{% elif k == 'NUMBER' %}
+<input type="text" inputmode="decimal" class="form-control" name="{{ name }}" id="{{ fid }}" style="max-width: 200px;"
+       value="{{ (field.value_number|number(0 if field.value_number == field.value_number|int else 2)) if field.value_number is not none else '' }}">
+{% elif k == 'MONEY' %}
+<div class="input-group" style="max-width: 240px;">
+    <input type="text" inputmode="decimal" class="form-control" name="{{ name }}" id="{{ fid }}"
+           value="{{ field.value_number|number(2) if field.value_number is not none else '' }}">
+    <span class="input-group-text">{{ currency_symbol() }}</span>
+</div>
+{% elif k == 'DATE' %}
+<input type="date" class="form-control" name="{{ name }}" id="{{ fid }}" style="max-width: 200px;"
+       value="{{ field.value_date.isoformat() if field.value_date else '' }}">
+{% elif k == 'CHOICE' %}
+<select class="form-select" name="{{ name }}" id="{{ fid }}">
+    <option value="">–</option>
+    {% for option in field.options or [] %}<option value="{{ option }}" {% if field.value_text == option %}selected{% endif %}>{{ option }}</option>{% endfor %}
+</select>
+{% elif k == 'MEMBER' %}
+<select class="form-select" name="{{ name }}" id="{{ fid }}">
+    <option value="">–</option>
+    {% if field.value_member and field.value_member not in members %}<option value="{{ field.value_member.id }}" selected>{{ field.value_member.full_name }}</option>{% endif %}
+    {% for m in members %}<option value="{{ m.id }}" {% if field.value_member_id == m.id %}selected{% endif %}>{{ m.last_name }}, {{ m.first_name }}</option>{% endfor %}
+</select>
+{% elif k == 'APPLICANT' and not can_read_applicants %}
+<div class="form-control-plaintext text-muted">{{ t('processes.detail.applicants_hidden') }}</div>
+{% elif k == 'APPLICANT' %}
+<select class="form-select" name="{{ name }}" id="{{ fid }}">
+    <option value="">–</option>
+    {% for a in applicants %}<option value="{{ a.id }}" {% if field.value_applicant_id == a.id %}selected{% endif %}>{{ a.display_name }} · {{ a.email }}</option>{% endfor %}
+</select>
+{% elif k == 'PARCEL' %}
+<select class="form-select" name="{{ name }}" id="{{ fid }}">
+    <option value="">–</option>
+    {% for p in parcels %}<option value="{{ p.id }}" {% if field.value_parcel_id == p.id %}selected{% endif %}>{{ p.plot_number }}</option>{% endfor %}
+</select>
+{% endif %}
+{% endif %}
+{% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}

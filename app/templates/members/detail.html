@@ -282,6 +282,10 @@
         </div>
     </div>
 
+    {% if subject_processes is not none %}
+    <div class="col-12">{% set subject_kind, subject_id = 'MEMBER', member.id %}{% include "processes/_subject_card.html" %}</div>
+    {% endif %}
+
     <!-- Notizen -->
     {% if member.notes %}
     <div class="col-12">

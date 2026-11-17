@@ -28,6 +28,8 @@ from app.models import (
 from app.permissions import require_permission
 from app.module_flags import require_module
 from app.templating import templates
+from app.models import ProcessSubjectKind
+from app.routers.processes import subject_processes
 from app.services.errors import ServiceError
 from app.services.applicants import (
     contact_template, create_applicant, delete_applicant, fill_contact_template, find_red_flags,
@@ -178,6 +180,7 @@ async def _detail_context(request, db, user, applicant, error=None, contact_body
             if applicant.status == ApplicantStatus.NEW else ""
         ),
         "contacted": request.query_params.get("contacted") == "1",
+        "subject_processes": await subject_processes(request, db, ProcessSubjectKind.APPLICANT, applicant.id),
     }
 
 

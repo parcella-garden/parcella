@@ -358,6 +358,28 @@
                 <i class="bi bi-check-lg me-1"></i>{{ t('admin.integrations.incoming_invoices_folder_save_button') }}
             </button>
         </form>
+
+        <hr class="my-3">
+        <h6 class="fw-semibold">{{ t('admin.integrations.processes_folder_header') }}</h6>
+        <p class="text-muted">{{ t('admin.integrations.processes_folder_help') }}</p>
+
+        {% if processes_folder_saved %}
+        <div class="alert alert-success">{{ t('admin.integrations.external_contacts_folder_saved') }}</div>
+        {% elif processes_folder_error %}
+        <div class="alert alert-danger">{{ processes_folder_error }}</div>
+        {% endif %}
+
+        <form method="post" action="/admin/integrations/nextcloud/processes-folder" class="d-flex gap-2 align-items-end flex-wrap">
+            {{ csrf_field() }}
+            <div style="min-width: 300px;">
+                <label class="form-label fw-semibold" for="processes-folder">{{ t('admin.integrations.processes_folder_label') }}</label>
+                <input type="text" name="relative_path" id="processes-folder" class="form-control"
+                       value="{{ processes_folder_path or '' }}" placeholder="Vorstand/Vorgaenge">
+            </div>
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="bi bi-check-lg me-1"></i>{{ t('admin.integrations.incoming_invoices_folder_save_button') }}
+            </button>
+        </form>
         {% endif %}
     </div>
     </div>

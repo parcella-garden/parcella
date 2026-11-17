@@ -130,6 +130,8 @@
         </div>
         {% endif %}
 
+        {% set subject_kind, subject_id = 'APPLICANT', applicant.id %}{% include "processes/_subject_card.html" %}
+
         <div class="card">
             <div class="card-header"><i class="bi bi-clock-history me-2"></i>{{ t('applicants.detail.history') }}</div>
             <ul class="list-group list-group-flush">

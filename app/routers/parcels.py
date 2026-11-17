@@ -35,6 +35,8 @@ from app.parcel_cloud_folders import (
     get_active_folder, set_active_folder, deactivate_if_vacant, InvalidCloudPathError,
     sanitize_browse_subpath, browse_folder_picker, get_scheduled_folder,
 )
+from app.models import ProcessSubjectKind
+from app.routers.processes import subject_processes
 from app.services.errors import ServiceError
 from app.services.parcels import (
     create_parcel, update_parcel, assign_member, update_assignment,
@@ -298,6 +300,7 @@ async def parcel_detail(
             "cloud_picking": picking,
             "cloud_picker_path": picker["path"],
             "cloud_picker_entries": picker["entries"],
+            "subject_processes": await subject_processes(request, db, ProcessSubjectKind.PARCEL, parcel.id),
             "cloud_picker_breadcrumbs": picker["breadcrumbs"],
             "cloud_picker_error": picker["error"],
             "cloud_scheduled_folder": cloud_scheduled_folder,

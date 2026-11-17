@@ -1,0 +1,15 @@
+{#- Read-only value of `field` (a ProcessField), formatted by region. -#}
+{%- set k = field.kind.value -%}
+{%- if k == 'CHECKBOX' -%}
+  {% if field.value_bool %}<i class="bi bi-check-square-fill text-success"></i> {{ t('processes.detail.yes') }}{% else %}<i class="bi bi-square text-muted"></i> {{ t('processes.detail.no') }}{% endif %}
+{%- elif k == 'MONEY' and field.value_number is not none -%}{{ field.value_number|money }}
+{%- elif k == 'NUMBER' and field.value_number is not none -%}{{ field.value_number|number(0 if field.value_number == field.value_number|int else 2) }}
+{%- elif k == 'DATE' and field.value_date -%}{{ field.value_date.strftime('%d.%m.%Y') }}
+{%- elif k == 'MEMBER' and field.value_member -%}<a href="/members/{{ field.value_member.id }}">{{ field.value_member.full_name }}</a>
+{%- elif k == 'APPLICANT' and field.value_applicant and not has_perm(request, 'applicants') -%}<span class="text-muted">{{ t('processes.detail.applicants_hidden') }}</span>
+{%- elif k == 'APPLICANT' and field.value_applicant -%}<a href="/applicants/{{ field.value_applicant.id }}">{{ field.value_applicant.display_name }}</a>
+{%- elif k == 'PARCEL' and field.value_parcel -%}<a href="/parcels/{{ field.value_parcel.id }}">{{ field.value_parcel.plot_number }}</a>
+{%- elif k == 'LONG_TEXT' and field.value_text -%}<span style="white-space: pre-line;">{{ field.value_text }}</span>
+{%- elif k in ('TEXT', 'CHOICE') and field.value_text -%}{{ field.value_text }}
+{%- elif k != 'FILE' -%}<span class="text-muted">–</span>
+{%- endif -%}

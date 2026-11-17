@@ -1,0 +1,30 @@
+{#- Processes of a plot/member/applicant, on its detail page. Expects
+    `subject_processes` (None when the module is off or the user may not
+    see it), `subject_kind` and `subject_id`. -#}
+{% if subject_processes is not none %}
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-diagram-3 me-2"></i>{{ t('processes.subject_card.header') }}</span>
+        {% if has_perm(request, 'processes', 'write') %}
+        <a href="/processes/new?subject_kind={{ subject_kind }}&subject_id={{ subject_id }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus-lg me-1"></i>{{ t('processes.subject_card.start') }}
+        </a>
+        {% endif %}
+    </div>
+    {% if subject_processes %}
+    <ul class="list-group list-group-flush">
+        {% for process in subject_processes %}
+        <li class="list-group-item d-flex justify-content-between align-items-center gap-2 flex-wrap">
+            <a href="/processes/{{ process.id }}">{{ process.title }}</a>
+            <span class="d-flex gap-2 align-items-center">
+                {% if process.is_open %}{% for s in process.stages if s.position == process.current_position %}<span class="text-muted" style="font-size: 0.85rem;">{{ s.name }}</span>{% endfor %}{% endif %}
+                {% include "processes/_status_badge.html" %}
+            </span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="card-body text-muted">{{ t('processes.subject_card.none') }}</div>
+    {% endif %}
+</div>
+{% endif %}

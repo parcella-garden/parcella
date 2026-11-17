@@ -5,6 +5,8 @@ from contextlib import asynccontextmanager
 from datetime import date
 import asyncio
 import logging
+import posixpath
+import re
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
@@ -32,6 +34,7 @@ from app.permissions import get_user_permissions, is_full_access_user, is_system
 from app.services.work_hours import count_new_participations
 from app.nav_counts import NAV_COUNT_KEYS, load_nav_counts
 from app.services.applicants import maybe_purge_expired_applicants
+from app.services.processes import count_open as count_open_processes
 from app.email_log import maybe_purge_expired_email_logs
 
 # Loaded at module import time (not only in the lifespan startup
@@ -54,6 +57,7 @@ from app.routers import applicants as applicants_router, api_applicants
 from app.routers import external_contacts as external_contacts_router, api_external_contacts
 from app.routers import reporting as reporting_router, api_reporting
 from app.routers import notes as notes_router, api_notes
+from app.routers import processes as processes_router, api_processes
 from app.routers import mcp as mcp_router
 from app.routers import api_public
 from app.routers import api_website, api_cloud_storage
@@ -473,6 +477,29 @@ async def csrf_middleware(request: Request, call_next):
     return response
 
 
+# Private uploads (process files, ADR 0136) live on the persisted uploads
+# volume next to the public ones, but are never served from /static --
+# only through their permission-checked download routes. The path is
+# normalized first: a literal prefix check alone is sidestepped with
+# "/static/uploads//private/..." or "/static/uploads/./private/...",
+# which StaticFiles would still resolve to the same file.
+_PRIVATE_UPLOADS_PREFIX = "/static/uploads/private"
+
+
+@app.middleware("http")
+async def private_uploads_blocked(request: Request, call_next):
+    # scope["path"] is the decoded path StaticFiles itself resolves.
+    # request.url.path is not: it is re-parsed with urlsplit, so a decoded
+    # "%23" or "%3F" ("/static/uploads/%23/../private/...") would cut it
+    # short and slip past the check (security review).
+    candidates = {request.scope.get("path") or "", request.url.path}
+    for raw in candidates:
+        path = posixpath.normpath(re.sub(r"/+", "/", raw))
+        if path == _PRIVATE_UPLOADS_PREFIX or path.startswith(_PRIVATE_UPLOADS_PREFIX + "/"):
+            return PlainTextResponse("Not Found", status_code=404)
+    return await call_next(request)
+
+
 @app.middleware("http")
 async def security_headers_middleware(request: Request, call_next):
     """Attaches the security response headers (CSP, nosniff, frame
@@ -507,6 +534,7 @@ app.include_router(applicants_router.router)
 app.include_router(external_contacts_router.router)
 app.include_router(reporting_router.router)
 app.include_router(notes_router.router)
+app.include_router(processes_router.router)
 
 # Metering: ONE codebase (app/routers/metering.py), instantiated twice
 # for water and electricity -- see create_metering_router().
@@ -536,6 +564,8 @@ app.include_router(api_applicants.router)
 app.include_router(api_external_contacts.router)
 app.include_router(api_reporting.router)
 app.include_router(api_notes.router)
+app.include_router(api_processes.router)
+app.include_router(api_processes.template_router)
 app.include_router(mcp_router.router)
 app.include_router(api_helpdesk.router)
 app.include_router(api_helpdesk.legacy_router)
@@ -616,6 +646,7 @@ async def startseite(request: Request):
         # restore's DROP TABLE until it timed out.
         birthdays_this_week = await upcoming_birthdays(db, within_days=7)
         members_average_age = await average_age(db)
+        processes_open = await count_open_processes(db)
 
     stats = {
         "members_total": members_total or 0,
@@ -630,6 +661,7 @@ async def startseite(request: Request):
         # again -- one source, so badge and tile can't disagree (ADR 0100).
         **request.state.nav_counts,
         "new_participations": getattr(request.state, "new_participations_count", 0),
+        "processes_open": processes_open,
     }
 
     return templates.TemplateResponse(
