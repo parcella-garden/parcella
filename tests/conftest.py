@@ -36,6 +36,7 @@ if not _test_db_name.endswith("_test"):
         "Run ./run_tests.sh, or set DATABASE_URL to a database whose name ends in _test."
     )
 
+import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 
@@ -54,6 +55,23 @@ async def _tabellen_erstellen():
         await conn.run_sync(Base.metadata.create_all)
     yield
     await engine.dispose()
+
+
+@pytest.fixture(autouse=True)
+def _isolated_restore_upload_dir(monkeypatch, tmp_path):
+    """A backup restore mirror-replaces the uploads directory: everything
+    not in the zip is deleted. run_tests.sh bind-mounts the real
+    app/static/uploads/ into the test container, so any test that ran a
+    restore without redirecting it wiped the dev environment's logo,
+    announcement images and print PDFs (hit for real on 2026-11-17 by
+    the restore tests from issue #327). Every test gets its own
+    temporary directory here; a test that needs a specific one patches
+    both names again itself. Both, because _RESTORE_DIR_PREFIXES
+    captures UPLOAD_DIR at import time."""
+    upload_dir = tmp_path / "restore-uploads"
+    monkeypatch.setattr("app.backup.UPLOAD_DIR", upload_dir)
+    monkeypatch.setattr("app.backup._RESTORE_DIR_PREFIXES", {"uploads": upload_dir})
+    yield
 
 
 @pytest_asyncio.fixture(autouse=True)
