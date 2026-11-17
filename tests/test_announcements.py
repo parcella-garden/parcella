@@ -1819,7 +1819,7 @@ async def test_printed_qr_code_uses_the_short_link_which_forwards_once_published
     announcement = await _load_announcement(announcement_id)
     link_token = announcement.public_link_token
     assert link_token and len(link_token) >= 16
-    assert f"/a/{link_token}" in _pdf_text(response.content)
+    assert f"/a/{link_token}" in _normalized(_pdf_text(response.content))
     delivery = announcement.delivery_for(AnnouncementChannel.PRINT)
     assert delivery.qr_pending is False and delivery.error_message is None
 
