@@ -128,6 +128,7 @@ async def test_restore_rejects_zip_slip_attempt(client, admin_user, tmp_path):
 async def test_restore_uploads_is_a_full_mirror(client, admin_user, monkeypatch, tmp_path):
     (tmp_path / "orphan.png").write_bytes(b"leftover-from-before")
     monkeypatch.setattr("app.backup.UPLOAD_DIR", tmp_path)
+    monkeypatch.setattr("app.backup._RESTORE_DIR_PREFIXES", {"uploads": tmp_path})
 
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w") as zf:
@@ -295,3 +296,15 @@ async def test_restore_rejects_a_dump_nested_below_data_postgres(client, admin_u
     await web_login(client, "admin@example.com")
     response = await _restore(client, buffer.getvalue())
     assert "success=1" not in response.headers.get("location", "")
+
+
+def test_restores_in_tests_never_touch_the_real_uploads_directory():
+    """Regression guard for the conftest fixture: run_tests.sh shares the
+    real app/static/uploads/ with the dev environment, and a restore
+    deletes whatever isn't in the zip. In every test, both names the
+    restore writes through must point somewhere else."""
+    import app.backup as backup
+    from app.branding import UPLOAD_DIR as REAL_UPLOAD_DIR
+
+    assert backup.UPLOAD_DIR != REAL_UPLOAD_DIR
+    assert REAL_UPLOAD_DIR not in backup._RESTORE_DIR_PREFIXES.values()
