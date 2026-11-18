@@ -1403,3 +1403,117 @@ async def test_metering_point_can_be_switched_off_and_on(client, admin_user):
         f"/api/v1/water/metering-points/{off['id']}", json={"is_active": True}, headers=headers,
     )).json()
     assert updated["is_active"] is True and updated["inactive_since"] is None
+
+
+
+async def test_metering_point_factor_multiplies_consumption_in_metering_only(client, admin_user):
+    """Issue #341: a current-transformer main meter shows 1/20 of the real
+    consumption. The point's factor multiplies consumption in metering
+    (API evaluation, detail page, consumption CSV, overview totals);
+    readings stay raw, a meter exchange keeps it, bad factors are
+    refused -- and calculate_consumption() without a factor, which is
+    what invoices use, stays raw (ADR 0138)."""
+    from sqlalchemy import select
+
+    from app.meter_utils import calculate_consumption, point_consumption
+
+    token = await login(client, "admin@example.com")
+    headers = auth_header(token)
+
+    main = (await client.post(
+        "/api/v1/electricity/metering-points",
+        json={"type": "MAIN_METER", "label": "Grid feed", "number": "E-MAIN", "initial_reading": "100", "factor": "20"},
+        headers=headers,
+    )).json()
+    assert float(main["factor"]) == 20
+    plain = (await client.post(
+        "/api/v1/electricity/metering-points",
+        json={"type": "CLUB", "label": "Clubhouse", "number": "E-CLUB", "initial_reading": "100"},
+        headers=headers,
+    )).json()
+    assert float(plain["factor"]) == 1
+
+    for point_id in (main["id"], plain["id"]):
+        assert (await client.post(
+            f"/api/v1/electricity/metering-points/{point_id}/readings",
+            json={"year": 2026, "date": "2026-11-01", "reading": "150"},
+            headers=headers,
+        )).status_code == 201
+
+    rows = {r["metering_point_id"]: r for r in (await client.get(
+        "/api/v1/electricity/evaluation/2026", headers=headers)).json()}
+    assert float(rows[main["id"]]["consumption"]) == 1000.0  # (150 - 100) * 20
+    assert float(rows[plain["id"]]["consumption"]) == 50.0
+
+    # Outside metering the difference stays raw.
+    async with AsyncSessionLocal() as db:
+        from sqlalchemy.orm import selectinload
+        point = (await db.execute(
+            select(MeteringPoint).options(selectinload(MeteringPoint.meters).selectinload(Meter.readings))
+            .where(MeteringPoint.id == main["id"])
+        )).scalar_one()
+        assert calculate_consumption(point.current_meter, 2026) == 50
+        assert point_consumption(point, point.current_meter, 2026) == 1000
+
+    # Invalid factors: API 422, nothing changed.
+    for bad in ("0", "-1", "100001", "1.00001"):
+        assert (await client.put(
+            f"/api/v1/electricity/metering-points/{main['id']}", json={"factor": bad}, headers=headers,
+        )).status_code == 422
+    # An explicit null leaves it alone.
+    assert float((await client.put(
+        f"/api/v1/electricity/metering-points/{main['id']}", json={"factor": None}, headers=headers,
+    )).json()["factor"]) == 20
+
+    assert (await client.post(
+        "/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"},
+    )).status_code in (302, 303)
+    detail = (await client.get(f"/electricity/metering-points/{main['id']}")).text
+    assert "&times;20" in detail and "1000" in detail
+    assert "&times;20" in (await client.get("/electricity/metering-points")).text
+    consumption_csv = (await client.get("/electricity/evaluation/csv", params={"year": 2026})).text
+    assert "1000" in consumption_csv
+
+    response = await client.post(
+        f"/electricity/metering-points/{main['id']}/edit", data={"label": "Grid feed", "factor": "abc"},
+    )
+    assert response.status_code == 303 and "error=" in response.headers["location"]
+    # Comma decimal works in the form.
+    response = await client.post(
+        f"/electricity/metering-points/{main['id']}/edit", data={"label": "Grid feed", "factor": "2,5"},
+    )
+    assert response.status_code == 302
+
+    # A meter exchange doesn't touch the point's factor.
+    assert (await client.post(
+        f"/api/v1/electricity/metering-points/{main['id']}/exchange",
+        json={"new_number": "E-MAIN-2", "removed_at": "2026-11-02", "installed_at": "2026-11-02"},
+        headers=headers,
+    )).status_code in (200, 201)
+    async with AsyncSessionLocal() as db:
+        assert float((await db.get(MeteringPoint, main["id"])).factor) == 2.5
+
+    export = (await client.get("/electricity/metering-points/export/csv")).text
+    header, *lines = export.strip().splitlines()
+    assert header.split(";")[-1] == "Factor"
+    assert any(line.startswith("MAIN_METER;") and line.endswith(";2,5") for line in lines)
+    assert any(line.startswith("CLUB;") and line.endswith(";1") for line in lines)
+
+    # Points CSV import: a mapped Factor column; an invalid one skips the row.
+    csv_text = (
+        "Type;Label;Meter number;Factor\n"
+        "MAIN_METER;Second feed;E-IMP-1;30\n"
+        "CLUB;Broken factor;E-IMP-2;zero\n"
+    )
+    response = await client.post(
+        "/electricity/metering-points/import/finalize",
+        data={
+            "csv_content_b64": base64.b64encode(csv_text.encode()).decode(), "delimiter": ";",
+            "map_0": "type", "map_1": "label", "map_2": "meter_number", "map_3": "factor",
+        },
+        follow_redirects=False,
+    )
+    assert response.status_code in (302, 303)
+    async with AsyncSessionLocal() as db:
+        factors = {p.label: p.factor for p in (await db.execute(select(MeteringPoint))).scalars().all()}
+    assert float(factors["Second feed"]) == 30 and "Broken factor" not in factors

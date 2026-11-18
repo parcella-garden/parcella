@@ -5,7 +5,7 @@ works identically for water meters and electricity meters.
 """
 from datetime import date
 from typing import Optional, List
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from app.models import Meter, MeterReading
 
@@ -41,17 +41,58 @@ def reading_after_year(meter: Meter, year: int, exclude_id: Optional[str] = None
     return None
 
 
-def calculate_consumption(meter: Meter, year: int) -> Optional[Decimal]:
+def calculate_consumption(meter: Meter, year: int, factor=None) -> Optional[Decimal]:
     """
     A meter's consumption in a given year = that year's reading minus
     the last reading before it (or the initial reading). Returns None
     if no reading exists for that year.
+
+    `factor` (issue #341) is the metering point's multiplier. Only the
+    metering module passes it (point_consumption()); invoices and
+    every other caller get the raw difference (ADR 0138).
     """
     current_reading = next((z for z in meter.readings if z.year == year), None)
     if not current_reading:
         return None
     previous_value = reading_before_year(meter, year, exclude_id=current_reading.id)
-    return Decimal(str(current_reading.reading)) - previous_value
+    difference = Decimal(str(current_reading.reading)) - previous_value
+    factor = Decimal(str(factor)) if factor is not None else Decimal("1")
+    if factor == 1:
+        return difference
+    # Issue #341: the display shows 1/factor of the real consumption
+    # (current-transformer meters). Rounded to 0.01 so a fractional
+    # factor doesn't leak a long tail into invoices and exports.
+    return (difference * factor).quantize(Decimal("0.01"))
+
+
+# Issue #341: sanity bounds for a meter's factor, not a physical rule.
+POINT_FACTOR_MAX = Decimal("100000")
+
+
+def point_consumption(metering_point, meter: Optional[Meter], year: int) -> Optional[Decimal]:
+    """Consumption as the metering module shows it: with the point's
+    factor (issue #341)."""
+    if meter is None:
+        return None
+    return calculate_consumption(meter, year, factor=metering_point.factor)
+
+
+def parse_point_factor(value: Optional[str]) -> Optional[Decimal]:
+    """A factor typed into a form or CSV cell: blank means 1, a comma
+    decimal is fine. None if it isn't a number in (0, POINT_FACTOR_MAX]
+    with at most four decimal places -- the caller reports that."""
+    value = (value or "").strip().replace(",", ".")
+    if not value:
+        return Decimal("1")
+    try:
+        factor = Decimal(value)
+    except InvalidOperation:
+        return None
+    if not factor.is_finite() or factor <= 0 or factor > POINT_FACTOR_MAX:
+        return None
+    if factor != factor.quantize(Decimal("0.0001")):
+        return None
+    return factor
 
 
 def check_monotonicity(
@@ -92,7 +133,7 @@ def total_consumption_for_type(metering_points: List, year: int) -> Decimal:
     total = Decimal("0")
     for metering_point in metering_points:
         for meter in metering_point.meters:
-            consumption = calculate_consumption(meter, year)
+            consumption = calculate_consumption(meter, year, factor=metering_point.factor)
             if consumption is not None:
                 total += consumption
     return total

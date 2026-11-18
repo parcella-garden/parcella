@@ -1218,7 +1218,9 @@
       "csv_import_more_skipped": " (i {count} więcej)",
       "status_inactive": "Wyłączony",
       "filter_all": "Wszystkie",
-      "filter_active": "Aktywne"
+      "filter_active": "Aktywne",
+      "map_field_factor": "Mnożnik",
+      "csv_import_skip_reason_invalid_factor": "nieprawidłowy mnożnik"
     },
     "point_form": {
       "title_new": "Nowy punkt pomiarowy ({medium})",
@@ -1240,7 +1242,9 @@
       "label_installed_at": "Zainstalowano dnia",
       "label_initial_reading": "Stan początkowy",
       "cancel": "Anuluj",
-      "button_create": "Utwórz punkt pomiarowy"
+      "button_create": "Utwórz punkt pomiarowy",
+      "label_factor": "Mnożnik",
+      "factor_help": "Mnożnik od wskazania licznika do rzeczywistego zużycia, np. 20 dla licznika z przekładnikami. Zwykle 1."
     },
     "point_detail": {
       "back": "Wstecz",
@@ -1295,7 +1299,10 @@
       "deactivate_since_label": "Wyłącz od",
       "deactivate_button": "Wyłącz",
       "deactivate_help": "Brak zasilania przez pewien czas? Wyłączony punkt pomiarowy znika z wprowadzania odczytów i z licznika brakujących odczytów. Liczniki i odczyty pozostają.",
-      "activate_button": "Włącz ponownie"
+      "activate_button": "Włącz ponownie",
+      "label_factor": "Mnożnik",
+      "factor_active_help": "Odczyty wpisuje się tak, jak pokazuje wyświetlacz; zużycie jest mnożone przez {factor}.",
+      "factor_edit_help": "Mnoży zużycie tego punktu w module liczników (np. 20 dla licznika z przekładnikami), także za poprzednie lata. Zwykle 1. Nie wpływa na faktury."
     },
     "readings_list": {
       "title_suffix": " – odczyty",
@@ -1389,7 +1396,8 @@
       "overall_plausibility_evaluation": "Zużycie rozdzielone ({total} {unit}) przekracza zużycie z licznika głównego ({main} {unit}).",
       "no_active_meter": "Brak aktywnego licznika dla tego punktu pomiarowego",
       "configuration_not_found": "Nie znaleziono konfiguracji ceny",
-      "configuration_year_exists": "Inna konfiguracja ceny na {year} już istnieje."
+      "configuration_year_exists": "Inna konfiguracja ceny na {year} już istnieje.",
+      "invalid_factor": "Mnożnik musi być liczbą większą od 0 (do 100 000, najwyżej cztery miejsca po przecinku)."
     },
     "warnings": {
       "reading_below_previous": "Stan licznika ({new_value}) jest mniejszy niż poprzedni stan ({previous_value}) tego samego licznika. Czy wcześniejszy odczyt był szacowany? Proszę sprawdzić.",

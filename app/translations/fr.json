@@ -1218,7 +1218,9 @@
       "csv_import_more_skipped": " (et {count} de plus)",
       "status_inactive": "Désactivé",
       "filter_all": "Tous",
-      "filter_active": "Actifs"
+      "filter_active": "Actifs",
+      "map_field_factor": "Facteur",
+      "csv_import_skip_reason_invalid_factor": "facteur invalide"
     },
     "point_form": {
       "title_new": "Nouveau point de mesure {medium}",
@@ -1240,7 +1242,9 @@
       "label_installed_at": "Installé le",
       "label_initial_reading": "Relevé initial",
       "cancel": "Annuler",
-      "button_create": "Créer un point de mesure"
+      "button_create": "Créer un point de mesure",
+      "label_factor": "Facteur",
+      "factor_help": "Multiplicateur entre l'affichage et la consommation réelle, p. ex. 20 pour un compteur à transformateurs de courant. En général 1."
     },
     "point_detail": {
       "back": "Retour",
@@ -1295,7 +1299,10 @@
       "deactivate_since_label": "Désactiver à partir du",
       "deactivate_button": "Désactiver",
       "deactivate_help": "Pas d’alimentation ici pendant un temps ? Un point désactivé disparaît de la saisie des relevés et du décompte des relevés manquants. Compteurs et relevés sont conservés.",
-      "activate_button": "Réactiver"
+      "activate_button": "Réactiver",
+      "label_factor": "Facteur",
+      "factor_active_help": "Les relevés sont saisis tels qu'affichés ; la consommation est multipliée par {factor}.",
+      "factor_edit_help": "Multiplie la consommation de ce point dans le module compteurs (p. ex. 20 pour un compteur à transformateurs de courant), années passées comprises. En général 1. Les factures ne sont pas concernées."
     },
     "readings_list": {
       "title_suffix": " relevé",
@@ -1389,7 +1396,8 @@
       "overall_plausibility_evaluation": "La consommation distribuée ({total} {unit}) dépasse la consommation du compteur principal ({main} {unit}).",
       "no_active_meter": "Aucun compteur actif pour ce point de mesure",
       "configuration_not_found": "Configuration du prix non trouvée",
-      "configuration_year_exists": "Une autre configuration du prix existe déjà pour {year}."
+      "configuration_year_exists": "Une autre configuration du prix existe déjà pour {year}.",
+      "invalid_factor": "Le facteur doit être un nombre supérieur à 0 (jusqu'à 100 000, quatre décimales au plus)."
     },
     "warnings": {
       "reading_below_previous": "Le relevé de compteur ({new_value}) est inférieur au relevé précédent ({previous_value}) du même compteur. Un relevé antérieur a-t-il été estimé ? Veuillez vérifier.",

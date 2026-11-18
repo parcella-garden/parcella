@@ -10,6 +10,7 @@ Design principles:
 import secrets
 import uuid
 from datetime import datetime, date, timedelta
+from decimal import Decimal
 from typing import Optional, List
 from sqlalchemy import (
     String, Integer, Boolean, Date, DateTime, Text, Numeric,
@@ -1418,6 +1419,14 @@ class MeteringPoint(Base):
     # meter's own is_active, which only tracks meter exchanges.
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true", nullable=False)
     inactive_since: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    # Issue #341: multiplier between what the display shows and what was
+    # really consumed -- e.g. x20 on a bulk buyer's current-transformer
+    # main meter. Readings stay the raw display values; the metering
+    # module's consumption is (reading - previous) * factor. Metering
+    # only: invoices and other modules never see it (ADR 0138).
+    factor: Mapped[Decimal] = mapped_column(
+        Numeric(10, 4), default=Decimal("1"), server_default="1", nullable=False,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

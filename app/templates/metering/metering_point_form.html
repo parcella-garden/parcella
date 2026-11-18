@@ -80,6 +80,14 @@
                             <span class="input-group-text">{{ unit }}</span>
                         </div>
                     </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold">{{ t('metering.point_form.label_factor') }}</label>
+                        <div class="input-group">
+                            <span class="input-group-text">&times;</span>
+                            <input type="text" name="factor" class="form-control" value="1" inputmode="decimal">
+                        </div>
+                        <div class="form-text">{{ t('metering.point_form.factor_help') }}</div>
+                    </div>
                 </div>
             </div>
         </div>

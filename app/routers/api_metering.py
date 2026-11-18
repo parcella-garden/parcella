@@ -24,7 +24,7 @@ from app.models import (
 from app.api_auth import require_api_permission
 from app.module_flags import require_module
 from app.i18n import t_for
-from app.meter_utils import calculate_consumption
+from app.meter_utils import point_consumption
 from app.services.metering import (
     create_metering_point, update_metering_point, delete_metering_point, exchange_meter, update_meter,
     record_reading, delete_reading, get_price_configuration_for_year, save_price_configuration_for_year,
@@ -100,6 +100,7 @@ def create_metering_api_router(
             type=daten.type, parcel_id=daten.parcel_id, label=daten.label, notes=daten.notes,
             number=daten.number, calibrated_until=daten.calibrated_until,
             installed_at=daten.installed_at, initial_reading=daten.initial_reading,
+            factor=daten.factor,
         )
         await db.commit()
 
@@ -282,7 +283,7 @@ def create_metering_api_router(
         rows = []
         for zp in metering_points:
             meter = zp.current_meter
-            consumption = calculate_consumption(meter, year) if meter else None
+            consumption = point_consumption(zp, meter, year)
             rows.append(ConsumptionRowOut(
                 metering_point_id=zp.id, label=zp.display_name,
                 meter_number=meter.number if meter else None,

@@ -38,11 +38,11 @@ async def create_metering_point(
     type: str, number: str,
     parcel_id: Optional[str] = None, label: Optional[str] = None, notes: Optional[str] = None,
     calibrated_until: Optional[int] = None, installed_at: Optional[date] = None,
-    initial_reading: Decimal = Decimal("0"),
+    initial_reading: Decimal = Decimal("0"), factor: Decimal = Decimal("1"),
 ) -> MeteringPoint:
     metering_point = MeteringPoint(
         medium=medium, type=MeteringPointType(type),
-        parcel_id=parcel_id, label=label, notes=notes,
+        parcel_id=parcel_id, label=label, notes=notes, factor=factor,
     )
     db.add(metering_point)
     await db.flush()
@@ -59,11 +59,14 @@ async def create_metering_point(
 
 async def update_metering_point(db: AsyncSession, metering_point: MeteringPoint, **fields) -> MeteringPoint:
     """Partial update -- only keys present in `fields` (label/notes,
-    is_active/inactive_since) are changed. HTML always sends both (full-form semantics); the API
-    is a genuine partial update (PUT with exclude_unset)."""
+    factor, is_active/inactive_since) are changed. HTML always sends the
+    whole form (full-form semantics); the API is a genuine partial
+    update (PUT with exclude_unset)."""
     for key in ("label", "notes"):
         if key in fields:
             setattr(metering_point, key, fields[key])
+    if fields.get("factor") is not None:  # an explicit null means "leave it" (issue #341)
+        metering_point.factor = fields["factor"]
     if "is_active" in fields and fields["is_active"] is not None:
         set_metering_point_active(metering_point, fields["is_active"], fields.get("inactive_since"))
     elif fields.get("inactive_since") is not None and not metering_point.is_active:

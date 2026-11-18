@@ -1218,7 +1218,9 @@
       "csv_import_more_skipped": " (and {count} more)",
       "status_inactive": "Switched off",
       "filter_all": "All",
-      "filter_active": "Active"
+      "filter_active": "Active",
+      "map_field_factor": "Factor",
+      "csv_import_skip_reason_invalid_factor": "invalid factor"
     },
     "point_form": {
       "title_new": "New {medium} metering point",
@@ -1240,7 +1242,9 @@
       "label_installed_at": "Installed on",
       "label_initial_reading": "Initial reading",
       "cancel": "Cancel",
-      "button_create": "Create metering point"
+      "button_create": "Create metering point",
+      "label_factor": "Factor",
+      "factor_help": "Multiplier from the display to the real consumption, e.g. 20 for a current-transformer meter. Usually 1."
     },
     "point_detail": {
       "back": "Back",
@@ -1295,7 +1299,10 @@
       "deactivate_since_label": "Switch off as of",
       "deactivate_button": "Switch off",
       "deactivate_help": "No supply here for a while? A switched-off point drops out of reading entry and the missing-readings count. Meters and readings stay.",
-      "activate_button": "Switch on again"
+      "activate_button": "Switch on again",
+      "label_factor": "Factor",
+      "factor_active_help": "Readings are entered as shown on the display; consumption is multiplied by {factor}.",
+      "factor_edit_help": "Multiplies this point's consumption in metering (e.g. 20 for a current-transformer meter), past years included. Usually 1. Invoices are not affected."
     },
     "readings_list": {
       "title_suffix": " reading",
@@ -1389,7 +1396,8 @@
       "overall_plausibility_evaluation": "Distributed consumption ({total} {unit}) exceeds main meter consumption ({main} {unit}).",
       "no_active_meter": "No active meter for this metering point",
       "configuration_not_found": "Price configuration not found",
-      "configuration_year_exists": "A different price configuration already exists for {year}."
+      "configuration_year_exists": "A different price configuration already exists for {year}.",
+      "invalid_factor": "The factor must be a number greater than 0 (up to 100,000, at most four decimal places)."
     },
     "warnings": {
       "reading_below_previous": "The meter reading ({new_value}) is lower than the previous reading ({previous_value}) of the same meter. Was an earlier reading estimated? Please check.",
