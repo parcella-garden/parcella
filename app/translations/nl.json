@@ -2068,6 +2068,31 @@
     "link": {
       "title": "Nog niet online",
       "not_online": "Deze mededeling staat nog niet op de website. Probeer het later nog eens."
+    },
+    "compose": {
+      "title": "Nieuw bericht",
+      "loading": "Laden…",
+      "error_generic": "Er ging iets mis.",
+      "full_page": "Open in plaats daarvan de volledige pagina",
+      "club_news": "Clubnieuws: per e-mail aan {count} lid/leden die clubmails ontvangen",
+      "more_options": "Samenvatting en afbeelding",
+      "send_via": "Versturen via",
+      "send_via_hint": "Al het andere (een kanaal opnieuw proberen, het websiteconcept bijwerken, opnieuw afdrukken) blijft op de pagina van het bericht.",
+      "test_button": "Testmail",
+      "test_sent": "Testmail verstuurd naar {address}. Het bericht is als concept opgeslagen.",
+      "draft_button": "Opslaan als concept",
+      "send_button": "Opslaan en versturen",
+      "send_confirm": "De e-mail nu naar {count} ontvanger(s) versturen? Hij kan maar één keer worden verstuurd.",
+      "none_ticked": "Vink minstens één kanaal aan, of sla op als concept.",
+      "result_draft": "Opgeslagen als concept. Er is niets verstuurd.",
+      "result_email": "Wordt verstuurd naar {count} ontvanger(s).",
+      "result_blog": "Concept aangemaakt op de website.",
+      "result_print": "PDF aangemaakt en gedownload.",
+      "result_letters": "{count} brief/brieven aangemaakt en gedownload.",
+      "result_failed": "Dat is niet gelukt. Je kunt het opnieuw proberen op de pagina van het bericht.",
+      "result_skipped": "Niets nieuws om via dit kanaal te versturen.",
+      "open_message": "Bericht openen",
+      "close": "Sluiten"
     }
   },
   "inventory": {

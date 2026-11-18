@@ -2068,6 +2068,31 @@
     "link": {
       "title": "Jeszcze nie online",
       "not_online": "To ogłoszenie nie jest jeszcze na stronie. Spróbuj ponownie później."
+    },
+    "compose": {
+      "title": "Nowa wiadomość",
+      "loading": "Ładowanie…",
+      "error_generic": "Coś poszło nie tak.",
+      "full_page": "Otwórz zamiast tego pełną stronę",
+      "club_news": "Wiadomość klubowa: e-mailem do {count} członka(-ów), którzy otrzymują e-maile klubu",
+      "more_options": "Podsumowanie i obraz",
+      "send_via": "Wyślij przez",
+      "send_via_hint": "Wszystko inne (ponowienie kanału, aktualizacja szkicu na stronie, ponowny wydruk) pozostaje na stronie wiadomości.",
+      "test_button": "E-mail testowy",
+      "test_sent": "E-mail testowy wysłany do {address}. Wiadomość zapisano jako szkic.",
+      "draft_button": "Zapisz jako szkic",
+      "send_button": "Zapisz i wyślij",
+      "send_confirm": "Wysłać teraz e-mail do {count} odbiorcy(-ów)? Można go wysłać tylko raz.",
+      "none_ticked": "Zaznacz co najmniej jeden kanał lub zapisz jako szkic.",
+      "result_draft": "Zapisano jako szkic. Nic nie wysłano.",
+      "result_email": "Wysyłanie do {count} odbiorcy(-ów).",
+      "result_blog": "Utworzono szkic na stronie.",
+      "result_print": "PDF utworzony i pobrany.",
+      "result_letters": "Utworzono i pobrano {count} list(y/ów).",
+      "result_failed": "Nie udało się. Możesz spróbować ponownie na stronie wiadomości.",
+      "result_skipped": "Brak nowych treści do wysłania tym kanałem.",
+      "open_message": "Otwórz wiadomość",
+      "close": "Zamknij"
     }
   },
   "inventory": {

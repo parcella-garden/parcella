@@ -2068,6 +2068,31 @@
     "link": {
       "title": "Zatím není online",
       "not_online": "Toto oznámení zatím není na webu. Zkuste to prosím později."
+    },
+    "compose": {
+      "title": "Nová zpráva",
+      "loading": "Načítání…",
+      "error_generic": "Něco se pokazilo.",
+      "full_page": "Otevřít raději celou stránku",
+      "club_news": "Zpráva spolku: e-mailem {count} členům, kteří dostávají e-maily spolku",
+      "more_options": "Shrnutí a obrázek",
+      "send_via": "Odeslat přes",
+      "send_via_hint": "Vše ostatní (zopakovat kanál, aktualizovat koncept na webu, znovu vytisknout) zůstává na stránce zprávy.",
+      "test_button": "Testovací e-mail",
+      "test_sent": "Testovací e-mail odeslán na {address}. Zpráva je uložena jako koncept.",
+      "draft_button": "Uložit jako koncept",
+      "send_button": "Uložit a odeslat",
+      "send_confirm": "Odeslat e-mail nyní {count} příjemcům? Lze jej odeslat jen jednou.",
+      "none_ticked": "Zaškrtněte alespoň jeden kanál, nebo uložte jako koncept.",
+      "result_draft": "Uloženo jako koncept. Nic nebylo odesláno.",
+      "result_email": "Odesílá se {count} příjemcům.",
+      "result_blog": "Koncept na webu vytvořen.",
+      "result_print": "PDF vytvořeno a staženo.",
+      "result_letters": "Vytvořeno a staženo {count} dopisů.",
+      "result_failed": "Nepovedlo se. Můžete to zkusit znovu na stránce zprávy.",
+      "result_skipped": "Tímto kanálem není co nového odeslat.",
+      "open_message": "Otevřít zprávu",
+      "close": "Zavřít"
     }
   },
   "inventory": {

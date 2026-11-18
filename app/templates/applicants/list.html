@@ -41,7 +41,7 @@
     <button type="button" class="btn btn-sm btn-outline-secondary" id="pick-all">{{ t('applicants.list.select_all') }}</button>
     <button type="button" class="btn btn-sm btn-outline-secondary" id="pick-none">{{ t('applicants.list.select_none') }}</button>
     <span class="text-muted small" id="pick-count" data-template="{{ t('applicants.list.selected_count', count='__N__') }}">{{ t('applicants.list.selected_count', count=0) }}</span>
-    <button type="submit" class="btn btn-sm btn-outline-primary ms-auto" id="pick-submit" disabled>
+    <button type="submit" class="btn btn-sm btn-outline-primary ms-auto" id="pick-submit" data-compose disabled>
         <i class="bi bi-envelope-paper me-1"></i>{{ t('applicants.list.write_to_selected') }}
     </button>
 </form>

@@ -10,7 +10,7 @@
     </a>
     {% endif %}
     {% if request.state.module_flags.announcements and is_full_access(request) %}
-    <a href="/announcements/new?audience=1&amp;audience_query={{ write_audience_query|urlencode }}" class="btn btn-sm btn-outline-primary">
+    <a href="/announcements/new?audience=1&amp;audience_query={{ write_audience_query|urlencode }}" class="btn btn-sm btn-outline-primary" data-compose>
         <i class="bi bi-envelope-paper me-1"></i>{{ t('members.detail.button_write') }}
     </a>
     {% endif %}

@@ -2068,6 +2068,31 @@
     "link": {
       "title": "Noch nicht online",
       "not_online": "Diese Mitteilung ist noch nicht auf der Website. Bitte versuchen Sie es später noch einmal."
+    },
+    "compose": {
+      "title": "Neue Nachricht",
+      "loading": "Wird geladen…",
+      "error_generic": "Da ist etwas schiefgegangen.",
+      "full_page": "Stattdessen die ganze Seite öffnen",
+      "club_news": "Vereinsnachricht: per E-Mail an {count} Mitglied(er), die Vereins-E-Mails erhalten",
+      "more_options": "Zusammenfassung und Bild",
+      "send_via": "Versenden per",
+      "send_via_hint": "Alles Weitere (einen Kanal erneut versuchen, den Website-Entwurf aktualisieren, neu drucken) bleibt auf der Seite der Nachricht.",
+      "test_button": "Test-E-Mail",
+      "test_sent": "Test-E-Mail an {address} gesendet. Die Nachricht ist als Entwurf gespeichert.",
+      "draft_button": "Als Entwurf speichern",
+      "send_button": "Speichern & senden",
+      "send_confirm": "Die E-Mail jetzt an {count} Empfänger senden? Sie kann nur einmal gesendet werden.",
+      "none_ticked": "Mindestens einen Kanal ankreuzen oder als Entwurf speichern.",
+      "result_draft": "Als Entwurf gespeichert. Es wurde nichts versendet.",
+      "result_email": "Wird an {count} Empfänger gesendet.",
+      "result_blog": "Entwurf auf der Website angelegt.",
+      "result_print": "PDF erstellt und heruntergeladen.",
+      "result_letters": "{count} Brief(e) erstellt und heruntergeladen.",
+      "result_failed": "Hat nicht geklappt. Auf der Seite der Nachricht kann es erneut versucht werden.",
+      "result_skipped": "Auf diesem Kanal gibt es nichts Neues zu senden.",
+      "open_message": "Nachricht öffnen",
+      "close": "Schließen"
     }
   },
   "inventory": {

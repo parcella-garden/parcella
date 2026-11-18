@@ -1,0 +1,144 @@
+{#- The compose popup's form (issue #345, ADR 0139). Rendered by
+    GET/POST /announcements/compose into the popup in
+    announcements/_compose_modal.html; posted back there with fetch(). -#}
+{% set title_value = entered.title if entered else (draft.title if draft else '') %}
+{% set body_value = entered.body_markdown if entered else (draft.body_markdown if draft else '') %}
+{% set summary_value = entered.summary if entered else ((draft.summary or '') if draft else '') %}
+{% set image_alt_value = entered.image_alt if entered else ((draft.image_alt or '') if draft else '') %}
+{% set letters_for_all_value = entered.letters_for_all if entered else (draft and draft.letters_for_all) %}
+<form id="compose-form" enctype="multipart/form-data" novalidate>
+    {{ csrf_field() }}
+    {% if draft %}
+    <input type="hidden" name="announcement_id" value="{{ draft.id }}">
+    {% elif preview.is_applicant_message %}
+    <input type="hidden" name="audience_kind" value="applicants">
+    {% for applicant_id in audience_applicant_ids %}<input type="hidden" name="applicant_ids" value="{{ applicant_id }}">
+    {% endfor %}
+    {% elif preview.is_targeted %}
+    <input type="hidden" name="audience" value="1">
+    <input type="hidden" name="audience_query" value="{{ audience_query }}">
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-danger">
+        {% if error == 'missing_fields' %}{{ t('announcements.form.error_missing_fields') }}
+        {% elif error == 'invalid_image_type' %}{{ t('announcements.form.error_invalid_image_type') }}
+        {% elif error == 'image_too_large' %}{{ t('announcements.form.error_image_too_large') }}
+        {% else %}{{ error }}{% endif %}
+    </div>
+    {% endif %}
+    {% if test_email_result %}
+    <div class="alert {% if test_email_result == 'success' %}alert-success{% else %}alert-warning{% endif %}">
+        {% if test_email_result == 'success' %}{{ t('announcements.compose.test_sent', address=test_email_value) }}
+        {% elif test_email_result == 'failed' %}{{ t('announcements.form.test_email_failed') }}
+        {% else %}{{ t('announcements.form.test_email_missing_address') }}{% endif %}
+    </div>
+    {% endif %}
+
+    {#- Who it goes to. -#}
+    <div class="border rounded p-2 mb-3 small" style="background: #f8faf9;">
+        {% if preview.is_applicant_message %}
+        <div class="fw-semibold"><i class="bi bi-person-raised-hand me-1"></i>{{ t('announcements.applicants.header', count=audience.email|length) }}</div>
+        <div class="text-muted">{% for applicant, address in audience.email %}{{ applicant.display_name }}{% if not loop.last %}, {% endif %}{% endfor %}</div>
+        {% elif preview.is_targeted %}
+        <div class="d-flex justify-content-between flex-wrap gap-2">
+            <span class="fw-semibold"><i class="bi bi-people me-1"></i>{{ t('announcements.audience.header', count=audience.member_count) }}</span>
+            <a href="{{ audience_list_url }}" target="_blank" rel="noopener" class="text-decoration-none">{{ t('announcements.audience.show_list') }}</a>
+        </div>
+        <div>
+            {% if audience_tag %}<span class="badge" style="background: var(--gv-gruen-blass); color: var(--gv-gruen);"><i class="bi bi-tag"></i> {{ tag_name(audience_tag) }}</span>{% endif %}
+            {% if audience_filter.search %}<span class="badge text-bg-light border">“{{ audience_filter.search }}”</span>{% endif %}
+            {% if audience_filter.include_inactive %}<span class="badge text-bg-light border">{{ t('members.list.show_inactive') }}</span>{% endif %}
+            {% if audience_filter.active_only %}<span class="badge text-bg-light border">{{ t('members.list.show_active_only') }}</span>{% endif %}
+            {% if audience_filter.email_info_only %}<span class="badge text-bg-light border">{{ t('members.list.show_email_info_only') }}</span>{% endif %}
+            {% if audience_filter.ids %}<span class="badge text-bg-light border"><i class="bi bi-check2-square"></i> {{ t('announcements.audience.filter_picked', count=audience_filter.ids|length) }}</span>{% endif %}
+        </div>
+        {% if audience.member_count <= 3 %}
+        <div class="text-muted">{% for m, address in audience.email %}{{ m.full_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% if audience.email and audience.letter %}, {% endif %}{{ audience.letter | map(attribute='full_name') | join(', ') }}</div>
+        {% endif %}
+        {% if audience.unreachable %}
+        <div class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>{{ t('announcements.audience.unreachable', count=audience.unreachable|length) }}:
+            {{ audience.unreachable | map(attribute='full_name') | join(', ') }}</div>
+        {% endif %}
+        {% else %}
+        <div class="fw-semibold"><i class="bi bi-megaphone me-1"></i>{{ t('announcements.compose.club_news', count=audience.email|length) }}</div>
+        {% endif %}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="compose-title">{{ t('announcements.form.label_title') }}</label>
+        <input type="text" name="title" id="compose-title" class="form-control" required value="{{ title_value }}">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="compose-body">{{ t('announcements.form.label_body') }}</label>
+        <textarea name="body_markdown" id="compose-body" class="form-control" rows="10"
+                  data-placeholder="{{ t('announcements.form.body_placeholder') }}">{{ body_value }}</textarea>
+    </div>
+
+    <details class="mb-3"{% if summary_value or image_alt_value or (draft and draft.image_url) %} open{% endif %}>
+        <summary class="small text-muted mb-2">{{ t('announcements.compose.more_options') }}</summary>
+        <div class="mb-3">
+            <label class="form-label" for="compose-summary">{{ t('announcements.form.label_summary') }}</label>
+            <textarea name="summary" id="compose-summary" class="form-control" rows="2" maxlength="300">{{ summary_value }}</textarea>
+            <div class="form-text">{{ t('announcements.form.summary_hint') }}</div>
+        </div>
+        <div class="mb-1">
+            <label class="form-label" for="compose-image">{{ t('announcements.form.label_image') }}</label>
+            {% if draft and draft.image_url %}
+            <img src="{{ draft.image_url }}" alt="{{ draft.image_alt or '' }}" class="d-block mb-2" style="max-width: 160px; max-height: 160px; border-radius: 4px;">
+            {% endif %}
+            <input type="file" name="image" id="compose-image" class="form-control" accept="image/png,image/jpeg,image/webp"
+                   data-max-bytes="{{ announcement_max_image_bytes }}">
+            <div class="invalid-feedback" id="compose-image-too-large">{{ t('announcements.form.error_image_too_large') }}</div>
+            <div class="form-text">{{ t('announcements.form.image_hint') }}</div>
+            <label class="form-label mt-2" for="compose-image-alt">{{ t('announcements.form.label_image_alt') }}</label>
+            <input type="text" name="image_alt" id="compose-image-alt" class="form-control" maxlength="255" value="{{ image_alt_value }}">
+        </div>
+    </details>
+
+    {#- How it goes out. -#}
+    <fieldset class="mb-3">
+        <legend class="form-label fs-6 mb-1">{{ t('announcements.compose.send_via') }}</legend>
+        <div class="d-flex flex-wrap gap-3">
+            {% for channel in compose_channels %}
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="channels" value="{{ channel.name }}" id="compose-channel-{{ channel.name }}"
+                       {% if channel.checked %}checked{% endif %}{% if channel.disabled %} disabled{% endif %}>
+                <label class="form-check-label" for="compose-channel-{{ channel.name }}">
+                    {% if channel.name == 'EMAIL' %}<i class="bi bi-envelope me-1"></i>{{ t('announcements.form.channel_email') }}
+                    {% elif channel.name == 'BLOG' %}<i class="bi bi-globe me-1"></i>{{ t('announcements.form.channel_blog') }}
+                    {% elif channel.name == 'PRINT' %}<i class="bi bi-printer me-1"></i>{{ t('announcements.form.channel_print') }}
+                    {% elif channel.name == 'LETTER' %}<i class="bi bi-mailbox me-1"></i>{{ t('announcements.audience.channel_letter') }}{% endif %}
+                    {% if channel.count is not none %}<span class="text-muted">({{ channel.count }})</span>{% endif %}
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+        {% if preview.is_targeted and not preview.is_applicant_message %}
+        <div class="form-check mt-1">
+            <input class="form-check-input" type="checkbox" name="letters_for_all" value="true" id="compose-letters-for-all"
+                   {% if letters_for_all_value %}checked{% endif %}>
+            <label class="form-check-label small" for="compose-letters-for-all">{{ t('announcements.audience.letters_for_all') }}</label>
+        </div>
+        {% endif %}
+        <div class="form-text">{{ t('announcements.compose.send_via_hint') }}</div>
+    </fieldset>
+
+    <div class="d-flex gap-2 align-items-center flex-wrap border-top pt-3">
+        <label class="visually-hidden" for="compose-test-email">{{ t('announcements.form.test_email_title') }}</label>
+        <input type="email" name="test_email" id="compose-test-email" class="form-control form-control-sm" style="max-width: 240px;"
+               value="{{ test_email_value or '' }}" placeholder="you@example.com">
+        <button type="submit" name="action" value="test" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-envelope-check me-1"></i>{{ t('announcements.compose.test_button') }}
+        </button>
+        <span class="ms-auto d-flex gap-2 flex-wrap">
+            <button type="submit" name="action" value="draft" class="btn btn-outline-secondary">{{ t('announcements.compose.draft_button') }}</button>
+            <button type="submit" name="action" value="send" class="btn btn-primary" id="compose-send"
+                    data-confirm-email="{{ t('announcements.compose.send_confirm', count=audience.email|length) }}"
+                    data-none-ticked="{{ t('announcements.compose.none_ticked') }}">
+                <i class="bi bi-send me-1"></i>{{ t('announcements.compose.send_button') }}
+            </button>
+        </span>
+    </div>
+</form>

@@ -2068,6 +2068,31 @@
     "link": {
       "title": "Pas encore en ligne",
       "not_online": "Cette annonce n'est pas encore sur le site. Veuillez réessayer plus tard."
+    },
+    "compose": {
+      "title": "Nouveau message",
+      "loading": "Chargement…",
+      "error_generic": "Une erreur s'est produite.",
+      "full_page": "Ouvrir plutôt la page complète",
+      "club_news": "Actualité du club : par e-mail à {count} membre(s) qui reçoivent les e-mails du club",
+      "more_options": "Résumé et image",
+      "send_via": "Envoyer par",
+      "send_via_hint": "Tout le reste (relancer un canal, mettre à jour le brouillon du site, réimprimer) reste sur la page du message.",
+      "test_button": "E-mail de test",
+      "test_sent": "E-mail de test envoyé à {address}. Le message est enregistré comme brouillon.",
+      "draft_button": "Enregistrer comme brouillon",
+      "send_button": "Enregistrer et envoyer",
+      "send_confirm": "Envoyer l'e-mail maintenant à {count} destinataire(s) ? Il ne peut être envoyé qu'une seule fois.",
+      "none_ticked": "Cochez au moins un canal, ou enregistrez comme brouillon.",
+      "result_draft": "Enregistré comme brouillon. Rien n'a été envoyé.",
+      "result_email": "Envoi en cours à {count} destinataire(s).",
+      "result_blog": "Brouillon créé sur le site.",
+      "result_print": "PDF généré et téléchargé.",
+      "result_letters": "{count} lettre(s) générée(s) et téléchargée(s).",
+      "result_failed": "Échec. Vous pouvez réessayer depuis la page du message.",
+      "result_skipped": "Rien de nouveau à envoyer sur ce canal.",
+      "open_message": "Ouvrir le message",
+      "close": "Fermer"
     }
   },
   "inventory": {

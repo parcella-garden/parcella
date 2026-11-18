@@ -2068,6 +2068,31 @@
     "link": {
       "title": "Not online yet",
       "not_online": "This announcement isn't on the website yet. Please try again later."
+    },
+    "compose": {
+      "title": "New message",
+      "loading": "Loading…",
+      "error_generic": "Something went wrong.",
+      "full_page": "Open the full page instead",
+      "club_news": "Club news: by email to {count} member(s) who receive club emails",
+      "more_options": "Summary and image",
+      "send_via": "Send via",
+      "send_via_hint": "Everything else (retrying a channel, updating the website draft, printing again) stays on the message's own page.",
+      "test_button": "Test email",
+      "test_sent": "Test email sent to {address}. The message is saved as a draft.",
+      "draft_button": "Save as draft",
+      "send_button": "Save & send",
+      "send_confirm": "Send the email to {count} recipient(s) now? It can only be sent once.",
+      "none_ticked": "Tick at least one channel, or save as a draft.",
+      "result_draft": "Saved as a draft. Nothing was sent.",
+      "result_email": "Being sent to {count} recipient(s).",
+      "result_blog": "Draft created on the website.",
+      "result_print": "PDF generated and downloaded.",
+      "result_letters": "{count} letter(s) generated and downloaded.",
+      "result_failed": "Didn't work. You can retry it on the message's page.",
+      "result_skipped": "Nothing new to send on this channel.",
+      "open_message": "Open the message",
+      "close": "Close"
     }
   },
   "inventory": {

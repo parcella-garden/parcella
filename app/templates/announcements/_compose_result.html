@@ -1,0 +1,45 @@
+{#- What the compose popup did (issue #345), shown in place of its form. -#}
+<div id="compose-result">
+    <h6 class="mb-3">“{{ announcement.title }}”</h6>
+    {% if draft_only %}
+    <div class="alert alert-info"><i class="bi bi-save me-1"></i>{{ t('announcements.compose.result_draft') }}</div>
+    {% else %}
+    <ul class="list-group mb-3">
+        {% for r in results %}
+        <li class="list-group-item d-flex gap-2 align-items-start">
+            {% if r.skipped %}<i class="bi bi-dash-circle text-muted mt-1"></i>
+            {% elif r.ok %}<i class="bi bi-check-circle-fill text-success mt-1"></i>
+            {% else %}<i class="bi bi-x-circle-fill text-danger mt-1"></i>{% endif %}
+            <div>
+                <div class="fw-semibold">
+                    {% if r.channel == 'EMAIL' %}{{ t('announcements.form.channel_email') }}
+                    {% elif r.channel == 'BLOG' %}{{ t('announcements.form.channel_blog') }}
+                    {% elif r.channel == 'PRINT' %}{{ t('announcements.form.channel_print') }}
+                    {% else %}{{ t('announcements.audience.channel_letter') }}{% endif %}
+                </div>
+                <div class="small">
+                    {% if r.skipped %}{{ t('announcements.compose.result_skipped') }}
+                    {% elif r.channel == 'EMAIL' and r.ok %}{{ t('announcements.compose.result_email', count=r.count) }}
+                    {% elif r.channel == 'BLOG' and r.ok %}{{ t('announcements.compose.result_blog') }}
+                    {% elif r.channel == 'PRINT' and r.ok %}{{ t('announcements.compose.result_print') }}
+                    {% elif r.channel == 'LETTER' and r.ok %}{{ t('announcements.compose.result_letters', count=r.count) }}
+                    {% else %}{{ t('announcements.compose.result_failed') }}{% endif %}
+                    {% if r.link and r.link.startswith('/') %}
+                    <a href="{{ r.link }}" class="ms-1"><i class="bi bi-download"></i> {{ t('announcements.form.print_download_link') }}</a>
+                    {% elif r.link %}
+                    <a href="{{ r.link }}" target="_blank" rel="noopener noreferrer" class="ms-1">{{ t('announcements.form.blog_edit_draft_link') }}</a>
+                    {% endif %}
+                </div>
+                {% if r.detail %}<div class="small text-muted">{{ r.detail }}</div>{% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <div class="d-flex gap-2 justify-content-end flex-wrap">
+        <a href="/announcements/{{ announcement.id }}/edit" class="btn btn-outline-secondary">
+            <i class="bi bi-box-arrow-up-right me-1"></i>{{ t('announcements.compose.open_message') }}
+        </a>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">{{ t('announcements.compose.close') }}</button>
+    </div>
+</div>
