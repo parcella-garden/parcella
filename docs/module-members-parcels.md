@@ -224,6 +224,12 @@ where the message's "show list" link leads. Ids are cleaned on the way in
 (blank/overlong dropped, duplicates removed) and capped at
 `MAX_PICKED_MEMBERS` (2000, a 400 beyond).
 
+**Writing to one member (issue #344).** The member detail page has a
+"Write to this member" button (announcements module on, board/admin). It
+is the same hand-picked message with a single id; for a former member
+the filter also carries `include_inactive`, since the default list only
+finds active members.
+
 Known gaps: ticks don't survive changing the filter (the page reloads);
 no "picked" option in the REST API's member list.
 

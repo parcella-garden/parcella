@@ -601,6 +601,9 @@
 {% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% if user and request.state.module_flags is defined and request.state.module_flags.announcements and is_full_access(request) %}
+{% include "announcements/_compose_modal.html" %}
+{% endif %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     // Off-Canvas-Seitenleiste (mobil): Hamburger-Button öffnet/schließt,

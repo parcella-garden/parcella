@@ -142,3 +142,4 @@ in chronological order.
 136. [Processes: a configurable process builder instead of a hard-coded plot handover](./0136-configurable-process-builder.md)
 137. [Hand-picked members are part of the member-list filter](./0137-hand-picked-members-in-the-list-filter.md)
 138. [The metering point factor stays inside the metering module](./0138-metering-point-factor-only-in-metering.md)
+139. [The compose popup writes and sends a message in one step](./0139-compose-popup-writes-and-sends-in-one-step.md)

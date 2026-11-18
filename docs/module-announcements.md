@@ -422,6 +422,8 @@ a filtered `/members/` list -- "everyone tagged *water responsible*",
   same way. The form shows "N picked by hand" next to the filter badges.
   Picked ids still go through the rest of the filter at send time, so a
   picked member who no longer matches it (or was deleted) drops out.
+  "Write to this member" on a member's detail page (issue #344) is the
+  same thing with one id (plus `include_inactive` for a former member).
 
 Known gaps: no per-recipient delivery log (channel-level, as for club
 news); the audience isn't frozen at send time -- someone tagged between
@@ -447,6 +449,37 @@ The third kind of announcement, next to club news and filtered members.
   duplicates; the page shows both. The paced sender is unchanged.
 - **Channels**: EMAIL only. BLOG, PRINT and LETTER are hidden and
   refused with 409.
+
+## Compose popup: write and send in one step (issue #345, ADR 0139)
+
+Wherever a message can be started -- "Write to these N members" and
+"Write to selected" on `/members/`, "Write to this member" on a member's
+page (#344), "Write to the selected applicants" on `/applicants/`, "New
+announcement" on `/announcements/` -- a popup opens instead of the
+full page (`data-compose` on the link/button; the popup itself is
+`announcements/_compose_modal.html`, included once by `base.html` for
+board/admin with the module on).
+
+- `GET /announcements/compose` returns the form as an HTML fragment
+  (JSON `{state, html}`), for the same audience parameters as `/new`.
+- `POST /announcements/compose` with `action`:
+  - `send` saves the message and runs the ticked channels through the
+    send page's own helpers (`start_email_channel`,
+    `push_website_draft`, `generate_print_channel`,
+    `generate_letter_channel`), so ADR 0087's rules hold. Generated PDFs
+    come back base64-encoded in `downloads` and the browser saves them.
+  - `draft` only saves.
+  - `test` saves a draft and sends a test email; the popup keeps working
+    on that draft (`announcement_id`) until something is delivered (a 409
+    after that).
+- Offered channels: club news: email, website draft (if a website is
+  set up) and print; members: email and letters; applicants: email.
+  Email is ticked by default whenever anyone gets one, letters instead
+  when nobody has an email address.
+- The message's page (`/announcements/{id}/edit`) stays for everything
+  later: retries, "update website draft", printing again, the print text
+  and QR switch, deleting. `/announcements/new` is the no-JavaScript
+  fallback.
 
 ## What's not built yet
 

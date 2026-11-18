@@ -34,6 +34,7 @@ public_signup_api's Integrations page: this creates content that will
 be pushed to a public blog and to every member's inbox, so authoring
 it isn't a general member-facing feature.
 """
+import base64
 import re
 import secrets
 import urllib.parse
@@ -43,7 +44,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from fastapi import APIRouter, Request, Depends, HTTPException, UploadFile, BackgroundTasks, Response
-from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -422,36 +423,30 @@ async def announcement_new_form(request: Request, db: AsyncSession = Depends(get
     })
 
 
-@router.post("/new")
-async def announcement_create(
-    request: Request,
-    db: AsyncSession = Depends(get_db),
-):
-    user = await require_admin(request, db)
-    form = await request.form()
+class _FormRejected(Exception):
+    """A new message's form failed validation; `error` is the code the
+    form template turns into a message."""
+    def __init__(self, error: str):
+        super().__init__(error)
+        self.error = error
 
+
+async def _announcement_from_form(form, user, applicant_ids, audience_query) -> Announcement:
+    """A new Announcement from the "new message" form (the page and the
+    compose popup, issue #345), not yet added to the session. Raises
+    _FormRejected for a missing title/text or a refused image."""
     title = (form.get("title") or "").strip()
     body_markdown = (form.get("body_markdown") or "").strip()
-    image_upload = form.get("image")
-    applicant_ids = await _picked_applicant_ids(request, db, form)
-    audience_query = None if applicant_ids is not None else _targeted_audience_query(form)
-    entered = _entered_values(form)
-
     if not title or not body_markdown:
-        return templates.TemplateResponse("announcements/form.html", {
-            "request": request, "user": user, "announcement": None, "entered": entered,
-            "error": "missing_fields", **await _new_form_context(db, audience_query, applicant_ids),
-        }, status_code=400)
+        raise _FormRejected("missing_fields")
 
     image_filename = None
+    image_upload = form.get("image")
     if image_upload is not None and getattr(image_upload, "filename", ""):
         try:
             image_filename = await _save_announcement_image(image_upload)
         except ValueError as e:
-            return templates.TemplateResponse("announcements/form.html", {
-                "request": request, "user": user, "announcement": None, "entered": entered,
-                "error": str(e), **await _new_form_context(db, audience_query, applicant_ids),
-            }, status_code=400)
+            raise _FormRejected(str(e))
 
     announcement = Announcement(
         title=title,
@@ -467,10 +462,251 @@ async def announcement_create(
     elif audience_query is not None:
         announcement.audience_filter = _filter_from_query_string(audience_query).to_dict()
         announcement.letters_for_all = form.get("letters_for_all") == "true"
+    return announcement
+
+
+@router.post("/new")
+async def announcement_create(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    user = await require_admin(request, db)
+    form = await request.form()
+    applicant_ids = await _picked_applicant_ids(request, db, form)
+    audience_query = None if applicant_ids is not None else _targeted_audience_query(form)
+
+    try:
+        announcement = await _announcement_from_form(form, user, applicant_ids, audience_query)
+    except _FormRejected as e:
+        return templates.TemplateResponse("announcements/form.html", {
+            "request": request, "user": user, "announcement": None, "entered": _entered_values(form),
+            "error": e.error, **await _new_form_context(db, audience_query, applicant_ids),
+        }, status_code=400)
     db.add(announcement)
     await db.commit()
 
     return RedirectResponse(url=f"/announcements/{announcement.id}/edit", status_code=303)
+
+
+# ---------------------------------------------------------------------------
+# Compose popup (issue #345): write and send in one step
+# ---------------------------------------------------------------------------
+#
+# The popup opens wherever a message can be started (/members/, a member's
+# page, /applicants/, /announcements/) and does the normal case in one
+# step: text plus ticked channels, "Save & send". It runs the very same
+# channel helpers as the send page, so ADR 0087's rules hold unchanged
+# (the email goes out once, a channel without anything new is skipped).
+# The send page stays for everything later: retries, "update website
+# draft", printing again. A test email saves a draft first; the popup then
+# keeps working on that draft (announcement_id), but only while nothing
+# has been delivered from it. See ADR 0139.
+
+COMPOSE_ORDER = (
+    AnnouncementChannel.EMAIL, AnnouncementChannel.BLOG, AnnouncementChannel.PRINT, AnnouncementChannel.LETTER,
+)
+
+
+def _compose_channels(announcement: Announcement, website_type: Optional[str], audience) -> List[dict]:
+    """The channels the popup offers for this kind of message, each with
+    whether it's ticked by default: email when anyone gets one (kermie's
+    call on #345); letters instead when nobody has an email address."""
+    if announcement.is_applicant_message:
+        offered = [AnnouncementChannel.EMAIL]
+    elif announcement.is_targeted:
+        offered = [AnnouncementChannel.EMAIL, AnnouncementChannel.LETTER]
+    else:
+        offered = [AnnouncementChannel.EMAIL, AnnouncementChannel.PRINT]
+        if website_type:
+            offered.insert(1, AnnouncementChannel.BLOG)
+    email_count = len(audience.email) if audience is not None else 0
+    letter_count = len(audience.letter) if audience is not None else 0
+    channels = []
+    for channel in offered:
+        if channel == AnnouncementChannel.EMAIL:
+            checked, count = email_count > 0, email_count
+        elif channel == AnnouncementChannel.LETTER:
+            checked, count = email_count == 0 and letter_count > 0, letter_count
+        else:
+            checked, count = False, None
+        channels.append({"name": channel.name, "checked": checked, "count": count,
+                         "disabled": count == 0})
+    return channels
+
+
+async def _compose_context(
+    request: Request, db: AsyncSession, user, announcement: Announcement,
+) -> dict:
+    audience = await resolve_audience(db, announcement)
+    context = await _audience_context(db, announcement) if announcement.is_targeted else {}
+    context.update({
+        "request": request, "user": user, "draft": announcement if announcement.id else None,
+        "preview": announcement, "audience": audience,
+        "compose_channels": _compose_channels(announcement, await get_active_type(db), audience),
+    })
+    return context
+
+
+def _render_fragment(name: str, context: dict) -> str:
+    return templates.get_template(name).render(context)
+
+
+def _compose_form_response(context: dict, status_code: int = 200, **extra) -> JSONResponse:
+    context.update(extra)
+    return JSONResponse(
+        {"state": "form", "html": _render_fragment("announcements/_compose_form.html", context)},
+        status_code=status_code,
+    )
+
+
+@router.get("/compose")
+async def announcement_compose_form(request: Request, db: AsyncSession = Depends(get_db)):
+    """The popup's form, for the same audience parameters as /new."""
+    user = await require_admin(request, db)
+    applicant_ids = await _picked_applicant_ids(request, db, request.query_params)
+    audience_query = None if applicant_ids is not None else _targeted_audience_query(request.query_params)
+    preview = Announcement()
+    if applicant_ids is not None:
+        preview.audience_applicant_ids = applicant_ids
+    elif audience_query is not None:
+        preview.audience_filter = _filter_from_query_string(audience_query).to_dict()
+    context = await _compose_context(request, db, user, preview)
+    context["test_email_value"] = user.email
+    return _compose_form_response(context)
+
+
+async def _update_compose_draft(announcement: Announcement, form) -> None:
+    """The popup's form applied to the draft it saved for a test email.
+    Same fields as creating; the audience was fixed when it was saved."""
+    title = (form.get("title") or "").strip()
+    body_markdown = (form.get("body_markdown") or "").strip()
+    if not title or not body_markdown:
+        raise _FormRejected("missing_fields")
+    image_upload = form.get("image")
+    if image_upload is not None and getattr(image_upload, "filename", ""):
+        try:
+            new_filename = await _save_announcement_image(image_upload)
+        except ValueError as e:
+            raise _FormRejected(str(e))
+        _delete_announcement_image(announcement.image_filename)
+        announcement.image_filename = new_filename
+    announcement.title = title
+    announcement.body_markdown = body_markdown
+    announcement.body_html = render_markdown_to_html(body_markdown)
+    announcement.summary = _clean_summary(form.get("summary"))
+    announcement.image_alt = _clean_image_alt(form.get("image_alt")) if announcement.image_filename else None
+    if announcement.is_targeted:
+        announcement.letters_for_all = form.get("letters_for_all") == "true"
+
+
+async def _run_compose_channel(
+    request: Request, db: AsyncSession, background_tasks: BackgroundTasks,
+    announcement: Announcement, channel: AnnouncementChannel, downloads: List[dict],
+) -> dict:
+    """Runs one ticked channel and describes the outcome for the popup."""
+    await db.refresh(announcement, attribute_names=["deliveries"])
+    result = {"channel": channel.name, "ok": False, "count": None, "detail": None, "link": None, "skipped": False}
+    if not _channel_action_available(announcement, channel):
+        result["skipped"] = True
+        return result
+
+    if channel == AnnouncementChannel.EMAIL:
+        result["count"] = await start_email_channel(request, db, background_tasks, announcement)
+        result["ok"] = result["count"] > 0
+    elif channel == AnnouncementChannel.BLOG:
+        delivery = await push_website_draft(db, announcement)
+        result["ok"] = delivery.status == AnnouncementDeliveryStatus.SENT
+        if result["ok"] and (delivery.external_reference or "").startswith(("https://", "http://")):
+            result["link"] = delivery.external_reference
+    elif channel == AnnouncementChannel.PRINT:
+        pdf_bytes = await generate_print_channel(request, db, announcement)
+        if pdf_bytes is not None:
+            result["ok"] = True
+            result["link"] = f"/announcements/{announcement.id}/print/download"
+            downloads.append({"filename": _print_pdf_download_name(announcement),
+                              "data": base64.b64encode(pdf_bytes).decode("ascii")})
+    elif channel == AnnouncementChannel.LETTER:
+        result["count"] = len((await resolve_audience(db, announcement)).letter)
+        pdf_bytes = await generate_letter_channel(db, announcement)
+        if pdf_bytes is not None:
+            result["ok"] = True
+            downloads.append({"filename": _download_name(announcement, "_letters"),
+                              "data": base64.b64encode(pdf_bytes).decode("ascii")})
+
+    if not result["ok"] or channel == AnnouncementChannel.PRINT:
+        await db.refresh(announcement, attribute_names=["deliveries"])
+        delivery = announcement.delivery_for(channel)
+        result["detail"] = delivery.error_message if delivery is not None else None
+    return result
+
+
+@router.post("/compose")
+async def announcement_compose(
+    request: Request, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db),
+):
+    """Saves the popup's message and, depending on the button, sends a
+    test email, stops there (draft), or runs the ticked channels."""
+    user = await require_admin(request, db)
+    form = await request.form()
+    action = form.get("action")
+    if action not in ("send", "draft", "test"):
+        raise HTTPException(status_code=400, detail="Unknown action")
+
+    draft_id = (form.get("announcement_id") or "").strip()
+    if draft_id:
+        announcement = await _get_announcement_or_404(db, draft_id)
+        if announcement.deliveries:
+            # Something already went out: from here on it's the send
+            # page's job (ADR 0087), not a fresh message's.
+            raise HTTPException(status_code=409, detail="This message was already sent; open it to continue")
+        try:
+            await _update_compose_draft(announcement, form)
+        except _FormRejected as e:
+            await db.rollback()
+            announcement = await _get_announcement_or_404(db, draft_id)
+            context = await _compose_context(request, db, user, announcement)
+            return _compose_form_response(context, 400, error=e.error, entered=_entered_values(form),
+                                          test_email_value=form.get("test_email") or user.email)
+    else:
+        applicant_ids = await _picked_applicant_ids(request, db, form)
+        audience_query = None if applicant_ids is not None else _targeted_audience_query(form)
+        try:
+            announcement = await _announcement_from_form(form, user, applicant_ids, audience_query)
+        except _FormRejected as e:
+            preview = Announcement()
+            if applicant_ids is not None:
+                preview.audience_applicant_ids = applicant_ids
+            elif audience_query is not None:
+                preview.audience_filter = _filter_from_query_string(audience_query).to_dict()
+            context = await _compose_context(request, db, user, preview)
+            return _compose_form_response(context, 400, error=e.error, entered=_entered_values(form),
+                                          test_email_value=form.get("test_email") or user.email)
+        db.add(announcement)
+    await db.commit()
+    announcement = await _get_announcement_or_404(db, announcement.id)
+
+    if action == "test":
+        address = (form.get("test_email") or "").strip()
+        test_result = "missing_address"
+        if address:
+            test_result = "success" if await send_test_email(announcement, db, request, address) else "failed"
+        context = await _compose_context(request, db, user, announcement)
+        return _compose_form_response(context, test_email_result=test_result,
+                                      test_email_value=address or user.email)
+
+    offered = {c["name"] for c in _compose_channels(announcement, await get_active_type(db),
+                                                     await resolve_audience(db, announcement))}
+    ticked = [c for c in COMPOSE_ORDER if c.name in offered and c.name in form.getlist("channels")]
+    results, downloads = [], []
+    if action == "send":
+        for channel in ticked:
+            results.append(await _run_compose_channel(request, db, background_tasks, announcement, channel, downloads))
+    html = _render_fragment("announcements/_compose_result.html", {
+        "request": request, "user": user, "announcement": announcement, "results": results,
+        "draft_only": action == "draft" or not ticked,
+    })
+    return JSONResponse({"state": "done", "html": html, "downloads": downloads,
+                         "edit_url": f"/announcements/{announcement.id}/edit"})
 
 
 # ---------------------------------------------------------------------------
@@ -547,6 +783,22 @@ async def announcement_update(
 # Channel: email
 # ---------------------------------------------------------------------------
 
+async def start_email_channel(
+    request: Request, db: AsyncSession, background_tasks: BackgroundTasks, announcement: Announcement,
+) -> int:
+    """Marks the EMAIL delivery SENDING (or FAILED with nobody to send
+    to), commits, and schedules the paced send. Returns the recipient
+    count. Shared by the send page and the compose popup (issue #345);
+    the caller has checked the channel is available."""
+    delivery, recipient_count = await start_paced_email_send(announcement, db)
+    _record_delivered_content(announcement, delivery)
+    await db.commit()
+    if recipient_count > 0:
+        base_url = str(request.base_url).rstrip("/")
+        background_tasks.add_task(run_paced_email_send, announcement.id, base_url)
+    return recipient_count
+
+
 @router.post("/{announcement_id}/send/email")
 async def announcement_send_email(
     announcement_id: str, request: Request, background_tasks: BackgroundTasks,
@@ -558,15 +810,7 @@ async def announcement_send_email(
     # 409 both while a send is in progress and after a successful one --
     # the email goes out once (ADR 0087); only a FAILED send can be retried.
     _require_channel_action_available(announcement, AnnouncementChannel.EMAIL)
-
-    delivery, recipient_count = await start_paced_email_send(announcement, db)
-    _record_delivered_content(announcement, delivery)
-    await db.commit()
-
-    if recipient_count > 0:
-        base_url = str(request.base_url).rstrip("/")
-        background_tasks.add_task(run_paced_email_send, announcement.id, base_url)
-
+    await start_email_channel(request, db, background_tasks, announcement)
     return RedirectResponse(url=f"/announcements/{announcement.id}/edit", status_code=303)
 
 
@@ -801,14 +1045,12 @@ async def _save_print_pdf_to_cloud(
     return f"Saved to the cloud as {folder}/{filename}."
 
 
-@router.post("/{announcement_id}/print")
-async def announcement_generate_print_pdf(
-    announcement_id: str, request: Request, db: AsyncSession = Depends(get_db),
-):
-    await require_admin(request, db)
-    announcement = await _get_announcement_or_404(db, announcement_id)
-    _require_channel_action_available(announcement, AnnouncementChannel.PRINT)
-
+async def generate_print_channel(request: Request, db: AsyncSession, announcement: Announcement) -> Optional[bytes]:
+    """Renders the one-page notice, stores it (and copies it to the cloud
+    folder if one is set), records the PRINT delivery and commits.
+    Returns the PDF, or None when the text can't be made to fit (the
+    delivery is FAILED then). Shared by the send page and the compose
+    popup (issue #345); the caller has checked the channel is available."""
     delivery = announcement.delivery_for(AnnouncementChannel.PRINT)
     if delivery is None:
         delivery = AnnouncementDelivery(announcement_id=announcement.id, channel=AnnouncementChannel.PRINT)
@@ -831,7 +1073,7 @@ async def announcement_generate_print_pdf(
         delivery.error_message = str(e)
         delivery.sent_at = datetime.now(timezone.utc)
         await db.commit()
-        return RedirectResponse(url=f"/announcements/{announcement.id}/edit", status_code=303)
+        return None
 
     PRINT_PDF_DIR.mkdir(parents=True, exist_ok=True)
     pdf_filename = f"{uuid.uuid4()}.pdf"
@@ -860,8 +1102,21 @@ async def announcement_generate_print_pdf(
         delivery.error_message = f"{delivery.error_message} {cloud_note}" if delivery.error_message else cloud_note
     await db.commit()
 
+    return result.pdf_bytes
+
+
+@router.post("/{announcement_id}/print")
+async def announcement_generate_print_pdf(
+    announcement_id: str, request: Request, db: AsyncSession = Depends(get_db),
+):
+    await require_admin(request, db)
+    announcement = await _get_announcement_or_404(db, announcement_id)
+    _require_channel_action_available(announcement, AnnouncementChannel.PRINT)
+    pdf_bytes = await generate_print_channel(request, db, announcement)
+    if pdf_bytes is None:
+        return RedirectResponse(url=f"/announcements/{announcement.id}/edit", status_code=303)
     return Response(
-        content=result.pdf_bytes,
+        content=pdf_bytes,
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{_print_pdf_download_name(announcement)}"'},
     )
@@ -901,18 +1156,13 @@ async def announcement_download_print_pdf(
 # Channel: letter (messages to filtered members only, issue #242)
 # ---------------------------------------------------------------------------
 
-@router.post("/{announcement_id}/letters")
-async def announcement_generate_letters(
-    announcement_id: str, request: Request, db: AsyncSession = Depends(get_db),
-):
+async def generate_letter_channel(db: AsyncSession, announcement: Announcement) -> Optional[bytes]:
     """One PDF with an addressed letter per member who gets one (no
-    email address, or everyone with letters_for_all). Returned straight
-    away and not stored (see the module docstring); the LETTER delivery
-    row only records when, for how many, and which content."""
-    await require_admin(request, db)
-    announcement = await _get_announcement_or_404(db, announcement_id)
-    _require_channel_action_available(announcement, AnnouncementChannel.LETTER)
-
+    email address, or everyone with letters_for_all). Not stored (see
+    the module docstring); the LETTER delivery row only records when,
+    for how many, and which content. Returns None (delivery FAILED) when
+    nobody gets a letter. Commits. Shared by the send page and the
+    compose popup (issue #345)."""
     delivery = announcement.delivery_for(AnnouncementChannel.LETTER)
     if delivery is None:
         delivery = AnnouncementDelivery(announcement_id=announcement.id, channel=AnnouncementChannel.LETTER)
@@ -924,7 +1174,7 @@ async def announcement_generate_letters(
         delivery.status = AnnouncementDeliveryStatus.FAILED
         delivery.error_message = "No letters to generate: nobody in the selection both lacks an email address and has a postal address."
         await db.commit()
-        return RedirectResponse(url=f"/announcements/{announcement.id}/edit", status_code=303)
+        return None
 
     branding = await load_branding(db)
     logo_path = Path("app" + branding["logo_url"]) if branding["logo_url"] else None
@@ -937,7 +1187,19 @@ async def announcement_generate_letters(
     delivery.error_message = f"{len(recipients)} letter(s) generated."
     _record_delivered_content(announcement, delivery)
     await db.commit()
+    return pdf_bytes
 
+
+@router.post("/{announcement_id}/letters")
+async def announcement_generate_letters(
+    announcement_id: str, request: Request, db: AsyncSession = Depends(get_db),
+):
+    await require_admin(request, db)
+    announcement = await _get_announcement_or_404(db, announcement_id)
+    _require_channel_action_available(announcement, AnnouncementChannel.LETTER)
+    pdf_bytes = await generate_letter_channel(db, announcement)
+    if pdf_bytes is None:
+        return RedirectResponse(url=f"/announcements/{announcement.id}/edit", status_code=303)
     return Response(
         content=pdf_bytes, media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{_download_name(announcement, "_letters")}"'},

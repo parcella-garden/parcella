@@ -1,0 +1,188 @@
+{#- Compose popup (issue #345, ADR 0139). Included once by base.html for
+    board/admin when the announcements module is on. Any link or submit
+    button with a data-compose attribute opens it instead of the
+    full-page /announcements/new: a link passes its own query string, a
+    submit button its form's fields. Without JavaScript the same link or
+    button still goes to /announcements/new. -#}
+<div class="modal fade" id="compose-modal" tabindex="-1" aria-labelledby="compose-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable modal-fullscreen-lg-down">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="compose-modal-title"><i class="bi bi-envelope-paper me-2"></i>{{ t('announcements.compose.title') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ t('announcements.compose.close') }}"></button>
+            </div>
+            <div class="modal-body" id="compose-modal-body"></div>
+        </div>
+    </div>
+</div>
+<template id="compose-loading">
+    <div class="text-center text-muted py-5"><span class="spinner-border spinner-border-sm me-2"></span>{{ t('announcements.compose.loading') }}</div>
+</template>
+<template id="compose-failed">
+    <div class="alert alert-danger">{{ t('announcements.compose.error_generic') }}
+        <a href="#" id="compose-full-page" class="alert-link">{{ t('announcements.compose.full_page') }}</a></div>
+</template>
+<script>
+(function () {
+    const modalEl = document.getElementById('compose-modal');
+    const body = document.getElementById('compose-modal-body');
+    const EASYMDE = 'https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min';
+    let modal = null, editor = null, query = '', changedSomething = false;
+
+    function csrfToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.content : '';
+    }
+
+    // EasyMDE only loads when the popup is first used, not on every page.
+    let editorLoad = null;
+    function loadEditor() {
+        if (window.EasyMDE) return Promise.resolve();
+        if (!editorLoad) {
+            editorLoad = new Promise(function (resolve) {
+                const css = document.createElement('link');
+                css.rel = 'stylesheet';
+                css.href = EASYMDE + '.css';
+                document.head.appendChild(css);
+                const script = document.createElement('script');
+                script.src = EASYMDE + '.js';
+                script.onload = resolve;
+                script.onerror = resolve;  // plain textarea then
+                document.head.appendChild(script);
+            });
+        }
+        return editorLoad;
+    }
+
+    function fromTemplate(id) {
+        body.replaceChildren(document.getElementById(id).content.cloneNode(true));
+    }
+
+    function showFailure() {
+        fromTemplate('compose-failed');
+        document.getElementById('compose-full-page').href = '/announcements/new' + (query ? '?' + query : '');
+    }
+
+    function dropEditor() {
+        if (editor) { editor.toTextArea(); editor = null; }
+    }
+
+    async function show(html) {
+        dropEditor();
+        body.innerHTML = html;  // server-rendered, autoescaped template
+        const form = document.getElementById('compose-form');
+        if (!form) return;
+        await loadEditor();
+        const textarea = document.getElementById('compose-body');
+        if (window.EasyMDE && textarea) {
+            editor = new EasyMDE({
+                element: textarea, spellChecker: false, status: false, forceSync: true, minHeight: '180px',
+                placeholder: textarea.dataset.placeholder,
+                toolbar: [
+                    {name: 'bold', action: EasyMDE.toggleBold, className: 'bi bi-type-bold', title: 'Bold'},
+                    {name: 'italic', action: EasyMDE.toggleItalic, className: 'bi bi-type-italic', title: 'Italic'},
+                    {name: 'heading', action: EasyMDE.toggleHeadingSmaller, className: 'bi bi-type-h1', title: 'Heading'},
+                    '|',
+                    {name: 'quote', action: EasyMDE.toggleBlockquote, className: 'bi bi-quote', title: 'Quote'},
+                    {name: 'unordered-list', action: EasyMDE.toggleUnorderedList, className: 'bi bi-list-ul', title: 'Generic List'},
+                    {name: 'ordered-list', action: EasyMDE.toggleOrderedList, className: 'bi bi-list-ol', title: 'Numbered List'},
+                    '|',
+                    {name: 'link', action: EasyMDE.drawLink, className: 'bi bi-link-45deg', title: 'Create Link'},
+                    {name: 'table', action: EasyMDE.drawTable, className: 'bi bi-table', title: 'Insert Table'},
+                    '|',
+                    {name: 'preview', action: EasyMDE.togglePreview, className: 'bi bi-eye', title: 'Toggle Preview'},
+                ],
+            });
+            setTimeout(function () { if (editor) editor.codemirror.refresh(); }, 50);
+        }
+        const image = document.getElementById('compose-image');
+        image.addEventListener('change', function () {
+            const tooLarge = Array.from(image.files).some(function (f) { return f.size > Number(image.dataset.maxBytes); });
+            image.classList.toggle('is-invalid', tooLarge);
+            form.querySelectorAll('button[type="submit"]').forEach(function (b) { b.disabled = tooLarge; });
+        });
+        form.addEventListener('submit', submit);
+    }
+
+    function download(file) {
+        const raw = atob(file.data);
+        const bytes = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+        const url = URL.createObjectURL(new Blob([bytes], {type: 'application/pdf'}));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
+    }
+
+    async function submit(event) {
+        event.preventDefault();
+        const form = event.target;
+        const button = event.submitter;
+        const action = button ? button.value : 'draft';
+        if (action === 'send') {
+            const ticked = Array.from(form.querySelectorAll('input[name="channels"]:checked')).map(function (c) { return c.value; });
+            if (!ticked.length) { alert(button.dataset.noneTicked); return; }
+            if (ticked.includes('EMAIL') && !confirm(button.dataset.confirmEmail)) return;
+        }
+        const data = new FormData(form);
+        data.set('action', action);
+        if (editor) data.set('body_markdown', editor.value());
+        form.querySelectorAll('button[type="submit"]').forEach(function (b) { b.disabled = true; });
+        if (button) button.insertAdjacentHTML('afterbegin', '<span class="spinner-border spinner-border-sm me-1"></span>');
+        try {
+            const response = await fetch('/announcements/compose', {
+                method: 'POST', body: data, headers: {'X-CSRF-Token': csrfToken(), 'Accept': 'application/json'},
+            });
+            const result = await response.json();
+            if (!result.html) throw new Error(result.detail || response.status);
+            if (result.state === 'done') changedSomething = true;
+            await show(result.html);
+            (result.downloads || []).forEach(download);
+        } catch (e) {
+            showFailure();
+        }
+    }
+
+    async function open(newQuery) {
+        query = newQuery;
+        changedSomething = false;
+        modal = modal || bootstrap.Modal.getOrCreateInstance(modalEl);
+        fromTemplate('compose-loading');
+        modal.show();
+        try {
+            const response = await fetch('/announcements/compose' + (query ? '?' + query : ''), {headers: {'Accept': 'application/json'}});
+            if (!response.ok) throw new Error(response.status);
+            await show((await response.json()).html);
+        } catch (e) {
+            showFailure();
+        }
+    }
+
+    document.addEventListener('click', function (event) {
+        const trigger = event.target.closest('[data-compose]');
+        if (!trigger || trigger.disabled) return;
+        event.preventDefault();
+        if (trigger.tagName === 'A') {
+            open(new URL(trigger.href, location.href).search.replace(/^\?/, ''));
+        } else if (trigger.form) {
+            const params = new URLSearchParams();
+            new FormData(trigger.form).forEach(function (value, key) {
+                if (typeof value === 'string') params.append(key, value);
+            });
+            open(params.toString());
+        }
+    });
+
+    modalEl.addEventListener('shown.bs.modal', function () { if (editor) editor.codemirror.refresh(); });
+    modalEl.addEventListener('hidden.bs.modal', function () {
+        dropEditor();
+        body.replaceChildren();
+        // The announcements list shows the new message's channel icons.
+        if (changedSomething && location.pathname.startsWith('/announcements')) location.reload();
+    });
+})();
+</script>

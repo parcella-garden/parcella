@@ -377,6 +377,12 @@ async def member_detail(
             "next_member_id": next_member_id,
             "nav_query_suffix": f"?{list_query_string}" if list_query_string else "",
             "subject_processes": await subject_processes(request, db, ProcessSubjectKind.MEMBER, member.id),
+            # Issue #344: "Write to this member" starts the same targeted
+            # message as ticking one row on /members/ (issue #337). A
+            # former member is only found by the inactive filter.
+            "write_audience_query": MemberListFilter(
+                include_inactive=not member.is_active, ids=(member.id,),
+            ).query_string(),
         },
     )
 
