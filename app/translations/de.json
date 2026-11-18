@@ -713,6 +713,7 @@
     },
     "detail": {
       "button_edit": "Bearbeiten",
+      "button_write": "Diesem Mitglied schreiben",
       "button_previous": "Vorherige",
       "button_next": "Nächste",
       "button_back": "Zurück",

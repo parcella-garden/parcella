@@ -713,6 +713,7 @@
     },
     "detail": {
       "button_edit": "Edit",
+      "button_write": "Write to this member",
       "button_previous": "Previous",
       "button_next": "Next",
       "button_back": "Back",

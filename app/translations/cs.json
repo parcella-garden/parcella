@@ -713,6 +713,7 @@
     },
     "detail": {
       "button_edit": "Upravit",
+      "button_write": "Napsat tomuto členovi",
       "button_previous": "Předchozí",
       "button_next": "Další",
       "button_back": "Zpět",

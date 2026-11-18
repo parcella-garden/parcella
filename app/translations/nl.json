@@ -713,6 +713,7 @@
     },
     "detail": {
       "button_edit": "Bewerken",
+      "button_write": "Schrijf naar dit lid",
       "button_previous": "Vorige",
       "button_next": "Volgende",
       "button_back": "Terug",

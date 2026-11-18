@@ -422,6 +422,8 @@ a filtered `/members/` list -- "everyone tagged *water responsible*",
   same way. The form shows "N picked by hand" next to the filter badges.
   Picked ids still go through the rest of the filter at send time, so a
   picked member who no longer matches it (or was deleted) drops out.
+  "Write to this member" on a member's detail page (issue #344) is the
+  same thing with one id (plus `include_inactive` for a former member).
 
 Known gaps: no per-recipient delivery log (channel-level, as for club
 news); the audience isn't frozen at send time -- someone tagged between

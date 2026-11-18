@@ -198,3 +198,53 @@ def test_member_filter_ids_round_trip_and_cleaning():
     assert not MemberListFilter(ids=("a",)).is_empty() and MemberListFilter.from_dict({"ids": []}).is_empty()
     with pytest.raises(HTTPException):
         MemberListFilter(ids=tuple(str(i) for i in range(MAX_PICKED_MEMBERS + 1)))
+
+
+async def test_write_to_one_member_from_the_detail_page(client, admin_user, monkeypatch):
+    """Issue #344: "Write to this member" on /members/{id} starts a
+    message to exactly that member -- a former member included."""
+    import html
+    from datetime import date, timedelta
+
+    _, ids = await _setup(client)
+    async with AsyncSessionLocal() as db:
+        former = Member(first_name="Fritz", last_name="Frueher", member_until=date.today() - timedelta(days=30))
+        former.email_addresses.append(MemberEmail(address="fritz@example.org", is_primary=True))
+        db.add(former)
+        await db.commit()
+        ids["Frueher"] = former.id
+
+    sent_to = []
+
+    async def fake_send_email(to, subject, html_body, text_body=None, db=None):
+        sent_to.append(to)
+        return True
+
+    monkeypatch.setattr("app.announcement_mailer.send_email", fake_send_email)
+
+    for last_name, email in (("Unbeteiligt", "udo@example.org"), ("Frueher", "fritz@example.org")):
+        page = (await client.get(f"/members/{ids[last_name]}")).text
+        assert "Write to this member" in page
+        href = html.unescape(page.split('href="/announcements/new?', 1)[1].split('"', 1)[0])
+        params = urllib.parse.parse_qs(href)
+        preview = await client.get("/announcements/new?" + href)
+        assert preview.status_code == 200 and "1 picked by hand" in preview.text
+
+        response = await client.post("/announcements/new", data={
+            "title": f"An {last_name}", "body_markdown": "Nur an dich.",
+            "audience": "1", "audience_query": params["audience_query"][0],
+        })
+        assert response.status_code == 303
+        announcement_id = response.headers["location"].split("/")[2]
+        sent_to.clear()
+        assert (await client.post(f"/announcements/{announcement_id}/send/email")).status_code == 303
+        assert sent_to == [email]
+
+
+async def test_no_write_button_without_the_announcements_module(client, admin_user):
+    await web_login(client, "admin@example.com")
+    async with AsyncSessionLocal() as db:
+        member = Member(first_name="Anna", last_name="Allein")
+        db.add(member)
+        await db.commit()
+    assert "Write to this member" not in (await client.get(f"/members/{member.id}")).text
