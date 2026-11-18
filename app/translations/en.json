@@ -3560,6 +3560,7 @@
     "detail": {
       "back": "All notes",
       "download": "Download .md",
+      "download_pdf": "Download PDF",
       "edit": "Edit",
       "delete": "Delete note",
       "delete_confirm": "Delete this note? Its file in the cloud is deleted too.",

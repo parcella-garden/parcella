@@ -10,6 +10,7 @@ import base64
 import binascii
 import urllib.parse
 from datetime import date
+from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
@@ -19,12 +20,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.announcement_utils import render_markdown_to_html
 from app.bookmark_import import MAX_BOOKMARK_FILE_BYTES, parse_bookmark_file
+from app.branding import load_branding
 from app.cloud_storage import CloudStorageError
 from app.database import get_db
-from app.i18n import AVAILABLE_LANGUAGES, t_for
+from app.i18n import AVAILABLE_LANGUAGES, load_current_language, t_for
 from app.models import Note, TaxonomyCategory, TaxonomyTag
 from app.module_flags import require_module
 from app.note_files import render_note_file, slugify
+from app.note_pdf import render_note_pdf
+from app.pdf_chrome import load_org_footer_context
 from app.permissions import has_permission, require_permission
 from app.security_headers import content_disposition
 from app.services.errors import ServiceError
@@ -394,6 +398,24 @@ async def note_download(note_id: str, request: Request, db: AsyncSession = Depen
     return Response(
         content.encode("utf-8"), media_type="text/markdown; charset=utf-8",
         headers={"Content-Disposition": content_disposition(filename)},
+    )
+
+
+@router.get("/{note_id}/pdf")
+async def note_pdf(note_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    """The note as a PDF with the club's header and footer (issue #343,
+    app/note_pdf.py). Same read permission as the .md download."""
+    await require_permission(request, db, MODULE, "read")
+    note = await _note_or_404(request, db, note_id)
+    branding = await load_branding(db)
+    logo_path = Path("app" + branding["logo_url"]) if branding["logo_url"] else None
+    language = await load_current_language(db)
+    footer_context = await load_org_footer_context(db, branding["club_name"])
+    pdf_bytes = render_note_pdf(note.title, note.body_markdown, footer_context, logo_path, language)
+    stem = (note.cloud_filename or "").rsplit("/", 1)[-1].removesuffix(".md") or f"{note.note_date:%Y%m%d}-{slugify(note.title)}"
+    return Response(
+        pdf_bytes, media_type="application/pdf",
+        headers={"Content-Disposition": content_disposition(f"{stem}.pdf")},
     )
 
 

@@ -3560,6 +3560,7 @@
     "detail": {
       "back": "Wszystkie notatki",
       "download": "Pobierz .md",
+      "download_pdf": "Pobierz PDF",
       "edit": "Edytuj",
       "delete": "Usuń notatkę",
       "delete_confirm": "Usunąć tę notatkę? Jej plik w chmurze również zostanie usunięty.",

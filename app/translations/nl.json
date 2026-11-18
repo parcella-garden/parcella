@@ -3560,6 +3560,7 @@
     "detail": {
       "back": "Alle notities",
       "download": ".md downloaden",
+      "download_pdf": "PDF downloaden",
       "edit": "Bewerken",
       "delete": "Notitie verwijderen",
       "delete_confirm": "Deze notitie verwijderen? Het bestand in de cloud wordt ook verwijderd.",

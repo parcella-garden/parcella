@@ -3560,6 +3560,7 @@
     "detail": {
       "back": "Všetky poznámky",
       "download": "Stiahnuť .md",
+      "download_pdf": "Stiahnuť PDF",
       "edit": "Upraviť",
       "delete": "Zmazať poznámku",
       "delete_confirm": "Zmazať túto poznámku? Zmaže sa aj jej súbor v cloude.",
