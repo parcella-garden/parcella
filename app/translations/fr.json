@@ -3560,6 +3560,7 @@
     "detail": {
       "back": "Toutes les notes",
       "download": "Télécharger .md",
+      "download_pdf": "Télécharger le PDF",
       "edit": "Modifier",
       "delete": "Supprimer la note",
       "delete_confirm": "Supprimer cette note ? Son fichier dans le cloud sera également supprimé.",

@@ -8,9 +8,11 @@ off pushed (or kept as a conflict copy) later. Since issue #311 (ADR
 0127) the file holds only the text: metadata edits never touch the
 cloud, old headers are stripped, renamed files are relinked by content.
 """
+import io
 from datetime import date, datetime, timezone
 
 import pytest
+from pypdf import PdfReader
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
@@ -168,6 +170,37 @@ async def test_rendering_is_sanitized_and_preview_uses_the_same_sanitizer(client
     assert "<strong>fett</strong>" in html and "script" not in html
 
 
+async def test_pdf_download_has_the_club_chrome_and_the_notes_own_title(client, admin_user):
+    """Issue #343: the note as a PDF with the shared header/footer; the
+    note's H1 is the title, a note without one gets its title instead."""
+    async with AsyncSessionLocal() as db:
+        db.add_all([
+            ClubSetting(key="verein_name", value="KGV Testgarten", description="test"),
+            ClubSetting(key="verein_ort", value="Leipzig", description="test"),
+        ])
+        await db.commit()
+    await web_login(client, "admin@example.com")
+    note_id = await _create(client, body_markdown="# Protokoll MV\n\n<script>alert(1)</script>\n\n| TOP | Ergebnis |\n|---|---|\n| 1 | angenommen |")
+    assert f"/notes/{note_id}/pdf" in (await client.get(f"/notes/{note_id}")).text
+
+    response = await client.get(f"/notes/{note_id}/pdf")
+    assert response.status_code == 200 and response.headers["content-type"] == "application/pdf"
+    assert "filename*=UTF-8''20260304-vorstandssitzung-marz.pdf" in response.headers["content-disposition"]
+    text = "".join(_pdf_text(response.content).split())
+    assert "KGVTestgarten" in text and "Leipzig" in text  # header + footer
+    assert "ProtokollMV" in text and "angenommen" in text
+    assert "VorstandssitzungMärz" not in text  # the H1 is the title, no extra one
+    assert "alert" not in text
+
+    untitled = await _create(client, title="Ohne Überschrift", body_markdown="Nur Text.")
+    text = "".join(_pdf_text((await client.get(f"/notes/{untitled}/pdf")).content).split())
+    assert "OhneÜberschrift" in text and "NurText." in text
+
+
+def _pdf_text(pdf_bytes: bytes) -> str:
+    return "\n".join(page.extract_text() for page in PdfReader(io.BytesIO(pdf_bytes)).pages)
+
+
 async def test_taxonomy_page_rename_translate_delete(client, admin_user):
     category = await _category("Board meeting")
     await web_login(client, "admin@example.com")
@@ -207,8 +240,10 @@ async def test_permissions_follow_the_group_matrix(client, admin_user):
     await web_login(client, "nobody@example.com")
     assert (await client.get("/notes/")).status_code == 403
     assert (await client.get(f"/notes/{note_id}")).status_code == 403
+    assert (await client.get(f"/notes/{note_id}/pdf")).status_code == 403
 
     await web_login(client, "reader@example.com")
+    assert (await client.get(f"/notes/{note_id}/pdf")).status_code == 200
     assert (await client.get("/notes/")).status_code == 200
     detail = await client.get(f"/notes/{note_id}")
     assert detail.status_code == 200 and f"/notes/{note_id}/edit" not in detail.text

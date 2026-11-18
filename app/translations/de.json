@@ -3560,6 +3560,7 @@
     "detail": {
       "back": "Alle Notizen",
       "download": ".md herunterladen",
+      "download_pdf": "PDF herunterladen",
       "edit": "Bearbeiten",
       "delete": "Notiz löschen",
       "delete_confirm": "Diese Notiz löschen? Ihre Datei in der Cloud wird ebenfalls gelöscht.",

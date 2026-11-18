@@ -47,13 +47,20 @@ file later). A partial unique index keeps one live note per file name.
   cloud file: text only), `render_note_file()` (the download, with a
   front-matter header), the lenient parser for files from elsewhere,
   file names, hashes, `clean_source_url()` (http/https only). Pure, no I/O.
+- `app/note_pdf.py` -- the note as a PDF (issue #343): the sanitized
+  body inside the shared page chrome of every formal PDF
+  (`app/pdf_chrome.py`, ADR 0043: logo + club name header, club /
+  register / bank footer, "Page X of Y"). The note's own H1 is the
+  title; only a note without an H1 gets its title added as one.
+  WeasyPrint fetches nothing (data: URIs only), so remote images in a
+  note are left out of the PDF.
 - `app/bookmark_import.py` -- parser for the standard bookmark export
   file (Netscape HTML). Pure, no I/O, never fetches a page.
 - `app/services/notes.py` -- taxonomy CRUD, `NoteFilter`
   (search/filter/sort), create/update/delete, `refresh_note`,
   `sync_from_cloud`. Shared by both routers (ADR 0070).
 - `app/routers/notes.py` -- web UI under `/notes` (list, detail, form,
-  `.md` download, `/notes/taxonomy`, `POST /notes/preview`,
+  `.md` download, `/notes/{id}/pdf`, `/notes/taxonomy`, `POST /notes/preview`,
   `POST /notes/sync`, `/notes/import/bookmarks` with `/preview` and
   `/finalize`).
 - `app/routers/api_notes.py` -- REST API under `/api/v1/notes`
@@ -126,6 +133,9 @@ file later). A partial unique index keeps one live note per file name.
   texts renamed at once, come back as new notes (ADR 0127).
 - The taxonomy page lives under `/notes` until the knowledge base (#285)
   gives it a neutral home.
+- The PDF shows no remote images (nothing is fetched while rendering)
+  and has no API endpoint yet; it renders the body as stored, without
+  pulling the cloud file first (same as the `.md` download).
 - Not yet on the website: publishing notes (or knowledge base articles)
   is #285's job.
 

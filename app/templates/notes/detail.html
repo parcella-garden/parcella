@@ -6,6 +6,7 @@
 <div class="d-flex gap-2 flex-wrap">
     <a href="/notes/" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{{ t('notes.detail.back') }}</a>
     <a href="/notes/{{ note.id }}/download" class="btn btn-sm btn-outline-secondary"><i class="bi bi-filetype-md me-1"></i>{{ t('notes.detail.download') }}</a>
+    <a href="/notes/{{ note.id }}/pdf" class="btn btn-sm btn-outline-secondary"><i class="bi bi-filetype-pdf me-1"></i>{{ t('notes.detail.download_pdf') }}</a>
     {% if can_write %}
     <a href="/notes/{{ note.id }}/edit" class="btn btn-sm btn-primary"><i class="bi bi-pencil me-1"></i>{{ t('notes.detail.edit') }}</a>
     {% endif %}
