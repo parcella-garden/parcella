@@ -1218,7 +1218,9 @@
       "csv_import_more_skipped": " (en {count} meer)",
       "status_inactive": "Uitgeschakeld",
       "filter_all": "Alle",
-      "filter_active": "Actief"
+      "filter_active": "Actief",
+      "map_field_factor": "Factor",
+      "csv_import_skip_reason_invalid_factor": "ongeldige factor"
     },
     "point_form": {
       "title_new": "Nieuw {medium} meetpunt",
@@ -1240,7 +1242,9 @@
       "label_installed_at": "Geïnstalleerd op",
       "label_initial_reading": "Beginstand",
       "cancel": "Annuleren",
-      "button_create": "Meetpunt aanmaken"
+      "button_create": "Meetpunt aanmaken",
+      "label_factor": "Factor",
+      "factor_help": "Vermenigvuldiger van de display naar het echte verbruik, bijv. 20 bij een meter met stroomtransformatoren. Meestal 1."
     },
     "point_detail": {
       "back": "Terug",
@@ -1295,7 +1299,10 @@
       "deactivate_since_label": "Uitschakelen per",
       "deactivate_button": "Uitschakelen",
       "deactivate_help": "Hier een tijd geen levering? Een uitgeschakeld meetpunt valt uit de standeninvoer en de telling van ontbrekende standen. Meters en standen blijven bewaard.",
-      "activate_button": "Weer inschakelen"
+      "activate_button": "Weer inschakelen",
+      "label_factor": "Factor",
+      "factor_active_help": "Standen worden ingevoerd zoals de display ze toont; het verbruik wordt met {factor} vermenigvuldigd.",
+      "factor_edit_help": "Vermenigvuldigt het verbruik van dit meetpunt in het meterbeheer (bijv. 20 bij een meter met stroomtransformatoren), ook voor vorige jaren. Meestal 1. Facturen veranderen niet."
     },
     "readings_list": {
       "title_suffix": " stand",
@@ -1389,7 +1396,8 @@
       "overall_plausibility_evaluation": "Verdeeld verbruik ({total} {unit}) overschrijdt hoofdmeterverbruik ({main} {unit}).",
       "no_active_meter": "Geen actieve meter voor dit meetpunt",
       "configuration_not_found": "Prijsconfiguratie niet gevonden",
-      "configuration_year_exists": "Er bestaat al een andere prijsconfiguratie voor {year}."
+      "configuration_year_exists": "Er bestaat al een andere prijsconfiguratie voor {year}.",
+      "invalid_factor": "De factor moet een getal groter dan 0 zijn (tot 100.000, hoogstens vier decimalen)."
     },
     "warnings": {
       "reading_below_previous": "De meterstand ({new_value}) is lager dan de vorige stand ({previous_value}) van dezelfde meter. Is een eerdere stand geschat? Controleer dit a.u.b.",

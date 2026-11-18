@@ -128,6 +128,7 @@
                         <td>
                             {% if a.current_meter %}
                             <code>{{ a.current_meter.number }}</code>
+                            {% if a.factor != 1 %}<span class="badge bg-info-subtle text-info-emphasis ms-1" title="{{ t('metering.point_detail.label_factor') }}">&times;{{ a.factor | point_factor }}</span>{% endif %}
                             {% else %}
                             <span class="text-muted">{{ t('metering.points_list.no_active_meter') }}</span>
                             {% endif %}

@@ -1218,7 +1218,9 @@
       "csv_import_more_skipped": " (a {count} ďalších)",
       "status_inactive": "Vypnuté",
       "filter_all": "Všetky",
-      "filter_active": "Aktívne"
+      "filter_active": "Aktívne",
+      "map_field_factor": "Násobiteľ",
+      "csv_import_skip_reason_invalid_factor": "neplatný násobiteľ"
     },
     "point_form": {
       "title_new": "Nový merací bod pre {medium}",
@@ -1240,7 +1242,9 @@
       "label_installed_at": "Inštalovaný dňa",
       "label_initial_reading": "Počiatočný odpočet",
       "cancel": "Zrušiť",
-      "button_create": "Vytvoriť merací bod"
+      "button_create": "Vytvoriť merací bod",
+      "label_factor": "Násobiteľ",
+      "factor_help": "Násobiteľ medzi údajom na displeji a skutočnou spotrebou, napr. 20 pri meradle s meracími transformátormi. Zvyčajne 1."
     },
     "point_detail": {
       "back": "Späť",
@@ -1295,7 +1299,10 @@
       "deactivate_since_label": "Vypnúť od",
       "deactivate_button": "Vypnúť",
       "deactivate_help": "Dočasne bez dodávky? Vypnuté odberné miesto vypadne zo zadávania odpočtov a z počtu chýbajúcich odpočtov. Meradlá a odpočty zostávajú.",
-      "activate_button": "Znova zapnúť"
+      "activate_button": "Znova zapnúť",
+      "label_factor": "Násobiteľ",
+      "factor_active_help": "Stavy sa zapisujú tak, ako ich ukazuje displej; spotreba sa násobí {factor}.",
+      "factor_edit_help": "Násobí spotrebu tohto odberného miesta v evidencii meradiel (napr. 20 pri meradle s meracími transformátormi), aj za minulé roky. Zvyčajne 1. Faktúry to neovplyvní."
     },
     "readings_list": {
       "title_suffix": " odpočet",
@@ -1389,7 +1396,8 @@
       "overall_plausibility_evaluation": "Rozdelená spotreba ({total} {unit}) presahuje spotrebu hlavného merača ({main} {unit}).",
       "no_active_meter": "Pre tento merací bod neexistuje aktívny merač",
       "configuration_not_found": "Konfigurácia ceny nebola nájdená",
-      "configuration_year_exists": "Pre rok {year} už existuje iná konfigurácia ceny."
+      "configuration_year_exists": "Pre rok {year} už existuje iná konfigurácia ceny.",
+      "invalid_factor": "Násobiteľ musí byť číslo väčšie ako 0 (do 100 000, najviac štyri desatinné miesta)."
     },
     "warnings": {
       "reading_below_previous": "Odpočet merača ({new_value}) je menší ako predchádzajúci odpočet ({previous_value}) toho istého merača. Bol skorší odpočet odhadnutý? Skontrolujte to, prosím.",

@@ -40,7 +40,8 @@ from app.permissions import require_permission
 from app.i18n import t_for, translate, DEFAULT_LANGUAGE
 from app.module_flags import require_module
 from app.meter_utils import (
-    calculate_consumption, check_monotonicity, total_consumption_for_type, reading_before_year
+    check_monotonicity, total_consumption_for_type, reading_before_year,
+    parse_point_factor, point_consumption,
 )
 from app.services.metering import (
     create_metering_point, update_metering_point, delete_metering_point, exchange_meter, update_meter,
@@ -50,6 +51,8 @@ from app.services.metering import (
 
 from app.templating import templates
 templates.env.filters["fmt"] = lambda value, places: f"{float(value):.{places}f}"
+# Issue #341: a metering point factor without trailing zeros ("20", "0.5").
+templates.env.filters["point_factor"] = lambda value: format(Decimal(str(value if value is not None else 1)).normalize(), "f")
 
 
 def _parse_number(value: str, decimal_places: int) -> Optional[Decimal]:
@@ -107,7 +110,7 @@ CSV_IMPORT_PREVIEW_ROWS = 5
 
 POINTS_IMPORT_TARGET_FIELDS = [
     "type", "parcel_number", "label", "meter_number",
-    "installed_on", "calibrated_until", "initial_reading",
+    "installed_on", "calibrated_until", "initial_reading", "factor",
 ]
 POINTS_IMPORT_FIELD_ALIASES = {
     # Deliberately NOT "art" -- a real export's "Art" column is at least
@@ -122,6 +125,7 @@ POINTS_IMPORT_FIELD_ALIASES = {
     "installed_on": {"installed on", "eingebaut am", "installationsdatum"},
     "calibrated_until": {"calibrated until", "geeicht bis", "eichdatum"},
     "initial_reading": {"initial reading", "anfangszählerstand", "anfangsstand", "anfangszaehlerstand"},
+    "factor": {"factor", "faktor", "multiplier", "wandlerfaktor", "multiplikator"},
 }
 
 READINGS_IMPORT_TARGET_FIELDS = [
@@ -375,9 +379,13 @@ def create_metering_router(
         calibrated_until: str = Form(""),
         installed_at: str = Form(""),
         initial_reading: str = Form("0"),
+        factor: str = Form("1"),
         db: AsyncSession = Depends(get_db),
     ):
         await require_permission(request, db, modul_name, "write")
+        parsed_factor = parse_point_factor(factor)
+        if parsed_factor is None:
+            raise HTTPException(status_code=400, detail=t_for(request, "metering.errors.invalid_factor"))
 
         metering_point = await create_metering_point(
             db, medium,
@@ -386,6 +394,7 @@ def create_metering_router(
             calibrated_until=(int(calibrated_until) if calibrated_until.strip() else None),
             installed_at=(date.fromisoformat(installed_at) if installed_at.strip() else None),
             initial_reading=(_parse_number(initial_reading, decimal_places) or Decimal("0")),
+            factor=parsed_factor,
         )
         await db.commit()
         return RedirectResponse(f"{url_prefix}/metering-points/{metering_point.id}", status_code=302)
@@ -415,7 +424,7 @@ def create_metering_router(
             for z in sorted(current_meter.readings, key=lambda z: z.year, reverse=True):
                 readings_with_consumption.append({
                     "reading": z,
-                    "consumption": calculate_consumption(current_meter, z.year),
+                    "consumption": point_consumption(metering_point, current_meter, z.year),
                     "warning": _monotonicity_warning_text(request, current_meter, z),
                 })
 
@@ -456,6 +465,7 @@ def create_metering_router(
         request: Request,
         label: str = Form(""),
         notes: str = Form(""),
+        factor: str = Form("1"),
         db: AsyncSession = Depends(get_db),
     ):
         await require_permission(request, db, modul_name, "write")
@@ -465,8 +475,17 @@ def create_metering_router(
         metering_point = result.scalar_one_or_none()
         if not metering_point:
             raise HTTPException(status_code=404)
+        parsed_factor = parse_point_factor(factor)
+        if parsed_factor is None:
+            message = t_for(request, "metering.errors.invalid_factor")
+            return RedirectResponse(
+                f"{url_prefix}/metering-points/{metering_point_id}?error={urllib.parse.quote(message)}",
+                status_code=303,
+            )
 
-        await update_metering_point(db, metering_point, label=(label.strip() or None), notes=(notes.strip() or None))
+        await update_metering_point(
+            db, metering_point, label=(label.strip() or None), notes=(notes.strip() or None), factor=parsed_factor,
+        )
         await db.commit()
         return RedirectResponse(f"{url_prefix}/metering-points/{metering_point_id}", status_code=302)
 
@@ -530,7 +549,7 @@ def create_metering_router(
         writer = csv.writer(output, delimiter=";")
         writer.writerow([
             "Type", "Parcel number", "Label", "Meter number",
-            "Installed on", "Calibrated until", "Initial reading", "Active", "Inactive since",
+            "Installed on", "Calibrated until", "Initial reading", "Active", "Inactive since", "Factor",
         ])
 
         for a in sorted(all_points, key=_metering_point_sort_key):
@@ -545,6 +564,7 @@ def create_metering_router(
                 f"{z.initial_reading:.{decimal_places}f}".replace(".", ",") if z else "",
                 "yes" if a.is_active else "no",
                 a.inactive_since.isoformat() if a.inactive_since else "",
+                format(Decimal(str(a.factor)).normalize(), "f").replace(".", ","),
             ])
 
         output.seek(0)
@@ -637,6 +657,7 @@ def create_metering_router(
         reason_exists = t_for(request, "metering.points_list.csv_import_skip_reason_exists")
         reason_invalid_type = t_for(request, "metering.points_list.csv_import_skip_reason_invalid_type")
         reason_parcel_not_found = t_for(request, "metering.points_list.csv_import_skip_reason_parcel_not_found")
+        reason_invalid_factor = t_for(request, "metering.points_list.csv_import_skip_reason_invalid_factor")
 
         for row_number, values in enumerate(rows, start=2):
             parcel_number = (values.get("parcel_number") or "").strip().upper()
@@ -677,13 +698,18 @@ def create_metering_router(
             calibrated_until_str = (values.get("calibrated_until") or "").strip()
             installed_at = _parse_date_flexible(values.get("installed_on") or "")
             initial_reading = _parse_number(values.get("initial_reading") or "", decimal_places) or Decimal("0")
+            factor = parse_point_factor(values.get("factor"))
+            if factor is None:
+                skipped += 1
+                skip_details.append(f"{identifier}: {reason_invalid_factor}")
+                continue
 
             await create_metering_point(
                 db, medium,
                 type=point_type.value, parcel_id=parcel_id, label=(label or None),
                 number=(values.get("meter_number") or "").strip(),
                 calibrated_until=(int(calibrated_until_str) if calibrated_until_str else None),
-                installed_at=installed_at, initial_reading=initial_reading,
+                installed_at=installed_at, initial_reading=initial_reading, factor=factor,
             )
             existing_keys.add(key)
             created += 1
@@ -1151,7 +1177,7 @@ def create_metering_router(
             rows = []
             for a in filtered:
                 z = a.current_meter
-                consumption = calculate_consumption(z, year) if z else None
+                consumption = point_consumption(a, z, year)
                 rows.append({"metering_point": a, "meter": z, "consumption": consumption})
             return rows
 
@@ -1219,7 +1245,7 @@ def create_metering_router(
             if not z:
                 continue
             entry = next((zs for zs in z.readings if zs.year == year), None)
-            consumption = calculate_consumption(z, year)
+            consumption = point_consumption(a, z, year)
             writer.writerow([
                 type_label.get(a.type, a.type.value),
                 a.display_name,

@@ -97,6 +97,36 @@ initial_reading) -- no new row, no `removed_at`, no history entry.
 Reach for exchange only for an actual physical meter swap; reach for
 edit for "I mistyped this."
 
+## Metering point factor (issue #341)
+
+Some meters show only a fraction of what really flows through them -- a
+bulk buyer's main electricity meter behind current transformers counts
+1/20 of the energy, so its display has to be multiplied by 20. Each
+`MeteringPoint` (water or electricity) has a `factor`
+(`Numeric(10, 4)`, default 1):
+
+- **Readings stay what the display shows.** Monotonicity checks, the
+  initial reading and the reading history are all in display units.
+- **Metering's consumption is `(reading - previous) * factor`**:
+  `point_consumption()` / `total_consumption_for_type()` in
+  `app/meter_utils.py` pass the point's factor to
+  `calculate_consumption()`. That covers the detail page, the evaluation
+  (main meter vs. parcels and club points), the overview's plausibility
+  warning, the consumption CSV and the metering REST API. With a factor
+  other than 1 the result is rounded to 0.01.
+- **Metering only** (ADR 0138): `calculate_consumption()` without a
+  factor returns the raw difference, and that is what usage-based
+  invoice items (`app/invoice_generation.py`) and every other module
+  get. The factor never leaves the metering module.
+- On the point, so it survives a meter exchange; changing it applies to
+  all of the point's years.
+- Set it when creating a point or in the point's edit box; the API
+  takes `factor` on create and `PUT /metering-points/{id}`. The
+  metering points CSV has a "Factor" column (blank = 1). Values must be
+  greater than 0, at most 100,000, with up to four decimals.
+- A factor other than 1 shows as a "x20" badge in the list, on the
+  point's details and above the consumption column.
+
 ## Switching a metering point off (issue #336)
 
 A connection without supply for a while (water shut off, a plot's power

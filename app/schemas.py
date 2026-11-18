@@ -541,11 +541,16 @@ class MeteringPointCreate(MeteringPointBase):
     calibrated_until: Optional[int] = None
     installed_at: Optional[date] = None
     initial_reading: Decimal = Decimal("0")
+    factor: Decimal = Field(
+        Decimal("1"), gt=0, le=100000, decimal_places=4,
+        description="Multiplier from display to real consumption, e.g. 20 for a current-transformer meter (issue #341)",
+    )
 
 
 class MeteringPointUpdate(BaseModel):
     label: Optional[str] = None
     notes: Optional[str] = None
+    factor: Optional[Decimal] = Field(None, gt=0, le=100000, decimal_places=4)
     is_active: Optional[bool] = Field(
         None, description="false switches the point off for a while (issue #336); true switches it back on",
     )
@@ -569,6 +574,7 @@ class MeteringPointOut(MeteringPointBase):
     medium: str
     is_active: bool = True
     inactive_since: Optional[date] = None
+    factor: Decimal = Decimal("1")
 
 
 class MeteringPointDetailOut(MeteringPointOut):

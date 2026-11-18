@@ -76,6 +76,14 @@
                     </dd>
                     {% endif %}
 
+                    {% if metering_point.factor != 1 %}
+                    <dt class="col-sm-4 text-muted">{{ t('metering.point_detail.label_factor') }}</dt>
+                    <dd class="col-sm-8">
+                        &times;{{ metering_point.factor | point_factor }}
+                        <div class="form-text mt-0">{{ t('metering.point_detail.factor_active_help', factor=(metering_point.factor | point_factor)) }}</div>
+                    </dd>
+                    {% endif %}
+
                     {% if metering_point.notes %}
                     <dt class="col-sm-4 text-muted">{{ t('metering.point_detail.label_notes') }}</dt>
                     <dd class="col-sm-8">{{ metering_point.notes }}</dd>
@@ -92,6 +100,13 @@
                            {% if metering_point.type.value == 'PARCEL' %}placeholder="{{ t('metering.point_detail.label_placeholder') }}"{% endif %}>
                     <label class="form-label fw-semibold" style="font-size: 0.85rem;">{{ t('metering.point_detail.label_notes') }}</label>
                     <textarea name="notes" class="form-control form-control-sm mb-2" rows="2">{{ metering_point.notes or '' }}</textarea>
+                    <label class="form-label fw-semibold" style="font-size: 0.85rem;" for="point-factor">{{ t('metering.point_detail.label_factor') }}</label>
+                    <div class="input-group input-group-sm" style="max-width: 11rem;">
+                        <span class="input-group-text">&times;</span>
+                        <input type="text" id="point-factor" name="factor" class="form-control" inputmode="decimal"
+                               value="{{ metering_point.factor | point_factor }}">
+                    </div>
+                    <div class="form-text mb-2">{{ t('metering.point_detail.factor_edit_help') }}</div>
                     <button type="submit" class="btn btn-sm btn-outline-primary">
                         <i class="bi bi-check-lg me-1"></i>{{ t('metering.point_detail.save_button') }}
                     </button>
@@ -257,7 +272,7 @@
                                 <th>{{ t('metering.point_detail.col_year') }}</th>
                                 <th>{{ t('metering.point_detail.col_date') }}</th>
                                 <th>{{ t('metering.point_detail.col_reading', unit=unit) }}</th>
-                                <th>{{ t('metering.point_detail.col_consumption', unit=unit) }}</th>
+                                <th>{{ t('metering.point_detail.col_consumption', unit=unit) }}{% if metering_point.factor != 1 %} <span class="badge bg-info-subtle text-info-emphasis" title="{{ t('metering.point_detail.label_factor') }}">&times;{{ metering_point.factor | point_factor }}</span>{% endif %}</th>
                                 <th>{{ t('metering.point_detail.col_note') }}</th>
                                 <th></th>
                             </tr>

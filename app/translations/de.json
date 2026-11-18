@@ -1218,7 +1218,9 @@
       "csv_import_more_skipped": " (und {count} weitere)",
       "status_inactive": "Abgeschaltet",
       "filter_all": "Alle",
-      "filter_active": "Aktiv"
+      "filter_active": "Aktiv",
+      "map_field_factor": "Faktor",
+      "csv_import_skip_reason_invalid_factor": "ungültiger Faktor"
     },
     "point_form": {
       "title_new": "Neuer {medium}-Zählpunkt",
@@ -1240,7 +1242,9 @@
       "label_installed_at": "Eingebaut am",
       "label_initial_reading": "Anfangsstand",
       "cancel": "Abbrechen",
-      "button_create": "Zählpunkt anlegen"
+      "button_create": "Zählpunkt anlegen",
+      "label_factor": "Faktor",
+      "factor_help": "Multiplikator von der Anzeige zum echten Verbrauch, z. B. 20 bei einem Wandlerzähler. Meist 1."
     },
     "point_detail": {
       "back": "Zurück",
@@ -1295,7 +1299,10 @@
       "deactivate_since_label": "Abschalten ab",
       "deactivate_button": "Abschalten",
       "deactivate_help": "Hier vorübergehend keine Versorgung? Ein abgeschalteter Zählpunkt fällt aus der Zählerstandserfassung und der Zählung fehlender Stände. Zähler und Stände bleiben erhalten.",
-      "activate_button": "Wieder einschalten"
+      "activate_button": "Wieder einschalten",
+      "label_factor": "Faktor",
+      "factor_active_help": "Zählerstände werden so eingetragen, wie sie auf der Anzeige stehen; der Verbrauch wird mit {factor} multipliziert.",
+      "factor_edit_help": "Multipliziert den Verbrauch dieses Zählpunkts in der Zählerverwaltung (z. B. 20 bei einem Wandlerzähler), auch für vergangene Jahre. Meist 1. Rechnungen sind nicht betroffen."
     },
     "readings_list": {
       "title_suffix": "-Ablesung",
@@ -1389,7 +1396,8 @@
       "overall_plausibility_evaluation": "Verteilverbrauch ({total} {unit}) übersteigt Hauptzähler-Verbrauch ({main} {unit}).",
       "no_active_meter": "Kein aktiver Zähler für diesen Zählpunkt vorhanden",
       "configuration_not_found": "Preiskonfiguration nicht gefunden",
-      "configuration_year_exists": "Für {year} existiert bereits eine andere Preiskonfiguration."
+      "configuration_year_exists": "Für {year} existiert bereits eine andere Preiskonfiguration.",
+      "invalid_factor": "Der Faktor muss eine Zahl größer als 0 sein (bis 100.000, höchstens vier Nachkommastellen)."
     },
     "warnings": {
       "reading_below_previous": "Der Zählerstand ({new_value}) ist kleiner als der vorherige Stand ({previous_value}) desselben Zählers. Wurde ein früherer Stand geschätzt? Bitte prüfen.",
