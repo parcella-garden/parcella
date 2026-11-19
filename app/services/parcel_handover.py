@@ -194,8 +194,12 @@ async def hand_over_parcel(db: AsyncSession, plan: HandoverPlan, *, acting_user:
         applicant = tenant.applicant
         member = tenant.existing_member
         if member is None:
+            # Issue #357: an applicant always gave an email address, so the
+            # new tenant gets club mail (and invoices) by email, like any
+            # other new member. Without it the invoice only went to print.
             member = await create_member(
                 db, first_name=applicant.first_name, last_name=applicant.last_name, member_since=day,
+                email_notifications=True,
             )
             await add_email(db, member.id, address=applicant.email, is_primary=True)
             if applicant.phone:
