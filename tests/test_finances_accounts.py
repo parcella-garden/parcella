@@ -168,8 +168,13 @@ async def test_deleting_account_sets_payment_account_null_not_cascade(client, ad
         "amount": "50.00", "paid_on": "2027-08-15", "note": "", "account_id": account.id,
     })
 
+    # Issue #353: the web UI now refuses (the account has a booking) ...
     r_delete = await client.post(f"/finances/accounts/{account.id}/delete")
-    assert r_delete.status_code in (302, 303)
+    assert r_delete.status_code == 303 and "error=" in r_delete.headers["location"]
+    # ... so the schema rule (SET NULL, the payment survives) is pinned by deleting directly.
+    async with AsyncSessionLocal() as session:
+        await session.delete(await session.get(FinanceAccount, account.id))
+        await session.commit()
 
     async with AsyncSessionLocal() as session:
         deleted = await session.execute(select(FinanceAccount).where(FinanceAccount.id == account.id))

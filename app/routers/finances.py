@@ -1594,7 +1594,27 @@ async def account_list(request: Request, db: AsyncSession = Depends(get_db)):
     return templates.TemplateResponse("finances/account_list.html", {
         "request": request, "user": user, "accounts": accounts,
         "account_types": list(FinanceAccountType), "payment_sums": payment_sums,
+        "booking_counts": await _account_booking_counts(db),
     })
+
+
+async def _account_booking_counts(db: AsyncSession, account_id: Optional[str] = None) -> dict:
+    """Bookings per account: generic/imported ones plus payments recorded
+    against an invoice. Issue #353: an account with any of them can't be
+    deleted -- AccountTransaction cascades with the account, so the whole
+    ledger used to vanish."""
+    counts: dict = {}
+    for model, column in (
+        (AccountTransaction, AccountTransaction.account_id),
+        (InvoicePayment, InvoicePayment.account_id),
+        (IncomingInvoicePayment, IncomingInvoicePayment.account_id),
+    ):
+        query = select(column, func.count()).where(column.is_not(None)).group_by(column)
+        if account_id is not None:
+            query = query.where(column == account_id)
+        for key, count in (await db.execute(query)).all():
+            counts[key] = counts.get(key, 0) + count
+    return counts
 
 
 @router.post("/accounts")
@@ -1670,6 +1690,10 @@ async def account_delete(account_id: str, request: Request, db: AsyncSession = D
     result = await db.execute(select(FinanceAccount).where(FinanceAccount.id == account_id))
     account = result.scalar_one_or_none()
     if account:
+        bookings = (await _account_booking_counts(db, account.id)).get(account.id, 0)
+        if bookings:
+            message = t_for(request, "finances.account_list.delete_blocked", name=account.name, count=bookings)
+            return RedirectResponse(f"/finances/accounts?error={urlquote(message)}", status_code=303)
         await db.delete(account)
         await db.commit()
     return RedirectResponse("/finances/accounts?success=1", status_code=302)

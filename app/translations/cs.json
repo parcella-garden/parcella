@@ -2721,7 +2721,9 @@
       "col_note": "Poznámka",
       "col_total_payments": "Zaznamenané platby",
       "no_accounts": "Zatím žádné účty -- přidejte jeden výše.",
-      "delete_confirm": "Smazat tento účet? Platby přiřazené k němu zůstanou zachovány, jen bez účtu.",
+      "delete_confirm": "Smazat tento účet? Nemá žádné zaúčtování.",
+      "delete_blocked": "„{name}“ má {count} zaúčtování a nelze jej smazat. Místo toho zrušte zaškrtnutí „Aktivní“; zaúčtování zůstanou zachována.",
+      "delete_blocked_hint": "Má zaúčtování: místo toho zrušte zaškrtnutí „Aktivní“.",
       "bookings_link": "Zápisy"
     },
     "account_bookings": {
