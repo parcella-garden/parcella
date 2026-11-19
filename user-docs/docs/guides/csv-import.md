@@ -46,9 +46,9 @@ few skipped rows.
   record. Headers don't need to match exactly -- you map them in step 2.
 - **Semicolon or comma** between columns: Parcella detects which one
   your file uses.
-- **Save it as UTF-8.** Most spreadsheet programs offer "CSV UTF-8" when
-  you save. Umlauts and accents then come through correctly.
-  <!-- TODO(verify): the upload step also reads older Windows/Latin-1 files, but the final import step appears to read UTF-8 only -- a Latin-1 file may fail after the mapping screen. Confirm and fix or keep this advice. -->
+- **UTF-8 is best.** Most spreadsheet programs offer "CSV UTF-8" when
+  you save. Excel's plain "CSV" (Windows/ANSI) works too: umlauts and
+  accents come through either way.
 - **Dates** as `2026-03-15` or `15.03.2026` (also `15.03.26`).
 - **Decimal numbers** with a comma or a point: `312,5` and `312.5` both
   work. Bank amounts and meter readings may also have thousands
@@ -255,7 +255,7 @@ More: [External contacts](../modules/external-contacts.md).
 |---|---|
 | *"That CSV file appears to be empty."* | The file has no rows at all. Check that you saved the right sheet. |
 | All data ends up in one column on the mapping screen | Parcella couldn't tell the separator. Save the file again as "CSV (semicolon-separated)" or "CSV (comma-separated)". |
-| Strange characters instead of umlauts | The file isn't UTF-8. Save it again as "CSV UTF-8". |
+| Strange characters instead of umlauts | The file uses an unusual encoding (neither UTF-8 nor Windows/ANSI, e.g. from an old Mac). Save it again as "CSV UTF-8". |
 | Members skipped with "first or last name missing" | Those rows have an empty name cell, or the name column wasn't mapped. |
 | A member appears twice | The two rows differ in spelling or date of birth, so Parcella treats them as different people. Delete the duplicate by hand. |
 | Existing member's address suddenly empty | The member was updated from a row or a file without that column. See the warning in step 2; restore from your backup if needed. |

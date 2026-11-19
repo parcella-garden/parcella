@@ -366,3 +366,23 @@ async def test_member_import_never_matches_a_different_name_by_shared_email(clie
     import urllib.parse
     assert "1 newly imported, 0 updated" in urllib.parse.unquote(location)
     assert (await _get_member(anna_id)).city == "Hier"
+
+
+async def test_member_import_of_an_excel_ansi_file(client, admin_user):
+    """Issue #351: a Latin-1 file passed the preview, then crashed the final step (500)."""
+    await _web_login(client, "admin@example.com")
+    raw = "Vorname;Nachname;Ort\nJürgen;Größer;Köln\n".encode("latin-1")
+    preview = await client.post("/members/import/preview", files={"file": ("mitglieder.csv", raw, "text/csv")})
+    assert preview.status_code == 200 and "Größer" in preview.text
+    response = await client.post("/members/import/finalize", data={
+        "csv_content_b64": base64.b64encode(raw).decode("ascii"), "delimiter": ";",
+        "map_0": "first_name", "map_1": "last_name", "map_2": "city",
+    }, follow_redirects=False)
+    assert response.status_code in (302, 303)
+
+    from sqlalchemy import select
+    from app.database import AsyncSessionLocal
+    from app.models import Member
+    async with AsyncSessionLocal() as db:
+        member = (await db.execute(select(Member).where(Member.last_name == "Größer"))).scalar_one()
+    assert (member.first_name, member.city) == ("Jürgen", "Köln")

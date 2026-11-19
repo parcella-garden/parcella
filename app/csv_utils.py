@@ -75,7 +75,11 @@ def parse_mapped_csv_rows(csv_content_b64: str, delimiter: str, column_mapping: 
     consumed by the preview step. Field-level parsing (dates, numbers,
     enums, ...) is intentionally left to the caller, so there is one
     parsing implementation per field, not one per import path."""
-    text = base64.b64decode(csv_content_b64).decode("utf-8")
+    # Issue #351: the same decoding as the preview step (decode_csv_upload,
+    # UTF-8 with a Latin-1 fallback). This used to be .decode("utf-8")
+    # only, so an Excel/ANSI file with an umlaut passed the preview and
+    # the mapping, then crashed the final step with a 500.
+    text = decode_csv_upload(base64.b64decode(csv_content_b64))
     reader = csv.reader(io.StringIO(text), delimiter=delimiter)
     rows = list(reader)[1:]
     return [
