@@ -310,6 +310,11 @@ UI change -- read [user-docs/STYLE.md](./user-docs/STYLE.md) first.
   `User docs` workflow runs it on every PR touching `user-docs/`).
   Publishing happens on the release tag, or by hand via the workflow's
   "Run workflow" button for a docs-only fix.
+- **Translations** (`members.de.md` next to `members.md`, English is the
+  source): when you change an English page that has translations, update
+  them in the same PR if it's cheap, otherwise mark them "not updated
+  yet". Translated headings keep the English anchor (`{#membership}`).
+  Details in STYLE.md "Translations".
 - Docs-only PRs count as "pure docs" for the security-review rule (skip it)
   and as patch-level for the release policy.
 

@@ -108,5 +108,51 @@ mkdocs build --strict -f user-docs/mkdocs.yml # what CI runs
 
 ## Translations
 
-English is written first. Other languages (the app's de, pl, cs, sk, fr,
-nl) follow once a chapter is stable.
+English is written first and is the source. The other languages are the
+app's own: de, pl, cs, sk, fr, nl. A chapter is translated once it is
+stable. Anything not translated yet is shown in English, so a language
+never has holes.
+
+**Files.** A translation sits next to its English page with the language
+as a suffix: `modules/members.md` → `modules/members.de.md`. File names,
+folders and links stay English (`[Parcels](parcels.md)`, not
+`parcels.de.md`); the build picks the right language by itself.
+
+**Anchors.** Other pages link to headings (`members.md#membership`). A
+translated heading would get a different anchor and break those links,
+so give every translated H2/H3 its English anchor explicitly:
+
+```markdown
+## Mitgliedschaft {#membership}
+```
+
+The strict build checks this once the language is switched on.
+
+**Labels.** Use the exact UI labels from `app/translations/<lang>.json`,
+the same way English pages use `en.json`.
+
+**Screenshots.** Optional. English ones are used until a language has its
+own. To take them: `python user-docs/tools/screenshots.py --lang de`
+saves `members/list.de.png` next to `members/list.png` (and leaves the
+club's UI language on German; switch it back before English shots).
+
+**Switching a language on.** In `mkdocs.yml`, set the language's
+`build: true` with its first translated pages, and add its menu titles
+under `nav_translations`. Until then the language isn't built at all, so
+the live site never offers a language that is English behind the switch.
+
+**Keeping translations current.** When an English page changes, update
+its translations in the same PR if that's cheap (a renamed label, a new
+field). If not, put this at the top of each translation that's now
+behind, in that language, and remove it when the page is caught up:
+
+```markdown
+!!! warning "Noch nicht aktualisiert"
+    Diese Seite beschreibt einen älteren Stand. Die englische Fassung
+    ist aktuell (Sprache oben umschalten).
+```
+
+(English template for other languages: "Not updated yet" / "This page
+describes an older version. The English version is current (switch the
+language at the top)." No link: inside a translation, `members.md`
+leads to the translated page itself.)

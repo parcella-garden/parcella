@@ -6,6 +6,14 @@ every module switched on (see tools/dev_server.sh):
 
     python user-docs/tools/screenshots.py                  # everything
     python user-docs/tools/screenshots.py --only 'members/*'
+    python user-docs/tools/screenshots.py --lang de        # German UI -> members/detail.de.png
+
+English screenshots are the default (members/detail.png). With --lang
+other than en, each shot is saved with that language as a suffix next to
+the English one (issue #365); the German docs then show detail.de.png
+and fall back to detail.png where no German shot exists. The --lang
+switch changes the club's UI language on the instance and leaves it
+there, so switch it back (or run --lang en last) before English shots.
 
 Manifest entries (see STYLE.md):
 
@@ -51,6 +59,7 @@ OUT_DIR = TOOLS_DIR.parent / "docs" / "assets" / "screenshots"
 
 VIEWPORT = {"width": 1440, "height": 900}
 TIMEOUT_MS = 15_000
+DEFAULT_LANG = "en"  # the docs' default language: its screenshots carry no suffix
 SYSTEM_BROWSERS = ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser"]
 
 # No animations/blinking caret, so shots are reproducible (and Bootstrap
@@ -226,7 +235,15 @@ def follow_link(page, base_url: str, pattern: str) -> str:
     raise ShotError(f"no link on {urlparse(page.url).path} matches {pattern!r}")
 
 
-def shoot(page, base_url: str, entry: dict, logged_in: bool, optimize: bool) -> Path:
+def shot_path(name: str, lang: str) -> Path:
+    """English is the default image (members/detail.png); any other
+    language gets a suffix (members/detail.de.png), which the docs'
+    i18n plugin (suffix structure) picks for that language's pages."""
+    suffix = "" if lang == DEFAULT_LANG else f".{lang}"
+    return OUT_DIR / f"{name}{suffix}.png"
+
+
+def shoot(page, base_url: str, entry: dict, logged_in: bool, optimize: bool, lang: str = "en") -> Path:
     if "url" in entry:
         goto(page, base_url, str(entry["url"]), logged_in)
     else:
@@ -251,7 +268,7 @@ def shoot(page, base_url: str, entry: dict, logged_in: bool, optimize: bool) -> 
         page.wait_for_timeout(300)  # let modals/dropdowns settle
 
     page.evaluate("document.fonts && document.fonts.ready")
-    out = OUT_DIR / f"{entry['name']}.png"
+    out = shot_path(entry["name"], lang)
     out.parent.mkdir(parents=True, exist_ok=True)
     page.screenshot(path=str(out), full_page=bool(entry.get("full_page", False)))
     if optimize:
@@ -370,9 +387,9 @@ def main() -> int:
                 if entry.get("logout"):
                     if anon_page is None:
                         anon_page = new_context().new_page()
-                    out = shoot(anon_page, base_url, entry, False, args.optimize)
+                    out = shoot(anon_page, base_url, entry, False, args.optimize, args.lang)
                 else:
-                    out = shoot(page, base_url, entry, True, args.optimize)
+                    out = shoot(page, base_url, entry, True, args.optimize, args.lang)
                 ok.append(name)
                 print(f"OK    {name} -> {out.relative_to(TOOLS_DIR.parent)}")
             except ShotError as e:

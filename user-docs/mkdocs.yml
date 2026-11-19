@@ -64,6 +64,42 @@ markdown_extensions:
 
 plugins:
   - search
+  # Translations (issue #365, see STYLE.md "Translations"): suffix
+  # structure, so members.md is English and members.de.md its German
+  # version, side by side; screenshots the same way (list.de.png).
+  # A page or screenshot without a translation falls back to English.
+  # A language is only built (build: true) once it has its first
+  # translated pages, so the live site never offers a language that is
+  # English behind the switcher. Nav titles per language go under
+  # nav_translations when that happens.
+  - i18n:
+      docs_structure: suffix
+      fallback_to_default: true
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: de
+          name: Deutsch
+          build: false
+        - locale: pl
+          name: Polski
+          build: false
+        - locale: cs
+          name: Čeština
+          build: false
+        - locale: sk
+          name: Slovenčina
+          build: false
+        - locale: fr
+          name: Français
+          build: false
+        - locale: nl
+          name: Nederlands
+          build: false
 
 validation:
   nav:
