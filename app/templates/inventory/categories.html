@@ -50,6 +50,8 @@
                     <td class="fw-semibold">{{ category.name }}</td>
                     <td class="text-muted" style="font-size: 0.85rem;">{{ category.description or '' }}</td>
                     <td class="text-end">
+                        {#- Issue #364: same check as the route (delete permission). -#}
+                        {% if has_perm(request, 'inventory', 'delete') %}
                         <form method="post" action="/inventory/categories/{{ category.id }}/delete" class="d-inline"
                               onsubmit="return confirm({{ t('inventory.categories.delete_confirm')|tojson|forceescape }});">
                             {{ csrf_field() }}
@@ -57,6 +59,7 @@
                                 <i class="bi bi-trash"></i>
                             </button>
                         </form>
+                        {% endif %}
                     </td>
                 </tr>
                 {% else %}

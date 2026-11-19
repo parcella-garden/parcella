@@ -1272,10 +1272,17 @@ async def evaluation_export_csv(
 
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")
+    # Issue #364: headers and yes/no in the club's language (were German),
+    # the same labels as the evaluation page.
+    t = lambda key: t_for(request, key)
+    yes, no = t("common.yes"), t("common.no")
     writer.writerow([
-        "Parcel", "Pächter", "Pflicht (h)", "Geleistet (h)",
-        "Sponsorship (h)", "Übertragen (h)", "Gesamt (h)", "Offen (h)",
-        "Schuldbetrag (EUR)", "Befreit", "Erfüllt"
+        t("work_hours.evaluation.col_parcel"), t("work_hours.evaluation.col_tenant"),
+        f'{t("work_hours.evaluation.col_required")} (h)', f'{t("work_hours.evaluation.col_sessions")} (h)',
+        f'{t("work_hours.evaluation.col_sponsorship")} (h)', f'{t("work_hours.evaluation.col_transfers")} (h)',
+        f'{t("work_hours.evaluation.col_total")} (h)', f'{t("work_hours.evaluation.col_open")} (h)',
+        f'{t("work_hours.evaluation.col_debt")} (EUR)', t("work_hours.evaluation.status_exempt"),
+        t("work_hours.evaluation.fulfilled_label"),
     ])
 
     # Same rule as the evaluation page for what counts as "exempt": ONE
@@ -1298,8 +1305,8 @@ async def evaluation_export_csv(
                 f"{row['total_hours']:.1f}",
                 f"{row['outstanding_hours']:.1f}",
                 f"{row['amount_due']:.2f}".replace(".", ","),
-                "Ja" if row["exempt"] else "Nein",
-                "Ja" if row["fulfilled"] else "Nein",
+                yes if row["exempt"] else no,
+                yes if row["fulfilled"] else no,
             ])
 
     output.seek(0)

@@ -22,7 +22,7 @@
                     <dd class="col-sm-8">
                         <span class="d-inline-flex align-items-center gap-1">
                         {% if pr.requested_by %}{{ user_avatar(pr.requested_by, size=20) }}{% endif %}
-                        {{ pr.requester_display_name }}
+                        {{ pr.requester_display_name or t('purchase_requests.detail.unknown_requester') }}
                         </span>
                         {% if pr.requester_email %}
                         <div class="text-muted" style="font-size: 0.82rem;">{{ pr.requester_email }}</div>
@@ -37,7 +37,7 @@
                     <dt class="col-sm-4 text-muted">{{ t('purchase_requests.detail.label_created_by') }}</dt>
                     <dd class="col-sm-8 d-flex align-items-center gap-1">
                         {% if pr.created_by %}{{ user_avatar(pr.created_by, size=20) }}{% endif %}
-                        {{ pr.created_by.name if pr.created_by else '–' }} am {{ pr.created_at.strftime('%d.%m.%Y %H:%M') }}
+                        {{ t('purchase_requests.detail.created_by_line', name=(pr.created_by.name if pr.created_by else '–'), date=pr.created_at.strftime('%d.%m.%Y %H:%M')) }}
                     </dd>
 
                     <dt class="col-sm-4 text-muted">{{ t('purchase_requests.detail.label_justification') }}</dt>

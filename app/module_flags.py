@@ -131,9 +131,10 @@ def require_module(module_name: str):
     async def checker(request: Request):
         flags = getattr(request.state, "module_flags", {})
         if not flags.get(module_name, MODULE_DEFAULTS.get(module_name, True)):
+            from app.i18n import t_for  # issue #364: was hard-coded German
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Dieser Funktionsbereich ist in diesem Verein deaktiviert.",
+                detail=t_for(request, "errors.module_disabled"),
             )
 
     return checker

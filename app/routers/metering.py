@@ -38,7 +38,7 @@ from app.models import (
     Parcel, ParcelStatus, MeteringPriceConfiguration,
 )
 from app.permissions import require_permission
-from app.i18n import t_for, translate, DEFAULT_LANGUAGE
+from app.i18n import t_for
 from app.module_flags import require_module
 from app.meter_utils import (
     check_monotonicity, total_consumption_for_type, reading_before_year,
@@ -162,9 +162,7 @@ def create_metering_router(
             "metering.medium.water"/"metering.medium.electricity" -- a
             key instead of a ready-made string, because the router is
             instantiated once at startup, but the display language can
-            change per request (see app/i18n.py). The (deliberately
-            still German) CSV export nonetheless uses a fixed German
-            text, see medium_label_de further below.
+            change per request (see app/i18n.py).
         unit: e.g. "m³"/"kWh"
         icon: Bootstrap icon class, e.g. "bi-droplet"/"bi-lightning-charge"
         decimal_places: number of decimal places for display/input
@@ -174,11 +172,6 @@ def create_metering_router(
         tags=[modul_name],
         dependencies=[Depends(require_module(modul_name))],
     )
-
-    # German display name, exclusively for the (still German) CSV
-    # export -- see medium_label_key above for why the translated
-    # display name is NOT resolved here, but per request instead.
-    medium_label_de = translate(medium_label_key, DEFAULT_LANGUAGE)
 
     def medium_label(request: Request) -> str:
         return t_for(request, medium_label_key)
@@ -1236,12 +1229,19 @@ def create_metering_router(
 
         output = io.StringIO()
         writer = csv.writer(output, delimiter=";")
-        writer.writerow(["Typ", "Zählpunkt", f"{medium_label_de}zähler-Nr.", "Zählerstand", f"Verbrauch ({unit})"])
+        # Issue #364: headers and types in the club's language (were German),
+        # the same labels as the metering pages.
+        writer.writerow([
+            t_for(request, "metering.points_list.col_type"), t_for(request, "metering.evaluation.col_point"),
+            t_for(request, "metering.evaluation.col_meter_number"),
+            t_for(request, "metering.point_detail.col_reading", unit=unit),
+            t_for(request, "metering.evaluation.col_consumption", unit=unit),
+        ])
 
         type_label = {
-            MeteringPointType.MAIN_METER: "Hauptzähler",
-            MeteringPointType.PARCEL: "Parcel",
-            MeteringPointType.CLUB: "Verein",
+            MeteringPointType.MAIN_METER: t_for(request, "metering.point_form.type_main_meter"),
+            MeteringPointType.PARCEL: t_for(request, "metering.point_form.type_parcel"),
+            MeteringPointType.CLUB: t_for(request, "metering.point_form.type_club"),
         }
 
         for a in sorted(all_points, key=lambda a: (a.type.value, a.display_name)):

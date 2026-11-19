@@ -253,13 +253,11 @@ check the totals against the insurer's bill.
 | **Back** | Returns to the overview. |
 
 !!! note "CSV column headings"
-    The CSV file always has German column headings: Parcel,
-    Sachversicherung (property insurance), Sach-Paket (package),
-    Sach-Kosten (property cost), Unfallversicherung (accident
-    insurance), Zusatzpersonen (additional persons), Unfall-Kosten
-    (accident cost), Gesamt (total). Yes/no values are written as
-    "Ja"/"Nein".
-<!-- TODO(verify): CSV headers are hardcoded German in the router regardless of UI language -- confirm this is intended or should be translated. -->
+    The CSV file uses the same column headings as this page, in the
+    club's language: Parcel, Property insurance, Package, Property cost
+    (EUR), Accident insurance, Additional persons, Accident cost (EUR),
+    Total (EUR). Yes/no values are written as "Yes"/"No" in that
+    language too.
 
 !!! note "Two ways of counting"
     **Insured parcels** here counts every listed parcel. The overview's

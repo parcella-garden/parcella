@@ -37,7 +37,6 @@ starts in English.
 
 Where a text hasn't been translated into the chosen language yet,
 Parcella shows the English text instead.
-<!-- TODO(verify): the help text on this card says the *German* text is shown when a translation is missing, but the code falls back to English. One of the two should be corrected. -->
 
 The language doesn't change how numbers, dates and money look -- that
 is the **Region & Currency** card.

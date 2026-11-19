@@ -1955,7 +1955,9 @@ class PurchaseRequest(Base):
     def requester_display_name(self) -> str:
         if self.requested_by:
             return self.requested_by.name
-        return self.requester_name or self.requester_email or "Unbekannt"
+        # Empty when nobody is known; templates show the translated
+        # "Unknown" (issue #364: this returned hard-coded German).
+        return self.requester_name or self.requester_email or ""
 
     @property
     def approval_count(self) -> int:

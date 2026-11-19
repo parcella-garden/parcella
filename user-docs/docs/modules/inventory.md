@@ -208,7 +208,6 @@ write permission. **Back** returns to the list.
 Categories can't be renamed on this page. To rename one, create the
 new category, move the items over by editing them, and delete the old
 one.
-<!-- TODO(verify): the delete button is shown to users with write but without delete permission; clicking it then fails with a permission error. -->
 
 ## Active loans
 

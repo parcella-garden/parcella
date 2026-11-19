@@ -136,11 +136,10 @@ Existing cards have a **Comments** section: a running log of notes for
 whoever picks the task up next. Each comment shows its author and time.
 
 - Type into **New comment** and click **Add comment**.
-- Every comment has a small red delete link under it, which removes that
+- Every comment has a small red **Delete comment** link under it, which removes that
   comment after **Delete this comment? This cannot be undone.** Any
   board member can delete any comment. Comments can't be edited.
 
-<!-- TODO(verify): the delete link under each comment is labelled "Delete task" in the app (it reuses the card's delete label), although it only deletes the comment. Update this text if the label is fixed. -->
 
 ### Change history
 

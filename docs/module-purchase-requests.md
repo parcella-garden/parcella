@@ -21,8 +21,9 @@ the external contacts module (docs/module-external-contacts.md, ADR
 
 ## Key decisions
 
-**Who can do what.** Any logged-in user can create a purchase request --
-only approving/rejecting is reserved for board/admin (`require_admin` in
+**Who can do what.** Viewing needs the `purchase_requests` read
+permission, creating a request needs write (group-based, like every
+module) -- only approving/rejecting is reserved for board/admin (`require_admin` in
 `app/auth.py`, which despite its name also covers the BOARD role). This
 mirrors real practice: many people submit requests, but a clearly defined
 group decides.

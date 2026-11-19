@@ -149,7 +149,7 @@ def check_monotonicity(
 
 def total_consumption_for_type(metering_points: List, year: int) -> Decimal:
     """
-    Sums the consumption of all active meters across a list of
+    Sums the consumption of all meters (old ones included) across a list of
     MeteringPoints for a given year. MeteringPoints/meters with no
     reading for that year contribute 0 (instead of skewing the sum or
     raising an error) -- the evaluation page reports gaps separately.

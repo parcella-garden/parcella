@@ -115,7 +115,6 @@ Opening a request shows its details, the discussion and the approvals.
 | **Link** | The shop link, if one was entered. Opens in a new tab. |
 | **Supplier (contact)** | The linked external contact, or "–". With write permission you can pick a different contact (or **— none —**) and click **Save** -- in any status, because the supplier is not part of the approval. A contact that has since been deleted is shown with "(deleted)". |
 | **Estimated cost** | Only shown if a cost was entered. |
-<!-- TODO(verify): the "Created by" line contains the hardcoded German word "am" before the date in every language. -->
 
 Below the details, a closed request shows a banner:
 
