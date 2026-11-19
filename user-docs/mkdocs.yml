@@ -84,7 +84,60 @@ plugins:
           build: true
         - locale: de
           name: Deutsch
-          build: false
+          build: true
+          site_name: Parcella-Handbuch
+          site_description: Handbuch für Parcella, die Open-Source-Software für Kleingartenvereine.
+          nav_translations:
+            Home: Startseite
+            Getting started: Erste Schritte
+            First login and your account: Erste Anmeldung und Ihr Konto
+            Finding your way around: Sich zurechtfinden
+            Roles, groups and permissions: Rollen, Gruppen und Rechte
+            Dashboard: Dashboard
+            Modules: Module
+            Members: Mitglieder
+            Parcels: Parzellen
+            Applicants: Bewerber
+            Work hours: Arbeitsstunden
+            Water and electricity: Wasser und Strom
+            Insurance: Versicherungen
+            Finances: Finanzen
+            Invoice runs: Rechnungsläufe
+            Invoices, payments and reminders: Rechnungen, Zahlungen und Mahnungen
+            Bank accounts and bookings: Konten und Buchungen
+            Incoming invoices: Eingangsrechnungen
+            Categories, budget and statement: Kategorien, Haushaltsplan und Übersicht
+            Purchase requests: Einkaufswünsche
+            Calendar: Kalender
+            Announcements: Mitteilungen
+            Task board: Aufgabenboard
+            Inventory: Inventar
+            Notes: Notizen
+            Processes: Vorgänge
+            External contacts: Externe Kontakte
+            Support: Support
+            Reporting: Auswertungen
+            Task guides: Anleitungen
+            Setting up a new club: Einen neuen Verein einrichten
+            Importing members and parcels: Mitglieder und Parzellen importieren
+            Welcoming a new member: Ein neues Mitglied aufnehmen
+            Handing over a parcel: Eine Parzelle übergeben
+            Running the annual invoices: Die Jahresrechnung erstellen
+            Collecting meter readings: Zählerstände erfassen
+            Organising a work session: Einen Arbeitseinsatz organisieren
+            Administration: Administration
+            Club settings: Vereinseinstellungen
+            Turning modules on and off: Module ein- und ausschalten
+            Users and invitations: Benutzer und Einladungen
+            Groups: Gruppen
+            Integrations: Integrationen
+            Backup and restore: Backup und Wiederherstellung
+            E-mail log: E-Mail-Protokoll
+            Sample data: Beispieldaten
+            System information and updates: Systeminfo und Updates
+            API tokens: API-Tokens
+            For gardeners: Für Gärtner
+            Glossary: Glossar
         - locale: pl
           name: Polski
           build: false

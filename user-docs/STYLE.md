@@ -131,6 +131,9 @@ The strict build checks this once the language is switched on.
 **Labels.** Use the exact UI labels from `app/translations/<lang>.json`,
 the same way English pages use `en.json`.
 
+**Form of address.** Follow the app: German uses **"Sie"** (as almost
+all of `de.json` does), not "du" or "ihr".
+
 **Screenshots.** Optional. English ones are used until a language has its
 own. To take them: `python user-docs/tools/screenshots.py --lang de`
 saves `members/list.de.png` next to `members/list.png` (and leaves the

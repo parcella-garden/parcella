@@ -39,12 +39,6 @@ are the same as the red badges in the sidebar (see
 Like the badges, they go down by themselves once something has been
 dealt with.
 
-!!! note "A tile you can see but not open"
-    The purchase request, task and sign-up tiles appear whenever their
-    module is switched on, even for people who aren't allowed to open
-    that module. Clicking **Show All** then shows **You don't have
-    permission to do this**.
-
 ## Birthdays This Week
 
 This card appears only when at least one current member has a birthday
