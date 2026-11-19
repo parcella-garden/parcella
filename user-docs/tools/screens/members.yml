@@ -1,0 +1,17 @@
+# Screenshots for docs/modules/members.md
+# Member ids are UUIDs (36 characters), not numbers.
+- name: members/list
+  url: /members/
+- name: members/detail
+  from: /members/
+  follow: '^/members/[0-9a-f-]{36}$'
+  full_page: true
+- name: members/form-new
+  url: /members/new
+  full_page: true
+- name: members/tags
+  url: /members/tags
+- name: members/signin-sheet
+  url: /members/signin-sheet
+# Not capturable: the CSV import dialog (a modal) and the "Map CSV
+# columns" page (POST after a file upload).

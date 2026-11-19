@@ -1,0 +1,11 @@
+[data-md-color-scheme="parcella"] {
+  --md-primary-fg-color: #2d6a4f;
+  --md-primary-fg-color--light: #40916c;
+  --md-primary-fg-color--dark: #1b4332;
+  --md-accent-fg-color: #6b4226;
+}
+.md-typeset img[src*="screenshots/"] {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+}

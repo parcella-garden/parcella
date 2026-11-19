@@ -1,0 +1,60 @@
+# Screenshots for the Finances chapter (docs/modules/finances/).
+#
+# TODO(verify): the built-in sample data only seeds three bookkeeping
+# categories. The `from` + `follow` entries below need at least one
+# invoice run, finalized invoice, account and incoming invoice in the
+# instance; without them there is no link to follow.
+# Not photographed (only reachable by a form submit or a second click):
+# run preview, CSV column mapping, import/manual match screens.
+
+- name: finances/dashboard
+  url: /finances/
+
+- name: finances/run-list
+  url: /finances/runs
+
+- name: finances/run-detail
+  from: /finances/runs
+  follow: '^/finances/runs/[0-9a-f-]{36}$'
+  full_page: true
+
+- name: finances/item-templates
+  url: /finances/item-templates
+  full_page: true
+
+- name: finances/invoice-list
+  url: /finances/invoices
+
+- name: finances/invoice-detail
+  from: /finances/invoices
+  follow: '^/finances/invoices/[0-9a-f-]{36}$'
+
+- name: finances/reminders
+  url: /finances/reminders
+
+- name: finances/account-list
+  url: /finances/accounts
+
+- name: finances/account-bookings
+  from: /finances/accounts
+  follow: '^/finances/accounts/[0-9a-f-]{36}/bookings$'
+
+- name: finances/incoming-invoice-list
+  url: /finances/incoming-invoices
+
+- name: finances/incoming-invoice-detail
+  from: /finances/incoming-invoices
+  follow: '^/finances/incoming-invoices/[0-9a-f-]{36}$'
+
+- name: finances/category-list
+  url: /finances/categories
+
+- name: finances/bookings
+  url: /finances/bookings
+
+- name: finances/accounting-statement
+  url: /finances/accounting-statement
+
+- name: finances/budget
+  url: /finances/budget
+  full_page: true

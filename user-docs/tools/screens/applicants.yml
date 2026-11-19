@@ -1,0 +1,18 @@
+# Screenshots for docs/modules/applicants.md
+# Applicant ids are UUIDs (36 characters).
+# Needs seeded applicants; assign-parcel needs an open one (the button
+# only shows on open applications).
+- name: applicants/list
+  url: /applicants/?filter=all
+- name: applicants/form-new
+  url: /applicants/new
+- name: applicants/detail
+  from: /applicants/?filter=all
+  follow: '^/applicants/[0-9a-f-]{36}$'
+  full_page: true
+- name: applicants/assign-parcel
+  from: /applicants/?filter=open
+  follow:
+    - '^/applicants/[0-9a-f-]{36}$'
+    - '^/applicants/[0-9a-f-]{36}/assign-parcel$'
+  full_page: true

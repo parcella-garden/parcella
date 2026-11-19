@@ -1,0 +1,132 @@
+site_name: Parcella Documentation
+site_url: https://docs.parcella.org/
+site_description: User guide for Parcella, the open-source management software for allotment garden associations.
+repo_url: https://github.com/parcella-garden/parcella
+repo_name: parcella-garden/parcella
+edit_uri: edit/main/user-docs/docs/
+copyright: Parcella is free software under the AGPL-3.0. Documentation licensed CC BY-SA 4.0.
+
+theme:
+  name: material
+  language: en
+  favicon: assets/favicon.png
+  logo: assets/favicon.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: parcella
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.action.edit
+    - toc.follow
+
+extra_css:
+  - assets/stylesheets/parcella.css
+
+extra:
+  homepage: https://parcella.org
+  social:
+    - icon: material/forum
+      link: https://forum.parcella.org
+      name: Community forum
+    - icon: fontawesome/brands/github
+      link: https://github.com/parcella-garden/parcella
+      name: Source code
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.keys
+
+plugins:
+  - search
+
+validation:
+  nav:
+    omitted_files: warn
+    not_found: warn
+  links:
+    not_found: warn
+    anchors: warn
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - getting-started/index.md
+      - First login and your account: getting-started/first-login.md
+      - Finding your way around: getting-started/navigation.md
+      - Roles, groups and permissions: getting-started/roles-and-permissions.md
+      - Dashboard: getting-started/dashboard.md
+  - Modules:
+      - modules/index.md
+      - Members: modules/members.md
+      - Parcels: modules/parcels.md
+      - Applicants: modules/applicants.md
+      - Work hours: modules/work-hours.md
+      - Water and electricity: modules/metering.md
+      - Insurance: modules/insurance.md
+      - Finances:
+          - modules/finances/index.md
+          - Invoice runs: modules/finances/invoice-runs.md
+          - Invoices, payments and reminders: modules/finances/invoices.md
+          - Bank accounts and bookings: modules/finances/bank-accounts.md
+          - Incoming invoices: modules/finances/incoming-invoices.md
+          - Categories, budget and statement: modules/finances/bookkeeping.md
+      - Purchase requests: modules/purchase-requests.md
+      - Calendar: modules/calendar.md
+      - Announcements: modules/announcements.md
+      - Task board: modules/tasks.md
+      - Inventory: modules/inventory.md
+      - Notes: modules/notes.md
+      - Processes: modules/processes.md
+      - External contacts: modules/external-contacts.md
+      - Support: modules/support.md
+      - Reporting: modules/reporting.md
+  - Task guides:
+      - guides/index.md
+      - Setting up a new club: guides/new-club-setup.md
+      - Importing members and parcels: guides/csv-import.md
+      - Welcoming a new member: guides/new-member.md
+      - Handing over a parcel: guides/parcel-handover.md
+      - Running the annual invoices: guides/annual-invoicing.md
+      - Collecting meter readings: guides/meter-readings.md
+      - Organising a work session: guides/work-session.md
+  - Administration:
+      - administration/index.md
+      - Club settings: administration/settings.md
+      - Turning modules on and off: administration/modules.md
+      - Users and invitations: administration/users.md
+      - Groups: administration/groups.md
+      - Integrations: administration/integrations.md
+      - Backup and restore: administration/backup.md
+      - E-mail log: administration/email-log.md
+      - Sample data: administration/sample-data.md
+      - System information and updates: administration/system.md
+      - API tokens: administration/api-tokens.md
+  - For gardeners:
+      - gardeners/index.md
+  - Glossary: glossary.md

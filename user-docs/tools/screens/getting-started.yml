@@ -1,0 +1,18 @@
+# Screenshots for docs/getting-started/*.md
+# The accept-invitation page ("Set up your account") is not listed: it
+# needs a valid, pending invitation token, which the sample data lacks.
+- name: getting-started/login
+  url: /auth/login
+  logout: true
+# Any unknown token renders the "Invitation expired" page.
+- name: getting-started/invitation-expired
+  url: /auth/invitation/no-such-token
+  logout: true
+- name: getting-started/change-password
+  url: /auth/change-password
+  full_page: true
+- name: getting-started/navigation
+  url: /
+- name: getting-started/dashboard
+  url: /
+  full_page: true

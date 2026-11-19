@@ -1,0 +1,17 @@
+- name: announcements/list
+  url: /announcements/
+- name: announcements/form-new
+  url: /announcements/new
+  full_page: true
+# The sample data has no announcements yet; create one before running
+# the screenshots, or this entry finds no link to follow.
+- name: announcements/form-edit
+  from: /announcements/
+  follow: '^/announcements/[0-9a-f-]{36}/edit$'
+  full_page: true
+- name: announcements/form-audience
+  url: /announcements/new?audience=1&audience_query=active_only%3Dtrue
+  full_page: true
+- name: announcements/not-online
+  url: /a/0000000000000000000000
+  logout: true

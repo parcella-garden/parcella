@@ -1,0 +1,14 @@
+- name: purchase-requests/list
+  url: /purchase-requests/?filter=all
+- name: purchase-requests/form
+  url: /purchase-requests/new
+- name: purchase-requests/detail
+  # The default filter lists only open requests, so this opens the open
+  # sample request (with the Approve / Reject buttons).
+  from: /purchase-requests/
+  follow: '^/purchase-requests/[0-9a-f-]{36}$'
+  full_page: true
+- name: purchase-requests/confirmation-invalid
+  # Any unknown token shows the "Link not found" page. The confirm and
+  # thank-you pages need a real emailed token, which sample data lacks.
+  url: /purchase-requests/confirm/sample-invalid-token

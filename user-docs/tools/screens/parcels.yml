@@ -1,0 +1,24 @@
+# Screenshots for docs/modules/parcels.md
+# Parcel ids are UUIDs (36 characters). Links from a filtered list carry
+# the filter as a query string, so the follow pattern has no trailing $.
+- name: parcels/list
+  url: /parcels/
+- name: parcels/detail
+  from: /parcels/?search=DEMO-01
+  follow: '^/parcels/[0-9a-f-]{36}'
+  full_page: true
+- name: parcels/form-new
+  url: /parcels/new
+- name: parcels/form-edit
+  from: /parcels/?search=DEMO-01
+  follow:
+    - '^/parcels/[0-9a-f-]{36}'
+    - '^/parcels/[0-9a-f-]{36}/edit$'
+  full_page: true
+# Needs a parcel with at least one tenant (DEMO-01 in the sample data).
+- name: parcels/assignment-form
+  from: /parcels/?search=DEMO-01
+  follow:
+    - '^/parcels/[0-9a-f-]{36}'
+    - '^/parcels/[0-9a-f-]{36}/member/[0-9a-f-]{36}/edit$'
+# Not capturable: "Map CSV columns" (POST after a file upload).
