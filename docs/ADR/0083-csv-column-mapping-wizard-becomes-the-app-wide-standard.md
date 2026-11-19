@@ -22,6 +22,10 @@ and members -- replacing each fixed-header importer, the same way ADR
   `_parse_column_mapping`/`_parse_mapped_csv_rows`, generalized so
   `guess_column_mapping` takes a per-field alias set as a parameter
   instead of hardcoding finances' own Date/Amount/... vocabulary.
+  (Update, issue #351: `parse_mapped_csv_rows` decodes with
+  `decode_csv_upload` too. It used plain UTF-8, so a Latin-1/Excel-ANSI
+  file passed the preview and then crashed the final step. Both steps
+  must always decode the same way.)
   `finances.py` itself was refactored onto these (pure refactor, no
   behavior change -- its own 3-step flow, including the
   invoice-matching `match` step, is unchanged and stays finances-only,
