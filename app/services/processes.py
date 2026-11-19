@@ -22,7 +22,7 @@ import re
 import uuid
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from pathlib import Path
 from typing import Any, Optional
 
@@ -43,6 +43,7 @@ from app.database import current_tenant_filter
 from app.note_files import slugify
 from app.parcel_cloud_folders import InvalidCloudPathError, get_active_folder, sanitize_relative_path
 from app.permissions import get_user_permissions, has_permission, is_full_access_user
+from app.l10n import parse_decimal
 from app.services.errors import ServiceError
 
 MODULE = "processes"
@@ -555,17 +556,8 @@ def parse_number(value: Any) -> Optional[Decimal]:
     if isinstance(value, (int, float, Decimal)) and not isinstance(value, bool):
         number = Decimal(str(value))
     else:
-        text = str(value).strip().replace(" ", "").replace(" ", "")
-        if "," in text and "." in text:
-            if text.rfind(",") > text.rfind("."):
-                text = text.replace(".", "").replace(",", ".")
-            else:
-                text = text.replace(",", "")
-        else:
-            text = text.replace(",", ".")
-        try:
-            number = Decimal(text)
-        except InvalidOperation:
+        number = parse_decimal(value)  # shared with finances/metering since issue #350
+        if number is None:
             raise ServiceError(_ERR + "invalid_number")
     if not number.is_finite() or abs(number) >= Decimal("1e12"):
         raise ServiceError(_ERR + "invalid_number")

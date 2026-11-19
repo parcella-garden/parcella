@@ -173,7 +173,7 @@ as a sample.
 |---|---|
 | **— Ignore —** | The column isn't used. |
 | **Date** | Required. The booking date. Accepted formats: `2026-03-31`, `31.03.2026` and `31.03.26`. |
-| **Amount** | Required. Signed amount, with a decimal comma or point (`-12,50` or `-12.50`). Don't use thousands separators: `1.234,56` is not understood and the row is skipped. |
+| **Amount** | Required. Signed amount, with a decimal comma or point (`-12,50` or `-12.50`). Thousands separators are fine, as your bank exports them: `1.234,56`, `1,234.56` or `1 234,56`. |
 | **Description** | Optional, e.g. the purpose of payment. |
 | **Sender / recipient** | Optional. Used for matching and shown in the list. |
 | **IBAN** | Optional. See the tip below. |

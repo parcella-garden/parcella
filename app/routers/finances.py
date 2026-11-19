@@ -23,7 +23,7 @@ import csv
 import io
 import re
 from datetime import date, datetime
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from pathlib import Path
 from typing import Optional
 from itertools import zip_longest
@@ -58,7 +58,7 @@ from app.permissions import require_permission
 from app.module_flags import require_module
 from app.branding import load_branding
 from app.pdf_chrome import load_org_footer_context
-from app.l10n import load_current_region, load_current_currency
+from app.l10n import load_current_region, load_current_currency, parse_decimal
 from app.cloud_storage import get_cloud_storage_provider, CloudStorageError
 from app.invoice_generation import compute_invoices_for_run, finalize_run, SequenceCollisionError
 from app.invoice_pdf import (
@@ -84,13 +84,8 @@ from app.templating import templates
 
 
 def _parse_decimal(value: str) -> Optional[Decimal]:
-    value = (value or "").strip().replace(",", ".")
-    if not value:
-        return None
-    try:
-        return Decimal(value)
-    except InvalidOperation:
-        return None
+    # "1.234,56" and "1,234.56" too (issue #350), see app/l10n.py.
+    return parse_decimal(value)
 
 
 # Pricing modes computed entirely from another module -- unit_price is

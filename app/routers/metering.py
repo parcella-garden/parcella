@@ -14,7 +14,7 @@ import csv
 import io
 import urllib.parse
 from datetime import date, datetime
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from typing import Optional, List
 
 from fastapi import APIRouter, Request, Form, Depends, HTTPException, UploadFile, File
@@ -24,6 +24,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
+from app.l10n import parse_decimal
 from app.csv_utils import (
     csv_safe,
     decode_csv_upload,
@@ -56,12 +57,9 @@ templates.env.filters["point_factor"] = lambda value: format(Decimal(str(value i
 
 
 def _parse_number(value: str, decimal_places: int) -> Optional[Decimal]:
-    value = value.strip().replace(",", ".")
-    if not value:
-        return None
-    try:
-        parsed_value = Decimal(value)
-    except InvalidOperation:
+    # "12.345,6" and "12,345.6" too (issue #350), see app/l10n.py.
+    parsed_value = parse_decimal(value)
+    if parsed_value is None:
         return None
     quant = Decimal("1") if decimal_places == 0 else Decimal("1." + "0" * decimal_places)
     return parsed_value.quantize(quant)

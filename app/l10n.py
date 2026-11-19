@@ -26,6 +26,8 @@ countries, a single distinction suffices: postal code before the city
 (continental Europe) vs. after (UK).
 """
 import logging
+import re
+from decimal import Decimal, InvalidOperation
 from typing import Optional
 
 from fastapi import Request
@@ -127,6 +129,52 @@ def format_number(value, region: str, decimals: int = 0) -> str:
     except Exception:
         logger.warning(f"format_number failed for region={region}")
         return str(value)
+
+
+_GROUP_SPACES = (" ", " ", " ")  # space, no-break space, narrow no-break space (fr)
+_THOUSANDS_RE = re.compile(r"^[+-]?\d{1,3}(?:[.,]\d{3})+$")
+
+
+def parse_decimal(value) -> Optional[Decimal]:
+    """Reads a number typed or exported in any of the supported regions,
+    independent of the club's region (a German club's treasurer may well
+    get an English bank export): "1.234,56", "1,234.56", "1 234,56",
+    "1234,56", "1234.56", "-15.50". Returns None for empty or invalid
+    input; callers decide whether that's an error.
+
+    Issue #350: the old parsers only swapped "," for ".", so every bank
+    CSV amount of 1,000 or more in German format ("1.234,56" ->
+    "1.234.56") was invalid and its row silently skipped.
+
+    The rule: with both separators, the last one is the decimal point.
+    With only one kind, a single occurrence is the decimal point ("1,5",
+    "1.5", and so "1.234" is 1.234, as before), several are thousands
+    separators ("1.234.567"). Thousands groups must be three digits, so a
+    typo like "12.34,56" stays invalid instead of being guessed at."""
+    text = "" if value is None else str(value).strip()
+    for space in _GROUP_SPACES:
+        text = text.replace(space, "")
+    if not text:
+        return None
+    comma, point = text.rfind(","), text.rfind(".")
+    if comma >= 0 and point >= 0:
+        decimal_sep, group_sep = (",", ".") if comma > point else (".", ",")
+        integer, _, fraction = text.rpartition(decimal_sep)
+        if decimal_sep in integer or not _THOUSANDS_RE.match(integer):
+            return None
+        text = integer.replace(group_sep, "") + "." + fraction
+    elif text.count(",") > 1 or text.count(".") > 1:
+        # Only one kind of separator, several times: thousands groups.
+        if not _THOUSANDS_RE.match(text):
+            return None
+        text = text.replace(",", "").replace(".", "")
+    else:
+        text = text.replace(",", ".")
+    try:
+        number = Decimal(text)
+    except InvalidOperation:
+        return None
+    return number if number.is_finite() else None
 
 
 def format_address(street: str, postal_code: str, city: str, region: str) -> str:
