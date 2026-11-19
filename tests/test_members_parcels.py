@@ -467,3 +467,65 @@ async def test_parcel_import_wizard_maps_reordered_english_headers(client, admin
         result = await db.execute(select(Parcel).where(Parcel.plot_number == "WIZ-P01"))
         parcel = result.scalar_one()
         assert float(parcel.area_sqm) == 250.5
+
+
+# --- Issue #355: a notice with a future end date keeps the invoice address ---
+
+async def _tenancy(assigned_until=None, is_invoice_address=True):
+    from app.database import AsyncSessionLocal
+    from app.models import Member, MemberParcel, Parcel, ParcelStatus
+    async with AsyncSessionLocal() as db:
+        parcel = Parcel(plot_number="355", area_sqm=300, status=ParcelStatus.ACTIVE)
+        member = Member(first_name="Kurt", last_name="Kündigt", street="Weg 1", postal_code="12345", city="Ort")
+        db.add_all([parcel, member])
+        await db.flush()
+        tenancy = MemberParcel(member_id=member.id, parcel_id=parcel.id,
+                               is_invoice_address=is_invoice_address, assigned_until=assigned_until)
+        db.add(tenancy)
+        await db.commit()
+        return parcel.id, tenancy.id
+
+
+def _invoice_checkbox(html: str) -> str:
+    import re
+    return re.search(r'<input[^>]*id="rechnungsadresse-check"[^>]*>', html).group(0)
+
+
+async def test_future_end_date_keeps_the_invoice_address_editable_and_set(client, admin_user):
+    from datetime import date, timedelta
+    from app.database import AsyncSessionLocal
+    from app.models import MemberParcel
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    notice = date.today() + timedelta(days=90)
+    parcel_id, tenancy_id = await _tenancy()
+
+    # Recording the notice: the form posts the (enabled) checkbox along with the future end date.
+    response = await client.post(f"/parcels/{parcel_id}/member/{tenancy_id}/edit", data={
+        "is_invoice_address": "true", "assigned_from": "", "assigned_until": notice.isoformat(),
+    })
+    assert response.status_code in (302, 303)
+    async with AsyncSessionLocal() as db:
+        assert (await db.get(MemberParcel, tenancy_id)).is_invoice_address is True
+
+    # Opening the form again: the box is still ticked and NOT disabled, so saving keeps it.
+    checkbox = _invoice_checkbox((await client.get(f"/parcels/{parcel_id}/member/{tenancy_id}/edit")).text)
+    assert "checked" in checkbox and "disabled" not in checkbox
+
+
+async def test_past_end_date_locks_the_invoice_address(client, admin_user):
+    from datetime import date, timedelta
+    from app.database import AsyncSessionLocal
+    from app.models import MemberParcel
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    parcel_id, tenancy_id = await _tenancy(assigned_until=date.today() - timedelta(days=1), is_invoice_address=False)
+
+    html = (await client.get(f"/parcels/{parcel_id}/member/{tenancy_id}/edit")).text
+    assert "disabled" in _invoice_checkbox(html)
+    assert f'data-today="{date.today().isoformat()}"' in html  # the JS uses the server's date
+
+    # The server still refuses it for a former tenant, whatever is posted.
+    await client.post(f"/parcels/{parcel_id}/member/{tenancy_id}/edit", data={
+        "is_invoice_address": "true", "assigned_from": "", "assigned_until": date.today().isoformat(),
+    })
+    async with AsyncSessionLocal() as db:
+        assert (await db.get(MemberParcel, tenancy_id)).is_invoice_address is False

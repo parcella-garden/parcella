@@ -466,6 +466,10 @@ async def member_assignment_edit_page(
             "user": user,
             "assignment": assignment,
             "parcel": parcel,
+            # Issue #355: the form only locks the invoice-address box for a
+            # tenancy that has really ended (MemberParcel.is_former), not for
+            # a notice with a future end date.
+            "today_iso": date.today().isoformat(),
         },
     )
 

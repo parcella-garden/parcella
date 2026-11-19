@@ -948,7 +948,7 @@
     "back": "Späť",
     "card_header": "{member} -- Parcela {plot_number}",
     "is_invoice_address_label": "Použiť ako fakturačnú adresu",
-    "is_invoice_address_help": "Platí iba, kým je tento nájom aktuálny -- po nastavení dátumu ukončenia sa automaticky zruší.",
+    "is_invoice_address_help": "Platí iba, kým je tento nájom aktuálny -- automaticky sa zruší, keď sa skončí (dátum ukončenia dnes alebo skôr). Nájomca, ktorý dal výpoveď, si ju dovtedy ponechá.",
     "label_tenant_since": "Nájomca od",
     "label_tenant_until": "Nájomca do",
     "tenant_until_help": "Prázdne = stále súčasný nájomca",

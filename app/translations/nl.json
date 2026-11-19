@@ -948,7 +948,7 @@
     "back": "Terug",
     "card_header": "{member} -- Perceel {plot_number}",
     "is_invoice_address_label": "Gebruiken als factuuradres",
-    "is_invoice_address_help": "Geldt alleen zolang deze huur actueel is -- wordt automatisch uitgeschakeld zodra een einddatum is ingesteld.",
+    "is_invoice_address_help": "Geldt alleen zolang deze huur actueel is -- wordt automatisch uitgeschakeld zodra de huur is beëindigd (einddatum vandaag of eerder). Een huurder die heeft opgezegd, behoudt het tot dan.",
     "label_tenant_since": "Huurder sinds",
     "label_tenant_until": "Huurder tot",
     "tenant_until_help": "Leeg = nog huidige huurder",

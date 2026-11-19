@@ -348,7 +348,7 @@ heading names the member and the parcel. Needs write permission.
 
 | Field | What it does |
 |---|---|
-| **Use as invoice address** | Invoices for this parcel go to this member's address. "Only applies while this tenancy is current -- cleared automatically once an end date is set." The checkbox is greyed out as soon as **Tenant until** has a date. |
+| **Use as invoice address** | Invoices for this parcel go to this member's address. "Only applies while this tenancy is current -- cleared automatically once it has ended (end date today or earlier). A tenant who has given notice keeps it until then." The checkbox is greyed out once **Tenant until** is today or earlier; a date in the future leaves it as it is. |
 | **Tenant since** | The first day of the tenancy. |
 | **Tenant until** | The day the tenancy ends. "Empty = still a current tenant." A date in the future means the tenant has given notice: they stay a current tenant until that day and get an **until *date*** badge. From that day on they're listed under **Former tenants**. |
 
@@ -356,8 +356,6 @@ heading names the member and the parcel. Needs write permission.
 |---|---|
 | **Save changes** | Saves and returns to the parcel page. If the parcel now has no current or upcoming tenant, its cloud documents folder is retired. |
 | **Cancel** / **Back** | Returns to the parcel page without saving. |
-
-<!-- TODO(verify): saving this form with a future "Tenant until" date clears the invoice address (the checkbox is disabled), although elsewhere a tenant who has given notice stays the invoice recipient until they leave. Confirm which is intended. -->
 
 Clearing **Tenant until** on a former tenancy makes it current again.
 

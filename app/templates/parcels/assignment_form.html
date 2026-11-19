@@ -23,7 +23,7 @@
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" name="is_invoice_address"
                                    id="rechnungsadresse-check" {% if assignment.is_invoice_address %}checked{% endif %}
-                                   {% if assignment.assigned_until %}disabled{% endif %}>
+                                   {% if assignment.is_former %}disabled{% endif %}>
                             <label class="form-check-label" for="rechnungsadresse-check">{{ t('parcels_assignment_form.is_invoice_address_label') }}</label>
                             <div class="form-text">{{ t('parcels_assignment_form.is_invoice_address_help') }}</div>
                         </div>
@@ -37,6 +37,7 @@
                         <div class="col-sm-6">
                             <label class="form-label fw-semibold">{{ t('parcels_assignment_form.label_tenant_until') }}</label>
                             <input type="date" name="assigned_until" id="assigned-until-input" class="form-control"
+                                   data-today="{{ today_iso }}"
                                    value="{{ assignment.assigned_until.isoformat() if assignment.assigned_until else '' }}">
                             <div class="form-text">{{ t('parcels_assignment_form.tenant_until_help') }}</div>
                         </div>
@@ -55,13 +56,18 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // A former tenant (assigned_until set) can never be the invoice
-    // address -- keep the checkbox in sync as the end date is edited,
-    // rather than silently discarding it on save.
+    // A former tenant (end date today or earlier, MemberParcel.is_former)
+    // can never be the invoice address -- keep the checkbox in sync as the
+    // end date is edited, rather than silently discarding it on save.
+    // Issue #355: a FUTURE end date (a tenant who has given notice) keeps
+    // the box usable; locking it then cleared the parcel's invoice
+    // recipient, because a disabled checkbox isn't submitted.
+    // Both dates are YYYY-MM-DD, so comparing the strings compares the dates.
     var untilInput = document.getElementById('assigned-until-input');
     var invoiceCheckbox = document.getElementById('rechnungsadresse-check');
+    var today = untilInput.dataset.today;
     untilInput.addEventListener('input', function () {
-        if (untilInput.value) {
+        if (untilInput.value && untilInput.value <= today) {
             invoiceCheckbox.checked = false;
             invoiceCheckbox.disabled = true;
         } else {
