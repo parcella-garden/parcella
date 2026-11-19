@@ -162,13 +162,12 @@ For example a family member taking over. Do it by hand:
    New member** if needed.
 4. Edit the parcel and set **Status** back to **active**.
 
-!!! warning "A future end date removes the invoice address at once"
-    When you set **Tenant until** in **Edit tenancy**, the **Use as
-    invoice address** box is cleared, even for a date in the future.
-    Make sure another tenant on the parcel is the invoice address, or
-    use **Assign a parcel** with a future handover date, which keeps the
-    old tenant as invoice recipient until they leave.
-    <!-- TODO(verify): the edit form clears the invoice-address flag for any end date, while the handover keeps it until a future end date -- intended? -->
+!!! tip "Recording a notice"
+    A tenant who has given notice stays the invoice address until they
+    leave: set their **Tenant until** in **Edit tenancy** and leave **Use
+    as invoice address** ticked. Once that day has passed, the box is
+    cleared by itself -- make sure the new tenant is the invoice address
+    by then.
 
 !!! warning "End, don't delete"
     Ending a tenancy or a membership keeps the history: who held which

@@ -948,7 +948,7 @@
     "back": "Retour",
     "card_header": "{member} -- Parcelle {plot_number}",
     "is_invoice_address_label": "Utiliser comme adresse de facturation",
-    "is_invoice_address_help": "S'applique uniquement tant que cette location est en cours -- automatiquement désactivé dès qu'une date de fin est renseignée.",
+    "is_invoice_address_help": "S'applique uniquement tant que cette location est en cours -- automatiquement désactivé une fois qu'elle est terminée (date de fin aujourd'hui ou avant). Un locataire qui a donné congé le conserve jusque-là.",
     "label_tenant_since": "Locataire depuis",
     "label_tenant_until": "Locataire jusqu'au",
     "tenant_until_help": "Vide = toujours locataire actuel",

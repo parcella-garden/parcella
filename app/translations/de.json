@@ -948,7 +948,7 @@
     "back": "Zurück",
     "card_header": "{member} – Parzelle {plot_number}",
     "is_invoice_address_label": "Als Rechnungsadresse verwenden",
-    "is_invoice_address_help": "Gilt nur, solange dieses Pachtverhältnis aktuell ist -- wird beim Setzen eines Enddatums automatisch geleert.",
+    "is_invoice_address_help": "Gilt nur, solange dieses Pachtverhältnis aktuell ist -- wird automatisch geleert, sobald es beendet ist (Enddatum heute oder früher). Wer gekündigt hat, behält sie bis dahin.",
     "label_tenant_since": "Pächter seit",
     "label_tenant_until": "Pächter bis",
     "tenant_until_help": "Leer = aktuell noch Pächter",

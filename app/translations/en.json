@@ -948,7 +948,7 @@
     "back": "Back",
     "card_header": "{member} -- Parcel {plot_number}",
     "is_invoice_address_label": "Use as invoice address",
-    "is_invoice_address_help": "Only applies while this tenancy is current -- cleared automatically once an end date is set.",
+    "is_invoice_address_help": "Only applies while this tenancy is current -- cleared automatically once it has ended (end date today or earlier). A tenant who has given notice keeps it until then.",
     "label_tenant_since": "Tenant since",
     "label_tenant_until": "Tenant until",
     "tenant_until_help": "Empty = still a current tenant",

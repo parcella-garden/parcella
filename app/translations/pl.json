@@ -948,7 +948,7 @@
     "back": "Wstecz",
     "card_header": "{member} – działka {plot_number}",
     "is_invoice_address_label": "Użyj jako adresu do faktury",
-    "is_invoice_address_help": "Dotyczy tylko aktualnej dzierżawy -- zostaje automatycznie wyłączone po ustawieniu daty zakończenia.",
+    "is_invoice_address_help": "Dotyczy tylko aktualnej dzierżawy -- zostaje automatycznie wyłączone, gdy dzierżawa się zakończy (data zakończenia dziś lub wcześniej). Dzierżawca, który złożył wypowiedzenie, zachowuje je do tego czasu.",
     "label_tenant_since": "Dzierżawca od",
     "label_tenant_until": "Dzierżawca do",
     "tenant_until_help": "Puste = nadal dzierżawca",

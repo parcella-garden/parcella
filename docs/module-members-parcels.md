@@ -77,7 +77,12 @@ ended. With a future `assigned_from` it is `is_upcoming` instead, and once
 `assigned_until` has passed it is `is_former`. Only a former tenancy loses
 the invoice-address flag. An upcoming one may hold it, since it's the next
 recipient. The parcel page lists current and upcoming tenants together,
-with "from …" / "until …" badges.
+with "from …" / "until …" badges. The "Edit tenancy" form follows the same
+rule (issue #355): it only locks the invoice-address checkbox for
+`is_former`, and its JS compares a typed end date with the server's
+`today_iso`. It used to lock it for *any* end date, and a disabled
+checkbox isn't submitted, so recording a notice cleared the parcel's
+invoice recipient.
 Households (e.g. a couple who should both appear on the invoice letter)
 are resolved at document-generation time by matching addresses among
 current residents, the same way `household_grouping()` in
