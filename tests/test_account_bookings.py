@@ -9,6 +9,7 @@ original "not a ledger" stance from issue #156 -- see ADR 0059.
 import base64
 import io
 from datetime import date
+from decimal import Decimal
 
 from sqlalchemy import select
 
@@ -476,6 +477,35 @@ async def test_bookings_csv_import_confirm_creates_transactions(client, admin_us
     assert all(t.source == "csv_import" for t in transactions)
     descriptions = {t.description for t in transactions}
     assert descriptions == {"Supplies", "Membership refund"}
+
+
+async def test_bookings_csv_import_keeps_amounts_of_1000_and_more(client, admin_user):
+    """Issue #350: "1.234,56" (German) and "1,234.56" (English) were
+    invalid, so these rows were silently skipped."""
+    await web_login(client)
+    await _enable_finances_module()
+    account_id = await _make_account()
+
+    csv_content = (
+        "Datum;Betrag;Verwendungszweck\n"
+        "2026-08-01;1.234,56;Pacht Parzelle 7\n"
+        "2026-08-02;-2.500,00;Wasserrechnung\n"
+        "2026-08-03;1,234.56;English export\n"
+        "2026-08-04;15,50;Kleinbetrag\n"
+    )
+    response = await _import_finalize(client, account_id, csv_content, {0: "date", 1: "amount", 2: "description"})
+    assert "imported=4" in response.headers["location"] and "skipped=0" in response.headers["location"]
+
+    async with AsyncSessionLocal() as session:
+        amounts = {
+            t.description: t.amount for t in (await session.execute(
+                select(AccountTransaction).where(AccountTransaction.account_id == account_id)
+            )).scalars()
+        }
+    assert amounts == {
+        "Pacht Parzelle 7": Decimal("1234.56"), "Wasserrechnung": Decimal("-2500.00"),
+        "English export": Decimal("1234.56"), "Kleinbetrag": Decimal("15.50"),
+    }
 
 
 async def test_bookings_csv_import_requires_date_and_amount_mapping(client, admin_user):

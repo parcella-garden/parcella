@@ -51,7 +51,8 @@ few skipped rows.
   <!-- TODO(verify): the upload step also reads older Windows/Latin-1 files, but the final import step appears to read UTF-8 only -- a Latin-1 file may fail after the mapping screen. Confirm and fix or keep this advice. -->
 - **Dates** as `2026-03-15` or `15.03.2026` (also `15.03.26`).
 - **Decimal numbers** with a comma or a point: `312,5` and `312.5` both
-  work.
+  work. Bank amounts and meter readings may also have thousands
+  separators, the German or the English way: `12.345,6` and `12,345.6`.
 - **Several values in one cell** (email addresses, phone numbers, tags)
   are separated by a semicolon. Your spreadsheet program puts quotes
   around such a cell when it saves the file -- that's fine.
