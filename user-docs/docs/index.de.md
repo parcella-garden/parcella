@@ -3,7 +3,7 @@ hide:
   - navigation
 ---
 
-# Parcella-Handbuch
+# Parcella-Handbuch {#parcella-documentation}
 
 Parcella ist freie Open-Source-Software für die Verwaltung eines
 Kleingartenvereins: Mitglieder und Parzellen, Arbeitsstunden, Wasser- und
