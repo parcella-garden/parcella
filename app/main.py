@@ -16,7 +16,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from app.config import settings
-from app.database import get_db, AsyncSessionLocal, active_member_filter
+from app.database import get_db, AsyncSessionLocal, active_member_filter, current_or_upcoming_tenant_filter
 from app.models import User, UserRole, Member, Parcel, ParcelStatus, MemberParcel, Group, GroupMembership
 from app.birthdays import average_age, upcoming_birthdays
 from app.auth import hash_password, get_current_user
@@ -614,7 +614,10 @@ async def startseite(request: Request):
                 Parcel.status == ParcelStatus.TERMINATED
             )
         )
-        besetzte_ids = select(MemberParcel.parcel_id).distinct()
+        # Issue #360: tenancies are historized (ADR 0005), so "has ever had
+        # a MemberParcel row" made a parcel occupied forever. Only a
+        # tenancy that hasn't ended (current or upcoming) occupies it now.
+        besetzte_ids = select(MemberParcel.parcel_id).where(current_or_upcoming_tenant_filter()).distinct()
         parcels_vacant = await db.scalar(
             select(func.count()).select_from(Parcel).where(
                 Parcel.status == ParcelStatus.ACTIVE,
