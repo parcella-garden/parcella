@@ -131,10 +131,21 @@ async def exchange_meter(
     db: AsyncSession, metering_point: MeteringPoint, *,
     new_number: str, removed_at: date, installed_at: date,
     calibrated_until: Optional[int] = None, initial_reading: Decimal = Decimal("0"),
+    final_reading: Optional[Decimal] = None, recorded_by_id: Optional[str] = None,
 ) -> Meter:
-    """Deactivates the current meter (removal date) and creates a new one."""
+    """Deactivates the current meter (removal date) and creates a new one.
+
+    final_reading (issue #354): the old meter's reading on the removal
+    day, saved as its reading for that year (replacing an earlier one of
+    the same year, which it supersedes). Without it the old meter's
+    consumption since its last reading can't be billed."""
     old_meter = metering_point.current_meter
     if old_meter:
+        if final_reading is not None:
+            await record_reading(
+                db, old_meter, year=removed_at.year, reading_date=removed_at, reading=final_reading,
+                note=None, recorded_by_id=recorded_by_id,
+            )
         old_meter.is_active = False
         old_meter.removed_at = removed_at
 

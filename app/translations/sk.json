@@ -1282,6 +1282,8 @@
       "exchange_new_number_label": "Nové číslo",
       "exchange_calibrated_until_label": "Kalibrovaný do",
       "exchange_initial_reading_label": "Počiatočný odpočet",
+      "exchange_final_reading_label": "Konečný stav starého meradla",
+      "exchange_final_reading_help": "Ku dňu demontáže. Bez neho sa spotreba starého meradla od posledného odpočtu nevyúčtuje.",
       "exchange_confirm": "Naozaj chcete vymeniť merač? Starý merač bude deaktivovaný.",
       "exchange_button": "Vymeniť",
       "no_active_meter": "Pre tento merací bod neexistuje aktívny merač.",
@@ -1373,6 +1375,8 @@
       "col_point": "Merací bod",
       "col_meter_number": "Číslo merača",
       "col_consumption": "Spotreba ({unit})",
+      "includes_replaced": "vr. vymeneného meradla",
+      "includes_replaced_hint": "Spotreba tohto roka zahŕňa meradlo vymenené v priebehu roka.",
       "no_reading": "žiadny odpočet",
       "no_entries": "Žiadne záznamy"
     },

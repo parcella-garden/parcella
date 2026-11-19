@@ -221,3 +221,79 @@ async def test_item_template_water_usage_ignores_submitted_unit_price(client, ad
         template = result.scalar_one()
 
     assert template.unit_price is None, "unit_price must be ignored for water_usage, same as insurance_cost/work_hours_shortfall"
+
+
+async def test_meter_exchange_during_the_year_bills_both_meters(client, admin_user):
+    """Issue #354: invoices and the evaluation only used the current meter,
+    so after an exchange during the year the old meter's consumption up to
+    the exchange was never billed. The exchange now records the old meter's
+    final reading, and consumption sums every meter of the point."""
+    import re
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    await _enable_finances_module()
+    async with AsyncSessionLocal() as session:
+        session.add(MeteringPriceConfiguration(medium=MeteringMedium.WATER, year=2026, price_per_unit=2.00))
+        member = Member(first_name="Tausch", last_name="Zähler", street="Weg 1", postal_code="12345", city="Ort")
+        parcel = Parcel(plot_number="EXCHANGE-1", area_sqm=100)
+        session.add_all([member, parcel])
+        await session.flush()
+        session.add(MemberParcel(member_id=member.id, parcel_id=parcel.id, is_invoice_address=True))
+        point = MeteringPoint(medium=MeteringMedium.WATER, type=MeteringPointType.PARCEL, parcel_id=parcel.id)
+        session.add(point)
+        await session.flush()
+        old = Meter(metering_point_id=point.id, number="OLD-1", initial_reading=0, is_active=True)
+        session.add(old)
+        await session.flush()
+        session.add(MeterReading(meter_id=old.id, year=2025, date=date(2025, 10, 1), reading=100))
+        await session.commit()
+        point_id, old_id = point.id, old.id
+
+    # The exchange on 30 June: the old meter stands at 130 (30 used this year).
+    response = await client.post(f"/water/metering-points/{point_id}/meter/exchange", data={
+        "new_number": "NEW-1", "removed_at": "2026-06-30", "installed_at": "2026-06-30",
+        "calibrated_until": "", "initial_reading": "0", "final_reading": "130",
+    })
+    assert response.status_code in (302, 303)
+    async with AsyncSessionLocal() as session:
+        final = (await session.execute(select(MeterReading).where(MeterReading.meter_id == old_id, MeterReading.year == 2026))).scalar_one()
+        assert (float(final.reading), final.date) == (130.0, date(2026, 6, 30))
+        new = (await session.execute(select(Meter).where(Meter.number == "NEW-1"))).scalar_one()
+        # The yearly reading in October: the new meter stands at 40.
+        session.add(MeterReading(meter_id=new.id, year=2026, date=date(2026, 10, 1), reading=40))
+        await session.commit()
+
+    run_id = await _make_run(client, 2026)
+    await client.post(f"/finances/runs/{run_id}/items", data={
+        "order_number": "10", "name": "Water usage", "description": "", "pricing_mode": "water_usage", "unit_price": "",
+    })
+    assert (await client.post(f"/finances/runs/{run_id}/finalize")).status_code in (302, 303)
+    async with AsyncSessionLocal() as session:
+        invoice = (await session.execute(
+            select(Invoice).options(selectinload(Invoice.line_items)).where(Invoice.invoice_run_id == run_id)
+        )).scalar_one()
+    assert float(invoice.line_items[0].quantity) == 70.0  # 30 (old meter) + 40 (new meter), was 40
+    assert float(invoice.line_items[0].line_total) == 140.0
+
+    page = (await client.get("/water/evaluation", params={"year": 2026})).text
+    assert re.search(r"70(,|\.)0+", page) and "incl. replaced meter" in page
+    csv_text = (await client.get("/water/evaluation/csv", params={"year": 2026})).text
+    [row] = [line for line in csv_text.splitlines() if ";NEW-1;" in line]
+    assert re.search(r";70(,0+)?$", row), row
+
+
+def test_point_year_consumption_sums_all_meters_with_a_reading():
+    from decimal import Decimal
+    from types import SimpleNamespace
+    from app.meter_utils import point_year_consumption
+
+    def meter(initial, readings):
+        return SimpleNamespace(initial_reading=initial, readings=[
+            SimpleNamespace(id=f"{year}", year=year, reading=value) for year, value in readings
+        ])
+    point = SimpleNamespace(factor=Decimal("1"), meters=[meter(0, [(2025, 100), (2026, 130)]), meter(0, [(2026, 40)])])
+    assert point_year_consumption(point, 2026) == Decimal("70")
+    assert point_year_consumption(point, 2025) == Decimal("100")
+    assert point_year_consumption(point, 2024) is None
+    point.factor = Decimal("10")
+    assert point_year_consumption(point, 2026) == Decimal("700.00")
+    assert point_year_consumption(point, 2026, with_factor=False) == Decimal("70")

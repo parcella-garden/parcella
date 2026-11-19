@@ -215,6 +215,9 @@ the metering module. You don't enter a unit price here.
 
 - A parcel without a reading for the year gets no line.
 - If no price is set for that medium and year, nobody is billed for it.
+- After a meter exchange during the year, the consumption of **both**
+  meters is billed: the old one up to its final reading (entered in the
+  exchange form) and the new one from its initial reading.
 
 !!! warning "Metering points with a factor"
     If a metering point has a factor (multiplier) in the metering
@@ -222,7 +225,6 @@ the metering module. You don't enter a unit price here.
     the invoice bills the **raw** difference of the meter readings.
     Check such parcels in the preview.
 
-<!-- TODO(verify): only the metering point's *current* meter is used. After a meter exchange during the billing year, consumption on the old meter may not be billed. -->
 
 **Insurance cost.** Billed for every parcel that has an insurance record
 for the run's year. Instead of one lump sum, the invoice shows one line

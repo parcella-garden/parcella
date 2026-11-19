@@ -1282,6 +1282,8 @@
       "exchange_new_number_label": "New number",
       "exchange_calibrated_until_label": "Calibrated until",
       "exchange_initial_reading_label": "Initial reading",
+      "exchange_final_reading_label": "Final reading of the old meter",
+      "exchange_final_reading_help": "On the removal day. Without it, the old meter's consumption since its last reading isn't billed.",
       "exchange_confirm": "Really exchange the meter? The old meter will be deactivated.",
       "exchange_button": "Exchange",
       "no_active_meter": "No active meter for this metering point.",
@@ -1373,6 +1375,8 @@
       "col_point": "Metering point",
       "col_meter_number": "Meter no.",
       "col_consumption": "Consumption ({unit})",
+      "includes_replaced": "incl. replaced meter",
+      "includes_replaced_hint": "This year's consumption includes a meter that was replaced during the year.",
       "no_reading": "no reading",
       "no_entries": "No entries"
     },

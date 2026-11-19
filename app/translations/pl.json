@@ -1282,6 +1282,8 @@
       "exchange_new_number_label": "Nowy numer",
       "exchange_calibrated_until_label": "Legalizacja do",
       "exchange_initial_reading_label": "Stan początkowy",
+      "exchange_final_reading_label": "Stan końcowy starego licznika",
+      "exchange_final_reading_help": "W dniu demontażu. Bez niego zużycie starego licznika od ostatniego odczytu nie zostanie rozliczone.",
       "exchange_confirm": "Czy na pewno wymienić licznik? Stary licznik zostanie dezaktywowany.",
       "exchange_button": "Wymień",
       "no_active_meter": "Brak aktywnego licznika dla tego punktu pomiarowego.",
@@ -1373,6 +1375,8 @@
       "col_point": "Punkt pomiarowy",
       "col_meter_number": "Nr licznika",
       "col_consumption": "Zużycie ({unit})",
+      "includes_replaced": "z wymienionym licznikiem",
+      "includes_replaced_hint": "Zużycie w tym roku obejmuje licznik wymieniony w ciągu roku.",
       "no_reading": "brak odczytu",
       "no_entries": "Brak wpisów"
     },

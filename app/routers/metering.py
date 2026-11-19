@@ -42,7 +42,7 @@ from app.i18n import t_for
 from app.module_flags import require_module
 from app.meter_utils import (
     check_monotonicity, total_consumption_for_type, reading_before_year,
-    parse_point_factor, point_consumption, parse_calibration_year, InvalidCalibrationYear,
+    parse_point_factor, point_consumption, point_year_consumption, parse_calibration_year, InvalidCalibrationYear,
 )
 from app.services.metering import (
     create_metering_point, update_metering_point, delete_metering_point, exchange_meter, update_meter,
@@ -778,9 +778,10 @@ def create_metering_router(
         installed_at: str = Form(...),
         calibrated_until: str = Form(""),
         initial_reading: str = Form("0"),
+        final_reading: str = Form(""),
         db: AsyncSession = Depends(get_db),
     ):
-        await require_permission(request, db, modul_name, "write")
+        user = await require_permission(request, db, modul_name, "write")
         metering_point = await _load_metering_point_with_details(db, metering_point_id)
         if not metering_point:
             raise HTTPException(status_code=404)
@@ -791,6 +792,8 @@ def create_metering_router(
             installed_at=date.fromisoformat(installed_at),
             calibrated_until=(int(calibrated_until) if calibrated_until.strip() else None),
             initial_reading=(_parse_number(initial_reading, decimal_places) or Decimal("0")),
+            final_reading=_parse_number(final_reading, decimal_places),
+            recorded_by_id=user.id,
         )
         await db.commit()
         return RedirectResponse(f"{url_prefix}/metering-points/{metering_point_id}", status_code=302)
@@ -1174,8 +1177,14 @@ def create_metering_router(
             rows = []
             for a in filtered:
                 z = a.current_meter
-                consumption = point_consumption(a, z, year)
-                rows.append({"metering_point": a, "meter": z, "consumption": consumption})
+                # Issue #354: all meters of the point, so an exchange during
+                # the year counts the old meter's part too (like invoices).
+                consumption = point_year_consumption(a, year)
+                includes_replaced = any(
+                    m is not z and any(r.year == year for r in m.readings) for m in a.meters
+                )
+                rows.append({"metering_point": a, "meter": z, "consumption": consumption,
+                             "includes_replaced": includes_replaced})
             return rows
 
         main_meter_rows = rows_for_type(MeteringPointType.MAIN_METER)
@@ -1249,7 +1258,7 @@ def create_metering_router(
             if not z:
                 continue
             entry = next((zs for zs in z.readings if zs.year == year), None)
-            consumption = point_consumption(a, z, year)
+            consumption = point_year_consumption(a, year)  # issue #354, as on the page
             writer.writerow([
                 type_label.get(a.type, a.type.value),
                 a.display_name,

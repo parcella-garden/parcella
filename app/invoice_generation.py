@@ -30,7 +30,7 @@ from app.database import active_member_filter
 from app.i18n import load_current_language
 from app.insurance_utils import insurance_cost_line_items, _normalized_address
 from app.services.insurance import PARCEL_INSURANCE_LOAD_OPTIONS
-from app.meter_utils import calculate_consumption
+from app.meter_utils import point_year_consumption
 from app.l10n import load_current_region, format_address
 from app.area_utils import compute_area_b_sqm
 from app.work_hours_evaluation import compute_work_hours_shortfalls
@@ -348,8 +348,9 @@ async def compute_invoices_for_run(db: AsyncSession, run: InvoiceRun) -> List[Co
                 return None, None
             points = water_points if mode == InvoicePricingMode.WATER_USAGE else electricity_points
             point = points.get(parcel.id)
-            meter = point.current_meter if point else None
-            consumption = calculate_consumption(meter, run.year) if meter else None
+            # Issue #354: every meter of the point, not only the current one --
+            # after an exchange during the year the old meter's part counts too.
+            consumption = point_year_consumption(point, run.year, with_factor=False) if point else None
             if consumption is None:
                 return None, None
             return consumption, price

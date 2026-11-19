@@ -1282,6 +1282,8 @@
       "exchange_new_number_label": "Neue Nummer",
       "exchange_calibrated_until_label": "Geeicht bis",
       "exchange_initial_reading_label": "Anfangsstand",
+      "exchange_final_reading_label": "Endstand des alten Zählers",
+      "exchange_final_reading_help": "Am Ausbautag. Ohne ihn wird der Verbrauch des alten Zählers seit der letzten Ablesung nicht abgerechnet.",
       "exchange_confirm": "Zähler wirklich tauschen? Der alte Zähler wird deaktiviert.",
       "exchange_button": "Tauschen",
       "no_active_meter": "Kein aktiver Zähler für diesen Zählpunkt.",
@@ -1373,6 +1375,8 @@
       "col_point": "Zählpunkt",
       "col_meter_number": "Zähler-Nr.",
       "col_consumption": "Verbrauch ({unit})",
+      "includes_replaced": "inkl. getauschtem Zähler",
+      "includes_replaced_hint": "Der Verbrauch dieses Jahres enthält einen Zähler, der im Laufe des Jahres getauscht wurde.",
       "no_reading": "keine Ablesung",
       "no_entries": "Keine Einträge"
     },

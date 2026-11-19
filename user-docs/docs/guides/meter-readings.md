@@ -123,14 +123,13 @@ installation and removal dates and its **Last reading**. From now on,
 readings go to the new meter, whose consumption starts from its
 **Initial reading**.
 
-!!! warning "Consumption in the year of the swap"
-    Readings can only be entered for the meter that's currently
-    installed, and the annual invoice uses the current meter's
-    consumption. What the old meter counted in the year of the swap is
-    shown under **Former meters** but is **not** added to that year's
-    invoice. Check such parcels by hand and add the old meter's share
-    to the invoice separately if your club bills it.
-    <!-- TODO(verify): confirm that neither the invoice nor the evaluation adds the old meter's partial-year consumption, and what the recommended way to bill it is. -->
+!!! tip "Consumption in the year of the swap"
+    Fill in **Final reading of the old meter** in the exchange form --
+    what the old meter shows on the removal day. The year's consumption
+    then adds up both meters (the old one up to the swap, the new one
+    from its initial reading), and that total is what the annual invoice
+    bills. Without the final reading, the old meter's share since its
+    last reading isn't billed.
 
 !!! tip "Typo, not a new meter?"
     If you only mistyped the meter number or initial reading, use **Edit

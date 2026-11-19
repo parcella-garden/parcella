@@ -88,6 +88,16 @@ calibration deadlines), the old one is **not deleted** but deactivated
 with a new number and its own initial reading. This correctly separates
 consumption calculations -- no mixing of old and new meter readings.
 
+**Consumption in the year of an exchange (issue #354, ADR 0140).** The
+exchange records the old meter's **final reading** (optional, but the form
+explains why it matters) as its reading for the removal year.
+`point_year_consumption()` (`app/meter_utils.py`) sums every meter of a
+point that has a reading in the year -- invoices (raw, ADR 0138), the
+Evaluation page and its CSV (with the factor) all use it, and the
+Overview's `total_consumption_for_type` already did. Before, invoices and
+the Evaluation used only the current meter and the old meter's part of
+the exchange year went unbilled.
+
 **Editing the current meter in place (issue #226)** is a separate
 operation from exchanging it: `update_meter()`
 (`app/services/metering.py`), `POST .../meter/edit` (HTML) and
