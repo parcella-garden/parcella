@@ -81,6 +81,7 @@
     "invitation_resent": "Invitation renvoyée",
     "invitation_deleted": "Invitation supprimée",
     "invitation_not_found": "Invitation introuvable ou n'est plus en attente",
+    "invitation_send_failed": "L'invitation pour {email} est enregistrée, mais l'e-mail n'a pas pu être envoyé. Vérifiez les paramètres e-mail et le Journal des e-mails, puis renvoyez l'invitation.",
     "own_account_cannot_deactivate": "Impossible de désactiver votre propre compte",
     "cannot_remove_last_admin": "Impossible de retirer l'accès administrateur au dernier compte Administrateur/Conseil restant",
     "name_required": "Un nom est requis",

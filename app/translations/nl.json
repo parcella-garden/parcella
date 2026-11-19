@@ -81,6 +81,7 @@
     "invitation_resent": "Uitnodiging opnieuw verzonden",
     "invitation_deleted": "Uitnodiging verwijderd",
     "invitation_not_found": "Uitnodiging niet gevonden of niet meer in behandeling",
+    "invitation_send_failed": "De uitnodiging voor {email} is opgeslagen, maar de e-mail kon niet worden verzonden. Controleer de e-mailinstellingen en het E-maillogboek en verstuur de uitnodiging daarna opnieuw.",
     "own_account_cannot_deactivate": "Kan uw eigen account niet deactiveren",
     "cannot_remove_last_admin": "Kan de laatst overgebleven Beheerder-/Bestuursaccount de beheerderstoegang niet ontnemen",
     "name_required": "Een naam is verplicht",

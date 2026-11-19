@@ -81,6 +81,7 @@
     "invitation_resent": "Invitation resent",
     "invitation_deleted": "Invitation deleted",
     "invitation_not_found": "Invitation not found or no longer pending",
+    "invitation_send_failed": "The invitation for {email} is saved, but the email could not be sent. Check the email settings and the Email log, then resend the invitation.",
     "own_account_cannot_deactivate": "Cannot deactivate your own account",
     "cannot_remove_last_admin": "Cannot remove admin access from the last remaining Administrator/Board account",
     "name_required": "A name is required",

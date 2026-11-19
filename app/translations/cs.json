@@ -81,6 +81,7 @@
     "invitation_resent": "Pozvánka znovu odeslána",
     "invitation_deleted": "Pozvánka smazána",
     "invitation_not_found": "Pozvánka nenalezena nebo již není čekající",
+    "invitation_send_failed": "Pozvánka pro {email} je uložena, ale e-mail se nepodařilo odeslat. Zkontrolujte nastavení e-mailu a Protokol e-mailů a pak pozvánku odešlete znovu.",
     "own_account_cannot_deactivate": "Nelze deaktivovat vlastní účet",
     "cannot_remove_last_admin": "Poslednímu zbývajícímu účtu Správce/Výboru nelze odebrat administrátorský přístup",
     "name_required": "Jméno je povinné",

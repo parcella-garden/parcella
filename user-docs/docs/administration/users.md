@@ -41,10 +41,13 @@ What happens:
 
 !!! warning "E-mail must work"
     Invitations need a working mail server (see
-    [Club settings](settings.md#email-smtp)). The page says
-    **Invitation sent** even when the mail server refused the e-mail.
-    If the invited person gets nothing, check the
-    [E-mail log](email-log.md) for the invitation.
+    [Club settings](settings.md#email-smtp)). If the mail server refuses
+    the e-mail, the page says so instead of **Invitation sent**: "The
+    invitation for … is saved, but the email could not be sent. Check
+    the email settings and the Email log, then resend the invitation."
+    The invitation stays under **Pending invitations**; once the mail
+    settings work, use **Resend invitation**. The
+    [E-mail log](email-log.md) shows the mail server's reason.
 
 ### Pending invitations
 
