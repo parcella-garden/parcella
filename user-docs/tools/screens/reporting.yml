@@ -1,0 +1,3 @@
+- name: reporting/index
+  url: /reporting/
+  full_page: true

@@ -1,0 +1,68 @@
+name: User docs
+
+# Builds the user documentation in user-docs/ (MkDocs Material) and
+# publishes it to https://docs.parcella.org via GitHub Pages.
+#
+# - Pull requests that touch user-docs/ get a strict build (broken links,
+#   missing screenshots, pages missing from the nav all fail it).
+# - A release tag publishes, so the live docs describe the version people
+#   can actually install -- not unreleased work on main.
+# - "Run workflow" (workflow_dispatch) publishes the current main by hand,
+#   for a docs-only fix that shouldn't wait for the next release.
+#
+# One-time setup: Settings -> Pages -> Source "GitHub Actions", custom
+# domain docs.parcella.org; DNS: CNAME docs -> parcella-garden.github.io.
+on:
+  pull_request:
+    paths:
+      - 'user-docs/**'
+      - '.github/workflows/user-docs.yml'
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: user-docs-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: user-docs/requirements.txt
+
+      - name: Install MkDocs
+        run: pip install -r user-docs/requirements.txt
+
+      - name: Build (strict)
+        run: mkdocs build --strict -f user-docs/mkdocs.yml -d ../site
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

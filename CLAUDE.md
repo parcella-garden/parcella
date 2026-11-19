@@ -287,6 +287,32 @@ This isn't optional polish: `docs/README.md` states docs get written
 - Code and commit messages are not a substitute for either of the above --
   they explain *what changed*, not *why the system is shaped this way*.
 
+### User documentation (`user-docs/`, published at docs.parcella.org)
+
+`docs/` is for developers; `user-docs/` is the end-user guide for board
+members, screen by screen. It's kept current in the **same PR** as the
+UI change -- read [user-docs/STYLE.md](./user-docs/STYLE.md) first.
+
+- **Any change to a template or a user-visible route** (new/renamed/removed
+  field, button, column, filter, screen, permission, validation rule,
+  status) -> update the matching chapter in `user-docs/docs/modules/`
+  (or `administration/`, `getting-started/`), and any task guide in
+  `user-docs/docs/guides/` whose steps it changes.
+- **New screen** -> new H2 section in the chapter + an entry in
+  `user-docs/tools/screens/<module>.yml`, then regenerate its screenshot:
+  `python user-docs/tools/screenshots.py --only '<module>/*'` against a dev
+  instance with sample data loaded. Commit the PNGs; never hand-edit them.
+- **New module** -> new chapter `user-docs/docs/modules/<name>.md`, added to
+  `nav` in `user-docs/mkdocs.yml` and to `user-docs/docs/modules/index.md`.
+- Use the exact English labels from `app/translations/en.json`; no ADR
+  numbers, file paths or code identifiers in user docs.
+- `mkdocs build --strict -f user-docs/mkdocs.yml` must pass (the
+  `User docs` workflow runs it on every PR touching `user-docs/`).
+  Publishing happens on the release tag, or by hand via the workflow's
+  "Run workflow" button for a docs-only fix.
+- Docs-only PRs count as "pure docs" for the security-review rule (skip it)
+  and as patch-level for the release policy.
+
 ## Code conventions (see CONTRIBUTING.md for the full list)
 
 - English first, for identifiers *and* user-facing text *and*

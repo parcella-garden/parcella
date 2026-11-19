@@ -25,7 +25,7 @@ Started as a vibe-coding project for we became sick of these ill-architectured p
 - ✅ switch off and sort modules like "electricity" as you like it
 
 
-📖 **Detailed [documentation](https://github.com/parcella-garden/parcella/tree/main/docs), which later might become an HTTP online help.**
+📖 **User guide:** [docs.parcella.org](https://docs.parcella.org) -- every screen explained for board members. **Developer documentation:** [docs/](https://github.com/parcella-garden/parcella/tree/main/docs) (architecture, modules, ADRs).
 
 ---
 

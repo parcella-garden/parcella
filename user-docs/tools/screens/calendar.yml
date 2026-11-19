@@ -1,0 +1,17 @@
+- name: calendar/community
+  url: /calendar/community
+- name: calendar/birthdays
+  url: /calendar/birthdays
+- name: calendar/council-presence
+  url: /calendar/council-presence
+- name: calendar/council-absence
+  url: /calendar/council-absence
+- name: calendar/custom-index
+  url: /calendar/custom
+# The sample data has no custom calendars yet; create one before
+# running the screenshots, or this entry finds no link to follow.
+- name: calendar/custom-detail
+  from: /calendar/custom
+  follow: '^/calendar/custom/[0-9a-f-]{36}$'
+- name: calendar/resources
+  url: /calendar/resources

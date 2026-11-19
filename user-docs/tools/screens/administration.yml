@@ -1,0 +1,35 @@
+# Screenshots for docs/administration/*.md
+# All pages need an administrator login.
+- name: administration/users
+  url: /admin/users/
+  full_page: true
+- name: administration/user-edit
+  from: /admin/users/
+  follow: '^/admin/users/[0-9a-f-]{36}/edit$'
+  full_page: true
+- name: administration/groups
+  url: /admin/groups/
+  full_page: true
+- name: administration/settings
+  url: /admin/settings
+  full_page: true
+- name: administration/integrations
+  url: /admin/integrations
+  full_page: true
+- name: administration/system
+  url: /admin/system
+- name: administration/backup-restore
+  url: /admin/backup/restore
+# Shows only a notice unless the Cloud storage module is on and a
+# storage is connected.
+- name: administration/backup-cloud
+  url: /admin/backup/cloud
+  full_page: true
+- name: administration/email-log
+  url: /admin/email-log
+  full_page: true
+- name: administration/sample-data
+  url: /admin/sample-data
+- name: administration/api-tokens
+  url: /admin/api-tokens
+  full_page: true

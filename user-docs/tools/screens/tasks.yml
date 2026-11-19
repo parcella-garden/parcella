@@ -1,0 +1,11 @@
+- name: tasks/board
+  url: /tasks/
+  full_page: true
+- name: tasks/task-modal
+  from: /tasks/
+  follow: '^/tasks/[0-9a-f-]{36}/edit$'
+- name: tasks/tags
+  url: /tasks/tags
+- name: tasks/export
+  url: /tasks/
+  click: '[data-bs-target="#exportReportModal"]'

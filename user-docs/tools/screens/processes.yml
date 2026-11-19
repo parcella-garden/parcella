@@ -1,0 +1,18 @@
+# The sample data has no process templates or processes yet. Before
+# running the screenshots, create the "Plot handover" example template
+# (Processes -> Templates -> Use) and start one process from it, or the
+# follow entries find no link.
+- name: processes/list
+  url: /processes/
+- name: processes/new
+  url: /processes/new
+- name: processes/detail
+  from: /processes/
+  follow: '^/processes/[0-9a-f-]{36}$'
+  full_page: true
+- name: processes/templates
+  url: /processes/templates/
+- name: processes/template-edit
+  from: /processes/templates/
+  follow: '^/processes/templates/[0-9a-f-]{36}$'
+  full_page: true

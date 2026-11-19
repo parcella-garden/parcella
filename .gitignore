@@ -48,3 +48,6 @@ backups/
 # never a repo asset.
 data/
 integrations/dist/
+
+# User docs build output (mkdocs build -f user-docs/mkdocs.yml)
+/site/

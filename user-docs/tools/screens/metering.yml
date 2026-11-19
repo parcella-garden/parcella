@@ -1,0 +1,27 @@
+# Water and electricity share the same screens; the water pages stand in
+# for both, plus one electricity overview to show the difference in units.
+- name: water/overview
+  url: /water/
+- name: water/metering-points
+  url: /water/metering-points
+- name: water/metering-points-missing
+  url: /water/metering-points?missing=1
+- name: water/metering-point-detail
+  from: /water/metering-points
+  follow: '^/water/metering-points/[0-9a-f-]{36}$'
+  full_page: true
+- name: water/metering-point-form
+  url: /water/metering-points/new
+  full_page: true
+- name: water/readings
+  url: /water/readings
+- name: water/evaluation
+  url: /water/evaluation
+  full_page: true
+- name: water/configuration
+  url: /water/configuration
+- name: electricity/overview
+  url: /electricity/
+# Not photographed: the two CSV import mapping pages (they need an
+# uploaded file) and the price edit form (the sample data has no price
+# configuration).

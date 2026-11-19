@@ -1,0 +1,14 @@
+# The sample data has no notes yet; create one before running the
+# screenshots, or the detail entry finds no link to follow.
+- name: notes/list
+  url: /notes/
+- name: notes/detail
+  from: /notes/
+  follow: '^/notes/[0-9a-f-]{36}$'
+- name: notes/form
+  url: /notes/new
+  full_page: true
+- name: notes/taxonomy
+  url: /notes/taxonomy
+- name: notes/import-bookmarks
+  url: /notes/import/bookmarks

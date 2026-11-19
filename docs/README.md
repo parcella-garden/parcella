@@ -24,6 +24,8 @@ decisions and reasoning are still fresh.
 
 ## Cross-cutting topics
 
+- [User documentation](../user-docs/STYLE.md) -- the end-user guide (published at docs.parcella.org); how to write and update it
+
 - [Architecture overview](./architecture.svg) -- one-page diagram of clients, app layers, storage, modules and external services
 - [Application architecture](./architecture-application.svg) -- request lifecycle, module map (router, templates, API, domain logic, models), shared layers and background loops
 - [Architecture Decisions](./ADR/README.md) -- why certain things are built the way they are
@@ -76,3 +78,8 @@ Architecture Decisions for details):
     [`docs/architecture-application.svg`](./architecture-application.svg):
     add it to `rows` in `docs/tools/architecture_application_svg.py` and
     re-run the script (the SVG is generated, don't edit it by hand)
+13. Write the **user** documentation chapter in
+    [`../user-docs/docs/modules/`](../user-docs/STYLE.md) -- every screen,
+    field and button, with a screenshot manifest entry in
+    `user-docs/tools/screens/<module>.yml` -- and add it to the `nav` in
+    `user-docs/mkdocs.yml`. Published at <https://docs.parcella.org>.

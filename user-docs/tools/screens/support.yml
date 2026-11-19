@@ -1,0 +1,6 @@
+# Needs the "Support (helpdesk)" module switched on in the screenshot
+# instance (off by default); sample data then provides demo conversations.
+# The conversation page isn't listed: list rows open by click, not by a
+# link, so there is nothing to follow.
+- name: support/list
+  url: /support/

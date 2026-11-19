@@ -1,0 +1,15 @@
+- name: inventory/list
+  url: /inventory/
+- name: inventory/detail
+  # First item in the list: a borrowable sample item, so the Check out
+  # form and loan history are visible.
+  from: /inventory/
+  follow: '^/inventory/[0-9a-f-]{36}$'
+  full_page: true
+- name: inventory/form-new
+  url: /inventory/new
+  full_page: true
+- name: inventory/categories
+  url: /inventory/categories/
+- name: inventory/active-loans
+  url: /inventory/loans/active

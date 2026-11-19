@@ -1,0 +1,10 @@
+# Sample data contains no external contacts yet, so the list shows its
+# empty state and there is no contact page to follow. The CSV import
+# preview is reached only by uploading a file and can't be captured.
+- name: external-contacts/list
+  url: /contacts/
+- name: external-contacts/form-new
+  url: /contacts/new
+  full_page: true
+- name: external-contacts/tags
+  url: /contacts/tags

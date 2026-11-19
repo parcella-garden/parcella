@@ -1,0 +1,12 @@
+- name: insurance/overview
+  url: /insurance/
+- name: insurance/parcels-list
+  url: /insurance/parcels
+- name: insurance/detail
+  from: /insurance/parcels
+  follow: '^/insurance/parcels/[0-9a-f-]{36}\?year=\d+$'
+  full_page: true
+- name: insurance/configuration
+  url: /insurance/configuration
+- name: insurance/evaluation
+  url: /insurance/evaluation
