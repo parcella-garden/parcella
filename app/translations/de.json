@@ -81,6 +81,7 @@
     "invitation_resent": "Einladung erneut gesendet",
     "invitation_deleted": "Einladung gelöscht",
     "invitation_not_found": "Einladung nicht gefunden oder nicht mehr ausstehend",
+    "invitation_send_failed": "Die Einladung für {email} ist gespeichert, aber die E-Mail konnte nicht gesendet werden. Prüfe die E-Mail-Einstellungen und das E-Mail-Protokoll und sende die Einladung dann erneut.",
     "own_account_cannot_deactivate": "Eigenes Konto nicht deaktivierbar",
     "cannot_remove_last_admin": "Der letzten verbleibenden Administrator-/Vorstandsperson kann der Admin-Zugriff nicht entzogen werden",
     "name_required": "Ein Name ist erforderlich",

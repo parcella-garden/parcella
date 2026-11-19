@@ -184,8 +184,8 @@ invitation** (which also extends it) or **Delete invitation**.
 
 !!! warning
     The invitation goes out by email, so set up **Email (SMTP)** first
-    (step 5).
-    <!-- TODO(verify): in production the page reports "invitation sent" even when the email could not be delivered; confirm and describe how an admin notices a failed send (Email log?). -->
+    (step 5). If it can't be sent, the page says so; fix the mail
+    settings and use **Resend invitation**.
 
 More: [Users and invitations](../administration/users.md).
 

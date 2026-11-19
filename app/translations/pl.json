@@ -81,6 +81,7 @@
     "invitation_resent": "Zaproszenie wysłane ponownie",
     "invitation_deleted": "Zaproszenie usunięte",
     "invitation_not_found": "Nie znaleziono zaproszenia lub nie jest już oczekujące",
+    "invitation_send_failed": "Zaproszenie dla {email} zostało zapisane, ale nie udało się wysłać e-maila. Sprawdź ustawienia e-mail i Dziennik e-maili, a następnie wyślij zaproszenie ponownie.",
     "own_account_cannot_deactivate": "Nie można dezaktywować własnego konta",
     "cannot_remove_last_admin": "Nie można odebrać uprawnień administratora ostatniemu pozostałemu kontu Administratora/Zarządu",
     "name_required": "Imię i nazwisko jest wymagane",

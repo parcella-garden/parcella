@@ -510,6 +510,13 @@ async def _send_invitation_email(request: Request, admin: User, invitation: Invi
     return await send_email(invitation.email, subject, html, db=db)
 
 
+def _invitation_send_failed(request: Request, email: str) -> RedirectResponse:
+    """The invitation row is saved either way (its link works); only the
+    email didn't go out. Say so, and where to look (issue #359)."""
+    message = t_for(request, "errors.invitation_send_failed", email=email)
+    return RedirectResponse(f"/admin/users/?error={urllib.parse.quote(message)}", status_code=302)
+
+
 @router.post("/invite")
 async def user_invite(
     request: Request,
@@ -578,6 +585,9 @@ async def user_invite(
             f"/admin/users/?info=Invitation+link+%28Dev%29%3A+{invitation_link}", status_code=302
         )
 
+    if not email_sent:
+        # Issue #359: this used to say "Invitation sent" even when SMTP refused it.
+        return _invitation_send_failed(request, invitation.email)
     return RedirectResponse(
         f"/admin/users/?success={urllib.parse.quote(t_for(request, 'errors.invitation_sent'))}",
         status_code=302,
@@ -622,6 +632,8 @@ async def invitation_resend(
             f"/admin/users/?info=Invitation+link+%28Dev%29%3A+{invitation_link}", status_code=302
         )
 
+    if not email_sent:
+        return _invitation_send_failed(request, invitation.email)
     return RedirectResponse(
         f"/admin/users/?success={urllib.parse.quote(t_for(request, 'errors.invitation_resent'))}",
         status_code=302,
