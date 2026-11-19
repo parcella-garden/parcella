@@ -3072,7 +3072,7 @@
       "incoming": "New tenants and invoice recipients",
       "incoming_existing_member": "already a member:",
       "incoming_new_member": "becomes a new member (name, email and phone taken from the application).",
-      "summary_rest": "The parcel becomes active again and the applications are set to “Accepted”.",
+      "summary_rest": "The parcel becomes active again and the applications are set to “Closed (parcel assigned)”.",
       "submit": "Hand over parcel",
       "button": "Assign a parcel",
       "button_hint": "Hand a terminated parcel over to this applicant.",

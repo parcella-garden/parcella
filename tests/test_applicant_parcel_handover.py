@@ -69,6 +69,8 @@ async def test_handover_via_web(client, admin_user):
     )
     assert preview.status_code == 200
     assert "Handover of parcel 7" in preview.text
+    # Issue #358: the preview promised "Accepted"; the handover sets CLOSED.
+    assert "set to “Closed (parcel assigned)”" in preview.text and "“Accepted”" not in preview.text
     assert "keeps membership (still tenant of 8)" in preview.text
     assert f'/members/{ids["yvonne_member"]}' in preview.text
 
@@ -181,3 +183,13 @@ async def test_handover_via_api_with_future_date(client, admin_user):
     page = await client.get(f"/parcels/{ids['parcel']}")
     assert f"from {day.strftime('%d.%m.%Y')}" in page.text
     assert f"until {day.strftime('%d.%m.%Y')}" in page.text
+
+
+def test_handover_preview_names_the_status_the_handover_sets_in_every_language():
+    """Issue #358: summary_rest must quote the label of the status the
+    handover really sets (ApplicantStatus.CLOSED), in every language."""
+    import json
+    from pathlib import Path
+    for path in sorted(Path("app/translations").glob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        assert data["applicants"]["status"]["CLOSED"] in data["applicants"]["handover"]["summary_rest"], path.name

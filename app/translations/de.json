@@ -3072,7 +3072,7 @@
       "incoming": "Neue Pächter und Rechnungsempfänger",
       "incoming_existing_member": "bereits Mitglied:",
       "incoming_new_member": "wird neues Mitglied (Name, E-Mail und Telefon aus der Bewerbung).",
-      "summary_rest": "Die Parzelle wird wieder aktiv und die Bewerbungen werden auf „Angenommen“ gesetzt.",
+      "summary_rest": "Die Parzelle wird wieder aktiv und die Bewerbungen werden auf „Abgeschlossen (Garten vergeben)“ gesetzt.",
       "submit": "Parzelle übergeben",
       "button": "Parzelle zuweisen",
       "button_hint": "Eine gekündigte Parzelle an diesen Bewerber übergeben.",

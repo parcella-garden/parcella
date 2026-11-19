@@ -3072,7 +3072,7 @@
       "incoming": "Nouveaux locataires et destinataires des factures",
       "incoming_existing_member": "déjà membre :",
       "incoming_new_member": "devient un nouveau membre (nom, e-mail et téléphone repris de la candidature).",
-      "summary_rest": "La parcelle redevient active et les candidatures passent à « Acceptée ».",
+      "summary_rest": "La parcelle redevient active et les candidatures passent à « Clôturée (parcelle attribuée) ».",
       "submit": "Remettre la parcelle",
       "button": "Attribuer une parcelle",
       "button_hint": "Remettre une parcelle résiliée à ce candidat.",
