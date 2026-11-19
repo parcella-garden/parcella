@@ -132,7 +132,9 @@ The strict build checks this once the language is switched on.
 the same way English pages use `en.json`.
 
 **Form of address.** German always uses **"du"** (kermie's decision,
-2026-11-20), never "Sie" or "ihr". Exception: a quoted on-screen text
+2026-11-20), never "Sie" or "ihr" -- lowercase in generic texts such as
+these docs, websites and the UI; capital "Du" only in personal contact
+(an e-mail or letter to one person). Exception: a quoted on-screen text
 (a label or message in bold or quotes) stays exactly as the app shows it,
 even while parts of `de.json` still say "Sie" -- readers must find it
 on screen.
