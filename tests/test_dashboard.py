@@ -47,3 +47,27 @@ async def test_dashboard_returns_its_db_connection(client, admin_user):
     page = await client.get("/")
     assert page.status_code == 200
     assert engine.pool.checkedout() == 0
+
+
+async def test_tiles_only_show_for_users_who_may_open_them(client, admin_user):
+    """Issue #361: the purchase requests, overdue tasks and sign-ups tiles
+    only checked the module flag; "Show all" then led to a 403."""
+    from app.auth import hash_password
+    from app.database import AsyncSessionLocal
+    from app.models import ClubSetting, User, UserRole
+    async with AsyncSessionLocal() as db:
+        for module in ("purchase_requests", "tasks", "work_hours"):
+            db.add(ClubSetting(key=f"modul_{module}", value="true", description="test"))
+        db.add(User(email="reader@example.com", name="Reader", password_hash=hash_password("testpasswort123"),
+                    role=UserRole.READONLY))
+        await db.commit()
+    tiles = ("Open Purchase Requests", "Overdue Tasks", "New Sign-ups")
+
+    await web_login(client, "reader@example.com")
+    page = (await client.get("/")).text
+    assert not [tile for tile in tiles if tile in page]
+    assert "/tasks/?overdue=1" not in page
+
+    await web_login(client, "admin@example.com")
+    page = (await client.get("/")).text
+    assert all(tile in page for tile in tiles)

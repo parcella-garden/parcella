@@ -90,7 +90,7 @@
         </div>
     </div>
 
-    {% if request.state.module_flags.purchase_requests %}
+    {% if request.state.module_flags.purchase_requests and has_perm(request, 'purchase_requests') %}
     <div class="col-sm-6 col-xl-3">
         <div class="card h-100">
             <div class="card-body d-flex align-items-center gap-3">
@@ -180,7 +180,8 @@
     </div>
     {% endif %}
 
-    {% if request.state.module_flags.tasks %}
+    {#- The task board needs full access (require_admin), not a module permission. -#}
+    {% if request.state.module_flags.tasks and is_full_access(request) %}
     <div class="col-sm-6 col-xl-3">
         <div class="card h-100">
             <div class="card-body d-flex align-items-center gap-3">
@@ -201,7 +202,7 @@
     </div>
     {% endif %}
 
-    {% if request.state.module_flags.work_hours %}
+    {% if request.state.module_flags.work_hours and has_perm(request, 'work_hours') %}
     <div class="col-sm-6 col-xl-3">
         <div class="card h-100">
             <div class="card-body d-flex align-items-center gap-3">
