@@ -1224,7 +1224,8 @@
       "filter_all": "Alle",
       "filter_active": "Actief",
       "map_field_factor": "Factor",
-      "csv_import_skip_reason_invalid_factor": "ongeldige factor"
+      "csv_import_skip_reason_invalid_factor": "ongeldige factor",
+      "csv_import_skip_reason_invalid_calibration": "‘Gekalibreerd tot’ is geen jaartal"
     },
     "point_form": {
       "title_new": "Nieuw {medium} meetpunt",

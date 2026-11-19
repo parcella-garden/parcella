@@ -1224,7 +1224,8 @@
       "filter_all": "Alle",
       "filter_active": "Aktiv",
       "map_field_factor": "Faktor",
-      "csv_import_skip_reason_invalid_factor": "ungültiger Faktor"
+      "csv_import_skip_reason_invalid_factor": "ungültiger Faktor",
+      "csv_import_skip_reason_invalid_calibration": "„Geeicht bis“ ist keine Jahreszahl"
     },
     "point_form": {
       "title_new": "Neuer {medium}-Zählpunkt",

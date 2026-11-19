@@ -1224,7 +1224,8 @@
       "filter_all": "Všetky",
       "filter_active": "Aktívne",
       "map_field_factor": "Násobiteľ",
-      "csv_import_skip_reason_invalid_factor": "neplatný násobiteľ"
+      "csv_import_skip_reason_invalid_factor": "neplatný násobiteľ",
+      "csv_import_skip_reason_invalid_calibration": "„Kalibrovaný do“ nie je rok"
     },
     "point_form": {
       "title_new": "Nový merací bod pre {medium}",

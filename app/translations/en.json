@@ -1224,7 +1224,8 @@
       "filter_all": "All",
       "filter_active": "Active",
       "map_field_factor": "Factor",
-      "csv_import_skip_reason_invalid_factor": "invalid factor"
+      "csv_import_skip_reason_invalid_factor": "invalid factor",
+      "csv_import_skip_reason_invalid_calibration": "“Calibrated until” is not a year"
     },
     "point_form": {
       "title_new": "New {medium} metering point",

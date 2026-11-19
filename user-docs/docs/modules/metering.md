@@ -259,7 +259,7 @@ German (for example "Zählernummer" becomes **Meter number**).
 | **Label** | The name of a main meter or club connection. |
 | **Meter number** | The meter's number. |
 | **Installed on** | Date as 2026-09-18 or 18.09.2026. |
-| **Calibrated until** | A year, for example 2032. |
+| **Calibrated until** | A year, for example 2032. A date also works; its year is used. A value without a four-digit year skips that row. |
 | **Initial reading** | The meter's reading when it was installed; empty = 0. |
 | **Factor** | Empty = 1. |
 | **Import** | Creates the metering points. At least one column must be mapped. |

@@ -1224,7 +1224,8 @@
       "filter_all": "Wszystkie",
       "filter_active": "Aktywne",
       "map_field_factor": "Mnożnik",
-      "csv_import_skip_reason_invalid_factor": "nieprawidłowy mnożnik"
+      "csv_import_skip_reason_invalid_factor": "nieprawidłowy mnożnik",
+      "csv_import_skip_reason_invalid_calibration": "„Legalizacja do” nie jest rokiem"
     },
     "point_form": {
       "title_new": "Nowy punkt pomiarowy ({medium})",

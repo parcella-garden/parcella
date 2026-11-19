@@ -3,6 +3,7 @@ Helper functions for the metering module (water + electricity):
 consumption calculation and plausibility checking. Medium-agnostic --
 works identically for water meters and electricity meters.
 """
+import re
 from datetime import date
 from typing import Optional, List
 from decimal import Decimal, InvalidOperation
@@ -75,6 +76,29 @@ def point_consumption(metering_point, meter: Optional[Meter], year: int) -> Opti
     if meter is None:
         return None
     return calculate_consumption(meter, year, factor=metering_point.factor)
+
+
+class InvalidCalibrationYear(ValueError):
+    pass
+
+
+_YEAR = re.compile(r"(?<!\d)(\d{4})(?!\d)")
+
+
+def parse_calibration_year(value: Optional[str]) -> Optional[int]:
+    """"Calibrated until" from a CSV cell: a year, as the app stores it.
+    Issue #362: a date ("30.06.2027", "2027-06", "06/2027") used to crash
+    the whole import with int(); now the year is taken from it. Blank
+    means none. Anything without exactly one plausible four-digit year
+    (e.g. "06/27", "soon") raises InvalidCalibrationYear, and the caller
+    skips that row with a reason."""
+    text = (value or "").strip()
+    if not text:
+        return None
+    years = [int(y) for y in _YEAR.findall(text) if 1900 <= int(y) <= 2199]
+    if len(years) != 1 or len(_YEAR.findall(text)) != 1:
+        raise InvalidCalibrationYear(text)
+    return years[0]
 
 
 def parse_point_factor(value: Optional[str]) -> Optional[Decimal]:
