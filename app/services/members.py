@@ -59,7 +59,7 @@ async def create_member(
     iban: Optional[str] = None,
     member_since: Optional[date] = None,
     member_until: Optional[date] = None,
-    email_notifications: bool = False,
+    email_notifications: bool = True,  # like the model, the form and the API (issue #357)
     birthday_present_declined: bool = False,
     notes: Optional[str] = None,
 ) -> Member:

@@ -102,6 +102,8 @@ async def test_handover_via_web(client, admin_user):
             .where(Member.first_name == "Xaver")
         )).scalar_one()
         assert xaver_member.member_since == day
+        # Issue #357: club mail and invoices by email, like any new member (was False -> print only).
+        assert xaver_member.email_notifications is True
         assert [e.address for e in xaver_member.email_addresses] == ["xaver@example.com"]
         assert [p.number for p in xaver_member.phone_numbers] == ["0170 123"]
         assert len((await db.execute(select(Member).where(Member.first_name == "Yvonne"))).scalars().all()) == 1

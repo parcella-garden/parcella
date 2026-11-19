@@ -321,9 +321,9 @@ You land on the parcel page afterwards.
 
 !!! tip "Complete the new member afterwards"
     Only name, email address and phone number are copied from the
-    application. Open the new member and add the address, IBAN and
-    whether they may receive information by email -- that box starts
-    unticked for members created this way.
+    application. Open the new member and add the address and IBAN.
+    **May receive information by email** is ticked, like for any new
+    member; untick it if they want paper only.
 
 ## Applications from your website
 

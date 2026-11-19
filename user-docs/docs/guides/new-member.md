@@ -141,17 +141,13 @@ The handover copies only name, email and phone. Fill in the rest:
    the parcel page).
 2. Click **Edit** and add **Date of birth**, **IBAN**, the address
    (**Street and house number**, **Postal code**, **City**).
-3. Tick **May receive information by email** if the member agrees to
-   club information by email. Without it, invoices and announcements go
-   to the print pile instead of the inbox.
+3. Check **May receive information by email**. It's ticked for members
+   created by **Assign a parcel**, since the applicant gave an email
+   address; untick it if the member wants paper only. Without it,
+   invoices and announcements go to the print pile instead of the inbox.
 4. Under **Tags**, tick existing tags or type new ones (for example
    "hedge team"), comma-separated.
 5. Click **Save changes**.
-
-!!! warning "Email consent is off until you tick it"
-    Members created by **Assign a parcel** don't have **May receive
-    information by email** set yet. Check this before the next invoice
-    run, or their invoice will only be in the print bundle.
 
 You can also add tags directly on the member's page, in the **Tags**
 card, with **Add tag**.
