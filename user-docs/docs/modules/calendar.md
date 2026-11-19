@@ -305,10 +305,9 @@ been retired. Items are managed and lent out in the
 | Column | What it shows |
 |---|---|
 | **Item** | The item's name (linked to it in the inventory) and its category. |
-| **Currently lent out** | The availability: **Available**, **Lent out** (nothing left), or for items you have several of, e.g. "2 of 5 available". |
-| **Status** | One line per open loan: "since 03.11.2026: Jane Doe (1×)", or a dash if nobody has it. |
+| **Status** | The availability: **Available**, **Lent out** (nothing left), or for items you have several of, e.g. "2 of 5 available". |
+| **Currently lent out** | One line per open loan: "since 03.11.2026: Jane Doe (1×)", or a dash if nobody has it. |
 
-<!-- TODO(verify): the two column headers look swapped in the app ("Currently lent out" sits above the availability badge, "Status" above the list of loans). Update this table if the labels are corrected. -->
 
 Loans in Parcella have no planned return date, so this page shows only
 the current situation, not a timetable for the future.

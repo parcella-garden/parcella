@@ -188,9 +188,11 @@ still exists as a plain redirect to `/calendar/community` rather than
 disappearing outright, so an old bookmark or link still lands
 somewhere useful instead of 404ing.
 
-**Permission split:** creating/deleting community calendar entries and
-council presence slots requires Admin/Board (these are "official"
-announcements and internal coordination). Logging council absence
+**Permission split:** creating community calendar entries and council
+presence slots needs the `calendar` **write** permission, deleting them
+the `calendar` **delete** permission (Admin/Board have both; a group can
+grant them to others). These are "official" announcements and internal
+coordination. Logging council absence
 requires only being logged in at all, matching the explicit request
 that "everybody with access to the system" can do this -- and deleting
 an absence entry is allowed for the entry's own owner or for Admin/Board

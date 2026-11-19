@@ -90,12 +90,13 @@ later. `app/routers/api_inventory.py` covers categories, items
 plus a cross-item "all active loans" endpoint for the board-wide
 view).
 
-**Viewing is open to any logged-in member; mutating requires
-admin/board.** Same permission split as the member list: knowing what
-the club owns is basic transparency, not a privileged view. Creating/
-editing/retiring items, managing categories, and checking items in/out
-needs `require_admin` (which, per this project's convention, permits
-ADMIN and BOARD roles).
+**Viewing needs the `inventory` read permission; changing needs write,
+deleting needs delete.** The same group-based matrix as every module
+(`app/permissions.py`): Admin/Board have all three, others only what a
+group grants them. Creating/editing/retiring items, managing categories
+and checking items in/out need **write**; deleting items or categories
+needs **delete** (the category list only shows its delete button with
+that permission, issue #364).
 
 ## A route-ordering bug found while building this
 

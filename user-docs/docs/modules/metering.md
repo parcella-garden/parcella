@@ -279,7 +279,6 @@ What happens:
 Afterwards the list shows a summary such as **12 imported, 2 skipped**,
 with the reasons for the first three skipped rows.
 
-<!-- TODO(verify): the hint on the mapping page says "Type is required.", but the import works without a Type column (all rows become parcel points). The on-screen hint may need updating. -->
 
 ## New metering point
 
@@ -498,9 +497,9 @@ total**. Below are three tables -- **Main meter**, **Parcels** and
 no.** and **Consumption (m³)**, or *no reading* where the year's reading
 is missing. Consumption includes the factor.
 
-The CSV export (semicolons) still has German column headings: Typ
-(type), Zählpunkt (metering point), the meter number, Zählerstand
-(reading) and Verbrauch (consumption).
+The CSV export (semicolons) uses the page's column headings in the
+club's language: Type, Metering point, Meter no., Reading and
+Consumption (with the unit).
 
 ## Price configuration
 

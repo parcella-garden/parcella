@@ -115,8 +115,7 @@ A few entries follow their own rule:
 If you open a page you aren't allowed to see -- from a bookmark or a
 link a colleague sent -- you get the message **You don't have
 permission to do this**. A page of a switched-off module answers with a
-"not found" page.
-<!-- TODO(verify): the "module switched off" page shows a German-only message ("Dieser Funktionsbereich ist in diesem Verein deaktiviert.") regardless of the club language. -->
+"not found" page: "This feature is switched off for this club."
 
 ### The order of the entries
 

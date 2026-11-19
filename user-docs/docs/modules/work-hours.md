@@ -363,11 +363,10 @@ it.
 
 ### CSV export
 
-The CSV file uses semicolons and, for now, German column headings:
-Parcel, Pächter (tenants), Pflicht (required), Geleistet (sessions),
-Sponsorship, Übertragen (transfers), Gesamt (total), Offen (open),
-Schuldbetrag (EUR) (amount owed), Befreit (exempt) and Erfüllt
-(fulfilled), with "Ja"/"Nein" for yes/no.
+The CSV file uses semicolons and the evaluation page's column headings,
+in the club's language: Parcel, Tenant, Required (h), Sessions (h),
+Sponsorship (h), Transfers (h), Total (h), Open (h), Owed (EUR), Exempt
+and Fulfilled, with "Yes"/"No" in that language for yes/no.
 
 !!! warning "CSV export only works in Per Lease mode"
     In a year configured as **Per Member**, the CSV file contains only

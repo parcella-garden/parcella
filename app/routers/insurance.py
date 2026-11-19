@@ -470,9 +470,15 @@ async def insurance_evaluation_csv(
 
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")
+    # Issue #364: headers and yes/no in the club's language (were German),
+    # the same labels as the evaluation page.
+    t = lambda key: t_for(request, key)
+    yes, no = t("common.yes"), t("common.no")
     writer.writerow([
-        "Parcel", "Sachversicherung", "Sach-Paket", "Sach-Kosten (EUR)",
-        "Unfallversicherung", "Zusatzpersonen", "Unfall-Kosten (EUR)", "Gesamt (EUR)"
+        t("insurance.evaluation.col_parcel"), t("insurance.evaluation.col_property"), t("insurance.detail.label_package"),
+        f'{t("insurance.evaluation.col_property_cost")} (EUR)', t("insurance.evaluation.col_accident"),
+        t("insurance.evaluation.col_additional_persons"), f'{t("insurance.evaluation.col_accident_cost")} (EUR)',
+        f'{t("insurance.evaluation.col_total")} (EUR)',
     ])
 
     for entry in all_pi:
@@ -480,10 +486,10 @@ async def insurance_evaluation_csv(
         cost = calculate_insurance_cost(pi, configuration)
         writer.writerow([
             csv_safe(pi.parcel.plot_number if pi.parcel else ""),
-            "Ja" if pi.has_property_insurance else "Nein",
+            yes if pi.has_property_insurance else no,
             csv_safe(pi.property_package.name if pi.property_package else ""),
             f"{cost['property_cost']:.2f}".replace(".", ","),
-            "Ja" if pi.has_accident_insurance else "Nein",
+            yes if pi.has_accident_insurance else no,
             len(pi.additional_persons),
             f"{cost['accident_cost']:.2f}".replace(".", ","),
             f"{cost['total']:.2f}".replace(".", ","),
