@@ -2721,7 +2721,9 @@
       "col_note": "Note",
       "col_total_payments": "Payments recorded",
       "no_accounts": "No accounts yet -- add one above.",
-      "delete_confirm": "Delete this account? Payments recorded against it keep working, just without an account.",
+      "delete_confirm": "Delete this account? It has no bookings.",
+      "delete_blocked": "“{name}” has {count} booking(s) and can't be deleted. Untick “Active” to retire it instead; its bookings stay.",
+      "delete_blocked_hint": "Has bookings: untick “Active” to retire it instead.",
       "bookings_link": "Bookings"
     },
     "account_bookings": {

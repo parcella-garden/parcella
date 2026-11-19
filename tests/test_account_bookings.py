@@ -670,7 +670,9 @@ async def test_bookings_manual_add_and_delete(client, admin_user):
 async def test_account_deletion_cascades_transactions(client, admin_user):
     """Unlike InvoicePayment.account_id (ON DELETE SET NULL, keeping the
     payment), an AccountTransaction only exists for its account -- it
-    must be CASCADE-deleted with it."""
+    must be CASCADE-deleted with it. Since issue #353 the web UI refuses
+    to delete an account that has bookings, so this pins the schema rule
+    by deleting directly."""
     await web_login(client)
     await _enable_finances_module()
     account_id = await _make_account()
@@ -682,11 +684,62 @@ async def test_account_deletion_cascades_transactions(client, admin_user):
         ))
         await session.commit()
 
-    r_delete = await client.post(f"/finances/accounts/{account_id}/delete")
-    assert r_delete.status_code in (302, 303)
+    async with AsyncSessionLocal() as session:
+        await session.delete(await session.get(FinanceAccount, account_id))
+        await session.commit()
 
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             select(AccountTransaction).where(AccountTransaction.account_id == account_id)
         )
         assert result.scalar_one_or_none() is None
+
+
+# --- Issue #353: deleting an account took its whole ledger with it ---
+
+async def test_account_with_bookings_cannot_be_deleted(client, admin_user):
+    import urllib.parse
+    await web_login(client)
+    await _enable_finances_module()
+    account_id = await _make_account("Girokonto")
+    await _import_finalize(client, account_id, "Date;Amount;Description\n2026-08-01;-15.50;Supplies\n2026-08-02;100.00;Refund\n",
+                           {0: "date", 1: "amount", 2: "description"})
+
+    page = (await client.get("/finances/accounts")).text
+    assert f"/finances/accounts/{account_id}/delete" not in page  # only a greyed-out button
+    assert "Has bookings: untick" in page
+
+    response = await client.post(f"/finances/accounts/{account_id}/delete")
+    assert response.status_code == 303
+    message = urllib.parse.unquote(response.headers["location"])
+    assert "“Girokonto” has 2 booking(s) and can't be deleted." in message
+    async with AsyncSessionLocal() as session:
+        assert await session.get(FinanceAccount, account_id) is not None
+        transactions = (await session.execute(
+            select(AccountTransaction).where(AccountTransaction.account_id == account_id)
+        )).scalars().all()
+    assert len(transactions) == 2
+
+
+async def test_account_with_only_an_invoice_payment_cannot_be_deleted_either(client, admin_user):
+    await web_login(client)
+    await _enable_finances_module()
+    account_id = await _make_account()
+    invoice_id, recipient_names = await _make_open_invoice(client, "40.00", "DELPAY")
+    await _import_finalize(client, account_id, f"Date;Amount;Counterparty\n2026-08-01;40.00;{recipient_names}\n",
+                           {0: "date", 1: "amount", 2: "counterparty"}, match_choices={0: f"invoice:{invoice_id}"})
+    response = await client.post(f"/finances/accounts/{account_id}/delete")
+    assert "error=" in response.headers["location"]
+    async with AsyncSessionLocal() as session:
+        assert await session.get(FinanceAccount, account_id) is not None
+
+
+async def test_empty_account_can_still_be_deleted(client, admin_user):
+    await web_login(client)
+    await _enable_finances_module()
+    account_id = await _make_account("Leer")
+    assert f"/finances/accounts/{account_id}/delete" in (await client.get("/finances/accounts")).text
+    response = await client.post(f"/finances/accounts/{account_id}/delete")
+    assert "success=1" in response.headers["location"]
+    async with AsyncSessionLocal() as session:
+        assert await session.get(FinanceAccount, account_id) is None

@@ -2721,7 +2721,9 @@
       "col_note": "Notatka",
       "col_total_payments": "Zarejestrowane płatności",
       "no_accounts": "Brak jeszcze kont -- dodaj jedno powyżej.",
-      "delete_confirm": "Usunąć to konto? Płatności powiązane z nim nadal będą działać, tylko bez konta.",
+      "delete_confirm": "Usunąć to konto? Nie ma żadnych księgowań.",
+      "delete_blocked": "„{name}” ma {count} księgowań i nie można go usunąć. Zamiast tego odznacz „Aktywne”; księgowania pozostaną.",
+      "delete_blocked_hint": "Ma księgowania: zamiast tego odznacz „Aktywne”.",
       "bookings_link": "Księgowania"
     },
     "account_bookings": {

@@ -2721,7 +2721,9 @@
       "col_note": "Notiz",
       "col_total_payments": "Erfasste Zahlungen",
       "no_accounts": "Noch keine Konten -- oben eines hinzufügen.",
-      "delete_confirm": "Dieses Konto löschen? Zahlungen, die darauf verweisen, bleiben erhalten, nur ohne Konto.",
+      "delete_confirm": "Dieses Konto löschen? Es hat keine Buchungen.",
+      "delete_blocked": "„{name}“ hat {count} Buchung(en) und kann nicht gelöscht werden. Entferne stattdessen den Haken bei „Aktiv“; die Buchungen bleiben erhalten.",
+      "delete_blocked_hint": "Hat Buchungen: stattdessen den Haken bei „Aktiv“ entfernen.",
       "bookings_link": "Buchungen"
     },
     "account_bookings": {

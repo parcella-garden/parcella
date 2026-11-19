@@ -123,7 +123,14 @@
                                     <button type="submit" form="edit-account-{{ account.id }}" class="btn btn-sm btn-outline-primary border-0">
                                         <i class="bi bi-check-lg"></i>
                                     </button>
-                                    {% if has_perm(request, 'finances', 'delete') %}
+                                    {% if has_perm(request, 'finances', 'delete') and booking_counts.get(account.id) %}
+                                    {#- Issue #353: an account with bookings can't be deleted (it took the whole ledger with it). -#}
+                                    <span class="d-inline-block" tabindex="0" title="{{ t('finances.account_list.delete_blocked_hint') }}">
+                                        <button type="button" class="btn btn-sm btn-outline-danger border-0" disabled aria-label="{{ t('finances.account_list.delete_blocked_hint') }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </span>
+                                    {% elif has_perm(request, 'finances', 'delete') %}
                                     <form method="post" action="/finances/accounts/{{ account.id }}/delete" class="d-inline">
                                         {{ csrf_field() }}
                                         <button type="submit" class="btn btn-sm btn-outline-danger border-0"

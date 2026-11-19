@@ -2721,7 +2721,9 @@
       "col_note": "Notitie",
       "col_total_payments": "Geregistreerde betalingen",
       "no_accounts": "Nog geen rekeningen -- voeg er hierboven een toe.",
-      "delete_confirm": "Deze rekening verwijderen? Betalingen die eraan gekoppeld zijn blijven werken, alleen zonder rekening.",
+      "delete_confirm": "Deze rekening verwijderen? Er zijn geen boekingen.",
+      "delete_blocked": "‘{name}’ heeft {count} boeking(en) en kan niet worden verwijderd. Vink in plaats daarvan ‘Actief’ uit; de boekingen blijven bewaard.",
+      "delete_blocked_hint": "Heeft boekingen: vink in plaats daarvan ‘Actief’ uit.",
       "bookings_link": "Boekingen"
     },
     "account_bookings": {

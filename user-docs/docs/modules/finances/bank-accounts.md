@@ -50,16 +50,16 @@ Shown with write permission.
 | **Payments recorded** | The sum of all payments for outgoing invoices that were recorded against this account. Payments of incoming invoices and other bookings are not included. |
 | Bookings icon | Opens the account's [bookings](#bookings-of-an-account). |
 | Tick icon | Saves the row. Needs write permission. |
-| Bin icon | Deletes the account after a confirmation. Needs delete permission. |
+| Bin icon | Deletes the account after "Delete this account? It has no bookings." Needs delete permission. Greyed out for an account that has bookings (see below). |
 
 If there are no accounts yet: "No accounts yet -- add one above."
 
-!!! warning "Deleting an account"
-    The confirmation says "Delete this account? Payments recorded
-    against it keep working, just without an account." That is true for
-    invoice payments. But **bookings entered by hand or imported from
-    CSV on this account are deleted with it**. If you just stopped using
-    an account, switch **Active** off instead.
+!!! note "Accounts with bookings can't be deleted"
+    Only an account without any bookings -- no booking entered by hand
+    or imported, no invoice payment recorded on it -- can be deleted.
+    For any other account the bin is greyed out ("Has bookings: untick
+    “Active” to retire it instead."). Switching **Active** off hides the
+    account from the payment forms and keeps all its bookings.
 
 ## Bookings of an account
 

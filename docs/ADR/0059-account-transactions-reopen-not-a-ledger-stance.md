@@ -21,7 +21,11 @@ list.**
 - New model `AccountTransaction` (`app/models.py`, migration `0070`):
   `account_id` (`ON DELETE CASCADE` -- unlike `InvoicePayment.account_id`'s
   `SET NULL`, a transaction only exists *for* its account, so deleting
-  the account correctly deletes it too), `booking_date`, `amount`
+  the account correctly deletes it too; **update, issue #353:** that
+  made the account's delete button wipe its whole ledger, so the web UI
+  now refuses to delete an account that has any booking -- transactions
+  or payments -- and points to unticking "Active" instead. The schema
+  rule itself is unchanged), `booking_date`, `amount`
   (signed: positive = credit, negative = debit -- matching how a bank
   statement CSV represents it, so there's no separate "type" field to
   keep in sync with the sign), `description`, `source`

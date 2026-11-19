@@ -2721,7 +2721,9 @@
       "col_note": "Remarque",
       "col_total_payments": "Paiements enregistrés",
       "no_accounts": "Aucun compte pour le moment -- ajoutez-en un ci-dessus.",
-      "delete_confirm": "Supprimer ce compte ? Les paiements qui lui sont associés continuent de fonctionner, simplement sans compte.",
+      "delete_confirm": "Supprimer ce compte ? Il n'a aucune écriture.",
+      "delete_blocked": "« {name} » a {count} écriture(s) et ne peut pas être supprimé. Décochez plutôt « Actif » ; ses écritures sont conservées.",
+      "delete_blocked_hint": "A des écritures : décochez plutôt « Actif ».",
       "bookings_link": "Écritures"
     },
     "account_bookings": {
