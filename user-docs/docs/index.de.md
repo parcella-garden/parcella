@@ -10,9 +10,9 @@ Kleingartenvereins: Mitglieder und Parzellen, Arbeitsstunden, Wasser- und
 Stromzähler, Rechnungen, Versicherungen, Mitteilungen und mehr, alles an
 einem Ort für den Vorstand.
 
-Dieses Handbuch führt Sie durch jede Seite der Anwendung: was Sie dort
-sehen, was jedes Feld und jede Schaltfläche bewirkt und was beim Speichern
-mit den Daten Ihres Vereins passiert.
+Dieses Handbuch führt dich durch jede Seite der Anwendung: was du dort
+siehst, was jedes Feld und jede Schaltfläche bewirkt und was beim Speichern
+mit den Daten deines Vereins passiert.
 
 <div class="grid cards" markdown>
 
@@ -41,9 +41,9 @@ mit den Daten Ihres Vereins passiert.
     nicht übersetzt sind, erscheinen auf Englisch.
 
 !!! question "Fehlt etwas oder stimmt etwas nicht?"
-    Fragen Sie im [Community-Forum](https://forum.parcella.org) oder
-    schlagen Sie über das Stift-Symbol oben auf jeder Seite eine Korrektur
-    auf GitHub vor. Parcella ist Open Source (AGPL-3.0), jeder kann
+    Frag im [Community-Forum](https://forum.parcella.org) oder
+    schlag über das Stift-Symbol oben auf jeder Seite eine Korrektur auf
+    GitHub vor. Parcella ist Open Source (AGPL-3.0), jeder kann
     mithelfen.
 
 Installation, REST-API oder der Aufbau von Parcella? Das steht in der

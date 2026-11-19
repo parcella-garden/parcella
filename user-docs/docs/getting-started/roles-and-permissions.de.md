@@ -2,7 +2,7 @@
 
 Nicht jeder, der beim Führen des Vereins hilft, muss alles sehen. Wer die
 Wasserzähler abliest, braucht keine Bankdaten, und der Kassierer muss keine
-Arbeitseinsätze planen. Mit Parcella geben Sie jeder Person genau den
+Arbeitseinsätze planen. Mit Parcella gibst du jeder Person genau den
 Zugriff, den ihre Aufgabe braucht.
 
 !!! info "Wer das nutzen kann"
@@ -123,21 +123,21 @@ Neue Konten bekommen die wirkungslose Rolle **Lesend**; ihren eigentlichen
 Zugriff erhalten sie nur über Gruppen. Ein Administrator kann ein
 Administrator- oder Vorstandskonto mit **Alte Rolle entfernen** auf Gruppen
 umstellen (siehe [Benutzer und Einladungen](../administration/users.md)).
-Fügen Sie das Konto *vorher* der richtigen Gruppe hinzu, sonst fällt es auf
-den Grundzugriff zurück.
+Füg das Konto *vorher* der richtigen Gruppe hinzu, sonst fällt es auf den
+Grundzugriff zurück.
 
-Der Fußbereich der Seitenleiste zeigt Ihre Gruppen. Ohne Gruppe steht dort
-**Administrator** oder **Vorstand**, wenn Sie diese Rolle haben, sonst ein
+Der Fußbereich der Seitenleiste zeigt deine Gruppen. Ohne Gruppe steht dort
+**Administrator** oder **Vorstand**, wenn du diese Rolle hast, sonst ein
 Strich.
 
 ## Sicherheitsnetz: der letzte Administrator {#safety-net-the-last-administrator}
 
 Parcella verweigert jede Änderung, nach der **kein aktives Konto mehr den
-Administrationsbereich öffnen kann**. Sie erhalten die Meldung **Der letzten
+Administrationsbereich öffnen kann**. Du erhältst die Meldung **Der letzten
 verbleibenden Administrator-/Vorstandsperson kann der Admin-Zugriff nicht
-entzogen werden**, wenn Sie das letzte solche Konto deaktivieren, löschen,
-herabstufen oder aus seiner Gruppe nehmen wollen, oder die letzte Gruppe
-löschen oder abhaken wollen, die diesen Zugriff gewährt. Ohne mindestens
+entzogen werden**, wenn du das letzte solche Konto deaktivieren, löschen,
+herabstufen oder aus seiner Gruppe nehmen willst, oder die letzte Gruppe
+löschen oder abhaken willst, die diesen Zugriff gewährt. Ohne mindestens
 einen Administrator könnte niemand mehr Zugriffsprobleme beheben.
 
 ## Die REST-API und API-Tokens {#the-rest-api-and-api-tokens}

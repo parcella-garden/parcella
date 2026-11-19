@@ -1,8 +1,8 @@
 # Erste Schritte {#getting-started}
 
-Willkommen bei Parcella. Dieser Abschnitt ist für Sie, wenn Sie gerade in
-den Vorstand gekommen sind oder wenn Ihr Verein Parcella gerade
-installiert hat und Sie es einrichten.
+Willkommen bei Parcella. Dieser Abschnitt ist für dich, wenn du gerade in
+den Vorstand gekommen bist oder wenn dein Verein Parcella gerade
+installiert hat und du es einrichtest.
 
 ## Was Parcella ist {#what-parcella-is}
 
@@ -23,9 +23,9 @@ liegt alles an einem Ort, den jedes Vorstandsmitglied im Webbrowser
 - **Kontakt nach außen** -- Bewerber für eine freie Parzelle,
   Lieferanten und Behörden sowie das Support-Postfach.
 
-Jeder dieser Bereiche ist ein *Modul*. Ihr Verein schaltet nur die Module
-ein, die er wirklich nutzt; Ihr Bildschirm kann also weniger Einträge
-zeigen, als dieses Handbuch beschreibt. Die vollständige Liste finden Sie
+Jeder dieser Bereiche ist ein *Modul*. Dein Verein schaltet nur die Module
+ein, die er wirklich nutzt; dein Bildschirm kann also weniger Einträge
+zeigen, als dieses Handbuch beschreibt. Die vollständige Liste findest du
 unter [Module](../modules/index.md).
 
 !!! note "Gärtner melden sich nicht an"
@@ -40,23 +40,23 @@ Jede Person, die sich anmeldet, hat ein eigenes Konto. Was ein Konto
 sehen und ändern darf, hängt von den **Gruppen** ab, denen es angehört:
 Eine Gruppe kann vollen Zugriff auf alles geben oder zum Beispiel nur
 Lese- und Schreibrechte für die Wasserzähler. Das richten die
-Administratoren Ihrer Installation ein. Ausführlich erklärt es
+Administratoren deiner Installation ein. Ausführlich erklärt es
 [Rollen, Gruppen und Rechte](roles-and-permissions.md).
 
 ## In diesem Abschnitt {#in-this-section}
 
-| Seite | Was Sie erfahren |
+| Seite | Was du erfährst |
 |---|---|
-| [Erste Anmeldung und Ihr Konto](first-login.md) | Die Einladung annehmen, sich anmelden, Passwort und Avatar ändern, was tun bei vergessenem Passwort. |
+| [Erste Anmeldung und dein Konto](first-login.md) | Die Einladung annehmen, sich anmelden, Passwort und Avatar ändern, was tun bei vergessenem Passwort. |
 | [Sich zurechtfinden](navigation.md) | Die Seitenleiste, ihre Gruppen und Zähler-Badges, warum Einträge erscheinen oder verschwinden, Parcella auf dem Handy. |
 | [Rollen, Gruppen und Rechte](roles-and-permissions.md) | Wer was lesen, ändern und löschen darf, und wer den Administrationsbereich öffnen kann. |
 | [Dashboard](dashboard.md) | Jede Kachel der Startseite und was sie zählt. |
 
 ## Eine neue Installation einrichten? {#setting-up-a-new-installation}
 
-Wenn Sie Parcella installiert haben, beginnen Sie mit
+Wenn du Parcella installiert hast, beginn mit
 [Erste Anmeldung](first-login.md#the-very-first-login-after-installation) --
 das eingebaute Administratorkonto braucht zuerst ein neues Passwort, sonst
-funktioniert nichts. Folgen Sie dann der Anleitung
-[Einen neuen Verein einrichten](../guides/new-club-setup.md) und sehen Sie
-sich den Abschnitt [Administration](../administration/index.md) an.
+funktioniert nichts. Folge dann der Anleitung
+[Einen neuen Verein einrichten](../guides/new-club-setup.md) und sieh dir
+den Abschnitt [Administration](../administration/index.md) an.

@@ -3,7 +3,7 @@
 Das Dashboard ist die Startseite nach der Anmeldung. Es zeigt die
 wichtigsten Zahlen des Vereins auf einen Blick und weist auf Dinge hin, die
 Aufmerksamkeit brauchen. Mit **Dashboard** ganz oben in der Seitenleiste
-kommen Sie jederzeit zurück.
+kommst du jederzeit zurück.
 
 !!! info "Wer das nutzen kann"
     Alle, die angemeldet sind. Manche Kacheln erscheinen nur, wenn ihr
@@ -17,7 +17,7 @@ Alle Zahlen werden bei jedem Öffnen der Seite neu berechnet.
 ## Die Kacheln {#the-tiles}
 
 Die Kacheln oben haben eine feste Reihenfolge. Die ersten vier erscheinen
-immer, die anderen je nach den Modulen Ihres Vereins.
+immer, die anderen je nach den Modulen deines Vereins.
 
 | Kachel | Was sie zählt | Wann sie erscheint | Schaltfläche |
 |---|---|---|---|
@@ -25,12 +25,12 @@ immer, die anderen je nach den Modulen Ihres Vereins.
 | **Parzellen aktiv** | Parzellen mit dem Status *aktiv*. Darunter in Orange: **... unbesetzt** -- aktive Parzellen ohne aktuellen oder künftigen Pächter (eine Parzelle, deren letztes Pachtverhältnis beendet ist, zählt als unbesetzt; eine mit gekündigtem Pächter oder einem später beginnenden neuen Pächter nicht); oder **alle besetzt**, wenn es keine gibt. | Immer | **Alle anzeigen** öffnet die Parzellenliste. |
 | **Gekündigt** | Parzellen mit dem Status *gekündigt*. | Immer | **Anzeigen** öffnet die Parzellenliste, gefiltert auf gekündigte Parzellen. |
 | **Gesamtfläche (qm)** | Die Summe der Flächen aller Parzellen, aktiv und gekündigt. Gelöschte Parzellen und Gemeinschaftsflächen zählen nicht. Das ist dieselbe Zahl wie **A-Fläche (Parzellen, qm)** in den [Vereinseinstellungen](../administration/settings.md#areas-sqm). | Immer | -- |
-| **Offene Einkaufswünsche** | Anträge, die noch **warten auf Freigabe**. | Modul **Einkaufswünsche** eingeschaltet und Sie dürfen Einkaufswünsche lesen | **Alle anzeigen** |
-| **Neue Bewerbungen** | Bewerbungen mit dem Status *neu*, also **noch nicht bearbeitet**. | Modul **Bewerber** eingeschaltet und Sie dürfen Bewerber lesen | **Alle anzeigen** öffnet die Bewerberliste, gefiltert auf neue. |
-| **Offene Vorgänge** | Vorgänge **in Bearbeitung**. | Modul **Vorgänge** eingeschaltet und Sie dürfen Vorgänge lesen | **Alle anzeigen** öffnet die offenen Vorgänge. |
-| **Offene Support-Anfragen** | **Aktive oder wartende Unterhaltungen im Helpdesk** des Vereins. | Modul **Support (Helpdesk)** eingeschaltet und Sie dürfen es lesen | **Alle anzeigen** |
-| **Überfällige Aufgaben** | Aufgaben auf dem Aufgabenboard, deren Fälligkeit überschritten und die nicht erledigt sind. | Modul **Aufgabenboard** eingeschaltet und Sie haben vollen Zugriff (das Aufgabenboard ist nur für Personen mit vollem Zugriff) | **Alle anzeigen** öffnet das Aufgabenboard mit nur den überfälligen Aufgaben. |
-| **Neue Anmeldungen** | Anmeldungen **zu Arbeitseinsätzen** aus den letzten 14 Tagen, für reguläre Einsätze, die noch bevorstehen. Anmeldungen zu einem Einsatz, den jemand als gesehen markiert hat, zählen nicht mehr. | Modul **Pflichtstunden-Verwaltung** eingeschaltet und Sie dürfen Arbeitsstunden lesen | **Alle anzeigen** öffnet **Einsätze & Übersicht**. |
+| **Offene Einkaufswünsche** | Anträge, die noch **warten auf Freigabe**. | Modul **Einkaufswünsche** eingeschaltet und du darfst Einkaufswünsche lesen | **Alle anzeigen** |
+| **Neue Bewerbungen** | Bewerbungen mit dem Status *neu*, also **noch nicht bearbeitet**. | Modul **Bewerber** eingeschaltet und du darfst Bewerber lesen | **Alle anzeigen** öffnet die Bewerberliste, gefiltert auf neue. |
+| **Offene Vorgänge** | Vorgänge **in Bearbeitung**. | Modul **Vorgänge** eingeschaltet und du darfst Vorgänge lesen | **Alle anzeigen** öffnet die offenen Vorgänge. |
+| **Offene Support-Anfragen** | **Aktive oder wartende Unterhaltungen im Helpdesk** des Vereins. | Modul **Support (Helpdesk)** eingeschaltet und du darfst es lesen | **Alle anzeigen** |
+| **Überfällige Aufgaben** | Aufgaben auf dem Aufgabenboard, deren Fälligkeit überschritten und die nicht erledigt sind. | Modul **Aufgabenboard** eingeschaltet und du hast vollen Zugriff (das Aufgabenboard ist nur für Personen mit vollem Zugriff) | **Alle anzeigen** öffnet das Aufgabenboard mit nur den überfälligen Aufgaben. |
+| **Neue Anmeldungen** | Anmeldungen **zu Arbeitseinsätzen** aus den letzten 14 Tagen, für reguläre Einsätze, die noch bevorstehen. Anmeldungen zu einem Einsatz, den jemand als gesehen markiert hat, zählen nicht mehr. | Modul **Pflichtstunden-Verwaltung** eingeschaltet und du darfst Arbeitsstunden lesen | **Alle anzeigen** öffnet **Einsätze & Übersicht**. |
 
 Die Zahlen bei **Offene Einkaufswünsche**, **Neue Bewerbungen**, **Offene
 Support-Anfragen**, **Überfällige Aufgaben** und **Neue Anmeldungen** sind

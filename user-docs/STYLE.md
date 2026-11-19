@@ -131,8 +131,11 @@ The strict build checks this once the language is switched on.
 **Labels.** Use the exact UI labels from `app/translations/<lang>.json`,
 the same way English pages use `en.json`.
 
-**Form of address.** Follow the app: German uses **"Sie"** (as almost
-all of `de.json` does), not "du" or "ihr".
+**Form of address.** German always uses **"du"** (kermie's decision,
+2026-11-20), never "Sie" or "ihr". Exception: a quoted on-screen text
+(a label or message in bold or quotes) stays exactly as the app shows it,
+even while parts of `de.json` still say "Sie" -- readers must find it
+on screen.
 
 **Screenshots.** Optional. English ones are used until a language has its
 own. To take them: `python user-docs/tools/screenshots.py --lang de`
