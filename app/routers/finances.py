@@ -22,6 +22,7 @@ import base64
 import csv
 import io
 import re
+from collections import Counter
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -2003,6 +2004,64 @@ def _parse_finances_mapped_rows(csv_content_b64: str, delimiter: str, column_map
     return parsed_rows
 
 
+# Issue #356: importing the same bank statement twice doubled every
+# booking. A CSV row counts as already imported when the account already
+# has a booking with the same date, signed amount and text -- generic
+# bookings and payments recorded against an invoice alike (an incoming
+# payment is +, a paid incoming invoice is -). Counted as a multiset: two
+# identical rows in the file with one in the account means one is new.
+_BOOKING_TEXT_MAX = 255  # InvoicePayment.note / IncomingInvoicePayment.note
+
+
+def _booking_key(booking_date, amount, text) -> tuple:
+    return (booking_date, Decimal(str(amount)).quantize(Decimal("0.01")), (text or "").strip()[:_BOOKING_TEXT_MAX])
+
+
+async def _existing_booking_keys(db: AsyncSession, account_id: str) -> Counter:
+    keys = Counter()
+    for t in (await db.execute(select(AccountTransaction).where(AccountTransaction.account_id == account_id))).scalars():
+        keys[_booking_key(t.booking_date, t.amount, t.description)] += 1
+    for p in (await db.execute(select(InvoicePayment).where(InvoicePayment.account_id == account_id))).scalars():
+        keys[_booking_key(p.paid_on, p.amount, p.note)] += 1
+    for p in (await db.execute(select(IncomingInvoicePayment).where(IncomingInvoicePayment.account_id == account_id))).scalars():
+        keys[_booking_key(p.paid_on, -Decimal(str(p.amount)), p.note)] += 1
+    return keys
+
+
+def _duplicate_flags(parsed_rows: list, existing: Counter) -> list:
+    """One bool per row: True when that row is (as far as the account's
+    bookings tell) already imported."""
+    remaining = Counter(existing)
+    flags = []
+    for row in parsed_rows:
+        key = _booking_key(row["date"], row["amount"], row["description"]) if row["valid"] else None
+        if key is not None and remaining[key] > 0:
+            remaining[key] -= 1
+            flags.append(True)
+        else:
+            flags.append(False)
+    return flags
+
+
+async def _invoice_choice_settled(db: AsyncSession, match_choice: str) -> bool:
+    """True when the row should become a payment for an invoice that has
+    been fully paid in the meantime (issue #356: a stale import form
+    recorded a second payment)."""
+    if match_choice.startswith("invoice:"):
+        invoice = (await db.execute(
+            select(Invoice).options(selectinload(Invoice.payments), selectinload(Invoice.reminders))
+            .where(Invoice.id == match_choice.removeprefix("invoice:"))
+        )).scalar_one_or_none()
+    elif match_choice.startswith("incoming_invoice:"):
+        invoice = (await db.execute(
+            select(IncomingInvoice).options(selectinload(IncomingInvoice.payments), selectinload(IncomingInvoice.line_items))
+            .where(IncomingInvoice.id == match_choice.removeprefix("incoming_invoice:"))
+        )).scalar_one_or_none()
+    else:
+        return False
+    return invoice is not None and invoice.payment_status == "paid"
+
+
 @router.post(
     "/accounts/{account_id}/bookings/import/match",
     response_class=HTMLResponse,
@@ -2033,10 +2092,15 @@ async def account_bookings_import_match(
 
     parsed_rows = _parse_finances_mapped_rows(csv_content_b64, delimiter, column_mapping)
 
+    duplicates = _duplicate_flags(parsed_rows, await _existing_booking_keys(db, account_id))
     row_matches = []
-    for row in parsed_rows:
+    for row, duplicate in zip(parsed_rows, duplicates):
         matches = await find_matching_invoices(db, row["amount"], row["counterparty"]) if row["valid"] else []
-        row_matches.append({"row": row, "matches": matches, "best": best_match_option(matches)})
+        row_matches.append({
+            "row": row, "matches": matches, "duplicate": duplicate,
+            # Issue #356: a row that's already on the account is preset to "skip".
+            "best": "skip" if duplicate else best_match_option(matches),
+        })
 
     return templates.TemplateResponse("finances/account_bookings_import_match.html", {
         "request": request, "user": user, "account": account, "row_matches": row_matches,
@@ -2082,16 +2146,33 @@ async def account_bookings_import_finalize(
             members_by_name[forward] = member
             members_by_name[reverse] = member
 
+    # Issue #356: checked again here, not only on the match page. A row
+    # that wasn't a duplicate there but is now (a double click, the back
+    # button, a second tab) is always skipped; one that already was and
+    # the user still chose to import goes in.
+    duplicates_now = _duplicate_flags(parsed_rows, await _existing_booking_keys(db, account_id))
+
     imported = 0
     skipped = 0
     iban_updated = 0
     matched = 0
+    duplicates = 0
+    already_paid = 0
     for i, row in enumerate(parsed_rows):
         if not row["valid"]:
             skipped += 1
             continue
 
         match_choice = form.get(f"match_{i}", "none")
+        if duplicates_now[i] and (match_choice == "skip" or not form.get(f"duplicate_{i}")):
+            duplicates += 1
+            continue
+        if match_choice == "skip":  # "Don't import" on a row that isn't a duplicate
+            skipped += 1
+            continue
+        if await _invoice_choice_settled(db, match_choice):
+            already_paid += 1
+            continue
         did_match = await _create_matched_or_generic_transaction(
             db, account_id, user.id, row["date"], row["amount"], row["description"], row["counterparty"], match_choice,
             source="csv_import",
@@ -2109,7 +2190,7 @@ async def account_bookings_import_finalize(
     await db.commit()
     return RedirectResponse(
         f"/finances/accounts/{account_id}/bookings?imported={imported}&skipped={skipped}"
-        f"&iban_updated={iban_updated}&matched={matched}",
+        f"&iban_updated={iban_updated}&matched={matched}&duplicates={duplicates}&already_paid={already_paid}",
         status_code=302,
     )
 

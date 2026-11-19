@@ -19,6 +19,12 @@
     {% if request.query_params.get('iban_updated', '0')|int > 0 %}
     {{ t('finances.account_bookings.iban_updated_result', n=request.query_params.get('iban_updated')) }}
     {% endif %}
+    {% if request.query_params.get('duplicates', '0')|int > 0 %}
+    {{ t('finances.account_bookings.duplicates_result', n=request.query_params.get('duplicates')) }}
+    {% endif %}
+    {% if request.query_params.get('already_paid', '0')|int > 0 %}
+    {{ t('finances.account_bookings.already_paid_result', n=request.query_params.get('already_paid')) }}
+    {% endif %}
 </div>
 {% elif request.query_params.get('matched') %}
 <div class="alert alert-success d-flex gap-2 align-items-center mb-3">
