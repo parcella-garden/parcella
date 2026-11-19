@@ -42,7 +42,7 @@ from app.i18n import t_for, translate, DEFAULT_LANGUAGE
 from app.module_flags import require_module
 from app.meter_utils import (
     check_monotonicity, total_consumption_for_type, reading_before_year,
-    parse_point_factor, point_consumption,
+    parse_point_factor, point_consumption, parse_calibration_year, InvalidCalibrationYear,
 )
 from app.services.metering import (
     create_metering_point, update_metering_point, delete_metering_point, exchange_meter, update_meter,
@@ -656,6 +656,7 @@ def create_metering_router(
         reason_invalid_type = t_for(request, "metering.points_list.csv_import_skip_reason_invalid_type")
         reason_parcel_not_found = t_for(request, "metering.points_list.csv_import_skip_reason_parcel_not_found")
         reason_invalid_factor = t_for(request, "metering.points_list.csv_import_skip_reason_invalid_factor")
+        reason_invalid_calibration = t_for(request, "metering.points_list.csv_import_skip_reason_invalid_calibration")
 
         for row_number, values in enumerate(rows, start=2):
             parcel_number = (values.get("parcel_number") or "").strip().upper()
@@ -693,7 +694,12 @@ def create_metering_router(
                 skip_details.append(f"{identifier}: {reason_exists}")
                 continue
 
-            calibrated_until_str = (values.get("calibrated_until") or "").strip()
+            try:
+                calibrated_until = parse_calibration_year(values.get("calibrated_until"))
+            except InvalidCalibrationYear:  # issue #362: skip the row, don't crash the import
+                skipped += 1
+                skip_details.append(f"{identifier}: {reason_invalid_calibration}")
+                continue
             installed_at = _parse_date_flexible(values.get("installed_on") or "")
             initial_reading = _parse_number(values.get("initial_reading") or "", decimal_places) or Decimal("0")
             factor = parse_point_factor(values.get("factor"))
@@ -706,7 +712,7 @@ def create_metering_router(
                 db, medium,
                 type=point_type.value, parcel_id=parcel_id, label=(label or None),
                 number=(values.get("meter_number") or "").strip(),
-                calibrated_until=(int(calibrated_until_str) if calibrated_until_str else None),
+                calibrated_until=calibrated_until,
                 installed_at=installed_at, initial_reading=initial_reading, factor=factor,
             )
             existing_keys.add(key)

@@ -1517,3 +1517,34 @@ async def test_metering_point_factor_multiplies_consumption_in_metering_only(cli
     async with AsyncSessionLocal() as db:
         factors = {p.label: p.factor for p in (await db.execute(select(MeteringPoint))).scalars().all()}
     assert float(factors["Second feed"]) == 30 and "Broken factor" not in factors
+
+
+def test_calibration_year_from_year_or_date():
+    """Issue #362: a date in "Calibrated until" crashed the import (int())."""
+    import pytest
+    from app.meter_utils import InvalidCalibrationYear, parse_calibration_year
+    assert parse_calibration_year("") is None and parse_calibration_year(None) is None
+    for text in ("2027", "30.06.2027", "2027-06-30", "2027-06", "06/2027"):
+        assert parse_calibration_year(text) == 2027, text
+    for text in ("06/27", "soon", "2027-2028", "12345"):
+        with pytest.raises(InvalidCalibrationYear):
+            parse_calibration_year(text)
+
+
+async def test_points_import_skips_a_bad_calibration_value_instead_of_crashing(client, admin_user):
+    token = await login(client, "admin@example.com")
+    for plot in ("CAL-1", "CAL-2", "CAL-3"):
+        await client.post("/api/v1/parcels", json={"plot_number": plot}, headers=auth_header(token))
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    csv_text = "Parzellennummer,Zählernummer,Eichdatum\nCAL-1,A1,30.06.2027\nCAL-2,A2,2028\nCAL-3,A3,bald\n"
+    response = await client.post("/water/metering-points/import/finalize", data={
+        "csv_content_b64": _b64_csv(csv_text), "delimiter": ",",
+        "map_0": "parcel_number", "map_1": "meter_number", "map_2": "calibrated_until",
+    }, follow_redirects=False)
+    assert response.status_code in (302, 303)
+    import urllib.parse
+    assert "is not a year" in urllib.parse.unquote(response.headers["location"])
+    from sqlalchemy import select
+    async with AsyncSessionLocal() as db:
+        years = sorted(m.calibrated_until for m in (await db.execute(select(Meter))).scalars())
+    assert years == [2027, 2028]

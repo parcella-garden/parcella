@@ -1224,7 +1224,8 @@
       "filter_all": "Tous",
       "filter_active": "Actifs",
       "map_field_factor": "Facteur",
-      "csv_import_skip_reason_invalid_factor": "facteur invalide"
+      "csv_import_skip_reason_invalid_factor": "facteur invalide",
+      "csv_import_skip_reason_invalid_calibration": "« Étalonné jusqu'au » n'est pas une année"
     },
     "point_form": {
       "title_new": "Nouveau point de mesure {medium}",

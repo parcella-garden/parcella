@@ -1224,7 +1224,8 @@
       "filter_all": "Vše",
       "filter_active": "Aktivní",
       "map_field_factor": "Násobitel",
-      "csv_import_skip_reason_invalid_factor": "neplatný násobitel"
+      "csv_import_skip_reason_invalid_factor": "neplatný násobitel",
+      "csv_import_skip_reason_invalid_calibration": "„Kalibrováno do“ není rok"
     },
     "point_form": {
       "title_new": "Nové měrné místo pro {medium}",

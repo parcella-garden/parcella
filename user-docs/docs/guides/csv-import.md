@@ -180,10 +180,11 @@ the same label, is skipped as "already exists" -- so importing the same
 export twice does no harm. New metering points always start switched
 on.
 
-!!! warning
-    Enter **Calibrated until** as a plain year. A full date in that
-    column is not understood.
-    <!-- TODO(verify): a non-numeric "Calibrated until" value looks like it aborts the whole import with an error page instead of skipping the row. -->
+!!! note
+    **Calibrated until** is a year. A date in that column (`30.06.2027`,
+    `2027-06`, `06/2027`) is fine too: Parcella takes the year from it.
+    A row whose value has no four-digit year (`06/27`, `soon`) is skipped
+    with "“Calibrated until” is not a year"; the other rows are imported.
 
 More: [Water and electricity](../modules/metering.md).
 
