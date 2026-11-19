@@ -22,7 +22,7 @@ shown; the others appear depending on your club's modules.
 | Tile | What it counts | When it appears | Button |
 |---|---|---|---|
 | **Members** | Big number: current members -- not deleted, membership not ended, and either started already or without a **member since** date. Below: **... active** -- the members among them who have a **member since** date. If at least one current member has a date of birth on file: **Average age ... years**, worked out from those members only. | Always | **Show** opens the member list filtered to active members. |
-| **Active Parcels** | Parcels with the status *active*. Below, in orange: **... vacant** -- active parcels without a tenant; or **all occupied** if there are none. | Always | **Show All** opens the parcel list. |
+| **Active Parcels** | Parcels with the status *active*. Below, in orange: **... vacant** -- active parcels without a current or upcoming tenant (a parcel whose last tenancy has ended counts as vacant; one whose tenant has given notice, or whose new tenant starts later, does not); or **all occupied** if there are none. | Always | **Show All** opens the parcel list. |
 | **Terminated** | Parcels with the status *terminated*. | Always | **Show** opens the parcel list filtered to terminated parcels. |
 | **Total Area (sqm)** | The sum of the area of all parcels, active and terminated. Deleted parcels and common areas don't count. This is the same figure as **Area A** in the [club settings](../administration/settings.md#areas-sqm). | Always | -- |
 | **Open Purchase Requests** | Requests still **awaiting approval**. | **Purchase requests** module on and you may read purchase requests | **Show All** |
@@ -31,7 +31,6 @@ shown; the others appear depending on your club's modules.
 | **Open support conversations** | **Active or pending helpdesk conversations** in the club's helpdesk. | **Support (helpdesk)** module on and you may read it | **Show All** |
 | **Overdue Tasks** | Tasks on the task board whose due date has passed and that aren't done. | **Task board** module on and you have full access (the task board is for full-access users only) | **Show All** opens the task board showing only overdue tasks. |
 | **New Sign-ups** | Sign-ups **in work sessions** from the last 14 days, for regular sessions that haven't happened yet. Sign-ups for a session someone has marked as reviewed no longer count. | **Work-hours management** module on and you may read work hours | **Show All** opens **Sessions & Overview**. |
-<!-- TODO(verify): "vacant" counts active parcels that never had any tenant assignment at all; a parcel whose last tenancy has ended still seems to count as occupied. Confirm against the parcels module before documenting more precisely. -->
 
 The numbers on **Open Purchase Requests**, **New applications**,
 **Open support conversations**, **Overdue Tasks** and **New Sign-ups**

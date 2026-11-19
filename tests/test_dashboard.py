@@ -71,3 +71,31 @@ async def test_tiles_only_show_for_users_who_may_open_them(client, admin_user):
     await web_login(client, "admin@example.com")
     page = (await client.get("/")).text
     assert all(tile in page for tile in tiles)
+
+
+async def test_vacant_count_ignores_ended_tenancies(client, admin_user):
+    """Issue #360: tenancies are historized, so a parcel whose last
+    tenancy has ended was never counted as vacant again."""
+    import re
+    from datetime import date, timedelta
+    from app.database import AsyncSessionLocal
+    from app.models import Member, MemberParcel, Parcel, ParcelStatus
+    today = date.today()
+    async with AsyncSessionLocal() as db:
+        member = Member(first_name="Vera", last_name="Vacant")
+        never, ended, current, notice, upcoming = parcels = [
+            Parcel(plot_number=f"V{i}", area_sqm=100, status=ParcelStatus.ACTIVE) for i in range(5)
+        ]
+        db.add_all([member, *parcels])
+        await db.flush()
+        db.add_all([
+            MemberParcel(member_id=member.id, parcel_id=ended.id, assigned_until=today - timedelta(days=30)),
+            MemberParcel(member_id=member.id, parcel_id=current.id),
+            MemberParcel(member_id=member.id, parcel_id=notice.id, assigned_until=today + timedelta(days=60)),
+            MemberParcel(member_id=member.id, parcel_id=upcoming.id, assigned_from=today + timedelta(days=7)),
+        ])
+        await db.commit()
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    page = (await client.get("/")).text
+    assert re.search(r">\s*2 vacant\s*<", page), "never let + tenancy ended = 2; notice and upcoming still count as let"
