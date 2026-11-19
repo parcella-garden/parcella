@@ -196,3 +196,42 @@ async def test_regular_members_cannot_approve(client, admin_user):
         f"/api/v1/purchase-requests/{pr['id']}/approve", headers=auth_header(token_mitglied)
     )
     assert response.status_code == 403
+
+
+async def test_on_behalf_without_email_keeps_the_name(client, admin_user, monkeypatch):
+    """Issue #363: "on behalf of" with a name but no email was saved as the
+    board member's own request, and the name was gone."""
+    from sqlalchemy import select
+    from app.database import AsyncSessionLocal
+    from app.models import PurchaseRequest
+    sent = []
+
+    async def fake_send_email(*args, **kwargs):
+        sent.append(args)
+        return True
+
+    monkeypatch.setattr("app.services.purchase_requests.send_email", fake_send_email)
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    response = await client.post("/purchase-requests/new", data={
+        "title": "Heckenschere", "justification": "Alte ist kaputt",
+        "for_other_person": "true", "requester_name": "Gerda Gärtnerin", "requester_email": "",
+    })
+    assert response.status_code == 302
+    async with AsyncSessionLocal() as db:
+        pr = (await db.execute(select(PurchaseRequest).where(PurchaseRequest.title == "Heckenschere"))).scalar_one()
+    assert pr.requester_name == "Gerda Gärtnerin" and pr.requested_by_id is None and pr.requester_email is None
+    assert pr.confirmation_token is None and sent == []  # no address, no confirmation mail
+    assert "Gerda Gärtnerin" in (await client.get(response.headers["location"])).text
+
+
+async def test_on_behalf_ticked_without_name_or_email_is_your_own_request(client, admin_user):
+    from sqlalchemy import select
+    from app.database import AsyncSessionLocal
+    from app.models import PurchaseRequest
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    await client.post("/purchase-requests/new", data={
+        "title": "Gießkanne", "justification": "x", "for_other_person": "true", "requester_name": " ", "requester_email": "",
+    })
+    async with AsyncSessionLocal() as db:
+        pr = (await db.execute(select(PurchaseRequest).where(PurchaseRequest.title == "Gießkanne"))).scalar_one()
+    assert pr.requested_by_id == pr.created_by_id and pr.requester_name is None
