@@ -617,6 +617,8 @@
       "csv_import_summary": "{created} neu importiert, {updated} aktualisiert",
       "csv_import_errors_suffix": ", {count} Fehler",
       "csv_import_more_errors": " (und {count} weitere)",
+      "csv_row_missing_name": "Zeile {row}: Vor- oder Nachname fehlt, übersprungen.",
+      "csv_row_ambiguous_name": "Zeile {row}: Es gibt mehrere Mitglieder namens {name}, übersprungen. Mit Geburtsdatum, E-Mail-Adresse oder Telefonnummer lassen sie sich unterscheiden.",
       "title": "Mitglieder",
       "csv_import": "CSV Import",
       "csv_export": "CSV Export",

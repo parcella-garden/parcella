@@ -617,6 +617,8 @@
       "csv_import_summary": "{created} nowo zaimportowanych, {updated} zaktualizowanych",
       "csv_import_errors_suffix": ", {count} błędów",
       "csv_import_more_errors": " (i {count} więcej)",
+      "csv_row_missing_name": "Wiersz {row}: brak imienia lub nazwiska, pominięto.",
+      "csv_row_ambiguous_name": "Wiersz {row}: kilku członków nazywa się {name}, pominięto. Dodaj datę urodzenia, adres e-mail lub numer telefonu, aby ich rozróżnić.",
       "title": "Członkowie",
       "csv_import": "Import CSV",
       "csv_export": "Eksport CSV",

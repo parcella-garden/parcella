@@ -108,28 +108,25 @@ below.
 | **Date of birth** | A date (see above). Also used to tell apart two members with the same name. |
 | **IBAN** | Free text, not checked. |
 | **Member since**, **Member until** | Dates. An empty **Member until** means an active member. |
-| **Email notifications** | "No", "Nein", "false" or "0" means the member does **not** want club information by email. Anything else -- including an empty cell or an unmapped column -- means yes. |
+| **Email notifications** | "No", "Nein", "false" or "0" means the member does **not** want club information by email; anything else that's filled in means yes. An empty cell or an unmapped column means yes for a new member and "unchanged" for an existing one. |
 | **Email addresses** | One or more, separated by semicolons. The first becomes the primary address. |
 | **Phone numbers** | One or more, separated by semicolons. The first becomes the primary number. |
 | **Notes** | Free text. |
 
 **Matching existing members.** For each row, Parcella looks for an
 existing member with the same first and last name -- and, if the row
-has a date of birth, the same date of birth. If it finds one, it
-**updates** that member instead of creating a second one.
+has a date of birth, the same date of birth. If it finds exactly one,
+it **updates** that member instead of creating a second one. If several
+members have that name, the row's email addresses and phone numbers
+pick the right one; if the row still fits more than one, it is skipped
+and named in the summary. Email or phone alone never match a member
+with a different name.
 
-!!! warning "An update overwrites every field"
-    When a row matches an existing member, *all* of that member's fields
-    above are replaced with what the row contains -- including blanks. A
-    column you set to **— Ignore —**, or an empty cell, **clears** the
-    stored value (address, IBAN, dates, notes), and **Email
-    notifications** goes back to yes. Only email addresses and phone
-    numbers are left alone on an update: they are added for new members
-    only.
-
-    So for updating existing members, always import a *complete* file --
-    ideally a fresh **CSV Export** that you edited -- never a file with
-    just one or two columns.
+An update only changes what the row contains: a column set to **—
+Ignore —**, or an empty cell, leaves the stored value alone. So you can
+update just the addresses with a file that has only names and
+addresses. Email addresses and phone numbers are never changed on an
+update; they are added for new members only.
 
 Tags, parcel assignments and the **Declines birthday presents** setting
 are not part of the import. The export does contain **Parcels** and

@@ -184,35 +184,40 @@ row has a date of birth, it must match too.
 
 - **No match**: a new member is created, including the email addresses
   and phone numbers from the row.
-- **A match**: the existing member is updated with the row's values.
-  Email addresses and phone numbers are **not** touched on an update --
-  add or remove those on the member page.
+- **A match**: the existing member is updated, but only with what the
+  row actually contains (see below). Email addresses and phone numbers
+  are **not** touched on an update -- add or remove those on the member
+  page.
+- **Several members with that name**: Parcella uses the row's date of
+  birth, email addresses and phone numbers to find the right one. The
+  member who has one of them is updated; case, spaces and dashes don't
+  matter ("0171 234-5678" is the same as "01712345678"). If the row
+  still fits more than one member, it is skipped with "Row 4: several
+  members are called Hans Meier, skipped." and nobody is changed.
+  An email address or phone number alone never matches a member with a
+  different name, since couples often share one.
 - **First or last name empty**: the row is skipped.
 
+**An update only changes what the file says.** A column you set to
+**— Ignore —**, or an empty cell, leaves the member's stored value as it
+is. So a file with just names and new addresses updates the addresses
+and nothing else.
+
 The **Email notifications** column counts as "no" when it says *nein*,
-*no*, *false* or *0*. Anything else -- including an empty cell or no
-such column -- counts as "yes".
+*no*, *false* or *0*, and as "yes" for anything else that's filled in.
+For an existing member, an empty cell or no such column leaves their
+choice unchanged -- someone who opted out stays opted out. A new member
+without a value gets "yes".
 
 Afterwards the member list shows a summary such as "12 newly imported,
 3 updated". If rows were skipped, the summary adds the number of errors
 and the details of the first three.
-<!-- TODO(verify): the per-row error details ("Zeile 4: Vor- oder Nachname fehlt – übersprungen.") are always shown in German, regardless of the interface language. -->
-
-!!! warning "Updating existing members replaces their data"
-    When a row matches an existing member, *every* importable field is
-    replaced with what the file says. A field that's empty in the file,
-    or whose column you set to **— Ignore —**, is emptied on the
-    member -- including address, IBAN, membership dates and notes.
-    If you only want to add new members, remove the existing ones from
-    the file first. Make a [backup](../administration/backup.md) before
-    a large import.
-    <!-- TODO(verify): confirm that clearing unmapped fields on an update is intended behaviour and not a bug. -->
 
 !!! tip "Members with the same name"
-    Without a date of birth, two different people with the same name
-    look like the same member, and the second row updates the first
-    person. Map the **Date of birth** column if your club has members
-    with identical names.
+    If your club has members with identical names, map the **Date of
+    birth**, **Email addresses** or **Phone numbers** column: then each
+    row updates the right person. Without any of them, such rows are
+    skipped rather than guessed.
 
 ## Member page
 

@@ -617,6 +617,8 @@
       "csv_import_summary": "{created} nových importovaných, {updated} aktualizovaných",
       "csv_import_errors_suffix": ", {count} chýb",
       "csv_import_more_errors": " (a {count} ďalších)",
+      "csv_row_missing_name": "Riadok {row}: chýba meno alebo priezvisko, preskočené.",
+      "csv_row_ambiguous_name": "Riadok {row}: viacerí členovia sa volajú {name}, preskočené. Na rozlíšenie doplňte dátum narodenia, e-mailovú adresu alebo telefónne číslo.",
       "title": "Členovia",
       "csv_import": "CSV import",
       "csv_export": "CSV export",
