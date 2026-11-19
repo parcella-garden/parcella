@@ -127,7 +127,6 @@ What happens in one step:
   parcel page.
 - The parcel's status goes back to **active**.
 - The applications are set to **Closed (parcel assigned)**.
-  <!-- TODO(verify): the preview text says the applications are set to "Accepted", but the handover actually sets "Closed (parcel assigned)". One of the two should be fixed in the app. -->
 
 With a handover date in the future, the old tenants stay tenants,
 members and invoice recipients until that day; the new ones are shown

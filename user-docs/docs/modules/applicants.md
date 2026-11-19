@@ -317,7 +317,6 @@ Click **Hand over parcel** and confirm. Parcella then, in one go:
 
 You land on the parcel page afterwards.
 
-<!-- TODO(verify): the preview's closing sentence says the applications are set to "Accepted", but the handover actually sets them to "Closed (parcel assigned)". The UI text looks outdated. -->
 
 !!! tip "Complete the new member afterwards"
     Only name, email address and phone number are copied from the
