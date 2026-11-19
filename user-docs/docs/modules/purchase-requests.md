@@ -91,12 +91,12 @@ Click **New purchase request** on the overview.
 Click **Create purchase request** to save, or **Cancel** to go back.
 After saving, the request's page opens.
 
-!!! warning "The e-mail address is what makes it someone else's request"
-    A request counts as entered on someone's behalf only if you give
-    an **Email address**. If you tick the box but leave the address
-    empty, the request is saved as *your own* request and the name
-    you typed is not kept. You then can't approve it yourself.
-<!-- TODO(verify): with "on behalf" ticked and no email, the code drops requester_name and records the creator as requester -- confirm this is intended. -->
+!!! note "Without an e-mail address"
+    You can leave the **Email address** empty: the request is saved with
+    the name you typed as requester, just without a confirmation e-mail.
+    If you tick the box but leave both name and address empty, the
+    request counts as *your own*. Either way you can't approve a request
+    you entered yourself.
 
 ## Request page
 

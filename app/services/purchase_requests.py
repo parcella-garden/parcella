@@ -70,6 +70,11 @@ async def create_purchase_request(
         pr.requester_name = (requester_name or "").strip() or None
         pr.requester_email = email
         pr.confirmation_token = serializer.dumps(email, salt="purchase_request")
+    elif (requester_name or "").strip():
+        # Issue #363: on behalf of someone without an email address. Keep
+        # their name (no confirmation mail then); this used to fall through
+        # to the next branch and record the board member as the requester.
+        pr.requester_name = requester_name.strip()
     else:
         pr.requested_by_id = created_by_id
 
