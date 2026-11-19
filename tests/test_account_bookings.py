@@ -743,3 +743,84 @@ async def test_empty_account_can_still_be_deleted(client, admin_user):
     assert "success=1" in response.headers["location"]
     async with AsyncSessionLocal() as session:
         assert await session.get(FinanceAccount, account_id) is None
+
+
+# --- Issue #356: importing the same statement twice ---
+
+_STATEMENT = (
+    "Date;Amount;Description\n"
+    "2026-08-01;-15.50;Supplies\n"
+    "2026-08-02;100.00;Membership refund\n"
+)
+_MAPPING = {0: "date", 1: "amount", 2: "description"}
+
+
+async def _account_transactions(account_id):
+    async with AsyncSessionLocal() as session:
+        return list((await session.execute(
+            select(AccountTransaction).where(AccountTransaction.account_id == account_id)
+        )).scalars())
+
+
+async def test_reimporting_the_same_statement_adds_nothing(client, admin_user):
+    await web_login(client)
+    await _enable_finances_module()
+    account_id = await _make_account()
+
+    first = await _import_finalize(client, account_id, _STATEMENT, _MAPPING)
+    assert "imported=2" in first.headers["location"]
+    # The same file again -- e.g. the back button, a double click, or next month's export overlapping this one.
+    again = await _import_finalize(client, account_id, _STATEMENT, _MAPPING)
+    assert "imported=0" in again.headers["location"] and "duplicates=2" in again.headers["location"]
+    assert len(await _account_transactions(account_id)) == 2
+
+
+async def test_duplicates_are_counted_not_just_compared(client, admin_user):
+    """Two identical bookings on one day are real: the file has two, the account one -> one is new."""
+    await web_login(client)
+    await _enable_finances_module()
+    account_id = await _make_account()
+    await _import_finalize(client, account_id, "Date;Amount;Description\n2026-08-01;-2.00;Coffee\n", _MAPPING)
+
+    two = "Date;Amount;Description\n2026-08-01;-2.00;Coffee\n2026-08-01;-2.00;Coffee\n"
+    response = await _import_finalize(client, account_id, two, _MAPPING)
+    assert "imported=1" in response.headers["location"] and "duplicates=1" in response.headers["location"]
+    assert len(await _account_transactions(account_id)) == 2
+
+
+async def test_match_page_marks_duplicates_and_they_can_still_be_imported(client, admin_user):
+    await web_login(client)
+    await _enable_finances_module()
+    account_id = await _make_account()
+    await _import_finalize(client, account_id, "Date;Amount;Description\n2026-08-01;-15.50;Supplies\n", _MAPPING)
+
+    data = {"csv_content_b64": base64.b64encode(_STATEMENT.encode()).decode("ascii"), "delimiter": ";",
+            **{f"map_{i}": f for i, f in _MAPPING.items()}}
+    page = (await client.post(f"/finances/accounts/{account_id}/bookings/import/match", data=data)).text
+    assert page.count("Already imported") == 1
+    assert 'name="duplicate_0" value="1"' in page and 'name="duplicate_1"' not in page
+    assert '<option value="skip" selected>' in page  # the duplicate row is preset to "Don't import"
+
+    # The user decides the "duplicate" is a second real booking and imports it anyway.
+    forced = await client.post(f"/finances/accounts/{account_id}/bookings/import/finalize",
+                               data={**data, "match_0": "none", "duplicate_0": "1", "match_1": "none"})
+    assert "imported=2" in forced.headers["location"]
+    assert len(await _account_transactions(account_id)) == 3
+
+
+async def test_stale_form_does_not_pay_an_invoice_twice(client, admin_user):
+    await web_login(client)
+    await _enable_finances_module()
+    account_id = await _make_account()
+    invoice_id, recipient_names = await _make_open_invoice(client, "55.00", "CSVTWICE")
+
+    paid = await _import_finalize(client, account_id, f"Date;Amount;Counterparty\n2026-08-01;55.00;{recipient_names}\n",
+                                  {0: "date", 1: "amount", 2: "counterparty"}, match_choices={0: f"invoice:{invoice_id}"})
+    assert "matched=1" in paid.headers["location"]
+    # Another row (other date, so not a duplicate) still pointing at that invoice, e.g. an old open tab.
+    stale = await _import_finalize(client, account_id, f"Date;Amount;Counterparty\n2026-08-05;55.00;{recipient_names}\n",
+                                   {0: "date", 1: "amount", 2: "counterparty"}, match_choices={0: f"invoice:{invoice_id}"})
+    assert "already_paid=1" in stale.headers["location"] and "imported=0" in stale.headers["location"]
+    async with AsyncSessionLocal() as session:
+        payments = (await session.execute(select(InvoicePayment).where(InvoicePayment.invoice_id == invoice_id))).scalars().all()
+    assert len(payments) == 1

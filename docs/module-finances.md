@@ -293,6 +293,21 @@ that member's `iban` field when it's currently empty (issue #187). See
 [ADR 0062](./ADR/0062-csv-import-column-mapping.md) for the full
 reasoning, including why matching is exact-name rather than fuzzy.
 
+**Re-imports don't double bookings (issue #356).** A row counts as
+already imported when the account has a booking with the same date,
+signed amount and text (`_booking_key()` in `app/routers/finances.py`:
+`AccountTransaction.description`, `InvoicePayment.note` as +,
+`IncomingInvoicePayment.note` as -, text cut to the notes' 255
+characters). It's a multiset (`collections.Counter`), because two
+identical bookings on one day are legitimate. The match page presets
+such rows to "Don't import" and sends a `duplicate_<i>` marker; finalize
+recomputes the flags and always skips a row that has *become* a
+duplicate since (double click, back button, second tab), while one that
+already was and the user explicitly chose to import goes in. Finalize
+also refuses a payment for an invoice that has been paid in full in the
+meantime (`already_paid` in the result). No new column or hash: a
+stable bank transaction ID would be better but isn't in every export.
+
 Issue #185 added `AccountTransaction.counterparty` (free text -- who
 sent or received the money) so the bookings list can show and search
 by it; for `InvoicePayment` rows the counterparty is simply

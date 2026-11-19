@@ -188,18 +188,21 @@ column each to Date and Amount."
 "For each row, pick a matching open invoice to record it as a real
 payment, or leave it as a generic booking." Each row shows **Date**,
 **Amount**, **Sender / recipient** and a **Match** drop-down with
-**Record as a generic booking** and the suggested invoices (amount due
-in brackets, a ✓ when the name matches). The pre-selection works as for
-a single booking. Rows whose date or amount couldn't be read show
-"Invalid row — will be skipped". Click **Import CSV** to save
-everything.
+**Don't import**, **Record as a generic booking** and the suggested
+invoices (amount due in brackets, a ✓ when the name matches). The
+pre-selection works as for a single booking. Rows whose date or amount
+couldn't be read show "Invalid row — will be skipped". A row that is
+already on this account gets an **Already imported** badge and is preset
+to **Don't import**. Click **Import CSV** to save everything.
 
 What gets saved:
 
 - each row with an invoice picked becomes a payment of that invoice on
-  this account;
+  this account -- unless that invoice has been paid in full in the
+  meantime: then nothing is recorded, and the result message says so;
 - each other valid row becomes a normal booking;
-- invalid rows are skipped and counted in the result message.
+- rows set to **Don't import**, and invalid rows, are skipped and
+  counted in the result message.
 
 !!! tip "Filling in members' IBANs"
     If you map both **Sender / recipient** and **IBAN**, Parcella looks
@@ -208,11 +211,17 @@ What gets saved:
     that member has no IBAN stored yet, the IBAN from the statement is
     filled in. Existing IBANs are never overwritten.
 
-!!! warning "Importing twice"
-    Parcella doesn't recognise rows it has imported before. Importing
-    the same statement twice creates every booking twice -- and records
-    matched payments twice. Import each period only once, or delete the
-    duplicates afterwards.
+!!! tip "Importing the same statement twice"
+    A row counts as already imported when this account already has a
+    booking with the same date, amount and description (a payment
+    recorded against an invoice counts too). Overlapping exports are
+    therefore safe: only the new rows are added. Parcella counts rather
+    than just compares -- if the file has the same coffee purchase twice
+    on one day and the account has it once, one of them is new.
+
+    A row that already exists is only imported if you change its
+    **Don't import** to something else. Clicking **Import CSV** twice,
+    or sending the page again with the back button, adds nothing.
 
 ## Related
 
