@@ -617,6 +617,8 @@
       "csv_import_summary": "{created} nieuw geïmporteerd, {updated} bijgewerkt",
       "csv_import_errors_suffix": ", {count} fout(en)",
       "csv_import_more_errors": " (en {count} meer)",
+      "csv_row_missing_name": "Rij {row}: voor- of achternaam ontbreekt, overgeslagen.",
+      "csv_row_ambiguous_name": "Rij {row}: meerdere leden heten {name}, overgeslagen. Voeg de geboortedatum, het e-mailadres of het telefoonnummer toe om ze te onderscheiden.",
       "title": "Leden",
       "csv_import": "CSV-import",
       "csv_export": "CSV-export",

@@ -617,6 +617,8 @@
       "csv_import_summary": "{created} nově importováno, {updated} aktualizováno",
       "csv_import_errors_suffix": ", {count} chyb",
       "csv_import_more_errors": " (a {count} dalších)",
+      "csv_row_missing_name": "Řádek {row}: chybí jméno nebo příjmení, přeskočeno.",
+      "csv_row_ambiguous_name": "Řádek {row}: více členů se jmenuje {name}, přeskočeno. Pro rozlišení doplňte datum narození, e-mailovou adresu nebo telefonní číslo.",
       "title": "Členové",
       "csv_import": "CSV import",
       "csv_export": "CSV export",

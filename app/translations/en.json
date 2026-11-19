@@ -617,6 +617,8 @@
       "csv_import_summary": "{created} newly imported, {updated} updated",
       "csv_import_errors_suffix": ", {count} error(s)",
       "csv_import_more_errors": " (and {count} more)",
+      "csv_row_missing_name": "Row {row}: first or last name missing, skipped.",
+      "csv_row_ambiguous_name": "Row {row}: several members are called {name}, skipped. Add their date of birth, email address or phone number to tell them apart.",
       "title": "Members",
       "csv_import": "CSV Import",
       "csv_export": "CSV Export",

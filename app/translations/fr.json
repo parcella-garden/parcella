@@ -617,6 +617,8 @@
       "csv_import_summary": "{created} nouvellement importé(s), {updated} mis à jour",
       "csv_import_errors_suffix": ", {count} erreur(s)",
       "csv_import_more_errors": " (et {count} de plus)",
+      "csv_row_missing_name": "Ligne {row} : prénom ou nom manquant, ignorée.",
+      "csv_row_ambiguous_name": "Ligne {row} : plusieurs membres s'appellent {name}, ignorée. Ajoutez la date de naissance, l'adresse e-mail ou le numéro de téléphone pour les distinguer.",
       "title": "Membres",
       "csv_import": "Import CSV",
       "csv_export": "Export CSV",

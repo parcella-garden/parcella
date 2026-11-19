@@ -229,3 +229,140 @@ async def test_members_import_wizard_requires_name_columns_mapped(client, admin_
     )
     assert import_response.status_code in (302, 303)
     assert "error" in import_response.headers["location"]
+
+
+# --- Issue #352: a re-import only changes what the file actually says ---
+
+async def _member_import(client, csv_text: str, mapping: dict):
+    data = {"csv_content_b64": _b64_csv(csv_text), "delimiter": ";"}
+    data.update({f"map_{i}": field for i, field in mapping.items()})
+    response = await client.post("/members/import/finalize", data=data, follow_redirects=False)
+    assert response.status_code in (302, 303)
+    return response.headers["location"]
+
+
+async def _add_member(**fields):
+    from app.database import AsyncSessionLocal
+    from app.models import Member
+    async with AsyncSessionLocal() as db:
+        member = Member(**fields)
+        db.add(member)
+        await db.commit()
+        return member.id
+
+
+async def _get_member(member_id):
+    from app.database import AsyncSessionLocal
+    from app.models import Member
+    async with AsyncSessionLocal() as db:
+        return await db.get(Member, member_id)
+
+
+async def test_member_reimport_keeps_unmapped_and_empty_fields_and_the_opt_out(client, admin_user):
+    from datetime import date
+    member_id = await _add_member(
+        first_name="Olga", last_name="Optout", date_of_birth=date(1970, 1, 1), street="Alter Weg 1",
+        postal_code="12345", city="Altstadt", iban="DE02120300000000202051", notes="Schlüssel 7",
+        member_since=date(2001, 4, 1), email_notifications=False,
+    )
+    await _web_login(client, "admin@example.com")
+    # Only the city changes; street is mapped but empty; IBAN, notes, consent aren't in the file.
+    location = await _member_import(client, "Vorname;Nachname;Geburtsdatum;Strasse;Ort\nOlga;Optout;1970-01-01;;Neustadt\n",
+                                    {0: "first_name", 1: "last_name", 2: "date_of_birth", 3: "street", 4: "city"})
+    import urllib.parse
+    assert "0 newly imported, 1 updated" in urllib.parse.unquote(location)
+
+    member = await _get_member(member_id)
+    assert member.city == "Neustadt"
+    assert (member.street, member.postal_code, member.iban, member.notes) == ("Alter Weg 1", "12345", "DE02120300000000202051", "Schlüssel 7")
+    assert member.member_since == date(2001, 4, 1)
+    assert member.email_notifications is False  # was turned back on before
+
+
+async def test_member_import_consent_column_changes_consent_only_when_filled_in(client, admin_user):
+    from datetime import date
+    member_id = await _add_member(first_name="Ida", last_name="Ja", date_of_birth=date(1980, 2, 2), email_notifications=True)
+    await _web_login(client, "admin@example.com")
+    mapping = {0: "first_name", 1: "last_name", 2: "date_of_birth", 3: "email_notifications"}
+    await _member_import(client, "Vorname;Nachname;Geburtsdatum;E-Mail-Benachrichtigungen\nIda;Ja;1980-02-02;Nein\n", mapping)
+    assert (await _get_member(member_id)).email_notifications is False
+    await _member_import(client, "Vorname;Nachname;Geburtsdatum;E-Mail-Benachrichtigungen\nIda;Ja;1980-02-02;\n", mapping)
+    assert (await _get_member(member_id)).email_notifications is False  # empty cell: unchanged
+    await _member_import(client, "Vorname;Nachname;Geburtsdatum;E-Mail-Benachrichtigungen\nIda;Ja;1980-02-02;Ja\n", mapping)
+    assert (await _get_member(member_id)).email_notifications is True
+
+
+async def test_member_import_without_birth_date_never_picks_one_of_several_namesakes(client, admin_user):
+    from datetime import date
+    first = await _add_member(first_name="Hans", last_name="Meier", date_of_birth=date(1950, 1, 1), city="Nord")
+    second = await _add_member(first_name="Hans", last_name="Meier", date_of_birth=date(1990, 1, 1), city="Süd")
+    unique = await _add_member(first_name="Uta", last_name="Einzig", city="West")
+    await _web_login(client, "admin@example.com")
+
+    location = await _member_import(client, "Vorname;Nachname;Ort\nHans;Meier;Ost\nUta;Einzig;Ostwest\n",
+                                     {0: "first_name", 1: "last_name", 2: "city"})
+    import urllib.parse
+    message = urllib.parse.unquote(location)
+    assert "0 newly imported, 1 updated" in message
+    assert "Row 2: several members are called Hans Meier, skipped." in message
+    assert ((await _get_member(first)).city, (await _get_member(second)).city) == ("Nord", "Süd")
+    assert (await _get_member(unique)).city == "Ostwest"
+
+
+async def test_new_member_from_import_gets_email_consent_by_default(client, admin_user):
+    await _web_login(client, "admin@example.com")
+    location = await _member_import(client, "Vorname;Nachname\nNina;Neu\n;Ohnevorname\n", {0: "first_name", 1: "last_name"})
+    import urllib.parse
+    assert "Row 3: first or last name missing, skipped." in urllib.parse.unquote(location)
+
+    from sqlalchemy import select
+    from app.database import AsyncSessionLocal
+    from app.models import Member
+    async with AsyncSessionLocal() as db:
+        member = (await db.execute(select(Member).where(Member.last_name == "Neu"))).scalar_one()
+    assert member.email_notifications is True
+
+
+async def test_member_import_tells_namesakes_apart_by_email_or_phone(client, admin_user):
+    """kermie on #352: several members with the same name -> use the row's
+    email address or phone number to find the right one."""
+    from app.database import AsyncSessionLocal
+    from app.models import Member, MemberEmail, MemberPhone
+    async with AsyncSessionLocal() as db:
+        senior = Member(first_name="Hans", last_name="Meier", city="Nord")
+        senior.email_addresses.append(MemberEmail(address="hans.senior@example.org", is_primary=True))
+        junior = Member(first_name="Hans", last_name="Meier", city="Süd")
+        junior.phone_numbers.append(MemberPhone(number="0171 234-5678", is_primary=True))
+        db.add_all([senior, junior])
+        await db.commit()
+        senior_id, junior_id = senior.id, junior.id
+    await _web_login(client, "admin@example.com")
+
+    mapping = {0: "first_name", 1: "last_name", 2: "city", 3: "email_addresses", 4: "phone_numbers"}
+    location = await _member_import(client, (
+        "Vorname;Nachname;Ort;E-Mail-Adressen;Telefonnummern\n"
+        "Hans;Meier;Nordost;HANS.SENIOR@example.org;\n"   # email, any case
+        "Hans;Meier;Südwest;;01712345678\n"               # same phone, other formatting
+        "Hans;Meier;Irgendwo;fremd@example.org;\n"        # fits neither: skipped
+    ), mapping)
+    import urllib.parse
+    message = urllib.parse.unquote(location)
+    assert "0 newly imported, 2 updated" in message and "Row 4: several members are called Hans Meier" in message
+    assert ((await _get_member(senior_id)).city, (await _get_member(junior_id)).city) == ("Nordost", "Südwest")
+
+
+async def test_member_import_never_matches_a_different_name_by_shared_email(client, admin_user):
+    from app.database import AsyncSessionLocal
+    from app.models import Member, MemberEmail
+    async with AsyncSessionLocal() as db:
+        anna = Member(first_name="Anna", last_name="Paar", city="Hier")
+        anna.email_addresses.append(MemberEmail(address="familie@example.org", is_primary=True))
+        db.add(anna)
+        await db.commit()
+        anna_id = anna.id
+    await _web_login(client, "admin@example.com")
+    location = await _member_import(client, "Vorname;Nachname;Ort;E-Mail-Adressen\nBernd;Paar;Dort;familie@example.org\n",
+                                    {0: "first_name", 1: "last_name", 2: "city", 3: "email_addresses"})
+    import urllib.parse
+    assert "1 newly imported, 0 updated" in urllib.parse.unquote(location)
+    assert (await _get_member(anna_id)).city == "Hier"

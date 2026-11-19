@@ -156,6 +156,21 @@ is mapped) and **updates** an existing match's fields while **only**
 seeding email addresses/phone numbers on create, never touching them on
 an update.
 
+**A member re-import only changes what the file says (issue #352).**
+Before, an update set *every* field: unmapped or empty columns cleared
+addresses, IBANs and notes, a missing consent column turned
+`email_notifications` back on for members who had opted out (GDPR), and
+a row without a birth date updated the *first* member with that name.
+Now `_member_import_fields()` returns only mapped, non-empty (and, for
+dates, readable) values; consent changes only on an explicit yes/no
+(new members still default to yes); and when a name (plus birth date,
+if given) matches several members, `_pick_import_match()` narrows them
+by the row's email addresses, then its phone numbers (digits only); a
+row that still fits more than one is skipped with a row error instead
+of picking one. Email/phone never match across different names (shared
+family addresses). The row
+errors are translated (`members.list.csv_row_*`).
+
 **CSV export respects the list page's current filter (issue #198).**
 `_filtered_members_query()` in `app/routers/members.py` holds the
 `search`/`include_inactive`/`active_only` (issue #200)/

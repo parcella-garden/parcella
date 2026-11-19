@@ -5,6 +5,7 @@ import base64
 import csv
 import io
 import itertools
+import re
 import urllib.parse
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -633,6 +634,69 @@ def _parse_member_date(s: str) -> Optional[date]:
     return None
 
 
+_MEMBER_IMPORT_TEXT_FIELDS = ("street", "postal_code", "city", "iban", "notes")
+_MEMBER_IMPORT_DATE_FIELDS = ("date_of_birth", "member_since", "member_until")
+
+
+def _member_import_fields(values: dict) -> dict:
+    """The member fields one CSV row sets, names excluded. Only columns
+    that are mapped *and* filled in (and, for dates, readable) appear, so
+    an update never clears a field the file says nothing about (issue
+    #352). Email consent likewise: only an explicit yes/no in a mapped
+    column changes it."""
+    fields = {}
+    for name in _MEMBER_IMPORT_TEXT_FIELDS:
+        value = (values.get(name) or "").strip()
+        if value:
+            fields[name] = value
+    for name in _MEMBER_IMPORT_DATE_FIELDS:
+        value = _parse_member_date(values.get(name) or "")
+        if value:
+            fields[name] = value
+    consent = (values.get("email_notifications") or "").strip().lower()
+    if consent:
+        fields["email_notifications"] = consent not in ("nein", "no", "false", "0")
+    return fields
+
+
+_AMBIGUOUS = object()
+
+
+def _import_cell_list(values: dict, name: str) -> list:
+    return [part.strip() for part in (values.get(name) or "").split(";") if part.strip()]
+
+
+def _phone_digits(number: str) -> str:
+    """Digits only, so "0123 456-789" and "0123456789" are the same number."""
+    return re.sub(r"\D", "", number or "")
+
+
+def _pick_import_match(candidates: list, values: dict):
+    """Which existing member a CSV row means (issue #352). `candidates`
+    already share the row's name (and its date of birth, if it has one).
+    None -> a new member; _AMBIGUOUS -> skip the row.
+
+    One candidate is the match. Several are narrowed down by the row's
+    email addresses, then its phone numbers: the namesake who has one of
+    them is the match. Email or phone alone never match a member with a
+    different name: couples often share an address."""
+    if len(candidates) <= 1:
+        return candidates[0] if candidates else None
+    emails = {address.lower() for address in _import_cell_list(values, "email_addresses")}
+    phones = {_phone_digits(number) for number in _import_cell_list(values, "phone_numbers")} - {""}
+    if emails:
+        by_email = [m for m in candidates if emails & {e.address.lower() for e in m.email_addresses}]
+        if len(by_email) == 1:
+            return by_email[0]
+        if by_email:
+            candidates = by_email
+    if phones:
+        by_phone = [m for m in candidates if phones & {_phone_digits(p.number) for p in m.phone_numbers}]
+        if len(by_phone) == 1:
+            return by_phone[0]
+    return _AMBIGUOUS
+
+
 @router.post("/import/preview", response_class=HTMLResponse)
 async def members_import_preview(
     request: Request,
@@ -698,47 +762,45 @@ async def members_import_finalize(
         last_name = (values.get("last_name") or "").strip()
 
         if not first_name or not last_name:
-            errors.append(f"Zeile {row_number}: Vor- oder Nachname fehlt – übersprungen.")
+            errors.append(t_for(request, "members.list.csv_row_missing_name", row=row_number))
             continue
 
-        # Duplicate detection: same first + last name + date of birth
+        # Duplicate detection: same first + last name (and the date of
+        # birth, when the row has one). Several namesakes are told apart by
+        # the row's email addresses or phone numbers; a row that still
+        # fits more than one member is skipped. Issue #352: it used to
+        # update the *first* member with that name.
         date_of_birth = _parse_member_date(values.get("date_of_birth") or "")
-        existing_query = select(Member).where(
+        existing_query = select(Member).options(
+            selectinload(Member.email_addresses), selectinload(Member.phone_numbers),
+        ).where(
             Member.first_name == first_name,
             Member.last_name == last_name,
             Member.deleted_at.is_(None),
         )
         if date_of_birth:
             existing_query = existing_query.where(Member.date_of_birth == date_of_birth)
+        candidates = (await db.execute(existing_query)).scalars().all()
+        existing = _pick_import_match(candidates, values)
+        if existing is _AMBIGUOUS:
+            errors.append(t_for(request, "members.list.csv_row_ambiguous_name", row=row_number,
+                                name=f"{first_name} {last_name}"))
+            continue
 
-        existing_result = await db.execute(existing_query)
-        existing = existing_result.scalars().first()
-
-        email_notifications_str = (values.get("email_notifications") or "Ja").strip().lower()
-        email_notifications = email_notifications_str not in ("nein", "no", "false", "0")
-
-        fields = dict(
-            first_name=first_name,
-            last_name=last_name,
-            street=(values.get("street") or "").strip() or None,
-            postal_code=(values.get("postal_code") or "").strip() or None,
-            city=(values.get("city") or "").strip() or None,
-            date_of_birth=date_of_birth,
-            iban=(values.get("iban") or "").strip() or None,
-            member_since=_parse_member_date(values.get("member_since") or ""),
-            member_until=_parse_member_date(values.get("member_until") or ""),
-            email_notifications=email_notifications,
-            notes=(values.get("notes") or "").strip() or None,
-        )
+        fields = _member_import_fields(values)
 
         if existing:
-            # Update the existing member
+            # Issue #352: only what the file actually says. An unmapped or
+            # empty column used to clear the field (addresses, IBANs, notes)
+            # and a missing consent column re-enabled emails for members
+            # who had opted out.
             for k, v in fields.items():
                 setattr(existing, k, v)
             member = existing
             updated += 1
         else:
-            member = Member(**fields)
+            fields.setdefault("email_notifications", True)  # the model's default for new members
+            member = Member(first_name=first_name, last_name=last_name, **fields)
             db.add(member)
             await db.flush()  # generate ID for sub-entries
             created += 1
