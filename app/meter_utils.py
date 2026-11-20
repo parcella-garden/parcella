@@ -70,6 +70,21 @@ def calculate_consumption(meter: Meter, year: int, factor=None) -> Optional[Deci
 POINT_FACTOR_MAX = Decimal("100000")
 
 
+def point_year_consumption(metering_point, year: int, with_factor: bool = True) -> Optional[Decimal]:
+    """A metering point's consumption in a year: the sum over ALL its
+    meters that have a reading in that year (issue #354). In the year of
+    a meter exchange that is the old meter up to its final reading plus
+    the new one from its initial reading; using only the current meter
+    left the old meter's part unbilled. None if no meter has a reading.
+
+    with_factor: the metering module shows consumption with the point's
+    factor; invoices use the raw difference (ADR 0138)."""
+    factor = metering_point.factor if with_factor else None
+    parts = [calculate_consumption(m, year, factor=factor) for m in metering_point.meters]
+    parts = [p for p in parts if p is not None]
+    return sum(parts, Decimal("0")) if parts else None
+
+
 def point_consumption(metering_point, meter: Optional[Meter], year: int) -> Optional[Decimal]:
     """Consumption as the metering module shows it: with the point's
     factor (issue #341)."""
@@ -149,7 +164,8 @@ def check_monotonicity(
 
 def total_consumption_for_type(metering_points: List, year: int) -> Decimal:
     """
-    Sums the consumption of all meters (old ones included) across a list of
+    Sums the consumption of all meters (old ones included, the same as
+    point_year_consumption) across a list of
     MeteringPoints for a given year. MeteringPoints/meters with no
     reading for that year contribute 0 (instead of skewing the sum or
     raising an error) -- the evaluation page reports gaps separately.

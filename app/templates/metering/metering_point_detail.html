@@ -223,6 +223,12 @@
                                            value="{{ today }}" required>
                                 </div>
                                 <div class="col-sm-6">
+                                    {#- Issue #354: the old meter's last reading, so its consumption up to the exchange is billed. -#}
+                                    <label class="form-label fw-semibold" style="font-size: 0.85rem;">{{ t('metering.point_detail.exchange_final_reading_label') }}</label>
+                                    <input type="text" name="final_reading" class="form-control form-control-sm" inputmode="decimal">
+                                    <div class="form-text">{{ t('metering.point_detail.exchange_final_reading_help') }}</div>
+                                </div>
+                                <div class="col-sm-6">
                                     <label class="form-label fw-semibold" style="font-size: 0.85rem;">{{ t('metering.point_detail.exchange_new_installed_label') }}</label>
                                     <input type="date" name="installed_at" class="form-control form-control-sm"
                                            value="{{ today }}" required>

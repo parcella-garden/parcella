@@ -1282,6 +1282,8 @@
       "exchange_new_number_label": "Nouveau numéro",
       "exchange_calibrated_until_label": "Étalonné jusqu'au",
       "exchange_initial_reading_label": "Relevé initial",
+      "exchange_final_reading_label": "Relevé final de l'ancien compteur",
+      "exchange_final_reading_help": "Le jour du démontage. Sans lui, la consommation de l'ancien compteur depuis son dernier relevé n'est pas facturée.",
       "exchange_confirm": "Voulez-vous vraiment échanger le compteur ? L'ancien compteur sera désactivé.",
       "exchange_button": "Échanger",
       "no_active_meter": "Aucun compteur actif pour ce point de mesure.",
@@ -1373,6 +1375,8 @@
       "col_point": "Point de mesure",
       "col_meter_number": "N° de compteur",
       "col_consumption": "Consommation ({unit})",
+      "includes_replaced": "y compris compteur remplacé",
+      "includes_replaced_hint": "La consommation de cette année inclut un compteur remplacé en cours d'année.",
       "no_reading": "pas de relevé",
       "no_entries": "Aucune entrée"
     },

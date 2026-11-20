@@ -190,6 +190,7 @@ def create_metering_api_router(
             db, zp,
             new_number=daten.new_number, removed_at=daten.removed_at, installed_at=daten.installed_at,
             calibrated_until=daten.calibrated_until, initial_reading=daten.initial_reading,
+            final_reading=daten.final_reading, recorded_by_id=user.id,
         )
         await db.commit()
         await db.refresh(new_meter)

@@ -143,3 +143,4 @@ in chronological order.
 137. [Hand-picked members are part of the member-list filter](./0137-hand-picked-members-in-the-list-filter.md)
 138. [The metering point factor stays inside the metering module](./0138-metering-point-factor-only-in-metering.md)
 139. [The compose popup writes and sends a message in one step](./0139-compose-popup-writes-and-sends-in-one-step.md)
+140. [A point's consumption sums all its meters; the exchange records a final reading](./0140-consumption-sums-all-meters-of-a-point.md)

@@ -614,6 +614,9 @@ class MeterSwapRequest(BaseModel):
     installed_at: date
     calibrated_until: Optional[int] = None
     initial_reading: Decimal = Decimal("0")
+    # Issue #354: the old meter's reading on the removal day (recommended;
+    # without it the old meter's consumption since its last reading isn't billed).
+    final_reading: Optional[Decimal] = None
 
 
 class MeterReadingCreate(BaseModel):

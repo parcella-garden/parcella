@@ -1282,6 +1282,8 @@
       "exchange_new_number_label": "Nieuw nummer",
       "exchange_calibrated_until_label": "Gekalibreerd tot",
       "exchange_initial_reading_label": "Beginstand",
+      "exchange_final_reading_label": "Eindstand van de oude meter",
+      "exchange_final_reading_help": "Op de dag van verwijderen. Zonder deze wordt het verbruik van de oude meter sinds de laatste aflezing niet gefactureerd.",
       "exchange_confirm": "Weet u zeker dat u de meter wilt wisselen? De oude meter wordt gedeactiveerd.",
       "exchange_button": "Wisselen",
       "no_active_meter": "Geen actieve meter voor dit meetpunt.",
@@ -1373,6 +1375,8 @@
       "col_point": "Meetpunt",
       "col_meter_number": "Meter nr.",
       "col_consumption": "Verbruik ({unit})",
+      "includes_replaced": "incl. vervangen meter",
+      "includes_replaced_hint": "Het verbruik van dit jaar omvat een meter die in de loop van het jaar is vervangen.",
       "no_reading": "geen stand",
       "no_entries": "Geen invoer"
     },

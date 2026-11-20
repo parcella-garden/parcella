@@ -110,12 +110,14 @@ as removed and listed under **Former meters** with its last reading. The
 new meter starts with its own **Initial reading**, so old and new
 readings are never mixed up.
 
-!!! warning "Record the old meter's final reading first"
-    After the exchange, readings can only be recorded for the new meter.
-    Enter the old meter's final reading (for the current year) **before**
-    you exchange it.
+**Final reading of the old meter.** Enter what the old meter shows on
+the removal day. It's saved as the old meter's reading for that year,
+and the year's consumption of the metering point then adds up both
+meters: the old one up to its final reading, the new one from its
+initial reading. The invoice and the **Evaluation** use that total; the
+evaluation marks such a point "incl. replaced meter". Without a final
+reading, only the new meter counts for that year.
 
-<!-- TODO(verify): the Evaluation page and the metering point's readings table only use the current meter, while the Overview tiles add up all meters of a point (old ones included). In the year of an exchange, the old meter's final consumption therefore appears on the Overview but not on the Evaluation. Confirm which one invoicing follows and whether this difference is intended. -->
 
 **Exchange** is for a real swap. If you only mistyped the meter number
 or a date, use **Edit meter** instead -- it corrects the current meter
@@ -359,6 +361,7 @@ mistakes:
 | Field | What it does |
 |---|---|
 | **Old meter removed on** | Required, default today. |
+| **Final reading of the old meter** | What the old meter shows on the removal day. Saved as its reading for that year, so its consumption up to the exchange is billed. "On the removal day. Without it, the old meter's consumption since its last reading isn't billed." |
 | **New meter installed on** | Required, default today. |
 | **New number** | Required. |
 | **Calibrated until** | The new meter's calibration year. |

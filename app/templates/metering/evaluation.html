@@ -74,6 +74,7 @@
                         <td>
                             {% if z.consumption is not none %}
                             {{ z.consumption | fmt(decimal_places) }}
+                            {% if z.includes_replaced %}<span class="badge text-bg-light border ms-1" title="{{ t('metering.evaluation.includes_replaced_hint') }}"><i class="bi bi-arrow-repeat"></i> {{ t('metering.evaluation.includes_replaced') }}</span>{% endif %}
                             {% else %}
                             <span class="text-muted">{{ t('metering.evaluation.no_reading') }}</span>
                             {% endif %}
