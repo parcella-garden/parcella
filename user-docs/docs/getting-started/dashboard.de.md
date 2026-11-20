@@ -76,7 +76,7 @@ Abkürzungen für häufige Aufgaben:
 | **Parzellen als CSV exportieren** | Lädt die Parzellenliste als CSV-Datei herunter. |
 
 Mitglieder und Parzellen anlegen braucht **Schreiben** bei **Mitglieder &
-Parzellen**. Ohne dieses Recht antwortet das Formular mit **Sie haben keine
+Parzellen**. Ohne dieses Recht antwortet das Formular mit **Du hast keine
 Berechtigung dafür**.
 
 ## Siehe auch {#related}

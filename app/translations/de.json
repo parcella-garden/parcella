@@ -74,7 +74,7 @@
     "user_not_found": "Benutzer nicht gefunden",
     "deferred_date_required": "Datum für Zurückstellung erforderlich",
     "invalid_credentials": "E-Mail oder Passwort falsch.",
-    "account_deactivated": "Ihr Konto ist deaktiviert.",
+    "account_deactivated": "Dein Konto ist deaktiviert.",
     "passwords_do_not_match": "Passwörter stimmen nicht überein.",
     "password_too_short": "Passwort muss mindestens 8 Zeichen haben.",
     "current_password_incorrect": "Aktuelles Passwort ist falsch.",
@@ -90,12 +90,12 @@
     "name_required": "Ein Name ist erforderlich",
     "user_updated": "Benutzer aktualisiert",
     "user_deleted": "Benutzer gelöscht",
-    "user_has_history_cannot_delete": "Dieser Benutzer hat eine Aktivitätshistorie und kann nicht endgültig gelöscht werden -- deaktivieren Sie ihn stattdessen",
+    "user_has_history_cannot_delete": "Dieser Benutzer hat eine Aktivitätshistorie und kann nicht endgültig gelöscht werden -- deaktiviere ihn stattdessen",
     "purchase_request_not_found": "Einkaufswunsch nicht gefunden",
     "requester_cannot_self_approve": "Der Antragsteller darf seinen eigenen Einkaufswunsch nicht mitfreigeben (Vier-Augen-Prinzip).",
     "page_title": "Fehler {code}",
     "back_to_home": "Zur Startseite",
-    "no_permission": "Sie haben keine Berechtigung dafür",
+    "no_permission": "Du hast keine Berechtigung dafür",
     "page_not_found": "Seite nicht gefunden",
     "group_name_required": "Ein Gruppenname ist erforderlich",
     "group_name_taken": "Eine Gruppe mit diesem Namen existiert bereits",
@@ -109,7 +109,7 @@
     "too_many_login_attempts": "Zu viele fehlgeschlagene Anmeldeversuche. Bitte einige Minuten warten und erneut versuchen.",
     "password_must_differ": "Das neue Passwort muss sich vom aktuellen unterscheiden.",
     "csrf_invalid": "Sicherheitsprüfung fehlgeschlagen. Die Seite war vermutlich zu lange geöffnet -- bitte zurückgehen, neu laden und erneut versuchen.",
-    "own_password_reset_use_change_password": "Für Ihr eigenes Konto nutzen Sie bitte „Passwort ändern“.",
+    "own_password_reset_use_change_password": "Für dein eigenes Konto nutze bitte „Passwort ändern“.",
     "comment_empty": "Der Kommentar ist leer.",
     "comment_too_long": "Der Kommentar ist zu lang (höchstens {max} Zeichen)."
   },
@@ -117,12 +117,12 @@
     "login": {
       "title": "Anmelden – Parcella",
       "app_title": "Parcella Verwaltung",
-      "subtitle": "Bitte melden Sie sich an",
+      "subtitle": "Bitte melde dich an",
       "label_email": "E-Mail",
       "email_placeholder": "ihre@email.de",
       "label_password": "Passwort",
       "button_submit": "Anmelden",
-      "no_account_notice": "Kein Konto? Eine Einladung ist erforderlich. Bitte wenden Sie sich an Ihre Vorstandsmitglieder."
+      "no_account_notice": "Kein Konto? Eine Einladung ist erforderlich. Bitte wende dich an deinen Vorstand."
     },
     "change_password": {
       "page_title": "Passwort ändern",
@@ -157,7 +157,7 @@
       "title": "Einladung abgelaufen",
       "heading": "Einladung abgelaufen",
       "message": "Dieser Einladungslink ist nicht mehr gültig oder wurde bereits verwendet.",
-      "contact_admin": "Bitte wenden Sie sich an einen Administrator.",
+      "contact_admin": "Bitte wende dich an einen Administrator.",
       "back_to_login": "Zur Anmeldung"
     }
   },
@@ -167,14 +167,14 @@
       "heading": "Benutzerverwaltung",
       "dev_mode_label": "Entwicklungsmodus:",
       "update_available_heading": "Update verfügbar: v{version}",
-      "update_available_text": "Sie nutzen aktuell v{current}; v{latest} wurde veröffentlicht. So aktualisieren Sie:",
+      "update_available_text": "Du nutzt aktuell v{current}; v{latest} wurde veröffentlicht. So aktualisierst du:",
       "update_docker_folder_placeholder": "/pfad/zu/ihrem/docker-ordner",
-      "update_customization_warning": "Die erste Zeile lädt docker-compose.yml neu, damit auch Korrekturen an der Datei selbst (Ports, Standardwerte) bei Ihrer Installation ankommen -- \"pull\" allein aktualisiert nur das Image. Sie überschreibt die Datei: Legen Sie eigene Anpassungen (Port, Reverse-Proxy, Volumes) in einer docker-compose.override.yml daneben ab; Compose bindet sie automatisch ein. Die Syntax finden Sie im Abschnitt „Production\" im README.",
+      "update_customization_warning": "Die erste Zeile lädt docker-compose.yml neu, damit auch Korrekturen an der Datei selbst (Ports, Standardwerte) bei deiner Installation ankommen -- \"pull\" allein aktualisiert nur das Image. Sie überschreibt die Datei: Leg eigene Anpassungen (Port, Reverse-Proxy, Volumes) in einer docker-compose.override.yml daneben ab; Compose bindet sie automatisch ein. Die Syntax findest du im Abschnitt „Production\" im README.",
       "update_check_now_button": "Jetzt prüfen",
       "update_up_to_date": "Aktuelle Version v{version} -- auf dem neuesten Stand (zuletzt geprüft: {checked_at})",
       "update_not_checked_yet": "Aktuelle Version v{version} -- noch nicht auf Updates geprüft",
       "backup_header": "Datensicherung",
-      "backup_description": "Jetzt eine vollständige Sicherung herunterladen (Datenbank, hochgeladene Dateien wie Logo und Ankündigungsbilder sowie der Verschlüsselungsschlüssel, als ZIP). Es wird nichts auf dem Server gespeichert -- bewahren Sie die Datei selbst sicher auf. Sie enthält den Schlüssel zu den gespeicherten Passwörtern (E-Mail, Website, Cloud), behandeln Sie sie also so vertraulich wie diese Passwörter.",
+      "backup_description": "Jetzt eine vollständige Sicherung herunterladen (Datenbank, hochgeladene Dateien wie Logo und Ankündigungsbilder sowie der Verschlüsselungsschlüssel, als ZIP). Es wird nichts auf dem Server gespeichert -- bewahre die Datei selbst sicher auf. Sie enthält den Schlüssel zu den gespeicherten Passwörtern (E-Mail, Website, Cloud), behandle sie also so vertraulich wie diese Passwörter.",
       "backup_button": "Sicherung herunterladen",
       "backup_error": "Sicherung fehlgeschlagen: {detail}",
       "restore_link": "Aus Sicherung wiederherstellen",
@@ -215,7 +215,7 @@
         "heading": "Benutzer bearbeiten",
         "button_save": "Änderungen speichern",
         "legacy_role_text": "Der Zugriff dieses Kontos basiert auf seiner Rolle, nicht auf einer Gruppenmitgliedschaft.",
-        "remove_legacy_role_text": "Entfernen Sie die Rolle Administrator/Vorstand dieses Kontos und stellen Sie stattdessen auf gruppenbasierten Zugriff um.",
+        "remove_legacy_role_text": "Entferne die Rolle Administrator/Vorstand dieses Kontos und stelle stattdessen auf gruppenbasierten Zugriff um.",
         "button_remove_legacy_role": "Alte Rolle entfernen",
         "groups_header": "Gruppen",
         "no_groups_yet": "Noch keine Gruppen vorhanden.",
@@ -225,14 +225,14 @@
         "delete_text": "Das endgültige Löschen entfernt das Benutzerkonto vollständig. Nur möglich, wenn nirgendwo im System eine Historie zu dieser Person besteht (keine erstellten Datensätze, Genehmigungen, Ablesungen usw.) -- andernfalls stattdessen deaktivieren.",
         "delete_confirm": "Diesen Benutzer endgültig löschen? Dies kann nicht rückgängig gemacht werden.",
         "button_delete": "Endgültig löschen",
-        "delete_blocked_text": "Dieser Benutzer hat irgendwo im System eine Aktivitätshistorie (erstellte Datensätze, Genehmigungen, Zählerstände usw.) und kann nicht endgültig gelöscht werden. Deaktivieren Sie ihn stattdessen.",
-        "password_reset_text": "Passwort vergessen? Parcella erzeugt ein vorläufiges Passwort, das Sie an die Person weitergeben. Ihre offenen Sitzungen werden beendet, und beim nächsten Login muss sie ein neues Passwort wählen.",
+        "delete_blocked_text": "Dieser Benutzer hat irgendwo im System eine Aktivitätshistorie (erstellte Datensätze, Genehmigungen, Zählerstände usw.) und kann nicht endgültig gelöscht werden. Deaktiviere ihn stattdessen.",
+        "password_reset_text": "Passwort vergessen? Parcella erzeugt ein vorläufiges Passwort, das du an die Person weitergibst. Ihre offenen Sitzungen werden beendet, und beim nächsten Login muss sie ein neues Passwort wählen.",
         "button_password_reset": "Passwort zurücksetzen",
         "password_reset_confirm": "Passwort von {name} zurücksetzen? Das bisherige Passwort funktioniert sofort nicht mehr.",
         "password_reset_done": "Das Passwort von {name} wurde zurückgesetzt.",
         "password_reset_copy": "Kopieren",
-        "password_reset_shown_once": "Geben Sie dieses vorläufige Passwort an die Person weiter. Es wird nur dieses eine Mal angezeigt; beim nächsten Login muss ein neues gewählt werden.",
-        "password_reset_inactive_hint": "Dieses Konto ist deaktiviert – aktivieren Sie es, damit sich die Person anmelden kann."
+        "password_reset_shown_once": "Gib dieses vorläufige Passwort an die Person weiter. Es wird nur dieses eine Mal angezeigt; beim nächsten Login muss ein neues gewählt werden.",
+        "password_reset_inactive_hint": "Dieses Konto ist deaktiviert – aktiviere es, damit sich die Person anmelden kann."
       }
     },
     "settings": {
@@ -307,7 +307,7 @@
         "purchase_requests_name": "Einkaufswünsche",
         "purchase_requests_desc": "Vier-Augen-Prinzip für Vereinsausgaben: Anträge stellen, von zwei Vorstandsmitgliedern freigeben oder ablehnen lassen.",
         "calendar_name": "Kalender",
-        "calendar_desc": "Vereinskalender (Versammlungen, Begehungen, Arbeitseinsätze), Mitglieder-Geburtstage sowie Vorstandspräsenz/-abwesenheit, jeweils mit ICS-Export. Deaktivieren, falls Ihr Verein das nicht benötigt.",
+        "calendar_desc": "Vereinskalender (Versammlungen, Begehungen, Arbeitseinsätze), Mitglieder-Geburtstage sowie Vorstandspräsenz/-abwesenheit, jeweils mit ICS-Export. Deaktivieren, falls dein Verein das nicht benötigt.",
         "public_signup_api_name": "Öffentliche Anmelde-API",
         "public_signup_api_desc": "Ermöglicht einer externen Website (z. B. einem WordPress-Plugin), Anmeldungen zu Arbeitseinsätzen ohne Parcella-Login einzureichen. Standardmäßig deaktiviert, da dies einen öffentlichen Schreib-Endpunkt öffnet; das Zugriffs-Token findest du auf der Seite Integrationen.",
         "public_contact_api_name": "Öffentliche Kontaktformular-API",
@@ -355,7 +355,7 @@
       "invoice_number_format_currently_used": "Aktuell verwendet: {example}",
       "invoice_number_format_is_default": "(Standard, nichts Eigenes gespeichert)",
       "search_placeholder": "Einstellungen durchsuchen...",
-      "search_no_results": "Keine Einstellungen entsprechen Ihrer Suche.",
+      "search_no_results": "Keine Einstellungen entsprechen deiner Suche.",
       "invoice_number_start_placeholder": "z. B. 20000",
       "invoice_number_start_help": "Optional. Erzwingt, dass der nächste Rechnungslauf -- unabhängig vom Jahr -- mit dieser Nummer beginnt, anstatt automatisch fortzusetzen; Kollisionen mit bestehenden Nummern werden erst beim Abschließen dieses Laufs geprüft. Wird nach Verwendung automatisch geleert, sodass spätere Läufe einfach fortlaufend weiterzählen. Leer lassen, um immer automatisch fortzusetzen.",
       "applicant_contact_template_label": "Text der E-Mail an neue Bewerber",
@@ -427,22 +427,22 @@
       "ics_regenerate_confirm": "Das Neuerzeugen beendet jedes bestehende Kalender-Abo der Geburtstags- und Vorstands-Feeds; Abonnenten müssen die neue URL von den Kalenderseiten kopieren. Fortfahren?",
       "ics_token_regenerated": "Kalender-Feed-Token neu erzeugt. Bestehende Abos funktionieren erst mit der neuen URL wieder.",
       "website_title": "Webseite (Entwürfe aus Mitteilungen)",
-      "website_desc": "Wählen Sie das System, auf dem Ihre Vereinswebseite läuft. Mitteilungen legen dort dann mit einem Klick Entwürfe an. Es ist immer nur ein Webseiten-Typ aktiv: Wählen Sie einen anderen, wird der bisherige abgeschaltet, seine Einstellungen bleiben aber erhalten.",
+      "website_desc": "Wähle das System, auf dem deine Vereinswebseite läuft. Mitteilungen legen dort dann mit einem Klick Entwürfe an. Es ist immer nur ein Webseiten-Typ aktiv: Wählst du einen anderen, wird der bisherige abgeschaltet, seine Einstellungen bleiben aber erhalten.",
       "website_type_label": "Webseiten-Typ",
       "website_type_none": "Keiner (keine Webseiten-Entwürfe)",
-      "website_type_hint": "Parcella legt immer nur Entwürfe an. Veröffentlichen bleibt Ihre Entscheidung im Webseiten-System.",
+      "website_type_hint": "Parcella legt immer nur Entwürfe an. Veröffentlichen bleibt deine Entscheidung im Webseiten-System.",
       "website_saved": "Webseiten-Einstellungen gespeichert",
       "website_save_button": "Speichern",
       "website_test_button": "Verbindung testen",
       "website_test_success": "Verbindung erfolgreich",
       "cloud_storage_title": "Cloud-Speicher (Parzellendokumente, Rechnungen, Sicherungen)",
-      "cloud_storage_desc": "Wählen Sie, wo Parcella seine Dateien ablegt: den Ordner pro Parzelle (Pachtverträge, Mitgliedsunterlagen), Eingangsrechnungen, Kontaktdokumente, Sicherungen und die Markdown-Webseite. Es ist immer nur ein Speicher aktiv: Wählen Sie einen anderen, wird der bisherige abgeschaltet, seine Einstellungen bleiben aber erhalten. Wer einen Ordner außerdem sehen darf, regeln Sie im Speicher selbst, nicht in Parcella.",
+      "cloud_storage_desc": "Wähle, wo Parcella seine Dateien ablegt: den Ordner pro Parzelle (Pachtverträge, Mitgliedsunterlagen), Eingangsrechnungen, Kontaktdokumente, Sicherungen und die Markdown-Webseite. Es ist immer nur ein Speicher aktiv: Wählst du einen anderen, wird der bisherige abgeschaltet, seine Einstellungen bleiben aber erhalten. Wer einen Ordner außerdem sehen darf, regelst du im Speicher selbst, nicht in Parcella.",
       "cloud_storage_saved": "Einstellungen für den Cloud-Speicher gespeichert",
       "cloud_storage_type_label": "Speicher-Typ",
       "cloud_storage_type_none": "Keiner (kein Cloud-Speicher)",
       "cloud_storage_type_hint": "Ordnerpfade, die an anderer Stelle eingetragen werden (Parzellen, Rechnungen, Kontakte), beziehen sich auf den gewählten Speicher.",
       "helpdesk_title": "Support / Helpdesk",
-      "helpdesk_desc": "Wählen Sie das Helpdesk, in dem Ihr Verein Support-Anfragen beantwortet. Parcella verknüpft dessen Unterhaltungen mit Mitgliedern, Parzellen und dem Aufgabenboard, und das Kontaktformular der Webseite legt dort neue Anfragen an. Es ist immer nur ein Helpdesk aktiv: Wählen Sie ein anderes, wird das bisherige abgeschaltet, seine Einstellungen bleiben aber erhalten, und seine Unterhaltungen erscheinen wieder, wenn Sie zurückwechseln.",
+      "helpdesk_desc": "Wähle das Helpdesk, in dem dein Verein Support-Anfragen beantwortet. Parcella verknüpft dessen Unterhaltungen mit Mitgliedern, Parzellen und dem Aufgabenboard, und das Kontaktformular der Webseite legt dort neue Anfragen an. Es ist immer nur ein Helpdesk aktiv: Wählst du ein anderes, wird das bisherige abgeschaltet, seine Einstellungen bleiben aber erhalten, und seine Unterhaltungen erscheinen wieder, wenn du zurückwechselst.",
       "helpdesk_saved": "Helpdesk-Einstellungen gespeichert",
       "helpdesk_type_label": "Helpdesk",
       "helpdesk_type_none": "Keines (kein Helpdesk)",
@@ -462,13 +462,13 @@
       "title": "Aus Sicherung wiederherstellen",
       "success_message": "Wiederherstellung erfolgreich abgeschlossen.",
       "warning_header": "Dadurch werden alle aktuellen Daten überschrieben",
-      "warning_text": "Die Wiederherstellung ersetzt die gesamte Datenbank und alle hochgeladenen Dateien (Logo, Ankündigungsbilder) durch den Inhalt der von Ihnen hochgeladenen Sicherungs-ZIP-Datei. Dies kann nicht rückgängig gemacht werden.",
-      "warning_hint": "Wenn Sie dies rückgängig machen können möchten, laden Sie zuerst eine aktuelle Sicherung des jetzigen Zustands herunter.",
+      "warning_text": "Die Wiederherstellung ersetzt die gesamte Datenbank und alle hochgeladenen Dateien (Logo, Ankündigungsbilder) durch den Inhalt der von dir hochgeladenen Sicherungs-ZIP-Datei. Dies kann nicht rückgängig gemacht werden.",
+      "warning_hint": "Wenn du dies rückgängig machen können möchtest, lade zuerst eine aktuelle Sicherung des jetzigen Zustands herunter.",
       "form_header": "Sicherung hochladen",
       "label_file": "Sicherungsdatei (.zip)",
-      "label_confirm_phrase": "Geben Sie {phrase} ein, um zu bestätigen",
+      "label_confirm_phrase": "Gib {phrase} ein, um zu bestätigen",
       "submit_button": "Wiederherstellen",
-      "submit_confirm": "Sind Sie absolut sicher? Dadurch werden die gesamte aktuelle Datenbank und alle hochgeladenen Dateien überschrieben.",
+      "submit_confirm": "Bist du absolut sicher? Dadurch werden die gesamte aktuelle Datenbank und alle hochgeladenen Dateien überschrieben.",
       "error_wrong_phrase": "Bestätigungsphrase stimmte nicht überein -- es wurde nichts geändert.",
       "error_too_large": "Die Datei ist zu groß.",
       "error_not_a_zip": "Die hochgeladene Datei ist kein gültiges ZIP-Archiv.",
@@ -487,7 +487,7 @@
       "enabled_label": "Automatisch in die Cloud sichern",
       "folder_label": "Zielordner",
       "folder_placeholder": "z. B. backups/parcella",
-      "folder_key_hint": "Jede Sicherung enthält den Schlüssel zu den gespeicherten Passwörtern (E-Mail, Website, Cloud). Wählen Sie einen Ordner, auf den nur der Vorstand Zugriff hat.",
+      "folder_key_hint": "Jede Sicherung enthält den Schlüssel zu den gespeicherten Passwörtern (E-Mail, Website, Cloud). Wähle einen Ordner, auf den nur der Vorstand Zugriff hat.",
       "frequency_label": "Häufigkeit",
       "frequency_hourly": "Stündlich",
       "frequency_daily": "Täglich",
@@ -517,7 +517,7 @@
       "added_message": "Beispieldaten hinzugefügt.",
       "removed_message": "Alle Beispieldaten entfernt.",
       "what_header": "Was hinzugefügt wird",
-      "what_intro": "Füllt eine frische Installation mit realistischen Beispieldaten in allen Modulen, damit Sie die Anwendung erkunden können, bevor Sie echte Daten erfassen.",
+      "what_intro": "Füllt eine frische Installation mit realistischen Beispieldaten in allen Modulen, damit du die Anwendung erkunden kannst, bevor du echte Daten erfasst.",
       "what_core": "Stammdaten: 6 Mitglieder, 5 Gärten und deren Zuordnungen (inklusive einer gemeinsamen Adresse und eines früheren Pächters)",
       "what_work_hours": "Arbeitsstunden: eine Jahreskonfiguration, ein vergangener und ein bevorstehender Arbeitseinsatz mit Teilnehmern sowie einige Aufgaben",
       "what_metering": "Zählerwesen: ein Wasser- und ein Stromzähler mit Ablesungen aus zwei Jahren",
@@ -539,7 +539,7 @@
       "module_tasks": "Aufgabenboard",
       "remove_confirm": "Wirklich alle Beispieldaten entfernen? Das kann nicht rückgängig gemacht werden.",
       "remove_button": "Alle Beispieldaten entfernen",
-      "blocked_real_data": "Dieser Verein hat bereits echte Mitglieder-/Parzellendaten -- Beispieldaten können nur auf einer frischen Installation hinzugefügt werden. Entfernen Sie zuerst die vorhandenen Daten, falls Sie wirklich neu beginnen möchten.",
+      "blocked_real_data": "Dieser Verein hat bereits echte Mitglieder-/Parzellendaten -- Beispieldaten können nur auf einer frischen Installation hinzugefügt werden. Entferne zuerst die vorhandenen Daten, falls du wirklich neu beginnen möchtest.",
       "fresh_install_hint": "Diese Installation wirkt frisch -- noch keine Mitglieder- oder Parzellendaten vorhanden.",
       "add_confirm": "Jetzt Beispieldaten in allen Modulen hinzufügen?",
       "add_button": "Beispieldaten hinzufügen",
@@ -573,7 +573,7 @@
       "no_assignable_users": "Noch keine Benutzer zum Zuweisen verfügbar -- Konten mit einer bestehenden Administrator- oder Vorstandsrolle benötigen keine Gruppe.",
       "no_assignable_users_link": "Jetzt einladen",
       "all_assignable_users_already_members": "Alle Kassierer- und Nur-Lesen-Konten sind dieser Gruppe bereits zugewiesen.",
-      "no_groups": "Noch keine Gruppen vorhanden. Legen Sie eine an, um zu beginnen.",
+      "no_groups": "Noch keine Gruppen vorhanden. Leg eine an, um zu beginnen.",
       "delete_confirm": "Diese Gruppe löschen? Zugewiesene Benutzer verlieren den dadurch gewährten Zugriff.",
       "modules": {
         "members_parcels": "Mitglieder & Parzellen",
@@ -658,23 +658,23 @@
       "signin_sheet_link": "Anwesenheitsliste",
       "import_preview_title": "CSV-Spalten zuordnen",
       "import_preview_header": "CSV-Spalten zuordnen",
-      "import_preview_help": "Ordnen Sie jeder Spalte unten das passende Feld zu (oder lassen Sie sie unberücksichtigt). Vorname und Nachname sind erforderlich.",
+      "import_preview_help": "Ordne jeder Spalte unten das passende Feld zu (oder lass sie unberücksichtigt). Vorname und Nachname sind erforderlich.",
       "import_preview_required_help": "Vorname und Nachname müssen jeweils einer Spalte zugeordnet werden.",
       "map_ignore": "— Ignorieren —",
       "map_field_first_name": "Vorname",
       "map_field_last_name": "Nachname",
-      "map_field_street": "Strasse",
+      "map_field_street": "Straße",
       "map_field_postal_code": "PLZ",
       "map_field_city": "Ort",
       "map_field_date_of_birth": "Geburtsdatum",
       "map_field_iban": "IBAN",
-      "map_field_member_since": "Member seit",
-      "map_field_member_until": "Member bis",
+      "map_field_member_since": "Mitglied seit",
+      "map_field_member_until": "Mitglied bis",
       "map_field_email_notifications": "E-Mail-Benachrichtigungen",
       "map_field_email_addresses": "E-Mail-Adressen",
       "map_field_phone_numbers": "Telefonnummern",
       "map_field_notes": "Notizen",
-      "csv_mapping_required_error": "Bitte ordnen Sie vor dem Import sowohl Vorname als auch Nachname zu.",
+      "csv_mapping_required_error": "Bitte ordne vor dem Import sowohl Vorname als auch Nachname zu.",
       "csv_empty_error": "Diese CSV-Datei scheint leer zu sein.",
       "write_to_members": "Diesen {count} Mitgliedern schreiben",
       "col_select": "Auswählen",
@@ -825,13 +825,13 @@
       "total_area_suffix": " · Gesamtfläche: {area} qm",
       "csv_import_modal_title": "CSV-Import",
       "csv_import_button": "Importieren",
-      "csv_format_help": "Format: Semikolon-getrennte CSV mit Spalten: Gartennummer; Fläche (qm); Status; Notizen — die Spaltenüberschriften müssen nicht exakt übereinstimmen, Sie ordnen sie im nächsten Schritt zu.",
+      "csv_format_help": "Format: Semikolon-getrennte CSV mit Spalten: Gartennummer; Fläche (qm); Status; Notizen — die Spaltenüberschriften müssen nicht exakt übereinstimmen, du ordnest sie im nächsten Schritt zu.",
       "csv_import_summary": "{created} importiert, {skipped} übersprungen",
       "csv_import_missing_plot_number": ", {count} ohne Gartennummer ignoriert",
       "delete_permanently_message": "Parcel {plot_number} endgültig gelöscht",
       "import_preview_title": "CSV-Spalten zuordnen",
       "import_preview_header": "CSV-Spalten zuordnen",
-      "import_preview_help": "Ordnen Sie jeder Spalte unten das passende Feld zu (oder lassen Sie sie unberücksichtigt). Die Gartennummer ist erforderlich.",
+      "import_preview_help": "Ordne jeder Spalte unten das passende Feld zu (oder lass sie unberücksichtigt). Die Gartennummer ist erforderlich.",
       "import_preview_required_help": "Die Gartennummer muss einer Spalte zugeordnet werden.",
       "map_ignore": "— Ignorieren —",
       "map_field_plot_number": "Gartennummer",
@@ -840,7 +840,7 @@
       "map_field_longitude": "Längengrad",
       "map_field_status": "Status",
       "map_field_notes": "Notizen",
-      "csv_mapping_required_error": "Bitte ordnen Sie vor dem Import die Spalte für die Gartennummer zu.",
+      "csv_mapping_required_error": "Bitte ordne vor dem Import die Spalte für die Gartennummer zu.",
       "csv_empty_error": "Diese CSV-Datei scheint leer zu sein."
     },
     "form": {
@@ -919,18 +919,18 @@
       "cloud_folder_path_label": "Ordnerpfad",
       "cloud_folder_path_placeholder": "z.B. kgv_dokumente/parzellen/G016/2024-03_016_Mueller",
       "cloud_folder_save_button": "Speichern",
-      "cloud_no_folder_hint": "Für die aktuelle Pacht ist noch kein Ordner konfiguriert. Geben Sie den Pfad zu dem Ordner an, der in Nextcloud bereits mit diesen Pächtern geteilt wurde.",
+      "cloud_no_folder_hint": "Für die aktuelle Pacht ist noch kein Ordner konfiguriert. Gib den Pfad zu dem Ordner an, der in Nextcloud bereits mit diesen Pächtern geteilt wurde.",
       "cloud_browse_folder_button": "Durchsuchen…",
       "cloud_picker_root_label": "Stammverzeichnis des Speichers",
       "cloud_picker_use_folder_button": "Diesen Ordner verwenden",
-      "cloud_picker_root_hint": "Öffnen Sie zuerst einen Ordner, bevor Sie ihn auswählen.",
+      "cloud_picker_root_hint": "Öffne zuerst einen Ordner, bevor du ihn auswählst.",
       "cloud_picker_empty": "Dieser Ordner enthält keine Unterordner.",
       "cloud_picker_cancel_button": "Abbrechen",
       "cloud_col_name": "Name",
       "cloud_col_modified": "Zuletzt geändert",
       "cloud_folder_empty": "Dieser Ordner ist leer.",
       "cloud_upload_button": "Hochladen",
-      "cloud_not_configured": "Es ist noch kein Cloud-Speicher eingerichtet. Wählen Sie einen unter Admin -> Integrationen.",
+      "cloud_not_configured": "Es ist noch kein Cloud-Speicher eingerichtet. Wähle einen unter Admin -> Integrationen.",
       "cloud_no_active_folder": "Für diese Parzelle ist kein aktiver Ordner konfiguriert.",
       "page_title": "Parzelle {plot_number}",
       "upcoming_badge": "ab {date}",
@@ -1116,8 +1116,8 @@
       "approved_on": "am {date}",
       "approvals_header": "Freigaben ({count}/{required})",
       "no_approvals": "Noch keine Freigaben.",
-      "requester_cannot_approve": "Als Antragsteller können Sie diesen Einkaufswunsch nicht selbst freigeben (Vier-Augen-Prinzip).",
-      "already_approved": "Sie haben bereits freigegeben.",
+      "requester_cannot_approve": "Als Antragsteller kannst du diesen Einkaufswunsch nicht selbst freigeben (Vier-Augen-Prinzip).",
+      "already_approved": "Du hast bereits freigegeben.",
       "approve_button": "Freigeben",
       "reject_button": "Ablehnen",
       "reject_reason_placeholder": "Begründung für die Ablehnung…",
@@ -1133,18 +1133,18 @@
     "confirm": {
       "title": "Einkaufswunsch bestätigen",
       "heading": "Einkaufswunsch bestätigen",
-      "intro": "Folgender Einkaufswunsch wurde in Ihrem Namen erfasst. Bitte prüfen Sie die Angaben und bestätigen Sie, falls alles korrekt ist.",
+      "intro": "Folgender Einkaufswunsch wurde in deinem Namen erfasst. Bitte prüfe die Angaben und bestätige sie, falls alles korrekt ist.",
       "label_title": "Titel",
       "label_justification": "Begründung",
       "label_link": "Link",
       "label_estimated_cost": "Geschätzte Kosten",
-      "already_confirmed": "Sie haben diese Angaben bereits bestätigt.",
+      "already_confirmed": "Du hast diese Angaben bereits bestätigt.",
       "confirm_button": "Angaben bestätigen"
     },
     "confirmed": {
       "title": "Bestätigt",
       "heading": "Vielen Dank!",
-      "message": "Ihre Bestätigung für „{title}\" wurde gespeichert."
+      "message": "Deine Bestätigung für „{title}\" wurde gespeichert."
     },
     "confirmation_invalid": {
       "title": "Link ungültig",
@@ -1203,7 +1203,7 @@
       "csv_export": "CSV-Export",
       "csv_import_modal_title": "CSV-Import",
       "csv_import_button": "Importieren",
-      "csv_format_help": "Empfohlene Spalten: Type (MAIN_METER/PARCEL/CLUB); Parcel number; Label; Meter number; Installed on (JJJJ-MM-TT); Calibrated until (Jahr); Initial reading — die Spaltenüberschriften müssen nicht exakt übereinstimmen, Sie ordnen sie im nächsten Schritt zu.",
+      "csv_format_help": "Empfohlene Spalten: Type (MAIN_METER/PARCEL/CLUB); Parcel number; Label; Meter number; Installed on (JJJJ-MM-TT); Calibrated until (Jahr); Initial reading — die Spaltenüberschriften müssen nicht exakt übereinstimmen, du ordnest sie im nächsten Schritt zu.",
       "csv_import_summary": "{created} importiert, {skipped} übersprungen",
       "csv_import_invalid_type": ", {count} ignoriert (ungültiger Typ)",
       "csv_import_parcel_not_found": ", {count} ignoriert (Parcel nicht gefunden)",
@@ -1219,7 +1219,7 @@
       "map_field_installed_on": "Eingebaut am",
       "map_field_calibrated_until": "Geeicht bis",
       "map_field_initial_reading": "Anfangsstand",
-      "csv_mapping_required_error": "Bitte ordnen Sie vor dem Import mindestens eine Spalte zu.",
+      "csv_mapping_required_error": "Bitte ordne vor dem Import mindestens eine Spalte zu.",
       "csv_empty_error": "Diese CSV-Datei scheint leer zu sein.",
       "csv_import_skip_reason_exists": "bereits vorhanden",
       "csv_import_skip_reason_invalid_type": "ungültiger Typ",
@@ -1330,7 +1330,7 @@
       "csv_export": "CSV-Export",
       "csv_import_modal_title": "CSV-Import",
       "csv_import_button": "Importieren",
-      "csv_format_help": "Empfohlene Spalten: Type; Parcel number; Label; Meter number; Year; Date (JJJJ-MM-TT); Reading; Note — die Spaltenüberschriften müssen nicht exakt übereinstimmen, Sie ordnen sie im nächsten Schritt zu.",
+      "csv_format_help": "Empfohlene Spalten: Type; Parcel number; Label; Meter number; Year; Date (JJJJ-MM-TT); Reading; Note — die Spaltenüberschriften müssen nicht exakt übereinstimmen, du ordnest sie im nächsten Schritt zu.",
       "csv_import_summary": "{recorded} Zählerstände erfasst",
       "csv_import_skipped_no_point": ", {count} übersprungen (Zählpunkt nicht gefunden)",
       "csv_import_skipped_no_meter": ", {count} übersprungen (kein aktiver Zähler)",
@@ -1347,7 +1347,7 @@
       "map_field_date": "Datum",
       "map_field_reading": "Zählerstand",
       "map_field_note": "Notiz",
-      "csv_mapping_required_error": "Bitte ordnen Sie vor dem Import mindestens eine Spalte zu.",
+      "csv_mapping_required_error": "Bitte ordne vor dem Import mindestens eine Spalte zu.",
       "csv_empty_error": "Diese CSV-Datei scheint leer zu sein.",
       "csv_import_skip_reason_invalid_type": "ungültiger Typ",
       "csv_import_skip_reason_no_point": "Zählpunkt nicht gefunden",
@@ -1727,7 +1727,7 @@
       "former_card_title": "Frühere Patenschaften",
       "no_former": "Keine früheren Patenschaften hinterlegt.",
       "dates_invalid_badge": "Ende vor Beginn",
-      "dates_invalid_hint": "Das Enddatum dieser Patenschaft liegt vor dem Startdatum, deshalb wird sie in keinem Jahr angerechnet. Bearbeiten Sie sie, um die Daten zu korrigieren."
+      "dates_invalid_hint": "Das Enddatum dieser Patenschaft liegt vor dem Startdatum, deshalb wird sie in keinem Jahr angerechnet. Bearbeite sie, um die Daten zu korrigieren."
     },
     "errors": {
       "configuration_not_found": "Konfiguration nicht gefunden",
@@ -1740,7 +1740,7 @@
       "task_not_found": "Aufgabe nicht gefunden",
       "task_not_scheduled": "Diese Aufgabe ist noch keinem Einsatz zugeordnet",
       "participant_not_in_session": "Dieser Teilnehmer ist für diesen Einsatz nicht angemeldet",
-      "sponsorship_end_before_start": "Das Enddatum liegt vor dem Startdatum. Bitte prüfen Sie die Daten – eine solche Patenschaft würde nie angerechnet."
+      "sponsorship_end_before_start": "Das Enddatum liegt vor dem Startdatum. Bitte prüfe die Daten – eine solche Patenschaft würde nie angerechnet."
     },
     "tasks": {
       "title": "Aufgaben",
@@ -1767,7 +1767,7 @@
       "delete_confirm": "Diese Aufgabe wirklich löschen?",
       "not_yet_assigned": "Noch nicht zugewiesen",
       "toggle_done_tooltip": "Als erledigt / nicht erledigt markieren",
-      "assign_hint": "Weisen Sie jede Aufgabe oben einem der angemeldeten Teilnehmer dieses Einsatzes zu."
+      "assign_hint": "Weise jede Aufgabe oben einem der angemeldeten Teilnehmer dieses Einsatzes zu."
     },
     "transfers": {
       "title": "Stundenübertragungen {year}",
@@ -1935,7 +1935,7 @@
       "event_not_found": "Eintrag nicht gefunden",
       "entry_not_found": "Eintrag nicht gefunden",
       "invalid_token": "Ungültiges oder fehlendes Zugriffstoken",
-      "not_your_entry": "Sie können nur eigene Einträge löschen",
+      "not_your_entry": "Du kannst nur eigene Einträge löschen",
       "no_member_selected": "Bitte mindestens ein Vorstandsmitglied auswählen",
       "calendar_archived": "Dieser Kalender ist archiviert.",
       "calendar_not_found": "Kalender nicht gefunden.",
@@ -2014,7 +2014,7 @@
       "print_fits": "Passt auf eine gedruckte Seite.",
       "print_too_long": "Wahrscheinlich zu lang für eine gedruckte Seite -- Kürzung empfohlen.",
       "label_print_qr": "QR-Code zum Website-Beitrag",
-      "print_qr_hint": "Druckt einen QR-Code zum Website-Beitrag, auch wenn der Text auf eine Seite passt – für einen Drucktext, der nur ein Anreißer ist. Sie können schon vor der Veröffentlichung drucken: Der Code führt zum Beitrag, sobald er online ist.",
+      "print_qr_hint": "Druckt einen QR-Code zum Website-Beitrag, auch wenn der Text auf eine Seite passt – für einen Drucktext, der nur ein Anreißer ist. Du kannst schon vor der Veröffentlichung drucken: Der Code führt zum Beitrag, sobald er online ist.",
       "save_button": "Speichern",
       "cancel_button": "Abbrechen",
       "channels_title": "Versandkanäle",
@@ -2026,7 +2026,7 @@
       "delivery_not_sent": "Noch nicht gesendet",
       "send_email_button": "Jetzt senden",
       "send_email_confirm": "Diese Mitteilung per E-Mail an alle aktuellen Mitglieder mit aktivierten E-Mail-Benachrichtigungen senden? Dies ist nur einmal möglich.",
-      "save_does_not_send_hint": "Speichern sichert nur Ihre Änderungen -- es wird nichts versendet oder veröffentlicht. Nutzen Sie dafür die Schaltflächen weiter unten.",
+      "save_does_not_send_hint": "Speichern sichert nur deine Änderungen -- es wird nichts versendet oder veröffentlicht. Nutze dafür die Schaltflächen weiter unten.",
       "test_email_title": "Test-E-Mail senden",
       "test_email_hint": "Sendet den aktuellen Inhalt zur Prüfung an eine einzelne Adresse. Zählt nie als echter Versand und geht nie an Mitglieder.",
       "test_email_button": "Test senden",
@@ -2080,7 +2080,7 @@
     },
     "link": {
       "title": "Noch nicht online",
-      "not_online": "Diese Mitteilung ist noch nicht auf der Website. Bitte versuchen Sie es später noch einmal."
+      "not_online": "Diese Mitteilung ist noch nicht auf der Website. Bitte versuch es später noch einmal."
     },
     "compose": {
       "title": "Neue Nachricht",
@@ -2177,7 +2177,7 @@
       "edit_button": "Bearbeiten",
       "retire_confirm": "Diesen Gegenstand als ausgemustert markieren (nicht mehr im Besitz/Einsatz)? Er bleibt erfasst, wird aber standardmäßig aus der aktiven Liste ausgeblendet.",
       "retire_button": "Ausmustern",
-      "delete_confirm": "Diesen Gegenstand und seine gesamte Ausleihhistorie endgültig löschen? Dies kann nicht rückgängig gemacht werden -- nutzen Sie stattdessen \"Ausmustern\", wenn Sie nur markieren möchten, dass er nicht mehr im Besitz ist.",
+      "delete_confirm": "Diesen Gegenstand und seine gesamte Ausleihhistorie endgültig löschen? Dies kann nicht rückgängig gemacht werden -- nutze stattdessen \"Ausmustern\", wenn du nur markieren möchtest, dass er nicht mehr im Besitz ist.",
       "delete_button": "Löschen",
       "retired_notice": "Dieser Gegenstand ist ausgemustert -- nicht mehr im Besitz/Einsatz.",
       "overview_header": "Übersicht",
@@ -2238,7 +2238,7 @@
       "invalid_move": "Ungültige Verschiebeanfrage.",
       "list_not_found": "Liste nicht gefunden.",
       "delete_list_last_list": "Die letzte verbleibende Liste kann nicht gelöscht werden.",
-      "delete_list_missing_target": "Wählen Sie eine Liste aus, in die die Karten verschoben werden sollen.",
+      "delete_list_missing_target": "Wähle eine Liste aus, in die die Karten verschoben werden sollen.",
       "delete_list_target_not_found": "Die ausgewählte Zielliste wurde nicht gefunden.",
       "comment_not_found": "Kommentar nicht gefunden.",
       "unknown_tags": "Es können nur vordefinierte Tags verwendet werden.",
@@ -2260,7 +2260,7 @@
       "filter_due_month_any": "Alle Fälligkeitsmonate",
       "filter_overdue_only": "Nur überfällige",
       "filter_clear": "Filter zurücksetzen",
-      "filter_no_results": "Keine Aufgaben entsprechen Ihrer Suche/Filtern.",
+      "filter_no_results": "Keine Aufgaben entsprechen deiner Suche/deinen Filtern.",
       "sort_label": "Aufgaben sortieren",
       "sort_manual": "Manuell (Ziehreihenfolge)",
       "sort_due_date": "Fälligkeitsdatum",
@@ -2268,7 +2268,7 @@
       "export_report_button": "Bericht exportieren",
       "synced_badge": "Synchronisiert von Nextcloud Deck",
       "done_on": "Erledigt {date}",
-      "no_done_list_hint": "Noch keine Erledigt-Liste. Öffnen Sie das ⋮-Menü der Spalte für abgeschlossene Aufgaben und wählen Sie „Als Erledigt-Liste markieren“ – dorthin verschobene Karten gelten dann als erledigt und nicht mehr als überfällig.",
+      "no_done_list_hint": "Noch keine Erledigt-Liste. Öffne das ⋮-Menü der Spalte für abgeschlossene Aufgaben und wähle „Als Erledigt-Liste markieren“ – dorthin verschobene Karten gelten dann als erledigt und nicht mehr als überfällig.",
       "manage_tags_button": "Tags verwalten"
     },
     "form": {
@@ -2327,7 +2327,7 @@
       "label_move_cards_to": "Karten verschieben nach",
       "delete_button": "Liste löschen",
       "delete_confirm_empty": "Liste \"{name}\" löschen? Das kann nicht rückgängig gemacht werden.",
-      "delete_confirm_with_cards": "Diese Liste enthält noch Karten. Wählen Sie eine andere Liste aus, in die sie vor dem Löschen verschoben werden sollen.",
+      "delete_confirm_with_cards": "Diese Liste enthält noch Karten. Wähle eine andere Liste aus, in die sie vor dem Löschen verschoben werden sollen.",
       "done_list_badge": "Erledigt-Liste: Karten, die hierher verschoben werden, gelten als erledigt",
       "mark_done_list_action": "Als Erledigt-Liste markieren",
       "unmark_done_list_action": "Nicht mehr Erledigt-Liste"
@@ -2388,10 +2388,10 @@
   },
   "email": {
     "invitation": {
-      "subject": "Einladung zur {app_name}",
-      "heading": "Einladung zur {app_name}",
-      "intro": "Sie wurden von {admin_name} eingeladen, der Verwaltungssoftware beizutreten.",
-      "instruction": "Klicken Sie auf den folgenden Link, um Ihr Konto einzurichten:",
+      "subject": "Einladung zu {app_name}",
+      "heading": "Einladung zu {app_name}",
+      "intro": "{admin_name} hat Dich zur Verwaltungssoftware eingeladen.",
+      "instruction": "Klick auf den folgenden Link, um Dein Konto einzurichten:",
       "button": "Einladung annehmen",
       "validity": "Dieser Link ist {days} Tage gültig.",
       "fallback": "Falls der Button nicht funktioniert: {link}"
@@ -2399,45 +2399,45 @@
     "purchase_request_confirm": {
       "subject": "Bitte bestätigen: Einkaufswunsch „{title}“",
       "greeting": "Hallo {name},",
-      "body": "{admin_name} hat in Ihrem Namen folgenden Einkaufswunsch im {app_name} erfasst:",
-      "instruction": "Bitte bestätigen Sie, dass diese Angaben korrekt sind:",
+      "body": "{admin_name} hat in Deinem Namen folgenden Einkaufswunsch in {app_name} erfasst:",
+      "instruction": "Bitte bestätige, dass diese Angaben korrekt sind:",
       "button": "Angaben bestätigen"
     },
     "new_participation_notification": {
       "subject": "Neue Anmeldung zu einem Arbeitseinsatz in {app_name}",
       "greeting": "Hallo {name},",
       "body": "Ein Mitglied wurde neu zu einem Arbeitseinsatz in {app_name} angemeldet:",
-      "instruction": "Melde dich in {app_name} an, um die Details zu sehen."
+      "instruction": "Melde Dich in {app_name} an, um die Details zu sehen."
     },
     "new_participation_digest": {
       "subject": "{count} neue Anmeldung(en) zu Arbeitseinsätzen in {app_name}",
-      "body": "{count} neue Anmeldung(en) sind über das öffentliche Anmeldeformular in {app_name} eingegangen. Melde dich in {app_name} an, um sie zu prüfen."
+      "body": "{count} neue Anmeldung(en) sind über das öffentliche Anmeldeformular in {app_name} eingegangen. Melde Dich in {app_name} an, um sie zu prüfen."
     },
     "announcement_test_banner": "Dies ist ein Testversand und ging an kein Mitglied heraus.",
     "invoice_delivery": {
       "subject": "Rechnung {invoice_number} von {club_name}",
       "greeting": "Hallo {name},",
-      "body": "Anbei finden Sie Ihre Rechnung von {club_name} für Parzelle {parcel_number}, fällig am {due_date}.",
-      "body_member": "Anbei finden Sie Ihre Rechnung von {club_name}, fällig am {due_date}."
+      "body": "anbei findest Du Deine Rechnung von {club_name} für Parzelle {parcel_number}, fällig am {due_date}.",
+      "body_member": "anbei findest Du Deine Rechnung von {club_name}, fällig am {due_date}."
     },
     "reminder_delivery": {
       "subject": "Zahlungserinnerung Nr. {level} zu Rechnung {invoice_number} — {club_name}",
       "greeting": "Liebe/r {name},",
-      "body": "dies ist eine Erinnerung, dass die Rechnung {invoice_number} von {club_name} noch nicht beglichen wurde. Details finden Sie im beigefügten PDF."
+      "body": "dies ist eine Erinnerung, dass die Rechnung {invoice_number} von {club_name} noch nicht beglichen wurde. Details findest Du im beigefügten PDF."
     },
     "purchase_request_comment": {
       "subject": "Neuer Kommentar: Einkaufswunsch „{title}“",
       "body": "{author} hat den Einkaufswunsch „{title}“ in {app_name} kommentiert:",
       "button": "Einkaufswunsch öffnen und antworten",
-      "external_hint": "Zum Antworten wende dich bitte an den Vorstand."
+      "external_hint": "Zum Antworten wende Dich bitte an den Vorstand."
     },
     "applicant_contact": {
-      "subject": "Vielen Dank für Ihre Anmeldung auf unserer Warteliste!"
+      "subject": "Vielen Dank für Deine Anmeldung auf unserer Warteliste!"
     },
     "signup_confirmation": {
       "subject": "AW: Deine Anmeldung zum Arbeitseinsatz am {date}",
       "greeting": "Hallo {name},",
-      "default_text": "vielen Dank für deine Anmeldung zu unserem Arbeitseinsatz. Wir haben sie erhalten und freuen uns auf dich.",
+      "default_text": "vielen Dank für Deine Anmeldung zu unserem Arbeitseinsatz. Wir haben sie erhalten und freuen uns auf Dich.",
       "remarks_intro": "Deine Anmerkungen:"
     }
   },
@@ -2528,7 +2528,7 @@
       "catalog_header": "Aus dem Artikelkatalog hinzufügen",
       "catalog_manage_link": "Katalog verwalten",
       "catalog_button": "Ausgewählte Posten hinzufügen",
-      "catalog_empty_hint": "Noch keine Katalogeinträge -- fügen Sie wiederkehrende Posten einmal hinzu und wählen Sie sie hier jedes Jahr aus.",
+      "catalog_empty_hint": "Noch keine Katalogeinträge -- füge wiederkehrende Posten einmal hinzu und wähle sie hier jedes Jahr aus.",
       "catalog_all_used_hint": "Alle Katalogposten wurden diesem Rechnungslauf bereits hinzugefügt.",
       "col_category": "Kategorie",
       "label_category": "Kategorie"
@@ -2766,10 +2766,10 @@
       "add_modal_title": "Buchung hinzufügen",
       "csv_any_format_help": "Jede CSV-Datei funktioniert -- hochladen und im nächsten Schritt die Spalten den Parcella-Feldern zuordnen.",
       "csv_empty_error": "Diese CSV-Datei scheint leer zu sein.",
-      "csv_mapping_required_error": "Bitte ordnen Sie mindestens je eine Spalte Datum und Betrag zu.",
+      "csv_mapping_required_error": "Bitte ordne mindestens je eine Spalte Datum und Betrag zu.",
       "import_preview_title": "CSV-Spalten zuordnen",
       "import_preview_header": "Spalten zuordnen",
-      "import_preview_help": "Wählen Sie für jede Spalte, welchem Parcella-Feld sie entspricht (oder lassen Sie sie ignoriert). Datum und Betrag sind erforderlich.",
+      "import_preview_help": "Wähle für jede Spalte, welchem Parcella-Feld sie entspricht (oder lass sie ignoriert). Datum und Betrag sind erforderlich.",
       "import_preview_required_help": "Datum und Betrag müssen jeweils einer Spalte zugeordnet werden.",
       "map_ignore": "— Ignorieren —",
       "map_field_date": "Datum",
@@ -2780,14 +2780,14 @@
       "iban_updated_result": "{n} Mitglieds-IBAN(s) aus dem Import übernommen.",
       "manual_match_title": "Mögliche passende Rechnungen",
       "manual_match_header": "Mögliche passende Rechnungen",
-      "manual_match_help": "Diese offenen Rechnungen passen zum Betrag dieser Buchung. Wählen Sie eine aus, um dies als echte Zahlung zu erfassen, oder erfassen Sie es stattdessen als allgemeine Buchung.",
+      "manual_match_help": "Diese offenen Rechnungen passen zum Betrag dieser Buchung. Wähle eine aus, um dies als echte Zahlung zu erfassen, oder erfasse es stattdessen als allgemeine Buchung.",
       "match_none": "Als allgemeine Buchung erfassen",
       "match_amount_due": "offen: {amount}",
       "match_name_hint": "Name passt",
       "match_none_found": "Keine offenen Rechnungen passen zu diesem Betrag.",
       "import_match_title": "Zeilen Rechnungen zuordnen",
       "import_match_header": "Mögliche passende Rechnungen",
-      "import_match_help": "Wählen Sie für jede Zeile eine passende offene Rechnung aus, um sie als echte Zahlung zu erfassen, oder belassen Sie sie als allgemeine Buchung.",
+      "import_match_help": "Wähle für jede Zeile eine passende offene Rechnung aus, um sie als echte Zahlung zu erfassen, oder belass sie als allgemeine Buchung.",
       "col_match": "Zuordnung",
       "invalid_row": "Ungültige Zeile — wird übersprungen",
       "matched_result": "{n} Buchung(en) einer bestehenden Rechnung zugeordnet.",
@@ -2833,7 +2833,7 @@
       "row_paid": "Bereits gezahlt",
       "row_previous_fees": "Vorherige Mahngebühren",
       "row_this_fee": "Gebühr dieser Mahnung",
-      "closing": "Bitte begleichen Sie den offenen Betrag schnellstmöglich. Sollten Sie bereits gezahlt haben, betrachten Sie diese Mahnung als gegenstandslos."
+      "closing": "Bitte begleiche den offenen Betrag schnellstmöglich. Solltest Du bereits gezahlt haben, betrachte diese Mahnung als gegenstandslos."
     },
     "incoming_invoice_detail": {
       "title": "Eingangsrechnung — {sender}",
@@ -2952,7 +2952,7 @@
       "has_task": "Mit Aufgabe verknüpft",
       "empty_state": "Noch keine Support-Konversationen.",
       "none_configured": "Es ist noch kein Helpdesk eingerichtet. Ein Administrator kann eines unter Admin -> Integrationen wählen.",
-      "no_inbox": "{name} kann über seine Schnittstelle keine Unterhaltungen auflisten. Anfragen aus dem Kontaktformular der Webseite gehen direkt an {name}; beantworten Sie sie dort."
+      "no_inbox": "{name} kann über seine Schnittstelle keine Unterhaltungen auflisten. Anfragen aus dem Kontaktformular der Webseite gehen direkt an {name}; beantworte sie dort."
     },
     "detail": {
       "back": "Zurück",
@@ -2972,7 +2972,7 @@
       "task_open": "Aufgabe öffnen",
       "task_create": "Aufgabe erstellen",
       "not_configured": "Das Helpdesk dieser Unterhaltung ist nicht (mehr) eingerichtet.",
-      "no_read": "{name} kann über seine Schnittstelle keine Unterhaltungen anzeigen – öffnen Sie sie in {name}."
+      "no_read": "{name} kann über seine Schnittstelle keine Unterhaltungen anzeigen – öffne sie in {name}."
     },
     "errors": {
       "conversation_not_found": "Konversation nicht gefunden",
@@ -3071,7 +3071,7 @@
       "title": "Parzelle zuweisen",
       "choose_header": "Parzelle und Übergabedatum",
       "intro": "Eine gekündigte Parzelle an {name} übergeben. Die bisherigen Pächter werden ehemalige Pächter; die Bewerber werden Mitglieder, Pächter und Rechnungsempfänger der Parzelle.",
-      "no_terminated_parcels": "Zurzeit gibt es keine gekündigte Parzelle. Kündigen Sie die Parzelle zuerst (Status „gekündigt“) und kehren Sie dann hierher zurück.",
+      "no_terminated_parcels": "Zurzeit gibt es keine gekündigte Parzelle. Kündige die Parzelle zuerst (Status „gekündigt“) und kehr dann hierher zurück.",
       "parcel": "Gekündigte Parzelle",
       "choose_parcel": "– Parzelle wählen –",
       "date": "Übergabedatum",
@@ -3102,7 +3102,7 @@
       },
       "new_folder": "Dokumentenordner für die neuen Pächter",
       "browse_folder": "Cloud-Speicher durchsuchen",
-      "new_folder_hint": "Optional. Der Ordner der bisherigen Pächter wird am Übergabedatum in jedem Fall stillgelegt; dieser Ordner übernimmt an dem Tag. Anlegen und freigeben müssen Sie ihn selbst in Nextcloud.",
+      "new_folder_hint": "Optional. Der Ordner der bisherigen Pächter wird am Übergabedatum in jedem Fall stillgelegt; dieser Ordner übernimmt an dem Tag. Anlegen und freigeben musst du ihn selbst in Nextcloud.",
       "folder": "Dokumentenordner",
       "folder_old": "{path} – wird am Übergabedatum stillgelegt",
       "folder_new": "{path} – aktiv ab dem Übergabedatum",
@@ -3118,12 +3118,12 @@
       "send": "Senden",
       "confirm": "Diese E-Mail jetzt an {email} senden und den Status auf „Kontaktiert“ setzen?",
       "sent": "Die E-Mail wurde gesendet und der Status auf „Kontaktiert“ gesetzt.",
-      "default_body": "Hallo {name},\n\nvielen Dank für Ihre Anmeldung auf unserer Warteliste für einen Garten. Wir haben Ihre Bewerbung erhalten und melden uns, sobald ein Garten frei wird.\n\nMit freundlichen Grüßen\nDer Vorstand des {club}",
+      "default_body": "Hallo {name},\n\nvielen Dank für Deine Anmeldung auf unserer Warteliste für einen Garten. Wir haben Deine Bewerbung erhalten und melden uns, sobald ein Garten frei wird.\n\nViele Grüße\nDer Vorstand des {club}",
       "errors": {
         "not_new": "Nur eine neue Bewerbung kann auf diesem Weg kontaktiert werden.",
-        "empty_body": "Bitte geben Sie eine Nachricht ein.",
+        "empty_body": "Bitte gib eine Nachricht ein.",
         "body_too_long": "Die Nachricht ist zu lang.",
-        "send_failed": "Die E-Mail konnte nicht gesendet werden – bitte prüfen Sie die SMTP-Einstellungen. Der Status wurde nicht geändert."
+        "send_failed": "Die E-Mail konnte nicht gesendet werden – bitte prüfe die SMTP-Einstellungen. Der Status wurde nicht geändert."
       }
     }
   },
@@ -3330,14 +3330,14 @@
     "connectors": {
       "wordpress": {
         "name": "WordPress",
-        "desc": "Entwürfe werden über die eingebaute REST-API von WordPress angelegt. Erstellen Sie im WordPress-Benutzerprofil ein Anwendungspasswort (Benutzer -> Profil -> Anwendungspasswörter) – nicht Ihr normales Anmeldepasswort verwenden.",
+        "desc": "Entwürfe werden über die eingebaute REST-API von WordPress angelegt. Erstelle im WordPress-Benutzerprofil ein Anwendungspasswort (Benutzer -> Profil -> Anwendungspasswörter) – nicht dein normales Anmeldepasswort verwenden.",
         "fields": {
           "site_url": "WordPress-Adresse",
           "username": "WordPress-Benutzername",
           "app_password": "Anwendungspasswort"
         },
         "hints": {
-          "app_password": "Nicht Ihr normales WordPress-Passwort – erstellen Sie eines in Ihrem WordPress-Benutzerprofil."
+          "app_password": "Nicht dein normales WordPress-Passwort – erstelle eines in deinem WordPress-Benutzerprofil."
         }
       },
       "markdown_folder": {
@@ -3360,7 +3360,7 @@
           "site_url": "Wird für den QR-Code auf dem Aushang genutzt, sobald ein Beitrag veröffentlicht ist.",
           "filename_pattern": "{date} wird zu JJJJMMTT, {slug} zum Titel ohne Umlaute und Leerzeichen.",
           "url_pattern": "Wird als \"url\" in den Beitragskopf geschrieben. Leer lassen, wenn die Webseite die Adresse selbst bildet.",
-          "categories": "Kommagetrennt, so wie Ihre Webseite sie benennt."
+          "categories": "Kommagetrennt, so wie deine Webseite sie benennt."
         }
       },
       "parcella_plugin": {
@@ -3381,14 +3381,14 @@
     "providers": {
       "nextcloud": {
         "name": "Nextcloud",
-        "desc": "Die Nextcloud Ihres Vereins. Erstellen Sie ein App-Passwort in den Sicherheitseinstellungen Ihres Nextcloud-Benutzers (Einstellungen -> Sicherheit -> Geräte & Sitzungen) – nicht Ihr normales Anmeldepasswort verwenden.",
+        "desc": "Die Nextcloud deines Vereins. Erstelle ein App-Passwort in den Sicherheitseinstellungen deines Nextcloud-Benutzers (Einstellungen -> Sicherheit -> Geräte & Sitzungen) – nicht dein normales Anmeldepasswort verwenden.",
         "fields": {
           "base_url": "Nextcloud-Adresse",
           "username": "Nextcloud-Benutzername",
           "app_password": "App-Passwort"
         },
         "hints": {
-          "app_password": "Nicht Ihr normales Nextcloud-Passwort – erstellen Sie eines in den Sicherheitseinstellungen Ihres Nextcloud-Benutzers."
+          "app_password": "Nicht dein normales Nextcloud-Passwort – erstelle eines in den Sicherheitseinstellungen deines Nextcloud-Benutzers."
         }
       },
       "webdav": {
@@ -3400,12 +3400,12 @@
           "password": "Passwort"
         },
         "hints": {
-          "root_url": "Die vollständige WebDAV-Adresse des Ordners, in dem Parcella arbeiten soll, so wie Ihr Anbieter sie angibt. Alle Pfade in Parcella beziehen sich darauf."
+          "root_url": "Die vollständige WebDAV-Adresse des Ordners, in dem Parcella arbeiten soll, so wie dein Anbieter sie angibt. Alle Pfade in Parcella beziehen sich darauf."
         }
       },
       "s3": {
         "name": "S3-kompatibel (AWS, Hetzner, MinIO, Wasabi, ...)",
-        "desc": "Objektspeicher, der das S3-Protokoll spricht. Legen Sie vorher einen Bucket und einen Zugangsschlüssel mit Lese- und Schreibrechten dafür an.",
+        "desc": "Objektspeicher, der das S3-Protokoll spricht. Leg vorher einen Bucket und einen Zugangsschlüssel mit Lese- und Schreibrechten dafür an.",
         "fields": {
           "endpoint_url": "Endpunkt",
           "region": "Region",
@@ -3416,7 +3416,7 @@
         },
         "hints": {
           "endpoint_url": "Z. B. https://s3.eu-central-1.amazonaws.com oder https://fsn1.your-objectstorage.com.",
-          "region": "So wie Ihr Anbieter sie nennt, z. B. eu-central-1 oder fsn1. us-east-1 stehen lassen, wenn Ihr Anbieter keine Regionen kennt.",
+          "region": "So wie dein Anbieter sie nennt, z. B. eu-central-1 oder fsn1. us-east-1 stehen lassen, wenn dein Anbieter keine Regionen kennt.",
           "path_prefix": "Optional. Die Ordner von Parcella werden unterhalb dieses Pfades angelegt, z. B. parcella."
         }
       }
@@ -3433,7 +3433,7 @@
           "mailbox_id": "Postfach-ID"
         },
         "hints": {
-          "api_key": "Erstellen Sie einen unter Verwalten -> API & Webhooks in FreeScout.",
+          "api_key": "Erstelle einen unter Verwalten -> API & Webhooks in FreeScout.",
           "mailbox_id": "Das abzugleichende Postfach (siehe seine Adresse, z. B. /mailbox/1). Standard ist 1."
         }
       },
@@ -3446,7 +3446,7 @@
           "group": "Gruppe für neue Anfragen"
         },
         "hints": {
-          "api_token": "Erstellen Sie eines in Ihrem Zammad-Profil -> Token-Zugang, mit der Berechtigung ticket.agent.",
+          "api_token": "Erstelle eines in deinem Zammad-Profil -> Token-Zugang, mit der Berechtigung ticket.agent.",
           "group": "Anfragen aus dem Kontaktformular landen in dieser Zammad-Gruppe, z. B. Users."
         }
       },
@@ -3476,7 +3476,7 @@
         },
         "hints": {
           "base_url": "Ohne /api, z. B. https://support.example.org.",
-          "api_key": "Erstellen Sie einen unter Admin-Bereich -> Verwalten -> API-Schlüssel, gebunden an die IP-Adresse, von der der Parcella-Server zugreift."
+          "api_key": "Erstelle einen unter Admin-Bereich -> Verwalten -> API-Schlüssel, gebunden an die IP-Adresse, von der der Parcella-Server zugreift."
         }
       },
       "zendesk": {
@@ -3489,7 +3489,7 @@
         },
         "hints": {
           "agent_email": "Der Agent, zu dem das API-Token gehört.",
-          "api_token": "Erstellen Sie eines unter Admin Center -> Apps und Integrationen -> Zendesk API."
+          "api_token": "Erstelle eines unter Admin Center -> Apps und Integrationen -> Zendesk API."
         }
       },
       "freshdesk": {
@@ -3500,7 +3500,7 @@
           "api_key": "API-Schlüssel"
         },
         "hints": {
-          "api_key": "Steht in Ihren Freshdesk-Profileinstellungen -> API-Schlüssel anzeigen."
+          "api_key": "Steht in deinen Freshdesk-Profileinstellungen -> API-Schlüssel anzeigen."
         }
       }
     }
@@ -3609,7 +3609,7 @@
       "download_pdf": "PDF herunterladen",
       "edit": "Bearbeiten",
       "delete": "Notiz löschen",
-      "delete_confirm": "Diese Notiz löschen? Ihre Datei in der Cloud wird ebenfalls gelöscht.",
+      "delete_confirm": "Diese Notiz löschen? Die zugehörige Datei in der Cloud wird ebenfalls gelöscht.",
       "created_by": "Erstellt von {name}, {when}",
       "updated_by": "Zuletzt geändert von {name}, {when}",
       "cloud_stale": "Die Cloud-Datei konnte nicht gelesen werden, angezeigt wird der zuletzt abgeglichene Stand: {detail}"
@@ -3687,9 +3687,9 @@
     "back_to_profile": "Zurück zum Profil",
     "created": "Token erstellt.",
     "created_for": "Token für {name} erstellt.",
-    "shown_once": "Jetzt kopieren: Er wird nur dieses eine Mal angezeigt und lässt sich später nicht mehr abrufen. Behandeln Sie ihn wie ein Passwort.",
-    "intro": "Mit einem persönlichen API-Token kann eine Anbindung (zum Beispiel ein KI-Assistent über MCP oder ein Skript) die REST-API in Ihrem Namen nutzen, mit genau Ihren Rechten und ohne Ihr Passwort. Widerrufen Sie ihn, sobald er nicht mehr gebraucht wird. Eine Passwortänderung beendet alle Ihre Tokens.",
-    "intro_admin": "Die API-Tokens aller Benutzer. Sie können jeden widerrufen und einen für ein Konto erstellen, das sich nicht selbst anmeldet, etwa einen eigenen Benutzer für eine Anbindung. Geben Sie diesem Benutzer eine Gruppe mit nur den Rechten, die die Anbindung braucht.",
+    "shown_once": "Jetzt kopieren: Er wird nur dieses eine Mal angezeigt und lässt sich später nicht mehr abrufen. Behandle ihn wie ein Passwort.",
+    "intro": "Mit einem persönlichen API-Token kann eine Anbindung (zum Beispiel ein KI-Assistent über MCP oder ein Skript) die REST-API in deinem Namen nutzen, mit genau deinen Rechten und ohne dein Passwort. Widerrufe ihn, sobald er nicht mehr gebraucht wird. Eine Passwortänderung beendet alle deine Tokens.",
+    "intro_admin": "Die API-Tokens aller Benutzer. Du kannst jeden widerrufen und einen für ein Konto erstellen, das sich nicht selbst anmeldet, etwa einen eigenen Benutzer für eine Anbindung. Gib diesem Benutzer eine Gruppe mit nur den Rechten, die die Anbindung braucht.",
     "new_heading": "Neuer Token",
     "field_user": "Benutzer",
     "user_help": "Für andere Konten mit Vollzugriff lassen sich keine Tokens erstellen: Ein Token handelt unbemerkt im Namen dieser Person.",
@@ -3714,9 +3714,9 @@
     "profile_link_text": "API-Tokens für Anbindungen",
     "profile_link": "Verwalten",
     "errors": {
-      "name_required": "Bitte geben Sie dem Token einen Namen.",
+      "name_required": "Bitte gib dem Token einen Namen.",
       "name_too_long": "Der Name darf höchstens {max} Zeichen lang sein.",
-      "invalid_expiry": "Bitte wählen Sie eine gültige Laufzeit.",
+      "invalid_expiry": "Bitte wähle eine gültige Laufzeit.",
       "user_inactive": "Dieses Konto ist deaktiviert.",
       "not_found": "Token nicht gefunden.",
       "not_for_full_access_user": "Für ein anderes Konto mit Vollzugriff lassen sich keine Tokens erstellen."

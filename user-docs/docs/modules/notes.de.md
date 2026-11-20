@@ -80,7 +80,7 @@ einem Cloud-Ordner den Dateipfad der Notiz.
 | **.md herunterladen** | Lädt die Notiz als Markdown-Datei herunter, mit Titel, Datum, Kategorie und Schlagworten in einem Kopfteil oben. |
 | **PDF herunterladen** | Lädt die Notiz als PDF mit dem Briefkopf deines Vereins herunter. Bilder, die nur aus dem Web verlinkt sind, fehlen. |
 | **Bearbeiten** | Öffnet das Formular. Braucht *Schreiben*. |
-| **Notiz löschen** | Braucht *Löschen*. Fragt **Diese Notiz löschen? Ihre Datei in der Cloud wird ebenfalls gelöscht.** |
+| **Notiz löschen** | Braucht *Löschen*. Fragt **Diese Notiz löschen? Die zugehörige Datei in der Cloud wird ebenfalls gelöscht.** |
 
 Beim Öffnen liest Parcella die Datei der Notiz zuerst neu aus der Cloud, du
 siehst also immer den aktuellen Text. Klappt das nicht, zeigt die Seite

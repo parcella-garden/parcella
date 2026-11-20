@@ -117,7 +117,7 @@ Einige Einträge folgen einer eigenen Regel:
 - **Administration** sehen nur Administratoren.
 
 Öffnest du eine Seite, die du nicht sehen darfst -- über ein Lesezeichen
-oder einen Link von Kollegen --, erscheint die Meldung **Sie haben keine
+oder einen Link von Kollegen --, erscheint die Meldung **Du hast keine
 Berechtigung dafür**. Die Seite eines ausgeschalteten Moduls antwortet mit
 einer „nicht gefunden“-Seite: „Dieser Funktionsbereich ist in diesem Verein
 deaktiviert.“

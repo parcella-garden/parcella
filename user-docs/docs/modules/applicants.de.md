@@ -201,7 +201,7 @@ der Bewerber auf der Warteliste steht.
 | Feld / Schaltfläche | Was es bewirkt |
 |---|---|
 | **An:** | Die E-Mail-Adresse des Bewerbers. |
-| **Betreff:** | „Vielen Dank für Ihre Anmeldung auf unserer Warteliste!“ (in der Sprache, in der du Parcella nutzt). |
+| **Betreff:** | „Vielen Dank für Deine Anmeldung auf unserer Warteliste!“ (in der Sprache, in der du Parcella nutzt). |
 | Nachricht | Der Text der E-Mail, fertig zum Bearbeiten. Name des Bewerbers und Name des Vereins sind schon eingesetzt. |
 | **Senden** | Schickt den Text nach deiner Bestätigung an den Bewerber und setzt den Status auf **Kontaktiert**. |
 
@@ -211,7 +211,7 @@ Bewerbung nicht mehr neu ist.
 
 Lässt sich die E-Mail nicht senden, ändert sich nichts: Der Status bleibt
 **Neu**, dein bearbeiteter Text bleibt im Kasten, und du siehst „Die E-Mail
-konnte nicht gesendet werden – bitte prüfen Sie die SMTP-Einstellungen. Der
+konnte nicht gesendet werden – bitte prüfe die SMTP-Einstellungen. Der
 Status wurde nicht geändert.“ Bring die E-Mail-Einstellungen in Ordnung und
 versuch es noch einmal.
 

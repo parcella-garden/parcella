@@ -128,7 +128,7 @@ Die Seite **CSV-Spalten zuordnen** zeigt jede Spalte deiner Datei mit
 | Feld / Schaltfläche | Was es bewirkt |
 |---|---|
 | Auswahl je Spalte | Wähl **Gartennummer**, **Fläche (qm)**, **Breitengrad**, **Längengrad**, **Status**, **Notizen** -- oder **— Ignorieren —**. Parcella wählt ein Feld vor, wenn es die Überschrift erkennt (auf Deutsch oder Englisch, z. B. „Gartennummer“ oder „Plot number“). |
-| **Importieren** | Importiert die Zeilen und führt zur Parzellenliste zurück. **Gartennummer** muss einer Spalte zugeordnet sein, sonst erscheint „Bitte ordnen Sie vor dem Import die Spalte für die Gartennummer zu.“ |
+| **Importieren** | Importiert die Zeilen und führt zur Parzellenliste zurück. **Gartennummer** muss einer Spalte zugeordnet sein, sonst erscheint „Bitte ordne vor dem Import die Spalte für die Gartennummer zu.“ |
 | **Zurück** | Führt ohne Import zur Parzellenliste zurück. |
 
 ### Was beim Import passiert {#what-happens-on-import}
@@ -281,7 +281,7 @@ ein.
 | Feld / Schaltfläche | Was es bewirkt |
 |---|---|
 | **Ordnerpfad** | Der Pfad des Ordners zur aktuellen Pacht, z. B. „kgv_dokumente/parzellen/G016/2024-03_016_Mueller“. Der Ordner muss schon existieren und in deinem Cloud-Speicher mit den Pächtern geteilt sein. |
-| **Durchsuchen…** | Öffnet **Ordner auswählen**: Klick dich durch die Ordner (oder tipp in **Ordner filtern…**) und klick dann auf **Diesen Ordner verwenden**. Ein Doppelklick auf einen Ordner wählt ihn sofort. Das Stammverzeichnis des Speichers selbst kannst du nicht wählen -- „Öffnen Sie zuerst einen Ordner, bevor Sie ihn auswählen.“ |
+| **Durchsuchen…** | Öffnet **Ordner auswählen**: Klick dich durch die Ordner (oder tipp in **Ordner filtern…**) und klick dann auf **Diesen Ordner verwenden**. Ein Doppelklick auf einen Ordner wählt ihn sofort. Das Stammverzeichnis des Speichers selbst kannst du nicht wählen -- „Öffne zuerst einen Ordner, bevor du ihn auswählst.“ |
 | **Speichern** | Speichert den Ordnerpfad. |
 | Dateiliste | Zeigt Dateien und Unterordner des Ordners mit **Name** und **Zuletzt geändert**. Ein Klick auf einen Unterordner öffnet ihn; der Pfad darüber führt zurück. Die Download-Schaltfläche lädt eine Datei herunter. |
 | Dateifeld + **Hochladen** | Lädt eine Datei in den Ordner, den du gerade ansiehst. |

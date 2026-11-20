@@ -12,7 +12,7 @@ bekommst, wie du dich anmeldest und wie du Passwort und Bild änderst.
 
 Ein Administrator deiner Installation lädt dich per E-Mail ein (siehe
 [Benutzer und Einladungen](../administration/users.md)). Du bekommst eine
-E-Mail mit dem Betreff **Einladung zur Parcella** und der Schaltfläche
+E-Mail mit dem Betreff **Einladung zu Parcella** und der Schaltfläche
 **Einladung annehmen**. Der Link darin ist **7 Tage** gültig.
 
 !!! tip "Keine E-Mail angekommen?"
@@ -75,7 +75,7 @@ Mögliche Meldungen:
 | Meldung | Bedeutung |
 |---|---|
 | **E-Mail oder Passwort falsch.** | Eines von beiden stimmt nicht. Zu deinem Schutz sagt Parcella nicht, welches. |
-| **Ihr Konto ist deaktiviert.** | Ein Administrator hat dein Konto abgeschaltet. Deine Daten sind noch da; bitte ihn, es wieder zu aktivieren. |
+| **Dein Konto ist deaktiviert.** | Ein Administrator hat dein Konto abgeschaltet. Deine Daten sind noch da; bitte ihn, es wieder zu aktivieren. |
 | **Zu viele fehlgeschlagene Anmeldeversuche. Bitte einige Minuten warten und erneut versuchen.** | Nach wiederholt falschen Passwörtern sperrt Parcella Anmeldeversuche für dieses Konto für etwa 15 Minuten. |
 
 Du bleibst **8 Stunden** angemeldet (sofern der Betreiber deiner
