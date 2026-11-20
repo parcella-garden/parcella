@@ -162,15 +162,17 @@ async def resolve_audience(db: AsyncSession, announcement: Announcement) -> Audi
     """Recipients of `announcement`, resolved now (the filter is stored,
     the people behind it can change until the message is sent).
 
-    Classic announcement (no audience_filter): email only, to
-    get_active_recipient_emails(). Targeted (issue #242): everyone the
+    Club news (no audience): email to get_active_recipient_emails();
+    since issue #399 also letters, by the members rule (ADR 0142): to
+    every active member without email consent who has a postal address
+    (everyone with letters_for_all), one per address. Targeted (issue #242): everyone the
     stored MemberListFilter matches -- email to each who consented
     (email notifications on) and has an address (issue #403); a letter
     to the others (or to everyone with letters_for_all) who have a
     postal address, one per address; whoever gets neither is
     unreachable."""
     if not announcement.is_targeted:
-        return Audience(email=await get_active_recipient_emails(db))
+        return await _resolve_club_news_audience(db, announcement.letters_for_all)
     if announcement.is_applicant_message:
         return await _resolve_applicant_audience(db, announcement.audience_applicant_ids)
 
@@ -192,6 +194,24 @@ async def resolve_audience(db: AsyncSession, announcement: Announcement) -> Audi
             audience.unreachable.append(member)
     # Association law (issue #403): members who share a postal address
     # get one letter naming all of them.
+    audience.letter_groups = group_by_postal_address(audience.letter)
+    return audience
+
+
+async def _resolve_club_news_audience(db: AsyncSession, letters_for_all: bool) -> Audience:
+    """Club news (issue #399): the email recipients as before (active
+    members with consent and an address); letters for the other active
+    members with a postal address, grouped by address."""
+    audience = Audience(email=await get_active_recipient_emails(db))
+    emailed = {m.id for m, _ in audience.email}
+    members = (await db.scalars(
+        select(Member).where(active_member_filter()).order_by(Member.last_name, Member.first_name)
+    )).all()
+    for member in members:
+        if (member.id not in emailed or letters_for_all) and has_postal_address(member):
+            audience.letter.append(member)
+        elif member.id not in emailed:
+            audience.unreachable.append(member)
     audience.letter_groups = group_by_postal_address(audience.letter)
     return audience
 

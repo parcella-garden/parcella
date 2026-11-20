@@ -94,7 +94,7 @@
             <div class="form-text">{{ t('announcements.parcels.hint') }}</div>
         </div>
     </div>
-    {% elif audience %}
+    {% elif audience_filter is defined %}
     {#- Issue #242: a message to filtered members, started from /members/. -#}
     {% if not announcement %}
     <input type="hidden" name="audience" value="1">
@@ -178,7 +178,7 @@
                 <div class="form-text">{{ t('announcements.form.body_hint') }}</div>
             </div>
 
-            {% if announcement and not announcement.is_targeted %}
+            {% if announcement %}
             <div class="mb-3">
                 <label class="form-label">{{ t('announcements.form.label_print_override') }}</label>
                 <textarea name="print_text_override" id="print_text_override" rows="6">{{ print_override_value }}</textarea>
@@ -195,6 +195,14 @@
                     <label class="form-check-label" for="print_qr_code"><i class="bi bi-qr-code"></i> {{ t('announcements.form.label_print_qr') }}</label>
                     <div class="form-text">{{ t('announcements.form.print_qr_hint') }}</div>
                 </div>
+                {% if not announcement.is_targeted %}
+                {#- Issue #399: club news can go out as letters too. -#}
+                <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" name="letters_for_all" value="true" id="letters_for_all_club"
+                           {% if letters_for_all_value %}checked{% endif %}>
+                    <label class="form-check-label" for="letters_for_all_club">{{ t('announcements.audience.letters_for_all') }}</label>
+                </div>
+                {% endif %}
             </div>
             {% endif %}
         </div>
@@ -274,7 +282,7 @@
             </form>
             {% endif %}
         </div>
-        {% if not announcement.is_targeted %}
+        {#- Issue #399: website draft and notice for every kind of message. -#}
         {% set blog = channels.BLOG %}
         {% set blog_delivery = blog.delivery %}
         <div class="d-flex align-items-center justify-content-between py-2 border-bottom gap-2 flex-wrap">
@@ -353,7 +361,7 @@
             </form>
             {% endif %}
         </div>
-        {% elif not announcement.is_applicant_message %}
+        {% if not announcement.is_applicant_message %}
         {% set letter = channels.LETTER %}
         {% set letter_delivery = letter.delivery %}
         <div class="d-flex align-items-center justify-content-between py-2 gap-2 flex-wrap">
