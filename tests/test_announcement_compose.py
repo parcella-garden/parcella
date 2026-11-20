@@ -127,7 +127,7 @@ async def test_club_news_print_pdf_without_website(client, admin_user):
     assert "compose-channel-PRINT" in form and "compose-channel-BLOG" not in form  # no website set up
 
     response = await client.post("/announcements/compose", data={
-        "action": "send", "channels": ["PRINT", "BLOG", "LETTER"], "title": "Aushang", "body_markdown": "Kurz.",
+        "action": "send", "channels": ["PRINT", "BLOG"], "title": "Aushang", "body_markdown": "Kurz.",
     })
     result = response.json()
     assert "PDF generated and downloaded." in result["html"]
@@ -208,3 +208,35 @@ async def test_rendered_values_are_escaped(client, admin_user):
         **_picked(member.id), "action": "draft", "title": '"><script>alert(2)</script>', "body_markdown": "x",
     })
     assert "<script>alert(2)" not in response.json()["html"]
+
+
+async def test_every_kind_of_message_offers_all_four_channels(client, admin_user):
+    """Issue #399: email, website draft (with a website), notice and
+    letters for every kind of message -- except letters to applicants,
+    who have no postal address on file."""
+    _, ids = await _setup(client)
+
+    form = (await client.get("/announcements/compose", params=_picked(ids["Papier"]))).json()["html"]
+    assert _channel_input(form, "PRINT") and _channel_input(form, "LETTER")
+
+    club = (await client.get("/announcements/compose")).json()["html"]
+    assert _channel_input(club, "PRINT") and _channel_input(club, "LETTER")
+
+    # Club news as letters: the active members without email consent who
+    # have a postal address -- Olga (opted out) and Paul (no email).
+    # Nina has neither, Udo gets the email.
+    create = await client.post("/announcements/new", data={"title": "News", "body_markdown": "Hallo"})
+    club_id = create.headers["location"].split("/")[2]
+    letters = await client.post(f"/announcements/{club_id}/letters")
+    assert letters.status_code == 200 and letters.headers["content-type"] == "application/pdf"
+    [announcement] = [a for a in await _announcements() if a.id == club_id]
+    assert announcement.delivery_for(AnnouncementChannel.LETTER).error_message == "2 letter(s) generated."
+
+    # A message to members can be printed as a notice too.
+    picked = await client.post("/announcements/new", data={
+        "title": "Wasser", "body_markdown": "Am Samstag.", **_picked(ids["Papier"]),
+    })
+    picked_id = picked.headers["location"].split("/")[2]
+    edit = await client.get(f"/announcements/{picked_id}/edit")
+    assert f"/announcements/{picked_id}/print" in edit.text and 'name="print_qr_code"' in edit.text
+    assert (await client.post(f"/announcements/{picked_id}/print")).status_code != 409

@@ -1,9 +1,11 @@
 # Announcements
 
-Write a piece of club news once and send it out on up to three channels:
-an e-mail to your members, a draft post on the club website, and a
-one-page notice to print and pin up in the garden. The same module also
-sends messages to a selection of members or applicants.
+Write a message once and send it out on up to four channels: an
+e-mail, a draft post on the club website, a one-page notice to print and
+pin up in the garden, and personal letters for window envelopes. That
+goes for club news and for messages to a selection of members, to the
+leaseholders of parcels or to applicants (applicants get no letters,
+because no postal address is stored for them).
 
 !!! info "Who can use this"
     - The module switch is **Announcements** under **Administration →
@@ -21,10 +23,10 @@ sends messages to a selection of members or applicants.
 
 | Kind | How you start it | Channels |
 |---|---|---|
-| Club news | **New Announcement** on the announcement list. | Member e-mail, website draft, printable PDF |
-| Message to filtered members | **Write to these {count} members** on a filtered [member list](members.md), or tick members and click **Write to selected**. | Member e-mail, letters |
-| Notice to the leaseholders of picked parcels | Tick parcels on the [parcel list](parcels.md#picking-parcels) and click **Write to their leaseholders**. About the lease, not the membership: one notice per parcel, naming it; e-mail only to leaseholders who allow it, one letter per address for the others. | E-mail, letters |
-| Message to selected applicants | Tick applicants on the [applicant list](applicants.md) and click **Write to the selected applicants**. | E-mail only |
+| Club news | **New Announcement** on the announcement list. | E-mail, website draft, notice, letters |
+| Message to filtered members | **Write to these {count} members** on a filtered [member list](members.md), or tick members and click **Write to selected**. | E-mail, website draft, notice, letters |
+| Notice to the leaseholders of picked parcels | Tick parcels on the [parcel list](parcels.md#picking-parcels) and click **Write to their leaseholders**. About the lease, not the membership: one notice per parcel, naming it; e-mail only to leaseholders who allow it, one letter per address for the others. | E-mail, website draft, notice, letters |
+| Message to selected applicants | Tick applicants on the [applicant list](applicants.md) and click **Write to the selected applicants**. | E-mail, website draft, notice |
 
 All three are written in the same form and listed on the same page.
 
@@ -40,7 +42,7 @@ newest first.
 | **New Announcement** | Opens an empty form for club news. |
 | Picture | The announcement's image as a thumbnail, or a megaphone icon if it has none. |
 | **Title** | The title, linked to the edit page. A badge marks **Filtered members** or **Applicants** messages. |
-| **Channels** | One icon per channel: envelope (e-mail), globe (website), printer (PDF) for club news; envelope and mailbox (letters) for member messages. Green means **done**, red **failed**, blue **sending**, grey **not yet**. Hover over an icon to read its state. |
+| **Channels** | One icon per channel: envelope (e-mail), globe (website), printer (notice) and mailbox (letters; not for applicants). Green means **done**, red **failed**, blue **sending**, grey **not yet**. Hover over an icon to read its state. |
 | **Created** | The date the announcement was created. |
 | Pencil | Opens the edit page. |
 
@@ -63,7 +65,7 @@ The form is the same for new and existing announcements.
 | **Remove image** | Only shown once an image is saved. Tick and save to remove it. |
 | **Image description (alt text)** | Optional, up to 255 characters. Describe what the picture shows, for people using screen readers and for search engines. Left empty, websites get the title. |
 | **Body text** | Required. Written in Markdown. This same text is used for both the website draft and the member email. |
-| **Print version (optional)** | Only on an announcement that has been saved once, and only for club news. See [The printed notice](#the-printed-notice). |
+| **Print version (optional)** | Only on an announcement that has been saved once. See [The printed notice](#the-printed-notice). |
 | **QR code to the website post** | Same place as the print version. See [The printed notice](#the-printed-notice). |
 | **Save** | Saves your changes and opens the edit page. Saving only stores your changes -- it doesn't send or publish anything. |
 | **Cancel** | Back to the list without saving. |
@@ -273,7 +275,10 @@ This can't be undone.**) and **Letters**:
 - The letters are generated when you click and never stored, because
   they contain names and addresses. You can generate them again any time.
 
-Website and print channels are not offered for these messages.
+Website draft and printed notice are offered as for club news.
+Letters for club news go to every active member without e-mail consent
+who has a postal address, one per address (or to everyone with **Also
+send a letter to members who get the email**).
 
 ## Messages to selected applicants
 

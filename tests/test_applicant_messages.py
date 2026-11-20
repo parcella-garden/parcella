@@ -74,7 +74,7 @@ async def test_write_to_picked_applicants_once_per_address(client, admin_user, m
 
     edit = await client.get(f"/announcements/{announcement_id}/edit")
     assert f"/announcements/{announcement_id}/letters" not in edit.text
-    assert f"/announcements/{announcement_id}/send/blog" not in edit.text
+    assert f"/announcements/{announcement_id}/send/blog" in edit.text  # issue #399
 
     sent_to = []
 
@@ -88,9 +88,9 @@ async def test_write_to_picked_applicants_once_per_address(client, admin_user, m
     assert sorted(sent_to) == ["anna@example.org", "bert@example.org"]
     assert (await _announcement(announcement_id)).delivery_for(AnnouncementChannel.EMAIL).status.value == "SENT"
 
-    # Email only: no blog post, notice-board page or letters.
-    assert (await client.post(f"/announcements/{announcement_id}/send/blog")).status_code == 409
-    assert (await client.post(f"/announcements/{announcement_id}/print")).status_code == 409
+    # Issue #399: website draft and notice too, but no letters -- no
+    # postal address is stored for applicants.
+    assert (await client.post(f"/announcements/{announcement_id}/print")).status_code != 409
     assert (await client.post(f"/announcements/{announcement_id}/letters")).status_code == 409
 
 

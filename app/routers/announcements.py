@@ -185,15 +185,13 @@ def _channel_action_available(announcement: Announcement, channel: AnnouncementC
       when the stored PDF is gone, or when it was shortened without a
       QR code and a blog post exists that may since have been published.
     """
-    # Issue #242: a message to filtered members is no blog post or
-    # notice-board page; letters exist only for those messages.
-    if announcement.is_targeted and channel in (AnnouncementChannel.BLOG, AnnouncementChannel.PRINT):
-        return False
+    # Issue #399: every kind of message can use every channel (email,
+    # website draft, notice, letter), except letters to applicants.
     if channel == AnnouncementChannel.LETTER:
         # Generated on demand, never stored (names and addresses) --
         # so it can always be generated again. Not for applicants
         # (issue #247): they have no postal address on file.
-        return announcement.is_targeted and not announcement.is_applicant_message
+        return not announcement.is_applicant_message
 
     delivery = announcement.delivery_for(channel)
     if delivery is None or delivery.status == AnnouncementDeliveryStatus.FAILED:
@@ -260,9 +258,10 @@ def _filter_from_query_string(query_string: str) -> MemberListFilter:
 async def _audience_context(db: AsyncSession, announcement: Announcement) -> dict:
     """Template context for a message to filtered members: who it
     reaches by email/letter, who not at all, and a link back to the
-    member list showing the same filter. Empty for club news."""
+    member list showing the same filter. Club news (issue #399): just
+    who it reaches, for the letter channel."""
     if not announcement.is_targeted:
-        return {}
+        return {"audience": await resolve_audience(db, announcement), "club_audience": True}
     if announcement.is_parcel_message:
         return {
             "audience": await resolve_audience(db, announcement),
@@ -511,10 +510,9 @@ async def _announcement_from_form(form, user, picked, audience_query) -> Announc
     )
     if picked is not None:
         picked.apply(announcement)
-        if picked.kind == "parcels":
-            announcement.letters_for_all = form.get("letters_for_all") == "true"
     elif audience_query is not None:
         announcement.audience_filter = _filter_from_query_string(audience_query).to_dict()
+    if not announcement.is_applicant_message:
         announcement.letters_for_all = form.get("letters_for_all") == "true"
     return announcement
 
@@ -562,17 +560,17 @@ COMPOSE_ORDER = (
 
 
 def _compose_channels(announcement: Announcement, website_type: Optional[str], audience) -> List[dict]:
-    """The channels the popup offers for this kind of message, each with
-    whether it's ticked by default: email when anyone gets one (kermie's
-    call on #345); letters instead when nobody has an email address."""
-    if announcement.is_applicant_message:
-        offered = [AnnouncementChannel.EMAIL]
-    elif announcement.is_targeted:
-        offered = [AnnouncementChannel.EMAIL, AnnouncementChannel.LETTER]
-    else:
-        offered = [AnnouncementChannel.EMAIL, AnnouncementChannel.PRINT]
-        if website_type:
-            offered.insert(1, AnnouncementChannel.BLOG)
+    """The channels the popup offers, each with whether it's ticked by
+    default: email when anyone gets one (kermie's call on #345); letters
+    instead when nobody has an email address. Since issue #399 every kind
+    of message offers all four -- email, website draft (when a website
+    is set up), notice and letters -- except letters to applicants."""
+    offered = [AnnouncementChannel.EMAIL]
+    if website_type:
+        offered.append(AnnouncementChannel.BLOG)
+    offered.append(AnnouncementChannel.PRINT)
+    if not announcement.is_applicant_message:
+        offered.append(AnnouncementChannel.LETTER)
     email_count = len(audience.email) if audience is not None else 0
     letter_count = len(audience.letter_groups) if audience is not None else 0
     channels = []
@@ -649,7 +647,7 @@ async def _update_compose_draft(announcement: Announcement, form) -> None:
     announcement.body_html = render_markdown_to_html(body_markdown)
     announcement.summary = _clean_summary(form.get("summary"))
     announcement.image_alt = _clean_image_alt(form.get("image_alt")) if announcement.image_filename else None
-    if announcement.is_targeted:
+    if not announcement.is_applicant_message:
         announcement.letters_for_all = form.get("letters_for_all") == "true"
 
 
@@ -820,13 +818,12 @@ async def announcement_update(
     announcement.body_markdown = body_markdown
     announcement.body_html = render_markdown_to_html(body_markdown)
     announcement.print_text_override = print_text_override
-    if not announcement.is_targeted:
-        announcement.print_qr_code = form.get("print_qr_code") == "true"
+    announcement.print_qr_code = form.get("print_qr_code") == "true"
     announcement.summary = _clean_summary(form.get("summary"))
     # No image, no alt text: a stale one would otherwise resurface on the
     # next upload.
     announcement.image_alt = _clean_image_alt(form.get("image_alt")) if announcement.image_filename else None
-    if announcement.is_targeted:
+    if not announcement.is_applicant_message:
         announcement.letters_for_all = form.get("letters_for_all") == "true"
 
     await db.commit()
@@ -1047,7 +1044,7 @@ async def announcement_short_link(token: str, request: Request, db: AsyncSession
             select(Announcement).where(Announcement.public_link_token == token)
             .options(selectinload(Announcement.deliveries))
         )).scalar_one_or_none()
-    if announcement is not None and not announcement.is_targeted:
+    if announcement is not None:
         url = await _get_public_blog_url(db, announcement)
         if url and urllib.parse.urlsplit(url).scheme in ("http", "https"):
             return RedirectResponse(url=url, status_code=302)

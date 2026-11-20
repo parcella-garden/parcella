@@ -402,10 +402,16 @@ a filtered `/members/` list -- "everyone tagged *water responsible*",
   naming everyone at that address;
   members with neither are listed by name as unreachable so the board
   can fix the record. The page shows all three groups.
-- **Channels**: EMAIL (unchanged paced send, once) and LETTER. BLOG and
-  PRINT are hidden and refused with 409 -- a message to some members is
-  no blog post and no notice-board page. Classic announcements never
-  get LETTER.
+- **Channels**: since issue #399 every kind of message has all four --
+  EMAIL (paced send, once), BLOG, PRINT and LETTER -- except LETTER for
+  messages to applicants (no postal address stored).
+  `_channel_action_available` and `_compose_channels` no longer depend
+  on the message kind otherwise. Club news letters
+  (`_resolve_club_news_audience`) go to the active members without email
+  consent who have a postal address, grouped by address (ADR 0142's
+  members rule), or to everyone with letters_for_all. Until #399 BLOG
+  and PRINT were refused (409) for targeted messages and club news had
+  no LETTER.
 - **Letters** (`app/announcement_letters.py`): one PDF, one DIN 5008
   Form B letter (issue #398, with fold and punch marks) per recipient (address window shared with invoices via
   `app/pdf_chrome.py`'s `ADDRESS_WINDOW_CSS`/`sender_line`), title and

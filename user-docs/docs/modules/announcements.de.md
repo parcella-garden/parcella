@@ -1,10 +1,12 @@
 # Mitteilungen {#announcements}
 
-Schreib eine Vereinsnachricht einmal und verschick sie über bis zu drei
-Kanäle: eine E-Mail an deine Mitglieder, einen Beitragsentwurf auf der
-Vereinswebsite und einen einseitigen Aushang zum Ausdrucken und Aufhängen in
-der Anlage. Dasselbe Modul schickt auch Nachrichten an eine Auswahl von
-Mitgliedern oder Bewerbern.
+Schreib eine Nachricht einmal und verschick sie über bis zu vier Kanäle:
+eine E-Mail, einen Beitragsentwurf auf der Vereinswebsite, einen
+einseitigen Aushang zum Ausdrucken und Aufhängen in der Anlage und
+persönliche Briefe für Fensterumschläge. Das gilt für Vereinsnachrichten
+genauso wie für Nachrichten an eine Auswahl von Mitgliedern, an die Pächter
+von Parzellen oder an Bewerber (Bewerber bekommen keine Briefe, weil für sie
+keine Postadresse gespeichert ist).
 
 !!! info "Wer das nutzen kann"
     - Der Modulschalter ist **Mitteilungen** unter **Administration → Module
@@ -23,10 +25,10 @@ Mitgliedern oder Bewerbern.
 
 | Art | Wie du sie beginnst | Kanäle |
 |---|---|---|
-| Vereinsnachricht | **Neue Mitteilung** in der Mitteilungsliste. | Mitglieder-E-Mail, Webseiten-Entwurf, druckbares PDF |
-| Nachricht an gefilterte Mitglieder | **Diesen … Mitgliedern schreiben** in einer gefilterten [Mitgliederliste](members.md), oder Mitglieder anhaken und **An Auswahl schreiben** klicken. | Mitglieder-E-Mail, Briefe |
-| Mitteilung an die Pächter ausgewählter Parzellen | Parzellen in der [Parzellenliste](parcels.md#picking-parcels) anhaken und **An die Pächter schreiben** klicken. Betrifft den Pachtvertrag, nicht die Mitgliedschaft: eine Mitteilung je Parzelle, mit ihrer Nummer; E-Mail nur an Pächter, die es erlauben, ein Brief je Adresse für die anderen. | E-Mail, Briefe |
-| Nachricht an ausgewählte Bewerber | Bewerber in der [Bewerberliste](applicants.md) anhaken und **An ausgewählte Bewerber schreiben** klicken. | Nur E-Mail |
+| Vereinsnachricht | **Neue Mitteilung** in der Mitteilungsliste. | E-Mail, Webseiten-Entwurf, Aushang, Briefe |
+| Nachricht an gefilterte Mitglieder | **Diesen … Mitgliedern schreiben** in einer gefilterten [Mitgliederliste](members.md), oder Mitglieder anhaken und **An Auswahl schreiben** klicken. | E-Mail, Webseiten-Entwurf, Aushang, Briefe |
+| Mitteilung an die Pächter ausgewählter Parzellen | Parzellen in der [Parzellenliste](parcels.md#picking-parcels) anhaken und **An die Pächter schreiben** klicken. Betrifft den Pachtvertrag, nicht die Mitgliedschaft: eine Mitteilung je Parzelle, mit ihrer Nummer; E-Mail nur an Pächter, die es erlauben, ein Brief je Adresse für die anderen. | E-Mail, Webseiten-Entwurf, Aushang, Briefe |
+| Nachricht an ausgewählte Bewerber | Bewerber in der [Bewerberliste](applicants.md) anhaken und **An ausgewählte Bewerber schreiben** klicken. | E-Mail, Webseiten-Entwurf, Aushang |
 
 Alle drei schreibst du im selben Formular, und alle stehen auf derselben
 Seite.
@@ -43,7 +45,7 @@ neuesten zuerst.
 | **Neue Mitteilung** | Öffnet ein leeres Formular für eine Vereinsnachricht. |
 | Bild | Das Bild der Mitteilung als Vorschaubild oder ein Megafon-Symbol, wenn sie keins hat. |
 | **Titel** | Der Titel, verlinkt auf die Bearbeitungsseite. Ein Badge kennzeichnet Nachrichten an **Gefilterte Mitglieder** oder **Bewerber**. |
-| **Kanäle** | Ein Symbol je Kanal: Umschlag (E-Mail), Globus (Website), Drucker (PDF) bei Vereinsnachrichten; Umschlag und Briefkasten (Briefe) bei Nachrichten an Mitglieder. Grün heißt **erledigt**, rot **fehlgeschlagen**, blau **wird gesendet**, grau **noch nicht**. Fahr mit der Maus über ein Symbol, um seinen Stand zu lesen. |
+| **Kanäle** | Ein Symbol je Kanal: Umschlag (E-Mail), Globus (Website), Drucker (Aushang) und Briefkasten (Briefe; nicht bei Bewerbern). Grün heißt **erledigt**, rot **fehlgeschlagen**, blau **wird gesendet**, grau **noch nicht**. Fahr mit der Maus über ein Symbol, um seinen Stand zu lesen. |
 | **Erstellt** | Das Datum, an dem die Mitteilung angelegt wurde. |
 | Stift | Öffnet die Bearbeitungsseite. |
 
@@ -67,7 +69,7 @@ Das Formular ist für neue und bestehende Mitteilungen gleich.
 | **Bild entfernen** | Erscheint erst, wenn ein Bild gespeichert ist. Anhaken und speichern, um es zu entfernen. |
 | **Bildbeschreibung (Alt-Text)** | Freiwillig, bis zu 255 Zeichen. Beschreib, was auf dem Bild zu sehen ist, für Menschen mit Screenreader und für Suchmaschinen. Leer gelassen, bekommt die Website den Titel. |
 | **Text** | Pflicht. In Markdown geschrieben. Derselbe Text dient für den Webseiten-Entwurf und die Mitglieder-E-Mail. |
-| **Druckversion (optional)** | Nur bei einer Mitteilung, die schon einmal gespeichert wurde, und nur bei Vereinsnachrichten. Siehe [Der gedruckte Aushang](#the-printed-notice). |
+| **Druckversion (optional)** | Nur bei einer Mitteilung, die schon einmal gespeichert wurde. Siehe [Der gedruckte Aushang](#the-printed-notice). |
 | **QR-Code zum Website-Beitrag** | An derselben Stelle wie die Druckversion. Siehe [Der gedruckte Aushang](#the-printed-notice). |
 | **Speichern** | Speichert deine Änderungen und öffnet die Bearbeitungsseite. Speichern sichert nur deine Änderungen -- es wird nichts versendet oder veröffentlicht. |
 | **Abbrechen** | Zurück zur Liste ohne Speichern. |
@@ -285,7 +287,10 @@ lässt sich nicht rückgängig machen.**) und **Briefe**:
 - Die Briefe entstehen beim Klick und werden nie gespeichert, weil sie Namen
   und Adressen enthalten. Du kannst sie jederzeit neu erzeugen.
 
-Website- und Druck-Kanal gibt es für diese Nachrichten nicht.
+Webseiten-Entwurf und gedruckter Aushang stehen wie bei Vereinsnachrichten
+zur Verfügung. Briefe zu Vereinsnachrichten gehen an jedes aktive Mitglied
+ohne E-Mail-Einwilligung mit Postadresse, einer je Adresse (oder an alle,
+mit **Auch Mitgliedern mit E-Mail zusätzlich einen Brief schicken**).
 
 ## Nachrichten an ausgewählte Bewerber {#messages-to-selected-applicants}
 

@@ -74,7 +74,6 @@ async def test_write_to_filtered_members_by_email_and_letter(client, admin_user,
     edit = await client.get(f"/announcements/{announcement_id}/edit")
     assert edit.status_code == 200
     assert f"/announcements/{announcement_id}/letters" in edit.text
-    assert f"/announcements/{announcement_id}/send/blog" not in edit.text
 
     sent_to = []
 
@@ -87,10 +86,6 @@ async def test_write_to_filtered_members_by_email_and_letter(client, admin_user,
     # Issue #403 (association law): email only with consent. Olga has an
     # address but opted out of email, so she gets a letter instead.
     assert sent_to == []
-
-    # Not a blog post, not a notice-board page.
-    assert (await client.post(f"/announcements/{announcement_id}/send/blog")).status_code == 409
-    assert (await client.post(f"/announcements/{announcement_id}/print")).status_code == 409
 
     letters = await client.post(f"/announcements/{announcement_id}/letters")
     assert letters.status_code == 200
@@ -114,13 +109,14 @@ async def test_letters_for_everyone_and_header_safe_file_name(client, admin_user
     assert delivery.error_message == "2 letter(s) generated."  # Olga (has email) and Paul
 
 
-async def test_club_news_has_no_letter_channel(client, admin_user):
+async def test_club_news_has_a_letter_channel_too(client, admin_user):
+    """Issue #399: club news can go out as letters as well."""
     await _setup(client)
     create = await client.post("/announcements/new", data={"title": "News", "body_markdown": "Hallo"})
     announcement_id = create.headers["location"].split("/")[2]
     assert not (await _announcement(announcement_id)).is_targeted
-    assert (await client.post(f"/announcements/{announcement_id}/letters")).status_code == 409
-    assert f"/announcements/{announcement_id}/send/blog" in (await client.get(f"/announcements/{announcement_id}/edit")).text
+    edit = (await client.get(f"/announcements/{announcement_id}/edit")).text
+    assert f"/announcements/{announcement_id}/send/blog" in edit and f"/announcements/{announcement_id}/letters" in edit
 
 
 async def test_unfiltered_list_is_club_news_not_a_targeted_message(client, admin_user):

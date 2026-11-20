@@ -129,7 +129,7 @@
             </div>
             {% endfor %}
         </div>
-        {% if preview.is_targeted and not preview.is_applicant_message %}
+        {% if not preview.is_applicant_message %}
         <div class="form-check mt-1">
             <input class="form-check-input" type="checkbox" name="letters_for_all" value="true" id="compose-letters-for-all"
                    {% if letters_for_all_value %}checked{% endif %}>
