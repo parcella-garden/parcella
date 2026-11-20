@@ -125,13 +125,13 @@ Der alte Zähler wird nicht gelöscht: Er wandert mit Ein- und Ausbaudatum und
 seinem **Letzten Stand** zu **Frühere Zähler**. Ab jetzt gehen die Stände an
 den neuen Zähler, dessen Verbrauch bei seinem **Anfangsstand** beginnt.
 
-!!! warning "Verbrauch im Jahr des Tauschs"
-    Stände lassen sich nur für den gerade eingebauten Zähler eintragen, und
-    die Jahresrechnung nutzt den Verbrauch des aktuellen Zählers. Was der
-    alte Zähler im Jahr des Tauschs gezählt hat, steht unter **Frühere
-    Zähler**, kommt aber **nicht** auf die Rechnung dieses Jahres. Prüf
-    solche Parzellen von Hand und berechne den Anteil des alten Zählers
-    getrennt, wenn dein Verein ihn abrechnet.
+!!! tip "Verbrauch im Jahr des Tauschs"
+    Füll im Tauschformular **Endstand des alten Zählers** aus -- was der
+    alte Zähler am Ausbautag zeigt. Der Jahresverbrauch zählt dann beide
+    Zähler zusammen (den alten bis zum Tausch, den neuen ab seinem
+    Anfangsstand), und genau diese Summe berechnet die Jahresrechnung. Ohne
+    Endstand wird der Anteil des alten Zählers seit seinem letzten Stand
+    nicht abgerechnet.
 
 !!! tip "Tippfehler, kein neuer Zähler?"
     Hast du dich nur bei Zählernummer oder Anfangsstand vertippt, nimm

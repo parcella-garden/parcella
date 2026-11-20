@@ -222,6 +222,9 @@ Jahr festgelegt ist. Einen Einzelpreis gibst du hier nicht ein.
 - Eine Parzelle ohne Zählerstand für das Jahr bekommt keine Zeile.
 - Ist für dieses Medium und Jahr kein Preis gesetzt, wird niemandem etwas
   berechnet.
+- Nach einem Zählertausch im Lauf des Jahres wird der Verbrauch **beider**
+  Zähler berechnet: der alte bis zu seinem Endstand (im Tauschformular
+  eingetragen) und der neue ab seinem Anfangsstand.
 
 !!! warning "Zählpunkte mit Faktor"
     Hat ein Zählpunkt im Zählermodul einen Faktor (Multiplikator), zeigen
