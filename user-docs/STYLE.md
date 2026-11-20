@@ -32,9 +32,12 @@ Use the exact English labels the user sees. They come from
 (`t('members.first_name')`) and copy the English text. Write UI labels
 in **bold**: click **Save**, open **Members → Import**.
 
-German club terms that have no good English equivalent (Kaution,
-Wertgutachten, Pacht ...) go into `docs/glossary.md`; in the text, use
-the English label the app uses and link to the glossary on first use.
+Club terms that need explaining (deposit, valuation, tenancy ...) go
+into `docs/glossary.md`; in the text, use the English label the app uses
+and link to the glossary on first use. English pages use English terms
+only -- no German names in brackets (kermie, 2026-11-20). The German
+terms live in the German pages. Exception: literal file contents, such
+as the German column headings of a CSV export or import.
 
 ## Page structure for a module chapter
 

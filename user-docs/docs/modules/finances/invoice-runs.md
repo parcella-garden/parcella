@@ -194,7 +194,7 @@ communal area is zero or not set up, the item bills nothing at all.
 The communal area is worked out in Club settings as total area minus
 the parcels' area minus the municipal area.
 
-**Public burdens** ("Öffentliche Lasten", see the
+**Public burdens** (see the
 [glossary](../../glossary.md)). Like the communal share, but added to
 the parcel's own area and billed at one combined rate. If the communal
 area isn't set up, the parcel's own area is still billed -- the
