@@ -429,7 +429,7 @@ a filtered `/members/` list -- "everyone tagged *water responsible*",
   "Write to their leaseholders" on `/parcels/` sends
   `audience_kind=parcels` and `parcel_ids` (`_picked_parcel_ids`, like
   `_picked_applicant_ids`; needs members/parcels read), stored in
-  `Announcement.audience_parcel_ids` (migration 0131).
+  `Announcement.audience_parcel_ids` (migration 0132).
   `_resolve_parcel_audience` goes parcel by parcel (plot number order):
   current leaseholders; email to each with consent (email
   notifications on and an address, one per address within a parcel);
