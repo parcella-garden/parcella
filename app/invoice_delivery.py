@@ -6,10 +6,12 @@ merged print bundle for whoever isn't reachable by email.
 Since issue #396 a parcel invoice has one copy per address its
 invoice-address tenants live at (Invoice.recipient_copies, see
 app/invoice_pdf.py's invoice_copies). Each copy is delivered on its
-own: every person on it with email notifications and a stored address
-gets it by email, and a copy nobody on it can be emailed at goes into
-the print bundle. So a co-tenant at another address without email gets
-a letter even when the others are emailed.
+own: every person on it with email consent (email notifications on)
+and a stored address gets it by email, and the people on it without
+consent get one printed letter for that address, naming just them --
+even when someone they live with was emailed (kermie: no household is
+"covered" by one member's email). A co-tenant at another address
+always gets a letter or email of their own.
 
 Who is on a copy is the snapshot taken when the run was finalized --
 they are the people the invoice is addressed to. Only their email
@@ -71,31 +73,62 @@ async def _copy_members(db: AsyncSession, invoice: Invoice, copy: InvoiceCopy) -
     return [a.member for a in result.scalars().all()]
 
 
+def _gets_email(member: Member) -> bool:
+    """Consent to email (email notifications on) and an address on file."""
+    return bool(member.email_notifications and member.email_addresses)
+
+
+async def _split_copy(
+    db: AsyncSession, invoice: Invoice, copy: InvoiceCopy,
+) -> Tuple[List[Tuple[Member, str]], Optional[InvoiceCopy]]:
+    """Who on `copy` gets it by email, and the printed letter for the
+    rest (kermie, #396): everyone with email consent gets an email; the
+    people at that address without consent get one letter naming just
+    them -- even when someone they live with got the email. None when
+    everyone on the copy is emailed. An invoice from before #396 (no
+    snapshot) keeps the old rule: printed only if nobody is reachable."""
+    members = await _copy_members(db, invoice, copy)
+    emailed = [(m, _primary_address(m)) for m in members if _gets_email(m)]
+    if copy.member_ids is None:
+        return emailed, (None if emailed else copy)
+    by_post = [m for m in members if not _gets_email(m)]
+    if not by_post:
+        return emailed, None
+    return emailed, InvoiceCopy(
+        names="\n".join(m.full_name for m in by_post), address=copy.address, member_ids=[m.id for m in by_post],
+    )
+
+
 async def copy_email_recipients(db: AsyncSession, invoice: Invoice, copy: InvoiceCopy) -> List[Tuple[Member, str]]:
     """(member, email) for everyone on `copy` who gets invoices by
     email: email notifications on and an address on file."""
-    return [
-        (m, _primary_address(m)) for m in await _copy_members(db, invoice, copy)
-        if m.email_notifications and m.email_addresses
-    ]
+    return (await _split_copy(db, invoice, copy))[0]
 
 
 async def copies_to_print(db: AsyncSession, invoice: Invoice) -> List[InvoiceCopy]:
-    """The copies of `invoice` that nobody on them can be emailed at."""
-    return [c for c in invoice_copies(invoice) if not await copy_email_recipients(db, invoice, c)]
+    """The printed letters `invoice` needs: per address, one for the
+    people there without email consent (see _split_copy)."""
+    printed = []
+    for copy in invoice_copies(invoice):
+        letter = (await _split_copy(db, invoice, copy))[1]
+        if letter is not None:
+            printed.append(letter)
+    return printed
 
 
 async def _send_to_copies(db: AsyncSession, invoice: Invoice, render_pdf, build_mail) -> Tuple[int, int]:
     """Emails each copy of `invoice` to the people on it. `render_pdf(copy)`
     returns (filename, bytes); `build_mail(member)` returns (subject, html).
     One email per address, even if it turns up on two copies. Returns
-    (emails sent, copies nobody could be emailed at)."""
+    (emails sent, printed letters still needed)."""
     sent_count, unreached = 0, 0
     seen: set = set()
     for copy in invoice_copies(invoice):
-        recipients = [(m, a) for m, a in await copy_email_recipients(db, invoice, copy) if a.lower() not in seen]
-        if not recipients:
+        emailed, letter = await _split_copy(db, invoice, copy)
+        if letter is not None:
             unreached += 1
+        recipients = [(m, a) for m, a in emailed if a.lower() not in seen]
+        if not recipients:
             continue
         filename, pdf_bytes = render_pdf(copy)
         for member, address in recipients:

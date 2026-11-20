@@ -203,8 +203,10 @@ doesn't keep forcing every future run to the same start.
 
 Delivery is per copy (issue #396). Everyone on a copy who has
 `email_notifications=True` and a stored address gets that copy by email
-(`copy_email_recipients`); a copy nobody on it can be emailed at goes
-into the print bundle (`copies_to_print`). Who is on a copy is the
+(`copy_email_recipients`); the people on it without email get one
+printed letter for that address naming just them (`copies_to_print`,
+`_split_copy`) -- even when someone they live with was emailed
+(kermie: one member's email doesn't cover the household). Who is on a copy is the
 snapshot's `member_ids` -- the people the invoice is addressed to --
 and only their email addresses and consent are read live. Invoices from
 before #396 have no snapshot; for them the parcel's current

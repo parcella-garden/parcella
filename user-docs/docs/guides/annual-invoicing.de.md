@@ -174,10 +174,11 @@ abgeschlossene Rechnungen nicht um.
     - Hat die Parzelle einen Dokumentenordner im Cloud-Speicher, wird die
       Rechnung auch dorthin hochgeladen.
     - Ein erneuter Klick verschickt nur, was noch nicht verschickt wurde.
-3. Klick auf **Sammel-PDF herunterladen**. Es enthält jedes
-   Rechnungsexemplar, bei dem niemand darauf per E-Mail erreichbar ist, als
-   ein PDF zum Drucken und Versenden. Eine Parzelle, deren Pächter an
-   verschiedenen Adressen wohnen, hat ein Exemplar je Adresse. Sie werden dann als im Sammel-PDF enthalten markiert.
+3. Klick auf **Sammel-PDF herunterladen**. Es enthält einen Brief für
+   jeden Pächter, der Rechnungen nicht per E-Mail bekommt, als ein PDF zum
+   Drucken und Versenden: ein Brief je Adresse, mit den Namen der Leute
+   dort ohne E-Mail. Das gilt auch, wenn jemand im selben Haushalt die
+   E-Mail bekommen hat. Sie werden dann als im Sammel-PDF enthalten markiert.
 
 Die Spalte **Versand** zeigt je Rechnung, ob sie **Per E-Mail versendet**,
 **In Sammel-PDF enthalten** oder **In Cloud-Speicher hochgeladen** wurde. Um

@@ -182,7 +182,7 @@ verschickte Mahnung:
 | Datum | Wann sie angelegt wurde. |
 | Versand | „Per E-Mail versendet“, „Zum Drucken/Postversand“, wenn sie nicht per E-Mail gehen konnte, oder „Per E-Mail versendet, dazu Exemplare zum Drucken/Postversand“, wenn manche Adressen sie per E-Mail bekamen und andere einen Brief brauchen. |
 | Gebühr | Die mit dieser Mahnung berechnete Gebühr, falls vorhanden. |
-| PDF-Symbol | Öffnet das Mahnungs-PDF in einem neuen Tab -- druck es von hier für den Postversand. Es enthält die Exemplare, die per Post gehen müssen (alle Exemplare, wenn jedes per E-Mail ging). |
+| PDF-Symbol | Öffnet das Mahnungs-PDF in einem neuen Tab -- druck es von hier für den Postversand. Es enthält die Briefe, die per Post gehen müssen, einen je Adresse für die Leute dort ohne E-Mail (alle Exemplare, wenn alle per E-Mail erreicht wurden). |
 
 Wurde noch keine verschickt: „Noch keine Mahnungen versendet.“
 

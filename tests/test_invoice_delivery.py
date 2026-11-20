@@ -155,11 +155,12 @@ async def test_print_bundle_excludes_invoice_address_member_with_email_notificat
 
 
 async def test_invoice_reaches_every_address_of_a_parcels_tenants(client, admin_user, monkeypatch):
-    """Issue #396: one invoice per parcel, one copy per address. Two
-    tenants share an address (one copy naming both, emailed to the one
-    with email); a third lives elsewhere without email -- before #396
-    she was left off the invoice and got nothing at all. Now her copy
-    is in the print bundle, and so is the reminder's."""
+    """Issue #396: one invoice per parcel, one copy per address. Anna
+    and Bernd share an address; only Anna consented to email. Clara
+    lives elsewhere without email -- before #396 she was left off the
+    invoice and got nothing at all. Now: Anna gets an email, Bernd a
+    letter of his own anyway (one member's email doesn't cover the
+    household, kermie), Clara a letter; the reminder likewise."""
     import io
     from pypdf import PdfReader
     from app.models import InvoiceReminder
@@ -211,11 +212,14 @@ async def test_invoice_reaches_every_address_of_a_parcels_tenants(client, admin_
     assert [r for r, _ in sent] == ["anna@example.com"]
     assert "Bernd Haus" in pdf_text(sent[0][1]) and "Clara Fern" not in pdf_text(sent[0][1])
 
-    # Print bundle: only Clara's copy, even though the invoice was emailed.
+    # Print bundle: a letter to Bernd (just him, at Lindenweg) and one to
+    # Clara, even though the invoice was emailed to Anna.
     bundle = await client.get(f"/finances/runs/{run_id}/print-bundle")
     assert bundle.status_code == 200
-    text = pdf_text(bundle.content)
-    assert "Clara Fern" in text and "Am Hang 7" in text and "Anna Haus" not in text
+    pages = [" ".join(p.extract_text().split()) for p in PdfReader(io.BytesIO(bundle.content)).pages]
+    assert len(pages) == 2
+    assert any("Bernd Haus" in p and "Lindenweg 1" in p and "Anna Haus" not in p for p in pages)
+    assert any("Clara Fern" in p and "Am Hang 7" in p for p in pages)
 
     # The invoice's own PDF holds both copies.
     full = pdf_text((await client.get(f"/finances/invoices/{invoice.id}/pdf")).content)
@@ -223,7 +227,7 @@ async def test_invoice_reaches_every_address_of_a_parcels_tenants(client, admin_
     detail = await client.get(f"/finances/invoices/{invoice.id}")
     assert "2 copies, one per address" in detail.text
 
-    # Reminder: emailed to Anna, Clara's copy is the one to print.
+    # Reminder: emailed to Anna, Bernd's and Clara's letters to print.
     sent.clear()
     assert (await client.post(f"/finances/invoices/{invoice.id}/reminders", data={"fee_amount": "", "message": ""})).status_code in (302, 303)
     assert [r for r, _ in sent] == ["anna@example.com"]
@@ -231,7 +235,7 @@ async def test_invoice_reaches_every_address_of_a_parcels_tenants(client, admin_
         reminder = (await session.execute(select(InvoiceReminder).where(InvoiceReminder.invoice_id == invoice.id))).scalar_one()
     assert reminder.delivery_method == "both"
     reminder_text = pdf_text((await client.get(f"/finances/reminders/{reminder.id}/pdf")).content)
-    assert "Clara Fern" in reminder_text and "Anna Haus" not in reminder_text
+    assert "Clara Fern" in reminder_text and "Bernd Haus" in reminder_text and "Anna Haus" not in reminder_text
 
 
 async def test_invoice_pdf_escapes_the_recipients_names(client, admin_user):

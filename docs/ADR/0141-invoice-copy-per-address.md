@@ -21,11 +21,13 @@ liable (see `household_grouping` in `app/insurance_utils.py`).
    by normalized address, people sorted by name, largest group first. A
    tenant without any address gets a copy of their own. The copies are
    identical apart from the address window -- no "copy" marking.
-3. **Delivery per copy.** Everyone on a copy who gets email (consent plus
-   an address on file) receives that copy; a copy nobody on it can be
-   emailed at goes into the print bundle. Reminders follow the same rule
-   and record "both" when some copies went by email and others need
-   printing.
+3. **Delivery per person, letters per address.** Everyone who gets
+   email (consent plus an address on file) receives their address's
+   copy by email. The people at an address without email get **one
+   printed letter** naming just them -- also when someone they live
+   with was emailed: one member's email doesn't cover the household
+   (kermie, #396). Reminders follow the same rule and record "both"
+   when some went by email and others need printing.
 4. **The people on a copy are the snapshot**, not the parcel's tenants at
    send time: they are who the invoice is addressed to. Only their email
    addresses and consent are read live.

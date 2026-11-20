@@ -382,16 +382,16 @@ Erscheint mit Schreibrecht.
 | Schaltfläche | Was sie bewirkt |
 |---|---|
 | **E-Mails senden & in Cloud hochladen** | Verschickt jede Rechnung des Laufs, die noch nicht per E-Mail rausging, mit dem PDF im Anhang, und lädt jede Rechnung, die noch nicht hochgeladen ist, in den Cloud-Ordner ihrer Parzelle. Ein erneuter Klick erledigt nur, was noch fehlt. |
-| **Sammel-PDF herunterladen** | Lädt ein PDF mit jedem Rechnungsexemplar herunter, bei dem niemand darauf per E-Mail erreichbar ist, fertig zum Drucken für Fensterumschläge. Diese Rechnungen werden als gedruckt markiert. |
+| **Sammel-PDF herunterladen** | Lädt ein PDF mit einem Brief für jeden Pächter herunter, der Rechnungen nicht per E-Mail bekommt -- ein Brief je Adresse, mit den Namen der Leute dort ohne E-Mail --, fertig zum Drucken für Fensterumschläge. Diese Rechnungen werden als gedruckt markiert. |
 
 **Wer eine E-Mail bekommt:** jeder Pächter mit Rechnungsadresse, der auf
 der Rechnung steht (oder, bei einer Mitgliedsrechnung, das Mitglied), der
 **Darf per E-Mail Informationen erhalten** eingeschaltet und mindestens eine
 E-Mail-Adresse hinterlegt hat. Jeder bekommt das Exemplar für seine eigene
-Adresse; genommen wird die Haupt-E-Mail-Adresse. Ein Exemplar, bei dem
-niemand darauf per E-Mail erreichbar ist, bleibt für das Sammel-PDF. Ein
-Mitpächter an einer anderen Adresse ohne E-Mail bekommt also einen Brief,
-auch wenn die anderen eine E-Mail bekommen: „Mitglieder ohne E-Mail-Benachrichtigung bleiben
+Adresse; genommen wird die Haupt-E-Mail-Adresse. Alle anderen bekommen
+einen gedruckten Brief aus dem Sammel-PDF -- **auch** wenn jemand, mit dem
+sie zusammenwohnen, die E-Mail bekommen hat. Pächter ohne E-Mail mit
+gemeinsamer Adresse bekommen einen Brief zusammen: „Mitglieder ohne E-Mail-Benachrichtigung bleiben
 für den Sammel-Druck unten übrig.“
 
 **Hochladen in die Cloud** passiert nur, wenn der Cloud-Speicher

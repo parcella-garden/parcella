@@ -173,7 +173,7 @@ already sent:
 | Date | When it was created. |
 | Delivery | "Emailed", "For printing/postal" if it couldn't be emailed, or "Emailed, plus copies for printing/postal" if some addresses got it by email and others need a letter. |
 | Fee | The fee charged with this reminder, if any. |
-| PDF icon | Opens the reminder PDF in a new tab -- print it from here for postal delivery. It holds the copies that need posting (all copies if every one was emailed). |
+| PDF icon | Opens the reminder PDF in a new tab -- print it from here for postal delivery. It holds the letters that need posting, one per address for the people there without email (all copies if everyone was emailed). |
 
 If none was sent yet: "No reminders sent yet."
 

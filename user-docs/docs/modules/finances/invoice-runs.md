@@ -371,15 +371,15 @@ Shown with write permission.
 | Button | What it does |
 |---|---|
 | **Send emails & upload to cloud** | Emails every invoice of the run that hasn't been emailed yet, with the PDF attached, and uploads every invoice that hasn't been uploaded yet to its parcel's cloud folder. Running it again only picks up what's still missing. |
-| **Download print bundle** | Downloads one PDF containing every invoice copy that nobody on it can be reached at by email, ready to print and put in window envelopes. Those invoices are marked as printed. |
+| **Download print bundle** | Downloads one PDF with a letter for every tenant who doesn't get invoices by email -- one letter per address, naming the people there without email -- ready to print and put in window envelopes. Those invoices are marked as printed. |
 
 **Who gets an email:** every invoice-address tenant named on the
 invoice (or, for a member invoice, the member) who has **May receive
 information by email** switched on and at least one email address
 stored. Each gets the copy for their own address; the primary email
-address is used. A copy that nobody on it can be emailed at is left for
-the print bundle. So a co-tenant at another address without email gets
-a letter even when the others are emailed: "Members without email notifications stay for the print
+address is used. Everyone else gets a printed letter from the print
+bundle -- **also** when someone they live with was emailed. Tenants
+without email who share an address get one letter together: "Members without email notifications stay for the print
 bundle below."
 
 **Cloud upload** only happens if cloud storage is set up and the parcel

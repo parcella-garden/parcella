@@ -1246,12 +1246,12 @@ async def run_deliver(run_id: str, request: Request, db: AsyncSession = Depends(
 
 @router.get("/runs/{run_id}/print-bundle")
 async def run_print_bundle(run_id: str, request: Request, db: AsyncSession = Depends(get_db)):
-    """Merges every invoice copy that nobody on it can be emailed at
-    (email notifications on and an address on file -- see
-    app/invoice_delivery.py) into one print-ready PDF and marks those
-    invoices printed. Since issue #396 that's per copy: a co-tenant at
-    another address without email gets a printed copy even when the
-    others are emailed. Filtered by recipient eligibility rather than
+    """Merges the printed letters of the run into one print-ready PDF
+    and marks those invoices printed: per address, one letter for the
+    people there who don't get email (email notifications on and an
+    address on file -- see app/invoice_delivery.py's _split_copy), even
+    when someone they live with or a co-tenant elsewhere was emailed
+    (issue #396). Filtered by recipient eligibility rather than
     emailed_at so the bundle is correct regardless of whether /deliver
     has run yet -- people eligible for email must never end up printed."""
     await require_permission(request, db, "finances", "write")

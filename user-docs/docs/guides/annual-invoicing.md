@@ -163,10 +163,10 @@ this moment. Later address changes don't rewrite finalized invoices.
     - If the parcel has a documents folder in cloud storage, the
       invoice is also uploaded there.
     - Clicking again only sends what hasn't been sent yet.
-3. Click **Download print bundle**. It contains every invoice copy
-   that nobody on it can be reached at by email, as one PDF to print
-   and post. A parcel whose tenants live at different addresses has one
-   copy per address.
+3. Click **Download print bundle**. It contains a letter for every
+   tenant who doesn't get invoices by email, as one PDF to print and
+   post: one letter per address, naming the people there without email.
+   That includes someone whose housemate got the email.
    They are then marked as included in a print bundle.
 
 The **Delivery** column shows per invoice whether it was **Emailed**,
