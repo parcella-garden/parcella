@@ -51,7 +51,7 @@ und auf dem Dashboard, bis jemand sie weiterbearbeitet hat.
 
 1. Öffne **Bewerber** und klick auf die neue Bewerbung.
 2. Prüf und bearbeite im Kasten **Bewerber kontaktieren** den Text der
-   E-Mail. Der Betreff ist *„Vielen Dank für Ihre Anmeldung auf unserer
+   E-Mail. Der Betreff ist *„Vielen Dank für Deine Anmeldung auf unserer
    Warteliste!“*.
 3. Klick auf **Senden** und bestätige.
 

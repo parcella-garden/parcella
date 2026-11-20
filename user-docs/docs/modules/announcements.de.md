@@ -219,8 +219,7 @@ Was bei **PDF erstellen** passiert:
 Der QR-Code führt zu einem Kurzlink in Parcella, nicht direkt zum Beitrag.
 Sobald der Beitrag auf deiner Website veröffentlicht ist, leitet der Link
 dorthin weiter. Bis dahin sieht jeder, der ihn scannt, eine kleine Seite mit
-**Diese Mitteilung ist noch nicht auf der Website. Bitte versuchen Sie es
-später noch einmal.** -- ohne Titel oder sonstige Einzelheiten. So kannst du
+**Diese Mitteilung ist noch nicht auf der Website. Bitte versuch es später noch einmal.** -- ohne Titel oder sonstige Einzelheiten. So kannst du
 den Aushang drucken und aufhängen, bevor der Beitrag online geht. Ohne
 Website-Verbindung gibt es gar keinen QR-Code.
 
@@ -310,8 +309,7 @@ an … Bewerber-Adresse(n)** mit den Namen der Bewerber (verlinkt) und
 Das ist die öffentliche Seite, die Leute sehen, wenn sie den QR-Code eines
 gedruckten Aushangs scannen, bevor der Beitrag veröffentlicht ist, oder wenn
 der Link unbekannt ist. Sie zeigt nur Logo und Namen deines Vereins und den
-Satz **Diese Mitteilung ist noch nicht auf der Website. Bitte versuchen Sie
-es später noch einmal.**
+Satz **Diese Mitteilung ist noch nicht auf der Website. Bitte versuch es später noch einmal.**
 
 ## Siehe auch {#related}
 

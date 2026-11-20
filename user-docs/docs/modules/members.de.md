@@ -179,7 +179,7 @@ darin steht. Über jeder Spalte ist eine Auswahl.
 | Feld / Schaltfläche | Was es bewirkt |
 |---|---|
 | Auswahl je Spalte | Wähl das Parcella-Feld zu dieser Spalte: **Vorname**, **Nachname**, **Straße**, **PLZ**, **Ort**, **Geburtsdatum**, **IBAN**, **Mitglied seit**, **Mitglied bis**, **E-Mail-Benachrichtigungen**, **E-Mail-Adressen**, **Telefonnummern**, **Notizen** -- oder **— Ignorieren —**, um die Spalte zu überspringen. Parcella wählt ein Feld vor, wenn es die Überschrift erkennt (auf Deutsch oder Englisch, z. B. „Nachname“ oder „Last name“). |
-| **Importieren** | Importiert die Zeilen und führt zur Mitgliederliste zurück. **Vorname** und **Nachname** müssen je einer Spalte zugeordnet sein, sonst erscheint „Bitte ordnen Sie vor dem Import sowohl Vorname als auch Nachname zu.“ |
+| **Importieren** | Importiert die Zeilen und führt zur Mitgliederliste zurück. **Vorname** und **Nachname** müssen je einer Spalte zugeordnet sein, sonst erscheint „Bitte ordne vor dem Import sowohl Vorname als auch Nachname zu.“ |
 | **Zurück** | Führt ohne Import zur Mitgliederliste zurück. |
 
 ### Was beim Import passiert {#what-happens-on-import}

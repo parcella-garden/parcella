@@ -59,7 +59,7 @@ sie eine [Erledigt-Liste](#done-lists) ist, und die Zahl der Karten darin.
 | **⋮** → **Löschen** | Öffnet **Liste löschen**. Bei der letzten verbleibenden Liste nicht möglich. |
 
 Löschst du eine Liste, die noch Karten hat, sagt das Fenster **Diese Liste
-enthält noch Karten. Wählen Sie eine andere Liste aus, in die sie vor dem
+enthält noch Karten. Wähle eine andere Liste aus, in die sie vor dem
 Löschen verschoben werden sollen.** Wähl das Ziel in **Karten verschieben
 nach** und klick auf **Liste löschen**. Die Karten kommen ans Ende dieser
 Liste, in ihrer bisherigen Reihenfolge -- mit einer Liste wird nie eine
@@ -111,7 +111,7 @@ deinem Browser und ändert nichts am Board selbst.
 | **Filter zurücksetzen** | Setzt Suche und Filter zurück. |
 | Sortierung (**Manuell (Ziehreihenfolge)**, **Fälligkeitsdatum**, **Priorität**) | Ordnet die Karten in jeder Liste zum Ansehen neu: nach Fälligkeitsmonat oder Hoch → Mittel → Niedrig mit Karten ohne Priorität am Schluss. **Manuell (Ziehreihenfolge)** zeigt wieder deine eigene Reihenfolge. Die Sortierung wird nie gespeichert. |
 
-Passt nichts: **Keine Aufgaben entsprechen Ihrer Suche/Filtern.**
+Passt nichts: **Keine Aufgaben entsprechen deiner Suche/deinen Filtern.**
 
 ## Das Aufgabenfenster {#the-task-window}
 

@@ -17,7 +17,7 @@ zu.
 
 | Element | Was es bewirkt |
 |---|---|
-| **Einstellungen durchsuchen...** | Tipp ein Wort, zum Beispiel „Logo“ oder „IBAN“. Karten, die es enthalten, gehen auf, und das Wort wird hervorgehoben; alle anderen Karten werden ausgeblendet. Passt nichts, siehst du **Keine Einstellungen entsprechen Ihrer Suche.** |
+| **Einstellungen durchsuchen...** | Tipp ein Wort, zum Beispiel „Logo“ oder „IBAN“. Karten, die es enthalten, gehen auf, und das Wort wird hervorgehoben; alle anderen Karten werden ausgeblendet. Passt nichts, siehst du **Keine Einstellungen entsprechen deiner Suche.** |
 | **Einstellungen speichern** | Oben und unten auf der Seite. Speichert **alle Karten auf einmal**, egal welche du geändert hast. Du siehst **Einstellungen gespeichert.** |
 
 !!! warning "Eine Speichern-Schaltfläche für alles"

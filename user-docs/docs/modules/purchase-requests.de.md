@@ -158,8 +158,8 @@ Solange der Antrag **Offen** ist, sehen Vorstandsmitglieder außerdem:
 | Schaltfläche / Meldung | Was sie bewirkt |
 |---|---|
 | **Freigeben** | Hält deine Freigabe fest. Die zweite Freigabe von einem anderen Vorstandsmitglied setzt den Antrag auf **Genehmigt**. |
-| „Als Antragsteller können Sie diesen Einkaufswunsch nicht selbst freigeben …“ | Erscheint statt **Freigeben**, wenn du der Antragsteller bist oder den Antrag erfasst hast. |
-| „Sie haben bereits freigegeben.“ | Erscheint statt **Freigeben**, nachdem du freigegeben hast. |
+| „Als Antragsteller kannst du diesen Einkaufswunsch nicht selbst freigeben …“ | Erscheint statt **Freigeben**, wenn du der Antragsteller bist oder den Antrag erfasst hast. |
+| „Du hast bereits freigegeben.“ | Erscheint statt **Freigeben**, nachdem du freigegeben hast. |
 | **Ablehnen** | Öffnet ein Feld für die Begründung der Ablehnung. |
 | **Endgültig ablehnen** | Lehnt den Antrag mit der eingetragenen Begründung ab (Pflicht). Der Antrag ist sofort abgeschlossen. |
 
@@ -187,7 +187,7 @@ Erklärung, dass der Antrag im Namen der Person erfasst wurde.
 | Schaltfläche / Meldung | Was sie bewirkt |
 |---|---|
 | **Angaben bestätigen** | Hält die Bestätigung fest. Auf der Antragsseite wechselt das Badge von **Bestätigung ausstehend** zu **Vom Antragsteller bestätigt**. |
-| „Sie haben diese Angaben bereits bestätigt.“ | Erscheint statt der Schaltfläche, wenn der Link schon benutzt wurde. Den Link erneut zu öffnen schadet nicht. |
+| „Du hast diese Angaben bereits bestätigt.“ | Erscheint statt der Schaltfläche, wenn der Link schon benutzt wurde. Den Link erneut zu öffnen schadet nicht. |
 
 Nach dem Bestätigen sieht die Person eine Seite **Vielen Dank!**, die sagt,
 dass ihre Bestätigung für den Antrag gespeichert ist.
@@ -205,7 +205,7 @@ kann trotzdem über den Antrag entscheiden.
 !!! note
     Der Seitentext sagt, der Link „ist ungültig oder wurde bereits
     verwendet“. Ein schon benutzter Link funktioniert innerhalb der 30
-    Tage weiter -- er zeigt „Sie haben diese Angaben bereits bestätigt.“
+    Tage weiter -- er zeigt „Du hast diese Angaben bereits bestätigt.“
 
 ## Siehe auch {#related}
 
