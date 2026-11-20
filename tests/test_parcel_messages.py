@@ -106,9 +106,10 @@ async def test_notice_to_the_leaseholders_of_picked_parcels(client, admin_user, 
     assert not any("Gegangen" in p or "Unbeteiligt" in p for p in pages)
 
 
-async def test_member_messages_are_unchanged(client, admin_user):
-    """A message to members stays one letter per person (association law
-    is a separate matter, its rules come in their own change)."""
+async def test_member_messages_follow_association_law(client, admin_user):
+    """A message to members is association law (#403), not leasehold law:
+    no parcel reference. Bernd (address but no consent) and Berta (no
+    email) live together -> one letter naming both."""
     await _setup(client)
     async with AsyncSessionLocal() as db:
         ids = [row.id for row in (await db.execute(
@@ -121,7 +122,8 @@ async def test_member_messages_are_unchanged(client, admin_user):
     stored = await _announcement(response.headers["location"].split("/")[2])
     assert stored.audience_parcel_ids is None
     letters = await client.post(f"/announcements/{stored.id}/letters")
-    assert len(_pdf_pages(letters.content)) == 1  # Bernd has an email address, so only Berta gets a letter
+    [page] = _pdf_pages(letters.content)
+    assert "Bernd Haus" in page and "Berta Haus" in page and "Parcel P-397" not in page
 
 
 async def test_picked_parcels_need_existing_parcels(client, admin_user):

@@ -1,5 +1,7 @@
 # Announcements to filtered members: same module, stored filter, email + letter
 
+> **Partly superseded** by ADR 0142 (issue #403): member messages now go by email only with consent, otherwise by letter, one per postal address.
+
 **Context:** Issue #242: from the filtered member list, send a message
 by email or by post to exactly those members, "re-using the
 announcement feature". Announcements so far were club news: one text to

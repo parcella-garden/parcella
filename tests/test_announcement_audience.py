@@ -83,10 +83,10 @@ async def test_write_to_filtered_members_by_email_and_letter(client, admin_user,
         return True
 
     monkeypatch.setattr("app.announcement_mailer.send_email", fake_send_email)
-    assert (await client.post(f"/announcements/{announcement_id}/send/email")).status_code == 303
-    # Only the tagged member with an address -- although she opted out of
-    # the email info: a targeted message isn't a newsletter.
-    assert sent_to == ["olga@example.org"]
+    await client.post(f"/announcements/{announcement_id}/send/email")
+    # Issue #403 (association law): email only with consent. Olga has an
+    # address but opted out of email, so she gets a letter instead.
+    assert sent_to == []
 
     # Not a blog post, not a notice-board page.
     assert (await client.post(f"/announcements/{announcement_id}/send/blog")).status_code == 409
@@ -97,8 +97,8 @@ async def test_write_to_filtered_members_by_email_and_letter(client, admin_user,
     assert letters.headers["content-type"] == "application/pdf" and letters.content.startswith(b"%PDF")
     delivery = (await _announcement(announcement_id)).delivery_for(AnnouncementChannel.LETTER)
     assert delivery.status.value == "SENT"
-    # Paul only (no email, has an address); no names are stored.
-    assert delivery.error_message == "1 letter(s) generated."
+    # Olga (no email consent) and Paul (no email); no names are stored.
+    assert delivery.error_message == "2 letter(s) generated."
 
 
 async def test_letters_for_everyone_and_header_safe_file_name(client, admin_user):
@@ -182,7 +182,7 @@ async def test_hand_picked_members_for_export_and_message(client, admin_user, mo
 
     monkeypatch.setattr("app.announcement_mailer.send_email", fake_send_email)
     assert (await client.post(f"/announcements/{stored.id}/send/email")).status_code == 303
-    assert sorted(sent_to) == ["olga@example.org", "udo@example.org"]
+    assert sent_to == ["udo@example.org"]  # Olga opted out of email (#403)
 
 
 def test_member_filter_ids_round_trip_and_cleaning():
@@ -248,3 +248,50 @@ async def test_no_write_button_without_the_announcements_module(client, admin_us
         db.add(member)
         await db.commit()
     assert "Write to this member" not in (await client.get(f"/members/{member.id}")).text
+
+
+async def test_member_messages_email_only_with_consent_and_one_letter_per_address(client, admin_user, monkeypatch):
+    """Issue #403 (association law, ADR 0142): Anna consented -> email.
+    Bernd lives with her but didn't consent -> a letter anyway. Berta,
+    at the same address without email, shares Bernd's letter. Carl
+    elsewhere without consent -> his own letter."""
+    import io
+    from pypdf import PdfReader
+    from app.member_filters import MemberListFilter
+
+    await _enable_module(client, auth_header(await login(client, "admin@example.com")))
+    await web_login(client, "admin@example.com")
+    async with AsyncSessionLocal() as db:
+        def member(first, email=None, consent=True, street="Lindenweg 1"):
+            m = Member(first_name=first, last_name="Haus", street=street, postal_code="04103", city="Leipzig",
+                       email_notifications=consent)
+            if email:
+                m.email_addresses.append(MemberEmail(address=email, is_primary=True))
+            db.add(m)
+            return m
+        people = [member("Anna", "anna@example.org"), member("Bernd", "bernd@example.org", consent=False),
+                  member("Berta", consent=False), member("Carl", consent=False, street="Am Hang 7")]
+        await db.commit()
+        ids = [m.id for m in people]
+
+    response = await client.post("/announcements/new", data={
+        "title": "Einladung", "body_markdown": "Mitgliederversammlung.", "audience": "1",
+        "audience_query": MemberListFilter(ids=tuple(ids)).query_string(),
+    })
+    announcement_id = response.headers["location"].split("/")[2]
+    sent_to = []
+
+    async def fake_send_email(to, subject, html_body, text_body=None, db=None):
+        sent_to.append(to)
+        return True
+
+    monkeypatch.setattr("app.announcement_mailer.send_email", fake_send_email)
+    await client.post(f"/announcements/{announcement_id}/send/email")
+    assert sent_to == ["anna@example.org"]
+
+    letters = await client.post(f"/announcements/{announcement_id}/letters")
+    pages = [" ".join(p.extract_text().split()) for p in PdfReader(io.BytesIO(letters.content)).pages]
+    assert len(pages) == 2
+    household = next(p for p in pages if "Bernd Haus" in p)
+    assert "Berta Haus" in household and "Anna Haus" not in household
+    assert any("Carl Haus" in p and "Am Hang 7" in p for p in pages)

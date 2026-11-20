@@ -392,11 +392,14 @@ a filtered `/members/` list -- "everyone tagged *water responsible*",
   mail every member while bypassing the email-info opt-out.
 - **Who gets what** -- `resolve_audience()` in
   `app/announcement_mailer.py`, re-run every time the page is shown and
-  at send time (the filter is stored, not a frozen list): email to each
-  member with an address, **ignoring the email-info opt-out** (an
-  operational message to the water team isn't a newsletter); a letter
-  to each member without one who has a postal address -- or to every
-  member with an address when "letters for everyone" is ticked;
+  at send time (the filter is stored, not a frozen list): since issue
+  #403 (association law, ADR 0142) email only to members who consented
+  (email notifications on) and have an address -- the old rule ignored
+  the opt-out (ADR 0095); a letter to every other member with a postal
+  address, also when a housemate got the email -- or to every member
+  with an address when "letters for everyone" is ticked -- grouped by
+  normalized postal address (`group_by_postal_address`), one letter
+  naming everyone at that address;
   members with neither are listed by name as unreachable so the board
   can fix the record. The page shows all three groups.
 - **Channels**: EMAIL (unchanged paced send, once) and LETTER. BLOG and

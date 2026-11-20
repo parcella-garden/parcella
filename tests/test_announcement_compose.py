@@ -91,8 +91,8 @@ async def test_save_and_send_email_in_one_step(client, admin_user, monkeypatch):
     assert response.status_code == 200
     result = response.json()
     assert result["state"] == "done" and result["downloads"] == []
-    assert "Being sent to 2 recipient(s)." in result["html"]
-    assert sorted(to for to, _ in sent_to) == ["olga@example.org", "udo@example.org"]
+    assert "Being sent to 1 recipient(s)." in result["html"]
+    assert [to for to, _ in sent_to] == ["udo@example.org"]  # Olga opted out of email (#403)
 
     [announcement] = await _announcements()
     assert announcement.title == "Wasser" and sorted(announcement.audience_filter["ids"]) == sorted([ids["Unbeteiligt"], ids["Optout"]])
