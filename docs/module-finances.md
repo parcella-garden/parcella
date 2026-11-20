@@ -112,6 +112,16 @@ or member deletion (`member_id` is `ON DELETE SET NULL`, not
 `CASCADE`, precisely so the invoice survives that) never rewrites
 history.
 
+`recipient_copies` (issue #396, ADR 0141) holds one entry per address
+the parcel's invoice-address tenants live at:
+`[{"names", "address", "member_ids"}]`, largest group first, people
+sorted by name. It's one invoice (number, amount, debt) with one copy
+per address; only the address window differs. `recipient_names` then
+lists everyone and `recipient_address` is the first copy's. NULL for
+member invoices and for invoices from before #396 (one copy, the two
+snapshot columns). `app/invoice_pdf.py`'s `invoice_copies()` reads all
+three shapes.
+
 ## Generation: `app/invoice_generation.py`
 
 Deliberately two-phase and one-way:
@@ -191,19 +201,28 @@ doesn't keep forcing every future run to the same start.
 
 ## Delivery: `app/invoice_delivery.py`
 
-Recipient resolution is re-derived at send time, not read from the
-snapshot, since delivery can happen well after finalization and
-membership may have changed. For a parcel invoice: current
-invoice-address residents grouped by shared address (same pattern as
-`app/insurance_utils.py`'s `household_grouping`). For a member invoice:
-that one member directly, no grouping needed. Three delivery paths:
-email (PDF attached, requires `email_notifications=True` and a stored
-address), a merged print bundle PDF for everyone not reachable by
-email, and upload to the parcel's cloud folder (member invoices have no
+Delivery is per copy (issue #396). Everyone on a copy who has
+`email_notifications=True` and a stored address gets that copy by email
+(`copy_email_recipients`); the people on it without email get one
+printed letter for that address naming just them (`copies_to_print`,
+`_split_copy`) -- even when someone they live with was emailed
+(kermie: one member's email doesn't cover the household). Who is on a copy is the
+snapshot's `member_ids` -- the people the invoice is addressed to --
+and only their email addresses and consent are read live. Invoices from
+before #396 have no snapshot; for them the parcel's current
+invoice-address tenants are resolved at send time, as before. Before
+#396 only the largest same-address group was on the invoice and only
+the first reachable tenant got the email, so a co-tenant at another
+address could get nothing at all. Three delivery paths:
+email (PDF of the recipient's own copy attached), a merged print bundle
+of the copies nobody can be emailed at, and upload of the whole invoice
+(all copies) to the parcel's cloud folder (member invoices have no
 cloud-folder concept, since that concept is inherently parcel-scoped --
 see `docs/module-cloud-storage.md`). Reminders (`InvoiceReminder`,
-issue #59) are delivered the same way, resolved per-invoice at send
-time.
+issue #59) are delivered the same way, copy by copy;
+`delivery_method` is "email", "print", or "both" (some copies emailed,
+others to print -- the reminder PDF route then serves the copies to
+print).
 
 ## PDF layout: `app/invoice_pdf.py`
 

@@ -2608,7 +2608,8 @@
       "add_payment_button": "Dodaj płatność",
       "delete_payment_confirm": "Usunąć tę płatność?",
       "success_message": "Gotowe.",
-      "payments_header": "Płatności"
+      "payments_header": "Płatności",
+      "copies_hint": "Liczba egzemplarzy: {count} (po jednym na adres)"
     },
     "dashboard": {
       "title": "Finanse",
@@ -2647,6 +2648,7 @@
       "level_label": "Upomnienie nr {level}",
       "delivery_email": "Wysłano e-mailem",
       "delivery_print": "Do druku/wysyłki pocztowej",
+      "delivery_both": "Wysłano e-mailem, a do tego egzemplarze do druku/wysyłki pocztowej",
       "no_reminders_yet": "Nie wysłano jeszcze żadnych upomnień.",
       "label_fee": "Opłata (opcjonalnie)",
       "fee_placeholder": "0,00",

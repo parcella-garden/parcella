@@ -77,7 +77,7 @@ Karte **Rechnung**
 | Feld | Was es zeigt |
 |---|---|
 | **Parzelle** | Parzellennummer oder **Keine Parzelle (Mitglied)**. |
-| **Empfänger** | Namen und Adresse, wie sie auf der Rechnung stehen. Sie wurden beim Abschließen des Laufs festgeschrieben; spätere Adressänderungen ändern sie nicht. |
+| **Empfänger** | Namen und Adresse, wie sie auf der Rechnung stehen. Sie wurden beim Abschließen des Laufs festgeschrieben; spätere Adressänderungen ändern sie nicht. Wohnen die Pächter an verschiedenen Adressen, siehst du „*n* Exemplare, eines pro Adresse“ und Namen und Adresse jedes Exemplars. |
 | **Summe** | Der Rechnungsbetrag. |
 | **Zahlungsziel** | Das Zahlungsziel des Rechnungslaufs. |
 | **Status** | Der Zahlungsstatus, gefolgt von „bisher bezahlt / insgesamt geschuldet“. Das insgesamt Geschuldete enthält etwaige Mahngebühren. |
@@ -101,7 +101,9 @@ Angaben deines Vereins (Adresse, Bank) in der Fußzeile. Diese Vereinsangaben
 kommen aus den [Vereinseinstellungen](../../administration/settings.md).
 
 Der Dateiname beginnt mit dem Rechnungsdatum und der Parzellennummer (oder
-dem Nachnamen des Mitglieds), gefolgt von der Rechnungsnummer.
+dem Nachnamen des Mitglieds), gefolgt von der Rechnungsnummer. Eine Rechnung mit einem
+Exemplar je Adresse enthält alle Exemplare in ihrem PDF, jedes auf eigenen
+Seiten.
 
 ## Zahlungen {#payments}
 
@@ -178,9 +180,9 @@ verschickte Mahnung:
 |---|---|
 | „Mahnung Nr. *n*“ | Die Stufe der Mahnung: Die erste ist Nr. 1, die nächste Nr. 2 und so weiter. |
 | Datum | Wann sie angelegt wurde. |
-| Versand | „Per E-Mail versendet“ oder „Zum Drucken/Postversand“, wenn sie nicht per E-Mail gehen konnte. |
+| Versand | „Per E-Mail versendet“, „Zum Drucken/Postversand“, wenn sie nicht per E-Mail gehen konnte, oder „Per E-Mail versendet, dazu Exemplare zum Drucken/Postversand“, wenn manche Adressen sie per E-Mail bekamen und andere einen Brief brauchen. |
 | Gebühr | Die mit dieser Mahnung berechnete Gebühr, falls vorhanden. |
-| PDF-Symbol | Öffnet das Mahnungs-PDF in einem neuen Tab -- druck es von hier für den Postversand. |
+| PDF-Symbol | Öffnet das Mahnungs-PDF in einem neuen Tab -- druck es von hier für den Postversand. Es enthält die Briefe, die per Post gehen müssen, einen je Adresse für die Leute dort ohne E-Mail (alle Exemplare, wenn alle per E-Mail erreicht wurden). |
 
 Wurde noch keine verschickt: „Noch keine Mahnungen versendet.“
 

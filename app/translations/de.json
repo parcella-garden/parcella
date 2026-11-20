@@ -2608,7 +2608,8 @@
       "add_payment_button": "Zahlung hinzufügen",
       "delete_payment_confirm": "Diese Zahlung löschen?",
       "success_message": "Erledigt.",
-      "payments_header": "Zahlungen"
+      "payments_header": "Zahlungen",
+      "copies_hint": "{count} Exemplare, eines pro Adresse"
     },
     "dashboard": {
       "title": "Finanzen",
@@ -2647,6 +2648,7 @@
       "level_label": "Mahnung Nr. {level}",
       "delivery_email": "Per E-Mail versendet",
       "delivery_print": "Zum Drucken/Postversand",
+      "delivery_both": "Per E-Mail versendet, dazu Exemplare zum Drucken/Postversand",
       "no_reminders_yet": "Noch keine Mahnungen versendet.",
       "label_fee": "Gebühr (optional)",
       "fee_placeholder": "0,00",

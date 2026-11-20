@@ -44,7 +44,16 @@
                         {% else %}<span class="badge bg-secondary-subtle text-secondary-emphasis">{{ t('finances.run_detail.member_invoice_badge') }}</span>{% endif %}
                     </dd>
                     <dt class="col-sm-5">{{ t('finances.invoice_list.col_recipient') }}</dt>
-                    <dd class="col-sm-7" style="white-space: pre-line;">{{ invoice.recipient_names }}<br><small class="text-muted">{{ invoice.recipient_address }}</small></dd>
+                    <dd class="col-sm-7" style="white-space: pre-line;">
+                        {%- if invoice.recipient_copies and invoice.recipient_copies|length > 1 -%}
+                        <small class="text-muted d-block">{{ t('finances.invoice_detail.copies_hint', count=invoice.recipient_copies|length) }}</small>
+                        {%- for copy in invoice.recipient_copies -%}
+                        <div class="{{ 'mt-2' if not loop.first else '' }}">{{ copy.names }}<br><small class="text-muted">{{ copy.address }}</small></div>
+                        {%- endfor -%}
+                        {%- else -%}
+                        {{ invoice.recipient_names }}<br><small class="text-muted">{{ invoice.recipient_address }}</small>
+                        {%- endif -%}
+                    </dd>
                     <dt class="col-sm-5">{{ t('finances.invoice_list.col_subtotal') }}</dt>
                     <dd class="col-sm-7">{{ invoice.subtotal|float|money }}</dd>
                     <dt class="col-sm-5">{{ t('finances.invoice_detail.due_date') }}</dt>
@@ -79,6 +88,8 @@
                             <td>
                                 {% if reminder.delivery_method == 'email' %}
                                 <i class="bi bi-envelope-check text-success me-1"></i>{{ t('finances.reminders.delivery_email') }}
+                                {% elif reminder.delivery_method == 'both' %}
+                                <i class="bi bi-envelope-check text-success me-1"></i><i class="bi bi-printer text-muted me-1"></i>{{ t('finances.reminders.delivery_both') }}
                                 {% else %}
                                 <i class="bi bi-printer text-muted me-1"></i>{{ t('finances.reminders.delivery_print') }}
                                 {% endif %}

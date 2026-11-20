@@ -18,6 +18,8 @@ from decimal import Decimal
 from pathlib import Path
 from typing import List, Optional
 
+from markupsafe import Markup, escape
+
 from weasyprint import HTML
 
 from app.pdf_utils import data_uri_only_fetcher
@@ -93,18 +95,45 @@ class ReminderPdfData:
     message: Optional[str]
 
 
-def invoice_pdf_data_from_invoice(invoice, run) -> InvoicePdfData:
+@dataclass
+class InvoiceCopy:
+    """One addressed copy of an invoice (issue #396): the invoice is
+    the same for every copy, only the address window differs.
+    `member_ids` are the people this copy is for, snapshotted when the
+    run was finalized -- None for an invoice from before #396, whose
+    recipients are then resolved live (app/invoice_delivery.py)."""
+    names: str
+    address: str
+    member_ids: Optional[List[str]] = None
+
+
+def invoice_copies(invoice) -> List[InvoiceCopy]:
+    """Every copy of `invoice`, largest address group first. A member
+    invoice is one copy for that member; an invoice from before #396
+    (no recipient_copies) is one copy from its recipient snapshot."""
+    if invoice.recipient_copies:
+        return [
+            InvoiceCopy(names=c.get("names", ""), address=c.get("address", ""), member_ids=list(c.get("member_ids") or []))
+            for c in invoice.recipient_copies
+        ]
+    member_ids = [invoice.member_id] if invoice.member_id else None
+    return [InvoiceCopy(names=invoice.recipient_names, address=invoice.recipient_address, member_ids=member_ids)]
+
+
+def invoice_pdf_data_from_invoice(invoice, run, copy: Optional[InvoiceCopy] = None) -> InvoicePdfData:
     """Builds an InvoicePdfData from a real, persisted Invoice (with
     .line_items and .parcel eagerly loaded) and its InvoiceRun --
     shared by the single-invoice PDF route, the email-attachment path,
     and the print-bundle builder (see app/invoice_delivery.py), so
     there's exactly one place that knows how to turn an Invoice row
     into rendered PDF data. A member invoice (no parcel) simply omits
-    the parcel line -- see _invoice_body_html."""
+    the parcel line -- see _invoice_body_html. `copy` picks the address
+    window (issue #396); without it, the first copy."""
+    copy = copy or invoice_copies(invoice)[0]
     return InvoicePdfData(
         invoice_number=invoice.invoice_number,
         issued_date=run.issued_date, due_date=run.due_date, subject=run.subject,
-        recipient_names=invoice.recipient_names, recipient_address=invoice.recipient_address,
+        recipient_names=copy.names, recipient_address=copy.address,
         parcel_plot_number=invoice.parcel.plot_number if invoice.parcel else None,
         parcel_area_sqm=invoice.parcel.area_sqm if invoice.parcel else None,
         line_items=[
@@ -117,7 +146,7 @@ def invoice_pdf_data_from_invoice(invoice, run) -> InvoicePdfData:
     )
 
 
-def reminder_pdf_data_from_reminder(reminder, invoice, run) -> ReminderPdfData:
+def reminder_pdf_data_from_reminder(reminder, invoice, run, copy: Optional[InvoiceCopy] = None) -> ReminderPdfData:
     """Builds a ReminderPdfData from a real, persisted InvoiceReminder
     (with `invoice.reminders`/`invoice.payments` eagerly loaded) and
     its Invoice/InvoiceRun. All amounts are computed from *current*
@@ -134,10 +163,11 @@ def reminder_pdf_data_from_reminder(reminder, invoice, run) -> ReminderPdfData:
     paid_total = Decimal(str(invoice.paid_total))
     original_subtotal = Decimal(str(invoice.subtotal))
     amount_due = max(Decimal("0"), original_subtotal + previous_fees_total + fee_amount - paid_total)
+    copy = copy or invoice_copies(invoice)[0]
     return ReminderPdfData(
         invoice_number=invoice.invoice_number, level=reminder.level,
         issued_date=run.issued_date, due_date=run.due_date, sent_date=reminder.sent_at.date(),
-        recipient_names=invoice.recipient_names, recipient_address=invoice.recipient_address,
+        recipient_names=copy.names, recipient_address=copy.address,
         original_subtotal=original_subtotal, paid_total=paid_total,
         previous_fees_total=previous_fees_total, fee_amount=fee_amount, amount_due=amount_due,
         message=reminder.message,
@@ -228,7 +258,7 @@ def _invoice_body_html(data: InvoicePdfData, region: str, currency: str, languag
         <div class="meta-block">
             <div class="address-window">
                 <div class="sender-line">{sender_line}</div>
-                <div class="recipient">{data.recipient_names}<br>{data.recipient_address.replace(chr(10), '<br>')}</div>
+                <div class="recipient">{escape(data.recipient_names)}<br>{escape(data.recipient_address).replace(chr(10), Markup('<br>'))}</div>
             </div>
             <table class="invoice-meta">
                 <tr><td>{translate("finances.pdf.invoice_no", language)}</td><td>{data.invoice_number}</td></tr>
@@ -292,7 +322,7 @@ def _reminder_body_html(data: ReminderPdfData, region: str, currency: str, langu
         <div class="meta-block">
             <div class="address-window">
                 <div class="sender-line">{sender_line}</div>
-                <div class="recipient">{data.recipient_names}<br>{data.recipient_address.replace(chr(10), '<br>')}</div>
+                <div class="recipient">{escape(data.recipient_names)}<br>{escape(data.recipient_address).replace(chr(10), Markup('<br>'))}</div>
             </div>
             <table class="invoice-meta">
                 <tr><td>{translate("finances.pdf.invoice_no", language)}</td><td>{data.invoice_number}</td></tr>
@@ -366,5 +396,20 @@ def render_reminder_pdf(
     html_doc = wrap_document(
         _reminder_body_html(data, region, currency, language, sender_line),
         footer_context.club_name, logo_path, footer_html, language, extra_css=EXTRA_CSS,
+    )
+    return HTML(string=html_doc, url_fetcher=data_uri_only_fetcher()).write_pdf()
+
+
+def render_reminder_bundle_pdf(
+    items: List[ReminderPdfData], footer_context: OrgFooterContext, logo_path: Optional[Path],
+    region: str, currency: str, language: str = "en",
+) -> bytes:
+    """Several copies of one reminder in one PDF (issue #396: one copy
+    per address), each starting on a new page."""
+    footer_html = org_footer_html(footer_context, language)
+    sender_line = _sender_line(footer_context.club_name, footer_context.address_lines)
+    body_html = "".join(_reminder_body_html(data, region, currency, language, sender_line) for data in items)
+    html_doc = wrap_document(
+        body_html, footer_context.club_name, logo_path, footer_html, language, extra_css=EXTRA_CSS,
     )
     return HTML(string=html_doc, url_fetcher=data_uri_only_fetcher()).write_pdf()

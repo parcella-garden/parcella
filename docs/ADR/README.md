@@ -144,3 +144,4 @@ in chronological order.
 138. [The metering point factor stays inside the metering module](./0138-metering-point-factor-only-in-metering.md)
 139. [The compose popup writes and sends a message in one step](./0139-compose-popup-writes-and-sends-in-one-step.md)
 140. [A point's consumption sums all its meters; the exchange records a final reading](./0140-consumption-sums-all-meters-of-a-point.md)
+141. [One invoice per parcel, one copy per address](./0141-invoice-copy-per-address.md)

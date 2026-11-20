@@ -63,11 +63,12 @@ from app.l10n import load_current_region, load_current_currency, parse_decimal
 from app.cloud_storage import get_cloud_storage_provider, CloudStorageError
 from app.invoice_generation import compute_invoices_for_run, finalize_run, SequenceCollisionError
 from app.invoice_pdf import (
-    InvoicePdfData, InvoicePdfLineItem, render_invoice_pdf, invoice_pdf_data_from_invoice, invoice_pdf_filename,
-    reminder_pdf_data_from_reminder, render_reminder_pdf, reminder_pdf_filename,
+    InvoicePdfData, InvoicePdfLineItem, render_invoice_pdf, invoice_pdf_filename, invoice_copies,
+    reminder_pdf_filename,
 )
 from app.invoice_delivery import (
-    send_invoice_email, upload_invoice_to_cloud, build_print_bundle, deliver_reminder, invoice_has_email_recipient,
+    send_invoice_email, upload_invoice_to_cloud, build_print_bundle, deliver_reminder, copies_to_print,
+    render_all_copies_pdf, render_reminder_copies_pdf,
 )
 from app.accounting_statement import compute_cash_accounting_statement, available_statement_years
 from app.accounting_statement_pdf import render_accounting_statement_pdf
@@ -327,8 +328,10 @@ async def reminder_pdf(reminder_id: str, request: Request, db: AsyncSession = De
     run = run_result.scalar_one_or_none()
 
     ctx = await _pdf_context(db)
-    data = reminder_pdf_data_from_reminder(reminder, invoice, run)
-    pdf_bytes = render_reminder_pdf(data, **ctx)
+    # Issue #396: the copies that need posting; if every copy reaches
+    # someone by email, all of them (to look at or print anyway).
+    copies = await copies_to_print(db, invoice) or invoice_copies(invoice)
+    pdf_bytes = render_reminder_copies_pdf(reminder, invoice, run, ctx, copies)
     return Response(
         content=pdf_bytes, media_type="application/pdf",
         headers={"Content-Disposition": content_disposition(reminder_pdf_filename(reminder, invoice, run), "inline")},
@@ -1186,8 +1189,7 @@ async def invoice_pdf(invoice_id: str, request: Request, db: AsyncSession = Depe
     run = run_result.scalar_one_or_none()
 
     ctx = await _pdf_context(db)
-    data = invoice_pdf_data_from_invoice(invoice, run)
-    pdf_bytes = render_invoice_pdf(data, **ctx)
+    pdf_bytes = render_all_copies_pdf(invoice, run, ctx)
     return Response(
         content=pdf_bytes, media_type="application/pdf",
         headers={"Content-Disposition": content_disposition(invoice_pdf_filename(invoice, run), "inline")},
@@ -1244,24 +1246,27 @@ async def run_deliver(run_id: str, request: Request, db: AsyncSession = Depends(
 
 @router.get("/runs/{run_id}/print-bundle")
 async def run_print_bundle(run_id: str, request: Request, db: AsyncSession = Depends(get_db)):
-    """Merges every invoice without a reachable invoice-address member
-    (is_invoice_address=True and email_notifications=True -- see
-    app/invoice_delivery.py) into one print-ready PDF and marks them
-    printed. Filtered by recipient eligibility rather than emailed_at
-    so the bundle is correct regardless of whether /deliver has run
-    yet -- members eligible for email must never end up printed."""
+    """Merges the printed letters of the run into one print-ready PDF
+    and marks those invoices printed: per address, one letter for the
+    people there who don't get email (email notifications on and an
+    address on file -- see app/invoice_delivery.py's _split_copy), even
+    when someone they live with or a co-tenant elsewhere was emailed
+    (issue #396). Filtered by recipient eligibility rather than
+    emailed_at so the bundle is correct regardless of whether /deliver
+    has run yet -- people eligible for email must never end up printed."""
     await require_permission(request, db, "finances", "write")
 
     run = await _get_run_or_404(db, run_id)
-    invoices = [
-        invoice for invoice in await _run_invoices(db, run_id)
-        if not await invoice_has_email_recipient(db, invoice)
+    items = [
+        (invoice, copy)
+        for invoice in await _run_invoices(db, run_id)
+        for copy in await copies_to_print(db, invoice)
     ]
-    if not invoices:
+    if not items:
         raise HTTPException(status_code=404, detail=t_for(request, "finances.errors.no_print_invoices"))
 
     ctx = await _pdf_context(db)
-    pdf_bytes = await build_print_bundle(db, invoices, run, ctx)
+    pdf_bytes = await build_print_bundle(db, items, run, ctx)
     await db.commit()
 
     return Response(

@@ -2608,7 +2608,8 @@
       "add_payment_button": "Betaling toevoegen",
       "delete_payment_confirm": "Deze betaling verwijderen?",
       "success_message": "Klaar.",
-      "payments_header": "Betalingen"
+      "payments_header": "Betalingen",
+      "copies_hint": "{count} exemplaren, één per adres"
     },
     "dashboard": {
       "title": "Financiën",
@@ -2647,6 +2648,7 @@
       "level_label": "Herinnering nr. {level}",
       "delivery_email": "Per e-mail verzonden",
       "delivery_print": "Om te printen/per post te versturen",
+      "delivery_both": "Per e-mail verzonden, plus exemplaren om te printen/per post te versturen",
       "no_reminders_yet": "Nog geen herinneringen verzonden.",
       "label_fee": "Kosten (optioneel)",
       "fee_placeholder": "0,00",

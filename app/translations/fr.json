@@ -2608,7 +2608,8 @@
       "add_payment_button": "Ajouter un paiement",
       "delete_payment_confirm": "Supprimer ce paiement ?",
       "success_message": "Fait.",
-      "payments_header": "Paiements"
+      "payments_header": "Paiements",
+      "copies_hint": "{count} exemplaires, un par adresse"
     },
     "dashboard": {
       "title": "Finances",
@@ -2647,6 +2648,7 @@
       "level_label": "Rappel n° {level}",
       "delivery_email": "Envoyé par e-mail",
       "delivery_print": "À imprimer/envoyer par courrier",
+      "delivery_both": "Envoyé par e-mail, plus des exemplaires à imprimer/envoyer par courrier",
       "no_reminders_yet": "Aucun rappel envoyé pour l'instant.",
       "label_fee": "Frais (facultatif)",
       "fee_placeholder": "0,00",

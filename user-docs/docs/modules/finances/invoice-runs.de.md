@@ -279,8 +279,11 @@ Welche Parzellen überhaupt abgerechnet werden können:
   Pächter hat (zum Beispiel einen neuen Pächter, der übernommen hat, bevor
   der Status zurückgesetzt wurde). Nur gelöschte Parzellen werden immer
   übersprungen.
-- Wohnen mehrere Pächter mit Rechnungsadresse an verschiedenen Adressen,
-  geht die Rechnung an die größte Gruppe mit gemeinsamer Adresse.
+- Wohnen die Pächter mit Rechnungsadresse an verschiedenen Adressen,
+  bekommt die Parzelle trotzdem **eine** Rechnung (eine Nummer, ein
+  Betrag), mit **einem Exemplar je Adresse**. Pächter mit gemeinsamer
+  Adresse stehen zusammen auf einem Exemplar. Die Exemplare unterscheiden
+  sich nur im Adressfeld.
 - Eine Parzelle, deren Zeilen alle leer bleiben, bekommt keine Rechnung.
 
 Mitgliedsrechnungen (aus **Festbetrag je Person** oder einem je Mitglied
@@ -379,13 +382,16 @@ Erscheint mit Schreibrecht.
 | Schaltfläche | Was sie bewirkt |
 |---|---|
 | **E-Mails senden & in Cloud hochladen** | Verschickt jede Rechnung des Laufs, die noch nicht per E-Mail rausging, mit dem PDF im Anhang, und lädt jede Rechnung, die noch nicht hochgeladen ist, in den Cloud-Ordner ihrer Parzelle. Ein erneuter Klick erledigt nur, was noch fehlt. |
-| **Sammel-PDF herunterladen** | Lädt ein PDF mit jeder Rechnung herunter, deren Empfänger nicht per E-Mail erreichbar ist, fertig zum Drucken für Fensterumschläge. Diese Rechnungen werden als gedruckt markiert. |
+| **Sammel-PDF herunterladen** | Lädt ein PDF mit einem Brief für jeden Pächter herunter, der Rechnungen nicht per E-Mail bekommt -- ein Brief je Adresse, mit den Namen der Leute dort ohne E-Mail --, fertig zum Drucken für Fensterumschläge. Diese Rechnungen werden als gedruckt markiert. |
 
-**Wer eine E-Mail bekommt:** ein aktueller Pächter der Parzelle mit
-Rechnungsadresse (oder, bei einer Mitgliedsrechnung, das Mitglied), der
+**Wer eine E-Mail bekommt:** jeder Pächter mit Rechnungsadresse, der auf
+der Rechnung steht (oder, bei einer Mitgliedsrechnung, das Mitglied), der
 **Darf per E-Mail Informationen erhalten** eingeschaltet und mindestens eine
-E-Mail-Adresse hinterlegt hat. Genommen wird die Hauptadresse. Alle anderen
-bleiben für das Sammel-PDF: „Mitglieder ohne E-Mail-Benachrichtigung bleiben
+E-Mail-Adresse hinterlegt hat. Jeder bekommt das Exemplar für seine eigene
+Adresse; genommen wird die Haupt-E-Mail-Adresse. Alle anderen bekommen
+einen gedruckten Brief aus dem Sammel-PDF -- **auch** wenn jemand, mit dem
+sie zusammenwohnen, die E-Mail bekommen hat. Pächter ohne E-Mail mit
+gemeinsamer Adresse bekommen einen Brief zusammen: „Mitglieder ohne E-Mail-Benachrichtigung bleiben
 für den Sammel-Druck unten übrig.“
 
 **Hochladen in die Cloud** passiert nur, wenn der Cloud-Speicher
@@ -398,7 +404,7 @@ nächsten Mal erneut versucht.
     Das Sammel-PDF richtet sich danach, wer per E-Mail erreichbar ist, nicht
     danach, was verschickt wurde. Du kannst es vor oder nach dem
     E-Mail-Versand herunterladen, und es enthält immer dieselben
-    Rechnungen -- auch die, die du letztes Mal schon gedruckt hast. Kann jede
+    Exemplare -- auch die, die du letztes Mal schon gedruckt hast. Kann jede
     Rechnung per E-Mail gehen, bekommst du die Meldung, dass nichts mehr zu
     drucken ist.
 

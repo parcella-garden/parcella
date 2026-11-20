@@ -3206,6 +3206,14 @@ class Invoice(Base):
     sequence_number: Mapped[int] = mapped_column(Integer, nullable=False)
     recipient_names: Mapped[str] = mapped_column(Text, nullable=False)
     recipient_address: Mapped[str] = mapped_column(Text, nullable=False)
+    # Issue #396: one copy per address the parcel's invoice-address
+    # tenants live at -- [{"names", "address", "member_ids"}], largest
+    # group first. Same invoice (number, amount, debt); only the address
+    # window differs. recipient_names then lists everyone, and
+    # recipient_address is the first copy's. NULL for member invoices
+    # and invoices from before #396: one copy, the two columns above.
+    # See app/invoice_delivery.py's invoice_copies().
+    recipient_copies: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     subtotal: Mapped[float] = mapped_column(Numeric(10, 2), default=0, nullable=False)
 
     pdf_generated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
