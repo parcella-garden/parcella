@@ -35,7 +35,7 @@ LETTER_CSS = ADDRESS_WINDOW_CSS + """
 @page { @bottom-right { content: none; } }
 .letter + .letter { page-break-before: always; }
 .letter-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.2cm; }
-.letter-date { color: #4b5563; padding-top: 2.3cm; white-space: nowrap; }
+.letter-date { color: #4b5563; white-space: nowrap; }
 .letter h1 { font-size: 13pt; margin: 0 0 0.5cm 0; color: #1f2937; }
 .letter .body { line-height: 1.45; }
 .letter .body img { max-width: 100%; }
@@ -52,7 +52,7 @@ def _letter_html(announcement: Announcement, member: Member, sender: str, region
                 <div class="sender-line">{escape(sender)}</div>
                 <div class="recipient">{recipient}</div>
             </div>
-            <div class="letter-date">{today.strftime('%d.%m.%Y')}</div>
+            <div class="letter-date din-info">{today.strftime('%d.%m.%Y')}</div>
         </div>
         <h1>{escape(announcement.title)}</h1>
         <div class="body">{announcement.body_html}</div>
@@ -71,6 +71,6 @@ def render_announcement_letters_pdf(
     body = "".join(_letter_html(announcement, m, sender, region, today) for m in members)
     html_doc = wrap_document(
         body, footer_context.club_name, logo_path, org_footer_html(footer_context, language),
-        language, extra_css=LETTER_CSS,
+        language, extra_css=LETTER_CSS, din_marks=True,
     )
     return HTML(string=html_doc, url_fetcher=data_uri_only_fetcher()).write_pdf()

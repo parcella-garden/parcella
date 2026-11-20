@@ -178,27 +178,42 @@ body {{ margin: 0; font-family: 'DejaVu Sans', sans-serif; color: #1f2937; font-
 """
 
 
-# DIN 5008 Form A address window, shared by every document that goes out
-# in a windowed envelope (invoices, reminders, announcement letters --
-# issue #242). Append to a document's extra_css. Page margin-top is
-# 2.2cm, so the 0.5cm padding-top here lands the sender line at 2.7cm
-# from the page edge and the 1.8cm sender-line box ends exactly at
-# 4.5cm, where the Anschriftzone (recipient address) must start;
-# padding-left 0.5cm plus the 1.5cm page margin lands the whole
-# window's left edge at the standard 2.0cm.
+# DIN 5008 Form B (issue #398), shared by every document that goes out
+# in a windowed envelope: invoices, reminders, announcement letters.
+# Append ADDRESS_WINDOW_CSS to a document's extra_css and pass
+# din_marks=True to wrap_document(). Positions are measured from the
+# sheet's top-left corner; the content box starts 2.2cm down and 1.5cm
+# in (@page margin), so each value below subtracts that:
+#   address field 85 x 45 mm at 20 mm from the left, 45 mm from the top
+#     -> the return-address zone (17.7 mm, sender line at its bottom)
+#        and the recipient zone from 62.7 mm (27.3 mm high)
+#   information block (date, invoice number) from 50 mm, at 125 mm
+#   fold marks at 105 mm and 210 mm, punch (hole) mark at 148.5 mm
 ADDRESS_WINDOW_CSS = """
-.address-window { width: 8.5cm; padding-top: 0.5cm; padding-left: 0.5cm; box-sizing: content-box; }
+.address-window { width: 8.5cm; padding-top: 2.3cm; padding-left: 0.5cm; box-sizing: content-box; }
 .sender-line {
-    height: 1.8cm; display: flex; align-items: flex-end;
+    height: 1.77cm; display: flex; align-items: flex-end;
     font-size: 7.5pt; color: #4b5563; border-bottom: 0.5pt solid #9ca3af;
-    margin-bottom: 2pt;
+    box-sizing: border-box; padding-bottom: 1pt;
 }
-.recipient { white-space: pre-line; line-height: 1.5; }
+.recipient { white-space: pre-line; line-height: 1.5; min-height: 2.73cm; padding-top: 1pt; }
+.din-info { padding-top: 2.8cm; }
+.din-mark { position: fixed; left: -1.2cm; height: 0; border-top: 0.5pt solid #6b7280; }
+.din-fold { width: 0.5cm; }
+.din-punch { width: 0.8cm; }
 """
+
+# The fold and punch marks. position: fixed repeats them on every page,
+# relative to the content box like #header (see page_css).
+DIN_MARKS_HTML = (
+    '<div class="din-mark din-fold" style="top: 8.3cm"></div>'
+    '<div class="din-mark din-punch" style="top: 12.65cm"></div>'
+    '<div class="din-mark din-fold" style="top: 18.8cm"></div>'
+)
 
 
 def sender_line(club_name: str, club_address_lines: List[str]) -> str:
-    """The DIN 5008 Form A "Einzeilige Rücksendeangabe" -- the club's
+    """The DIN 5008 "Rücksendeangabe" (return address) -- the club's
     own name/address compressed onto one small line, printed directly
     above the recipient's address so it stays visible through a
     windowed envelope (and tells the recipient/post office who to
@@ -217,18 +232,20 @@ def header_html(club_name: str, logo_path: Optional[Path]) -> str:
 
 def wrap_document(
     body_html: str, club_name: str, logo_path: Optional[Path], footer_html: str,
-    language: str, extra_css: str = "", bottom_margin: str = "2.6cm",
+    language: str, extra_css: str = "", bottom_margin: str = "2.6cm", din_marks: bool = False,
 ) -> str:
     """Wraps `body_html` in the shared page chrome (header/footer/@page
     rules); `extra_css` is appended after the shared CSS so a document
     can add its own rules (table columns, address blocks, ...) without
-    a second <style> tag."""
+    a second <style> tag. `din_marks` adds the DIN 5008 fold and punch
+    marks, for documents with an address window (issue #398)."""
     return f"""
     <html>
     <head><meta charset="utf-8"><style>{page_css(language, bottom_margin, extra_css)}</style></head>
     <body>
         {header_html(club_name, logo_path)}
         <div id="footer">{footer_html}</div>
+        {DIN_MARKS_HTML if din_marks else ""}
         {body_html}
     </body>
     </html>

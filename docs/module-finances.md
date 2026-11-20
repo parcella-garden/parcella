@@ -227,8 +227,13 @@ print).
 ## PDF layout: `app/invoice_pdf.py`
 
 WeasyPrint-rendered. The address block is positioned per **DIN 5008
-Form A** (the standard German business-letter window-envelope layout),
-and the header places the club logo at the page's true left edge with
+Form B** (issue #398; `ADDRESS_WINDOW_CSS` and `DIN_MARKS_HTML` in
+`app/pdf_chrome.py`, shared with reminders and announcement letters):
+address field from 45 mm, recipient from 62.7 mm, 20 mm from the left,
+the information block from 50 mm, fold marks at 105/210 mm and a punch
+mark at 148.5 mm. Until #398 it claimed Form A but put the recipient at
+45 mm, which matched neither form. `tests/test_din_5008.py` measures
+the positions in the rendered PDF. The header places the club logo at the page's true left edge with
 the club name centered across the page in one row -- both deliberately
 matching German business-correspondence convention rather than an
 arbitrary layout choice, since these invoices are expected to be

@@ -404,7 +404,7 @@ a filtered `/members/` list -- "everyone tagged *water responsible*",
   no blog post and no notice-board page. Classic announcements never
   get LETTER.
 - **Letters** (`app/announcement_letters.py`): one PDF, one DIN 5008
-  letter per recipient (address window shared with invoices via
+  Form B letter (issue #398, with fold and punch marks) per recipient (address window shared with invoices via
   `app/pdf_chrome.py`'s `ADDRESS_WINDOW_CSS`/`sender_line`), title and
   body as in the email, no added salutation, no image, no "Page X of Y"
   (it would count across the bundle). **Generated on click and never

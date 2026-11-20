@@ -100,6 +100,11 @@ Parzelle, eine Tabelle der Zeilen (**Beschreibung**, **Menge**,
 Angaben deines Vereins (Adresse, Bank) in der Fußzeile. Diese Vereinsangaben
 kommen aus den [Vereinseinstellungen](../../administration/settings.md).
 
+Das Layout folgt **DIN 5008 Form B**: Die Adresse sitzt im Fenster eines
+DL- oder C6/5-Fensterumschlags, und kurze Striche am linken Rand zeigen, wo
+gefalzt (bei einem und zwei Dritteln der Seite) und wo gelocht wird.
+Zahlungserinnerungen und Briefe aus Mitteilungen haben dasselbe Layout.
+
 Der Dateiname beginnt mit dem Rechnungsdatum und der Parzellennummer (oder
 dem Nachnamen des Mitglieds), gefolgt von der Rechnungsnummer. Eine Rechnung mit einem
 Exemplar je Adresse enthält alle Exemplare in ihrem PDF, jedes auf eigenen

@@ -267,7 +267,7 @@ confirmation **Send this message by email to {count} member(s) now?
 This can't be undone.**) and **Letters**:
 
 - **Generate {count} letter(s)** creates one PDF with a letter per
-  recipient, laid out for windowed envelopes, with title and body as in
+  recipient, laid out for window envelopes (DIN 5008 Form B, with fold marks), with title and body as in
   the e-mail. No salutation is added, and no image.
 - The letters are generated when you click and never stored, because
   they contain names and addresses. You can generate them again any time.

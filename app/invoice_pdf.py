@@ -260,11 +260,11 @@ def _invoice_body_html(data: InvoicePdfData, region: str, currency: str, languag
                 <div class="sender-line">{sender_line}</div>
                 <div class="recipient">{escape(data.recipient_names)}<br>{escape(data.recipient_address).replace(chr(10), Markup('<br>'))}</div>
             </div>
-            <table class="invoice-meta">
+            <div class="din-info"><table class="invoice-meta">
                 <tr><td>{translate("finances.pdf.invoice_no", language)}</td><td>{data.invoice_number}</td></tr>
                 <tr><td>{translate("finances.pdf.date", language)}</td><td>{data.issued_date.strftime('%d.%m.%Y')}</td></tr>
                 <tr><td>{translate("finances.pdf.due_date", language)}</td><td>{data.due_date.strftime('%d.%m.%Y')}</td></tr>
-            </table>
+            </table></div>
         </div>
 
         <h1>{data.subject}</h1>
@@ -324,11 +324,11 @@ def _reminder_body_html(data: ReminderPdfData, region: str, currency: str, langu
                 <div class="sender-line">{sender_line}</div>
                 <div class="recipient">{escape(data.recipient_names)}<br>{escape(data.recipient_address).replace(chr(10), Markup('<br>'))}</div>
             </div>
-            <table class="invoice-meta">
+            <div class="din-info"><table class="invoice-meta">
                 <tr><td>{translate("finances.pdf.invoice_no", language)}</td><td>{data.invoice_number}</td></tr>
                 <tr><td>{translate("finances.pdf.date", language)}</td><td>{data.sent_date.strftime('%d.%m.%Y')}</td></tr>
                 <tr><td>{translate("finances.pdf.due_date", language)}</td><td>{data.due_date.strftime('%d.%m.%Y')}</td></tr>
-            </table>
+            </table></div>
         </div>
 
         <h1>{translate("finances.reminder_pdf.heading", language, level=data.level)}</h1>
@@ -361,7 +361,7 @@ def render_invoice_pdf(
     sender_line = _sender_line(footer_context.club_name, footer_context.address_lines)
     html_doc = wrap_document(
         _invoice_body_html(data, region, currency, language, sender_line),
-        footer_context.club_name, logo_path, footer_html, language, extra_css=EXTRA_CSS,
+        footer_context.club_name, logo_path, footer_html, language, extra_css=EXTRA_CSS, din_marks=True,
     )
     return HTML(string=html_doc, url_fetcher=data_uri_only_fetcher()).write_pdf()
 
@@ -380,7 +380,7 @@ def render_invoice_bundle_pdf(
     sender_line = _sender_line(footer_context.club_name, footer_context.address_lines)
     body_html = "".join(_invoice_body_html(data, region, currency, language, sender_line) for data in items)
     html_doc = wrap_document(
-        body_html, footer_context.club_name, logo_path, footer_html, language, extra_css=EXTRA_CSS,
+        body_html, footer_context.club_name, logo_path, footer_html, language, extra_css=EXTRA_CSS, din_marks=True,
     )
     return HTML(string=html_doc, url_fetcher=data_uri_only_fetcher()).write_pdf()
 
@@ -395,7 +395,7 @@ def render_reminder_pdf(
     sender_line = _sender_line(footer_context.club_name, footer_context.address_lines)
     html_doc = wrap_document(
         _reminder_body_html(data, region, currency, language, sender_line),
-        footer_context.club_name, logo_path, footer_html, language, extra_css=EXTRA_CSS,
+        footer_context.club_name, logo_path, footer_html, language, extra_css=EXTRA_CSS, din_marks=True,
     )
     return HTML(string=html_doc, url_fetcher=data_uri_only_fetcher()).write_pdf()
 
