@@ -279,7 +279,7 @@ Bestätigung **Diese Nachricht jetzt per E-Mail an … Mitglied(er) senden? Das
 lässt sich nicht rückgängig machen.**) und **Briefe**:
 
 - **… Brief(e) erzeugen** erstellt ein PDF mit einem Brief je Empfänger,
-  gesetzt für Fensterumschläge, mit Titel und Text wie in der E-Mail. Eine
+  gesetzt für Fensterumschläge (DIN 5008 Form B, mit Falzmarken), mit Titel und Text wie in der E-Mail. Eine
   Anrede wird nicht hinzugefügt, ein Bild auch nicht.
 - Die Briefe entstehen beim Klick und werden nie gespeichert, weil sie Namen
   und Adressen enthalten. Du kannst sie jederzeit neu erzeugen.

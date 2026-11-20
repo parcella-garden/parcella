@@ -96,6 +96,11 @@ table of the lines (**Description**, **Qty**, **Unit price**,
 details (address, bank) in the page footer. Those club details come
 from [Club settings](../../administration/settings.md).
 
+The layout follows **DIN 5008 Form B**: the address sits in the window
+of a DL or C6/5 window envelope, and short marks on the left edge show
+where to fold (at a third and two thirds of the page) and where to
+punch. Payment reminders and announcement letters use the same layout.
+
 The file name starts with the issue date and the parcel number (or the
 member's last name), followed by the invoice number.
 
