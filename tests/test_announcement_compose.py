@@ -240,3 +240,11 @@ async def test_every_kind_of_message_offers_all_four_channels(client, admin_user
     edit = await client.get(f"/announcements/{picked_id}/edit")
     assert f"/announcements/{picked_id}/print" in edit.text and 'name="print_qr_code"' in edit.text
     assert (await client.post(f"/announcements/{picked_id}/print")).status_code != 409
+
+
+async def test_popup_resets_the_table_button_against_bootstrap(client, admin_user):
+    """Issue #407: without this, Bootstrap's .table puts EasyMDE's table
+    button on a line of its own and breaks the toolbar in the popup."""
+    _, ids = await _setup(client)
+    page = await client.get("/members/")
+    assert 'id="compose-modal"' in page.text and ".editor-toolbar button.table" in page.text
