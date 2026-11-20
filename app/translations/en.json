@@ -841,7 +841,13 @@
       "map_field_status": "Status",
       "map_field_notes": "Notes",
       "csv_mapping_required_error": "Please map the plot number column before importing.",
-      "csv_empty_error": "That CSV file appears to be empty."
+      "csv_empty_error": "That CSV file appears to be empty.",
+      "col_select": "Select",
+      "select_all": "Select all",
+      "select_none": "Select none",
+      "selected_count": "{count} selected",
+      "export_selected": "Export selected",
+      "write_to_selected": "Write to their leaseholders"
     },
     "form": {
       "title_edit": "Edit {plot_number}",
@@ -2106,6 +2112,13 @@
       "result_skipped": "Nothing new to send on this channel.",
       "open_message": "Open the message",
       "close": "Close"
+    },
+    "parcels": {
+      "reference": "Parcel {plot}",
+      "header": "Notice to the leaseholders of {count} parcel(s)",
+      "show_list": "Show parcels",
+      "hint": "One notice per parcel, naming it. Email to each leaseholder who consented; one letter per address for the others, also when a housemate gets the email.",
+      "list_badge": "Parcels"
     }
   },
   "inventory": {

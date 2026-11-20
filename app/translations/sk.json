@@ -841,7 +841,13 @@
       "map_field_status": "Stav",
       "map_field_notes": "Poznámky",
       "csv_mapping_required_error": "Pred importom prosím priraďte stĺpec s číslom parcely.",
-      "csv_empty_error": "Tento súbor CSV sa zdá byť prázdny."
+      "csv_empty_error": "Tento súbor CSV sa zdá byť prázdny.",
+      "col_select": "Vybrať",
+      "select_all": "Vybrať všetko",
+      "select_none": "Zrušiť výber",
+      "selected_count": "Vybrané: {count}",
+      "export_selected": "Exportovať výber",
+      "write_to_selected": "Napísať nájomcom"
     },
     "form": {
       "title_edit": "Upraviť {plot_number}",
@@ -2106,6 +2112,13 @@
       "result_skipped": "Týmto kanálom nie je čo nové odoslať.",
       "open_message": "Otvoriť správu",
       "close": "Zavrieť"
+    },
+    "parcels": {
+      "reference": "Parcela {plot}",
+      "header": "Oznámenie nájomcom parciel (počet: {count})",
+      "show_list": "Zobraziť parcely",
+      "hint": "Jedno oznámenie na parcelu, s jej číslom. E-mail každému nájomcovi, ktorý dal súhlas; jeden list na adresu pre ostatných, aj keď spolubývajúci dostane e-mail.",
+      "list_badge": "Parcely"
     }
   },
   "inventory": {

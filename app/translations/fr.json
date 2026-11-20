@@ -841,7 +841,13 @@
       "map_field_status": "Statut",
       "map_field_notes": "Notes",
       "csv_mapping_required_error": "Veuillez associer la colonne du numéro de parcelle avant d'importer.",
-      "csv_empty_error": "Ce fichier CSV semble vide."
+      "csv_empty_error": "Ce fichier CSV semble vide.",
+      "col_select": "Sélectionner",
+      "select_all": "Tout sélectionner",
+      "select_none": "Tout désélectionner",
+      "selected_count": "{count} sélectionné(s)",
+      "export_selected": "Exporter la sélection",
+      "write_to_selected": "Écrire aux locataires"
     },
     "form": {
       "title_edit": "Modifier {plot_number}",
@@ -2106,6 +2112,13 @@
       "result_skipped": "Rien de nouveau à envoyer sur ce canal.",
       "open_message": "Ouvrir le message",
       "close": "Fermer"
+    },
+    "parcels": {
+      "reference": "Parcelle {plot}",
+      "header": "Avis aux locataires de {count} parcelle(s)",
+      "show_list": "Afficher les parcelles",
+      "hint": "Un avis par parcelle, avec son numéro. E-mail à chaque locataire qui a donné son accord ; une lettre par adresse pour les autres, même si un colocataire reçoit l'e-mail.",
+      "list_badge": "Parcelles"
     }
   },
   "inventory": {

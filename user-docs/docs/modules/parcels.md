@@ -66,6 +66,7 @@ page keep the filter you came from.
 
 | Column | What it shows |
 |---|---|
+| Checkbox | Selects the parcel for **Export selected** or **Write to their leaseholders** (see below). |
 | **Plot number** | Click it to open the parcel. |
 | **Area** | Area in square metres, or "–". |
 | **Status** | **active**, **terminated**, **communal** or **deleted**. |
@@ -76,10 +77,44 @@ The footer shows the number of parcels in the list and, if areas are
 recorded, their total area -- handy to check a filtered selection, e.g.
 the total area of all active parcels.
 
+### Picking parcels and writing to their leaseholders {#picking-parcels}
+
+Every row has a checkbox, so you can pick parcels by hand -- for example
+all parcels along one water pipe -- and send a notice to the people who
+lease them.
+
+| Button | What it does |
+|---|---|
+| **Select all** | Ticks every parcel in the current list. |
+| **Select none** | Clears all ticks. |
+| ***N* selected** | Counts the ticked parcels. |
+| **Export selected** | Downloads the CSV file (see below) with only the ticked parcels. Disabled until you tick one. |
+| **Write to their leaseholders** | Starts a new [announcement](announcements.md) to the **current** leaseholders of the ticked parcels. Only shown while the **Announcements** module is on, and only to board members and administrators. |
+
+A notice to parcels concerns the **lease**, not the club membership:
+it's addressed to the leaseholders of each parcel together, like the
+annual invoice. So:
+
+- **One notice per parcel.** Someone who leases two of the ticked
+  parcels gets two notices, one for each lease. Every e-mail and letter
+  names its parcel ("Parcel 12").
+- **E-mail** to every leaseholder who allows information by e-mail
+  (**May receive information by email**) and has an address.
+- **Letter** to the other leaseholders: one per postal address, naming
+  everyone there without e-mail -- also when someone they live with got
+  the e-mail. With **Also send a letter to members who get the email**,
+  everyone with a postal address gets a letter.
+- Former and upcoming leaseholders are left out.
+
+For messages to members (club news, invitations to a general meeting)
+use the [member list](members.md) instead.
+
 ### CSV export
 
 **CSV Export** downloads a file called `parcels.csv`, separated by
 semicolons, with *every* parcel -- search and status filter don't apply.
+**Export selected** (above) writes the same file with only the ticked
+parcels.
 The column headings are in German, so the file can be imported again:
 
 Gartennummer (plot number), Fläche (qm) (area), Breitengrad (latitude),

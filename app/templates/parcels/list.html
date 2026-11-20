@@ -55,6 +55,32 @@
     </div>
 </div>
 
+{#- Issue #397: tick parcels for the CSV export or a notice to their
+    leaseholders (leasehold law, one notice per parcel -- ADR 0142). The
+    checkboxes sit in the table rows and join this form via form=. -#}
+{% if parcels %}
+{% set can_write_to = request.state.module_flags.announcements and is_full_access(request) %}
+<form id="parcel-pick" method="get" action="/parcels/export/csv"
+      class="d-flex gap-2 align-items-center flex-wrap mb-2">
+    {% if can_write_to %}
+    <input type="hidden" name="audience_kind" value="parcels">
+    {% endif %}
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="pick-all">{{ t('parcels.list.select_all') }}</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="pick-none">{{ t('parcels.list.select_none') }}</button>
+    <span class="text-muted small" id="pick-count" data-template="{{ t('parcels.list.selected_count', count='__N__') }}">{{ t('parcels.list.selected_count', count=0) }}</span>
+    <span class="ms-auto d-flex gap-2 flex-wrap">
+        <button type="submit" class="btn btn-sm btn-outline-secondary pick-action" disabled>
+            <i class="bi bi-download me-1"></i>{{ t('parcels.list.export_selected') }}
+        </button>
+        {% if can_write_to %}
+        <button type="submit" formaction="/announcements/new" class="btn btn-sm btn-outline-primary pick-action" data-compose disabled>
+            <i class="bi bi-envelope-paper me-1"></i>{{ t('parcels.list.write_to_selected') }}
+        </button>
+        {% endif %}
+    </span>
+</form>
+{% endif %}
+
 <!-- Tabelle -->
 <div class="card">
     <div class="card-body p-0">
@@ -62,6 +88,7 @@
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
+                        <th style="width: 1%;"><span class="visually-hidden">{{ t('parcels.list.col_select') }}</span></th>
                         <th>{{ t('parcels.list.col_plot_number') }}</th>
                         <th>{{ t('parcels.list.col_area') }}</th>
                         <th>{{ t('parcels.list.col_status') }}</th>
@@ -72,6 +99,9 @@
                 <tbody>
                     {% for p in parcels %}
                     <tr>
+                        <td><input type="checkbox" class="form-check-input pick-parcel" form="parcel-pick"
+                                   name="parcel_ids" value="{{ p.id }}"
+                                   aria-label="{{ t('parcels.list.col_select') }}: {{ p.plot_number }}"></td>
                         <td>
                             <a href="/parcels/{{ p.id }}{% if list_query_string %}?{{ list_query_string }}{% endif %}"
                                class="fw-semibold text-decoration-none"
@@ -111,7 +141,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">
+                        <td colspan="6" class="text-center py-5 text-muted">
                             <i class="bi bi-grid-3x3 d-block mb-2" style="font-size: 1.5rem;"></i>
                             {{ t('parcels.list.empty') }}<br>
                             {% if has_perm(request, 'members_parcels', 'write') %}
@@ -155,4 +185,29 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.getElementById('parcel-pick');
+    if (!form) return;
+    var boxes = Array.prototype.slice.call(document.querySelectorAll('.pick-parcel'));
+    var count = document.getElementById('pick-count');
+    var actions = Array.prototype.slice.call(form.querySelectorAll('.pick-action'));
+    function update() {
+        var n = boxes.filter(function (b) { return b.checked; }).length;
+        count.textContent = count.dataset.template.replace('__N__', n);
+        actions.forEach(function (a) { a.disabled = n === 0; });
+    }
+    function setAll(checked) {
+        boxes.forEach(function (b) { b.checked = checked; });
+        update();
+    }
+    document.getElementById('pick-all').addEventListener('click', function () { setAll(true); });
+    document.getElementById('pick-none').addEventListener('click', function () { setAll(false); });
+    boxes.forEach(function (b) { b.addEventListener('change', update); });
+    update();
+});
+</script>
 {% endblock %}
