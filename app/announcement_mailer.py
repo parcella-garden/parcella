@@ -47,8 +47,10 @@ Issue #242 added messages to *filtered* members (Announcement.
 audience_filter, created from /members/): resolve_audience() splits
 whoever the stored member-list filter matches into email recipients,
 letter recipients (app/announcement_letters.py) and unreachable ones.
-The email-info opt-out doesn't apply there -- a message to the water
-team is operational, not a newsletter (kermie's call, ADR 0095).
+Since issue #403 (association law, ADR 0142) consent decides: email
+only to members who allow information by email, a letter to the others
+-- members without consent at one postal address share one letter. This
+replaces ADR 0095, which ignored the email-info opt-out here.
 
 Issue #397 added notices to the leaseholders of parcels picked on
 /parcels/ (Announcement.audience_parcel_ids). That's leasehold law, not
@@ -162,10 +164,11 @@ async def resolve_audience(db: AsyncSession, announcement: Announcement) -> Audi
 
     Classic announcement (no audience_filter): email only, to
     get_active_recipient_emails(). Targeted (issue #242): everyone the
-    stored MemberListFilter matches -- email to each who has an address
-    (email-info flag ignored), a letter to each who hasn't (or to
-    everyone with letters_for_all) and has a postal address; whoever
-    gets neither is unreachable."""
+    stored MemberListFilter matches -- email to each who consented
+    (email notifications on) and has an address (issue #403); a letter
+    to the others (or to everyone with letters_for_all) who have a
+    postal address, one per address; whoever gets neither is
+    unreachable."""
     if not announcement.is_targeted:
         return Audience(email=await get_active_recipient_emails(db))
     if announcement.is_applicant_message:
@@ -180,14 +183,16 @@ async def resolve_audience(db: AsyncSession, announcement: Announcement) -> Audi
     )).all()
     audience = Audience()
     for member in members:
-        address = primary_email(member)
+        address = primary_email(member) if member.email_notifications else None
         if address:
             audience.email.append((member, address))
         if (address is None or announcement.letters_for_all) and has_postal_address(member):
             audience.letter.append(member)
         elif address is None:
             audience.unreachable.append(member)
-    audience.letter_groups = [[m] for m in audience.letter]
+    # Association law (issue #403): members who share a postal address
+    # get one letter naming all of them.
+    audience.letter_groups = group_by_postal_address(audience.letter)
     return audience
 
 
@@ -234,8 +239,9 @@ async def _resolve_parcel_audience(db: AsyncSession, parcel_ids: List[str], lett
 
 def group_by_postal_address(members: List[Member]) -> List[List[Member]]:
     """Members who share a postal address (ignoring case and blanks,
-    same comparison as the invoice copies), in first-seen order. Used
-    for letters to picked parcels (issue #397): one letter per household."""
+    same comparison as the invoice copies), in first-seen order: one
+    letter per address -- for member messages (#403) and, per parcel,
+    for notices to parcels (#397)."""
     groups: dict = {}
     for member in members:
         groups.setdefault(_normalized_address(member), []).append(member)

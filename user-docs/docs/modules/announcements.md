@@ -245,9 +245,9 @@ The card shows:
 |---|---|
 | **Selection:** | The filter the message is based on, as badges: tag, search text, **Show inactive only**, **Confirmed active only**, **Email info = yes only**, "{count} picked by hand". |
 | **Show these members** | Opens the member list with this filter. |
-| "{count} by email" | Members with an e-mail address. |
-| "{count} by letter" | Members without an e-mail address but with a postal address, by name. |
-| "{count} can't be reached (no email address, no postal address)" | Shown in red, with links to the members so you can fix their records. |
+| "{count} by email" | Members who allow information by e-mail (**May receive information by email**) and have an address. |
+| "{count} by letter" | Letters for the other members with a postal address -- one per address, so members who live together share one. Their names follow. |
+| "{count} can't be reached (no email consent or address, no postal address)" | Shown in red, with links to the members so you can fix their records. |
 | **Also send a letter to members who get the email** | Tick to send a letter to every member with a postal address, not only to those without e-mail. |
 
 Recipients are worked out again when you send, from the member list
@@ -255,20 +255,20 @@ filter shown above. Someone who gets the tag tomorrow is included in
 tomorrow's letters. Hand-picked members who no longer match the filter
 drop out.
 
-!!! warning "The e-mail-info setting doesn't apply"
-    Unlike club news, a message to filtered members goes to every
-    selected member with an e-mail address, even those who switched off
-    e-mail notifications. It is meant for operational messages, not
-    newsletters. Starting from an unfiltered member list creates ordinary
-    club news instead, so a single click can never mail the whole club
-    past their opt-out.
+!!! note "E-mail only with consent"
+    A message to members goes by e-mail only to members who allow
+    information by e-mail. Everyone else with a postal address gets a
+    letter -- also when someone they live with got the e-mail, because
+    every member is invited personally. Members without consent who
+    share an address get **one** letter naming all of them. Starting
+    from an unfiltered member list creates ordinary club news instead.
 
 The channels are **Member email** (sent once, same as above, after the
 confirmation **Send this message by email to {count} member(s) now?
 This can't be undone.**) and **Letters**:
 
 - **Generate {count} letter(s)** creates one PDF with a letter per
-  recipient, laid out for window envelopes (DIN 5008 Form B, with fold marks), with title and body as in
+  postal address, laid out for window envelopes (DIN 5008 Form B, with fold marks), with title and body as in
   the e-mail. No salutation is added, and no image.
 - The letters are generated when you click and never stored, because
   they contain names and addresses. You can generate them again any time.

@@ -46,8 +46,9 @@ members"), and letters merged across parcels.
    here (#397).
 3. **Association rule (members):** email only with consent, otherwise a
    letter; non-consenting members at the same address share one letter.
-   This replaces ADR 0095's decision to ignore the email opt-out for
-   targeted member messages. It is its own change (separate ticket).
+   Also when someone they live with got the email. This replaces ADR
+   0095's decision to ignore the email opt-out for targeted member
+   messages (issue #403).
 
 ## Consequences
 

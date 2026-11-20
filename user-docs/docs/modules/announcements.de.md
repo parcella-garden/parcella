@@ -256,9 +256,9 @@ Die Karte zeigt:
 |---|---|
 | **Auswahl:** | Der Filter, auf dem die Nachricht beruht, als Badges: Tag, Suchtext, **Nur Inaktive anzeigen**, **Nur bestätigt aktive**, **Nur mit E-Mail-Info = ja**, „… von Hand ausgewählt“. |
 | **Diese Mitglieder anzeigen** | Öffnet die Mitgliederliste mit diesem Filter. |
-| „… per E-Mail“ | Mitglieder mit E-Mail-Adresse. |
-| „… per Brief“ | Mitglieder ohne E-Mail-Adresse, aber mit Postanschrift, namentlich. |
-| „… nicht erreichbar (keine E-Mail-Adresse, keine Postanschrift)“ | Rot, mit Links zu den Mitgliedern, damit du ihre Daten ergänzen kannst. |
+| „… per E-Mail“ | Mitglieder, die Informationen per E-Mail erlauben (**Darf per E-Mail Informationen erhalten**) und eine Adresse haben. |
+| „… per Brief“ | Briefe für die anderen Mitglieder mit Postanschrift -- einer je Adresse, wer zusammenwohnt, teilt sich einen. Danach ihre Namen. |
+| „… nicht erreichbar (keine E-Mail-Einwilligung oder -Adresse, keine Postadresse)“ | Rot, mit Links zu den Mitgliedern, damit du ihre Daten ergänzen kannst. |
 | **Auch Mitgliedern mit E-Mail zusätzlich einen Brief schicken** | Anhaken, um jedem Mitglied mit Postanschrift einen Brief zu schicken, nicht nur denen ohne E-Mail. |
 
 Die Empfänger werden beim Versand neu ermittelt, nach dem oben gezeigten
@@ -266,20 +266,20 @@ Filter der Mitgliederliste. Wer morgen den Tag bekommt, ist bei den Briefen
 von morgen dabei. Von Hand ausgewählte Mitglieder, die nicht mehr zum Filter
 passen, fallen heraus.
 
-!!! warning "Die E-Mail-Info-Einstellung gilt hier nicht"
-    Anders als eine Vereinsnachricht geht eine Nachricht an gefilterte
-    Mitglieder an jedes ausgewählte Mitglied mit E-Mail-Adresse, auch an
-    die, die E-Mail-Benachrichtigungen abgeschaltet haben. Sie ist für
-    betriebliche Nachrichten gedacht, nicht für Newsletter. Beginnst du bei
-    einer ungefilterten Mitgliederliste, entsteht stattdessen eine
-    gewöhnliche Vereinsnachricht -- ein einzelner Klick kann also nie den
-    ganzen Verein an seinem Abwahl-Wunsch vorbei anschreiben.
+!!! note "E-Mail nur mit Einwilligung"
+    Eine Nachricht an Mitglieder geht per E-Mail nur an Mitglieder, die
+    Informationen per E-Mail erlauben. Alle anderen mit Postanschrift
+    bekommen einen Brief -- auch wenn jemand im selben Haushalt die E-Mail
+    bekommen hat, denn jedes Mitglied wird persönlich eingeladen. Mitglieder
+    ohne Einwilligung mit gemeinsamer Adresse bekommen **einen** Brief mit
+    allen Namen. Beginnst du bei einer ungefilterten Mitgliederliste,
+    entsteht stattdessen eine gewöhnliche Vereinsnachricht.
 
 Die Kanäle sind **Mitglieder-E-Mail** (einmal gesendet, wie oben, nach der
 Bestätigung **Diese Nachricht jetzt per E-Mail an … Mitglied(er) senden? Das
 lässt sich nicht rückgängig machen.**) und **Briefe**:
 
-- **… Brief(e) erzeugen** erstellt ein PDF mit einem Brief je Empfänger,
+- **… Brief(e) erzeugen** erstellt ein PDF mit einem Brief je Postadresse,
   gesetzt für Fensterumschläge (DIN 5008 Form B, mit Falzmarken), mit Titel und Text wie in der E-Mail. Eine
   Anrede wird nicht hinzugefügt, ein Bild auch nicht.
 - Die Briefe entstehen beim Klick und werden nie gespeichert, weil sie Namen
