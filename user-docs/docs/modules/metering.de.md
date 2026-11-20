@@ -111,10 +111,13 @@ gelöscht: Er wird als ausgebaut markiert und unter **Frühere Zähler** mit
 seinem letzten Stand gelistet. Der neue Zähler beginnt mit seinem eigenen
 **Anfangsstand**, sodass alte und neue Zählerstände nie vermischt werden.
 
-!!! warning "Erst den Endstand des alten Zählers erfassen"
-    Nach dem Tausch lassen sich Zählerstände nur noch für den neuen Zähler
-    erfassen. Trag den Endstand des alten Zählers (für das laufende Jahr)
-    ein, **bevor** du ihn tauschst.
+**Endstand des alten Zählers.** Trag ein, was der alte Zähler am Ausbautag
+zeigt. Er wird als Stand des alten Zählers für dieses Jahr gespeichert, und
+der Jahresverbrauch des Zählpunkts zählt dann beide Zähler zusammen: den
+alten bis zu seinem Endstand, den neuen ab seinem Anfangsstand. Rechnung und
+**Auswertung** nutzen diese Summe; die Auswertung markiert so einen Zählpunkt
+mit „inkl. getauschtem Zähler“. Ohne Endstand zählt für dieses Jahr nur der
+neue Zähler.
 
 **Tauschen** ist für einen echten Wechsel. Hast du dich nur bei der
 Zählernummer oder einem Datum vertippt, nimm stattdessen **Zähler
@@ -357,6 +360,7 @@ Tippfehler:
 | Feld | Was es bewirkt |
 |---|---|
 | **Alter Zähler ausgebaut am** | Pflicht, Vorgabe heute. |
+| **Endstand des alten Zählers** | Was der alte Zähler am Ausbautag zeigt. Wird als sein Stand für dieses Jahr gespeichert, damit sein Verbrauch bis zum Tausch abgerechnet wird. „Am Ausbautag. Ohne ihn wird der Verbrauch des alten Zählers seit der letzten Ablesung nicht abgerechnet.“ |
 | **Neuer Zähler eingebaut am** | Pflicht, Vorgabe heute. |
 | **Neue Nummer** | Pflicht. |
 | **Geeicht bis** | Das Eichjahr des neuen Zählers. |
