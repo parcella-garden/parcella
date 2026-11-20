@@ -2238,6 +2238,13 @@ class Announcement(Base):
     # distinct address. Mutually exclusive with audience_filter. See
     # docs/ADR/0112.
     audience_applicant_ids: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
+    # A notice to the leaseholders of parcels picked on /parcels/ (issue
+    # #397) -- a list of Parcel ids, fixed at creation. Leasehold law,
+    # not association law (ADR 0142): one notice per parcel, to its
+    # current leaseholders jointly -- email to each who consented, one
+    # letter per address for the others -- naming the parcel. Mutually
+    # exclusive with audience_filter/audience_applicant_ids.
+    audience_parcel_ids: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     created_by_id: Mapped[Optional[str]] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
@@ -2263,14 +2270,23 @@ class Announcement(Base):
 
     @property
     def is_targeted(self) -> bool:
-        """A message to filtered members (issue #242) or to picked
-        applicants (issue #247), not club news."""
-        return self.audience_filter is not None or self.audience_applicant_ids is not None
+        """A message to filtered members (issue #242), to picked
+        applicants (issue #247) or to the leaseholders of picked parcels
+        (issue #397), not club news."""
+        return (
+            self.audience_filter is not None or self.audience_applicant_ids is not None
+            or self.audience_parcel_ids is not None
+        )
 
     @property
     def is_applicant_message(self) -> bool:
         """A message to applicants picked on /applicants/ (issue #247)."""
         return self.audience_applicant_ids is not None
+
+    @property
+    def is_parcel_message(self) -> bool:
+        """A notice to the leaseholders of parcels picked on /parcels/ (issue #397)."""
+        return self.audience_parcel_ids is not None
 
     def delivery_for(self, channel: "AnnouncementChannel") -> Optional["AnnouncementDelivery"]:
         return next((d for d in self.deliveries if d.channel == channel), None)

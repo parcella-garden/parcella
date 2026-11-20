@@ -684,8 +684,7 @@
       "export_selected": "Eksportuj zaznaczonych",
       "write_to_selected": "Napisz do zaznaczonych",
       "picked_notice": "Wyświetlani są tylko zaznaczeni członkowie ({count}).",
-      "picked_show_all": "Pokaż całą listę",
-      "parcels_notice": "Wyświetlani są obecni dzierżawcy zaznaczonych działek (liczba: {count})."
+      "picked_show_all": "Pokaż całą listę"
     },
     "form": {
       "title_edit": "Edytuj {name}",
@@ -2075,9 +2074,7 @@
       "letter_hint": "Jeden PDF z listem dla każdego odbiorcy, do kopert z okienkiem. Tworzony po kliknięciu, nigdy nie zapisywany.",
       "letter_button": "Utwórz listy: {count}",
       "list_badge": "Wybrani członkowie",
-      "filter_picked": "Ręcznie wybrano: {count}",
-      "filter_parcels": "Wybrane działki: {count}",
-      "household_hint": "Dzierżawcy pod tym samym adresem pocztowym dostają jeden list ze wszystkimi nazwiskami; wspólny adres e-mail otrzymuje wiadomość raz."
+      "filter_picked": "Ręcznie wybrano: {count}"
     },
     "applicants": {
       "header": "Wiadomość na {count} adres(y) kandydatów",
@@ -2115,6 +2112,13 @@
       "result_skipped": "Brak nowych treści do wysłania tym kanałem.",
       "open_message": "Otwórz wiadomość",
       "close": "Zamknij"
+    },
+    "parcels": {
+      "reference": "Działka {plot}",
+      "header": "Komunikat do dzierżawców działek (liczba: {count})",
+      "show_list": "Pokaż działki",
+      "hint": "Jeden komunikat na działkę, z jej numerem. E-mail do każdego dzierżawcy, który wyraził zgodę; jeden list na adres dla pozostałych, także gdy domownik dostaje e-mail.",
+      "list_badge": "Działki"
     }
   },
   "inventory": {

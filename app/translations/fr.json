@@ -684,8 +684,7 @@
       "export_selected": "Exporter la sélection",
       "write_to_selected": "Écrire à la sélection",
       "picked_notice": "Seuls les {count} membres sélectionnés sont affichés.",
-      "picked_show_all": "Afficher toute la liste",
-      "parcels_notice": "Affichage des locataires actuels de {count} parcelle(s) sélectionnée(s)."
+      "picked_show_all": "Afficher toute la liste"
     },
     "form": {
       "title_edit": "Modifier {name}",
@@ -2075,9 +2074,7 @@
       "letter_hint": "Un PDF avec un courrier par destinataire, pour enveloppes à fenêtre. Créé au clic, jamais enregistré.",
       "letter_button": "Créer {count} courrier(s)",
       "list_badge": "Membres filtrés",
-      "filter_picked": "{count} choisi(s) à la main",
-      "filter_parcels": "{count} parcelle(s) choisie(s)",
-      "household_hint": "Les locataires qui partagent une adresse postale reçoivent une seule lettre avec tous leurs noms ; une adresse e-mail partagée reçoit le message une fois."
+      "filter_picked": "{count} choisi(s) à la main"
     },
     "applicants": {
       "header": "Message à {count} adresse(s) de candidats",
@@ -2115,6 +2112,13 @@
       "result_skipped": "Rien de nouveau à envoyer sur ce canal.",
       "open_message": "Ouvrir le message",
       "close": "Fermer"
+    },
+    "parcels": {
+      "reference": "Parcelle {plot}",
+      "header": "Avis aux locataires de {count} parcelle(s)",
+      "show_list": "Afficher les parcelles",
+      "hint": "Un avis par parcelle, avec son numéro. E-mail à chaque locataire qui a donné son accord ; une lettre par adresse pour les autres, même si un colocataire reçoit l'e-mail.",
+      "list_badge": "Parcelles"
     }
   },
   "inventory": {

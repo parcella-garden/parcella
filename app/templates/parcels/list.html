@@ -55,16 +55,15 @@
     </div>
 </div>
 
-{#- Issue #397: tick parcels for the CSV export or a message to their
-    current tenants. The checkboxes sit in the table rows and join this
-    form via form=. -#}
+{#- Issue #397: tick parcels for the CSV export or a notice to their
+    leaseholders (leasehold law, one notice per parcel -- ADR 0142). The
+    checkboxes sit in the table rows and join this form via form=. -#}
 {% if parcels %}
 {% set can_write_to = request.state.module_flags.announcements and is_full_access(request) %}
 <form id="parcel-pick" method="get" action="/parcels/export/csv"
       class="d-flex gap-2 align-items-center flex-wrap mb-2">
     {% if can_write_to %}
-    <input type="hidden" name="audience" value="1">
-    <input type="hidden" name="audience_query" value="">
+    <input type="hidden" name="audience_kind" value="parcels">
     {% endif %}
     <button type="button" class="btn btn-sm btn-outline-secondary" id="pick-all">{{ t('parcels.list.select_all') }}</button>
     <button type="button" class="btn btn-sm btn-outline-secondary" id="pick-none">{{ t('parcels.list.select_none') }}</button>
@@ -101,7 +100,7 @@
                     {% for p in parcels %}
                     <tr>
                         <td><input type="checkbox" class="form-check-input pick-parcel" form="parcel-pick"
-                                   name="parcels" value="{{ p.id }}"
+                                   name="parcel_ids" value="{{ p.id }}"
                                    aria-label="{{ t('parcels.list.col_select') }}: {{ p.plot_number }}"></td>
                         <td>
                             <a href="/parcels/{{ p.id }}{% if list_query_string %}?{{ list_query_string }}{% endif %}"

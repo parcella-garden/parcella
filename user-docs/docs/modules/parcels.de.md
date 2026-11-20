@@ -83,7 +83,8 @@ prüfen, z. B. die Gesamtfläche aller aktiven Parzellen.
 ### Parzellen auswählen und den Pächtern schreiben {#picking-parcels}
 
 Jede Zeile hat ein Kästchen. So kannst du Parzellen von Hand auswählen --
-zum Beispiel alle an einer Wasserleitung -- und den Leuten darauf schreiben.
+zum Beispiel alle an einer Wasserleitung -- und den Pächtern eine
+Mitteilung schicken.
 
 | Schaltfläche | Was sie tut |
 |---|---|
@@ -91,22 +92,25 @@ zum Beispiel alle an einer Wasserleitung -- und den Leuten darauf schreiben.
 | **Keine auswählen** | Entfernt alle Haken. |
 | ***N* ausgewählt** | Zählt die angehakten Parzellen. |
 | **Auswahl exportieren** | Lädt die CSV-Datei (siehe unten) nur mit den angehakten Parzellen herunter. Gesperrt, bis du eine anhakst. |
-| **An die Pächter schreiben** | Beginnt eine neue [Mitteilung](announcements.md) an alle **aktuellen** Pächter der angehakten Parzellen. Nur sichtbar, solange das Modul **Mitteilungen** an ist, und nur für Vorstand und Administratoren. |
+| **An die Pächter schreiben** | Beginnt eine neue [Mitteilung](announcements.md) an die **aktuellen** Pächter der angehakten Parzellen. Nur sichtbar, solange das Modul **Mitteilungen** an ist, und nur für Vorstand und Administratoren. |
 
-Wer was bekommt:
+Eine Mitteilung an Parzellen betrifft den **Pachtvertrag**, nicht die
+Vereinsmitgliedschaft: Sie richtet sich an die Pächter jeder Parzelle
+gemeinsam, wie die Jahresrechnung. Deshalb:
 
-- **E-Mail:** jeder Pächter mit E-Mail-Adresse, einmal je Adresse. Teilen
-  sich zwei Pächter ein Postfach, kommt die Nachricht dort einmal an.
-- **Brief:** Pächter ohne E-Mail (oder alle, mit **Auch Mitgliedern mit
-  E-Mail zusätzlich einen Brief schicken**). Pächter mit gemeinsamer
-  Postadresse bekommen **einen Brief** mit allen Namen im Adressfeld --
-  auch wenn sie verschiedene angehakte Parzellen haben. Ein Pächter an
-  einer anderen Adresse bekommt seinen eigenen Brief.
+- **Eine Mitteilung je Parzelle.** Wer zwei der angehakten Parzellen
+  gepachtet hat, bekommt zwei Mitteilungen, eine je Pachtvertrag. Jede
+  E-Mail und jeder Brief nennt die Parzelle („Parzelle 12“).
+- **E-Mail** an jeden Pächter, der Informationen per E-Mail erlaubt
+  (**Darf per E-Mail Informationen erhalten**) und eine Adresse hat.
+- **Brief** an die anderen Pächter: einer je Postadresse, mit allen dort
+  ohne E-Mail -- auch wenn jemand im selben Haushalt die E-Mail bekommen
+  hat. Mit **Auch Mitgliedern mit E-Mail zusätzlich einen Brief schicken**
+  bekommt jeder mit Postadresse einen Brief.
 - Frühere und künftige Pächter bleiben außen vor.
 
-Der Link **Diese Mitglieder anzeigen** in der Nachricht öffnet die Mitgliederliste mit
-genau diesen Pächtern: „Angezeigt werden die aktuellen Pächter von *N*
-ausgewählten Parzelle(n).“
+Für Nachrichten an Mitglieder (Vereinsnachrichten, Einladung zur
+Mitgliederversammlung) nimm stattdessen die [Mitgliederliste](members.md).
 
 ### CSV-Export {#csv-export}
 

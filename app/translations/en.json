@@ -684,8 +684,7 @@
       "export_selected": "Export selected",
       "write_to_selected": "Write to selected",
       "picked_notice": "Showing only the {count} selected members.",
-      "picked_show_all": "Show the whole list",
-      "parcels_notice": "Showing the current tenants of {count} selected parcel(s)."
+      "picked_show_all": "Show the whole list"
     },
     "form": {
       "title_edit": "Edit {name}",
@@ -848,7 +847,7 @@
       "select_none": "Select none",
       "selected_count": "{count} selected",
       "export_selected": "Export selected",
-      "write_to_selected": "Write to their tenants"
+      "write_to_selected": "Write to their leaseholders"
     },
     "form": {
       "title_edit": "Edit {plot_number}",
@@ -2075,9 +2074,7 @@
       "letter_hint": "One PDF with a letter per recipient, for windowed envelopes. Generated when you click, never stored.",
       "letter_button": "Generate {count} letter(s)",
       "list_badge": "Filtered members",
-      "filter_picked": "{count} picked by hand",
-      "filter_parcels": "{count} parcel(s) picked",
-      "household_hint": "Tenants who share a postal address get one letter with all their names; a shared email address gets the message once."
+      "filter_picked": "{count} picked by hand"
     },
     "applicants": {
       "header": "Message to {count} applicant address(es)",
@@ -2115,6 +2112,13 @@
       "result_skipped": "Nothing new to send on this channel.",
       "open_message": "Open the message",
       "close": "Close"
+    },
+    "parcels": {
+      "reference": "Parcel {plot}",
+      "header": "Notice to the leaseholders of {count} parcel(s)",
+      "show_list": "Show parcels",
+      "hint": "One notice per parcel, naming it. Email to each leaseholder who consented; one letter per address for the others, also when a housemate gets the email.",
+      "list_badge": "Parcels"
     }
   },
   "inventory": {

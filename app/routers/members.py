@@ -95,7 +95,6 @@ async def members_list(
             # rest of the filter, so export / "write to" see the same list.
             "filter_without_ids": filters.without_ids(),
             "picked_ids": set(filters.ids),
-            "picked_parcel_count": len(filters.parcels),
         },
     )
 

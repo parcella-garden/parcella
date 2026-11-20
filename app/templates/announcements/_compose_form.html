@@ -14,6 +14,10 @@
     <input type="hidden" name="audience_kind" value="applicants">
     {% for applicant_id in audience_applicant_ids %}<input type="hidden" name="applicant_ids" value="{{ applicant_id }}">
     {% endfor %}
+    {% elif preview.is_parcel_message %}
+    <input type="hidden" name="audience_kind" value="parcels">
+    {% for parcel_id in audience_parcel_ids %}<input type="hidden" name="parcel_ids" value="{{ parcel_id }}">
+    {% endfor %}
     {% elif preview.is_targeted %}
     <input type="hidden" name="audience" value="1">
     <input type="hidden" name="audience_query" value="{{ audience_query }}">
@@ -40,6 +44,16 @@
         {% if preview.is_applicant_message %}
         <div class="fw-semibold"><i class="bi bi-person-raised-hand me-1"></i>{{ t('announcements.applicants.header', count=audience.email|length) }}</div>
         <div class="text-muted">{% for applicant, address in audience.email %}{{ applicant.display_name }}{% if not loop.last %}, {% endif %}{% endfor %}</div>
+        {% elif preview.is_parcel_message %}
+        <div class="d-flex justify-content-between flex-wrap gap-2">
+            <span class="fw-semibold"><i class="bi bi-grid-3x3 me-1"></i>{{ t('announcements.parcels.header', count=audience_parcel_ids|length) }}</span>
+            <a href="{{ audience_list_url }}" target="_blank" rel="noopener" class="text-decoration-none">{{ t('announcements.parcels.show_list') }}</a>
+        </div>
+        <div class="text-muted">{{ t('announcements.parcels.hint') }}</div>
+        {% if audience.unreachable %}
+        <div class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>{{ t('announcements.audience.unreachable', count=audience.unreachable|length) }}:
+            {{ audience.unreachable | map(attribute='full_name') | join(', ') }}</div>
+        {% endif %}
         {% elif preview.is_targeted %}
         <div class="d-flex justify-content-between flex-wrap gap-2">
             <span class="fw-semibold"><i class="bi bi-people me-1"></i>{{ t('announcements.audience.header', count=audience.member_count) }}</span>
@@ -52,9 +66,7 @@
             {% if audience_filter.active_only %}<span class="badge text-bg-light border">{{ t('members.list.show_active_only') }}</span>{% endif %}
             {% if audience_filter.email_info_only %}<span class="badge text-bg-light border">{{ t('members.list.show_email_info_only') }}</span>{% endif %}
             {% if audience_filter.ids %}<span class="badge text-bg-light border"><i class="bi bi-check2-square"></i> {{ t('announcements.audience.filter_picked', count=audience_filter.ids|length) }}</span>{% endif %}
-            {% if audience_filter.parcels %}<span class="badge text-bg-light border"><i class="bi bi-grid-3x3"></i> {{ t('announcements.audience.filter_parcels', count=audience_filter.parcels|length) }}</span>{% endif %}
         </div>
-        {% if audience_filter.parcels %}<div class="text-muted">{{ t('announcements.audience.household_hint') }}</div>{% endif %}
         {% if audience.member_count <= 3 %}
         <div class="text-muted">{% for m, address in audience.email %}{{ m.full_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% if audience.email and audience.letter %}, {% endif %}{{ audience.letter | map(attribute='full_name') | join(', ') }}</div>
         {% endif %}

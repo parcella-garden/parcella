@@ -35,6 +35,7 @@ be pushed to a public blog and to every member's inbox, so authoring
 it isn't a general member-facing feature.
 """
 import base64
+from dataclasses import dataclass
 import re
 import secrets
 import urllib.parse
@@ -52,7 +53,7 @@ from sqlalchemy.orm import selectinload
 from app.database import get_db
 from app.models import (
     Announcement, AnnouncementDelivery, AnnouncementChannel, AnnouncementDeliveryStatus, Applicant, MemberTag,
-    User,
+    Parcel, User,
 )
 from app.member_filters import MemberListFilter
 from app.auth import require_admin
@@ -253,7 +254,6 @@ def _filter_from_query_string(query_string: str) -> MemberListFilter:
         email_info_only=params.get("email_info_only") == "true",
         tag=params.get("tag", ""),
         ids=parsed.get("ids", []),
-        parcels=parsed.get("parcels", []),
     )
 
 
@@ -263,6 +263,13 @@ async def _audience_context(db: AsyncSession, announcement: Announcement) -> dic
     member list showing the same filter. Empty for club news."""
     if not announcement.is_targeted:
         return {}
+    if announcement.is_parcel_message:
+        return {
+            "audience": await resolve_audience(db, announcement),
+            "parcel_audience": True,
+            "audience_parcel_ids": announcement.audience_parcel_ids,
+            "audience_list_url": "/parcels/",
+        }
     if announcement.is_applicant_message:
         return {
             "audience": await resolve_audience(db, announcement),
@@ -329,10 +336,6 @@ def _targeted_audience_query(params) -> Optional[str]:
         # next to the list's filter; fold them into one filter.
         query = _filter_from_query_string(query).without_ids().query_string()
         query = "&".join(q for q in (query, urllib.parse.urlencode({"ids": picked}, doseq=True)) if q)
-    picked_parcels = params.getlist("parcels") if hasattr(params, "getlist") else []
-    if picked_parcels and not _filter_from_query_string(query).parcels:
-        # Issue #397: parcels ticked on /parcels/ -- their current tenants.
-        query = "&".join(q for q in (query, urllib.parse.urlencode({"parcels": picked_parcels}, doseq=True)) if q)
     audience_filter = _filter_from_query_string(query)
     return None if audience_filter.is_empty() else audience_filter.query_string()
 
@@ -361,16 +364,60 @@ async def _picked_applicant_ids(request: Request, db: AsyncSession, params) -> O
     return picked
 
 
+async def _picked_parcel_ids(request: Request, db: AsyncSession, params) -> Optional[List[str]]:
+    """The parcels ticked on /parcels/ (issue #397, a notice to their
+    leaseholders), or None when this isn't one. Same rules as for
+    applicants: only existing parcels, in the order given; an empty
+    selection is refused."""
+    if params.get("audience_kind") != "parcels":
+        return None
+    await require_permission(request, db, "members_parcels", "read")
+    requested = list(dict.fromkeys(i for i in params.getlist("parcel_ids") if i and len(i) <= 36))
+    if len(requested) > MAX_PICKED_APPLICANTS:
+        raise HTTPException(status_code=400, detail="Too many parcels selected")
+    existing = set((await db.scalars(select(Parcel.id).where(Parcel.id.in_(requested)))).all()) if requested else set()
+    picked = [i for i in requested if i in existing]
+    if not picked:
+        raise HTTPException(status_code=400, detail="No parcels selected")
+    return picked
+
+
+@dataclass
+class _Picked:
+    """A hand-picked audience: applicants (#247) or parcels (#397)."""
+    kind: str
+    ids: List[str]
+
+    def apply(self, announcement: Announcement) -> None:
+        if self.kind == "parcels":
+            announcement.audience_parcel_ids = self.ids
+        else:
+            announcement.audience_applicant_ids = self.ids
+
+
+async def _picked_audience(request: Request, db: AsyncSession, params) -> Optional[_Picked]:
+    applicant_ids = await _picked_applicant_ids(request, db, params)
+    if applicant_ids is not None:
+        return _Picked("applicants", applicant_ids)
+    parcel_ids = await _picked_parcel_ids(request, db, params)
+    if parcel_ids is not None:
+        return _Picked("parcels", parcel_ids)
+    return None
+
+
 async def _new_form_context(
-    db: AsyncSession, audience_query: Optional[str], applicant_ids: Optional[List[str]] = None,
+    db: AsyncSession, audience_query: Optional[str], picked: Optional[_Picked] = None,
 ) -> dict:
     """For "write to these members" (issue #242): audience_query is the
     /members/ filter it was started from, None for club news; for
-    "write to the selected applicants" (issue #247) applicant_ids. The
+    "write to the selected applicants" (issue #247) or "write to their
+    leaseholders" (issue #397) the picked ids. The
     preview uses a transient Announcement that's never added to the
     session."""
-    if applicant_ids is not None:
-        return await _audience_context(db, Announcement(audience_applicant_ids=applicant_ids))
+    if picked is not None:
+        preview = Announcement()
+        picked.apply(preview)
+        return await _audience_context(db, preview)
     if audience_query is None:
         return {}
     preview = Announcement(audience_filter=_filter_from_query_string(audience_query).to_dict())
@@ -420,11 +467,11 @@ def _entered_values(form) -> dict:
 @router.get("/new", response_class=HTMLResponse)
 async def announcement_new_form(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_admin(request, db)
-    applicant_ids = await _picked_applicant_ids(request, db, request.query_params)
-    audience_query = None if applicant_ids is not None else _targeted_audience_query(request.query_params)
+    picked = await _picked_audience(request, db, request.query_params)
+    audience_query = None if picked is not None else _targeted_audience_query(request.query_params)
     return templates.TemplateResponse("announcements/form.html", {
         "request": request, "user": user, "announcement": None, "error": None,
-        **await _new_form_context(db, audience_query, applicant_ids),
+        **await _new_form_context(db, audience_query, picked),
     })
 
 
@@ -436,7 +483,7 @@ class _FormRejected(Exception):
         self.error = error
 
 
-async def _announcement_from_form(form, user, applicant_ids, audience_query) -> Announcement:
+async def _announcement_from_form(form, user, picked, audience_query) -> Announcement:
     """A new Announcement from the "new message" form (the page and the
     compose popup, issue #345), not yet added to the session. Raises
     _FormRejected for a missing title/text or a refused image."""
@@ -462,8 +509,10 @@ async def _announcement_from_form(form, user, applicant_ids, audience_query) -> 
         summary=_clean_summary(form.get("summary")),
         created_by_id=user.id,
     )
-    if applicant_ids is not None:
-        announcement.audience_applicant_ids = applicant_ids
+    if picked is not None:
+        picked.apply(announcement)
+        if picked.kind == "parcels":
+            announcement.letters_for_all = form.get("letters_for_all") == "true"
     elif audience_query is not None:
         announcement.audience_filter = _filter_from_query_string(audience_query).to_dict()
         announcement.letters_for_all = form.get("letters_for_all") == "true"
@@ -477,15 +526,15 @@ async def announcement_create(
 ):
     user = await require_admin(request, db)
     form = await request.form()
-    applicant_ids = await _picked_applicant_ids(request, db, form)
-    audience_query = None if applicant_ids is not None else _targeted_audience_query(form)
+    picked = await _picked_audience(request, db, form)
+    audience_query = None if picked is not None else _targeted_audience_query(form)
 
     try:
-        announcement = await _announcement_from_form(form, user, applicant_ids, audience_query)
+        announcement = await _announcement_from_form(form, user, picked, audience_query)
     except _FormRejected as e:
         return templates.TemplateResponse("announcements/form.html", {
             "request": request, "user": user, "announcement": None, "entered": _entered_values(form),
-            "error": e.error, **await _new_form_context(db, audience_query, applicant_ids),
+            "error": e.error, **await _new_form_context(db, audience_query, picked),
         }, status_code=400)
     db.add(announcement)
     await db.commit()
@@ -568,11 +617,11 @@ def _compose_form_response(context: dict, status_code: int = 200, **extra) -> JS
 async def announcement_compose_form(request: Request, db: AsyncSession = Depends(get_db)):
     """The popup's form, for the same audience parameters as /new."""
     user = await require_admin(request, db)
-    applicant_ids = await _picked_applicant_ids(request, db, request.query_params)
-    audience_query = None if applicant_ids is not None else _targeted_audience_query(request.query_params)
+    picked = await _picked_audience(request, db, request.query_params)
+    audience_query = None if picked is not None else _targeted_audience_query(request.query_params)
     preview = Announcement()
-    if applicant_ids is not None:
-        preview.audience_applicant_ids = applicant_ids
+    if picked is not None:
+        picked.apply(preview)
     elif audience_query is not None:
         preview.audience_filter = _filter_from_query_string(audience_query).to_dict()
     context = await _compose_context(request, db, user, preview)
@@ -673,14 +722,14 @@ async def announcement_compose(
             return _compose_form_response(context, 400, error=e.error, entered=_entered_values(form),
                                           test_email_value=form.get("test_email") or user.email)
     else:
-        applicant_ids = await _picked_applicant_ids(request, db, form)
-        audience_query = None if applicant_ids is not None else _targeted_audience_query(form)
+        picked = await _picked_audience(request, db, form)
+        audience_query = None if picked is not None else _targeted_audience_query(form)
         try:
-            announcement = await _announcement_from_form(form, user, applicant_ids, audience_query)
+            announcement = await _announcement_from_form(form, user, picked, audience_query)
         except _FormRejected as e:
             preview = Announcement()
-            if applicant_ids is not None:
-                preview.audience_applicant_ids = applicant_ids
+            if picked is not None:
+                picked.apply(preview)
             elif audience_query is not None:
                 preview.audience_filter = _filter_from_query_string(audience_query).to_dict()
             context = await _compose_context(request, db, user, preview)
@@ -1173,7 +1222,8 @@ async def generate_letter_channel(db: AsyncSession, announcement: Announcement) 
         delivery = AnnouncementDelivery(announcement_id=announcement.id, channel=AnnouncementChannel.LETTER)
         db.add(delivery)
 
-    recipients = (await resolve_audience(db, announcement)).letter_groups
+    audience = await resolve_audience(db, announcement)
+    recipients = audience.letter_groups
     delivery.sent_at = datetime.now(timezone.utc)
     if not recipients:
         delivery.status = AnnouncementDeliveryStatus.FAILED
@@ -1183,9 +1233,11 @@ async def generate_letter_channel(db: AsyncSession, announcement: Announcement) 
 
     branding = await load_branding(db)
     logo_path = Path("app" + branding["logo_url"]) if branding["logo_url"] else None
+    language = await load_current_language(db)
+    references = [translate("announcements.parcels.reference", language, plot=plot) for plot in audience.letter_refs]
     pdf_bytes = render_announcement_letters_pdf(
         announcement, recipients, await load_org_footer_context(db, branding["club_name"]),
-        logo_path, await load_current_region(db), await load_current_language(db),
+        logo_path, await load_current_region(db), language, references=references or None,
     )
     delivery.status = AnnouncementDeliveryStatus.SENT
     # Only the count -- names stay out of the database like the PDF itself.

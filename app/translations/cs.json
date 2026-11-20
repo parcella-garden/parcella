@@ -684,8 +684,7 @@
       "export_selected": "Exportovat vybrané",
       "write_to_selected": "Napsat vybraným",
       "picked_notice": "Zobrazeni jsou jen vybraní členové ({count}).",
-      "picked_show_all": "Zobrazit celý seznam",
-      "parcels_notice": "Zobrazeni jsou současní nájemci vybraných parcel (počet: {count})."
+      "picked_show_all": "Zobrazit celý seznam"
     },
     "form": {
       "title_edit": "Upravit {name}",
@@ -2075,9 +2074,7 @@
       "letter_hint": "Jedno PDF s dopisem pro každého příjemce, do obálek s okénkem. Vytvoří se po kliknutí, neukládá se.",
       "letter_button": "Vytvořit dopisy ({count})",
       "list_badge": "Vybraní členové",
-      "filter_picked": "Ručně vybráno: {count}",
-      "filter_parcels": "Vybrané parcely: {count}",
-      "household_hint": "Nájemci se stejnou poštovní adresou dostanou jeden dopis se všemi jmény; společná e-mailová adresa dostane zprávu jednou."
+      "filter_picked": "Ručně vybráno: {count}"
     },
     "applicants": {
       "header": "Zpráva na {count} adres(y) uchazečů",
@@ -2115,6 +2112,13 @@
       "result_skipped": "Tímto kanálem není co nového odeslat.",
       "open_message": "Otevřít zprávu",
       "close": "Zavřít"
+    },
+    "parcels": {
+      "reference": "Parcela {plot}",
+      "header": "Sdělení nájemcům parcel (počet: {count})",
+      "show_list": "Zobrazit parcely",
+      "hint": "Jedno sdělení na parcelu, s jejím číslem. E-mail každému nájemci, který dal souhlas; jeden dopis na adresu pro ostatní, i když spolubydlící dostane e-mail.",
+      "list_badge": "Parcely"
     }
   },
   "inventory": {

@@ -691,7 +691,7 @@ async def parcel_cloud_file_download(
 
 @router.get("/export/csv")
 async def parcels_export_csv(
-    request: Request, parcels: List[str] = Query(default=[]), db: AsyncSession = Depends(get_db),
+    request: Request, parcel_ids: List[str] = Query(default=[]), db: AsyncSession = Depends(get_db),
 ):
     """Every parcel, or only the ones ticked on the list (issue #397)."""
     await require_permission(request, db, "members_parcels", "read")
@@ -703,7 +703,7 @@ async def parcels_export_csv(
         )
         .order_by(Parcel.plot_number)
     )
-    picked = clean_member_ids(parcels)
+    picked = clean_member_ids(parcel_ids)
     if picked:
         query = query.where(Parcel.id.in_(picked))
     result = await db.execute(query)

@@ -424,20 +424,21 @@ a filtered `/members/` list -- "everyone tagged *water responsible*",
   picked member who no longer matches it (or was deleted) drops out.
   "Write to this member" on a member's detail page (issue #344) is the
   same thing with one id (plus `include_inactive` for a former member).
-- **Picked parcels** (issue #397): "Write to their tenants" on
-  `/parcels/` sends `audience=1`, an empty `audience_query` and the
-  ticked `parcels`; `_targeted_audience_query` folds them into
-  `MemberListFilter.parcels`, which matches the parcels' **current**
-  tenants (`current_tenant_filter`, resolved at send time like every
-  other filter field). No new column: it's a member-list filter like
-  `ids`. Only for these messages, `resolve_audience` merges by
-  household: an email address shared by several tenants gets the
-  message once (`duplicates` counts the rest), and letters are grouped
-  by normalized postal address across all picked parcels
-  (`Audience.letter_groups`, `group_by_postal_address`), one letter
-  naming everyone in the group. Messages to members keep one letter
-  per person. Letter counts in the form and the popup are
-  `letter_groups`, not people.
+- **Picked parcels** (issue #397, ADR 0142): its own message kind,
+  not a member filter -- leasehold law, not association law.
+  "Write to their leaseholders" on `/parcels/` sends
+  `audience_kind=parcels` and `parcel_ids` (`_picked_parcel_ids`, like
+  `_picked_applicant_ids`; needs members/parcels read), stored in
+  `Announcement.audience_parcel_ids` (migration 0131).
+  `_resolve_parcel_audience` goes parcel by parcel (plot number order):
+  current leaseholders; email to each with consent (email
+  notifications on and an address, one per address within a parcel);
+  one letter per normalized postal address for the others
+  (`group_by_postal_address`), also when a housemate got the email.
+  A double garden gets one notice per parcel. `Audience.email_refs` /
+  `letter_refs` carry the plot number: the paced send puts "Parcel N"
+  into each email's text and subject, letters print it above the title.
+  Offers email and letters, like messages to members.
 
 Known gaps: no per-recipient delivery log (channel-level, as for club
 news); the audience isn't frozen at send time -- someone tagged between

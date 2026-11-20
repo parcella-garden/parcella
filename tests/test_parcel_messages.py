@@ -1,9 +1,10 @@
 """
-Issue #397: tick parcels on /parcels/ and write to the people on them.
-Everyone currently on a ticked parcel is in the audience; a household
-(same postal address, across all ticked parcels) gets one letter with
-all its names, and an email address shared by several tenants gets the
-message once.
+Issue #397: tick parcels on /parcels/ and send a notice to their
+leaseholders. Leasehold law, not association law (ADR 0142): one notice
+per parcel -- a "double garden" couple gets two -- to its current
+leaseholders. Email to each who consented; one letter per postal
+address for the others, also when a housemate got the email. Every
+email and letter names its parcel.
 """
 import io
 from datetime import date, timedelta
@@ -22,16 +23,16 @@ async def _setup(client):
     await _enable_module(client, auth_header(await login(client, "admin@example.com")))
     await web_login(client, "admin@example.com")
     async with AsyncSessionLocal() as db:
-        def member(first, last, street, city, email=None):
-            m = Member(first_name=first, last_name=last, street=street, postal_code="04103", city=city)
+        def member(first, last, street, city, email=None, consent=True):
+            m = Member(first_name=first, last_name=last, street=street, postal_code="04103", city=city,
+                       email_notifications=consent)
             if email:
                 m.email_addresses.append(MemberEmail(address=email, is_primary=True))
             db.add(m)
             return m
 
-        anna = member("Anna", "Haus", "Lindenweg 1", "Leipzig", email="haus@example.org")
-        emil = member("Emil", "Haus", "Lindenweg 1", "Leipzig", email="HAUS@example.org ")  # same inbox
-        bernd = member("Bernd", "Haus", "Lindenweg 1", "Leipzig")
+        anna = member("Anna", "Haus", "Lindenweg 1", "Leipzig", email="anna@example.org")
+        bernd = member("Bernd", "Haus", "Lindenweg 1", "Leipzig", email="bernd@example.org", consent=False)
         berta = member("Berta", "Haus", " lindenweg 1 ", "LEIPZIG")
         clara = member("Clara", "Fern", "Am Hang 7", "Dresden")
         gone = member("Gerd", "Gegangen", "Altweg 3", "Leipzig")
@@ -41,8 +42,8 @@ async def _setup(client):
         await db.flush()
         db.add_all([
             MemberParcel(member_id=anna.id, parcel_id=one.id), MemberParcel(member_id=bernd.id, parcel_id=one.id),
-            MemberParcel(member_id=berta.id, parcel_id=two.id), MemberParcel(member_id=clara.id, parcel_id=two.id),
-            MemberParcel(member_id=emil.id, parcel_id=two.id),
+            MemberParcel(member_id=berta.id, parcel_id=one.id),
+            MemberParcel(member_id=anna.id, parcel_id=two.id), MemberParcel(member_id=clara.id, parcel_id=two.id),
             MemberParcel(member_id=gone.id, parcel_id=one.id, assigned_until=date.today() - timedelta(days=30)),
             MemberParcel(member_id=udo.id, parcel_id=other.id),
         ])
@@ -54,61 +55,63 @@ def _pdf_pages(data: bytes) -> list:
     return [" ".join(p.extract_text().split()) for p in PdfReader(io.BytesIO(data)).pages]
 
 
-async def test_write_to_the_tenants_of_picked_parcels(client, admin_user, monkeypatch):
+async def test_notice_to_the_leaseholders_of_picked_parcels(client, admin_user, monkeypatch):
     one, two, other = await _setup(client)
 
     page = await client.get("/parcels/")
-    assert 'id="parcel-pick"' in page.text and f'value="{one}"' in page.text and "Write to their tenants" in page.text
+    assert 'name="audience_kind" value="parcels"' in page.text and f'value="{one}"' in page.text
+    assert "Write to their leaseholders" in page.text
 
-    export = await client.get("/parcels/export/csv", params=[("parcels", one)])
+    export = await client.get("/parcels/export/csv", params=[("parcel_ids", one)])
     assert "P-397-1" in export.text and "P-397-2" not in export.text and "P-397-3" not in export.text
 
-    # The pick form: audience=1, an empty member filter and the ticked parcels.
-    picked = [("audience", "1"), ("audience_query", ""), ("parcels", one), ("parcels", two)]
+    picked = [("audience_kind", "parcels"), ("parcel_ids", one), ("parcel_ids", two)]
     preview = await client.get("/announcements/new", params=picked)
-    assert preview.status_code == 200 and "2 parcel(s) picked" in preview.text
-    assert "Tenants who share a postal address get one letter" in preview.text
+    assert preview.status_code == 200 and "Notice to the leaseholders of 2 parcel(s)" in preview.text
+    assert "One notice per parcel" in preview.text and 'href="/parcels/"' in preview.text
 
     response = await client.post("/announcements/new", data={
         "title": "Wasser", "body_markdown": "Am Samstag wird das Wasser abgestellt.",
-        "audience": "1", "audience_query": "", "parcels": [one, two],
+        "audience_kind": "parcels", "parcel_ids": [one, two],
     })
     assert response.status_code == 303, response.text
     stored = await _announcement(response.headers["location"].split("/")[2])
-    assert sorted(stored.audience_filter["parcels"]) == sorted([one, two])
+    assert stored.audience_parcel_ids == [one, two] and stored.audience_filter is None
+    assert stored.is_parcel_message and stored.is_targeted
 
-    # "Show the list" from the message: the current tenants only.
-    members_page = await client.get("/members/?" + MemberListFilter(parcels=(one, two)).query_string())
-    assert "Showing the current tenants of 2 selected parcel(s)." in members_page.text
-    assert "Gegangen" not in members_page.text and "Unbeteiligt" not in members_page.text and "Fern" in members_page.text
-
-    sent_to = []
+    sent = []
 
     async def fake_send_email(to, subject, html_body, text_body=None, db=None):
-        sent_to.append(to)
+        sent.append((to, subject, html_body))
         return True
 
     monkeypatch.setattr("app.announcement_mailer.send_email", fake_send_email)
     assert (await client.post(f"/announcements/{stored.id}/send/email")).status_code == 303
-    assert len(sent_to) == 1 and sent_to[0].strip().lower() == "haus@example.org", "one email per inbox"
+    # Anna consented and holds both parcels: one email per parcel, each
+    # naming it. Bernd has an address but no consent: no email.
+    assert sorted((to, subject) for to, subject, _ in sent) == [
+        ("anna@example.org", "Wasser – Parcel P-397-1"), ("anna@example.org", "Wasser – Parcel P-397-2"),
+    ]
+    assert all("Parcel P-397-" in html for _, _, html in sent)
 
-    # Letters: Bernd and Berta share an address across both parcels ->
-    # one letter; Clara lives elsewhere -> her own.
+    # Letters: parcel 1 -> Bernd and Berta share an address (one letter,
+    # although Anna there got the email); parcel 2 -> Clara.
     letters = await client.post(f"/announcements/{stored.id}/letters")
     assert letters.headers["content-type"] == "application/pdf"
     pages = _pdf_pages(letters.content)
     assert len(pages) == 2
-    household = next(p for p in pages if "Bernd Haus" in p)
-    assert "Berta Haus" in household and "Clara Fern" not in household
-    assert any("Clara Fern" in p and "Am Hang 7" in p for p in pages)
+    first = next(p for p in pages if "Bernd Haus" in p)
+    assert "Berta Haus" in first and "Parcel P-397-1" in first and "Anna Haus" not in first
+    assert any("Clara Fern" in p and "Am Hang 7" in p and "Parcel P-397-2" in p for p in pages)
     assert not any("Gegangen" in p or "Unbeteiligt" in p for p in pages)
 
 
-async def test_member_messages_still_get_one_letter_per_person(client, admin_user):
-    """Without picked parcels nothing is merged (issue #242 unchanged)."""
-    one, two, _ = await _setup(client)
+async def test_member_messages_are_unchanged(client, admin_user):
+    """A message to members stays one letter per person (association law
+    is a separate matter, its rules come in their own change)."""
+    await _setup(client)
     async with AsyncSessionLocal() as db:
-        ids = [m.id for m in (await db.execute(
+        ids = [row.id for row in (await db.execute(
             Member.__table__.select().where(Member.last_name == "Haus", Member.first_name.in_(["Bernd", "Berta"]))
         )).all()]
     response = await client.post("/announcements/new", data={
@@ -116,13 +119,12 @@ async def test_member_messages_still_get_one_letter_per_person(client, admin_use
         "audience_query": MemberListFilter(ids=tuple(ids)).query_string(),
     })
     stored = await _announcement(response.headers["location"].split("/")[2])
+    assert stored.audience_parcel_ids is None
     letters = await client.post(f"/announcements/{stored.id}/letters")
-    assert len(_pdf_pages(letters.content)) == 2
+    assert len(_pdf_pages(letters.content)) == 1  # Bernd has an email address, so only Berta gets a letter
 
 
-def test_member_filter_carries_picked_parcels():
-    f = MemberListFilter(parcels=("p1", "p1", " ", "p2"))
-    assert f.parcels == ("p1", "p2")
-    assert MemberListFilter.from_dict(f.to_dict()) == f
-    assert f.without_ids().parcels == ("p1", "p2") and not f.is_empty()
-    assert "parcels=p1&parcels=p2" in f.query_string()
+async def test_picked_parcels_need_existing_parcels(client, admin_user):
+    await _setup(client)
+    response = await client.get("/announcements/new", params=[("audience_kind", "parcels"), ("parcel_ids", "nope")])
+    assert response.status_code == 400

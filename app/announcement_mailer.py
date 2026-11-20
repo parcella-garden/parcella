@@ -50,11 +50,13 @@ letter recipients (app/announcement_letters.py) and unreachable ones.
 The email-info opt-out doesn't apply there -- a message to the water
 team is operational, not a newsletter (kermie's call, ADR 0095).
 
-Issue #397 added messages to the tenants of parcels picked on
-/parcels/ (MemberListFilter.parcels): everyone on those parcels, but a
-household gets one letter with all its names (same address, compared
-like the invoice copies of #396), and an email address shared by
-several tenants gets the message once.
+Issue #397 added notices to the leaseholders of parcels picked on
+/parcels/ (Announcement.audience_parcel_ids). That's leasehold law, not
+association law (ADR 0142): one notice per parcel -- a couple holding
+two parcels gets two -- to its current leaseholders jointly. Email to
+each leaseholder who consented (email notifications on), one letter per
+postal address for the others, also when a housemate got the email.
+Every email and letter names its parcel.
 
 Issue #247 added messages to applicants picked on /applicants/
 (Announcement.audience_applicant_ids, ADR 0112): email only, and an
@@ -74,13 +76,13 @@ from sqlalchemy.orm import selectinload
 from app.database import AsyncSessionLocal, active_member_filter
 from app.models import (
     Announcement, AnnouncementChannel, AnnouncementDelivery,
-    AnnouncementDeliveryStatus, Applicant, Member,
+    AnnouncementDeliveryStatus, Applicant, Member, MemberParcel, Parcel,
 )
 from app.email_service import send_email
 from app.member_filters import MemberListFilter
 from app.insurance_utils import _normalized_address
 from app.branding import load_branding
-from app.i18n import t_for
+from app.i18n import load_current_language, t_for, translate as t_for_language
 
 logger = logging.getLogger(__name__)
 
@@ -139,9 +141,14 @@ class Audience:
     unreachable: List[Member] = field(default_factory=list)
     duplicates: int = 0
     # One entry per letter to print: the members it's addressed to.
-    # One member each, except for messages to picked parcels (#397),
-    # where people sharing a postal address get one letter together.
+    # One member each, except for notices to picked parcels (#397),
+    # where leaseholders sharing a postal address get one letter.
     letter_groups: List[List[Member]] = field(default_factory=list)
+    # Notices to picked parcels only: the plot number each email
+    # (parallel to `email`) and each letter (parallel to
+    # `letter_groups`) is about.
+    email_refs: List[str] = field(default_factory=list)
+    letter_refs: List[str] = field(default_factory=list)
 
     @property
     def member_count(self) -> int:
@@ -164,24 +171,64 @@ async def resolve_audience(db: AsyncSession, announcement: Announcement) -> Audi
     if announcement.is_applicant_message:
         return await _resolve_applicant_audience(db, announcement.audience_applicant_ids)
 
-    audience_filter = MemberListFilter.from_dict(announcement.audience_filter)
-    members = (await db.scalars(audience_filter.apply().options(selectinload(Member.email_addresses)))).all()
-    by_household = bool(audience_filter.parcels)
+    if announcement.is_parcel_message:
+        return await _resolve_parcel_audience(db, announcement.audience_parcel_ids, announcement.letters_for_all)
+
+    members = (await db.scalars(
+        MemberListFilter.from_dict(announcement.audience_filter).apply()
+        .options(selectinload(Member.email_addresses))
+    )).all()
     audience = Audience()
-    seen_addresses = set()
     for member in members:
         address = primary_email(member)
         if address:
-            if by_household and address.strip().lower() in seen_addresses:
-                audience.duplicates += 1
-            else:
-                seen_addresses.add(address.strip().lower())
-                audience.email.append((member, address))
+            audience.email.append((member, address))
         if (address is None or announcement.letters_for_all) and has_postal_address(member):
             audience.letter.append(member)
         elif address is None:
             audience.unreachable.append(member)
-    audience.letter_groups = group_by_postal_address(audience.letter) if by_household else [[m] for m in audience.letter]
+    audience.letter_groups = [[m] for m in audience.letter]
+    return audience
+
+
+async def _resolve_parcel_audience(db: AsyncSession, parcel_ids: List[str], letters_for_all: bool) -> Audience:
+    """Issue #397, leasehold law (ADR 0142): per picked parcel, in plot
+    number order, its current leaseholders. Email to each who consented
+    (email notifications on and an address; one per address within a
+    parcel); the others get a letter, one per postal address, naming
+    them -- also when someone they live with got the email. With
+    letters_for_all, everyone with a postal address gets the letter too.
+    A deleted parcel or member is simply gone."""
+    parcels = (await db.scalars(
+        select(Parcel)
+        .where(Parcel.id.in_(parcel_ids or []))
+        .options(selectinload(Parcel.member_assignments).selectinload(MemberParcel.member)
+                 .selectinload(Member.email_addresses))
+        .order_by(Parcel.plot_number)
+    )).all()
+    audience = Audience()
+    for parcel in parcels:
+        leaseholders = sorted(
+            (a.member for a in parcel.member_assignments if a.is_current and a.member.deleted_at is None),
+            key=lambda m: ((m.last_name or "").lower(), (m.first_name or "").lower(), m.id),
+        )
+        seen, by_post = set(), []
+        for member in leaseholders:
+            address = primary_email(member) if member.email_notifications else None
+            if address and address.strip().lower() in seen:
+                audience.duplicates += 1
+            elif address:
+                seen.add(address.strip().lower())
+                audience.email.append((member, address))
+                audience.email_refs.append(parcel.plot_number)
+            if (address is None or letters_for_all) and has_postal_address(member):
+                by_post.append(member)
+            elif address is None:
+                audience.unreachable.append(member)
+        for group in group_by_postal_address(by_post):
+            audience.letter.extend(group)
+            audience.letter_groups.append(group)
+            audience.letter_refs.append(parcel.plot_number)
     return audience
 
 
@@ -222,13 +269,17 @@ async def _resolve_image_url(announcement: Announcement, base_url: str) -> Optio
 
 def build_announcement_email_html(
     announcement: Announcement, club_name: str, image_url: Optional[str], test_banner: bool = False,
-    banner_text: Optional[str] = None,
+    banner_text: Optional[str] = None, reference: Optional[str] = None,
 ) -> str:
     """Wraps the announcement's canonical body_html (same content as
     the blog draft) in a minimal, branded email shell. test_banner adds
     a small notice at the top so a test send is never mistaken for the
     real thing, without changing the actual announcement content being
-    previewed."""
+    previewed. `reference` ("Parcel 12", notices to picked parcels,
+    issue #397) is shown above the title."""
+    reference_block = (
+        f'<p style="font-weight: bold; margin-bottom: 0.25rem;">{escape(reference)}</p>' if reference else ""
+    )
     image_block = (
         f'<p><img src="{image_url}" alt="{escape(announcement.image_alt or "")}" style="max-width: 100%; height: auto; border-radius: 4px;"></p>'
         if image_url else ""
@@ -250,6 +301,7 @@ def build_announcement_email_html(
     {preheader}
     {banner}
     <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 0.5rem;">{escape(club_name)}</p>
+    {reference_block}
     <h2 style="margin-top: 0;">{escape(announcement.title)}</h2>
     {image_block}
     <div>{announcement.body_html}</div>
@@ -321,8 +373,14 @@ async def run_paced_email_send(announcement_id: str, base_url: str) -> None:
             branding = await load_branding(db)
             image_url = await _resolve_image_url(announcement, base_url)
             html_body = build_announcement_email_html(announcement, branding["club_name"], image_url)
-
-            recipients = (await resolve_audience(db, announcement)).email
+            audience = await resolve_audience(db, announcement)
+            recipients = audience.email
+            # Notices to picked parcels (issue #397): each email names its
+            # parcel, in the text and the subject.
+            language = await load_current_language(db)
+            references = [
+                t_for_language("announcements.parcels.reference", language, plot=plot) for plot in audience.email_refs
+            ]
 
             delivery_result = await db.execute(
                 select(AnnouncementDelivery).where(
@@ -338,8 +396,16 @@ async def run_paced_email_send(announcement_id: str, base_url: str) -> None:
             failure_count = 0
             for batch_start in range(0, len(recipients), EMAIL_BATCH_SIZE):
                 batch = recipients[batch_start:batch_start + EMAIL_BATCH_SIZE]
-                for _member, address in batch:
-                    sent = await send_email(address, announcement.title, html_body, db=db)
+                for offset, (_member, address) in enumerate(batch):
+                    reference = references[batch_start + offset] if references else None
+                    if reference:
+                        sent = await send_email(
+                            address, f"{announcement.title} – {reference}",
+                            build_announcement_email_html(announcement, branding["club_name"], image_url, reference=reference),
+                            db=db,
+                        )
+                    else:
+                        sent = await send_email(address, announcement.title, html_body, db=db)
                     if sent:
                         success_count += 1
                     else:

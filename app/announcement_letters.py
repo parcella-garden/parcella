@@ -36,16 +36,21 @@ LETTER_CSS = ADDRESS_WINDOW_CSS + """
 .letter + .letter { page-break-before: always; }
 .letter-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.2cm; }
 .letter-date { color: #4b5563; white-space: nowrap; }
+.letter .letter-ref { font-weight: bold; margin-bottom: 0.15cm; }
 .letter h1 { font-size: 13pt; margin: 0 0 0.5cm 0; color: #1f2937; }
 .letter .body { line-height: 1.45; }
 .letter .body img { max-width: 100%; }
 """
 
 
-def _letter_html(announcement: Announcement, members: List[Member], sender: str, region: str, today: date) -> str:
-    """One letter to `members` -- usually one person; several who share
-    a postal address for a message to picked parcels (issue #397), all
-    named in the address window."""
+def _letter_html(
+    announcement: Announcement, members: List[Member], sender: str, region: str, today: date,
+    reference: Optional[str] = None,
+) -> str:
+    """One letter to `members` -- usually one person; for a notice to
+    picked parcels (issue #397) the leaseholders of one parcel who share
+    a postal address, all named in the address window, with `reference`
+    ("Parcel 12") above the title."""
     first = members[0]
     address_lines = format_address_lines(first.street, first.postal_code, first.city, region)
     recipient = "<br>".join(escape(line) for line in [*(m.full_name for m in members), *address_lines])
@@ -58,6 +63,7 @@ def _letter_html(announcement: Announcement, members: List[Member], sender: str,
             </div>
             <div class="letter-date din-info">{today.strftime('%d.%m.%Y')}</div>
         </div>
+        {f'<div class="letter-ref">{escape(reference)}</div>' if reference else ''}
         <h1>{escape(announcement.title)}</h1>
         <div class="body">{announcement.body_html}</div>
     </div>
@@ -67,13 +73,15 @@ def _letter_html(announcement: Announcement, members: List[Member], sender: str,
 def render_announcement_letters_pdf(
     announcement: Announcement, letters: List[List[Member]], footer_context: OrgFooterContext,
     logo_path: Optional[Path], region: str, language: str, today: Optional[date] = None,
+    references: Optional[List[str]] = None,
 ) -> bytes:
     """One PDF, one letter per entry of `letters` (Audience.letter_groups,
     in the given order), each addressed to the members in it. Caller
     passes only members with a postal address (resolve_audience)."""
     today = today or date.today()
     sender = sender_line(footer_context.club_name, footer_context.address_lines)
-    body = "".join(_letter_html(announcement, group, sender, region, today) for group in letters)
+    refs = references or [None] * len(letters)
+    body = "".join(_letter_html(announcement, group, sender, region, today, ref) for group, ref in zip(letters, refs))
     html_doc = wrap_document(
         body, footer_context.club_name, logo_path, org_footer_html(footer_context, language),
         language, extra_css=LETTER_CSS, din_marks=True,

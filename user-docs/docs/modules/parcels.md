@@ -66,7 +66,7 @@ page keep the filter you came from.
 
 | Column | What it shows |
 |---|---|
-| Checkbox | Selects the parcel for **Export selected** or **Write to their tenants** (see below). |
+| Checkbox | Selects the parcel for **Export selected** or **Write to their leaseholders** (see below). |
 | **Plot number** | Click it to open the parcel. |
 | **Area** | Area in square metres, or "–". |
 | **Status** | **active**, **terminated**, **communal** or **deleted**. |
@@ -77,10 +77,11 @@ The footer shows the number of parcels in the list and, if areas are
 recorded, their total area -- handy to check a filtered selection, e.g.
 the total area of all active parcels.
 
-### Picking parcels and writing to their tenants {#picking-parcels}
+### Picking parcels and writing to their leaseholders {#picking-parcels}
 
 Every row has a checkbox, so you can pick parcels by hand -- for example
-all parcels along one water pipe -- and write to the people on them.
+all parcels along one water pipe -- and send a notice to the people who
+lease them.
 
 | Button | What it does |
 |---|---|
@@ -88,21 +89,25 @@ all parcels along one water pipe -- and write to the people on them.
 | **Select none** | Clears all ticks. |
 | ***N* selected** | Counts the ticked parcels. |
 | **Export selected** | Downloads the CSV file (see below) with only the ticked parcels. Disabled until you tick one. |
-| **Write to their tenants** | Starts a new [announcement](announcements.md) to everyone who is a **current** tenant of a ticked parcel. Only shown while the **Announcements** module is on, and only to board members and administrators. |
+| **Write to their leaseholders** | Starts a new [announcement](announcements.md) to the **current** leaseholders of the ticked parcels. Only shown while the **Announcements** module is on, and only to board members and administrators. |
 
-Who gets what:
+A notice to parcels concerns the **lease**, not the club membership:
+it's addressed to the leaseholders of each parcel together, like the
+annual invoice. So:
 
-- **E-mail:** every tenant with an e-mail address, once per address. If
-  two tenants share one inbox, it gets the message once.
-- **Letter:** tenants without e-mail (or everyone, with **Also send a
-  letter to members who get the email**). Tenants who share a postal
-  address get **one letter** with all their names in the address window
-  -- also when they hold different ticked parcels. A tenant at another
-  address gets their own letter.
-- Former and upcoming tenants are left out.
+- **One notice per parcel.** Someone who leases two of the ticked
+  parcels gets two notices, one for each lease. Every e-mail and letter
+  names its parcel ("Parcel 12").
+- **E-mail** to every leaseholder who allows information by e-mail
+  (**May receive information by email**) and has an address.
+- **Letter** to the other leaseholders: one per postal address, naming
+  everyone there without e-mail -- also when someone they live with got
+  the e-mail. With **Also send a letter to members who get the email**,
+  everyone with a postal address gets a letter.
+- Former and upcoming leaseholders are left out.
 
-The message's **Show these members** link opens the member list with just these
-tenants: "Showing the current tenants of *N* selected parcel(s)."
+For messages to members (club news, invitations to a general meeting)
+use the [member list](members.md) instead.
 
 ### CSV export
 

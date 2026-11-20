@@ -64,6 +64,36 @@
             <div class="form-text">{{ t('announcements.applicants.hint') }}</div>
         </div>
     </div>
+    {% elif parcel_audience %}
+    {#- Issue #397: a notice to the leaseholders of the parcels ticked on
+        /parcels/ (leasehold law, ADR 0142). -#}
+    {% if not announcement %}
+    <input type="hidden" name="audience_kind" value="parcels">
+    {% for parcel_id in audience_parcel_ids %}<input type="hidden" name="parcel_ids" value="{{ parcel_id }}">
+    {% endfor %}
+    {% endif %}
+    <div class="card mb-3 border-primary-subtle">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span><i class="bi bi-grid-3x3 me-2"></i>{{ t('announcements.parcels.header', count=audience_parcel_ids|length) }}</span>
+            <a href="{{ audience_list_url }}" class="small text-decoration-none">{{ t('announcements.parcels.show_list') }}</a>
+        </div>
+        <div class="card-body" style="font-size: 0.9rem;">
+            <ul class="list-unstyled mb-2">
+                <li><i class="bi bi-envelope me-1"></i>{{ t('announcements.audience.by_email', count=audience.email|length) }}</li>
+                <li><i class="bi bi-mailbox me-1"></i>{{ t('announcements.audience.by_letter', count=audience.letter_groups|length) }}</li>
+                {% if audience.unreachable %}
+                <li class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>{{ t('announcements.audience.unreachable', count=audience.unreachable|length) }}:
+                    {% for m in audience.unreachable %}<a href="/members/{{ m.id }}" class="text-danger">{{ m.full_name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</li>
+                {% endif %}
+            </ul>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="letters_for_all" value="true" id="letters_for_all_parcels"
+                       {% if letters_for_all_value %}checked{% endif %}>
+                <label class="form-check-label" for="letters_for_all_parcels">{{ t('announcements.audience.letters_for_all') }}</label>
+            </div>
+            <div class="form-text">{{ t('announcements.parcels.hint') }}</div>
+        </div>
+    </div>
     {% elif audience %}
     {#- Issue #242: a message to filtered members, started from /members/. -#}
     {% if not announcement %}
@@ -85,9 +115,7 @@
                 {% if audience_filter.active_only %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_active_only') }}</span>{% endif %}
                 {% if audience_filter.email_info_only %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_email_info_only') }}</span>{% endif %}
                 {% if audience_filter.ids %}<span class="badge ms-1 text-bg-light border"><i class="bi bi-check2-square"></i> {{ t('announcements.audience.filter_picked', count=audience_filter.ids|length) }}</span>{% endif %}
-                {% if audience_filter.parcels %}<span class="badge ms-1 text-bg-light border"><i class="bi bi-grid-3x3"></i> {{ t('announcements.audience.filter_parcels', count=audience_filter.parcels|length) }}</span>{% endif %}
             </div>
-            {% if audience_filter.parcels %}<p class="text-muted mb-2">{{ t('announcements.audience.household_hint') }}</p>{% endif %}
             <ul class="list-unstyled mb-2">
                 <li><i class="bi bi-envelope me-1"></i>{{ t('announcements.audience.by_email', count=audience.email|length) }}</li>
                 <li><i class="bi bi-mailbox me-1"></i>{{ t('announcements.audience.by_letter', count=audience.letter_groups|length) }}

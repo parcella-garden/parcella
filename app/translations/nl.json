@@ -684,8 +684,7 @@
       "export_selected": "Selectie exporteren",
       "write_to_selected": "Selectie aanschrijven",
       "picked_notice": "Alleen de {count} geselecteerde leden worden getoond.",
-      "picked_show_all": "Hele lijst tonen",
-      "parcels_notice": "Getoond worden de huidige pachters van {count} geselecteerde perceel/percelen."
+      "picked_show_all": "Hele lijst tonen"
     },
     "form": {
       "title_edit": "{name} bewerken",
@@ -2075,9 +2074,7 @@
       "letter_hint": "Eén pdf met een brief per ontvanger, voor vensterenveloppen. Wordt bij het klikken gemaakt, nooit opgeslagen.",
       "letter_button": "{count} brief/brieven maken",
       "list_badge": "Gefilterde leden",
-      "filter_picked": "{count} met de hand gekozen",
-      "filter_parcels": "{count} perceel/percelen gekozen",
-      "household_hint": "Pachters met hetzelfde postadres krijgen één brief met al hun namen; een gedeeld e-mailadres krijgt het bericht één keer."
+      "filter_picked": "{count} met de hand gekozen"
     },
     "applicants": {
       "header": "Bericht aan {count} adres(sen) van aanvragers",
@@ -2115,6 +2112,13 @@
       "result_skipped": "Niets nieuws om via dit kanaal te versturen.",
       "open_message": "Bericht openen",
       "close": "Sluiten"
+    },
+    "parcels": {
+      "reference": "Perceel {plot}",
+      "header": "Bericht aan de pachters van {count} perceel/percelen",
+      "show_list": "Percelen tonen",
+      "hint": "Eén bericht per perceel, met het nummer. E-mail aan elke pachter die toestemming gaf; één brief per adres voor de anderen, ook als een huisgenoot de e-mail krijgt.",
+      "list_badge": "Percelen"
     }
   },
   "inventory": {
