@@ -253,6 +253,7 @@ def _filter_from_query_string(query_string: str) -> MemberListFilter:
         email_info_only=params.get("email_info_only") == "true",
         tag=params.get("tag", ""),
         ids=parsed.get("ids", []),
+        parcels=parsed.get("parcels", []),
     )
 
 
@@ -328,6 +329,10 @@ def _targeted_audience_query(params) -> Optional[str]:
         # next to the list's filter; fold them into one filter.
         query = _filter_from_query_string(query).without_ids().query_string()
         query = "&".join(q for q in (query, urllib.parse.urlencode({"ids": picked}, doseq=True)) if q)
+    picked_parcels = params.getlist("parcels") if hasattr(params, "getlist") else []
+    if picked_parcels and not _filter_from_query_string(query).parcels:
+        # Issue #397: parcels ticked on /parcels/ -- their current tenants.
+        query = "&".join(q for q in (query, urllib.parse.urlencode({"parcels": picked_parcels}, doseq=True)) if q)
     audience_filter = _filter_from_query_string(query)
     return None if audience_filter.is_empty() else audience_filter.query_string()
 
@@ -520,7 +525,7 @@ def _compose_channels(announcement: Announcement, website_type: Optional[str], a
         if website_type:
             offered.insert(1, AnnouncementChannel.BLOG)
     email_count = len(audience.email) if audience is not None else 0
-    letter_count = len(audience.letter) if audience is not None else 0
+    letter_count = len(audience.letter_groups) if audience is not None else 0
     channels = []
     for channel in offered:
         if channel == AnnouncementChannel.EMAIL:
@@ -626,7 +631,7 @@ async def _run_compose_channel(
             downloads.append({"filename": _print_pdf_download_name(announcement),
                               "data": base64.b64encode(pdf_bytes).decode("ascii")})
     elif channel == AnnouncementChannel.LETTER:
-        result["count"] = len((await resolve_audience(db, announcement)).letter)
+        result["count"] = len((await resolve_audience(db, announcement)).letter_groups)
         pdf_bytes = await generate_letter_channel(db, announcement)
         if pdf_bytes is not None:
             result["ok"] = True
@@ -1168,7 +1173,7 @@ async def generate_letter_channel(db: AsyncSession, announcement: Announcement) 
         delivery = AnnouncementDelivery(announcement_id=announcement.id, channel=AnnouncementChannel.LETTER)
         db.add(delivery)
 
-    recipients = (await resolve_audience(db, announcement)).letter
+    recipients = (await resolve_audience(db, announcement)).letter_groups
     delivery.sent_at = datetime.now(timezone.utc)
     if not recipients:
         delivery.status = AnnouncementDeliveryStatus.FAILED

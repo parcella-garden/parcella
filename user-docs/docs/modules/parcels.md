@@ -66,6 +66,7 @@ page keep the filter you came from.
 
 | Column | What it shows |
 |---|---|
+| Checkbox | Selects the parcel for **Export selected** or **Write to their tenants** (see below). |
 | **Plot number** | Click it to open the parcel. |
 | **Area** | Area in square metres, or "–". |
 | **Status** | **active**, **terminated**, **communal** or **deleted**. |
@@ -76,10 +77,39 @@ The footer shows the number of parcels in the list and, if areas are
 recorded, their total area -- handy to check a filtered selection, e.g.
 the total area of all active parcels.
 
+### Picking parcels and writing to their tenants {#picking-parcels}
+
+Every row has a checkbox, so you can pick parcels by hand -- for example
+all parcels along one water pipe -- and write to the people on them.
+
+| Button | What it does |
+|---|---|
+| **Select all** | Ticks every parcel in the current list. |
+| **Select none** | Clears all ticks. |
+| ***N* selected** | Counts the ticked parcels. |
+| **Export selected** | Downloads the CSV file (see below) with only the ticked parcels. Disabled until you tick one. |
+| **Write to their tenants** | Starts a new [announcement](announcements.md) to everyone who is a **current** tenant of a ticked parcel. Only shown while the **Announcements** module is on, and only to board members and administrators. |
+
+Who gets what:
+
+- **E-mail:** every tenant with an e-mail address, once per address. If
+  two tenants share one inbox, it gets the message once.
+- **Letter:** tenants without e-mail (or everyone, with **Also send a
+  letter to members who get the email**). Tenants who share a postal
+  address get **one letter** with all their names in the address window
+  -- also when they hold different ticked parcels. A tenant at another
+  address gets their own letter.
+- Former and upcoming tenants are left out.
+
+The message's **Show these members** link opens the member list with just these
+tenants: "Showing the current tenants of *N* selected parcel(s)."
+
 ### CSV export
 
 **CSV Export** downloads a file called `parcels.csv`, separated by
 semicolons, with *every* parcel -- search and status filter don't apply.
+**Export selected** (above) writes the same file with only the ticked
+parcels.
 The column headings are in German, so the file can be imported again:
 
 Gartennummer (plot number), Fläche (qm) (area), Breitengrad (latitude),

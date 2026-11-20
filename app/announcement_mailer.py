@@ -50,6 +50,12 @@ letter recipients (app/announcement_letters.py) and unreachable ones.
 The email-info opt-out doesn't apply there -- a message to the water
 team is operational, not a newsletter (kermie's call, ADR 0095).
 
+Issue #397 added messages to the tenants of parcels picked on
+/parcels/ (MemberListFilter.parcels): everyone on those parcels, but a
+household gets one letter with all its names (same address, compared
+like the invoice copies of #396), and an email address shared by
+several tenants gets the message once.
+
 Issue #247 added messages to applicants picked on /applicants/
 (Announcement.audience_applicant_ids, ADR 0112): email only, and an
 address shared by several picked applications gets the message once.
@@ -72,6 +78,7 @@ from app.models import (
 )
 from app.email_service import send_email
 from app.member_filters import MemberListFilter
+from app.insurance_utils import _normalized_address
 from app.branding import load_branding
 from app.i18n import t_for
 
@@ -131,6 +138,10 @@ class Audience:
     letter: List[Member] = field(default_factory=list)
     unreachable: List[Member] = field(default_factory=list)
     duplicates: int = 0
+    # One entry per letter to print: the members it's addressed to.
+    # One member each, except for messages to picked parcels (#397),
+    # where people sharing a postal address get one letter together.
+    letter_groups: List[List[Member]] = field(default_factory=list)
 
     @property
     def member_count(self) -> int:
@@ -153,20 +164,35 @@ async def resolve_audience(db: AsyncSession, announcement: Announcement) -> Audi
     if announcement.is_applicant_message:
         return await _resolve_applicant_audience(db, announcement.audience_applicant_ids)
 
-    members = (await db.scalars(
-        MemberListFilter.from_dict(announcement.audience_filter).apply()
-        .options(selectinload(Member.email_addresses))
-    )).all()
+    audience_filter = MemberListFilter.from_dict(announcement.audience_filter)
+    members = (await db.scalars(audience_filter.apply().options(selectinload(Member.email_addresses)))).all()
+    by_household = bool(audience_filter.parcels)
     audience = Audience()
+    seen_addresses = set()
     for member in members:
         address = primary_email(member)
         if address:
-            audience.email.append((member, address))
+            if by_household and address.strip().lower() in seen_addresses:
+                audience.duplicates += 1
+            else:
+                seen_addresses.add(address.strip().lower())
+                audience.email.append((member, address))
         if (address is None or announcement.letters_for_all) and has_postal_address(member):
             audience.letter.append(member)
         elif address is None:
             audience.unreachable.append(member)
+    audience.letter_groups = group_by_postal_address(audience.letter) if by_household else [[m] for m in audience.letter]
     return audience
+
+
+def group_by_postal_address(members: List[Member]) -> List[List[Member]]:
+    """Members who share a postal address (ignoring case and blanks,
+    same comparison as the invoice copies), in first-seen order. Used
+    for letters to picked parcels (issue #397): one letter per household."""
+    groups: dict = {}
+    for member in members:
+        groups.setdefault(_normalized_address(member), []).append(member)
+    return list(groups.values())
 
 
 async def _resolve_applicant_audience(db: AsyncSession, applicant_ids: List[str]) -> Audience:

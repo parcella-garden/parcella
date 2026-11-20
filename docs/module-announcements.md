@@ -424,6 +424,20 @@ a filtered `/members/` list -- "everyone tagged *water responsible*",
   picked member who no longer matches it (or was deleted) drops out.
   "Write to this member" on a member's detail page (issue #344) is the
   same thing with one id (plus `include_inactive` for a former member).
+- **Picked parcels** (issue #397): "Write to their tenants" on
+  `/parcels/` sends `audience=1`, an empty `audience_query` and the
+  ticked `parcels`; `_targeted_audience_query` folds them into
+  `MemberListFilter.parcels`, which matches the parcels' **current**
+  tenants (`current_tenant_filter`, resolved at send time like every
+  other filter field). No new column: it's a member-list filter like
+  `ids`. Only for these messages, `resolve_audience` merges by
+  household: an email address shared by several tenants gets the
+  message once (`duplicates` counts the rest), and letters are grouped
+  by normalized postal address across all picked parcels
+  (`Audience.letter_groups`, `group_by_postal_address`), one letter
+  naming everyone in the group. Messages to members keep one letter
+  per person. Letter counts in the form and the popup are
+  `letter_groups`, not people.
 
 Known gaps: no per-recipient delivery log (channel-level, as for club
 news); the audience isn't frozen at send time -- someone tagged between

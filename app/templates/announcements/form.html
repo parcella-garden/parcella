@@ -85,10 +85,12 @@
                 {% if audience_filter.active_only %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_active_only') }}</span>{% endif %}
                 {% if audience_filter.email_info_only %}<span class="badge ms-1 text-bg-light border">{{ t('members.list.show_email_info_only') }}</span>{% endif %}
                 {% if audience_filter.ids %}<span class="badge ms-1 text-bg-light border"><i class="bi bi-check2-square"></i> {{ t('announcements.audience.filter_picked', count=audience_filter.ids|length) }}</span>{% endif %}
+                {% if audience_filter.parcels %}<span class="badge ms-1 text-bg-light border"><i class="bi bi-grid-3x3"></i> {{ t('announcements.audience.filter_parcels', count=audience_filter.parcels|length) }}</span>{% endif %}
             </div>
+            {% if audience_filter.parcels %}<p class="text-muted mb-2">{{ t('announcements.audience.household_hint') }}</p>{% endif %}
             <ul class="list-unstyled mb-2">
                 <li><i class="bi bi-envelope me-1"></i>{{ t('announcements.audience.by_email', count=audience.email|length) }}</li>
-                <li><i class="bi bi-mailbox me-1"></i>{{ t('announcements.audience.by_letter', count=audience.letter|length) }}
+                <li><i class="bi bi-mailbox me-1"></i>{{ t('announcements.audience.by_letter', count=audience.letter_groups|length) }}
                     {% if audience.letter %}<span class="text-muted">({{ audience.letter | map(attribute='full_name') | join(', ') }})</span>{% endif %}</li>
                 {% if audience.unreachable %}
                 <li class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>{{ t('announcements.audience.unreachable', count=audience.unreachable|length) }}:
@@ -350,7 +352,7 @@
             {% if letter.available and audience.letter %}
             <form method="post" action="/announcements/{{ announcement.id }}/letters">
                 {{ csrf_field() }}
-                <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('announcements.audience.letter_button', count=audience.letter|length) }}</button>
+                <button type="submit" class="btn btn-sm btn-outline-primary">{{ t('announcements.audience.letter_button', count=audience.letter_groups|length) }}</button>
             </form>
             {% endif %}
         </div>

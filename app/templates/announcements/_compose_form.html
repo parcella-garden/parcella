@@ -52,7 +52,9 @@
             {% if audience_filter.active_only %}<span class="badge text-bg-light border">{{ t('members.list.show_active_only') }}</span>{% endif %}
             {% if audience_filter.email_info_only %}<span class="badge text-bg-light border">{{ t('members.list.show_email_info_only') }}</span>{% endif %}
             {% if audience_filter.ids %}<span class="badge text-bg-light border"><i class="bi bi-check2-square"></i> {{ t('announcements.audience.filter_picked', count=audience_filter.ids|length) }}</span>{% endif %}
+            {% if audience_filter.parcels %}<span class="badge text-bg-light border"><i class="bi bi-grid-3x3"></i> {{ t('announcements.audience.filter_parcels', count=audience_filter.parcels|length) }}</span>{% endif %}
         </div>
+        {% if audience_filter.parcels %}<div class="text-muted">{{ t('announcements.audience.household_hint') }}</div>{% endif %}
         {% if audience.member_count <= 3 %}
         <div class="text-muted">{% for m, address in audience.email %}{{ m.full_name }}{% if not loop.last %}, {% endif %}{% endfor %}{% if audience.email and audience.letter %}, {% endif %}{{ audience.letter | map(attribute='full_name') | join(', ') }}</div>
         {% endif %}

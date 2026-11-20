@@ -684,7 +684,8 @@
       "export_selected": "Exportovat vybrané",
       "write_to_selected": "Napsat vybraným",
       "picked_notice": "Zobrazeni jsou jen vybraní členové ({count}).",
-      "picked_show_all": "Zobrazit celý seznam"
+      "picked_show_all": "Zobrazit celý seznam",
+      "parcels_notice": "Zobrazeni jsou současní nájemci vybraných parcel (počet: {count})."
     },
     "form": {
       "title_edit": "Upravit {name}",
@@ -841,7 +842,13 @@
       "map_field_status": "Stav",
       "map_field_notes": "Poznámky",
       "csv_mapping_required_error": "Před importem prosím přiřaďte sloupec s číslem parcely.",
-      "csv_empty_error": "Tento soubor CSV se zdá být prázdný."
+      "csv_empty_error": "Tento soubor CSV se zdá být prázdný.",
+      "col_select": "Vybrat",
+      "select_all": "Vybrat vše",
+      "select_none": "Zrušit výběr",
+      "selected_count": "Vybráno: {count}",
+      "export_selected": "Exportovat výběr",
+      "write_to_selected": "Napsat nájemcům"
     },
     "form": {
       "title_edit": "Upravit {plot_number}",
@@ -2068,7 +2075,9 @@
       "letter_hint": "Jedno PDF s dopisem pro každého příjemce, do obálek s okénkem. Vytvoří se po kliknutí, neukládá se.",
       "letter_button": "Vytvořit dopisy ({count})",
       "list_badge": "Vybraní členové",
-      "filter_picked": "Ručně vybráno: {count}"
+      "filter_picked": "Ručně vybráno: {count}",
+      "filter_parcels": "Vybrané parcely: {count}",
+      "household_hint": "Nájemci se stejnou poštovní adresou dostanou jeden dopis se všemi jmény; společná e-mailová adresa dostane zprávu jednou."
     },
     "applicants": {
       "header": "Zpráva na {count} adres(y) uchazečů",

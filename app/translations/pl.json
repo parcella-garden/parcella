@@ -684,7 +684,8 @@
       "export_selected": "Eksportuj zaznaczonych",
       "write_to_selected": "Napisz do zaznaczonych",
       "picked_notice": "Wyświetlani są tylko zaznaczeni członkowie ({count}).",
-      "picked_show_all": "Pokaż całą listę"
+      "picked_show_all": "Pokaż całą listę",
+      "parcels_notice": "Wyświetlani są obecni dzierżawcy zaznaczonych działek (liczba: {count})."
     },
     "form": {
       "title_edit": "Edytuj {name}",
@@ -841,7 +842,13 @@
       "map_field_status": "Status",
       "map_field_notes": "Notatki",
       "csv_mapping_required_error": "Przed importem przypisz kolumnę z numerem działki.",
-      "csv_empty_error": "Ten plik CSV wydaje się być pusty."
+      "csv_empty_error": "Ten plik CSV wydaje się być pusty.",
+      "col_select": "Wybierz",
+      "select_all": "Zaznacz wszystkie",
+      "select_none": "Odznacz wszystkie",
+      "selected_count": "Zaznaczono: {count}",
+      "export_selected": "Eksportuj zaznaczone",
+      "write_to_selected": "Napisz do dzierżawców"
     },
     "form": {
       "title_edit": "Edytuj {plot_number}",
@@ -2068,7 +2075,9 @@
       "letter_hint": "Jeden PDF z listem dla każdego odbiorcy, do kopert z okienkiem. Tworzony po kliknięciu, nigdy nie zapisywany.",
       "letter_button": "Utwórz listy: {count}",
       "list_badge": "Wybrani członkowie",
-      "filter_picked": "Ręcznie wybrano: {count}"
+      "filter_picked": "Ręcznie wybrano: {count}",
+      "filter_parcels": "Wybrane działki: {count}",
+      "household_hint": "Dzierżawcy pod tym samym adresem pocztowym dostają jeden list ze wszystkimi nazwiskami; wspólny adres e-mail otrzymuje wiadomość raz."
     },
     "applicants": {
       "header": "Wiadomość na {count} adres(y) kandydatów",

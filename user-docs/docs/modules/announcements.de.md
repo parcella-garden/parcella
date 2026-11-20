@@ -25,6 +25,7 @@ Mitgliedern oder Bewerbern.
 |---|---|---|
 | Vereinsnachricht | **Neue Mitteilung** in der Mitteilungsliste. | Mitglieder-E-Mail, Webseiten-Entwurf, druckbares PDF |
 | Nachricht an gefilterte Mitglieder | **Diesen … Mitgliedern schreiben** in einer gefilterten [Mitgliederliste](members.md), oder Mitglieder anhaken und **An Auswahl schreiben** klicken. | Mitglieder-E-Mail, Briefe |
+| Nachricht an die Pächter ausgewählter Parzellen | Parzellen in der [Parzellenliste](parcels.md#picking-parcels) anhaken und **An die Pächter schreiben** klicken. Wie eine Nachricht an gefilterte Mitglieder, aber ein Haushalt bekommt einen Brief und ein gemeinsames Postfach eine E-Mail. | Mitglieder-E-Mail, Briefe |
 | Nachricht an ausgewählte Bewerber | Bewerber in der [Bewerberliste](applicants.md) anhaken und **An ausgewählte Bewerber schreiben** klicken. | Nur E-Mail |
 
 Alle drei schreibst du im selben Formular, und alle stehen auf derselben

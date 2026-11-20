@@ -684,7 +684,8 @@
       "export_selected": "Auswahl exportieren",
       "write_to_selected": "An Auswahl schreiben",
       "picked_notice": "Es werden nur die {count} ausgewählten Mitglieder angezeigt.",
-      "picked_show_all": "Ganze Liste anzeigen"
+      "picked_show_all": "Ganze Liste anzeigen",
+      "parcels_notice": "Angezeigt werden die aktuellen Pächter von {count} ausgewählten Parzelle(n)."
     },
     "form": {
       "title_edit": "{name} bearbeiten",
@@ -841,7 +842,13 @@
       "map_field_status": "Status",
       "map_field_notes": "Notizen",
       "csv_mapping_required_error": "Bitte ordne vor dem Import die Spalte für die Gartennummer zu.",
-      "csv_empty_error": "Diese CSV-Datei scheint leer zu sein."
+      "csv_empty_error": "Diese CSV-Datei scheint leer zu sein.",
+      "col_select": "Auswählen",
+      "select_all": "Alle auswählen",
+      "select_none": "Keine auswählen",
+      "selected_count": "{count} ausgewählt",
+      "export_selected": "Auswahl exportieren",
+      "write_to_selected": "An die Pächter schreiben"
     },
     "form": {
       "title_edit": "{plot_number} bearbeiten",
@@ -2068,7 +2075,9 @@
       "letter_hint": "Ein PDF mit einem Brief je Empfänger, für Fensterumschläge. Wird beim Klick erzeugt und nicht gespeichert.",
       "letter_button": "{count} Brief(e) erzeugen",
       "list_badge": "Gefilterte Mitglieder",
-      "filter_picked": "{count} von Hand ausgewählt"
+      "filter_picked": "{count} von Hand ausgewählt",
+      "filter_parcels": "{count} Parzelle(n) ausgewählt",
+      "household_hint": "Pächter mit gemeinsamer Postadresse bekommen einen Brief mit allen Namen; eine gemeinsame E-Mail-Adresse bekommt die Nachricht einmal."
     },
     "applicants": {
       "header": "Nachricht an {count} Bewerber-Adresse(n)",

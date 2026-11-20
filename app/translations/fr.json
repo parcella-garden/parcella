@@ -684,7 +684,8 @@
       "export_selected": "Exporter la sélection",
       "write_to_selected": "Écrire à la sélection",
       "picked_notice": "Seuls les {count} membres sélectionnés sont affichés.",
-      "picked_show_all": "Afficher toute la liste"
+      "picked_show_all": "Afficher toute la liste",
+      "parcels_notice": "Affichage des locataires actuels de {count} parcelle(s) sélectionnée(s)."
     },
     "form": {
       "title_edit": "Modifier {name}",
@@ -841,7 +842,13 @@
       "map_field_status": "Statut",
       "map_field_notes": "Notes",
       "csv_mapping_required_error": "Veuillez associer la colonne du numéro de parcelle avant d'importer.",
-      "csv_empty_error": "Ce fichier CSV semble vide."
+      "csv_empty_error": "Ce fichier CSV semble vide.",
+      "col_select": "Sélectionner",
+      "select_all": "Tout sélectionner",
+      "select_none": "Tout désélectionner",
+      "selected_count": "{count} sélectionné(s)",
+      "export_selected": "Exporter la sélection",
+      "write_to_selected": "Écrire aux locataires"
     },
     "form": {
       "title_edit": "Modifier {plot_number}",
@@ -2068,7 +2075,9 @@
       "letter_hint": "Un PDF avec un courrier par destinataire, pour enveloppes à fenêtre. Créé au clic, jamais enregistré.",
       "letter_button": "Créer {count} courrier(s)",
       "list_badge": "Membres filtrés",
-      "filter_picked": "{count} choisi(s) à la main"
+      "filter_picked": "{count} choisi(s) à la main",
+      "filter_parcels": "{count} parcelle(s) choisie(s)",
+      "household_hint": "Les locataires qui partagent une adresse postale reçoivent une seule lettre avec tous leurs noms ; une adresse e-mail partagée reçoit le message une fois."
     },
     "applicants": {
       "header": "Message à {count} adresse(s) de candidats",

@@ -69,6 +69,7 @@ Wie in der Mitgliederliste behalten **Vorherige**, **Nächste** und
 
 | Spalte | Was sie zeigt |
 |---|---|
+| Kästchen | Wählt die Parzelle für **Auswahl exportieren** oder **An die Pächter schreiben** aus (siehe unten). |
 | **Gartennummer** | Ein Klick öffnet die Parzelle. |
 | **Fläche** | Fläche in Quadratmetern oder „–“. |
 | **Status** | **aktiv**, **gekündigt**, **Gemeinschaftsfläche** oder **gelöscht**. |
@@ -78,6 +79,34 @@ Wie in der Mitgliederliste behalten **Vorherige**, **Nächste** und
 Die Fußzeile zeigt die Zahl der Parzellen in der Liste und, wenn Flächen
 erfasst sind, ihre Gesamtfläche -- praktisch, um eine gefilterte Auswahl zu
 prüfen, z. B. die Gesamtfläche aller aktiven Parzellen.
+
+### Parzellen auswählen und den Pächtern schreiben {#picking-parcels}
+
+Jede Zeile hat ein Kästchen. So kannst du Parzellen von Hand auswählen --
+zum Beispiel alle an einer Wasserleitung -- und den Leuten darauf schreiben.
+
+| Schaltfläche | Was sie tut |
+|---|---|
+| **Alle auswählen** | Hakt jede Parzelle der aktuellen Liste an. |
+| **Keine auswählen** | Entfernt alle Haken. |
+| ***N* ausgewählt** | Zählt die angehakten Parzellen. |
+| **Auswahl exportieren** | Lädt die CSV-Datei (siehe unten) nur mit den angehakten Parzellen herunter. Gesperrt, bis du eine anhakst. |
+| **An die Pächter schreiben** | Beginnt eine neue [Mitteilung](announcements.md) an alle **aktuellen** Pächter der angehakten Parzellen. Nur sichtbar, solange das Modul **Mitteilungen** an ist, und nur für Vorstand und Administratoren. |
+
+Wer was bekommt:
+
+- **E-Mail:** jeder Pächter mit E-Mail-Adresse, einmal je Adresse. Teilen
+  sich zwei Pächter ein Postfach, kommt die Nachricht dort einmal an.
+- **Brief:** Pächter ohne E-Mail (oder alle, mit **Auch Mitgliedern mit
+  E-Mail zusätzlich einen Brief schicken**). Pächter mit gemeinsamer
+  Postadresse bekommen **einen Brief** mit allen Namen im Adressfeld --
+  auch wenn sie verschiedene angehakte Parzellen haben. Ein Pächter an
+  einer anderen Adresse bekommt seinen eigenen Brief.
+- Frühere und künftige Pächter bleiben außen vor.
+
+Der Link **Diese Mitglieder anzeigen** in der Nachricht öffnet die Mitgliederliste mit
+genau diesen Pächtern: „Angezeigt werden die aktuellen Pächter von *N*
+ausgewählten Parzelle(n).“
 
 ### CSV-Export {#csv-export}
 

@@ -105,6 +105,13 @@
 </div>
 {% endif %}
 
+{% if picked_parcel_count %}
+<div class="alert alert-info d-flex gap-2 align-items-center justify-content-between flex-wrap mb-3" style="font-size: 0.875rem;">
+    <span><i class="bi bi-grid-3x3 me-1"></i>{{ t('members.list.parcels_notice', count=picked_parcel_count) }}</span>
+    <a href="/members/" class="btn btn-sm btn-outline-secondary">{{ t('members.list.picked_show_all') }}</a>
+</div>
+{% endif %}
+
 {% if picked_ids %}
 <div class="alert alert-info d-flex gap-2 align-items-center justify-content-between flex-wrap mb-3" style="font-size: 0.875rem;">
     <span><i class="bi bi-check2-square me-1"></i>{{ t('members.list.picked_notice', count=picked_ids|length) }}</span>
@@ -124,6 +131,7 @@
     {% if filter_without_ids.active_only %}<input type="hidden" name="active_only" value="true">{% endif %}
     {% if filter_without_ids.email_info_only %}<input type="hidden" name="email_info_only" value="true">{% endif %}
     {% if filter_without_ids.tag %}<input type="hidden" name="tag" value="{{ filter_without_ids.tag }}">{% endif %}
+    {% for parcel_id in filter_without_ids.parcels %}<input type="hidden" name="parcels" value="{{ parcel_id }}">{% endfor %}
     {% if can_write_to %}
     <input type="hidden" name="audience" value="1">
     <input type="hidden" name="audience_query" value="{{ filter_without_ids.query_string() }}">

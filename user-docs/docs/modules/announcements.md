@@ -23,6 +23,7 @@ sends messages to a selection of members or applicants.
 |---|---|---|
 | Club news | **New Announcement** on the announcement list. | Member e-mail, website draft, printable PDF |
 | Message to filtered members | **Write to these {count} members** on a filtered [member list](members.md), or tick members and click **Write to selected**. | Member e-mail, letters |
+| Message to the tenants of picked parcels | Tick parcels on the [parcel list](parcels.md#picking-parcels) and click **Write to their tenants**. Works like a message to filtered members, but a household gets one letter and a shared inbox one e-mail. | Member e-mail, letters |
 | Message to selected applicants | Tick applicants on the [applicant list](applicants.md) and click **Write to the selected applicants**. | E-mail only |
 
 All three are written in the same form and listed on the same page.

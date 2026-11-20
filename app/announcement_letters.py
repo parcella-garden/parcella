@@ -42,9 +42,13 @@ LETTER_CSS = ADDRESS_WINDOW_CSS + """
 """
 
 
-def _letter_html(announcement: Announcement, member: Member, sender: str, region: str, today: date) -> str:
-    address_lines = format_address_lines(member.street, member.postal_code, member.city, region)
-    recipient = "<br>".join(escape(line) for line in [member.full_name, *address_lines])
+def _letter_html(announcement: Announcement, members: List[Member], sender: str, region: str, today: date) -> str:
+    """One letter to `members` -- usually one person; several who share
+    a postal address for a message to picked parcels (issue #397), all
+    named in the address window."""
+    first = members[0]
+    address_lines = format_address_lines(first.street, first.postal_code, first.city, region)
+    recipient = "<br>".join(escape(line) for line in [*(m.full_name for m in members), *address_lines])
     return f"""
     <div class="letter">
         <div class="letter-head">
@@ -61,14 +65,15 @@ def _letter_html(announcement: Announcement, member: Member, sender: str, region
 
 
 def render_announcement_letters_pdf(
-    announcement: Announcement, members: List[Member], footer_context: OrgFooterContext,
+    announcement: Announcement, letters: List[List[Member]], footer_context: OrgFooterContext,
     logo_path: Optional[Path], region: str, language: str, today: Optional[date] = None,
 ) -> bytes:
-    """One PDF, one letter per member (in the given order). Caller
+    """One PDF, one letter per entry of `letters` (Audience.letter_groups,
+    in the given order), each addressed to the members in it. Caller
     passes only members with a postal address (resolve_audience)."""
     today = today or date.today()
     sender = sender_line(footer_context.club_name, footer_context.address_lines)
-    body = "".join(_letter_html(announcement, m, sender, region, today) for m in members)
+    body = "".join(_letter_html(announcement, group, sender, region, today) for group in letters)
     html_doc = wrap_document(
         body, footer_context.club_name, logo_path, org_footer_html(footer_context, language),
         language, extra_css=LETTER_CSS, din_marks=True,

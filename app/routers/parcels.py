@@ -5,10 +5,10 @@ import base64
 import csv
 import io
 from datetime import date, datetime, timezone
-from typing import Optional
+from typing import List, Optional
 from urllib.parse import quote as urlquote, urlencode
 
-from fastapi import APIRouter, Request, Form, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Request, Form, Depends, UploadFile, File, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
@@ -28,6 +28,7 @@ from app.models import (
 )
 from app.auth import require_admin
 from app.permissions import require_permission
+from app.member_filters import clean_member_ids
 from app.i18n import t_for
 from app.module_flags import require_module
 from app.cloud_storage import get_cloud_storage_provider, CloudStorageError
@@ -689,16 +690,23 @@ async def parcel_cloud_file_download(
 # ---------------------------------------------------------------------------
 
 @router.get("/export/csv")
-async def parcels_export_csv(request: Request, db: AsyncSession = Depends(get_db)):
+async def parcels_export_csv(
+    request: Request, parcels: List[str] = Query(default=[]), db: AsyncSession = Depends(get_db),
+):
+    """Every parcel, or only the ones ticked on the list (issue #397)."""
     await require_permission(request, db, "members_parcels", "read")
 
-    result = await db.execute(
+    query = (
         select(Parcel)
         .options(
             selectinload(Parcel.member_assignments).selectinload(MemberParcel.member)
         )
         .order_by(Parcel.plot_number)
     )
+    picked = clean_member_ids(parcels)
+    if picked:
+        query = query.where(Parcel.id.in_(picked))
+    result = await db.execute(query)
     parcels = result.scalars().all()
 
     output = io.StringIO()
