@@ -73,7 +73,7 @@ Opens when you click an invoice number. The title is "Invoice
 | Field | What it shows |
 |---|---|
 | **Parcel** | Parcel number, or **No parcel (member)**. |
-| **Recipient** | Names and address as printed on the invoice. These were fixed when the run was finalized; later address changes don't alter them. |
+| **Recipient** | Names and address as printed on the invoice. These were fixed when the run was finalized; later address changes don't alter them. If the tenants live at different addresses, you see "*n* copies, one per address" and each copy's names and address. |
 | **Subtotal** | The invoice amount. |
 | **Due date** | The due date of the invoice run. |
 | **Status** | The payment status, followed by "paid so far / total owed". The total owed includes any reminder fees. |
@@ -97,7 +97,8 @@ details (address, bank) in the page footer. Those club details come
 from [Club settings](../../administration/settings.md).
 
 The file name starts with the issue date and the parcel number (or the
-member's last name), followed by the invoice number.
+member's last name), followed by the invoice number. An invoice with
+one copy per address has all copies in its PDF, each on its own pages.
 
 ## Payments
 
@@ -170,9 +171,9 @@ already sent:
 |---|---|
 | "Reminder #*n*" | The reminder's level: the first reminder is #1, the next #2, and so on. |
 | Date | When it was created. |
-| Delivery | "Emailed", or "For printing/postal" if it couldn't be emailed. |
+| Delivery | "Emailed", "For printing/postal" if it couldn't be emailed, or "Emailed, plus copies for printing/postal" if some addresses got it by email and others need a letter. |
 | Fee | The fee charged with this reminder, if any. |
-| PDF icon | Opens the reminder PDF in a new tab -- print it from here for postal delivery. |
+| PDF icon | Opens the reminder PDF in a new tab -- print it from here for postal delivery. It holds the copies that need posting (all copies if every one was emailed). |
 
 If none was sent yet: "No reminders sent yet."
 

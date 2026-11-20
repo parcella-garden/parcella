@@ -26,7 +26,8 @@ from sqlalchemy.orm import selectinload
 
 from app.database import AsyncSessionLocal
 from app.invoice_generation import _parcel_is_billable
-from app.invoice_delivery import _invoice_recipient
+from app.invoice_delivery import copy_email_recipients
+from app.invoice_pdf import invoice_copies
 from app.models import (
     Member, MemberEmail, MemberParcel, Parcel, ParcelStatus, Invoice, ClubSetting,
 )
@@ -197,10 +198,10 @@ async def test_invoice_email_recipient_found_for_future_terminated_resident(clie
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(Invoice).where(Invoice.invoice_run_id == run_id))
         invoice = result.scalar_one()
-        recipient = await _invoice_recipient(session, invoice)
+        recipients = await copy_email_recipients(session, invoice, invoice_copies(invoice)[0])
 
-    assert recipient is not None
-    member, email = recipient
+    assert recipients
+    member, email = recipients[0]
     assert email == "notice@example.com"
 
 

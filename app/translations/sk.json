@@ -2608,7 +2608,8 @@
       "add_payment_button": "Pridať platbu",
       "delete_payment_confirm": "Zmazať túto platbu?",
       "success_message": "Hotovo.",
-      "payments_header": "Platby"
+      "payments_header": "Platby",
+      "copies_hint": "Počet výtlačkov: {count} (jeden na adresu)"
     },
     "dashboard": {
       "title": "Financie",
@@ -2647,6 +2648,7 @@
       "level_label": "Upomienka č. {level}",
       "delivery_email": "Odoslané e-mailom",
       "delivery_print": "Na tlač/poštové odoslanie",
+      "delivery_both": "Odoslané e-mailom, k tomu výtlačky na poštové odoslanie",
       "no_reminders_yet": "Zatiaľ nebola odoslaná žiadna upomienka.",
       "label_fee": "Poplatok (voliteľné)",
       "fee_placeholder": "0,00",

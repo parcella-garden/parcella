@@ -2608,7 +2608,8 @@
       "add_payment_button": "Add payment",
       "delete_payment_confirm": "Delete this payment?",
       "success_message": "Done.",
-      "payments_header": "Payments"
+      "payments_header": "Payments",
+      "copies_hint": "{count} copies, one per address"
     },
     "dashboard": {
       "title": "Finances",
@@ -2647,6 +2648,7 @@
       "level_label": "Reminder #{level}",
       "delivery_email": "Emailed",
       "delivery_print": "For printing/postal",
+      "delivery_both": "Emailed, plus copies for printing/postal",
       "no_reminders_yet": "No reminders sent yet.",
       "label_fee": "Fee (optional)",
       "fee_placeholder": "0,00",

@@ -269,8 +269,10 @@ Which parcels can be billed at all:
 - A terminated parcel is still billed if it has such a tenant (for
   example a new tenant who took over before the status was changed
   back). Only deleted parcels are always skipped.
-- If several invoice-address tenants live at different addresses, the
-  invoice is addressed to the largest group that shares one address.
+- If the invoice-address tenants live at different addresses, the
+  parcel still gets **one** invoice (one number, one amount), with **a
+  copy for each address**. Tenants who share an address are named
+  together on one copy. The copies differ only in the address window.
 - A parcel whose lines all come out empty gets no invoice.
 
 Member invoices (from **Fixed amount per person**, or work-hours
@@ -369,13 +371,15 @@ Shown with write permission.
 | Button | What it does |
 |---|---|
 | **Send emails & upload to cloud** | Emails every invoice of the run that hasn't been emailed yet, with the PDF attached, and uploads every invoice that hasn't been uploaded yet to its parcel's cloud folder. Running it again only picks up what's still missing. |
-| **Download print bundle** | Downloads one PDF containing every invoice whose recipient can't be reached by email, ready to print and put in window envelopes. Those invoices are marked as printed. |
+| **Download print bundle** | Downloads one PDF containing every invoice copy that nobody on it can be reached at by email, ready to print and put in window envelopes. Those invoices are marked as printed. |
 
-**Who gets an email:** a current invoice-address tenant of the parcel
-(or, for a member invoice, the member) who has **May receive
+**Who gets an email:** every invoice-address tenant named on the
+invoice (or, for a member invoice, the member) who has **May receive
 information by email** switched on and at least one email address
-stored. The primary address is used. Everyone else is left for the
-print bundle: "Members without email notifications stay for the print
+stored. Each gets the copy for their own address; the primary email
+address is used. A copy that nobody on it can be emailed at is left for
+the print bundle. So a co-tenant at another address without email gets
+a letter even when the others are emailed: "Members without email notifications stay for the print
 bundle below."
 
 **Cloud upload** only happens if cloud storage is set up and the parcel
@@ -386,7 +390,7 @@ again next time.
 !!! note "Print bundle"
     The bundle is put together from who can be reached by email, not
     from what has been sent. You can download it before or after
-    sending emails and it always contains the same invoices -- including
+    sending emails and it always contains the same copies -- including
     ones you already printed last time. If every invoice can go by
     email, you get the message "Every invoice in this run has a member
     who is reachable by email -- nothing left to print."

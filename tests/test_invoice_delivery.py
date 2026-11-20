@@ -152,3 +152,111 @@ async def test_print_bundle_excludes_invoice_address_member_with_email_notificat
     async with AsyncSessionLocal() as session:
         invoice = await session.get(Invoice, invoice.id)
         assert invoice.printed_at is not None
+
+
+async def test_invoice_reaches_every_address_of_a_parcels_tenants(client, admin_user, monkeypatch):
+    """Issue #396: one invoice per parcel, one copy per address. Two
+    tenants share an address (one copy naming both, emailed to the one
+    with email); a third lives elsewhere without email -- before #396
+    she was left off the invoice and got nothing at all. Now her copy
+    is in the print bundle, and so is the reminder's."""
+    import io
+    from pypdf import PdfReader
+    from app.models import InvoiceReminder
+
+    sent = []
+
+    async def fake_send_email(recipient, subject, html_body, text_body=None, db=None, attachments=None):
+        sent.append((recipient, attachments[0][1]))
+        return True
+
+    monkeypatch.setattr("app.invoice_delivery.send_email", fake_send_email)
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    await _enable_finances_module()
+
+    async with AsyncSessionLocal() as session:
+        anna = Member(first_name="Anna", last_name="Haus", street="Lindenweg 1", postal_code="04103", city="Leipzig", email_notifications=True)
+        bernd = Member(first_name="Bernd", last_name="Haus", street=" lindenweg 1", postal_code="04103", city="LEIPZIG", email_notifications=False)
+        clara = Member(first_name="Clara", last_name="Fern", street="Am Hang 7", postal_code="01067", city="Dresden", email_notifications=False)
+        parcel = Parcel(plot_number="ISSUE396", area_sqm=100)
+        session.add_all([anna, bernd, clara, parcel])
+        await session.flush()
+        session.add(MemberEmail(member_id=anna.id, address="anna@example.com", is_primary=True))
+        for m in (clara, anna, bernd):
+            session.add(MemberParcel(member_id=m.id, parcel_id=parcel.id, is_invoice_address=True))
+        await session.commit()
+
+    run_id = await _make_run(client, year="2028")
+    await client.post(f"/finances/runs/{run_id}/items", data={
+        "order_number": "10", "name": "Membership fee", "description": "",
+        "pricing_mode": "fixed_per_parcel", "unit_price": "40.00", "applies_to_all_parcels": "on",
+    })
+    assert (await client.post(f"/finances/runs/{run_id}/finalize")).status_code in (302, 303)
+
+    async with AsyncSessionLocal() as session:
+        invoices = (await session.execute(select(Invoice).where(Invoice.invoice_run_id == run_id))).scalars().all()
+    assert len(invoices) == 1, "still one invoice per parcel"
+    invoice = invoices[0]
+    copies = invoice.recipient_copies
+    assert [c["names"] for c in copies] == ["Anna Haus\nBernd Haus", "Clara Fern"], "largest address group first"
+    assert "Dresden" in copies[1]["address"]
+    assert all(n in invoice.recipient_names for n in ("Anna Haus", "Bernd Haus", "Clara Fern"))
+
+    def pdf_text(data: bytes) -> str:
+        return " ".join(" ".join(p.extract_text() for p in PdfReader(io.BytesIO(data)).pages).split())
+
+    # Email: Anna gets the copy for Lindenweg; Clara has no email.
+    r_deliver = await client.post(f"/finances/runs/{run_id}/deliver")
+    assert "emailed=1" in r_deliver.headers["location"]
+    assert [r for r, _ in sent] == ["anna@example.com"]
+    assert "Bernd Haus" in pdf_text(sent[0][1]) and "Clara Fern" not in pdf_text(sent[0][1])
+
+    # Print bundle: only Clara's copy, even though the invoice was emailed.
+    bundle = await client.get(f"/finances/runs/{run_id}/print-bundle")
+    assert bundle.status_code == 200
+    text = pdf_text(bundle.content)
+    assert "Clara Fern" in text and "Am Hang 7" in text and "Anna Haus" not in text
+
+    # The invoice's own PDF holds both copies.
+    full = pdf_text((await client.get(f"/finances/invoices/{invoice.id}/pdf")).content)
+    assert "Clara Fern" in full and "Anna Haus" in full
+    detail = await client.get(f"/finances/invoices/{invoice.id}")
+    assert "2 copies, one per address" in detail.text
+
+    # Reminder: emailed to Anna, Clara's copy is the one to print.
+    sent.clear()
+    assert (await client.post(f"/finances/invoices/{invoice.id}/reminders", data={"fee_amount": "", "message": ""})).status_code in (302, 303)
+    assert [r for r, _ in sent] == ["anna@example.com"]
+    async with AsyncSessionLocal() as session:
+        reminder = (await session.execute(select(InvoiceReminder).where(InvoiceReminder.invoice_id == invoice.id))).scalar_one()
+    assert reminder.delivery_method == "both"
+    reminder_text = pdf_text((await client.get(f"/finances/reminders/{reminder.id}/pdf")).content)
+    assert "Clara Fern" in reminder_text and "Anna Haus" not in reminder_text
+
+
+async def test_invoice_pdf_escapes_the_recipients_names(client, admin_user):
+    """A name is shown as typed in the address window, not read as HTML."""
+    from app.invoice_pdf import invoice_copies
+
+    await client.post("/auth/login", data={"email": "admin@example.com", "password": "testpasswort123"})
+    await _enable_finances_module()
+    async with AsyncSessionLocal() as session:
+        member = Member(first_name="<b>Fett", last_name="Name</b>", street="Weg 1", postal_code="1", city="X")
+        parcel = Parcel(plot_number="ISSUE396-ESC", area_sqm=100)
+        session.add_all([member, parcel])
+        await session.flush()
+        session.add(MemberParcel(member_id=member.id, parcel_id=parcel.id, is_invoice_address=True))
+        await session.commit()
+    run_id = await _make_run(client, year="2029")
+    await client.post(f"/finances/runs/{run_id}/items", data={
+        "order_number": "10", "name": "Fee", "description": "",
+        "pricing_mode": "fixed_per_parcel", "unit_price": "1.00", "applies_to_all_parcels": "on",
+    })
+    await client.post(f"/finances/runs/{run_id}/finalize")
+    async with AsyncSessionLocal() as session:
+        invoice = (await session.execute(select(Invoice).where(Invoice.invoice_run_id == run_id))).scalar_one()
+    assert invoice_copies(invoice)[0].names == "<b>Fett Name</b>"
+    import io
+    from pypdf import PdfReader
+    pdf = (await client.get(f"/finances/invoices/{invoice.id}/pdf")).content
+    assert "<b>Fett" in "".join(p.extract_text() for p in PdfReader(io.BytesIO(pdf)).pages)

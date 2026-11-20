@@ -90,25 +90,35 @@ class ComputedInvoice:
     subtotal: Decimal
     parcel: Optional[Parcel] = None
     member: Optional[Member] = None
+    # Parcel invoices: one entry per address (issue #396), see
+    # _group_recipients. None for member invoices.
+    copies: Optional[List[dict]] = None
 
 
-def _group_recipient(members: list) -> Tuple[str, str, str, str]:
-    """Groups invoice-address members of one parcel by shared address
-    (same idea as insurance_utils.household_grouping, simplified: just
-    the largest matching-address group, since there's no "external"
-    bucket to keep separate here -- these are already exactly the
-    people the invoice goes to). Returns (names, street, postal_code, city)."""
-    if len(members) == 1:
-        m = members[0]
-        return m.full_name, (m.street or ""), (m.postal_code or ""), (m.city or "")
-
+def _group_recipients(members: list, region: str) -> List[dict]:
+    """Groups a parcel's invoice-address members by shared postal
+    address (issue #396): one invoice copy per address, each naming
+    the people who live there, sorted by name. Largest group first,
+    ties by name. A member with no address at all gets a copy of
+    their own (an empty address never counts as shared, same rule as
+    insurance_utils.household_grouping). Returns
+    [{"names", "address", "member_ids"}] -- the shape stored in
+    Invoice.recipient_copies."""
     groups: dict = {}
-    for m in members:
-        groups.setdefault(_normalized_address(m), []).append(m)
-    best = max(groups.values(), key=len)
-    m0 = best[0]
-    names = "\n".join(m.full_name for m in best)
-    return names, (m0.street or ""), (m0.postal_code or ""), (m0.city or "")
+    for m in sorted(members, key=lambda m: ((m.last_name or "").lower(), (m.first_name or "").lower(), m.id)):
+        key = _normalized_address(m)
+        if not any(key):
+            key = ("", "", "", m.id)
+        groups.setdefault(key, []).append(m)
+    ordered = sorted(groups.values(), key=len, reverse=True)  # stable: ties keep first-seen order
+    return [
+        {
+            "names": "\n".join(m.full_name for m in group),
+            "address": format_address(group[0].street or "", group[0].postal_code or "", group[0].city or "", region),
+            "member_ids": [m.id for m in group],
+        }
+        for group in ordered
+    ]
 
 
 async def _load_metering_points_by_parcel(db: AsyncSession, medium: MeteringMedium) -> Dict[str, MeteringPoint]:
@@ -431,8 +441,9 @@ async def compute_invoices_for_run(db: AsyncSession, run: InvoiceRun) -> List[Co
             a.member for a in parcel.member_assignments if a.is_current and a.is_invoice_address
         ]
 
-        names, street, postal_code, city = _group_recipient(invoice_address_members)
-        recipient_address = format_address(street, postal_code, city, region)
+        copies = _group_recipients(invoice_address_members, region)
+        names = "\n".join(c["names"] for c in copies)
+        recipient_address = copies[0]["address"] if copies else ""
 
         line_items = []
         for definition in sorted(applicable_defs, key=lambda d: d.order_number):
@@ -468,7 +479,7 @@ async def compute_invoices_for_run(db: AsyncSession, run: InvoiceRun) -> List[Co
         subtotal = sum((li.line_total for li in line_items), Decimal("0"))
         computed.append(ComputedInvoice(
             parcel=parcel, recipient_names=names, recipient_address=recipient_address,
-            line_items=line_items, subtotal=subtotal,
+            line_items=line_items, subtotal=subtotal, copies=copies,
         ))
 
     computed.extend(await _compute_member_invoices(db, run, region, work_hours_mode, work_hours_by_member))
@@ -558,7 +569,7 @@ async def finalize_run(db: AsyncSession, run: InvoiceRun) -> List[Invoice]:
             member_id=c.member.id if c.member else None,
             invoice_number=invoice_number, sequence_number=next_seq,
             recipient_names=c.recipient_names, recipient_address=c.recipient_address,
-            subtotal=c.subtotal,
+            recipient_copies=c.copies, subtotal=c.subtotal,
         )
         db.add(invoice)
         await db.flush()
