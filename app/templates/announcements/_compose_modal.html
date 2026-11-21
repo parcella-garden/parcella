@@ -15,6 +15,18 @@
         </div>
     </div>
 </div>
+<style>
+    /* Issue #407: EasyMDE gives the table button class="table", which
+       Bootstrap's global .table (width: 100%) knocks onto its own line --
+       and the buttons after it onto the next. Same reset as on the full
+       message page and the notes editor. */
+    .editor-toolbar button.table {
+        width: auto;
+        margin-bottom: 0;
+        vertical-align: baseline;
+        color: inherit;
+    }
+</style>
 <template id="compose-loading">
     <div class="text-center text-muted py-5"><span class="spinner-border spinner-border-sm me-2"></span>{{ t('announcements.compose.loading') }}</div>
 </template>
