@@ -143,7 +143,60 @@ plugins:
           build: false
         - locale: cs
           name: Čeština
-          build: false
+          build: true
+          site_name: Příručka Parcella
+          site_description: Příručka k Parcelle, open-source softwaru pro zahrádkářské spolky.
+          nav_translations:
+            Home: Úvod
+            Getting started: První kroky
+            First login and your account: První přihlášení a váš účet
+            Finding your way around: Orientace v aplikaci
+            Roles, groups and permissions: Role, skupiny a oprávnění
+            Dashboard: Dashboard
+            Modules: Moduly
+            Members: Členové
+            Parcels: Parcely
+            Applicants: Uchazeči
+            Work hours: Pracovní hodiny
+            Water and electricity: Voda a elektřina
+            Insurance: Pojištění
+            Finances: Finance
+            Invoice runs: Vyúčtování
+            Invoices, payments and reminders: Faktury, platby a upomínky
+            Bank accounts and bookings: Bankovní účty a zaúčtování
+            Incoming invoices: Přijaté faktury
+            Categories, budget and statement: Kategorie, rozpočet a přehled
+            Purchase requests: Žádosti o nákup
+            Calendar: Kalendář
+            Announcements: Oznámení
+            Task board: Nástěnka úkolů
+            Inventory: Inventář
+            Notes: Poznámky
+            Processes: Procesy
+            External contacts: Externí kontakty
+            Support: Podpora
+            Reporting: Přehledy
+            Task guides: Návody
+            Setting up a new club: Založení nového spolku
+            Importing members and parcels: Import členů a parcel
+            Welcoming a new member: Přijetí nového člena
+            Handing over a parcel: Předání parcely
+            Running the annual invoices: Roční vyúčtování
+            Collecting meter readings: Odečty měřidel
+            Organising a work session: Organizace pracovní směny
+            Administration: Administrace
+            Club settings: Nastavení spolku
+            Turning modules on and off: Zapínání a vypínání modulů
+            Users and invitations: Uživatelé a pozvánky
+            Groups: Skupiny
+            Integrations: Integrace
+            Backup and restore: Zálohování a obnova
+            E-mail log: Protokol e-mailů
+            Sample data: Ukázková data
+            System information and updates: Informace o systému a aktualizace
+            API tokens: API tokeny
+            For gardeners: Pro zahrádkáře
+            Glossary: Slovníček
         - locale: sk
           name: Slovenčina
           build: false
