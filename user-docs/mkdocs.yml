@@ -149,7 +149,60 @@ plugins:
           build: false
         - locale: fr
           name: Français
-          build: false
+          build: true
+          site_name: Manuel Parcella
+          site_description: Manuel de Parcella, le logiciel open source pour les associations de jardins familiaux.
+          nav_translations:
+            Home: Accueil
+            Getting started: Premiers pas
+            First login and your account: Première connexion et votre compte
+            Finding your way around: S'orienter dans l'application
+            Roles, groups and permissions: Rôles, groupes et droits
+            Dashboard: Tableau de bord
+            Modules: Modules
+            Members: Membres
+            Parcels: Parcelles
+            Applicants: Candidats
+            Work hours: Heures de travail
+            Water and electricity: Eau et électricité
+            Insurance: Assurances
+            Finances: Finances
+            Invoice runs: Séries de factures
+            Invoices, payments and reminders: Factures, paiements et relances
+            Bank accounts and bookings: Comptes bancaires et écritures
+            Incoming invoices: Factures reçues
+            Categories, budget and statement: Catégories, budget et synthèse
+            Purchase requests: Demandes d'achat
+            Calendar: Calendrier
+            Announcements: Annonces
+            Task board: Tableau des tâches
+            Inventory: Inventaire
+            Notes: Notes
+            Processes: Procédures
+            External contacts: Contacts externes
+            Support: Assistance
+            Reporting: Rapports
+            Task guides: Guides pratiques
+            Setting up a new club: Configurer une nouvelle association
+            Importing members and parcels: Importer des membres et des parcelles
+            Welcoming a new member: Accueillir un nouveau membre
+            Handing over a parcel: Transmettre une parcelle
+            Running the annual invoices: Établir les factures annuelles
+            Collecting meter readings: Relever les compteurs
+            Organising a work session: Organiser une session de travail
+            Administration: Administration
+            Club settings: Paramètres de l'association
+            Turning modules on and off: Activer et désactiver les modules
+            Users and invitations: Utilisateurs et invitations
+            Groups: Groupes
+            Integrations: Intégrations
+            Backup and restore: Sauvegarde et restauration
+            E-mail log: Journal des e-mails
+            Sample data: Données d'exemple
+            System information and updates: Informations système et mises à jour
+            API tokens: Jetons API
+            For gardeners: Pour les jardiniers
+            Glossary: Glossaire
         - locale: nl
           name: Nederlands
           build: false
