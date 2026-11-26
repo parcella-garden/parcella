@@ -197,7 +197,10 @@ Invoice numbering (`invoice_number_format` / `invoice_number_start`
 (`{year}/{number}` by default) and supports a one-shot starting-sequence
 override that's checked for collisions against every number already
 used that year before being accepted, then cleared back to blank so it
-doesn't keep forcing every future run to the same start.
+doesn't keep forcing every future run to the same start. A format
+without `{year}` (e.g. `R-{number}`) never restarts at 1: its sequence
+runs on across years, since a repeated number would fail the unique
+`invoice_number` at finalize.
 
 ## Delivery: `app/invoice_delivery.py`
 

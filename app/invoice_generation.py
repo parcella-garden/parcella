@@ -49,7 +49,8 @@ INVOICE_NUMBER_FORMAT_EXAMPLES = [
 
 def is_valid_invoice_number_format(format_str: str) -> bool:
     """A safe, well-formed format: {number} is required (guarantees
-    every generated number is unique), {year} is optional, any other
+    every generated number is unique; without {year} the sequence runs
+    on across years, see _first_invoice_sequence), {year} is optional, any other
     literal text is fine -- but no other placeholder, no format spec
     (e.g. "{number:03d}"), and no stray/unmatched braces, since this
     string is fed straight into str.format(year=..., number=...) at
@@ -491,7 +492,9 @@ class SequenceCollisionError(Exception):
     would collide with sequence numbers already assigned in the same year."""
 
 
-async def _first_invoice_sequence(db: AsyncSession, run: InvoiceRun, invoice_count: int) -> int:
+async def _first_invoice_sequence(
+    db: AsyncSession, run: InvoiceRun, invoice_count: int, per_year: bool = True,
+) -> int:
     """The sequence number to start `run`'s numbering at.
 
     ClubSetting "invoice_number_start" (issue #65, reworked per a later
@@ -510,12 +513,15 @@ async def _first_invoice_sequence(db: AsyncSession, run: InvoiceRun, invoice_cou
     this year (across every run, so a second run in the same year
     continues rather than collides), or 1 if this is the year's first
     invoice ever.
+
+    per_year=False (a number format without {year}): the sequence runs
+    on across years -- restarting at 1 would repeat "R-1" and the
+    finalize would fail on the unique invoice number.
     """
-    existing_result = await db.execute(
-        select(Invoice.sequence_number)
-        .join(InvoiceRun, Invoice.invoice_run_id == InvoiceRun.id)
-        .where(InvoiceRun.year == run.year)
-    )
+    query = select(Invoice.sequence_number)
+    if per_year:
+        query = query.join(InvoiceRun, Invoice.invoice_run_id == InvoiceRun.id).where(InvoiceRun.year == run.year)
+    existing_result = await db.execute(query)
     existing_sequences = {row[0] for row in existing_result.all()}
 
     setting_result = await db.execute(select(ClubSetting).where(ClubSetting.key == "invoice_number_start"))
@@ -560,7 +566,7 @@ async def finalize_run(db: AsyncSession, run: InvoiceRun) -> List[Invoice]:
 
     number_format = await _invoice_number_format(db)
     invoices = []
-    next_seq = await _first_invoice_sequence(db, run, len(computed))
+    next_seq = await _first_invoice_sequence(db, run, len(computed), per_year="{year}" in number_format)
     for c in computed:
         invoice_number = number_format.format(year=run.year, number=next_seq)
         invoice = Invoice(
