@@ -364,7 +364,60 @@ plugins:
             Glossary: Glossaire
         - locale: nl
           name: Nederlands
-          build: false
+          build: true
+          site_name: Parcella-handleiding
+          site_description: Handleiding voor Parcella, de open-source software voor volkstuinverenigingen.
+          nav_translations:
+            Home: Start
+            Getting started: Aan de slag
+            First login and your account: Eerste aanmelding en uw account
+            Finding your way around: Uw weg vinden
+            Roles, groups and permissions: Rollen, groepen en rechten
+            Dashboard: Dashboard
+            Modules: Modules
+            Members: Leden
+            Parcels: Percelen
+            Applicants: Aanmelders
+            Work hours: Werkuren
+            Water and electricity: Water en elektriciteit
+            Insurance: Verzekering
+            Finances: Financiën
+            Invoice runs: Factuurrondes
+            Invoices, payments and reminders: Facturen, betalingen en herinneringen
+            Bank accounts and bookings: Bankrekeningen en boekingen
+            Incoming invoices: Inkomende facturen
+            Categories, budget and statement: Categorieën, begroting en overzicht
+            Purchase requests: Aankoopaanvragen
+            Calendar: Kalender
+            Announcements: Mededelingen
+            Task board: Takenbord
+            Inventory: Inventaris
+            Notes: Notities
+            Processes: Processen
+            External contacts: Externe contacten
+            Support: Ondersteuning
+            Reporting: Rapportages
+            Task guides: Stappenplannen
+            Setting up a new club: Een nieuwe vereniging inrichten
+            Importing members and parcels: Leden en percelen importeren
+            Welcoming a new member: Een nieuw lid verwelkomen
+            Handing over a parcel: Een perceel overdragen
+            Running the annual invoices: De jaarfacturen opmaken
+            Collecting meter readings: Meterstanden opnemen
+            Organising a work session: Een werksessie organiseren
+            Administration: Administratie
+            Club settings: Verenigingsinstellingen
+            Turning modules on and off: Modules in- en uitschakelen
+            Users and invitations: Gebruikers en uitnodigingen
+            Groups: Groepen
+            Integrations: Integraties
+            Backup and restore: Back-up en herstel
+            E-mail log: E-maillogboek
+            Sample data: Voorbeeldgegevens
+            System information and updates: Systeeminformatie en updates
+            API tokens: API-tokens
+            For gardeners: Voor tuinders
+            Glossary: Woordenlijst
 
 validation:
   nav:
