@@ -15,6 +15,7 @@ import asyncio
 import io
 import os
 import shutil
+import tempfile
 import urllib.parse
 import zipfile
 from pathlib import Path
@@ -51,12 +52,11 @@ class RestoreZipError(ValueError):
     unsafe (wrong shape, zip-slip attempt)."""
 
 
-async def build_backup_zip() -> Tuple[str, bytes]:
+async def build_backup_zip_file() -> Tuple[str, Path]:
     """Runs pg_dump (plain SQL, --clean --if-exists) and bundles it
     together with everything under app/static/uploads/ (the branding
     logo, announcement images) -- files referenced by filename from DB
-    rows but not themselves part of the dump -- into a single in-memory
-    zip, laid out like the install's ./data/ folder (data/postgres/,
+    rows but not themselves part of the dump -- into a single zip, laid out like the install's ./data/ folder (data/postgres/,
     data/uploads/, data/secrets/). That directory is also bind-mounted under ./data/ in
     docker-compose.yml (see ADR 0077), but this backup remains useful as
     an out-of-band copy, e.g. when moving to a new host. Since issue #327
@@ -64,8 +64,11 @@ async def build_backup_zip() -> Tuple[str, bytes]:
     together with the dump that's all of ./data/ that matters, and the
     encrypted settings in the dump stay readable on a new host. Whoever
     has the zip can read those settings -- store it accordingly. Returns (filename,
-    zip_bytes). Raises BackupError on any pg_dump failure/timeout --
-    never returns partial/corrupt bytes."""
+    path of a temporary zip file the caller deletes). The dump goes
+    straight from pg_dump to disk and the zip is written to disk too, so
+    memory stays flat however big the club (issue #415). Raises
+    BackupError on any pg_dump failure/timeout -- never returns a
+    partial/corrupt file."""
     db_url = urllib.parse.urlsplit(settings.database_url)
     env = {**os.environ, "PGPASSWORD": db_url.password or ""}
     cmd = [
@@ -78,23 +81,38 @@ async def build_backup_zip() -> Tuple[str, bytes]:
         db_url.path.lstrip("/"),
     ]
 
+    sql_fd, sql_name = tempfile.mkstemp(suffix=".sql")
+    zip_fd, zip_name = tempfile.mkstemp(suffix=".zip")
+    os.close(zip_fd)
     try:
-        process = await asyncio.create_subprocess_exec(
-            *cmd, env=env,
-            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=300)
-    except (OSError, asyncio.TimeoutError) as e:
-        raise BackupError(str(e)[:500]) from e
+        try:
+            with os.fdopen(sql_fd, "wb") as sql_file:
+                process = await asyncio.create_subprocess_exec(
+                    *cmd, env=env, stdout=sql_file, stderr=asyncio.subprocess.PIPE,
+                )
+                _, stderr = await asyncio.wait_for(process.communicate(), timeout=300)
+        except (OSError, asyncio.TimeoutError) as e:
+            raise BackupError(str(e)[:500]) from e
 
-    if process.returncode != 0:
-        raise BackupError(stderr.decode("utf-8", errors="replace").strip()[:500])
+        if process.returncode != 0:
+            raise BackupError(stderr.decode("utf-8", errors="replace").strip()[:500])
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+        # Zipping reads files from disk: done in a thread so a big club's
+        # backup doesn't stall every other request meanwhile.
+        await asyncio.to_thread(_write_zip, Path(zip_name), Path(sql_name))
+    except BaseException:
+        os.unlink(zip_name)
+        raise
+    finally:
+        os.unlink(sql_name)
 
-    zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr(SQL_MEMBER, stdout)
+    return f"parcella-backup-{timestamp}.zip", Path(zip_name)
+
+
+def _write_zip(zip_path: Path, sql_path: Path) -> None:
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.write(sql_path, arcname=SQL_MEMBER)
         # The effective key, whether it came from .env or data/secrets/.
         zf.writestr(SECRET_KEY_MEMBER, settings.secret_key + "\n")
         for base_dir, prefix in ((UPLOAD_DIR, UPLOADS_PREFIX),):
@@ -103,7 +121,15 @@ async def build_backup_zip() -> Tuple[str, bytes]:
                     if file_path.is_file():
                         zf.write(file_path, arcname=f"{prefix}/{file_path.relative_to(base_dir)}")
 
-    return f"parcella-backup-{timestamp}.zip", zip_buffer.getvalue()
+
+async def build_backup_zip() -> Tuple[str, bytes]:
+    """build_backup_zip_file() as bytes, for the cloud upload (the
+    storage providers take bytes)."""
+    filename, path = await build_backup_zip_file()
+    try:
+        return filename, path.read_bytes()
+    finally:
+        path.unlink()
 
 
 def _assert_within_upload_dir(relative: str, base: Path) -> Path:

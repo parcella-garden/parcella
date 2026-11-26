@@ -57,8 +57,17 @@ broken images. `backup_download` walks `UPLOAD_DIR` (reused from
 `app/branding.py`, not redefined) and adds every file it finds under an
 `uploads/` prefix in the zip -- generic by construction, so any future
 upload directory added under that same tree is included automatically
-without this endpoint needing to know about it by name. Still fully
-in-memory (`io.BytesIO` + `zipfile`), preserving Decision 1.
+without this endpoint needing to know about it by name.
+
+**Amended by issue #415 (pending kermie's OK):** the dump and the zip no
+longer live in memory (a big club's backup held the dump twice, plus the
+zip, in RAM). `build_backup_zip_file()` writes both to `tempfile.mkstemp`
+files (mode 0600, the container's own `/tmp`, never a volume), and the
+download streams the zip and deletes it once sent; the dump is deleted
+as soon as it's zipped. Decision 1's point stands -- no backup is ever
+*kept* on the server -- but for the seconds a download takes, it is on
+the container's disk, and a process killed in exactly that window
+leaves a file in `/tmp` until the container is recreated.
 
 **Known limitation, not solved by this feature: encrypted fields don't
 travel.** SMTP/WordPress/Nextcloud credentials are stored encrypted
@@ -92,9 +101,9 @@ whole class of version-skew issue rather than special-casing one
 symptom of it. The database password is passed to the subprocess via
 its environment (`PGPASSWORD`),
 never as a CLI argument or connection-string URI, so it never appears in
-a process listing. The full dump is buffered in memory
-(`process.communicate()`) and only returned once `pg_dump` has exited
-successfully -- deliberately not `StreamingResponse`, so a failed dump
+a process listing. The full dump is written to a temporary file (since
+#415; before that, buffered in memory) and only sent once `pg_dump` has
+exited successfully -- deliberately not streamed from `pg_dump`, so a failed dump
 never partially streams a corrupt file that looks like a successful
 download.
 
