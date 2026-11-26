@@ -140,7 +140,60 @@ plugins:
             Glossary: Glossar
         - locale: pl
           name: Polski
-          build: false
+          build: true
+          site_name: Podręcznik Parcella
+          site_description: Podręcznik do Parcelli, otwartego oprogramowania dla stowarzyszeń ogrodów działkowych.
+          nav_translations:
+            Home: Strona główna
+            Getting started: Pierwsze kroki
+            First login and your account: Pierwsze logowanie i Twoje konto
+            Finding your way around: Orientacja w aplikacji
+            Roles, groups and permissions: Role, grupy i uprawnienia
+            Dashboard: Panel główny
+            Modules: Moduły
+            Members: Członkowie
+            Parcels: Działki
+            Applicants: Kandydaci
+            Work hours: Prace społeczne
+            Water and electricity: Woda i prąd
+            Insurance: Ubezpieczenia
+            Finances: Finanse
+            Invoice runs: Serie faktur
+            Invoices, payments and reminders: Faktury, płatności i upomnienia
+            Bank accounts and bookings: Rachunki bankowe i księgowania
+            Incoming invoices: Faktury przychodzące
+            Categories, budget and statement: Kategorie, budżet i zestawienie
+            Purchase requests: Wnioski zakupowe
+            Calendar: Kalendarz
+            Announcements: Ogłoszenia
+            Task board: Tablica zadań
+            Inventory: Inwentarz
+            Notes: Notatki
+            Processes: Procesy
+            External contacts: Kontakty zewnętrzne
+            Support: Wsparcie
+            Reporting: Raporty
+            Task guides: Instrukcje
+            Setting up a new club: Konfiguracja nowego stowarzyszenia
+            Importing members and parcels: Import członków i działek
+            Welcoming a new member: Przyjęcie nowego członka
+            Handing over a parcel: Przekazanie działki
+            Running the annual invoices: Roczne fakturowanie
+            Collecting meter readings: Zbieranie odczytów liczników
+            Organising a work session: Organizacja terminu prac
+            Administration: Administracja
+            Club settings: Ustawienia stowarzyszenia
+            Turning modules on and off: Włączanie i wyłączanie modułów
+            Users and invitations: Użytkownicy i zaproszenia
+            Groups: Grupy
+            Integrations: Integracje
+            Backup and restore: Kopia zapasowa i przywracanie
+            E-mail log: Dziennik e-maili
+            Sample data: Dane przykładowe
+            System information and updates: Informacje o systemie i aktualizacje
+            API tokens: Tokeny API
+            For gardeners: Dla działkowców
+            Glossary: Słowniczek
         - locale: cs
           name: Čeština
           build: true
