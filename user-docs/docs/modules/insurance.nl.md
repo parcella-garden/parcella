@@ -185,7 +185,7 @@ perceel heeft afgesloten voor het jaar uit de link waar u vandaan kwam.
 jaar met de keuzelijst rechtsboven; **Terug** brengt u naar het
 overzicht. Zonder schrijfrecht ziet u alleen de bedragen en pakketten.
 
-### Ongevallenverzekering {jaar} {#accident-insurance}
+### Ongevallenverzekering (jaar) {#accident-insurance}
 
 | Veld / knop | Wat het doet |
 |---|---|
@@ -206,7 +206,7 @@ opgeslagen -- controleer het cijfer na het opslaan.
 | **Sorteervolgorde** | Pakketten worden op dit getal gesorteerd, laagste eerst, daarna op bedrag. Standaard 0. |
 | **+** | Voegt het pakket toe aan het gekozen jaar. |
 
-### Pakketten {jaar} {#packages}
+### Pakketten (jaar) {#packages}
 
 De pakketten van het jaar. Met schrijfrecht kunt u **Naam** en **Bedrag**
 direct in de rij wijzigen en met de vinkknop bevestigen. De
