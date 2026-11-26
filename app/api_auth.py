@@ -38,11 +38,14 @@ ACCESS_TOKEN_VALID_MINUTES = 60 * 24  # 24 Stunden
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)
 
 
-def create_access_token(user_id: str, email: str) -> str:
+def create_access_token(user_id: str, email: str, session_version: int = 0) -> str:
     expiry = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_VALID_MINUTES)
     payload = {
         "sub": user_id,
         "email": email,
+        # A password change or admin reset raises session_version and so
+        # ends these tokens too, like web sessions and API tokens.
+        "sv": session_version,
         "exp": expiry,
         "iat": datetime.now(timezone.utc),
         "type": "access",
@@ -100,7 +103,7 @@ async def get_current_api_user(
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
 
-    if not user or not user.is_active:
+    if not user or not user.is_active or payload.get("sv", 0) != user.session_version:
         raise unauthorized
 
     return user

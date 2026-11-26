@@ -13,7 +13,7 @@ root rather than opening a public issue.
 |---|---|
 | Passwords | bcrypt (`app/auth.py`); never encrypted-and-reversible, see [ADR 0006](./ADR/0006-passwords-hashing-vs-encryption.md) |
 | Web sessions | signed cookie (itsdangerous), `HttpOnly` + `SameSite=Lax` + `Secure` outside development, 8h max age |
-| REST API | JWT bearer tokens, HS256, separate role system (`app/api_auth.py`) |
+| REST API | JWT bearer tokens (24 h, HS256), separate role system (`app/api_auth.py`); a password change or admin reset ends them, like web sessions (`session_version`, claim `sv`) |
 | Public signup API | one shared installation token in a custom header + honeypot + per-IP rate limit ([module doc](./module-public-api.md)) |
 | ICS feeds | shared installation token, constant-time comparison (`app/ics_utils.py`) |
 | Forgotten passwords | no self-service reset; an admin resets, Parcella generates a one-time password shown once, the user must change it at the next login ([ADR 0109](./ADR/0109-admin-initiated-password-reset.md)) |

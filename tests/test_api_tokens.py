@@ -240,3 +240,22 @@ async def test_token_form_validation(client, admin_user):
     assert (await client.post("/auth/api-tokens", data={"name": "x" * 101, "expires_in": "30"})).status_code == 400
     async with AsyncSessionLocal() as session:
         assert (await session.execute(select(ApiToken))).first() is None
+
+
+async def test_password_change_ends_api_login_tokens(client, admin_user, member_user):
+    """A login JWT from /api/v1/auth/login must stop working once the
+    password changes, like web sessions and personal API tokens."""
+    async with _new_client() as api:
+        login = await api.post("/api/v1/auth/login", json={
+            "email": "member@example.com", "password": "memberpass123",
+        })
+        jwt_token = login.json()["access_token"]
+        assert (await api.get("/api/v1/members", headers=auth_header(jwt_token))).status_code == 200
+
+        await _web_login(client, "member@example.com", "memberpass123")
+        response = await client.post("/auth/change-password", data={
+            "current_password": "memberpass123", "new_password": "newmemberpass456",
+            "new_password_confirm": "newmemberpass456",
+        })
+        assert response.status_code == 200
+        assert (await api.get("/api/v1/members", headers=auth_header(jwt_token))).status_code == 401
