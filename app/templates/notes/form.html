@@ -4,7 +4,7 @@
 {% block page_title %}{{ page_heading }}{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.css">
+<link rel="stylesheet" href="/static/vendor/easymde@2.18.0/dist/easymde.min.css">
 <style>
     /* Same Bootstrap .table collision as in announcements/form.html. */
     .editor-toolbar button.table { width: auto; margin-bottom: 0; vertical-align: baseline; color: inherit; }
@@ -100,7 +100,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.js"></script>
+<script src="/static/vendor/easymde@2.18.0/dist/easymde.min.js"></script>
 <script>
     (function () {
         const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;

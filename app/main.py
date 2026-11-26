@@ -11,6 +11,7 @@ import re
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.gzip import GZipMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
@@ -235,7 +236,24 @@ app = FastAPI(
 )
 
 # Static files
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+class _CachedStaticFiles(StaticFiles):
+    """Vendor files live in versioned folders (vendor/<package>@<version>/),
+    so browsers may keep them for good; everything else (uploads, the
+    logo, favicons) can change under the same name and is revalidated by
+    ETag on every use (issue #413)."""
+
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        if response.status_code in (200, 304):
+            response.headers["Cache-Control"] = (
+                "public, max-age=31536000, immutable" if path.startswith("vendor/") else "no-cache"
+            )
+        return response
+
+
+# gzip for static files only: HTML pages carry the CSRF token next to
+# reflected input (search boxes), the shape BREACH needs.
+app.mount("/static", GZipMiddleware(_CachedStaticFiles(directory="app/static"), minimum_size=1000), name="static")
 
 
 CHANGE_PASSWORD_PATH = "/auth/change-password"

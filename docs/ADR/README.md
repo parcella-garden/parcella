@@ -146,4 +146,5 @@ in chronological order.
 140. [A point's consumption sums all its meters; the exchange records a final reading](./0140-consumption-sums-all-meters-of-a-point.md)
 141. [One invoice per parcel, one copy per address](./0141-invoice-copy-per-address.md)
 142. [Association law and leasehold law are separate audiences](./0142-association-law-and-leasehold-law.md)
+143. [Self-hosted vendor assets, gzip for static files only](./0143-self-hosted-vendor-assets-static-only-gzip.md)
 144. [One request-context middleware, club settings cached per process](./0144-one-request-context-middleware-cached-settings.md)
