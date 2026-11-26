@@ -59,7 +59,7 @@ broken images. `backup_download` walks `UPLOAD_DIR` (reused from
 upload directory added under that same tree is included automatically
 without this endpoint needing to know about it by name.
 
-**Amended by issue #415 (pending kermie's OK):** the dump and the zip no
+**Amended by issue #415:** the dump and the zip no
 longer live in memory (a big club's backup held the dump twice, plus the
 zip, in RAM). `build_backup_zip_file()` writes both to `tempfile.mkstemp`
 files (mode 0600, the container's own `/tmp`, never a volume), and the
