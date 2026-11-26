@@ -7,13 +7,13 @@ from the SAME origin as the UI (/static/uploads/: avatars, announcement
 images, and the club logo -- which is allowed to be an SVG, and an SVG
 opened directly runs its own script).
 
-The CSP is deliberately not maximal. Bootstrap and Bootstrap Icons come
-from jsdelivr (see base.html), and the templates carry inline <style>
+The CSP is deliberately not maximal. Vendor libraries are self-hosted
+under /static/vendor/ (#413), but the templates carry inline <style>
 blocks and inline <script> blocks, so 'unsafe-inline' has to stay for
 now -- removing it means nonce-ing every inline block, which is a
 separate, much larger change. What the policy DOES buy today:
-  * no script may be loaded from anywhere except this origin and the
-    one pinned CDN -- an injected <script src> to an attacker host is
+  * no script may be loaded from anywhere except this origin -- an
+    injected <script src> to an attacker host is
     dead on arrival,
   * form-action 'self' stops an injected <form> from posting a member's
     data (or an admin's) off-site,
@@ -30,13 +30,11 @@ from urllib.parse import quote
 
 from app.config import settings
 
-CDN_ORIGIN = "https://cdn.jsdelivr.net"
-
 CONTENT_SECURITY_POLICY = "; ".join([
     "default-src 'self'",
-    f"script-src 'self' 'unsafe-inline' {CDN_ORIGIN}",
-    f"style-src 'self' 'unsafe-inline' {CDN_ORIGIN}",
-    f"font-src 'self' data: {CDN_ORIGIN}",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self' data:",
     # data: for the QR codes and inline PDFs the app generates itself.
     "img-src 'self' data:",
     "connect-src 'self'",

@@ -3,7 +3,7 @@
 {% block page_title %}{{ t('announcements.form.title') }}{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.css">
+<link rel="stylesheet" href="/static/vendor/easymde@2.18.0/dist/easymde.min.css">
 <style>
     /* EasyMDE names each toolbar button's own DOM class after its
        internal name (see createToolbarButton() in easymde.js), so the
@@ -413,7 +413,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="https://cdn.jsdelivr.net/npm/easymde@2.18.0/dist/easymde.min.js"></script>
+<script src="/static/vendor/easymde@2.18.0/dist/easymde.min.js"></script>
 <script>
     // Reject an oversized image as soon as it's picked: the server would
     // refuse it anyway, but only after uploading it all.

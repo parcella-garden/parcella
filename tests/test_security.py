@@ -22,6 +22,7 @@ were fixed:
    found in-house -- see docs/security.md).
 """
 from datetime import date, datetime, timedelta, timezone
+import re
 
 import pytest
 from httpx import AsyncClient
@@ -278,6 +279,32 @@ async def test_security_headers_present_on_every_response(client):
         assert "frame-ancestors 'none'" in csp, path
         assert "form-action 'self'" in csp, path
         assert "object-src 'none'" in csp, path
+
+
+async def test_static_assets_are_self_hosted_cached_and_compressed(client):
+    """Issue #413: vendor files come from this origin, versioned and
+    cached for good; other static files revalidate; HTML is never
+    gzipped (BREACH)."""
+    import pathlib
+
+    gzip = {"Accept-Encoding": "gzip"}
+    vendor = await client.get("/static/vendor/bootstrap@5.3.3/dist/css/bootstrap.min.css", headers=gzip)
+    assert vendor.status_code == 200 and vendor.headers["content-encoding"] == "gzip"
+    assert "immutable" in vendor.headers["cache-control"]
+    favicon = await client.get("/static/favicon.ico")
+    assert favicon.headers["cache-control"] == "no-cache"
+    page = await client.get("/auth/login", headers=gzip)
+    assert "content-encoding" not in page.headers
+    assert "cdn." not in page.headers["content-security-policy"]
+
+    referenced = set()
+    for path in pathlib.Path("app/templates").rglob("*.html"):
+        source = path.read_text()
+        assert "cdn.jsdelivr" not in source, path
+        referenced.update(re.findall(r"/static/(vendor/[^\"' ]+)", source))
+    missing = [r for r in referenced if not pathlib.Path("app/static", r).exists() and
+               not pathlib.Path("app/static", r + ".js").exists()]
+    assert not missing, missing
 
 
 async def test_hsts_only_outside_development(client):

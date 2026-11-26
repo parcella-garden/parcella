@@ -273,11 +273,11 @@ the account in that state as well -- see
   publish it more widely, override `command:` and list the proxy's
   address instead.
 
-- **Content Security Policy.** Bootstrap and Bootstrap Icons load from
-  `cdn.jsdelivr.net`, which is pinned in the policy
-  (`app/security_headers.py`). Serving those assets from somewhere else
-  -- or self-hosting them -- means editing the policy, otherwise the
-  browser silently refuses to load them.
+- **Content Security Policy.** Everything loads from the app's own
+  origin: Bootstrap, Bootstrap Icons, EasyMDE, SortableJS and Chart.js
+  are self-hosted under `app/static/vendor/<package>@<version>/`
+  (`app/security_headers.py` allows no CDN). A new vendor library goes
+  there too, in a new versioned folder.
 
 ## Common failure patterns
 
