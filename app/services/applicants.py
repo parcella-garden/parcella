@@ -263,7 +263,7 @@ async def purge_expired_applicants(db: AsyncSession, now: Optional[datetime] = N
 
 
 async def maybe_purge_expired_applicants(db: AsyncSession) -> None:
-    """Called on every logged-in request (nav_counts_middleware,
+    """Called on every logged-in request (request_context_middleware,
     app/main.py), but runs the purge at most once an hour per process --
     a day's precision is all a retention period measured in months
     needs."""

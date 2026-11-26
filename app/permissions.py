@@ -149,7 +149,7 @@ async def require_permission(request: Request, db: AsyncSession, module: str, le
     Same calling convention as require_user/require_admin in app/auth.py
     -- call inline as the first line of a route body, e.g.
     `user = await require_permission(request, db, "members_parcels", "write")`.
-    Reads the per-request cache the permissions_middleware already
+    Reads the per-request cache the request_context_middleware already
     computed (see app/main.py) instead of re-querying when possible.
     """
     from app.auth import require_user  # local import: auth.py doesn't need to know about permissions.py
@@ -172,12 +172,12 @@ def jinja_has_perm(request: Request, module: str, level: str = "read") -> bool:
 def jinja_is_full_access(request: Request) -> bool:
     """Jinja global: `{% if is_full_access(request) %}` -- true for
     ADMIN/BOARD role or an equivalent grants_full_access group (ADR 0041).
-    Reads the per-request cache permissions_middleware computed."""
+    Reads the per-request cache request_context_middleware computed."""
     return bool(getattr(request.state, "is_full_access", False))
 
 
 def jinja_is_system_admin(request: Request) -> bool:
     """Jinja global: `{% if is_system_admin(request) %}` -- true for
     ADMIN role or an equivalent grants_system_admin group (ADR 0041).
-    Reads the per-request cache permissions_middleware computed."""
+    Reads the per-request cache request_context_middleware computed."""
     return bool(getattr(request.state, "is_system_admin", False))

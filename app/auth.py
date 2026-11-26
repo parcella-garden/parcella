@@ -120,7 +120,7 @@ async def require_admin(request: Request, db: AsyncSession) -> User:
     (ADR 0041): full read/write/delete on every club module (see
     app/permissions.py), but NOT the administration panel itself -- see
     require_system_admin for that. Reads the per-request cache
-    permissions_middleware computed, falling back to a fresh check."""
+    request_context_middleware computed, falling back to a fresh check."""
     from app.permissions import is_full_access_user
     user = await require_user(request, db)
     is_full_access = getattr(request.state, "is_full_access", None)

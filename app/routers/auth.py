@@ -139,7 +139,7 @@ async def change_password(
     user.password_hash = hash_password(new_password)
     # Whatever forced the change (today: the bootstrap admin's default
     # password) is now resolved -- see app/main.py's
-    # password_change_middleware.
+    # request_context_middleware.
     user.must_change_password = False
     # Ends every other session of this account (a stolen cookie included);
     # this browser gets a fresh cookie below so it stays logged in.
