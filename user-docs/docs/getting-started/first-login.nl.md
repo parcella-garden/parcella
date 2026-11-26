@@ -148,7 +148,7 @@ eenvoudig persoonspictogram.
 | **Uploaden** | Slaat de afbeelding op. U ziet **Avatar succesvol geüpload.** Een verkeerd bestandstype of een te groot bestand wordt met een melding geweigerd. |
 | **Avatar verwijderen** | Alleen zichtbaar als u er een hebt. Verwijdert hem weer. |
 
-### API-tokens voor integraties {#api-tokens-for-integrations}
+### API-tokens voor koppelingen {#api-tokens-for-integrations}
 
 **Beheren** opent **Mijn API-tokens**. U hebt dit alleen nodig als u een
 ander programma (bijvoorbeeld een AI-assistent) met Parcella wilt
