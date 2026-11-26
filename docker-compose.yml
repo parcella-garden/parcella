@@ -46,8 +46,9 @@ services:
       SMTP_FROM: ${SMTP_FROM:-noreply@parcella.local}
       SMTP_TLS: ${SMTP_TLS:-true}
     # Trusting X-Forwarded-* from anyone is safe only because the port is
-    # bound to 127.0.0.1: nothing but this host (its browser or its
-    # reverse proxy) can connect.
+    # bound to 127.0.0.1 (nothing but this host can connect) AND the
+    # reverse proxy overwrites X-Forwarded-For with $remote_addr -- an
+    # appending proxy lets clients pick their IP (docs/operations.md).
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips=*
     ports:
       - "127.0.0.1:8000:8000"

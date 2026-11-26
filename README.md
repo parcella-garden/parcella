@@ -454,8 +454,10 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         # Needed for login throttling and the signup API's rate limit to
         # see the real client address (the compose file already runs
-        # uvicorn with --proxy-headers).
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        # uvicorn with --proxy-headers). $remote_addr, not
+        # $proxy_add_x_forwarded_for: that would keep a client-supplied
+        # header, and uvicorn would believe the client's made-up IP.
+        proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
