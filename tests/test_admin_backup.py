@@ -110,3 +110,27 @@ async def test_backup_download_leaves_no_temporary_files(client, admin_user, mon
     resp = await client.post("/admin/backup/download")
     assert resp.status_code == 200 and zipfile.ZipFile(io.BytesIO(resp.content)).testzip() is None
     assert len(created) == 2 and not any(os.path.exists(name) for name in created)
+
+
+async def test_backup_on_a_full_disk_reports_a_backup_error(client, admin_user, monkeypatch):
+    """A full /tmp while zipping is a BackupError (friendly redirect, and
+    the cloud backup records it), not a 500 -- and leaves no temp files."""
+    import os
+    import tempfile
+    created = []
+    real_mkstemp = tempfile.mkstemp
+
+    def recording_mkstemp(*args, **kwargs):
+        fd, name = real_mkstemp(*args, **kwargs)
+        created.append(name)
+        return fd, name
+
+    def disk_full(*args, **kwargs):
+        raise OSError(28, "No space left on device")
+
+    monkeypatch.setattr("app.backup.tempfile.mkstemp", recording_mkstemp)
+    monkeypatch.setattr("app.backup._write_zip", disk_full)
+    await web_login(client, "admin@example.com")
+    resp = await client.post("/admin/backup/download")
+    assert resp.status_code == 302 and "error=" in resp.headers["location"]
+    assert len(created) == 2 and not any(os.path.exists(name) for name in created)
