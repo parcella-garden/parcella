@@ -30,9 +30,16 @@ _events: Dict[str, Deque[float]] = defaultdict(deque)
 
 
 def _prune(key: str, window_seconds: int, now: float) -> Deque[float]:
-    window = _events[key]
+    # .get, not [key]: a lookup must not create an entry, and an emptied
+    # window is dropped -- otherwise every login with a new email (even
+    # an already-throttled one) would leave a key behind forever.
+    window = _events.get(key)
+    if window is None:
+        return deque()
     while window and now - window[0] > window_seconds:
         window.popleft()
+    if not window:
+        del _events[key]
     return window
 
 
