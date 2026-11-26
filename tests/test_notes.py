@@ -403,6 +403,21 @@ async def test_cloud_save_writes_the_file_and_external_edits_come_back(client, a
     assert cloud.uploads == uploads
 
 
+async def test_list_page_does_not_wait_for_the_cloud(client, admin_user, monkeypatch):
+    """Issue #414: GET /notes/ renders from the database and only starts
+    the (throttled) pull in the background."""
+    import asyncio
+    from app.services import notes as notes_service
+    cloud = await _enable_cloud(client, monkeypatch)
+    cloud.put("Aus der Cloud.md", "Neu im Ordner.\n")
+    reset_sync_throttle()
+
+    page = await client.get("/notes/")
+    assert page.status_code == 200
+    await asyncio.gather(*notes_service._background_syncs)
+    assert [n.cloud_filename for n in await _notes()] == ["Aus der Cloud.md"]
+
+
 async def test_save_is_refused_when_the_file_changed_meanwhile(client, admin_user, monkeypatch):
     cloud = await _enable_cloud(client, monkeypatch)
     note_id = await _create(client)

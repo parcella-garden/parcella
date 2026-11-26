@@ -146,8 +146,9 @@ Jak to funguje v praxi:
   vezme ze začátku názvu souboru (`2026-11-08`, `20261108` nebo
   `202506` pro 1. den daného měsíce), jinak z data poslední změny
   souboru.
-- **Synchronizace**: seznam poznámek čte změny z cloudu sám, nejvýše
-  jednou za minutu. **Synchronizovat** to udělá hned a oznámí
+- **Synchronizace**: při otevření seznam poznámek čte změny z cloudu
+  na pozadí, nejvýše jednou za minutu; objeví se při příštím otevření
+  seznamu. **Synchronizovat** to udělá hned a oznámí
   **Synchronizováno: {n} nových, {n} změněných, {n} odebraných, {n}
   nahraných.** Soubor smazaný v cloudu odstraní svou poznámku ze
   seznamu.
@@ -170,7 +171,7 @@ verzi v cloudu přepíšete.
 Pokud byla poznámka změněna jak v Parcelle (když nebyla nastavena
 žádná složka), tak v cloudu, synchronizace ponechá verzi z cloudu a vaši
 uloží jako samostatnou poznámku označenou „conflict copy“ (konfliktní
-kopie). Seznam pak uvede, kolik takových kopií vzniklo. Nic se neztratí.
+kopie). **Synchronizovat** pak uvede, kolik takových kopií vzniklo. Nic se neztratí.
 
 ## Kategorie a štítky {#categories-tags}
 

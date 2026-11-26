@@ -70,7 +70,7 @@ Cloud storage), the folder's `*.md` files are the notes:
   the user's kept text. Saving again (now with the new hash) overwrites
   deliberately. Hash, not timestamp: works the same on WebDAV and S3,
   and an unchanged re-upload isn't a conflict.
-- **Pull (`sync_from_cloud`)**: the list page syncs at most once a
+- **Pull (`sync_from_cloud`)**: the list page (and the REST/MCP list) starts a sync in the background (issue #414: it renders from the database, never waits on the cloud) at most once a
   minute per process, "Sync" forces it, opening/editing a note
   re-reads that one file. New file -> new note; changed fingerprint ->
   download, and if the hash differs, re-parse; file gone -> note

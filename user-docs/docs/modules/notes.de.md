@@ -147,8 +147,9 @@ So funktioniert es in der Praxis:
 - **In der Cloud angelegte Dateien** werden zu Notizen. Ihr Datum kommt vom
   Anfang des Dateinamens (`2026-11-08`, `20261108` oder `202506` für den
   1. dieses Monats), sonst vom Änderungsdatum der Datei.
-- **Abgleichen**: Die Notizliste liest Änderungen aus der Cloud von selbst
-  ein, höchstens einmal pro Minute. **Abgleichen** tut es sofort und meldet
+- **Abgleichen**: Die Notizliste liest beim Öffnen Änderungen aus der Cloud
+  im Hintergrund ein, höchstens einmal pro Minute; sie erscheinen beim
+  nächsten Öffnen der Liste. **Abgleichen** tut es sofort und meldet
   **Abgeglichen: … neu, … geändert, … entfernt, … hochgeladen.** Eine in
   der Cloud gelöschte Datei entfernt ihre Notiz aus der Liste.
 - **Löschen** einer Notiz in Parcella löscht auch ihre Datei. Klappt das
@@ -169,7 +170,7 @@ klick erneut auf **Speichern**, um die Cloud-Fassung zu überschreiben.
 
 Wurde eine Notiz sowohl in Parcella (solange kein Ordner gesetzt war) als
 auch in der Cloud geändert, behält der Abgleich die Cloud-Fassung und
-speichert deine als eigene Notiz mit dem Vermerk „Konfliktkopie“. Die Liste
+speichert deine als eigene Notiz mit dem Vermerk „Konfliktkopie“. **Abgleichen**
 sagt dann, wie viele solcher Kopien entstanden sind. Es geht nichts
 verloren.
 

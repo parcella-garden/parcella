@@ -15,6 +15,7 @@ past bugs in this project only occurred with PostgreSQL (e.g. enum
 value casing) -- SQLite would have made these bugs invisible instead of
 catching them.
 """
+import asyncio
 import os
 
 os.environ.setdefault(
@@ -83,6 +84,16 @@ async def _reset_rate_limits():
     from app.rate_limit import _events
     _events.clear()
     yield
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def _finish_background_note_syncs():
+    """Each test has its own event loop: a notes sync the list page
+    started in the background (issue #414) and left unfinished would hold
+    the sync lock on a dead loop and hang every later sync."""
+    yield
+    from app.services.notes import _background_syncs
+    await asyncio.gather(*_background_syncs, return_exceptions=True)
 
 
 @pytest_asyncio.fixture(autouse=True)
