@@ -7,7 +7,8 @@ import urllib.parse
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Request, Form, Depends, HTTPException, File, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
+from starlette.background import BackgroundTask
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
@@ -64,7 +65,7 @@ from app.sample_data import (
     has_real_core_data, has_sample_data, SampleDataBlockedError, MODULES,
 )
 from app.backup import (
-    build_backup_zip, restore_from_zip_bytes, BackupError, RestoreZipError,
+    build_backup_zip_file, restore_from_zip_bytes, BackupError, RestoreZipError,
     RESTORE_CONFIRM_PHRASE, MAX_RESTORE_UPLOAD_BYTES,
 )
 from app.parcel_cloud_folders import browse_folder_picker, sanitize_relative_path, InvalidCloudPathError
@@ -245,17 +246,17 @@ async def backup_download(request: Request, db: AsyncSession = Depends(get_db)):
     await require_system_admin(request, db)
 
     try:
-        filename, content = await build_backup_zip()
+        filename, path = await build_backup_zip_file()
     except BackupError as e:
         return RedirectResponse(
             f"/admin/system?error={urllib.parse.quote(t_for(request, 'admin.dashboard.backup_error', detail=str(e)))}",
             status_code=302,
         )
 
-    return Response(
-        content=content,
-        media_type="application/zip",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    # Streamed from the temporary file, which is deleted once sent.
+    return FileResponse(
+        path, media_type="application/zip", filename=filename,
+        background=BackgroundTask(path.unlink, missing_ok=True),
     )
 
 

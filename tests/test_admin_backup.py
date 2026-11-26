@@ -90,3 +90,23 @@ async def test_backup_contains_the_secret_key(client, admin_user):
     assert zf.read("data/secrets/secret_key").decode("utf-8").strip() == settings.secret_key
     # Nothing outside data/: the zip mirrors the install's data folder.
     assert all(name.startswith("data/") for name in zf.namelist())
+
+
+async def test_backup_download_leaves_no_temporary_files(client, admin_user, monkeypatch):
+    """Issue #415: dump and zip go through temporary files, not memory;
+    both are gone once the download has been sent."""
+    import os
+    import tempfile
+    created = []
+    real_mkstemp = tempfile.mkstemp
+
+    def recording_mkstemp(*args, **kwargs):
+        fd, name = real_mkstemp(*args, **kwargs)
+        created.append(name)
+        return fd, name
+
+    monkeypatch.setattr("app.backup.tempfile.mkstemp", recording_mkstemp)
+    await web_login(client, "admin@example.com")
+    resp = await client.post("/admin/backup/download")
+    assert resp.status_code == 200 and zipfile.ZipFile(io.BytesIO(resp.content)).testzip() is None
+    assert len(created) == 2 and not any(os.path.exists(name) for name in created)
