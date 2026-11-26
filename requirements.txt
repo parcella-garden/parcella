@@ -23,7 +23,7 @@ python-dotenv==1.2.2
 email-validator==2.2.0
 babel==2.16.0
 icalendar==6.1.0
-bleach==6.4.0
+nh3==0.3.2
 markdown==3.10.3
 # ALTCHA proof of work for the public website forms (ADR 0089); MIT, no dependencies.
 altcha==2.1.0

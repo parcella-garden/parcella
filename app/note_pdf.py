@@ -9,7 +9,7 @@ printed, signed or sent around. The note's own H1 is the document
 title (kermie's call on #343: no extra title on top). A note without
 an H1 gets its title as one, so the PDF never starts headless.
 
-The body goes through the same bleach sanitizer as the note page
+The body goes through the same nh3 sanitizer as the note page
 (render_markdown_to_html), and WeasyPrint gets the data:-URI-only
 fetcher: an image or stylesheet URL in a note is never fetched (no
 server-side requests to wherever a note points), so remote images

@@ -108,7 +108,7 @@ file later). A partial unique index keeps one live note per file name.
   UI languages, and fast enough for a club's notes. Revisit if the
   knowledge base (#285) needs ranking.
 - **Rendering**: `render_markdown_to_html(..., allow_tables=True)`
-  (bleach-sanitized, `app/announcement_utils.py`), wrapped in `Markup`
+  (nh3-sanitized, `app/announcement_utils.py`), wrapped in `Markup`
   in Python, never `|safe` in a template. The editor's preview calls the
   same sanitizer on the server.
 - **Editor**: EasyMDE 2.18 (same as announcements), with its toggle

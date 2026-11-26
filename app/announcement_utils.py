@@ -5,7 +5,7 @@ Markdown -> HTML pipeline
 -------------------------
 body_markdown is the single canonical source, authored by a board
 member in the Parcella UI (a Markdown editor with live preview). It is
-converted to HTML with python-markdown and then run through bleach
+converted to HTML with python-markdown and then run through nh3
 before being cached as body_html and pushed out to any channel (own
 templates, the blog API, the outgoing email).
 
@@ -22,12 +22,10 @@ script/on*-handler injection), but images and a couple of extra
 formatting tags are allowed.
 """
 import hashlib
-import re
 
-import bleach
 import markdown as md
 
-_SCRIPT_STYLE_RE = re.compile(r"<(script|style)[^>]*>.*?</\1>", re.IGNORECASE | re.DOTALL)
+from app.html_sanitizer import clean_html
 
 ALLOWED_TAGS = [
     "p", "br", "b", "i", "u", "strong", "em", "a",
@@ -39,7 +37,6 @@ ALLOWED_ATTRIBUTES = {
     "a": ["href", "title"],
     "img": ["src", "alt", "title"],
 }
-ALLOWED_PROTOCOLS = ["http", "https", "mailto"]
 
 # Rough estimate for the one-page print check (see docs/module-announcements.md
 # for why this is deliberately approximate rather than exact): a printed
@@ -64,21 +61,7 @@ def render_markdown_to_html(markdown_text: str, *, allow_tables: bool = False) -
         markdown_text,
         extensions=["extra", "sane_lists", "nl2br"],
     )
-    raw_html = _SCRIPT_STYLE_RE.sub("", raw_html)
-
-    cleaned = bleach.clean(
-        raw_html,
-        tags=ALLOWED_TAGS + TABLE_TAGS if allow_tables else ALLOWED_TAGS,
-        attributes=ALLOWED_ATTRIBUTES,
-        protocols=ALLOWED_PROTOCOLS,
-        strip=True,
-        strip_comments=True,
-    )
-    cleaned = re.sub(
-        r'<a\s+href="([^"]*)"([^>]*)>',
-        r'<a href="\1" target="_blank" rel="noopener noreferrer"\2>',
-        cleaned,
-    )
+    cleaned = clean_html(raw_html, ALLOWED_TAGS + TABLE_TAGS if allow_tables else ALLOWED_TAGS, ALLOWED_ATTRIBUTES)
     return cleaned
 
 
