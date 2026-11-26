@@ -82,7 +82,11 @@ async def _reset_rate_limits():
     a test fails with 429 depending only on test order (hit for real
     when issue #313 added more public sign-up tests)."""
     from app.rate_limit import _events
+    from app import settings_cache
     _events.clear()
+    # Tables are emptied with plain DELETEs between tests, which the
+    # ORM-event invalidation in app/settings_cache.py doesn't see.
+    settings_cache.clear()
     yield
 
 

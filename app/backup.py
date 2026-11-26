@@ -248,6 +248,8 @@ async def restore_from_zip_bytes(zip_bytes: bytes) -> None:
     # change result type").
     from app.database import engine
     await engine.dispose()
+    from app import settings_cache
+    settings_cache.clear()  # the restored club settings, not the cached ones
 
     # Issue #327 / ADR 0134: the restored settings are encrypted with the
     # key of the instance that made the backup. Re-encrypt them with this

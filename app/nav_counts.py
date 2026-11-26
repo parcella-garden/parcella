@@ -1,6 +1,6 @@
 """
 "Needs attention" counts shared by the nav badges (base.html) and the
-dashboard tiles -- computed once per request by nav_counts_middleware
+dashboard tiles -- computed once per request by request_context_middleware
 (app/main.py) so the badge on a nav entry and the matching dashboard
 tile can never disagree (ADR 0019, ADR 0100).
 
@@ -62,5 +62,5 @@ async def load_nav_counts(db: AsyncSession) -> dict[str, int]:
 
 def jinja_nav_count(request, key: str) -> int:
     """Jinja global for base.html's nav badges -- reads the counts
-    nav_counts_middleware already computed for this request."""
+    request_context_middleware already computed for this request."""
     return getattr(request.state, "nav_counts", {}).get(key, 0)

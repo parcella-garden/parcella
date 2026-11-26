@@ -21,6 +21,7 @@ from app.models import User, UserRole, Member, Parcel, ParcelStatus, MemberParce
 from app.birthdays import average_age, upcoming_birthdays
 from app.auth import hash_password, get_current_user
 from app.module_flags import load_module_flags
+from app import settings_cache
 from app.nav_order import load_nav_order
 from app.i18n import load_translations, load_current_language, translate, t_for
 from app import csrf
@@ -193,7 +194,7 @@ async def lifespan(app: FastAPI):
                 role=UserRole.ADMIN,
                 # This password is documented in the README and identical
                 # on every fresh installation, so the account is unusable
-                # until it's changed -- see password_change_middleware.
+                # until it's changed -- see request_context_middleware.
                 must_change_password=True,
             )
             db.add(erster_admin)
@@ -237,189 +238,102 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 
-@app.middleware("http")
-async def modul_flags_middleware(request: Request, call_next):
-    """
-    Loads the module flags once per request (e.g. whether work hours is
-    active) and stores them under request.state.module_flags. Templates
-    and router dependencies (require_module) read from there without
-    querying the DB again.
-    """
-    async with AsyncSessionLocal() as db:
-        request.state.module_flags = await load_module_flags(db)
-        # Cheap enough to load alongside the module flags themselves --
-        # only the active helpdesk's web address (no credentials), used by
-        # base.html's "Support" nav link for members with no
-        # freescout_bridge permission (they link straight to the helpdesk;
-        # staff link to Parcella's own /support/ list instead).
-        request.state.helpdesk_web_url = await load_helpdesk_web_url(db)
-    response = await call_next(request)
-    return response
-
-
-@app.middleware("http")
-async def nav_order_middleware(request: Request, call_next):
-    """
-    Loads the club's configured sidebar nav order once per request (see
-    app/nav_order.py, issue #60) and stores it under
-    request.state.nav_order. base.html sorts its nav-item macros by
-    this instead of a fixed source order.
-    """
-    async with AsyncSessionLocal() as db:
-        request.state.nav_order = await load_nav_order(db)
-    response = await call_next(request)
-    return response
-
-
-@app.middleware("http")
-async def sprache_middleware(request: Request, call_next):
-    """
-    Loads the currently configured language once per request (see
-    app/i18n.py) and stores it under request.state.language. Templates
-    (via the Jinja function `t`) and routers (via t_for(request, ...))
-    read from there.
-    """
-    async with AsyncSessionLocal() as db:
-        request.state.language = await load_current_language(db)
-    response = await call_next(request)
-    return response
-
-
-@app.middleware("http")
-async def l10n_middleware(request: Request, call_next):
-    """
-    Loads region and currency once per request (see app/l10n.py) and
-    stores them under request.state.region / request.state.currency.
-    Deliberately separate from language (sprache_middleware above) --
-    region/currency are independent settings, see the app/l10n.py
-    module docstring. Templates use the `money`, `number`, `address`
-    filters/function.
-    """
-    async with AsyncSessionLocal() as db:
-        request.state.region = await load_current_region(db)
-        request.state.currency = await load_current_currency(db)
-    response = await call_next(request)
-    return response
-
-
-@app.middleware("http")
-async def permissions_middleware(request: Request, call_next):
-    """
-    Loads the current user's effective per-module permissions once per
-    request and stores them under request.state.permissions, plus the
-    two ADR 0041 group-derived flags (is_full_access/is_system_admin)
-    -- see app/permissions.py. require_permission()/require_admin()/
-    require_system_admin() and the has_perm/is_full_access/is_system_admin
-    Jinja globals all read from here instead of re-querying. Anonymous
-    requests get all-False permissions, same as get_user_permissions(None).
-
-    Also loads the current user's group names into
-    request.state.user_group_names -- the sidebar footer (base.html)
-    shows these instead of the raw UserRole for the same reason the
-    admin user list does (issue #129/ADR 0041): a non-legacy account's
-    real access comes from group membership, not role, so showing e.g.
-    "Read-only" for a full-access group member is actively misleading.
-    """
-    async with AsyncSessionLocal() as db:
-        user = await get_current_user(request, db)
-        request.state.permissions = await get_user_permissions(db, user)
-        request.state.is_full_access = await is_full_access_user(db, user)
-        request.state.is_system_admin = await is_system_admin_user(db, user)
-        request.state.user_group_names = []
-        if user is not None:
-            result = await db.execute(
-                select(Group.name)
-                .join(GroupMembership, GroupMembership.group_id == Group.id)
-                .where(GroupMembership.user_id == user.id)
-            )
-            request.state.user_group_names = list(result.scalars().all())
-    response = await call_next(request)
-    return response
-
-
-@app.middleware("http")
-async def nav_counts_middleware(request: Request, call_next):
-    """
-    Loads the nav badge counts once per request: the "N work-session
-    sign-ups in the last NEW_PARTICIPATION_WINDOW_DAYS days" count
-    (issue #217, request.state.new_participations_count, ADR 0079) and
-    the "needs attention" counts in app/nav_counts.py
-    (request.state.nav_counts, ADR 0100) -- driving both the nav badges
-    (base.html) and the dashboard tiles. Only queried for a logged-in
-    user -- anonymous requests (public ICS feeds, login page) get zeros
-    without a DB round-trip, since nothing anonymous-facing reads these.
-    """
-    request.state.new_participations_count = 0
-    request.state.nav_counts = dict.fromkeys(NAV_COUNT_KEYS, 0)
-    async with AsyncSessionLocal() as db:
-        user = await get_current_user(request, db)
-        if user is not None:
-            request.state.new_participations_count = await count_new_participations(db)
-            request.state.nav_counts = await load_nav_counts(db)
-            # Issue #255: applicants past the retention period are
-            # deleted on regular site use, no cron job (throttled).
-            await maybe_purge_expired_applicants(db)
-            # Issue #270: email log rows past their retention, same way.
-            await maybe_purge_expired_email_logs(db)
-    response = await call_next(request)
-    return response
-
-
 CHANGE_PASSWORD_PATH = "/auth/change-password"
 # Reachable while a forced password change is pending: the change form
 # itself, logging out, and static assets (the page needs its CSS).
 _PASSWORD_CHANGE_EXEMPT_PREFIXES = (CHANGE_PASSWORD_PATH, "/auth/logout", "/static/")
 
+# Static files read nothing from request.state (issue #412); their 404
+# is plain text for the same reason (see not_found_handler).
+_STATIC_PREFIX = "/static/"
+
+
+async def _load_club_settings(db: AsyncSession) -> dict:
+    return {
+        # e.g. whether work hours is active; require_module() and the
+        # templates read request.state.module_flags.
+        "module_flags": await load_module_flags(db),
+        # Only the active helpdesk's web address (no credentials), for
+        # base.html's "Support" link for members without freescout_bridge.
+        "helpdesk_web_url": await load_helpdesk_web_url(db),
+        # t()/t_for() read request.state.language (app/i18n.py).
+        "language": await load_current_language(db),
+        # Independent of language (app/l10n.py): money/number/address.
+        "region": await load_current_region(db),
+        "currency": await load_current_currency(db),
+        # Sidebar order (app/nav_order.py, issue #60).
+        "nav_order": await load_nav_order(db),
+    }
+
 
 @app.middleware("http")
-async def password_change_middleware(request: Request, call_next):
+async def request_context_middleware(request: Request, call_next):
     """
-    Sends a logged-in user whose account is flagged must_change_password
-    (today: the bootstrap admin, whose password is the same documented
-    default on every installation) to the change-password form, whatever
-    page they asked for.
+    Loads everything the templates and permission checks read from
+    request.state, in ONE session with ONE user lookup (issue #412; this
+    was eight middlewares, three of them looking up the user).
 
-    Web UI only -- /api/v1 uses its own JWT auth, and the API side of the
-    same rule lives where tokens are issued (app/routers/api_auth.py):
-    an account in this state simply doesn't get a token, which is a
-    clearer answer to an API client than a redirect to an HTML form.
+    - Club settings (app/settings_cache.py caches them per process).
+    - Branding: club name and logo URL with its cache-busting ?v= (see
+      load_branding() for why the version is the file's mtime).
+    - Web UI only: the user's permissions, the two ADR 0041 group flags
+      and group names (the sidebar footer shows those, not the raw
+      UserRole -- issue #129), and the nav badge counts (issue #217,
+      ADR 0079/0100), which also run the throttled retention purges
+      (issues #255, #270). /api/v1 authenticates by token instead.
+    - A user flagged must_change_password (the bootstrap admin) is sent
+      to the change-password form, whatever page they asked for; the
+      API side of that rule is where tokens are issued.
+
+    scope["path"], not request.url.path: the latter is rebuilt and
+    re-parsed and can disagree with the path routing actually used.
     """
-    # scope["path"], not request.url.path: the latter is rebuilt by
-    # concatenating scheme/host/path and re-parsing, which known
-    # Starlette issues can make disagree with the path that routing
-    # actually used. Anything that decides whether a check applies must
-    # read the same value the router does.
     path = request.scope.get("path", "")
-    if path.startswith("/api/") or path.startswith(_PASSWORD_CHANGE_EXEMPT_PREFIXES):
+    if path.startswith(_STATIC_PREFIX):
         return await call_next(request)
+    is_api = path.startswith("/api/")
 
+    state = request.state
+    state.new_participations_count = 0
+    state.nav_counts = dict.fromkeys(NAV_COUNT_KEYS, 0)
+    must_change = False
     async with AsyncSessionLocal() as db:
-        user = await get_current_user(request, db)
-        must_change = bool(user and user.must_change_password)
+        club_settings = settings_cache.get()
+        if club_settings is None:
+            generation = settings_cache.generation()
+            club_settings = await _load_club_settings(db)
+            settings_cache.put(club_settings, generation)
+        for key, value in club_settings.items():
+            setattr(state, key, value)
+
+        branding = await load_branding(db)
+        state.club_name = branding["club_name"]
+        state.logo_url = (
+            f"{branding['logo_url']}?v={branding['logo_version']}" if branding["logo_url"] else None
+        )
+
+        if not is_api:
+            user = await get_current_user(request, db)
+            must_change = bool(user and user.must_change_password) and not path.startswith(_PASSWORD_CHANGE_EXEMPT_PREFIXES)
+            state.permissions = await get_user_permissions(db, user)
+            state.is_full_access = await is_full_access_user(db, user)
+            state.is_system_admin = await is_system_admin_user(db, user)
+            state.user_group_names = []
+            if user is not None:
+                state.user_group_names = list((await db.execute(
+                    select(Group.name)
+                    .join(GroupMembership, GroupMembership.group_id == Group.id)
+                    .where(GroupMembership.user_id == user.id)
+                )).scalars().all())
+                if not must_change:
+                    state.new_participations_count = await count_new_participations(db)
+                    state.nav_counts = await load_nav_counts(db)
+                    await maybe_purge_expired_applicants(db)
+                    await maybe_purge_expired_email_logs(db)
 
     if must_change:
         return RedirectResponse(CHANGE_PASSWORD_PATH, status_code=302)
     return await call_next(request)
-
-
-@app.middleware("http")
-async def branding_middleware(request: Request, call_next):
-    """Loads the club's display name and custom logo once per request
-    (same pattern as module flags, language, and l10n above) and stores
-    them under request.state.club_name / request.state.logo_url. See
-    app/branding.py."""
-    async with AsyncSessionLocal() as db:
-        branding = await load_branding(db)
-        request.state.club_name = branding["club_name"]
-        # Cache-busting suffix so a re-uploaded logo is never served
-        # stale from a browser's cache of the old image at this same
-        # fixed URL -- see load_branding()'s docstring for why this is
-        # appended here rather than baked into logo_url itself.
-        request.state.logo_url = (
-            f"{branding['logo_url']}?v={branding['logo_version']}" if branding["logo_url"] else None
-        )
-    response = await call_next(request)
-    return response
 
 
 # NOTE ON ORDERING: Starlette runs the LAST-REGISTERED middleware
@@ -445,7 +359,7 @@ async def csrf_middleware(request: Request, call_next):
     request.state.csrf_token = token
 
     # scope["path"] rather than request.url.path -- see the note in
-    # password_change_middleware below. Here it decides whether the
+    # request_context_middleware below. Here it decides whether the
     # exemption applies, so a disagreement would mean skipping the
     # check on a route that needs it.
     path = request.scope.get("path", "")
@@ -659,7 +573,7 @@ async def startseite(request: Request):
         "parcels_terminated": parcels_terminated or 0,
         "parcels_vacant": parcels_vacant or 0,
         "area_total_sqm": float(area_total or 0),
-        # The "needs attention" tiles reuse the counts nav_counts_middleware
+        # The "needs attention" tiles reuse the counts request_context_middleware
         # already computed for this request (nav badges) instead of querying
         # again -- one source, so badge and tile can't disagree (ADR 0100).
         **request.state.nav_counts,
@@ -704,6 +618,8 @@ async def forbidden_handler(request: Request, exc):
 
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc):
+    if request.scope.get("path", "").startswith(_STATIC_PREFIX):
+        return PlainTextResponse("Not Found", status_code=404)
     async with AsyncSessionLocal() as db:
         user = await get_current_user(request, db)
     detail = getattr(exc, "detail", None)

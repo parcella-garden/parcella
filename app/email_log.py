@@ -85,7 +85,7 @@ async def purge_expired_email_logs(db: AsyncSession, now: Optional[datetime] = N
 
 
 async def maybe_purge_expired_email_logs(db: AsyncSession) -> None:
-    """Called on every logged-in request (nav_counts_middleware), runs
+    """Called on every logged-in request (request_context_middleware), runs
     at most once an hour per process."""
     global _last_purge
     now = time_module.monotonic()

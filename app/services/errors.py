@@ -6,7 +6,7 @@ check_monotonicity() already used informally into one reusable type.
 A service raises this instead of an HTTPException directly, so it stays
 framework-agnostic (no FastAPI/Jinja2 concerns) -- each router (HTML or
 API) resolves the message via its own means (t_for(request, ...) for
-both, since sprache_middleware runs for API requests too) and applies
+both, since request_context_middleware runs for API requests too) and applies
 its own status-code convention (HTML: 400, API: 422 -- deliberately not
 unified, see ADR 0070).
 """

@@ -139,7 +139,7 @@ def require_api_permission(module: str, level: str):
     instead of the coarser role-only require_api_role (ADR 0070).
 
     Can't reuse request.state.permissions: it's populated by
-    permissions_middleware (app/main.py) from get_current_user(), which
+    request_context_middleware (app/main.py) from get_current_user(), which
     only reads the session cookie -- always the anonymous baseline for
     a JWT-authenticated API request. Computes it directly per request
     instead.

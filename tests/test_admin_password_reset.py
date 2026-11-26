@@ -2,7 +2,7 @@
 Issue #244 / ADR 0109: an admin resets another user's password.
 Parcella generates a temporary password, shows it once, ends the user's
 open sessions, and the user must change it at the next login (the
-must_change_password flow, app/main.py's password_change_middleware).
+must_change_password flow, app/main.py's request_context_middleware).
 """
 import re
 

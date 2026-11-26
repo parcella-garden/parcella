@@ -25,7 +25,7 @@ _BAD_CREDENTIALS = HTTPException(
 )
 # A user still on the bootstrap password has to change it in the web UI
 # before the account is usable at all -- otherwise the forced change
-# (app/main.py's password_change_middleware) would be a web-only gate
+# (app/main.py's request_context_middleware) would be a web-only gate
 # that any API client could walk straight past.
 _PASSWORD_CHANGE_REQUIRED = HTTPException(
     status_code=status.HTTP_403_FORBIDDEN,
