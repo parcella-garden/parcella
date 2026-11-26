@@ -139,8 +139,9 @@ How it works in practice:
 - **Files created in the cloud** become notes. Their date is taken from
   the start of the file name (`2026-11-08`, `20261108`, or `202506` for
   the 1st of that month), otherwise from the file's last-changed date.
-- **Sync**: the note list reads changes from the cloud by itself, at
-  most once a minute. **Sync** does it now and reports **Synced: {n}
+- **Sync**: opening the note list reads changes from the cloud in the
+  background, at most once a minute; they show up the next time you open
+  the list. **Sync** does it now and reports **Synced: {n}
   new, {n} changed, {n} removed, {n} uploaded.** A file deleted in the
   cloud removes its note from the list.
 - **Deleting** a note in Parcella deletes its file too. If that fails,
@@ -161,7 +162,7 @@ text stays in the form below. Copy over what you need and click
 
 If a note was changed both in Parcella (while no folder was set) and in
 the cloud, the sync keeps the cloud version and saves yours as a
-separate note marked "conflict copy". The list then says how many such
+separate note marked "conflict copy". **Sync** then says how many such
 copies were made. Nothing is lost.
 
 ## Categories & tags

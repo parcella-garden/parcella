@@ -23,7 +23,7 @@ from app.schemas import NoteCreate, NoteOut, NoteUpdate, TaxonomyTermCreate, Tax
 from app.services.errors import ServiceError
 from app.services.notes import (
     NoteConflict, NoteFilter, NoteInput, create_note, create_term, delete_note, get_note, list_categories,
-    list_tags, note_load_options, sync_from_cloud, update_note,
+    list_tags, note_load_options, sync_from_cloud, sync_from_cloud_in_background, update_note,
 )
 
 MODULE = "notes"
@@ -73,8 +73,7 @@ async def notes_list(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission(MODULE, "read")),
 ):
-    await sync_from_cloud(db)
-    await db.commit()
+    sync_from_cloud_in_background()
     query = NoteFilter.build(q, category, tag, date_from, date_to, sort).apply()
     return (await db.scalars(query.options(*note_load_options()).limit(limit).offset(offset))).all()
 

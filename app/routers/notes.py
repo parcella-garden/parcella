@@ -36,7 +36,7 @@ from app.services.notes import (
     BOOKMARK_EXISTS, BOOKMARK_INVALID, BOOKMARK_NEW,
     NoteConflict, NoteFilter, NoteInput, classify_bookmarks, count_term_notes, create_note, create_term, delete_note,
     delete_term, get_note, import_bookmarks, list_categories, list_tags, load_notes_folder, note_load_options,
-    refresh_note, rename_term, set_term_translations, sync_from_cloud, update_note,
+    refresh_note, rename_term, set_term_translations, sync_from_cloud, sync_from_cloud_in_background, update_note,
 )
 from app.tag_translations import tag_label
 from app.templating import templates
@@ -98,15 +98,13 @@ async def notes_list(
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, MODULE, "read")
-    sync = await sync_from_cloud(db)
-    await db.commit()
+    sync_from_cloud_in_background()
     filters = NoteFilter.build(q, category, tag, date_from, date_to, sort)
     notes = (await db.scalars(filters.apply().options(*note_load_options()))).all()
     return templates.TemplateResponse("notes/list.html", {
         "request": request, "user": user, "notes": notes, "filters": filters,
         "categories": await list_categories(db), "tags": await list_tags(db),
         "cloud_folder": await load_notes_folder(db),
-        "sync_errors": sync.errors, "sync_conflicts": sync.conflicts,
         "message": request.query_params.get("message", ""), "error": request.query_params.get("error", ""),
     })
 
@@ -117,10 +115,13 @@ async def notes_sync(request: Request, db: AsyncSession = Depends(get_db)):
     result = await sync_from_cloud(db, force=True)
     await db.commit()
     if result.errors:
-        return _redirect("/notes/", error="; ".join(result.errors)[:500])
+        return _redirect("/notes/", error=t_for(request, "notes.sync.error", detail="; ".join(result.errors))[:500])
     if not result.ran:
         return _redirect("/notes/", error=t_for(request, "notes.sync.not_configured"))
-    return _redirect("/notes/", message=_sync_message(request, result))
+    message = _sync_message(request, result)
+    if result.conflicts:  # the list page no longer syncs, so the Sync button reports them
+        message += " " + t_for(request, "notes.sync.conflict_copies", count=result.conflicts)
+    return _redirect("/notes/", message=message)
 
 
 # ---------------------------------------------------------------------------

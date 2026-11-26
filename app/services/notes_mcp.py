@@ -29,7 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import ClubSetting, Note, TaxonomyCategory, TaxonomyTag, User
 from app.services.errors import ServiceError
 from app.services.notes import (
-    NoteConflict, NoteInput, create_note, get_note, note_load_options, sync_from_cloud, update_note,
+    NoteConflict, NoteInput, create_note, get_note, note_load_options, sync_from_cloud_in_background, update_note,
 )
 
 RELEASE_TAG_KEY = "mcp_release_tag"
@@ -116,9 +116,8 @@ def _str(args: Dict[str, Any], key: str, max_len: int = 100_000) -> Optional[str
 
 
 async def _sync(db: AsyncSession) -> None:
-    """Same as the REST list: pull cloud changes first (throttled)."""
-    await sync_from_cloud(db)
-    await db.commit()
+    """Same as the REST list: start a throttled pull in the background."""
+    sync_from_cloud_in_background()
 
 
 # ---------------------------------------------------------------------------

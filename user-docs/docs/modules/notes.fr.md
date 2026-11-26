@@ -155,8 +155,9 @@ Concrètement :
   est tirée du début du nom de fichier (`2026-11-08`, `20261108`, ou
   `202506` pour le 1er de ce mois), sinon de la date de dernière
   modification du fichier.
-- **Synchroniser** : la liste des notes lit d'elle-même les changements
-  du cloud, au plus une fois par minute. **Synchroniser** le fait
+- **Synchroniser** : à l'ouverture, la liste des notes lit les changements
+  du cloud en arrière-plan, au plus une fois par minute ; ils apparaissent
+  à la prochaine ouverture de la liste. **Synchroniser** le fait
   immédiatement et indique **Synchronisé : {n} nouvelles, {n} modifiées,
   {n} supprimées, {n} envoyées.** Un fichier supprimé dans le cloud
   retire sa note de la liste.
@@ -182,7 +183,7 @@ cloud.
 Si une note a été modifiée à la fois dans Parcella (alors qu'aucun
 dossier n'était défini) et dans le cloud, la synchronisation conserve la
 version du cloud et enregistre la vôtre comme une note séparée marquée
-« conflict copy ». La liste indique alors combien de copies ont été
+« conflict copy ». **Synchroniser** indique alors combien de copies ont été
 créées. Rien n'est perdu.
 
 ## Catégories et étiquettes {#categories-tags}

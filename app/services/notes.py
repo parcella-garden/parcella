@@ -35,6 +35,7 @@ from sqlalchemy import Select, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.database import AsyncSessionLocal
 from app.cloud_storage import CloudFileEntry, CloudStorageError, CloudStorageProvider, get_cloud_storage_provider
 from app.i18n import load_current_language
 from app.models import ClubSetting, Note, TaxonomyCategory, TaxonomyTag, User, new_uuid
@@ -805,6 +806,32 @@ async def sync_from_cloud(db: AsyncSession, *, force: bool = False) -> SyncResul
             await cloud.aclose()
         await db.flush()
     return result
+
+
+_background_syncs: set = set()  # strong refs, or the event loop may drop a running task
+
+
+def sync_from_cloud_in_background() -> None:
+    """Starts a throttled pull in its own session and returns at once,
+    so list pages and API reads render from the database instead of
+    waiting on the cloud (issue #414). Still sync on use, no polling
+    loop (ADR 0123); "Sync" (force) stays synchronous and reports."""
+    if _last_sync_monotonic is not None and time_module.monotonic() - _last_sync_monotonic < SYNC_MAX_AGE_SECONDS:
+        return
+
+    async def run() -> None:
+        try:
+            async with AsyncSessionLocal() as db:
+                result = await sync_from_cloud(db)
+                await db.commit()
+            for error in result.errors:
+                logger.warning(f"Notes sync: {error}")
+        except Exception:
+            logger.exception("Notes background sync failed")
+
+    task = asyncio.create_task(run())
+    _background_syncs.add(task)
+    task.add_done_callback(_background_syncs.discard)
 
 
 def _was_import_day(note: Note) -> bool:
