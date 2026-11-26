@@ -98,7 +98,7 @@ async def insurance_overview(
     if year not in available_years:
         available_years.insert(0, year)
 
-    return templates.TemplateResponse("insurance/overview.html", {
+    return templates.TemplateResponse(request, "insurance/overview.html", {
         "request": request, "user": user, "year": year,
         "available_years": available_years,
         "configuration": configuration, "packages": packages,
@@ -132,7 +132,7 @@ async def configuration_page(
     if year not in available_years:
         available_years.insert(0, year)
 
-    return templates.TemplateResponse("insurance/configuration.html", {
+    return templates.TemplateResponse(request, "insurance/configuration.html", {
         "request": request, "user": user, "year": year,
         "available_years": available_years,
         "configuration": configuration, "packages": packages,
@@ -312,7 +312,7 @@ async def insurance_parcels_list(
         "total_cost": sum((r["cost"]["total"] for r in rows), Decimal("0")),
     }
 
-    return templates.TemplateResponse("insurance/parcels_list.html", {
+    return templates.TemplateResponse(request, "insurance/parcels_list.html", {
         "request": request, "user": user, "year": year,
         "rows": rows, "totals": totals, "packages": packages,
         "property_filter": property_filter, "accident_filter": accident_filter, "sort": sort,
@@ -360,7 +360,7 @@ async def insurance_detail(
         if idx < len(ordered_ids) - 1:
             next_parcel_id = ordered_ids[idx + 1]
 
-    return templates.TemplateResponse("insurance/detail.html", {
+    return templates.TemplateResponse(request, "insurance/detail.html", {
         "request": request, "user": user, "year": year,
         "parcel": parcel, "pi": pi, "configuration": configuration, "packages": packages,
         "household": grouping["household"], "external": grouping["external"],
@@ -438,7 +438,7 @@ async def insurance_evaluation(
     if year not in available_years:
         available_years.insert(0, year)
 
-    return templates.TemplateResponse("insurance/evaluation.html", {
+    return templates.TemplateResponse(request, "insurance/evaluation.html", {
         "request": request, "user": user, "year": year,
         "available_years": available_years,
         "insurance_type": insurance_type,

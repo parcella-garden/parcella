@@ -96,7 +96,7 @@ async def purchase_requests_overview(
     result = await db.execute(query)
     purchase_requests = result.scalars().all()
 
-    return templates.TemplateResponse("purchase_requests/overview.html", {
+    return templates.TemplateResponse(request, "purchase_requests/overview.html", {
         "request": request, "user": user,
         "purchase_requests": purchase_requests, "filter": filter,
         "required_approvals": REQUIRED_APPROVALS,
@@ -110,7 +110,7 @@ async def purchase_requests_overview(
 @router.get("/new", response_class=HTMLResponse)
 async def purchase_request_new_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "purchase_requests", "write")
-    return templates.TemplateResponse("purchase_requests/form.html", {
+    return templates.TemplateResponse(request, "purchase_requests/form.html", {
         "request": request, "user": user, "contacts": await picker_contacts(request, db),
     })
 
@@ -174,7 +174,7 @@ async def purchase_request_detail(request_id: str, request: Request, db: AsyncSe
     has_already_approved = any(a.user_id == user.id for a in pr.approvals)
     is_requester = pr.requested_by_id == user.id or pr.created_by_id == user.id
 
-    return templates.TemplateResponse("purchase_requests/detail.html", {
+    return templates.TemplateResponse(request, "purchase_requests/detail.html", {
         "request": request, "user": user, "pr": pr,
         "required_approvals": REQUIRED_APPROVALS,
         "is_board_member": is_board_member,
@@ -280,10 +280,10 @@ async def confirm_page(token: str, request: Request, db: AsyncSession = Depends(
     pr = result.scalar_one_or_none()
     if not pr or _confirmation_token_expired(pr):
         return templates.TemplateResponse(
-            "purchase_requests/confirmation_invalid.html", {"request": request}
+            request, "purchase_requests/confirmation_invalid.html", {"request": request}
         )
 
-    return templates.TemplateResponse("purchase_requests/confirm.html", {
+    return templates.TemplateResponse(request, "purchase_requests/confirm.html", {
         "request": request, "pr": pr, "token": token,
     })
 
@@ -294,13 +294,13 @@ async def confirm(token: str, request: Request, db: AsyncSession = Depends(get_d
     pr = result.scalar_one_or_none()
     if not pr or _confirmation_token_expired(pr):
         return templates.TemplateResponse(
-            "purchase_requests/confirmation_invalid.html", {"request": request}
+            request, "purchase_requests/confirmation_invalid.html", {"request": request}
         )
 
     pr.confirmed_by_requester = True
     pr.confirmed_by_requester_at = datetime.now(timezone.utc)
     await db.commit()
 
-    return templates.TemplateResponse("purchase_requests/confirmed.html", {
+    return templates.TemplateResponse(request, "purchase_requests/confirmed.html", {
         "request": request, "pr": pr,
     })

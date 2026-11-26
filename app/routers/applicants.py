@@ -110,7 +110,7 @@ async def applicants_list(request: Request, filter: str = "", search: str = "", 
         )
         counts = dict(rows.all())
 
-    return templates.TemplateResponse("applicants/list.html", {
+    return templates.TemplateResponse(request, "applicants/list.html", {
         "request": request, "user": user, "applicants": applicants,
         "filter": filter, "search": search, "application_counts": counts, "new_count": new_count,
         "red_flags": await _red_flags(request, db, applicants),
@@ -124,7 +124,7 @@ async def applicants_list(request: Request, filter: str = "", search: str = "", 
 @router.get("/new", response_class=HTMLResponse)
 async def applicant_new_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "applicants", "write")
-    return templates.TemplateResponse("applicants/form.html", {
+    return templates.TemplateResponse(request, "applicants/form.html", {
         "request": request, "user": user, "values": {}, "today": date.today(),
     })
 
@@ -138,7 +138,7 @@ async def applicant_create(request: Request, db: AsyncSession = Depends(get_db))
             db, **values, source=ApplicantSource.MANUAL, created_by_id=user.id,
         )
     except ServiceError as e:
-        return templates.TemplateResponse("applicants/form.html", {
+        return templates.TemplateResponse(request, "applicants/form.html", {
             "request": request, "user": user, "values": values, "error": e.key, "today": date.today(),
         }, status_code=e.http_status)
     return RedirectResponse(url=f"/applicants/{applicant.id}", status_code=303)
@@ -193,7 +193,7 @@ async def applicant_detail(applicant_id: str, request: Request, db: AsyncSession
     user = await require_permission(request, db, "applicants", "read")
     applicant = await _get_or_404(db, applicant_id)
     return templates.TemplateResponse(
-        "applicants/detail.html", await _detail_context(request, db, user, applicant),
+        request, "applicants/detail.html", await _detail_context(request, db, user, applicant),
     )
 
 
@@ -211,7 +211,7 @@ async def applicant_update(applicant_id: str, request: Request, db: AsyncSession
         await db.rollback()
         applicant = await _get_or_404(db, applicant_id)
         return templates.TemplateResponse(
-            "applicants/detail.html", await _detail_context(request, db, user, applicant, error=e.key),
+            request, "applicants/detail.html", await _detail_context(request, db, user, applicant, error=e.key),
             status_code=e.http_status,
         )
     return RedirectResponse(url=f"/applicants/{applicant_id}", status_code=303)
@@ -230,7 +230,7 @@ async def applicant_contact(applicant_id: str, request: Request, db: AsyncSessio
         # send_contact_email() raises before it changes anything -- no
         # rollback (it would also expire `user`, which the page needs).
         return templates.TemplateResponse(
-            "applicants/detail.html",
+            request, "applicants/detail.html",
             await _detail_context(request, db, user, applicant, error=e.key, contact_body=body),
             status_code=e.http_status,
         )
@@ -317,7 +317,7 @@ async def applicant_assign_parcel_page(
     user = await _handover_permission(request, db)
     applicant = await _get_or_404(db, applicant_id)
     return templates.TemplateResponse(
-        "applicants/assign_parcel.html",
+        request, "applicants/assign_parcel.html",
         await _handover_context(
             request, db, user, applicant, parcel_id=parcel_id,
             handover_date=_parse_handover_date(handover_date), co_applicant_ids=co_applicant_ids,
@@ -343,7 +343,7 @@ async def applicant_assign_parcel(applicant_id: str, request: Request, db: Async
     except ServiceError as e:
         # plan_handover() validates before anything is changed -- no rollback needed.
         return templates.TemplateResponse(
-            "applicants/assign_parcel.html",
+            request, "applicants/assign_parcel.html",
             await _handover_context(
                 request, db, user, applicant, parcel_id=parcel_id, handover_date=handover_date,
                 co_applicant_ids=co_applicant_ids, new_folder_path=new_folder_path, error=e,

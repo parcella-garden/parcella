@@ -79,7 +79,7 @@ async def members_list(
     all_tags = await list_tags(db)
 
     return templates.TemplateResponse(
-        "members/list.html",
+        request, "members/list.html",
         {
             "request": request,
             "user": user,
@@ -111,7 +111,7 @@ async def members_list(
 async def signin_sheet_form(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "members_parcels", "read")
     default_headline = f"General meeting on {date.today().isoformat()}"
-    return templates.TemplateResponse("members/signin_sheet.html", {
+    return templates.TemplateResponse(request, "members/signin_sheet.html", {
         "request": request, "user": user, "default_headline": default_headline,
     })
 
@@ -177,7 +177,7 @@ async def _sync_form_tags(request: Request, db: AsyncSession, member_id: str) ->
 async def member_new_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "members_parcels", "write")
     return templates.TemplateResponse(
-        "members/form.html",
+        request, "members/form.html",
         {"request": request, "user": user, "member": None, "all_tags": await list_tags(db)},
     )
 
@@ -251,7 +251,7 @@ async def _get_tag_or_404(db: AsyncSession, tag_id: str) -> MemberTag:
 @router.get("/tags", response_class=HTMLResponse)
 async def tags_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "members_parcels", "read")
-    return templates.TemplateResponse("members/tags.html", {
+    return templates.TemplateResponse(request, "members/tags.html", {
         "request": request, "user": user,
         "tags": await list_tags(db), "member_counts": await count_tag_members(db),
         "languages": AVAILABLE_LANGUAGES,
@@ -367,7 +367,7 @@ async def member_detail(
     all_tags = await list_tags(db)
 
     return templates.TemplateResponse(
-        "members/detail.html",
+        request, "members/detail.html",
         {
             "request": request,
             "user": user,
@@ -401,7 +401,7 @@ async def member_edit_page(
         raise HTTPException(status_code=404, detail=t_for(request, "members.errors.member_not_found"))
 
     return templates.TemplateResponse(
-        "members/form.html",
+        request, "members/form.html",
         {"request": request, "user": user, "member": member, "all_tags": await list_tags(db)},
     )
 
@@ -724,7 +724,7 @@ async def members_import_preview(
     preview_rows = rows[1:1 + CSV_IMPORT_PREVIEW_ROWS]
     default_mapping = guess_column_mapping(headers, MEMBERS_IMPORT_FIELD_ALIASES)
 
-    return templates.TemplateResponse("members/import_preview.html", {
+    return templates.TemplateResponse(request, "members/import_preview.html", {
         "request": request,
         "headers": headers, "preview_rows": preview_rows,
         "default_mapping": default_mapping, "target_fields": MEMBERS_IMPORT_TARGET_FIELDS,

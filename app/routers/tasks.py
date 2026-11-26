@@ -211,7 +211,7 @@ async def _render_board(
     if open_task:
         context["task_history"] = await _change_history(db, open_task.id)
 
-    return templates.TemplateResponse("tasks/board.html", context)
+    return templates.TemplateResponse(request, "tasks/board.html", context)
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -311,7 +311,7 @@ async def tags_page(request: Request, db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(TaskTag.id, func.count(Task.id)).join(TaskTag.tasks).group_by(TaskTag.id)
     )
-    return templates.TemplateResponse("tasks/tags.html", {
+    return templates.TemplateResponse(request, "tasks/tags.html", {
         "request": request, "user": user,
         "tags": tags, "task_counts": dict(result.all()), "colors": TASK_TAG_COLORS,
     })

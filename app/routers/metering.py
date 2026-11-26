@@ -280,7 +280,7 @@ def create_metering_router(
 
         parcels_without_metering_point = await _load_parcels_without_metering_point(db, all_points)
 
-        return templates.TemplateResponse("metering/overview.html", {
+        return templates.TemplateResponse(request, "metering/overview.html", {
             **base_context(request),
             "request": request, "user": user, "year": year,
             "available_years": available_years,
@@ -322,7 +322,7 @@ def create_metering_router(
                 filtered_points = [p for p in filtered_points if p.is_active == (status == "active")]
             filtered_points.sort(key=_metering_point_sort_key)
 
-        return templates.TemplateResponse("metering/metering_points_list.html", {
+        return templates.TemplateResponse(request, "metering/metering_points_list.html", {
             **base_context(request),
             "request": request, "user": user,
             "metering_points": filtered_points, "MeteringPointType": MeteringPointType,
@@ -349,7 +349,7 @@ def create_metering_router(
         )
         all_parcels = result.scalars().all()
 
-        return templates.TemplateResponse("metering/metering_point_form.html", {
+        return templates.TemplateResponse(request, "metering/metering_point_form.html", {
             **base_context(request),
             "request": request, "user": user,
             "all_parcels": all_parcels, "today": date.today().isoformat(),
@@ -434,7 +434,7 @@ def create_metering_router(
             if idx < len(ordered_ids) - 1:
                 next_metering_point_id = ordered_ids[idx + 1]
 
-        return templates.TemplateResponse("metering/metering_point_detail.html", {
+        return templates.TemplateResponse(request, "metering/metering_point_detail.html", {
             **base_context(request),
             "request": request, "user": user,
             "metering_point": metering_point,
@@ -594,7 +594,7 @@ def create_metering_router(
         preview_rows = rows[1:1 + CSV_IMPORT_PREVIEW_ROWS]
         default_mapping = guess_column_mapping(headers, POINTS_IMPORT_FIELD_ALIASES)
 
-        return templates.TemplateResponse("metering/metering_points_import_preview.html", {
+        return templates.TemplateResponse(request, "metering/metering_points_import_preview.html", {
             "request": request, **base_context(request),
             "headers": headers, "preview_rows": preview_rows,
             "default_mapping": default_mapping, "target_fields": POINTS_IMPORT_TARGET_FIELDS,
@@ -903,7 +903,7 @@ def create_metering_router(
         )
         club_rows = prepare_rows(MeteringPointType.CLUB)
 
-        return templates.TemplateResponse("metering/readings_list.html", {
+        return templates.TemplateResponse(request, "metering/readings_list.html", {
             **base_context(request),
             "request": request, "user": user, "year": year,
             "main_meter_rows": main_meter_rows,
@@ -987,7 +987,7 @@ def create_metering_router(
         preview_rows = rows[1:1 + CSV_IMPORT_PREVIEW_ROWS]
         default_mapping = guess_column_mapping(headers, READINGS_IMPORT_FIELD_ALIASES)
 
-        return templates.TemplateResponse("metering/readings_import_preview.html", {
+        return templates.TemplateResponse(request, "metering/readings_import_preview.html", {
             "request": request, **base_context(request),
             "headers": headers, "preview_rows": preview_rows,
             "default_mapping": default_mapping, "target_fields": READINGS_IMPORT_TARGET_FIELDS,
@@ -1211,7 +1211,7 @@ def create_metering_router(
         if year not in available_years:
             available_years.insert(0, year)
 
-        return templates.TemplateResponse("metering/evaluation.html", {
+        return templates.TemplateResponse(request, "metering/evaluation.html", {
             **base_context(request),
             "request": request, "user": user, "year": year,
             "available_years": available_years,
@@ -1294,7 +1294,7 @@ def create_metering_router(
         configurations = result.scalars().all()
 
         return templates.TemplateResponse(
-            "metering/configuration.html",
+            request, "metering/configuration.html",
             {
                 **base_context(request),
                 "request": request, "user": user, "configurations": configurations,
@@ -1335,7 +1335,7 @@ def create_metering_router(
             raise HTTPException(status_code=404, detail=t_for(request, "metering.errors.configuration_not_found"))
 
         return templates.TemplateResponse(
-            "metering/configuration_form.html",
+            request, "metering/configuration_form.html",
             {**base_context(request), "request": request, "user": user, "configuration": configuration},
         )
 

@@ -89,7 +89,7 @@ async def work_hours_overview(
     sessions = sessions_result.scalars().all()
 
     return templates.TemplateResponse(
-        "work_hours/overview.html",
+        request, "work_hours/overview.html",
         {
             "request": request,
             "user": user,
@@ -121,7 +121,7 @@ async def configuration_page(request: Request, db: AsyncSession = Depends(get_db
     confirmation_enabled, confirmation_text = await load_signup_confirmation_settings(db)
 
     return templates.TemplateResponse(
-        "work_hours/configuration.html",
+        request, "work_hours/configuration.html",
         {
             "request": request,
             "user": user,
@@ -151,7 +151,7 @@ async def configuration_edit_page(
         raise HTTPException(status_code=404, detail=t_for(request, "work_hours.errors.configuration_not_found"))
 
     return templates.TemplateResponse(
-        "work_hours/configuration_form.html",
+        request, "work_hours/configuration_form.html",
         {
             "request": request,
             "user": user,
@@ -262,7 +262,7 @@ async def signup_confirmation_save(request: Request, db: AsyncSession = Depends(
 async def session_new_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "work_hours", "write")
     return templates.TemplateResponse(
-        "work_hours/session_form.html",
+        request, "work_hours/session_form.html",
         {
             "request": request,
             "user": user,
@@ -315,7 +315,7 @@ async def session_edit_page(
         raise HTTPException(status_code=404, detail=t_for(request, "work_hours.errors.session_not_found"))
 
     return templates.TemplateResponse(
-        "work_hours/session_form.html",
+        request, "work_hours/session_form.html",
         {
             "request": request,
             "user": user,
@@ -430,7 +430,7 @@ async def session_detail(
     session_tasks = tasks_result.scalars().all()
 
     return templates.TemplateResponse(
-        "work_hours/session_detail.html",
+        request, "work_hours/session_detail.html",
         {
             "request": request,
             "user": user,
@@ -665,7 +665,7 @@ async def club_roles_page(
     all_members = members_result.scalars().all()
 
     return templates.TemplateResponse(
-        "work_hours/club-roles.html",
+        request, "work_hours/club-roles.html",
         {
             "request": request,
             "user": user,
@@ -735,7 +735,7 @@ async def member_club_role_edit_page(
     all_roles = roles_result.scalars().all()
 
     return templates.TemplateResponse(
-        "work_hours/member_club_role_form.html",
+        request, "work_hours/member_club_role_form.html",
         {
             "request": request,
             "user": user,
@@ -831,7 +831,7 @@ async def club_role_edit_page(
         raise HTTPException(status_code=404, detail=t_for(request, "work_hours.errors.club_role_not_found"))
 
     return templates.TemplateResponse(
-        "work_hours/club_role_form.html",
+        request, "work_hours/club_role_form.html",
         {
             "request": request,
             "user": user,
@@ -968,7 +968,7 @@ async def _render_sponsorships_page(
     all_members = _sort_members_by_plot(members_result.scalars().all())
 
     return templates.TemplateResponse(
-        "work_hours/sponsorships.html",
+        request, "work_hours/sponsorships.html",
         {
             "request": request,
             "user": user,
@@ -1057,7 +1057,7 @@ async def _render_sponsorship_form(
     all_areas = [r[0] for r in alle_bereiche_result.all()]
 
     return templates.TemplateResponse(
-        "work_hours/sponsorship_form.html",
+        request, "work_hours/sponsorship_form.html",
         {
             "request": request,
             "user": user,
@@ -1163,7 +1163,7 @@ async def transfers_page(
         select(WorkHoursConfiguration.year).order_by(WorkHoursConfiguration.year.desc())
     )
     return templates.TemplateResponse(
-        "work_hours/transfers.html",
+        request, "work_hours/transfers.html",
         {
             "request": request,
             "user": user,
@@ -1241,7 +1241,7 @@ async def evaluation(
     sessions_by_member = await attended_sessions_by_member(db, year) if config else {}
 
     return templates.TemplateResponse(
-        "work_hours/evaluation.html",
+        request, "work_hours/evaluation.html",
         {
             "request": request,
             "user": user,
@@ -1371,7 +1371,7 @@ async def tasks_overview(request: Request, db: AsyncSession = Depends(get_db)):
     )
     upcoming_sessions = upcoming_sessions_result.scalars().all()
 
-    return templates.TemplateResponse("work_hours/tasks.html", {
+    return templates.TemplateResponse(request, "work_hours/tasks.html", {
         "request": request, "user": user,
         "backlog": backlog,
         "sessions_with_tasks": sessions_with_tasks,

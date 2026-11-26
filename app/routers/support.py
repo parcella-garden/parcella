@@ -116,7 +116,7 @@ async def conversation_list(request: Request, db: AsyncSession = Depends(get_db)
         )
         conversations = result.scalars().all()
 
-    return templates.TemplateResponse("support/list.html", {
+    return templates.TemplateResponse(request, "support/list.html", {
         "request": request, "user": user, "conversations": conversations, **helpdesk,
     })
 
@@ -149,7 +149,7 @@ async def conversation_detail(link_id: str, request: Request, db: AsyncSession =
 
     member_parcels = await _current_parcels(db, link.member_id) if link.member_id else []
 
-    return templates.TemplateResponse("support/detail.html", {
+    return templates.TemplateResponse(request, "support/detail.html", {
         "request": request, "user": user, "link": link, "messages": messages, "fetch_error": fetch_error,
         "candidate_members": candidate_members, "all_members": await _all_members(db),
         "member_parcels": member_parcels, "lists": await _all_lists(db),
