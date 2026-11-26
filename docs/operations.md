@@ -251,9 +251,17 @@ the account in that state as well -- see
   file's default command) *and* the proxy sets the header:
 
   ```nginx
-  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-For $remote_addr;
   proxy_set_header X-Forwarded-Proto $scheme;
   ```
+
+  `$remote_addr`, not nginx's usual `$proxy_add_x_forwarded_for`: the
+  latter keeps whatever `X-Forwarded-For` the visitor sent and appends
+  the real address, and with `--forwarded-allow-ips=*` uvicorn takes
+  the *leftmost* entry -- the visitor's own claim. Anyone could then
+  send a fresh made-up IP with every request and never hit a login or
+  form limit (audit 2026-11-26). Overwriting the header leaves exactly
+  one entry, the real one.
 
   `--proxy-headers` alone only trusts forwarded headers from
   127.0.0.1. A proxy on the Docker host connects through the Docker
@@ -269,7 +277,8 @@ the account in that state as well -- see
   Only trust forwarded headers when a trusted proxy really is in front:
   a directly-exposed app would then believe whatever IP a client claims.
   `--forwarded-allow-ips=*` (the published compose file's default) is
-  fine only because the port is published on `127.0.0.1`; if you ever
+  fine only because the port is published on `127.0.0.1` *and* the
+  proxy overwrites `X-Forwarded-For` (above); if you ever
   publish it more widely, override `command:` and list the proxy's
   address instead.
 
