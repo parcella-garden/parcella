@@ -110,7 +110,7 @@ async def contacts_list(
     # their company.
     matched_ids = set((await db.scalars(filters.apply().with_only_columns(ExternalContact.id))).all()) \
         if filters.active else set()
-    return templates.TemplateResponse("external_contacts/list.html", {
+    return templates.TemplateResponse(request, "external_contacts/list.html", {
         "request": request, "user": user, "contacts": contacts, "matched_ids": matched_ids,
         "search": filters.search, "tag": filters.tag, "all_tags": await list_tags(db),
         "list_query_string": filters.query_string(),
@@ -157,7 +157,7 @@ async def contact_new_page(request: Request, kind: str = "", company_id: str = "
     if company is not None and company.is_company:
         values.update(kind=ExternalContactKind.PERSON.value, company_name=company.company_name or "")
     return templates.TemplateResponse(
-        "external_contacts/form.html", await _form_context(request, db, user, None, values),
+        request, "external_contacts/form.html", await _form_context(request, db, user, None, values),
     )
 
 
@@ -190,7 +190,7 @@ async def contact_create(
     except ServiceError as e:
         # Raised before anything was added to the session -- nothing to roll back.
         return templates.TemplateResponse(
-            "external_contacts/form.html",
+            request, "external_contacts/form.html",
             await _form_context(request, db, user, None, {**fields, "kind": kind, "email": email, "phone": phone},
                                 t_for(request, e.key, **e.params)),
             status_code=e.http_status,
@@ -219,7 +219,7 @@ async def _get_tag_or_404(db: AsyncSession, tag_id: str) -> ExternalContactTag:
 @router.get("/tags", response_class=HTMLResponse)
 async def tags_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, MODULE, "read")
-    return templates.TemplateResponse("external_contacts/tags.html", {
+    return templates.TemplateResponse(request, "external_contacts/tags.html", {
         "request": request, "user": user,
         "tags": await list_tags(db), "contact_counts": await count_tag_contacts(db),
         "languages": AVAILABLE_LANGUAGES, "red_flag_tag": await load_red_flag_tag(db),
@@ -376,7 +376,7 @@ async def contacts_import_preview(request: Request, file: UploadFile = File(...)
         message = t_for(request, "external_contacts.import.empty_error")
         return RedirectResponse(f"/contacts/?error={urllib.parse.quote(message)}", status_code=303)
     headers = [h.strip() for h in rows[0]]
-    return templates.TemplateResponse("external_contacts/import_preview.html", {
+    return templates.TemplateResponse(request, "external_contacts/import_preview.html", {
         "request": request, "user": user,
         "headers": headers, "preview_rows": rows[1:1 + CSV_IMPORT_PREVIEW_ROWS],
         "default_mapping": guess_column_mapping(headers, CONTACTS_IMPORT_FIELD_ALIASES),
@@ -532,7 +532,7 @@ async def contact_detail(
         merge_targets = [c for c in await list_active_contacts(db) if c.is_company and c.id != contact.id]
 
     list_query_string = filters.query_string()
-    return templates.TemplateResponse("external_contacts/detail.html", {
+    return templates.TemplateResponse(request, "external_contacts/detail.html", {
         "request": request, "user": user, "contact": contact, "all_tags": await list_tags(db),
         "prev_contact_id": prev_id, "next_contact_id": next_id,
         "nav_query_suffix": f"?{list_query_string}" if list_query_string else "",
@@ -684,7 +684,7 @@ async def contact_edit_page(contact_id: str, request: Request, db: AsyncSession 
     user = await require_permission(request, db, MODULE, "write")
     contact = await _get_contact_or_404(request, db, contact_id)
     return templates.TemplateResponse(
-        "external_contacts/form.html", await _form_context(request, db, user, contact),
+        request, "external_contacts/form.html", await _form_context(request, db, user, contact),
     )
 
 
@@ -716,7 +716,7 @@ async def contact_update(
         # first). A rollback here would expire `contact` and make the
         # template lazy-load under asyncio.
         return templates.TemplateResponse(
-            "external_contacts/form.html",
+            request, "external_contacts/form.html",
             await _form_context(request, db, user, contact, fields, t_for(request, e.key, **e.params)),
             status_code=e.http_status,
         )

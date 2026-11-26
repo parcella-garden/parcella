@@ -29,7 +29,7 @@ router = APIRouter(
 async def reporting_index(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, MODULE, "read")
     reports = await build_reports(db, request.state.module_flags)
-    return templates.TemplateResponse("reporting/index.html", {
+    return templates.TemplateResponse(request, "reporting/index.html", {
         "request": request, "user": user,
         # Handed to Chart.js as JSON (|tojson in the template), never
         # built into markup; also drives the plain data tables.

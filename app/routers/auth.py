@@ -33,7 +33,7 @@ async def login_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await get_current_user(request, db)
     if user:
         return RedirectResponse("/", status_code=302)
-    return templates.TemplateResponse("auth/login.html", {"request": request})
+    return templates.TemplateResponse(request, "auth/login.html", {"request": request})
 
 
 @router.post("/login")
@@ -47,7 +47,7 @@ async def login(
     # must not even reach the password check (see app/login_throttle.py).
     if login_is_throttled(request, email):
         return templates.TemplateResponse(
-            "auth/login.html",
+            request, "auth/login.html",
             {"request": request, "error": t_for(request, "errors.too_many_login_attempts")},
             status_code=429,
         )
@@ -58,14 +58,14 @@ async def login(
     if not verify_password(password, user.password_hash if user else None) or not user:
         record_failed_login(request, email)
         return templates.TemplateResponse(
-            "auth/login.html",
+            request, "auth/login.html",
             {"request": request, "error": t_for(request, "errors.invalid_credentials")},
             status_code=401,
         )
 
     if not user.is_active:
         return templates.TemplateResponse(
-            "auth/login.html",
+            request, "auth/login.html",
             {"request": request, "error": t_for(request, "errors.account_deactivated")},
             status_code=403,
         )
@@ -104,7 +104,7 @@ async def logout():
 @router.get("/change-password", response_class=HTMLResponse)
 async def change_password_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_user(request, db)
-    return templates.TemplateResponse("auth/change_password.html", {"request": request, "user": user})
+    return templates.TemplateResponse(request, "auth/change_password.html", {"request": request, "user": user})
 
 
 @router.post("/change-password")
@@ -119,7 +119,7 @@ async def change_password(
 
     def _error(message: str):
         return templates.TemplateResponse(
-            "auth/change_password.html",
+            request, "auth/change_password.html",
             {"request": request, "user": user, "error": message},
             status_code=400,
         )
@@ -147,7 +147,7 @@ async def change_password(
     await db.commit()
 
     response = templates.TemplateResponse(
-        "auth/change_password.html",
+        request, "auth/change_password.html",
         {"request": request, "user": user, "success": True},
     )
     response.set_cookie(
@@ -180,14 +180,14 @@ async def upload_own_avatar(
         user.avatar_filename = await save_avatar_upload(user.id, avatar)
     except ValueError as e:
         return templates.TemplateResponse(
-            "auth/change_password.html",
+            request, "auth/change_password.html",
             {"request": request, "user": user, "avatar_error": str(e)},
             status_code=400,
         )
 
     await db.commit()
     return templates.TemplateResponse(
-        "auth/change_password.html",
+        request, "auth/change_password.html",
         {"request": request, "user": user, "avatar_success": True},
     )
 
@@ -217,11 +217,11 @@ async def invitation_page(token: str, request: Request, db: AsyncSession = Depen
 
     if not invitation or invitation.expires_at < datetime.now(timezone.utc):
         return templates.TemplateResponse(
-            "auth/invitation_expired.html", {"request": request}
+            request, "auth/invitation_expired.html", {"request": request}
         )
 
     return templates.TemplateResponse(
-        "auth/invitation.html",
+        request, "auth/invitation.html",
         {"request": request, "token": token, "email": invitation.email},
     )
 
@@ -247,12 +247,12 @@ async def invitation_accept(
 
     if not invitation or invitation.expires_at < datetime.now(timezone.utc):
         return templates.TemplateResponse(
-            "auth/invitation_expired.html", {"request": request}
+            request, "auth/invitation_expired.html", {"request": request}
         )
 
     if password != password_confirm:
         return templates.TemplateResponse(
-            "auth/invitation.html",
+            request, "auth/invitation.html",
             {
                 "request": request,
                 "token": token,
@@ -263,7 +263,7 @@ async def invitation_accept(
 
     if len(password) < 8:
         return templates.TemplateResponse(
-            "auth/invitation.html",
+            request, "auth/invitation.html",
             {
                 "request": request,
                 "token": token,
@@ -315,7 +315,7 @@ async def _api_tokens_page(request, db, user, *, error=None, status_code=200):
     tokens = await api_tokens.list_tokens(db, user)
     new_token, _ = api_tokens.read_new_token(request, tokens)
     response = templates.TemplateResponse(
-        "auth/api_tokens.html",
+        request, "auth/api_tokens.html",
         {
             "request": request, "user": user, "admin_view": False,
             "rows": [(tok, api_tokens.token_status(tok, tok.user)) for tok in tokens],

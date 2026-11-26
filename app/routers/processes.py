@@ -119,7 +119,7 @@ async def _load_template(request: Request, db: AsyncSession, template_id: str):
 async def templates_list(request: Request, db: AsyncSession = Depends(get_db)):
     user = await _require_templates(request, db)
     items = await svc.list_templates(db)
-    return templates.TemplateResponse("processes/templates.html", {
+    return templates.TemplateResponse(request, "processes/templates.html", {
         "request": request, "user": user, "templates_list": items,
         "usage": {t.id: await svc.template_usage(db, t.id) for t in items},
         "examples": list(svc.EXAMPLES), "subject_kinds": list(ProcessSubjectKind),
@@ -168,7 +168,7 @@ async def template_edit_page(template_id: str, request: Request, db: AsyncSessio
     template = await _load_template(request, db, template_id)
     wanted = request.query_params.get("stage")
     stage = next((s for s in template.stages if s.id == wanted), template.stages[0] if template.stages else None)
-    return templates.TemplateResponse("processes/template_edit.html", {
+    return templates.TemplateResponse(request, "processes/template_edit.html", {
         "request": request, "user": user, "template": template, "stage": stage,
         "preview_fields": [_preview_field(f) for f in stage.fields] if stage else [],
         "usage": await svc.template_usage(db, template.id),
@@ -342,7 +342,7 @@ async def processes_list(
     if status not in _STATUS_FILTERS:
         status = "open"
     items = await svc.list_processes(db, svc.ProcessFilter(status=status, template_id=template))
-    return templates.TemplateResponse("processes/list.html", {
+    return templates.TemplateResponse(request, "processes/list.html", {
         "request": request, "user": user, "processes": items, "status": status, "template_id": template,
         "templates_list": await svc.list_templates(db),
         "current_stage": svc.current_stage, "subject_label": svc.subject_label,
@@ -370,7 +370,7 @@ async def process_new_page(
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, svc.MODULE, "write")
-    return templates.TemplateResponse("processes/new.html", await _new_context(
+    return templates.TemplateResponse(request, "processes/new.html", await _new_context(
         request, db, user,
         {"template_id": template_id, "subject_id": subject_id, "subject_kind": subject_kind, "title": ""},
     ))
@@ -392,7 +392,7 @@ async def process_create(request: Request, db: AsyncSession = Depends(get_db)):
         user = await require_permission(request, db, svc.MODULE, "write")
         status_code = 400 if e.http_status == 404 else e.http_status
         return templates.TemplateResponse(
-            "processes/new.html", await _new_context(request, db, user, values, e.key), status_code=status_code,
+            request, "processes/new.html", await _new_context(request, db, user, values, e.key), status_code=status_code,
         )
     return _redirect(f"/processes/{process.id}")
 
@@ -412,7 +412,7 @@ async def process_detail(process_id: str, request: Request, db: AsyncSession = D
     kinds = {f.kind for s in process.stages for f in s.fields} if process.is_open else set()
     has_file_fields = any(f.kind == ProcessFieldKind.FILE for s in process.stages for f in s.fields)
     upload_folder = await svc.upload_folder(db, process) if process.is_open and has_file_fields else None
-    return templates.TemplateResponse("processes/detail.html", {
+    return templates.TemplateResponse(request, "processes/detail.html", {
         "upload_folder": upload_folder,
         "request": request, "user": user, "process": process, "stage": stage,
         "missing": svc.missing_fields(stage) if process.is_open else [],

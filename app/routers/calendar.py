@@ -117,7 +117,7 @@ async def community_overview(request: Request, db: AsyncSession = Depends(get_db
     combined = [("event", e.start_date, e) for e in events] + [("session", s.date, s) for s in sessions]
     combined.sort(key=lambda row: row[1])
 
-    return templates.TemplateResponse("calendar/community.html", {
+    return templates.TemplateResponse(request, "calendar/community.html", {
         "request": request, "user": user, "combined": combined,
         "CalendarEventType": CalendarEventType,
     })
@@ -265,7 +265,7 @@ async def custom_calendars_index(request: Request, db: AsyncSession = Depends(ge
     is_admin = await is_full_access_user(db, user)
     calendars = await _visible_calendars(db, user, include_archived=is_admin)
     perms = await get_user_permissions(db, user)
-    return templates.TemplateResponse("calendar/custom_index.html", {
+    return templates.TemplateResponse(request, "calendar/custom_index.html", {
         "request": request, "user": user, "calendars": calendars, "can_manage": is_admin,
         "show_resources": bool(request.state.module_flags.get("inventory")) and has_permission(perms, "inventory", "read"),
     })
@@ -321,7 +321,7 @@ async def custom_calendar_overview(calendar_id: str, request: Request, db: Async
         .where(CalendarEvent.calendar_id == calendar.id, CalendarEvent.start_date >= date.today())
         .order_by(CalendarEvent.start_date, CalendarEvent.start_time)
     )).scalars().all()
-    return templates.TemplateResponse("calendar/custom.html", {
+    return templates.TemplateResponse(request, "calendar/custom.html", {
         "request": request, "user": user, "calendar": calendar, "events": events,
     })
 
@@ -422,7 +422,7 @@ async def resources_overview(request: Request, db: AsyncSession = Depends(get_db
     for item in items:
         current = sorted((l for l in item.loans if l.returned_date is None), key=lambda l: l.borrowed_date)
         rows.append({"item": item, "loans": current})
-    return templates.TemplateResponse("calendar/resources.html", {
+    return templates.TemplateResponse(request, "calendar/resources.html", {
         "request": request, "user": user, "rows": rows,
     })
 
@@ -450,7 +450,7 @@ async def birthdays_overview(
     end = birthday_range_end(today, range_key)
     upcoming = await upcoming_birthdays(db, today=today, within_days=(end - today).days, with_plots=(sort == "plot"))
     ics_token = await get_or_create_ics_token(db)
-    return templates.TemplateResponse("calendar/birthdays.html", {
+    return templates.TemplateResponse(request, "calendar/birthdays.html", {
         "request": request, "user": user, "upcoming": sort_birthdays(upcoming, sort),
         "ROUND_BIRTHDAY_INTERVAL": ROUND_BIRTHDAY_INTERVAL,
         "ics_token": ics_token,
@@ -527,7 +527,7 @@ async def council_presence_overview(request: Request, db: AsyncSession = Depends
     all_users = users_result.scalars().all()
 
     ics_token = await get_or_create_ics_token(db)
-    return templates.TemplateResponse("calendar/council_presence.html", {
+    return templates.TemplateResponse(request, "calendar/council_presence.html", {
         "request": request, "user": user, "entries": entries, "all_users": all_users,
         "ics_token": ics_token,
     })
@@ -605,7 +605,7 @@ async def council_absence_overview(request: Request, db: AsyncSession = Depends(
     all_users = users_result.scalars().all()
 
     ics_token = await get_or_create_ics_token(db)
-    return templates.TemplateResponse("calendar/council_absence.html", {
+    return templates.TemplateResponse(request, "calendar/council_absence.html", {
         "request": request, "user": user, "entries": entries, "all_users": all_users,
         "ics_token": ics_token,
     })

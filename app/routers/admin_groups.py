@@ -75,7 +75,7 @@ async def groups_list(request: Request, db: AsyncSession = Depends(get_db)):
     assignable_users = assignable_result.scalars().all()
 
     return templates.TemplateResponse(
-        "admin/groups.html",
+        request, "admin/groups.html",
         {
             "request": request,
             "user": user,

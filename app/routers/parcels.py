@@ -105,7 +105,7 @@ async def parcels_list(
     parcels = result.scalars().all()
 
     return templates.TemplateResponse(
-        "parcels/list.html",
+        request, "parcels/list.html",
         {
             "request": request,
             "user": user,
@@ -122,7 +122,7 @@ async def parcels_list(
 async def parcel_new_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "members_parcels", "write")
     return templates.TemplateResponse(
-        "parcels/form.html",
+        request, "parcels/form.html",
         {"request": request, "user": user, "parcel": None},
     )
 
@@ -166,7 +166,7 @@ async def parcel_create(
         )
     except ServiceError as e:
         return templates.TemplateResponse(
-            "parcels/form.html",
+            request, "parcels/form.html",
             {"request": request, "user": user, "parcel": None, "error": t_for(request, e.key, **e.params)},
             status_code=e.http_status,
         )
@@ -283,7 +283,7 @@ async def parcel_detail(
                 await provider.aclose()
 
     return templates.TemplateResponse(
-        "parcels/detail.html",
+        request, "parcels/detail.html",
         {
             "request": request,
             "user": user,
@@ -325,7 +325,7 @@ async def parcel_edit_page(
         raise HTTPException(status_code=404)
 
     return templates.TemplateResponse(
-        "parcels/form.html",
+        request, "parcels/form.html",
         {"request": request, "user": user, "parcel": parcel},
     )
 
@@ -380,7 +380,7 @@ async def parcel_update(
         )
     except ServiceError as e:
         return templates.TemplateResponse(
-            "parcels/form.html",
+            request, "parcels/form.html",
             {"request": request, "user": user, "parcel": parcel, "error": t_for(request, e.key, **e.params)},
             status_code=e.http_status,
         )
@@ -461,7 +461,7 @@ async def member_assignment_edit_page(
     parcel = await _get_parcel_with_details(db, parcel_id)
 
     return templates.TemplateResponse(
-        "parcels/assignment_form.html",
+        request, "parcels/assignment_form.html",
         {
             "request": request,
             "user": user,
@@ -783,7 +783,7 @@ async def parcels_import_preview(
     preview_rows = rows[1:1 + CSV_IMPORT_PREVIEW_ROWS]
     default_mapping = guess_column_mapping(headers, PARCELS_IMPORT_FIELD_ALIASES)
 
-    return templates.TemplateResponse("parcels/import_preview.html", {
+    return templates.TemplateResponse(request, "parcels/import_preview.html", {
         "request": request,
         "headers": headers, "preview_rows": preview_rows,
         "default_mapping": default_mapping, "target_fields": PARCELS_IMPORT_TARGET_FIELDS,

@@ -312,7 +312,7 @@ async def announcement_list(request: Request, db: AsyncSession = Depends(get_db)
         .order_by(Announcement.created_at.desc())
     )
     announcements = result.scalars().all()
-    return templates.TemplateResponse("announcements/list.html", {
+    return templates.TemplateResponse(request, "announcements/list.html", {
         "request": request, "user": user, "announcements": announcements,
     })
 
@@ -468,7 +468,7 @@ async def announcement_new_form(request: Request, db: AsyncSession = Depends(get
     user = await require_admin(request, db)
     picked = await _picked_audience(request, db, request.query_params)
     audience_query = None if picked is not None else _targeted_audience_query(request.query_params)
-    return templates.TemplateResponse("announcements/form.html", {
+    return templates.TemplateResponse(request, "announcements/form.html", {
         "request": request, "user": user, "announcement": None, "error": None,
         **await _new_form_context(db, audience_query, picked),
     })
@@ -530,7 +530,7 @@ async def announcement_create(
     try:
         announcement = await _announcement_from_form(form, user, picked, audience_query)
     except _FormRejected as e:
-        return templates.TemplateResponse("announcements/form.html", {
+        return templates.TemplateResponse(request, "announcements/form.html", {
             "request": request, "user": user, "announcement": None, "entered": _entered_values(form),
             "error": e.error, **await _new_form_context(db, audience_query, picked),
         }, status_code=400)
@@ -771,7 +771,7 @@ async def announcement_edit_form(
 ):
     user = await require_admin(request, db)
     announcement = await _get_announcement_or_404(db, announcement_id)
-    return templates.TemplateResponse("announcements/form.html", {
+    return templates.TemplateResponse(request, "announcements/form.html", {
         "request": request, "user": user, "announcement": announcement, "error": None,
         **await _form_context(db, announcement), **await _audience_context(db, announcement),
         "test_email_result": request.query_params.get("test_email_result"),
@@ -795,7 +795,7 @@ async def announcement_update(
     entered = _entered_values(form)
 
     if not title or not body_markdown:
-        return templates.TemplateResponse("announcements/form.html", {
+        return templates.TemplateResponse(request, "announcements/form.html", {
             "request": request, "user": user, "announcement": announcement, "entered": entered,
             "error": "missing_fields", **await _form_context(db, announcement), **await _audience_context(db, announcement),
         }, status_code=400)
@@ -809,7 +809,7 @@ async def announcement_update(
             _delete_announcement_image(announcement.image_filename)
             announcement.image_filename = new_filename
         except ValueError as e:
-            return templates.TemplateResponse("announcements/form.html", {
+            return templates.TemplateResponse(request, "announcements/form.html", {
                 "request": request, "user": user, "announcement": announcement, "entered": entered,
                 "error": str(e), **await _form_context(db, announcement), **await _audience_context(db, announcement),
             }, status_code=400)
@@ -1049,7 +1049,7 @@ async def announcement_short_link(token: str, request: Request, db: AsyncSession
         if url and urllib.parse.urlsplit(url).scheme in ("http", "https"):
             return RedirectResponse(url=url, status_code=302)
     return templates.TemplateResponse(
-        "announcements/not_online.html", {"request": request, "user": None},
+        request, "announcements/not_online.html", {"request": request, "user": None},
         headers={"Cache-Control": "no-store"},
     )
 

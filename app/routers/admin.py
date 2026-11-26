@@ -165,7 +165,7 @@ async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
         user_group_names.setdefault(membership.user_id, []).append(membership.group.name)
 
     return templates.TemplateResponse(
-        "admin/dashboard.html",
+        request, "admin/dashboard.html",
         {
             "request": request,
             "user": user,
@@ -190,7 +190,7 @@ async def admin_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
 async def admin_system_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_system_admin(request, db)
     update_status = await get_update_status(db)
-    return templates.TemplateResponse("admin/system.html", {
+    return templates.TemplateResponse(request, "admin/system.html", {
         "request": request, "user": user, "update_status": update_status,
     })
 
@@ -213,7 +213,7 @@ async def admin_email_log(
     )
     region = await load_current_region(db)
     tz = ZoneInfo(REGION_TIMEZONES.get(region, REGION_TIMEZONES[DEFAULT_REGION]))
-    return templates.TemplateResponse("admin/email_log.html", {
+    return templates.TemplateResponse(request, "admin/email_log.html", {
         "request": request, "user": user, "rows": rows, "total": total, "tz": tz,
         "status": status_filter.name if status_filter else "", "q": q[:320], "page": page,
         "page_count": max((total + EMAIL_LOG_PAGE_SIZE - 1) // EMAIL_LOG_PAGE_SIZE, 1),
@@ -263,7 +263,7 @@ async def backup_download(request: Request, db: AsyncSession = Depends(get_db)):
 @router.get("/backup/restore", response_class=HTMLResponse)
 async def backup_restore_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_system_admin(request, db)
-    return templates.TemplateResponse("admin/backup_restore.html", {
+    return templates.TemplateResponse(request, "admin/backup_restore.html", {
         "request": request, "user": user, "confirm_phrase": RESTORE_CONFIRM_PHRASE,
     })
 
@@ -342,7 +342,7 @@ async def backup_cloud_page(request: Request, db: AsyncSession = Depends(get_db)
         backups = await _list_cloud_backups(provider, cfg.folder)
         await provider.aclose()
 
-    return templates.TemplateResponse("admin/backup_cloud.html", {
+    return templates.TemplateResponse(request, "admin/backup_cloud.html", {
         "request": request, "user": user,
         "module_enabled": module_enabled, "nextcloud_configured": provider is not None,
         "cfg": cfg, "backups": backups,
@@ -457,7 +457,7 @@ async def backup_restore_from_cloud(
 async def sample_data_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_system_admin(request, db)
 
-    return templates.TemplateResponse("admin/sample_data.html", {
+    return templates.TemplateResponse(request, "admin/sample_data.html", {
         "request": request,
         "user": user,
         "has_sample": await has_sample_data(db),
@@ -707,7 +707,7 @@ async def user_edit_page(
         raise HTTPException(status_code=404, detail=t_for(request, "errors.user_not_found"))
 
     return templates.TemplateResponse(
-        "admin/user_edit.html", await _user_edit_context(request, db, admin, target),
+        request, "admin/user_edit.html", await _user_edit_context(request, db, admin, target),
     )
 
 
@@ -771,7 +771,7 @@ async def user_reset_password(
 
     context = await _user_edit_context(request, db, admin, target)
     response = templates.TemplateResponse(
-        "admin/user_edit.html", {**context, "temp_password": temp_password},
+        request, "admin/user_edit.html", {**context, "temp_password": temp_password},
     )
     response.headers["Cache-Control"] = "no-store"
     return response
@@ -1087,7 +1087,7 @@ async def settings_page(request: Request, db: AsyncSession = Depends(get_db)):
     board_member_ids = {bm.member_id for bm in result.scalars().all()}
 
     return templates.TemplateResponse(
-        "admin/settings.html",
+        request, "admin/settings.html",
         {
             "request": request,
             "user": user,
@@ -1399,7 +1399,7 @@ async def integrations_page(request: Request, db: AsyncSession = Depends(get_db)
     )
     form_origins_entry = form_origins_result.scalar_one_or_none()
 
-    return templates.TemplateResponse("admin/integrations.html", {
+    return templates.TemplateResponse(request, "admin/integrations.html", {
         "request": request, "user": user,
         "api_token": token,
         "public_form_origins": "\n".join(sorted(await allowed_form_origins(db))) if form_origins_entry else "",
@@ -1847,7 +1847,7 @@ async def _admin_api_tokens_page(request, db, admin, *, error=None, status_code=
     users = (await db.execute(select(User).where(User.is_active.is_(True)).order_by(User.name))).scalars().all()
     eligible = [u for u in users if u.id == admin.id or not await is_full_access_user(db, u)]
     response = templates.TemplateResponse(
-        "auth/api_tokens.html",
+        request, "auth/api_tokens.html",
         {
             "request": request, "user": admin, "admin_view": True,
             "rows": [(tok, api_tokens.token_status(tok, tok.user)) for tok in tokens],

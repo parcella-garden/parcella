@@ -217,7 +217,7 @@ async def finances_dashboard(request: Request, db: AsyncSession = Depends(get_db
     incoming_invoice_count_result = await db.execute(select(IncomingInvoice))
     incoming_invoice_count = len(incoming_invoice_count_result.scalars().all())
 
-    return templates.TemplateResponse("finances/dashboard.html", {
+    return templates.TemplateResponse(request, "finances/dashboard.html", {
         "request": request, "user": user,
         "run_count": run_count, "open_invoice_count": open_count,
         "overdue_count": overdue_count, "outstanding_total": outstanding_total,
@@ -254,7 +254,7 @@ async def run_list(
     result = await db.execute(query)
     runs = list(result.scalars().all())
 
-    return templates.TemplateResponse("finances/run_list.html", {
+    return templates.TemplateResponse(request, "finances/run_list.html", {
         "request": request, "user": user, "runs": runs,
         "today": date.today().isoformat(),
         "current_year": date.today().year,
@@ -289,7 +289,7 @@ async def reminders_list(request: Request, db: AsyncSession = Depends(get_db)):
         overdue.append((invoice, due_date, (today - due_date).days))
     overdue.sort(key=lambda row: row[2], reverse=True)
 
-    return templates.TemplateResponse("finances/reminders_list.html", {
+    return templates.TemplateResponse(request, "finances/reminders_list.html", {
         "request": request, "user": user, "overdue": overdue,
     })
 
@@ -395,7 +395,7 @@ async def incoming_invoices_list(
     cloud_storage_enabled = _cloud_storage_enabled(request)
     folder_path = await _get_incoming_invoices_folder(db) if cloud_storage_enabled else None
 
-    return templates.TemplateResponse("finances/incoming_invoices_list.html", {
+    return templates.TemplateResponse(request, "finances/incoming_invoices_list.html", {
         "request": request, "user": user, "invoices": invoices, "categories": categories,
         "cloud_storage_enabled": cloud_storage_enabled, "folder_path": folder_path,
         "today": date.today().isoformat(), "contacts": await picker_contacts(request, db),
@@ -484,7 +484,7 @@ async def incoming_invoice_detail(invoice_id: str, request: Request, db: AsyncSe
     )
     accounts = list(accounts_result.scalars().all())
 
-    return templates.TemplateResponse("finances/incoming_invoice_detail.html", {
+    return templates.TemplateResponse(request, "finances/incoming_invoice_detail.html", {
         "request": request, "user": user, "invoice": invoice, "accounts": accounts,
         "cloud_storage_enabled": _cloud_storage_enabled(request),
         "today": date.today().isoformat(), "contacts": await picker_contacts(request, db),
@@ -616,7 +616,7 @@ async def accounting_statement_page(
 
     statement = await compute_cash_accounting_statement(db, target_year)
 
-    return templates.TemplateResponse("finances/accounting_statement.html", {
+    return templates.TemplateResponse(request, "finances/accounting_statement.html", {
         "request": request, "user": user, "statement": statement,
         "available_years": available_years, "year": target_year,
     })
@@ -635,7 +635,7 @@ def _budget_year(year: Optional[int]) -> int:
 
 
 async def _budget_page(request, db, user, year: int, error: Optional[str] = None, entered=None, status_code=200):
-    return templates.TemplateResponse("finances/budget.html", {
+    return templates.TemplateResponse(request, "finances/budget.html", {
         "request": request, "user": user, "plan": await compute_budget_plan(db, year),
         "current_year": date.today().year, "error": error, "entered": entered or {},
     }, status_code=status_code)
@@ -716,7 +716,7 @@ async def bookings_list(request: Request, db: AsyncSession = Depends(get_db)):
     categories_result = await db.execute(select(FinanceCategory).order_by(FinanceCategory.code))
     categories = list(categories_result.scalars().all())
 
-    return templates.TemplateResponse("finances/bookings_list.html", {
+    return templates.TemplateResponse(request, "finances/bookings_list.html", {
         "request": request, "user": user, "rows": rows, "categories": categories,
         "search": search, "date_from": date_from_str, "date_to": date_to_str,
         "amount_min": amount_min_str, "amount_max": amount_max_str,
@@ -841,7 +841,7 @@ async def run_detail(
     categories_result = await db.execute(select(FinanceCategory).order_by(FinanceCategory.code))
     categories = list(categories_result.scalars().all())
 
-    return templates.TemplateResponse("finances/run_detail.html", {
+    return templates.TemplateResponse(request, "finances/run_detail.html", {
         "request": request, "user": user, "run": run, "parcels": parcels, "members": members,
         "pricing_modes": list(InvoicePricingMode),
         "next_order": next_order,
@@ -1085,7 +1085,7 @@ async def run_preview(run_id: str, request: Request, db: AsyncSession = Depends(
     run = await _get_run_or_404(db, run_id)
     computed = await compute_invoices_for_run(db, run)
 
-    return templates.TemplateResponse("finances/run_preview.html", {
+    return templates.TemplateResponse(request, "finances/run_preview.html", {
         "request": request, "user": user, "run": run, "computed": computed,
     })
 
@@ -1337,7 +1337,7 @@ async def invoice_list(
     if status in ("open", "partially_paid", "paid"):
         invoices = [i for i in invoices if i.payment_status == status]
 
-    return templates.TemplateResponse("finances/invoice_list.html", {
+    return templates.TemplateResponse(request, "finances/invoice_list.html", {
         "request": request, "user": user, "invoices": invoices,
         "filter_parcel": parcel, "filter_invoice_number": invoice_number, "filter_recipient": recipient,
         "filter_amount_min": amount_min, "filter_amount_max": amount_max, "filter_status": status,
@@ -1357,7 +1357,7 @@ async def invoice_detail(invoice_id: str, request: Request, db: AsyncSession = D
     )
     accounts = list(accounts_result.scalars().all())
 
-    return templates.TemplateResponse("finances/invoice_detail.html", {
+    return templates.TemplateResponse(request, "finances/invoice_detail.html", {
         "request": request, "user": user, "invoice": invoice, "run": run,
         "today": date.today().isoformat(), "accounts": accounts,
     })
@@ -1458,7 +1458,7 @@ async def category_list(request: Request, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(FinanceCategory).order_by(FinanceCategory.code))
     categories = list(result.scalars().all())
 
-    return templates.TemplateResponse("finances/category_list.html", {
+    return templates.TemplateResponse(request, "finances/category_list.html", {
         "request": request, "user": user, "categories": categories,
         "groups": list(FinanceCategoryGroup),
     })
@@ -1597,7 +1597,7 @@ async def account_list(request: Request, db: AsyncSession = Depends(get_db)):
     )
     payment_sums = {account_id: total for account_id, total in payment_sums_result.all()}
 
-    return templates.TemplateResponse("finances/account_list.html", {
+    return templates.TemplateResponse(request, "finances/account_list.html", {
         "request": request, "user": user, "accounts": accounts,
         "account_types": list(FinanceAccountType), "payment_sums": payment_sums,
         "booking_counts": await _account_booking_counts(db),
@@ -1860,7 +1860,7 @@ async def account_bookings(account_id: str, request: Request, db: AsyncSession =
     query = query.order_by(bookings.c.booking_date.desc(), bookings.c.id.desc()).limit(BOOKINGS_PAGE_SIZE)
     rows = (await db.execute(query)).all()
 
-    return templates.TemplateResponse("finances/account_bookings.html", {
+    return templates.TemplateResponse(request, "finances/account_bookings.html", {
         "request": request, "user": user, "account": account, "rows": rows,
         "filters": filters, "page_size": BOOKINGS_PAGE_SIZE,
         "has_more": len(rows) == BOOKINGS_PAGE_SIZE,
@@ -1985,7 +1985,7 @@ async def account_bookings_import_preview(
     preview_rows = rows[1:1 + CSV_IMPORT_PREVIEW_ROWS]
     default_mapping = guess_column_mapping(headers, FINANCES_IMPORT_FIELD_ALIASES)
 
-    return templates.TemplateResponse("finances/account_bookings_import_preview.html", {
+    return templates.TemplateResponse(request, "finances/account_bookings_import_preview.html", {
         "request": request, "user": user, "account": account,
         "headers": headers, "preview_rows": preview_rows,
         "default_mapping": default_mapping, "target_fields": CSV_IMPORT_TARGET_FIELDS,
@@ -2107,7 +2107,7 @@ async def account_bookings_import_match(
             "best": "skip" if duplicate else best_match_option(matches),
         })
 
-    return templates.TemplateResponse("finances/account_bookings_import_match.html", {
+    return templates.TemplateResponse(request, "finances/account_bookings_import_match.html", {
         "request": request, "user": user, "account": account, "row_matches": row_matches,
         "csv_content_b64": csv_content_b64, "delimiter": delimiter, "column_mapping": column_mapping,
     })
@@ -2261,7 +2261,7 @@ async def account_bookings_manual_preview(
 
     matches = await find_matching_invoices(db, parsed_amount, counterparty)
 
-    return templates.TemplateResponse("finances/account_bookings_manual_match.html", {
+    return templates.TemplateResponse(request, "finances/account_bookings_manual_match.html", {
         "request": request, "user": user, "account": account, "matches": matches,
         "best_match": best_match_option(matches),
         "booking_date": booking_date, "amount": amount, "description": description, "counterparty": counterparty,
@@ -2335,7 +2335,7 @@ async def item_template_list(request: Request, db: AsyncSession = Depends(get_db
     parcels = await _active_parcels(db)
     members = await _active_members(db)
 
-    return templates.TemplateResponse("finances/item_template_list.html", {
+    return templates.TemplateResponse(request, "finances/item_template_list.html", {
         "request": request, "user": user, "item_templates": item_templates, "next_order": next_order,
         "pricing_modes": list(InvoicePricingMode), "categories": categories, "parcels": parcels, "members": members,
     })

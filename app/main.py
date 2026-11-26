@@ -600,7 +600,7 @@ async def startseite(request: Request):
     }
 
     return templates.TemplateResponse(
-        "dashboard.html",
+        request, "dashboard.html",
         {
             "request": request,
             "user": user,
@@ -628,7 +628,7 @@ async def forbidden_handler(request: Request, exc):
     detail = getattr(exc, "detail", None)
     meldung = detail if detail and detail != "Forbidden" else t_for(request, "errors.no_permission")
     return templates.TemplateResponse(
-        "fehler.html",
+        request, "fehler.html",
         {"request": request, "user": user, "code": 403, "meldung": meldung},
         status_code=403,
     )
@@ -643,7 +643,7 @@ async def not_found_handler(request: Request, exc):
     detail = getattr(exc, "detail", None)
     meldung = detail if detail and detail != "Not Found" else t_for(request, "errors.page_not_found")
     return templates.TemplateResponse(
-        "fehler.html",
+        request, "fehler.html",
         {"request": request, "user": user, "code": 404, "meldung": meldung},
         status_code=404,
     )

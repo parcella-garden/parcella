@@ -1,10 +1,7 @@
-fastapi==0.130.0
-# Pinned explicitly, not left to FastAPI's range: Starlette 1.x removed
-# the legacy TemplateResponse(name, context) signature that every router
-# here still uses. 0.49.x is the newest line that keeps it and carries
-# the multipart-DoS fixes that mattered (PYSEC-2026-1941/1942/1943);
-# moving to Starlette 1.x is a separate migration, see ADR 0064.
-starlette==0.49.3
+fastapi==0.162.5
+# Pinned explicitly so pip-audit --no-deps sees it (docs/security.md).
+# 1.x since #417, when every router moved to TemplateResponse(request, name).
+starlette==1.10.0
 uvicorn[standard]==0.30.6
 sqlalchemy[asyncio]==2.0.35
 asyncpg==0.29.0

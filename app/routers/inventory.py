@@ -140,7 +140,7 @@ async def inventory_list(
         by_category.setdefault(item.category, []).append(item)
     grouped = sorted(by_category.items(), key=lambda pair: (pair[0].name if pair[0] else "\uffff"))
 
-    return templates.TemplateResponse("inventory/list.html", {
+    return templates.TemplateResponse(request, "inventory/list.html", {
         "request": request, "user": user, "grouped": grouped, "categories": categories,
         "category_id": category_id, "include_retired": include_retired,
     })
@@ -155,7 +155,7 @@ async def categories_list(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "inventory", "write")
     result = await db.execute(select(InventoryCategory).order_by(InventoryCategory.name))
     categories = result.scalars().all()
-    return templates.TemplateResponse("inventory/categories.html", {
+    return templates.TemplateResponse(request, "inventory/categories.html", {
         "request": request, "user": user, "categories": categories, "error": None,
     })
 
@@ -169,7 +169,7 @@ async def category_create(request: Request, db: AsyncSession = Depends(get_db)):
         await create_category(db, name=form.get("name") or "", description=form.get("description"))
     except ServiceError as e:
         result = await db.execute(select(InventoryCategory).order_by(InventoryCategory.name))
-        return templates.TemplateResponse("inventory/categories.html", {
+        return templates.TemplateResponse(request, "inventory/categories.html", {
             "request": request, "user": user, "categories": result.scalars().all(),
             "error": e.key,
         }, status_code=e.http_status)
@@ -208,7 +208,7 @@ async def active_loans_overview(request: Request, db: AsyncSession = Depends(get
         .order_by(ItemLoan.borrowed_date)
     )
     loans = result.scalars().all()
-    return templates.TemplateResponse("inventory/active_loans.html", {
+    return templates.TemplateResponse(request, "inventory/active_loans.html", {
         "request": request, "user": user, "loans": loans,
     })
 
@@ -245,7 +245,7 @@ async def _item_form_context(request, db, user, item=None, error=None):
 @router.get("/new", response_class=HTMLResponse)
 async def item_new_form(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "inventory", "write")
-    return templates.TemplateResponse("inventory/form.html", await _item_form_context(request, db, user))
+    return templates.TemplateResponse(request, "inventory/form.html", await _item_form_context(request, db, user))
 
 
 def _item_fields_from_form(form: dict) -> dict:
@@ -278,7 +278,7 @@ async def item_create(request: Request, db: AsyncSession = Depends(get_db)):
         item = await create_item(db, **_item_fields_from_form(form), created_by_id=user.id)
     except ServiceError as e:
         return templates.TemplateResponse(
-            "inventory/form.html",
+            request, "inventory/form.html",
             await _item_form_context(request, db, user, error=e.key),
             status_code=e.http_status,
         )
@@ -291,7 +291,7 @@ async def item_create(request: Request, db: AsyncSession = Depends(get_db)):
 async def item_edit_form(item_id: str, request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "inventory", "write")
     item = await _get_item_or_404(db, item_id)
-    return templates.TemplateResponse("inventory/form.html", await _item_form_context(request, db, user, item=item))
+    return templates.TemplateResponse(request, "inventory/form.html", await _item_form_context(request, db, user, item=item))
 
 
 @router.post("/{item_id}/edit")
@@ -304,7 +304,7 @@ async def item_update(item_id: str, request: Request, db: AsyncSession = Depends
         await update_item(db, item, **_item_fields_from_form(form))
     except ServiceError as e:
         return templates.TemplateResponse(
-            "inventory/form.html",
+            request, "inventory/form.html",
             await _item_form_context(request, db, user, item=item, error=e.key),
             status_code=e.http_status,
         )
@@ -353,7 +353,7 @@ async def loan_checkout(item_id: str, request: Request, db: AsyncSession = Depen
         # checkout_loan() validates before it changes anything, so there
         # is nothing to roll back (a rollback would also expire the item's
         # eagerly loaded relationships the template needs).
-        return templates.TemplateResponse("inventory/detail.html", {
+        return templates.TemplateResponse(request, "inventory/detail.html", {
             **await _item_detail_context(request, db, user, item),
             "checkout_error": t_for(request, e.key, **e.params),
             "checkout_entered": {k: form.get(k) or "" for k in ("member_id", "quantity", "borrowed_date", "fee_charged", "note")},
@@ -372,7 +372,7 @@ async def loan_checkout(item_id: str, request: Request, db: AsyncSession = Depen
 async def item_detail(item_id: str, request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "inventory", "read")
     item = await _get_item_or_404(db, item_id)
-    return templates.TemplateResponse("inventory/detail.html", await _item_detail_context(request, db, user, item))
+    return templates.TemplateResponse(request, "inventory/detail.html", await _item_detail_context(request, db, user, item))
 
 
 async def _item_detail_context(request: Request, db: AsyncSession, user, item: InventoryItem) -> dict:

@@ -101,7 +101,7 @@ async def notes_list(
     sync_from_cloud_in_background()
     filters = NoteFilter.build(q, category, tag, date_from, date_to, sort)
     notes = (await db.scalars(filters.apply().options(*note_load_options()))).all()
-    return templates.TemplateResponse("notes/list.html", {
+    return templates.TemplateResponse(request, "notes/list.html", {
         "request": request, "user": user, "notes": notes, "filters": filters,
         "categories": await list_categories(db), "tags": await list_tags(db),
         "cloud_folder": await load_notes_folder(db),
@@ -134,7 +134,7 @@ async def notes_sync(request: Request, db: AsyncSession = Depends(get_db)):
 @router.get("/import/bookmarks", response_class=HTMLResponse)
 async def bookmarks_import_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, MODULE, "write")
-    return templates.TemplateResponse("notes/import_bookmarks.html", {
+    return templates.TemplateResponse(request, "notes/import_bookmarks.html", {
         "request": request, "user": user, "rows": None, "cloud_folder": await load_notes_folder(db),
         "error": request.query_params.get("error", ""),
     })
@@ -153,7 +153,7 @@ async def bookmarks_import_preview(
     if not bookmarks:
         return _redirect("/notes/import/bookmarks", error=t_for(request, "notes.bookmarks.none_found"))
     rows = await classify_bookmarks(db, bookmarks)
-    return templates.TemplateResponse("notes/import_bookmarks.html", {
+    return templates.TemplateResponse(request, "notes/import_bookmarks.html", {
         "request": request, "user": user, "rows": rows, "cloud_folder": await load_notes_folder(db),
         "content_b64": base64.b64encode(content).decode("ascii"),
         "count_new": sum(1 for _, s in rows if s == BOOKMARK_NEW),
@@ -234,7 +234,7 @@ async def _form_response(
     request: Request, db: AsyncSession, user, note: Optional[Note], values: dict,
     error: str = "", conflict_note: Optional[Note] = None, status_code: int = 200,
 ):
-    return templates.TemplateResponse("notes/form.html", {
+    return templates.TemplateResponse(request, "notes/form.html", {
         "request": request, "user": user, "note": note, "values": values, "error": error,
         "categories": await list_categories(db), "tags": await list_tags(db),
         "conflict_note": conflict_note,
@@ -304,7 +304,7 @@ async def _term_or_404(db: AsyncSession, model, term_id: str):
 @router.get("/taxonomy", response_class=HTMLResponse)
 async def taxonomy_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, MODULE, "read")
-    return templates.TemplateResponse("notes/taxonomy.html", {
+    return templates.TemplateResponse(request, "notes/taxonomy.html", {
         "request": request, "user": user,
         "categories": await list_categories(db), "tags": await list_tags(db),
         "category_counts": await count_term_notes(db, TaxonomyCategory),
@@ -375,7 +375,7 @@ async def note_detail(note_id: str, request: Request, db: AsyncSession = Depends
     await db.commit()
     note = await _note_or_404(request, db, note_id)
     permissions = getattr(request.state, "permissions", {})
-    return templates.TemplateResponse("notes/detail.html", {
+    return templates.TemplateResponse(request, "notes/detail.html", {
         "request": request, "user": user, "note": note, "body_html": render_body(note.body_markdown),
         "cloud_error": cloud_error, "cloud_folder": await load_notes_folder(db),
         "can_write": has_permission(permissions, MODULE, "write"),

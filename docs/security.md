@@ -89,14 +89,6 @@ Nothing here is believed to be exploitable today, but each is a real
 limitation someone should weigh before relying on the app in a bigger
 setting.
 
-- **Starlette is pinned below 1.x**, which leaves five advisories
-  (`PYSEC-2026-161/248/249/2280/2281`) unfixed: URL reconstruction from
-  the `Host` header and from paths, a Windows-only `StaticFiles` SSRF,
-  and `HTTPEndpoint` method lookup. Moving to 1.x requires migrating
-  every `TemplateResponse(name, context)` call in every router to the
-  new `(request, name)` signature. Partially mitigated: the middlewares
-  that make security decisions read `request.scope["path"]`, the same
-  value routing uses, rather than the reconstructed `request.url`.
 - **The CSP still allows `'unsafe-inline'`** for scripts and styles,
   because the templates are full of inline blocks. See ADR 0064.
 - **Rate limits are in-memory and per-process.** They reset on restart
@@ -125,5 +117,5 @@ pip-audit --no-deps -r requirements.txt
 ```
 
 `--no-deps` audits the pinned direct dependencies. `starlette` is pinned
-explicitly for the reason above; other transitive packages need a
+explicitly so it is audited too; other transitive packages need a
 resolved environment to be picked up.
