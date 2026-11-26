@@ -187,10 +187,11 @@ async def test_mcp_token_opens_nothing_else_and_ordinary_tokens_dont_open_mcp(cl
     _headers, token, _released, _secret = await _setup(client)
 
     checked = 0
-    for route in app.routes:
-        path = getattr(route, "path", "")
+    # From the OpenAPI schema: since FastAPI 0.16x, app.routes holds
+    # wrappers for included routers instead of the flattened routes.
+    for path, operations in app.openapi()["paths"].items():
         if not path.startswith("/api/v1/") or path.startswith(MCP) or path.startswith("/api/v1/public") \
-                or "{" in path or "GET" not in getattr(route, "methods", set()):
+                or "{" in path or "get" not in operations:
             continue
         response = await client.get(path, headers={"Authorization": f"Bearer {token}"})
         assert response.status_code in (401, 403, 404), (path, response.status_code)
