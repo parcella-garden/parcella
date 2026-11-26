@@ -13,17 +13,8 @@ Nothing from this source is ever output unfiltered with "|safe" (the
 function itself returns a markupsafe.Markup instance, so the Jinja
 filter needs no separate "| safe" and can't accidentally be re-escaped).
 """
-import re
-
-import bleach
+import nh3
 from markupsafe import Markup
-
-# <script>/<style> must be removed COMPLETELY (tag AND content) --
-# bleach.clean() only strips disallowed tags themselves and keeps the
-# text between them (correct for e.g. a stripped <div>, but wrong for
-# <script>/<style>, whose content isn't human-readable text). So these
-# are removed upfront via regex instead.
-_SCRIPT_STYLE_RE = re.compile(r"<(script|style)[^>]*>.*?</\1>", re.IGNORECASE | re.DOTALL)
 
 # Deliberately NO images allowed: prevents both tracking pixels (the
 # sender would otherwise learn when/whether the message was opened) and
@@ -44,6 +35,23 @@ ALLOWED_ATTRIBUTES = {
 ALLOWED_PROTOCOLS = ["http", "https", "mailto"]
 
 
+def clean_html(html: str, tags, attributes) -> str:
+    """The one nh3 call behind both sanitizers (this one and
+    app/announcement_utils.py). Disallowed tags are stripped, keeping
+    their text -- except <script>/<style>, whose content nh3 drops too
+    (clean_content_tags). Links open in a new tab without
+    window.opener access (rel="noopener noreferrer")."""
+    return nh3.clean(
+        html,
+        tags=set(tags),
+        attributes={tag: set(names) for tag, names in attributes.items()},
+        url_schemes=set(ALLOWED_PROTOCOLS),
+        strip_comments=True,
+        link_rel="noopener noreferrer",
+        set_tag_attribute_values={"a": {"target": "_blank"}},
+    )
+
+
 def sanitize_email_html(html: str) -> Markup:
     """Sanitizes HTML from an incoming, externally-sourced email/message
     for safe rendering. Returns a Markup instance (not a plain str) so
@@ -54,23 +62,5 @@ def sanitize_email_html(html: str) -> Markup:
     if not html:
         return Markup("")
 
-    html = _SCRIPT_STYLE_RE.sub("", html)
-
-    cleaned = bleach.clean(
-        html,
-        tags=ALLOWED_TAGS,
-        attributes=ALLOWED_ATTRIBUTES,
-        protocols=ALLOWED_PROTOCOLS,
-        strip=True,
-        strip_comments=True,
-    )
-
-    # Open external links in a new tab without letting the target reach
-    # the calling page via window.opener -- the content comes from an
-    # untrusted sender.
-    cleaned = re.sub(
-        r'<a\s+href="([^"]*)"([^>]*)>',
-        r'<a href="\1" target="_blank" rel="noopener noreferrer"\2>',
-        cleaned,
-    )
+    cleaned = clean_html(html, ALLOWED_TAGS, ALLOWED_ATTRIBUTES)
     return Markup(cleaned)

@@ -15,7 +15,7 @@ email could contain `<script>`, event-handler attributes, `javascript:`
 links, or tracking pixels via `<img>`. This is *not* the same trust
 level as, say, a club-settings field a logged-in board member typed in.
 
-**Decision: sanitize with an allowlist (bleach), not a denylist.**
+**Decision: sanitize with an allowlist (bleach; since #419 nh3, as bleach is archived upstream), not a denylist.**
 `app/html_sanitizer.py` allows a small set of formatting tags (`p`,
 `b`/`i`/`strong`/`em`, `a`, lists, tables, headings, `blockquote`) and
 only `href`/`title` on `<a>`, with link protocols restricted to

@@ -20,7 +20,7 @@ root rather than opening a public issue.
 | Login | failure-only throttle per IP and per IP+account ([ADR 0065](./ADR/0065-credential-and-deployment-hardening.md)) |
 | Forged requests | `SameSite=Lax` **plus** a double-submit CSRF token ([ADR 0064](./ADR/0064-csrf-and-security-response-headers.md)) |
 | Response headers | CSP, nosniff, `X-Frame-Options`, referrer policy, HSTS outside development |
-| Untrusted HTML | bleach, twice: on ingest and again at render (`app/html_sanitizer.py`) |
+| Untrusted HTML | nh3 (allowlist; bleach until #419), twice: on ingest and again at render (`app/html_sanitizer.py`) |
 | Stored secrets | Fernet, key derived from `SECRET_KEY` (`app/crypto_utils.py`) |
 | Backup restore | hand-rolled zip validation with a zip-slip guard, deliberately not `extractall` (`app/backup.py`) |
 | SQL | SQLAlchemy only -- there is no raw SQL string building anywhere in `app/` |
