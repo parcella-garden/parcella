@@ -81,19 +81,16 @@ async def build_backup_zip_file() -> Tuple[str, Path]:
         db_url.path.lstrip("/"),
     ]
 
-    sql_fd, sql_name = tempfile.mkstemp(suffix=".sql")
-    zip_fd, zip_name = tempfile.mkstemp(suffix=".zip")
-    os.close(zip_fd)
+    sql_name = zip_name = None
     try:
-        try:
-            with os.fdopen(sql_fd, "wb") as sql_file:
-                process = await asyncio.create_subprocess_exec(
-                    *cmd, env=env, stdout=sql_file, stderr=asyncio.subprocess.PIPE,
-                )
-                _, stderr = await asyncio.wait_for(process.communicate(), timeout=300)
-        except (OSError, asyncio.TimeoutError) as e:
-            raise BackupError(str(e)[:500]) from e
-
+        zip_fd, zip_name = tempfile.mkstemp(suffix=".zip")
+        os.close(zip_fd)
+        sql_fd, sql_name = tempfile.mkstemp(suffix=".sql")
+        with os.fdopen(sql_fd, "wb") as sql_file:
+            process = await asyncio.create_subprocess_exec(
+                *cmd, env=env, stdout=sql_file, stderr=asyncio.subprocess.PIPE,
+            )
+            _, stderr = await asyncio.wait_for(process.communicate(), timeout=300)
         if process.returncode != 0:
             raise BackupError(stderr.decode("utf-8", errors="replace").strip()[:500])
 
@@ -101,11 +98,17 @@ async def build_backup_zip_file() -> Tuple[str, Path]:
         # Zipping reads files from disk: done in a thread so a big club's
         # backup doesn't stall every other request meanwhile.
         await asyncio.to_thread(_write_zip, Path(zip_name), Path(sql_name))
-    except BaseException:
-        os.unlink(zip_name)
+    except BaseException as e:
+        if zip_name:
+            os.unlink(zip_name)
+        # A full /tmp (OSError) must reach callers as a BackupError like
+        # any other failure: the cloud backup records only those.
+        if isinstance(e, (OSError, asyncio.TimeoutError)):
+            raise BackupError(str(e)[:500]) from e
         raise
     finally:
-        os.unlink(sql_name)
+        if sql_name:
+            os.unlink(sql_name)
 
     return f"parcella-backup-{timestamp}.zip", Path(zip_name)
 
@@ -115,11 +118,10 @@ def _write_zip(zip_path: Path, sql_path: Path) -> None:
         zf.write(sql_path, arcname=SQL_MEMBER)
         # The effective key, whether it came from .env or data/secrets/.
         zf.writestr(SECRET_KEY_MEMBER, settings.secret_key + "\n")
-        for base_dir, prefix in ((UPLOAD_DIR, UPLOADS_PREFIX),):
-            if base_dir.is_dir():
-                for file_path in sorted(base_dir.rglob("*")):
-                    if file_path.is_file():
-                        zf.write(file_path, arcname=f"{prefix}/{file_path.relative_to(base_dir)}")
+        if UPLOAD_DIR.is_dir():
+            for file_path in sorted(UPLOAD_DIR.rglob("*")):
+                if file_path.is_file():
+                    zf.write(file_path, arcname=f"{UPLOADS_PREFIX}/{file_path.relative_to(UPLOAD_DIR)}")
 
 
 async def build_backup_zip() -> Tuple[str, bytes]:
