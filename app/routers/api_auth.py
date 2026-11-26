@@ -49,7 +49,7 @@ async def _issue_token(request: Request, db: AsyncSession, email: str, password:
         raise _PASSWORD_CHANGE_REQUIRED
 
     clear_login_failures(request, email)
-    token = create_access_token(user.id, user.email)
+    token = create_access_token(user.id, user.email, user.session_version)
     return TokenResponse(access_token=token, expires_in_minutes=ACCESS_TOKEN_VALID_MINUTES)
 
 
