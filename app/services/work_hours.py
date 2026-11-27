@@ -1,6 +1,6 @@
 """
 Shared work-hours business logic, called by both
-app/routers/work_hours.py (HTML) and app/routers/api_work_hours.py
+app/routers/work_hours/ (HTML) and app/routers/api_work_hours.py
 (API) -- see ADR 0070.
 
 Headline fix: the evaluation/exemption engine
@@ -513,7 +513,7 @@ async def add_participation(
 def new_participation_cutoff(within_days: int = NEW_PARTICIPATION_WINDOW_DAYS) -> datetime:
     """Shared cutoff for "counts as a new sign-up" -- used by
     count_new_participations() below and by the session-detail template
-    to mark individual rows (app/routers/work_hours.py)."""
+    to mark individual rows (app/routers/work_hours/)."""
     return datetime.now(timezone.utc) - timedelta(days=within_days)
 
 
@@ -964,3 +964,41 @@ async def toggle_task_done(db: AsyncSession, task: WorkTask) -> WorkTask:
     task.is_done = not task.is_done
     await db.flush()
     return task
+
+
+# ---------------------------------------------------------------------------
+# Helpers for the work-hours routes (moved from the router, issue #416)
+# ---------------------------------------------------------------------------
+
+def sort_members_by_plot(members: List[Member]) -> List[Member]:
+    """Member picker order for sponsorships: by current plot number
+    first (e.g. G043 before G100), members without one last, name as
+    the tie-breaker -- requested so a large club can be scanned by
+    garden plot the same way the signup-search box already can be
+    searched by it (issue #213 follow-up)."""
+    def key(m: Member):
+        plots = sorted(pa.parcel.plot_number for pa in m.parcel_assignments if pa.is_current)
+        return (not plots, plots[0] if plots else "", m.last_name, m.first_name)
+
+    return sorted(members, key=key)
+
+
+# ---------------------------------------------------------------------------
+# Tasks: a backlog of upcoming work, optionally scheduled to a session and
+# assigned to one of that session's signed-up participants. Lets whoever
+# coordinates a session match tasks to people appropriately (e.g. lighter
+# tasks for someone who can't do heavy physical work) -- the app only
+# stores a workload label per task; the actual matching judgment stays
+# entirely with the human coordinator.
+# ---------------------------------------------------------------------------
+
+async def load_task(db: AsyncSession, task_id: str) -> Optional[WorkTask]:
+    result = await db.execute(
+        select(WorkTask)
+        .options(
+            selectinload(WorkTask.session),
+            selectinload(WorkTask.assigned_participation).selectinload(SessionParticipation.member),
+        )
+        .where(WorkTask.id == task_id)
+    )
+    return result.scalar_one_or_none()

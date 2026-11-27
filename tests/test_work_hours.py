@@ -350,7 +350,7 @@ async def test_attended_participant_without_hours_override_counts_session_defaul
     entered hours_completed override was credited 0 hours in the annual
     evaluation instead of falling back to the session's
     hours_per_participant default -- the same fallback already used for
-    the attendee-sheet PDF (app/routers/work_hours.py). Since attendees
+    the attendee-sheet PDF (app/routers/work_hours/sessions.py). Since attendees
     are typically added straight to ATTENDED with no hours typed in
     (participant_add's default), this meant most attendance simply
     didn't count."""

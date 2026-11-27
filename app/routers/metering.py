@@ -1279,7 +1279,7 @@ def create_metering_router(
     # water_usage/electricity_usage invoice pricing modes
     # (app/invoice_generation.py). Same "computed automatically"
     # pattern as work_hours' rate_per_hour_eur -- see
-    # app/routers/work_hours.py's configuration_* routes, mirrored here.
+    # app/routers/work_hours/'s configuration_* routes, mirrored here.
     # -----------------------------------------------------------------
 
     @router.get("/configuration", response_class=HTMLResponse)

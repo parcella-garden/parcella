@@ -196,7 +196,7 @@ applies, plus an optional per-session `signup_deadline_days` (set on
 the session itself, `app/templates/work_hours/session_form.html`) that
 closes registration earlier, e.g. `1` closes the day before the event.
 Deliberately **public-signup-only** -- a board member adding a
-participant in Parcella itself (`app/routers/work_hours.py::participant_add`,
+participant in Parcella itself (`app/routers/work_hours/sessions.py::participant_add`,
 normally used to record attendance *after* a session) is unaffected;
 blocking that would break the normal "record who showed up" workflow
 for anything in the past. Checked in two places, not redundantly: once

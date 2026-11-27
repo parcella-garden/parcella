@@ -149,7 +149,7 @@ form) are labeled and sorted plot-number-first (`G001 - Peter Ahnert`),
 not alphabetically by name -- kermie's follow-up request, since a large
 club gets scanned by garden plot far more often than by surname. Members
 with no current plot assignment sort last, after every plot-holder
-(`_sort_members_by_plot` in `app/routers/work_hours.py`; the plot number
+(`sort_members_by_plot` in `app/services/work_hours.py`; the plot number
 comes from `Member.parcel_assignments`, a Python-side sort since the
 member list also needs to include people without any current parcel, which
 a plain SQL join would drop or duplicate).
@@ -279,7 +279,7 @@ pain point.
 `evaluate_year`/`evaluate_parcel`/`evaluate_member`) plus configuration
 upsert, club-role/assignment CRUD, session/participation CRUD,
 sponsorship CRUD, and task scheduling/assignment now live in
-`app/services/work_hours.py`, called by both `app/routers/work_hours.py`
+`app/services/work_hours.py`, called by both `app/routers/work_hours/`
 and `app/routers/api_work_hours.py`. This was the headline fix of the
 whole ADR 0070 rollout: the evaluation engine used to be reimplemented
 independently 3 times (the HTML evaluation page, the HTML CSV export --
@@ -332,4 +332,11 @@ meeting sign-in sheet: a real session's attendee count can exceed what
 fits on one page, and there's no sensible way to "shorten" a list of
 people who need to sign in.
 
+## Code layout (issue #416)
 
+The HTML routes live in the package `app/routers/work_hours/`, one
+sub-router per area (`configuration` with the overview, `sessions`,
+`club_roles`, `sponsorships`, `transfers`, `evaluation`, `tasks`) under
+the `/work-hours` router in `__init__.py`. The business logic stays in
+`app/services/work_hours.py`, shared with the REST API
+(`app/routers/api_work_hours.py`).
