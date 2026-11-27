@@ -4060,7 +4060,10 @@
       "kind_locked": "The type can't be changed any more: values have been entered, or it's a group.",
       "key_hint": "the field's fixed name for exports and the API; it stays when you rename the field.",
       "cancel": "Cancel",
-      "save": "Save"
+      "save": "Save",
+      "delete": "Delete",
+      "delete_confirm": "Delete “{label}” for good? The {count} value(s) entered for it are deleted too. This can't be undone.",
+      "delete_confirm_group": "Delete the group “{label}” with all its fields for good? {count} value(s) are deleted too. This can't be undone."
     },
     "errors": {
       "unknown_target": "Unknown area.",

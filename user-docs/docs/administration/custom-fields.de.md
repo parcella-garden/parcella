@@ -27,6 +27,7 @@ Formularen erscheinen. Felder in einer Gruppe stehen eingerückt darunter (↳).
 | Pfeile | Schieben das Feld nach oben oder unten. Ein Feld in einer Gruppe bewegt sich innerhalb der Gruppe. |
 | Stift | Feld bearbeiten. |
 | **Archivieren** / **Wiederherstellen** | Siehe [Ein Feld archivieren](#archiving-a-field). |
+| Papierkorb | Löscht das Feld endgültig -- siehe [Ein Feld löschen](#deleting-a-field). |
 
 ## Feldtypen {#field-types}
 
@@ -80,12 +81,22 @@ Gruppe bleibt immer eine Gruppe.
 
 ## Ein Feld archivieren {#archiving-a-field}
 
-Felder werden nie gelöscht. **Archivieren** blendet ein Feld in
+**Archivieren** blendet ein Feld in
 Formularen, Detailseiten, im Listenfilter und in Exporten aus. Die
 bisher eingetragenen Werte bleiben erhalten. **Wiederherstellen** holt
 das Feld mit seinen Werten zurück. Eine archivierte Gruppe blendet auch
 ihre Felder aus; ein Feld in einer archivierten Gruppe lässt sich erst
 wiederherstellen, wenn die Gruppe wieder da ist.
+
+## Ein Feld löschen {#deleting-a-field}
+
+Der Papierkorb löscht ein Feld endgültig, zusammen mit allen
+eingetragenen Werten; eine gelöschte Gruppe nimmt auch ihre Felder mit.
+Vorher fragt eine Bestätigung nach und nennt, wie viele Werte verloren
+gehen, z. B. „Die Gruppe „Pool“ mit allen ihren Feldern endgültig
+löschen? 12 eingetragene Werte werden mitgelöscht.“ Das lässt sich
+nicht rückgängig machen -- brauchst du das Feld vielleicht noch,
+archiviere es lieber.
 
 ## Wo eigene Felder erscheinen {#where-custom-fields-show-up}
 

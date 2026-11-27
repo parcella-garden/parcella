@@ -9,7 +9,7 @@ from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Dict, List, Optional
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.l10n import parse_decimal
@@ -177,6 +177,33 @@ async def set_archived(db: AsyncSession, field: CustomField, archived: bool) -> 
         if parent and parent.archived_at:
             raise ServiceError("custom_fields.errors.parent_archived")
     field.archived_at = datetime.now(timezone.utc) if archived else None
+    await db.flush()
+
+
+async def value_counts(db: AsyncSession, target: CustomFieldTarget) -> Dict[str, int]:
+    """{field id: number of members/parcels with a value}; a group counts
+    its own values plus its sub-fields' -- what deleting it would remove."""
+    rows = (await db.execute(
+        select(CustomFieldValue.field_id, func.count())
+        .join(CustomField, CustomField.id == CustomFieldValue.field_id)
+        .where(CustomField.target == target)
+        .group_by(CustomFieldValue.field_id)
+    )).all()
+    counts = dict(rows)
+    fields = (await db.scalars(select(CustomField).where(CustomField.target == target))).all()
+    totals = {f.id: counts.get(f.id, 0) for f in fields}
+    for f in fields:
+        if f.parent_id in totals:
+            totals[f.parent_id] += counts.get(f.id, 0)
+    return totals
+
+
+async def delete_field(db: AsyncSession, field: CustomField) -> None:
+    """Deletes a field for good, with its values -- a group with its
+    sub-fields and theirs (kermie, #443: delete, not only archive). The
+    database cascades the values; the delete is a plain statement so the
+    ORM can't "orphan" sub-fields by nulling their parent_id instead."""
+    await db.execute(delete(CustomField).where(or_(CustomField.id == field.id, CustomField.parent_id == field.id)))
     await db.flush()
 
 

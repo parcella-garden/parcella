@@ -76,6 +76,15 @@
                                 <button type="submit" class="btn btn-sm btn-outline-danger">{{ t('custom_fields.admin.archive') }}</button>
                             </form>
                             {% endif %}
+                            {% set count = value_counts.get(f.id, 0) %}
+                            <form method="post" action="/admin/custom-fields/{{ f.id }}/delete" class="d-inline"
+                                  onsubmit="return confirm(this.dataset.confirm);"
+                                  data-confirm="{{ t('custom_fields.admin.delete_confirm_group' if f.kind.name == 'GROUP' else 'custom_fields.admin.delete_confirm', label=f.label, count=count) }}">
+                                {{ csrf_field() }}
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                        aria-label="{{ t('custom_fields.admin.delete') }}: {{ f.label }}"
+                                        title="{{ t('custom_fields.admin.delete') }}"><i class="bi bi-trash"></i></button>
+                            </form>
                         </td>
                     </tr>
                     {% endfor %}

@@ -35,8 +35,8 @@ class CustomFieldKind(str, enum.Enum):
 
 class CustomField(Base):
     """One field definition. Groups are fields of kind GROUP; a sub-field
-    points at its group via parent_id (one level only). Archived, never
-    deleted (ADR 0005): archived fields and their values are just hidden."""
+    points at its group via parent_id (one level only). Archived fields and
+    their values are just hidden; deleting removes them for good (ADR 0147)."""
     __tablename__ = "custom_fields"
     __table_args__ = (UniqueConstraint("target", "key", name="uq_custom_fields_target_key"),)
 

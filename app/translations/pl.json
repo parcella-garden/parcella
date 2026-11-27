@@ -4060,7 +4060,10 @@
       "kind_locked": "Typu nie można już zmienić: wpisano już wartości albo jest to grupa.",
       "key_hint": "stała nazwa pola dla eksportów i API; zostaje po zmianie nazwy pola.",
       "cancel": "Anuluj",
-      "save": "Zapisz"
+      "save": "Zapisz",
+      "delete": "Usuń",
+      "delete_confirm": "Usunąć „{label}” na stałe? Wpisane wartości ({count}) też zostaną usunięte. Tego nie można cofnąć.",
+      "delete_confirm_group": "Usunąć na stałe grupę „{label}” ze wszystkimi polami? Wpisane wartości ({count}) też zostaną usunięte. Tego nie można cofnąć."
     },
     "errors": {
       "unknown_target": "Nieznany obszar.",

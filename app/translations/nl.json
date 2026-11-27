@@ -4060,7 +4060,10 @@
       "kind_locked": "Het type kan niet meer worden gewijzigd: er zijn al waarden ingevuld, of het is een groep.",
       "key_hint": "de vaste naam van het veld voor exports en de API; die blijft als u het veld hernoemt.",
       "cancel": "Annuleren",
-      "save": "Opslaan"
+      "save": "Opslaan",
+      "delete": "Verwijderen",
+      "delete_confirm": "'{label}' definitief verwijderen? De {count} ingevulde waarde(n) worden ook verwijderd. Dit kan niet ongedaan worden gemaakt.",
+      "delete_confirm_group": "De groep '{label}' met al zijn velden definitief verwijderen? {count} ingevulde waarde(n) worden ook verwijderd. Dit kan niet ongedaan worden gemaakt."
     },
     "errors": {
       "unknown_target": "Onbekend gebied.",

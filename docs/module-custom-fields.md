@@ -23,7 +23,8 @@ custom_field_values    field_id, exactly one of member_id / parcel_id,
 - `app/models/custom_fields.py` -- the two models and enums.
 - `app/services/custom_fields.py` -- everything else, no HTTP:
   definitions (`create_field`, `update_field`, `set_archived`,
-  `move_field`), values from the edit form (`save_form_values`: all or
+  `delete_field` -- for good, with values and sub-fields --,
+  `move_field`, `value_counts` for the delete confirmation), values from the edit form (`save_form_values`: all or
   nothing, unticked group clears its sub-fields), detail rows
   (`view_rows`), the list filter (`filter_condition`), CSV
   (`csv_columns`, `csv_cell`, `import_targets`, `import_values`: only

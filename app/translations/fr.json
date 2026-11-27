@@ -4060,7 +4060,10 @@
       "kind_locked": "Le type ne peut plus être changé : des valeurs ont été saisies, ou c'est un groupe.",
       "key_hint": "le nom fixe du champ pour les exports et l'API ; il reste si vous renommez le champ.",
       "cancel": "Annuler",
-      "save": "Enregistrer"
+      "save": "Enregistrer",
+      "delete": "Supprimer",
+      "delete_confirm": "Supprimer définitivement « {label} » ? Les {count} valeur(s) saisie(s) sont supprimées aussi. C'est irréversible.",
+      "delete_confirm_group": "Supprimer définitivement le groupe « {label} » avec tous ses champs ? {count} valeur(s) saisie(s) sont supprimées aussi. C'est irréversible."
     },
     "errors": {
       "unknown_target": "Domaine inconnu.",

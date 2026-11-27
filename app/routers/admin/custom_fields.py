@@ -47,6 +47,7 @@ async def custom_fields_page(request: Request, target: str = "MEMBER", error: st
     return templates.TemplateResponse(request, "admin/custom_fields.html", {
         "request": request, "user": user, "target": target, "targets": list(CustomFieldTarget),
         "fields": fields, "groups": [f for f in fields if f.kind == CustomFieldKind.GROUP and not f.archived_at],
+        "value_counts": await cf.value_counts(db, target),
         "kinds": list(CustomFieldKind), "sub_kinds": cf.SUB_FIELD_KINDS, "error": error[:300],
     })
 
@@ -124,6 +125,16 @@ async def custom_field_restore(field_id: str, request: Request, db: AsyncSession
     except ServiceError as e:
         await db.rollback()
         return RedirectResponse(_page_url(target, t_for(request, e.key, **e.params)), status_code=303)
+    await db.commit()
+    return RedirectResponse(_page_url(target), status_code=303)
+
+
+@router.post("/custom-fields/{field_id}/delete")
+async def custom_field_delete(field_id: str, request: Request, db: AsyncSession = Depends(get_db)):
+    await require_system_admin(request, db)
+    field = await _field_or_404(db, field_id)
+    target = field.target
+    await cf.delete_field(db, field)
     await db.commit()
     return RedirectResponse(_page_url(target), status_code=303)
 

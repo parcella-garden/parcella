@@ -4060,7 +4060,10 @@
       "kind_locked": "Der Typ lässt sich nicht mehr ändern: Es sind schon Werte eingetragen, oder es ist eine Gruppe.",
       "key_hint": "der feste Name des Felds für Exporte und die API; er bleibt, wenn du das Feld umbenennst.",
       "cancel": "Abbrechen",
-      "save": "Speichern"
+      "save": "Speichern",
+      "delete": "Löschen",
+      "delete_confirm": "„{label}“ endgültig löschen? Die {count} eingetragenen Werte werden mitgelöscht. Das lässt sich nicht rückgängig machen.",
+      "delete_confirm_group": "Die Gruppe „{label}“ mit allen ihren Feldern endgültig löschen? {count} eingetragene Werte werden mitgelöscht. Das lässt sich nicht rückgängig machen."
     },
     "errors": {
       "unknown_target": "Unbekannter Bereich.",

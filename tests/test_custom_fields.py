@@ -300,3 +300,33 @@ async def test_rest_api(client, admin_user):
         assert (await client.put(f"/api/v1/parcels/{parcel_id}/custom-fields", json=bad, headers=headers)).status_code == 422
     assert (await client.get("/api/v1/parcels/00000000-0000-0000-0000-000000000000/custom-fields", headers=headers)).status_code == 404
     assert (await client.get(f"/api/v1/parcels/{parcel_id}/custom-fields")).status_code == 401
+
+
+async def test_delete_removes_field_values_and_sub_fields(client, admin_user, board_user):
+    await web_login(client, "admin@example.com")
+    pool = await _add(client, "PARCEL", "Pool", "GROUP")
+    depth = await _add(client, "PARCEL", "Depth", "NUMBER", parent_id=pool.id)
+    other = await _add(client, "PARCEL", "Hedge", "TEXT")
+    async with AsyncSessionLocal() as db:
+        parcel = Parcel(plot_number="CF-D1")
+        db.add(parcel)
+        await db.commit()
+        parcel_id = parcel.id
+    await client.post(f"/parcels/{parcel_id}/edit", data={
+        "plot_number": "CF-D1", "custom_fields_present": "1",
+        f"cf_{pool.id}": "1", f"cf_{depth.id}": "1,2", f"cf_{other.id}": "Beech",
+    })
+    page = (await client.get("/admin/custom-fields?target=PARCEL")).text
+    assert "with all its fields for good? 2 value(s) are deleted too" in page  # the group's own + its sub-field's
+
+    # Not for board members (no system admin).
+    await web_login(client, "vorstand@example.com")
+    assert (await client.post(f"/admin/custom-fields/{pool.id}/delete")).status_code == 403
+
+    await web_login(client, "admin@example.com")
+    assert (await client.post(f"/admin/custom-fields/{pool.id}/delete")).status_code == 303
+    async with AsyncSessionLocal() as db:
+        left = (await db.scalars(select(CustomField))).all()
+    assert [f.label for f in left] == ["Hedge"]  # the sub-field went with its group, not up to the top level
+    values = await _values(parcel_id=parcel_id)
+    assert list(values) == [other.id] and values[other.id].value_text == "Beech"

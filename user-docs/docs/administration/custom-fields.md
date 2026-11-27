@@ -27,6 +27,7 @@ Fields inside a group are indented under it (↳).
 | Arrows | Move the field up or down. A field in a group moves within its group. |
 | Pencil | Edit the field. |
 | **Archive** / **Restore** | See [Archiving a field](#archiving-a-field). |
+| Bin | Delete the field for good -- see [Deleting a field](#deleting-a-field). |
 
 ## Field types
 
@@ -80,11 +81,20 @@ always stays a group.
 
 ## Archiving a field
 
-Fields are never deleted. **Archive** hides a field from the forms, the
+**Archive** hides a field from the forms, the
 detail pages, the list filter and the exports. The values entered so
 far are kept. **Restore** brings the field back with its values.
 Archiving a group hides the fields inside it too; a field inside an
 archived group can only be restored after the group.
+
+## Deleting a field
+
+The bin deletes a field for good, together with every value entered
+for it; deleting a group also deletes the fields inside it. Before
+anything happens, a confirmation tells you how many values would be
+lost, e.g. "Delete “Pool” with all its fields for good? 12 value(s) are
+deleted too." This can't be undone -- if you might need the field again,
+archive it instead.
 
 ## Where custom fields show up
 

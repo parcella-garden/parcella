@@ -34,9 +34,17 @@ doesn't scale and is club-specific (CONTRIBUTING: genericity).
 - **A value row exists only for a ticked yes/no or a filled-in field**,
   so "empty", "no" and "no row" are the same thing. The list filter
   relies on that ("has a pool" = "has a row").
-- **Archived, never deleted** (ADR 0005). Archiving hides the field (a
-  group with its sub-fields) from forms, lists and exports, and the
-  values stay. Saving a form never touches archived fields' values.
+- **Archive or delete.** Archiving hides the field (a group with its
+  sub-fields) from forms, lists and exports, and the values stay; saving
+  a form never touches archived fields' values. **Deleting** removes the
+  field with its values (a group with its sub-fields) for good -- kermie
+  asked for it after the first smoke test: a field set up by mistake or
+  for a one-off survey shouldn't linger. This is a deliberate exception
+  to ADR 0005: a field definition is configuration, not club history.
+  The confirmation names the number of values that go with it.
+  `delete_field` is a plain DELETE statement (the database cascades the
+  values), so the ORM can't turn sub-fields into top-level fields by
+  nulling their `parent_id`.
 - **The type is locked** once any value exists, and never changes to or
   from a group: converting stored values between kinds isn't worth it.
 - **Where they show:** edit form and detail page ("Further details"),

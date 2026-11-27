@@ -4060,7 +4060,10 @@
       "kind_locked": "Typ už nelze změnit: hodnoty už byly zadány, nebo jde o skupinu.",
       "key_hint": "pevný název pole pro exporty a API; zůstane i po přejmenování pole.",
       "cancel": "Zrušit",
-      "save": "Uložit"
+      "save": "Uložit",
+      "delete": "Smazat",
+      "delete_confirm": "Smazat „{label}“ natrvalo? Zadané hodnoty ({count}) se smažou také. Nelze to vrátit zpět.",
+      "delete_confirm_group": "Smazat natrvalo skupinu „{label}“ se všemi jejími poli? Zadané hodnoty ({count}) se smažou také. Nelze to vrátit zpět."
     },
     "errors": {
       "unknown_target": "Neznámá oblast.",
