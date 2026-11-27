@@ -2,7 +2,7 @@
 API router: Work Hours -- configuration, club roles, work sessions,
 sponsorships, evaluation.
 
-Business logic shared with app/routers/work_hours.py (HTML) lives in
+Business logic shared with app/routers/work_hours/ (HTML) lives in
 app/services/work_hours.py (ADR 0070) -- this router owns bearer-token
 authentication, the fine-grained permission check (require_api_permission,
 Group-based like the HTML side), Pydantic body parsing, and JSON
@@ -602,7 +602,7 @@ async def evaluation_get(
 
 # ---------------------------------------------------------------------------
 # Tasks: a backlog of upcoming work, optionally scheduled to a session and
-# assigned to one signed-up participant. See app/routers/work_hours.py for
+# assigned to one signed-up participant. See app/routers/work_hours/ for
 # the fuller explanation of the workload/assignment model -- summary:
 # the app stores a workload label (light/moderate/demanding) per task; the
 # actual matching of task to person is a manual, human judgment call.
