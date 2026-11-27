@@ -4079,6 +4079,15 @@
       "invalid_choice": "'{label}': kies een van de waarden.",
       "text_too_long": "'{label}' mag hoogstens {max} tekens hebben.",
       "required": "'{label}' is verplicht."
+    },
+    "filter": {
+      "label": "Eigen veld",
+      "any_field": "– eigen veld –",
+      "contains": "bevat …",
+      "yes": "ja",
+      "no": "nee",
+      "filled": "ingevuld",
+      "empty": "leeg"
     }
   }
 }

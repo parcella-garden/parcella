@@ -343,3 +343,42 @@ async def form_context(db: AsyncSession, target: CustomFieldTarget, owner_id: Op
         "custom_fields": fields,
         "custom_values": {f.id: form_value(f, values.get(f.id)) for f in fields},
     }
+
+
+# ---------------------------------------------------------------------------
+# List filter (issue #443 slice 2)
+# ---------------------------------------------------------------------------
+
+FILTER_YES = "__yes__"   # ticked / filled in
+FILTER_NO = "__no__"     # not ticked / empty
+FILTER_VALUE_MAX = 200
+
+
+def filter_condition(target: CustomFieldTarget, owner_id_column, field_id: str, value: str):
+    """WHERE condition for "members/parcels whose custom field ...", or None
+    when the filter is incomplete. A value row only exists for a ticked
+    yes/no or a filled-in field, so "yes" is "has a row". A value starting
+    with "=" must match exactly (a choice), anything else is a substring
+    search in the text."""
+    if not field_id or not value:
+        return None
+    owner = owner_column(target)
+    rows = select(owner).where(CustomFieldValue.field_id == field_id, owner.is_not(None))
+    if value == FILTER_YES:
+        return owner_id_column.in_(rows)
+    if value == FILTER_NO:
+        return owner_id_column.not_in(rows)
+    if value.startswith("="):
+        return owner_id_column.in_(rows.where(CustomFieldValue.value_text == value[1:]))
+    return owner_id_column.in_(rows.where(CustomFieldValue.value_text.ilike(f"%{value}%")))
+
+
+def clean_filter(field_id: str, value: str):
+    return (field_id or "").strip()[:36], (value or "").strip()[:FILTER_VALUE_MAX]
+
+
+async def filter_context(db: AsyncSession, target: CustomFieldTarget, field_id: str) -> dict:
+    """The list page's custom-field filter: the fields to pick from and the
+    picked one (its type decides the value control)."""
+    fields = await list_fields(db, target)
+    return {"cf_fields": fields, "cf_picked": next((f for f in fields if f.id == field_id), None)}

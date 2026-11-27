@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "_pagination.html" import pagination %}
+{% from "_custom_fields.html" import custom_field_filter %}
 {% block title %}{{ t('parcels.list.title') }}{% endblock %}
 {% block page_title %}{{ t('parcels.list.title') }}{% endblock %}
 
@@ -48,8 +49,9 @@
                 <option value="COMMUNAL" {% if status_filter == 'COMMUNAL' %}selected{% endif %}>{{ t('parcels.status.communal') }}</option>
                 <option value="DELETED" {% if status_filter == 'DELETED' %}selected{% endif %}>{{ t('parcels.status.deleted') }}</option>
             </select>
+            {{ custom_field_filter(cf_fields, cf_picked, cf_field, cf_value) }}
             <button type="submit" class="btn btn-sm btn-primary">{{ t('parcels.list.search_button') }}</button>
-            {% if search or status_filter %}
+            {% if search or status_filter or cf_field %}
             <a href="/parcels/" class="btn btn-sm btn-outline-secondary">{{ t('parcels.list.reset_button') }}</a>
             {% endif %}
         </form>
@@ -67,6 +69,8 @@
         (issue #425) use it; ticked parcels are always inside it. -#}
     {% if search %}<input type="hidden" name="search" value="{{ search }}">{% endif %}
     {% if status_filter %}<input type="hidden" name="status_filter" value="{{ status_filter }}">{% endif %}
+    {% if cf_field and cf_value %}<input type="hidden" name="cf_field" value="{{ cf_field }}">
+    <input type="hidden" name="cf_value" value="{{ cf_value }}">{% endif %}
     {% if can_write_to %}
     <input type="hidden" name="audience_kind" value="parcels">
     <input type="hidden" name="all_matching" value="1" id="pick-all-matching-flag" disabled>

@@ -4079,6 +4079,15 @@
       "invalid_choice": "„{label}”: wybierz jedną z opcji.",
       "text_too_long": "„{label}” może mieć najwyżej {max} znaków.",
       "required": "„{label}” jest wymagane."
+    },
+    "filter": {
+      "label": "Własne pole",
+      "any_field": "– własne pole –",
+      "contains": "zawiera …",
+      "yes": "tak",
+      "no": "nie",
+      "filled": "wypełnione",
+      "empty": "puste"
     }
   }
 }

@@ -154,3 +154,48 @@ async def test_only_system_admins_define_fields(client, admin_user, board_user):
     assert r.status_code == 403
     async with AsyncSessionLocal() as db:
         assert (await db.scalars(select(CustomField))).first() is None
+
+
+async def test_list_filter_by_custom_field(client, admin_user):
+    from app.member_filters import MemberListFilter
+    from tests.conftest import auth_header, login
+    from tests.test_announcements import _enable_module
+    await _enable_module(client, auth_header(await login(client, "admin@example.com")))
+    await web_login(client, "admin@example.com")
+    occupation = await _add(client, "MEMBER", "Occupation", "TEXT")
+    pool = await _add(client, "PARCEL", "Pool", "GROUP")
+    pool_kind = await _add(client, "PARCEL", "Pool type", "CHOICE", parent_id=pool.id, options="Frame\nInflatable")
+    async with AsyncSessionLocal() as db:
+        anna, bert = Member(first_name="Anna", last_name="Gärtner"), Member(first_name="Bert", last_name="Bäcker")
+        with_pool, without = Parcel(plot_number="CF-P1"), Parcel(plot_number="CF-P2")
+        db.add_all([anna, bert, with_pool, without])
+        await db.commit()
+        anna_id, with_pool_id = anna.id, with_pool.id
+    await client.post(f"/members/{anna_id}/edit", data={
+        "first_name": "Anna", "last_name": "Gärtner", "custom_fields_present": "1", f"cf_{occupation.id}": "Landscape gardener",
+    })
+    await client.post(f"/parcels/{with_pool_id}/edit", data={
+        "plot_number": "CF-P1", "custom_fields_present": "1", f"cf_{pool.id}": "1", f"cf_{pool_kind.id}": "Frame",
+    })
+
+    page = (await client.get("/members/", params={"cf_field": occupation.id, "cf_value": "garden"})).text
+    assert "Gärtner, Anna" in page and "Bäcker, Bert" not in page
+    assert 'name="cf_field" value="' + occupation.id in page  # carried into the pick form for export / write to
+    page = (await client.get("/members/", params={"cf_field": occupation.id, "cf_value": "__no__"})).text
+    assert "Gärtner, Anna" not in page and "Bäcker, Bert" in page
+    export = await client.get("/members/export/csv", params={"cf_field": occupation.id, "cf_value": "garden"})
+    assert "Gärtner" in export.text and "Bäcker" not in export.text
+    # A stored announcement filter keeps it (MemberListFilter is JSON in the DB).
+    stored = MemberListFilter.from_dict(MemberListFilter.from_query(cf_field=occupation.id, cf_value="__yes__").to_dict())
+    assert stored.cf_field == occupation.id and stored.cf_value == "__yes__"
+
+    page = (await client.get("/parcels/", params={"cf_field": pool.id, "cf_value": "__yes__"})).text
+    assert "CF-P1" in page and "CF-P2" not in page
+    page = (await client.get("/parcels/", params={"cf_field": pool_kind.id, "cf_value": "=Inflatable"})).text
+    assert "CF-P1" not in page
+    page = (await client.get("/parcels/", params={"cf_field": pool.id, "cf_value": "__no__"})).text
+    assert "CF-P1" not in page and "CF-P2" in page
+    notice = await client.get("/announcements/new", params={
+        "audience_kind": "parcels", "all_matching": "1", "cf_field": pool.id, "cf_value": "__yes__",
+    })
+    assert "Notice to the leaseholders of 1 parcel(s)" in notice.text

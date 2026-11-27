@@ -4079,6 +4079,15 @@
       "invalid_choice": "„{label}“: vyberte jednu z možností.",
       "text_too_long": "„{label}“ může mít nejvýše {max} znaků.",
       "required": "„{label}“ je povinné."
+    },
+    "filter": {
+      "label": "Vlastní pole",
+      "any_field": "– vlastní pole –",
+      "contains": "obsahuje …",
+      "yes": "ano",
+      "no": "ne",
+      "filled": "vyplněno",
+      "empty": "prázdné"
     }
   }
 }

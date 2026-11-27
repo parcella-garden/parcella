@@ -4079,6 +4079,15 @@
       "invalid_choice": "„{label}“: Bitte wähle einen der Werte.",
       "text_too_long": "„{label}“ darf höchstens {max} Zeichen haben.",
       "required": "„{label}“ ist ein Pflichtfeld."
+    },
+    "filter": {
+      "label": "Eigenes Feld",
+      "any_field": "– eigenes Feld –",
+      "contains": "enthält …",
+      "yes": "ja",
+      "no": "nein",
+      "filled": "ausgefüllt",
+      "empty": "leer"
     }
   }
 }

@@ -4079,6 +4079,15 @@
       "invalid_choice": "„{label}“: vyberte jednu z možností.",
       "text_too_long": "„{label}“ môže mať najviac {max} znakov.",
       "required": "„{label}“ je povinné."
+    },
+    "filter": {
+      "label": "Vlastné pole",
+      "any_field": "– vlastné pole –",
+      "contains": "obsahuje …",
+      "yes": "áno",
+      "no": "nie",
+      "filled": "vyplnené",
+      "empty": "prázdne"
     }
   }
 }

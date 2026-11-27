@@ -4079,6 +4079,15 @@
       "invalid_choice": "“{label}”: please pick one of the choices.",
       "text_too_long": "“{label}” may have at most {max} characters.",
       "required": "“{label}” is required."
+    },
+    "filter": {
+      "label": "Custom field",
+      "any_field": "– custom field –",
+      "contains": "contains …",
+      "yes": "yes",
+      "no": "no",
+      "filled": "filled in",
+      "empty": "empty"
     }
   }
 }

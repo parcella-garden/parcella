@@ -92,3 +92,33 @@ document.addEventListener('DOMContentLoaded', function () {
 </div>
 {% endif %}
 {% endmacro %}
+
+{% macro custom_field_filter(fields, picked, field_id, value) %}
+{#- Issue #443: filter a list by one custom field. Picking the field
+    reloads the page, which then offers the values that fit its type. -#}
+{% if fields %}
+<select name="cf_field" class="form-select form-select-sm" style="max-width: 220px;"
+        aria-label="{{ t('custom_fields.filter.label') }}" onchange="this.form.submit()">
+    <option value="">{{ t('custom_fields.filter.any_field') }}</option>
+    {% for f in fields %}
+    <option value="{{ f.id }}" {% if f.id == field_id %}selected{% endif %}>{% if f.parent_id %}↳ {% endif %}{{ f.label }}</option>
+    {% endfor %}
+</select>
+{% if picked %}
+{% if picked.kind.name in ('TEXT', 'LONG_TEXT') %}
+<input type="text" name="cf_value" value="{{ value if value not in ('__yes__', '__no__') else '' }}" class="form-control form-control-sm"
+       style="max-width: 180px;" placeholder="{{ t('custom_fields.filter.contains') }}" aria-label="{{ picked.label }}">
+{% else %}
+<select name="cf_value" class="form-select form-select-sm" style="max-width: 200px;" aria-label="{{ picked.label }}" onchange="this.form.submit()">
+    <option value="">–</option>
+    {% set yes_no = picked.kind.name in ('CHECKBOX', 'GROUP') %}
+    <option value="__yes__" {% if value == '__yes__' %}selected{% endif %}>{{ t('custom_fields.filter.yes') if yes_no else t('custom_fields.filter.filled') }}</option>
+    <option value="__no__" {% if value == '__no__' %}selected{% endif %}>{{ t('custom_fields.filter.no') if yes_no else t('custom_fields.filter.empty') }}</option>
+    {% for option in picked.options or [] %}
+    <option value="={{ option }}" {% if value == '=' ~ option %}selected{% endif %}>{{ option }}</option>
+    {% endfor %}
+</select>
+{% endif %}
+{% endif %}
+{% endif %}
+{% endmacro %}

@@ -4079,6 +4079,15 @@
       "invalid_choice": "« {label} » : veuillez choisir l'une des valeurs.",
       "text_too_long": "« {label} » peut avoir au plus {max} caractères.",
       "required": "« {label} » est obligatoire."
+    },
+    "filter": {
+      "label": "Champ personnalisé",
+      "any_field": "– champ personnalisé –",
+      "contains": "contient …",
+      "yes": "oui",
+      "no": "non",
+      "filled": "renseigné",
+      "empty": "vide"
     }
   }
 }

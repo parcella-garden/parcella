@@ -63,7 +63,7 @@ async def _get_parcel_with_details(db: AsyncSession, parcel_id: str) -> Optional
     return result.scalar_one_or_none()
 
 
-def _parcels_list_query_string(search: str, status_filter: str) -> str:
+def _parcels_list_query_string(search: str, status_filter: str, cf_field: str = "", cf_value: str = "") -> str:
     """The current /parcels/ list filter as a query string (no leading
     '?', empty if nothing is set). Issue #202: carried from each list
     row onto its detail page, and back out again via the detail page's
@@ -74,6 +74,8 @@ def _parcels_list_query_string(search: str, status_filter: str) -> str:
         params["search"] = search
     if status_filter:
         params["status_filter"] = status_filter
+    if cf_field and cf_value:
+        params["cf_field"], params["cf_value"] = cf_field, cf_value
     return urlencode(params)
 
 
@@ -82,18 +84,20 @@ async def parcels_list(
     request: Request,
     search: str = "",
     status_filter: str = "",
+    cf_field: str = "",
+    cf_value: str = "",
     page: int = Query(1, ge=1),
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "read")
 
-    query = filtered_parcels_query(search, status_filter).options(
+    query = filtered_parcels_query(search, status_filter, cf_field, cf_value).options(
         selectinload(Parcel.member_assignments).selectinload(MemberParcel.member)
     )
     parcels_page = await paginate(db, query, page)
     parcels = parcels_page.items
     # The footer's area covers the whole filter, not just this page.
-    filtered = filtered_parcels_query(search, status_filter).subquery()
+    filtered = filtered_parcels_query(search, status_filter, cf_field, cf_value).subquery()
     total_area = await db.scalar(select(func.coalesce(func.sum(filtered.c.area_sqm), 0)))
 
     return templates.TemplateResponse(
@@ -107,7 +111,9 @@ async def parcels_list(
             "search": search,
             "status_filter": status_filter,
             "ParcelStatus": ParcelStatus,
-            "list_query_string": _parcels_list_query_string(search, status_filter),
+            "list_query_string": _parcels_list_query_string(search, status_filter, cf_field, cf_value),
+            "cf_field": cf_field, "cf_value": cf_value,
+            **await cf.filter_context(db, CustomFieldTarget.PARCEL, cf_field),
         },
     )
 
@@ -182,6 +188,8 @@ async def parcel_detail(
     pick_path: str = "",
     search: str = "",
     status_filter: str = "",
+    cf_field: str = "",
+    cf_value: str = "",
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "read")
@@ -193,7 +201,7 @@ async def parcel_detail(
     # Previous/Next buttons (issue #202): see the identical comment in
     # app/routers/members.py's member_detail for the reasoning.
     ordered_ids = (
-        await db.scalars(filtered_parcels_query(search, status_filter).with_only_columns(Parcel.id))
+        await db.scalars(filtered_parcels_query(search, status_filter, cf_field, cf_value).with_only_columns(Parcel.id))
     ).all()
     prev_parcel_id = None
     next_parcel_id = None
@@ -205,7 +213,7 @@ async def parcel_detail(
             prev_parcel_id = ordered_ids[idx - 1]
         if idx < len(ordered_ids) - 1:
             next_parcel_id = ordered_ids[idx + 1]
-    list_query_string = _parcels_list_query_string(search, status_filter)
+    list_query_string = _parcels_list_query_string(search, status_filter, cf_field, cf_value)
 
     # All members, for assignment
     members_result = await db.execute(
@@ -701,6 +709,8 @@ async def parcels_export_csv(
     parcel_ids: List[str] = Query(default=[]),
     search: str = "",
     status_filter: str = "",
+    cf_field: str = "",
+    cf_value: str = "",
     db: AsyncSession = Depends(get_db),
 ):
     """The parcels of the list's filter (every parcel without one), or
@@ -708,7 +718,7 @@ async def parcels_export_csv(
     matching" is the filter with nothing ticked (issue #425)."""
     await require_permission(request, db, "members_parcels", "read")
 
-    query = filtered_parcels_query(search, status_filter).options(
+    query = filtered_parcels_query(search, status_filter, cf_field, cf_value).options(
         selectinload(Parcel.member_assignments).selectinload(MemberParcel.member)
     )
     picked = clean_member_ids(parcel_ids)

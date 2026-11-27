@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "_pagination.html" import pagination %}
+{% from "_custom_fields.html" import custom_field_filter %}
 {% block title %}{{ t('members.list.title') }}{% endblock %}
 {% block page_title %}{{ t('members.list.title') }}{% endblock %}
 
@@ -86,6 +87,7 @@
                 {% endfor %}
             </select>
             {% endif %}
+            {{ custom_field_filter(cf_fields, cf_picked, cf_field, cf_value) }}
             <button type="submit" class="btn btn-sm btn-primary">{{ t('members.list.search_button') }}</button>
             {% if list_query_string %}
             <a href="/members/" class="btn btn-sm btn-outline-secondary">{{ t('members.list.reset_button') }}</a>
@@ -125,6 +127,8 @@
     {% if filter_without_ids.active_only %}<input type="hidden" name="active_only" value="true">{% endif %}
     {% if filter_without_ids.email_info_only %}<input type="hidden" name="email_info_only" value="true">{% endif %}
     {% if filter_without_ids.tag %}<input type="hidden" name="tag" value="{{ filter_without_ids.tag }}">{% endif %}
+    {% if filter_without_ids.cf_field %}<input type="hidden" name="cf_field" value="{{ filter_without_ids.cf_field }}">
+    <input type="hidden" name="cf_value" value="{{ filter_without_ids.cf_value }}">{% endif %}
     {% if can_write_to %}
     <input type="hidden" name="audience" value="1">
     <input type="hidden" name="audience_query" value="{{ filter_without_ids.query_string() }}">
