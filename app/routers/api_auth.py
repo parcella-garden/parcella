@@ -78,11 +78,11 @@ async def request_token(
     description="Like /token, but with a JSON body instead of form data -- more convenient for most HTTP clients.",
 )
 async def login_json(
-    daten: LoginRequest,
+    payload: LoginRequest,
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    return await _issue_token(request, db, daten.email, daten.password)
+    return await _issue_token(request, db, payload.email, payload.password)
 
 
 @router.get(

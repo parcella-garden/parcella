@@ -213,7 +213,7 @@ async def parcel_detail(
     all_members_json = [{"id": m.id, "name": m.full_name} for m in all_members]
 
     # Change history of field values
-    aenderungen_result = await db.execute(
+    changes_result = await db.execute(
         select(ChangeHistory)
         .options(selectinload(ChangeHistory.changed_by))
         .where(
@@ -222,7 +222,7 @@ async def parcel_detail(
         )
         .order_by(ChangeHistory.changed_at.desc())
     )
-    aenderungen = aenderungen_result.scalars().all()
+    changes = changes_result.scalars().all()
 
     module_flags = getattr(request.state, "module_flags", {})
     cloud_storage_enabled = bool(module_flags.get("cloud_storage")) and getattr(request.state, "is_full_access", False)
@@ -284,7 +284,7 @@ async def parcel_detail(
             "parcel": parcel,
             "all_members": all_members,
             "all_members_json": all_members_json,
-            "aenderungen": aenderungen,
+            "changes": changes,
             "ParcelStatus": ParcelStatus,
             "cloud_storage_enabled": cloud_storage_enabled,
             "cloud_folder": cloud_folder,

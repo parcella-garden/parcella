@@ -220,10 +220,10 @@ async def test_package_create_and_cost_calculation(client, admin_user):
         headers=headers,
     )
     assert status_response.status_code == 200
-    daten = status_response.json()
-    assert float(daten["property_cost_eur"]) == 40.0
-    assert float(daten["accident_cost_eur"]) == 3.0
-    assert float(daten["total_cost_eur"]) == 43.0
+    data = status_response.json()
+    assert float(data["property_cost_eur"]) == 40.0
+    assert float(data["accident_cost_eur"]) == 3.0
+    assert float(data["total_cost_eur"]) == 43.0
 
 
 async def test_additional_person_increases_accident_cost(client, admin_user):
@@ -244,7 +244,7 @@ async def test_additional_person_increases_accident_cost(client, admin_user):
         "/api/v1/members", json={"first_name": "Weiterer", "last_name": "Paechter"}, headers=headers
     )).json()
 
-    daten = (await client.put(
+    data = (await client.put(
         f"/api/v1/insurance/parcels/{parcel['id']}/2026",
         json={
             "has_property_insurance": False, "has_accident_insurance": True,
@@ -254,7 +254,7 @@ async def test_additional_person_increases_accident_cost(client, admin_user):
         headers=headers,
     )).json()
 
-    assert float(daten["accident_cost_eur"]) == 6.0  # 3 Grund + 3 Zusatzperson
+    assert float(data["accident_cost_eur"]) == 6.0  # 3 Grund + 3 Zusatzperson
 
 
 async def test_terminated_parcel_with_active_insurance_still_shown_in_list(client, admin_user):

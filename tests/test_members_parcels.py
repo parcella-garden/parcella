@@ -130,10 +130,10 @@ async def test_member_create_and_retrieve(client, admin_user):
         headers=auth_header(token),
     )
     assert response.status_code == 201
-    mitglied = response.json()
-    assert mitglied["first_name"] == "Erika"
+    created_member = response.json()
+    assert created_member["first_name"] == "Erika"
 
-    response = await client.get(f"/api/v1/members/{mitglied['id']}", headers=auth_header(token))
+    response = await client.get(f"/api/v1/members/{created_member['id']}", headers=auth_header(token))
     assert response.status_code == 200
     assert response.json()["last_name"] == "Musterfrau"
 

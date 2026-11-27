@@ -177,11 +177,11 @@ async def test_regular_members_cannot_approve(client, admin_user):
     from app.database import AsyncSessionLocal
 
     async with AsyncSessionLocal() as session:
-        einfaches_mitglied = User(
+        plain_member = User(
             email="mitglied@example.com", name="Normales Member",
             password_hash=hash_password("testpasswort123"), role=UserRole.READONLY,
         )
-        session.add(einfaches_mitglied)
+        session.add(plain_member)
         await session.commit()
 
     token_admin = await login(client, "admin@example.com")
@@ -191,9 +191,9 @@ async def test_regular_members_cannot_approve(client, admin_user):
         headers=auth_header(token_admin),
     )).json()
 
-    token_mitglied = await login(client, "mitglied@example.com")
+    member_token = await login(client, "mitglied@example.com")
     response = await client.post(
-        f"/api/v1/purchase-requests/{pr['id']}/approve", headers=auth_header(token_mitglied)
+        f"/api/v1/purchase-requests/{pr['id']}/approve", headers=auth_header(member_token)
     )
     assert response.status_code == 403
 

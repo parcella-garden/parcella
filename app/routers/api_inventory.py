@@ -67,11 +67,11 @@ async def list_categories(
     summary="Create a category",
 )
 async def create_category_endpoint(
-    daten: InventoryCategoryCreate, request: Request,
+    payload: InventoryCategoryCreate, request: Request,
     db: AsyncSession = Depends(get_db), user: User = Depends(require_api_permission("inventory", "write")),
 ):
     try:
-        category = await create_category(db, name=daten.name, description=daten.description)
+        category = await create_category(db, name=payload.name, description=payload.description)
     except ServiceError as e:
         raise _service_error_to_http(request, e)
     await db.commit()
@@ -81,7 +81,7 @@ async def create_category_endpoint(
 
 @router.put("/categories/{category_id}", response_model=InventoryCategoryOut, summary="Update a category")
 async def update_category(
-    category_id: str, daten: InventoryCategoryCreate,
+    category_id: str, payload: InventoryCategoryCreate,
     db: AsyncSession = Depends(get_db), user: User = Depends(require_api_permission("inventory", "write")),
 ):
     """No HTML counterpart exists for editing a category (only create/
@@ -91,8 +91,8 @@ async def update_category(
     category = result.scalar_one_or_none()
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
-    category.name = daten.name
-    category.description = daten.description
+    category.name = payload.name
+    category.description = payload.description
     await db.commit()
     await db.refresh(category)
     return category
@@ -173,11 +173,11 @@ async def get_item(
 
 @router.post("/items", response_model=InventoryItemOut, status_code=status.HTTP_201_CREATED, summary="Create an item")
 async def create_item_endpoint(
-    daten: InventoryItemCreate, request: Request,
+    payload: InventoryItemCreate, request: Request,
     db: AsyncSession = Depends(get_db), user: User = Depends(require_api_permission("inventory", "write")),
 ):
     try:
-        item = await create_item(db, **daten.model_dump(), created_by_id=user.id)
+        item = await create_item(db, **payload.model_dump(), created_by_id=user.id)
     except ServiceError as e:
         raise _service_error_to_http(request, e)
     await db.commit()
@@ -187,7 +187,7 @@ async def create_item_endpoint(
 
 @router.put("/items/{item_id}", response_model=InventoryItemOut, summary="Update an item")
 async def update_item_endpoint(
-    item_id: str, daten: InventoryItemUpdate, request: Request,
+    item_id: str, payload: InventoryItemUpdate, request: Request,
     db: AsyncSession = Depends(get_db), user: User = Depends(require_api_permission("inventory", "write")),
 ):
     result = await db.execute(
@@ -198,7 +198,7 @@ async def update_item_endpoint(
         raise HTTPException(status_code=404, detail="Item not found")
 
     try:
-        await update_item(db, item, **daten.model_dump())
+        await update_item(db, item, **payload.model_dump())
     except ServiceError as e:
         raise _service_error_to_http(request, e)
 
@@ -275,7 +275,7 @@ async def list_item_loans(
     summary="Check out (borrow) some quantity of an item",
 )
 async def create_loan(
-    item_id: str, daten: ItemLoanCreate, request: Request,
+    item_id: str, payload: ItemLoanCreate, request: Request,
     db: AsyncSession = Depends(get_db), user: User = Depends(require_api_permission("inventory", "write")),
 ):
     result = await db.execute(
@@ -287,9 +287,9 @@ async def create_loan(
 
     try:
         loan = await checkout_loan(
-            db, item, member_id=daten.member_id, quantity=daten.quantity,
-            borrowed_date=daten.borrowed_date, fee_charged=daten.fee_charged,
-            note=daten.note, created_by_id=user.id,
+            db, item, member_id=payload.member_id, quantity=payload.quantity,
+            borrowed_date=payload.borrowed_date, fee_charged=payload.fee_charged,
+            note=payload.note, created_by_id=user.id,
         )
     except ServiceError as e:
         raise _service_error_to_http(request, e)
@@ -301,14 +301,14 @@ async def create_loan(
 
 @router.post("/loans/{loan_id}/return", response_model=ItemLoanOut, summary="Mark a loan as returned")
 async def return_loan_endpoint(
-    loan_id: str, daten: ItemLoanReturn,
+    loan_id: str, payload: ItemLoanReturn,
     db: AsyncSession = Depends(get_db), user: User = Depends(require_api_permission("inventory", "write")),
 ):
     result = await db.execute(select(ItemLoan).where(ItemLoan.id == loan_id))
     loan = result.scalar_one_or_none()
     if not loan:
         raise HTTPException(status_code=404, detail="Loan not found")
-    if not await return_loan(db, loan, returned_date=daten.returned_date):
+    if not await return_loan(db, loan, returned_date=payload.returned_date):
         raise HTTPException(status_code=400, detail="This loan was already marked as returned")
     await db.commit()
     await db.refresh(loan)

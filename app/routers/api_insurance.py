@@ -59,11 +59,11 @@ async def packages_list(
     summary="Create package",
 )
 async def package_create(
-    daten: PropertyInsurancePackageCreate,
+    payload: PropertyInsurancePackageCreate,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission("insurance", "write")),
 ):
-    package = await create_package(db, **daten.model_dump())
+    package = await create_package(db, **payload.model_dump())
     await db.commit()
     await db.refresh(package)
     return package
@@ -72,7 +72,7 @@ async def package_create(
 @router.put("/packages/{package_id}", response_model=PropertyInsurancePackageOut, summary="Update package")
 async def package_update(
     package_id: str,
-    daten: PropertyInsurancePackageCreate,
+    payload: PropertyInsurancePackageCreate,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission("insurance", "write")),
 ):
@@ -82,8 +82,8 @@ async def package_update(
         raise HTTPException(status_code=404, detail="Package not found")
 
     await update_package(
-        db, package, name=daten.name, amount_eur=daten.amount_eur,
-        sort_order=daten.sort_order, year=daten.year,
+        db, package, name=payload.name, amount_eur=payload.amount_eur,
+        sort_order=payload.sort_order, year=payload.year,
     )
     await db.commit()
     await db.refresh(package)
@@ -125,14 +125,14 @@ async def configuration_get(
 )
 async def configuration_set(
     year: int,
-    daten: InsuranceConfigurationCreate,
+    payload: InsuranceConfigurationCreate,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission("insurance", "write")),
 ):
     config = await save_configuration(
         db, year,
-        accident_base_amount_eur=daten.accident_base_amount_eur,
-        accident_additional_amount_eur=daten.accident_additional_amount_eur,
+        accident_base_amount_eur=payload.accident_base_amount_eur,
+        accident_additional_amount_eur=payload.accident_additional_amount_eur,
     )
     await db.commit()
     await db.refresh(config)
@@ -189,7 +189,7 @@ async def insurance_get(
 async def insurance_set(
     parcel_id: str,
     year: int,
-    daten: ParcelInsuranceUpdate,
+    payload: ParcelInsuranceUpdate,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission("insurance", "write")),
 ):
@@ -200,11 +200,11 @@ async def insurance_set(
     pi = await get_or_create_parcel_insurance(db, parcel_id, year)
     await save_parcel_insurance(
         db, pi,
-        has_property_insurance=daten.has_property_insurance,
-        property_package_id=(daten.property_package_id if daten.has_property_insurance else None),
-        has_accident_insurance=daten.has_accident_insurance,
-        household_member_ids=daten.household_member_ids,
-        additional_person_member_ids=daten.additional_person_member_ids,
+        has_property_insurance=payload.has_property_insurance,
+        property_package_id=(payload.property_package_id if payload.has_property_insurance else None),
+        has_accident_insurance=payload.has_accident_insurance,
+        household_member_ids=payload.household_member_ids,
+        additional_person_member_ids=payload.additional_person_member_ids,
     )
     await db.commit()
 

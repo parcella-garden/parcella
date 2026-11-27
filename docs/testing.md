@@ -98,12 +98,12 @@ for test functions themselves (only fixtures respect it); downgrading to
 **The robust, version-independent solution:** instead of fighting
 pytest-asyncio's internal loop behavior, the engine's connection pool is
 discarded before **every single test** (`await engine.dispose()`, as an
-autouse fixture `_frische_verbindung`). New connections then automatically
+autouse fixture `_fresh_connection`). New connections then automatically
 arise in whichever loop is currently active the next time they're needed
 -- regardless of which pytest-asyncio version or loop-scope configuration
 happens to be in effect. This fixture must run before the table-emptying
 fixture; that's enforced via an explicit fixture dependency
-(`_tabellen_leeren(_frische_verbindung)`), rather than relying on
+(`_empty_tables(_fresh_connection)`), rather than relying on
 definition order.
 
 **Lesson:** with stubborn event-loop issues in async database libraries,
