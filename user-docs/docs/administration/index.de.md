@@ -24,6 +24,7 @@ Du findest sie unten in der Seitenleiste unter **Administration**.
 | **API-Tokens** | [API-Tokens](api-tokens.md) | Die Tokens aller sehen und widerrufen; Tokens für Integrationskonten anlegen. |
 | **Einstellungen** | [Vereinseinstellungen](settings.md) | Name und Adresse des Vereins, Logo, Sprache, Region und Währung, Mailserver, Finanzangaben, Reihenfolge der Navigation und mehr. |
 | | [Module ein- und ausschalten](modules.md) | Die Karte **Funktionsbereiche** auf der Einstellungsseite. |
+| **Eigene Felder** | [Eigene Felder](custom-fields.md) | Eigene Felder für Mitglieder und Parzellen, z. B. der Beruf eines Mitglieds oder der Pool einer Parzelle. |
 | **Integrationen** | [Integrationen](integrations.md) | Website-Formulare, Website-Entwürfe, Cloud-Speicher, Helpdesk, Nextcloud Deck, Links für Kalender-Feeds. |
 | **E-Mail-Protokoll** | [E-Mail-Protokoll](email-log.md) | Prüfen, ob eine E-Mail rausgegangen ist. |
 | **Beispieldaten** | [Beispieldaten](sample-data.md) | Eine frische Installation zum Ausprobieren mit Beispieldaten füllen und sie wieder entfernen. |

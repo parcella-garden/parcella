@@ -27,6 +27,7 @@ U vindt het onderaan de zijbalk onder **Administratie**.
 | **API-tokens** | [API-tokens](api-tokens.md) | De tokens van iedereen bekijken en intrekken; tokens maken voor integratieaccounts. |
 | **Instellingen** | [Verenigingsinstellingen](settings.md) | Naam en adres van de vereniging, logo, taal, regio en valuta, e-mailserver, financiële gegevens, volgorde van de navigatie en meer. |
 | | [Modules in- en uitschakelen](modules.md) | De kaart **Functiegebieden** op de instellingenpagina. |
+| **Eigen velden** | [Eigen velden](custom-fields.md) | Eigen velden voor leden en percelen, bijv. het beroep van een lid of het zwembad op een perceel. |
 | **Integraties** | [Integraties](integrations.md) | Websiteformulieren, websiteconcepten, cloudopslag, helpdesk, Nextcloud Deck, links voor agendafeeds. |
 | **E-maillogboek** | [E-maillogboek](email-log.md) | Controleren of een e-mail is verstuurd. |
 | **Voorbeeldgegevens** | [Voorbeeldgegevens](sample-data.md) | Een nieuwe installatie vullen met demogegevens om dingen uit te proberen, en ze weer verwijderen. |

@@ -27,6 +27,7 @@ Nájdete ju v dolnej časti bočného panela pod **Administrácia**.
 | **API tokeny** | [API tokeny](api-tokens.md) | Zobrazenie a odvolanie tokenov všetkých používateľov; vytvorenie tokenov pre integračné účty. |
 | **Nastavenia** | [Nastavenia spolku](settings.md) | Názov a adresa spolku, logo, jazyk, región a mena, e-mailový server, finančné údaje, poradie navigácie a ďalšie. |
 | | [Zapínanie a vypínanie modulov](modules.md) | Karta **Funkčné oblasti** na stránke nastavení. |
+| **Vlastné polia** | [Vlastné polia](custom-fields.md) | Vlastné polia pre členov a parcely, napr. povolanie člena alebo bazén na parcele. |
 | **Integrácie** | [Integrácie](integrations.md) | Formuláre na webe, koncepty pre web, cloudové úložisko, helpdesk, Nextcloud Deck, odkazy na kalendárové kanály. |
 | **Protokol e-mailov** | [Protokol e-mailov](email-log.md) | Overenie, či e-mail odišiel. |
 | **Ukážkové dáta** | [Ukážkové dáta](sample-data.md) | Naplnenie novej inštalácie ukážkovými dátami na vyskúšanie a ich opätovné odstránenie. |

@@ -57,6 +57,7 @@ Mitgliedsseite führt auf die Seite, auf der das Mitglied steht.
 | **Nur bestätigt aktive** | Zeigt nur aktive Mitglieder mit einem Datum **Mitglied seit**. Mitglieder ohne Beginndatum (angezeigt als *ausstehend*) fallen weg. |
 | **Nur mit E-Mail-Info = ja** | Zeigt nur Mitglieder mit Häkchen bei **Darf per E-Mail Informationen erhalten**. |
 | Tag-Auswahl (**Alle Tags**) | Zeigt nur Mitglieder mit dem gewählten Tag. Die Auswahl erscheint, sobald es mindestens einen Tag gibt. Es lässt sich nach einem Tag auf einmal filtern. |
+| **– eigenes Feld –** | Erscheint erst, wenn es ein [eigenes Feld](../administration/custom-fields.md) gibt. Wähle ein Feld; daneben wählst du dann, wonach du suchst: **ja**/**nein** bei einem Ja/Nein-Feld oder einer Gruppe, **ausgefüllt**/**leer** bei den anderen Typen, einen der Auswahlwerte oder einen Text, den das Feld enthalten soll. Wirkt zusammen mit allen anderen Filtern, also auch für **Alle … Treffer des Filters auswählen**, den Export und **An Auswahl schreiben**. |
 | **Suchen** | Wendet den Suchtext an. Häkchen und Tag-Auswahl wirken, sobald du sie änderst. |
 | **Zurücksetzen** | Hebt alle Filter auf. Erscheint nur, solange ein Filter aktiv ist. |
 
@@ -138,6 +139,10 @@ Parzellen, Notizen, Tags.
   Übersetzung.
 - Ob ein Mitglied keine Geburtstagsgeschenke möchte, wird nicht exportiert.
 
+Danach folgt eine Spalte pro [eigenem Feld](../administration/custom-fields.md),
+mit der Bezeichnung als Überschrift (ein Feld in einer Gruppe als
+„Gruppe: Feld“); Ja/Nein als „Ja“ oder „Nein“.
+
 !!! tip
     Der Export entspricht immer dem, was auf dem Bildschirm steht. Um alle
     aktiven Mitglieder zu exportieren, klick zuerst auf **Zurücksetzen**.
@@ -191,6 +196,8 @@ darin steht. Über jeder Spalte ist eine Auswahl.
 | Auswahl je Spalte | Wähl das Parcella-Feld zu dieser Spalte: **Vorname**, **Nachname**, **Straße**, **PLZ**, **Ort**, **Geburtsdatum**, **IBAN**, **Mitglied seit**, **Mitglied bis**, **E-Mail-Benachrichtigungen**, **E-Mail-Adressen**, **Telefonnummern**, **Notizen** -- oder **— Ignorieren —**, um die Spalte zu überspringen. Parcella wählt ein Feld vor, wenn es die Überschrift erkennt (auf Deutsch oder Englisch, z. B. „Nachname“ oder „Last name“). |
 | **Importieren** | Importiert die Zeilen und führt zur Mitgliederliste zurück. **Vorname** und **Nachname** müssen je einer Spalte zugeordnet sein, sonst erscheint „Bitte ordne vor dem Import sowohl Vorname als auch Nachname zu.“ |
 | **Zurück** | Führt ohne Import zur Mitgliederliste zurück. |
+
+Deine [eigenen Felder](../administration/custom-fields.md) stehen ebenfalls in den Auswahllisten; eine Spalte mit der Bezeichnung oder dem Schlüssel eines Felds als Überschrift wird vorausgewählt. Nur ausgefüllte Zellen ändern einen Wert; ein ausgefülltes Feld einer Gruppe hakt die Gruppe an, und „Nein“ in der Spalte einer Gruppe leert ihre Felder.
 
 ### Was beim Import passiert {#what-happens-on-import}
 
@@ -272,6 +279,13 @@ mit diesem Tag.
 
 Das Entfernen eines Tags hinterlässt keinen Verlaufseintrag: Tags sind
 Etiketten zum Wiederfinden, keine Vereinsunterlagen.
+
+### Weitere Angaben {#further-details}
+
+Erscheint erst, wenn es [eigene Felder](../administration/custom-fields.md)
+gibt: die eigenen Felder, die bei diesem Mitglied einen Wert haben. Eine
+Gruppe erscheint nur, wenn sie angehakt ist, mit ihren Feldern darunter.
+Die Werte bearbeitest du im Formular.
 
 ### Telefonnummern und E-Mail-Adressen {#phone-numbers-and-email-addresses}
 
@@ -388,6 +402,16 @@ hierhin.
 |---|---|
 | Tag-Kästchen | Ein Kästchen je bestehendem Tag. Anhaken oder abhaken, um ihn hinzuzufügen oder zu entfernen. Erscheint erst, wenn es Tags gibt. |
 | **Neue Tags, durch Komma getrennt** | Neue Tags eintippen, getrennt durch Kommas, z. B. „Wasserverantwortlicher, Heckenteam“. Ein schon vorhandener Name wird wiederverwendet. |
+
+### Weitere Angaben {#further-details_1}
+
+Erscheint erst, wenn es [eigene Felder](../administration/custom-fields.md)
+gibt. Jedes Feld steht mit Bezeichnung, Einheit und Hilfetext da; mit *
+markierte Felder sind Pflicht. Hakst du eine Gruppe an, erscheinen ihre
+Felder; nimmst du den Haken weg, werden sie beim Speichern geleert.
+Passt ein Wert nicht (z. B. Text in einem Zahlenfeld), wird das
+Speichern mit einer Meldung abgelehnt, die das Feld nennt, und nichts
+gespeichert.
 
 ### Speichern {#saving}
 

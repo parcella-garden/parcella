@@ -28,6 +28,7 @@ Znajdziesz go na dole paska bocznego pod **Administracja**.
 | **Tokeny API** | [Tokeny API](api-tokens.md) | Oglądasz i unieważniasz tokeny wszystkich; tworzysz tokeny dla kont integracyjnych. |
 | **Ustawienia** | [Ustawienia stowarzyszenia](settings.md) | Nazwa i adres stowarzyszenia, logo, język, region i waluta, serwer e-mail, dane finansowe, kolejność nawigacji i więcej. |
 | | [Włączanie i wyłączanie modułów](modules.md) | Karta **Moduły funkcjonalne** na stronie ustawień. |
+| **Własne pola** | [Własne pola](custom-fields.md) | Własne pola dla członków i działek, np. zawód członka albo basen na działce. |
 | **Integracje** | [Integracje](integrations.md) | Formularze na stronie internetowej, szkice na stronę, magazyn w chmurze, helpdesk, Nextcloud Deck, linki do kanałów kalendarza. |
 | **Dziennik e-maili** | [Dziennik e-maili](email-log.md) | Sprawdzasz, czy e-mail został wysłany. |
 | **Dane przykładowe** | [Dane przykładowe](sample-data.md) | Wypełniasz nową instalację danymi demonstracyjnymi, aby coś wypróbować, i usuwasz je potem. |

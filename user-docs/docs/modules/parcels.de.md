@@ -64,8 +64,9 @@ führt auf die Seite, auf der die Parzelle steht.
 |---|---|
 | **Gartennummer suchen…** | Findet Parzellen, deren Gartennummer den Text enthält. Um eine Parzelle über den Namen ihres Pächters zu finden, durchsuch stattdessen die [Mitgliederliste](members.md#search-and-filters). |
 | **Alle Status** | Zeigt nur Parzellen mit dem gewählten Status. Wirkt, sobald du ihn änderst. |
+| **– eigenes Feld –** | Erscheint erst, wenn es ein [eigenes Feld](../administration/custom-fields.md) gibt. Wähle ein Feld, dann, wonach du suchst: **ja**/**nein** bei einem Ja/Nein-Feld oder einer Gruppe (z. B. alle Parzellen mit Pool), **ausgefüllt**/**leer** bei den anderen Typen, einen der Auswahlwerte oder einen Text, den das Feld enthalten soll. Wirkt zusammen mit den anderen Filtern, also auch für **Alle … Treffer des Filters auswählen**, den Export und **An die Pächter schreiben**. |
 | **Suchen** | Wendet den Suchtext an. |
-| **Zurücksetzen** | Hebt Suche und Statusfilter auf. Erscheint nur, solange einer aktiv ist. |
+| **Zurücksetzen** | Hebt Suche, Status- und Feldfilter auf. Erscheint nur, solange einer aktiv ist. |
 
 Wie in der Mitgliederliste behalten **Vorherige**, **Nächste** und
 **Zurück** auf einer Parzellenseite den Filter, aus dem du kamst.
@@ -135,6 +136,9 @@ Kündigungsnotiz, Mitglieder, Notizen.
 - Die Spalte Mitglieder listet die Pächter der Parzelle, getrennt durch
   Semikolons, die als Rechnungsadresse markierten zuerst und mit einem `*`
   hinter dem Namen.
+- Danach folgt eine Spalte pro [eigenem Feld](../administration/custom-fields.md),
+  mit der Bezeichnung als Überschrift (ein Feld in einer Gruppe als
+  „Gruppe: Feld“); Ja/Nein als „Ja“ oder „Nein“.
 
 ## Parzellen aus einer CSV-Datei importieren {#importing-parcels-from-a-csv-file}
 
@@ -172,11 +176,21 @@ Die Seite **CSV-Spalten zuordnen** zeigt jede Spalte deiner Datei mit
 | **Importieren** | Importiert die Zeilen und führt zur Parzellenliste zurück. **Gartennummer** muss einer Spalte zugeordnet sein, sonst erscheint „Bitte ordne vor dem Import die Spalte für die Gartennummer zu.“ |
 | **Zurück** | Führt ohne Import zur Parzellenliste zurück. |
 
+Deine [eigenen Felder](../administration/custom-fields.md) stehen
+ebenfalls in den Auswahllisten; eine Spalte mit der Bezeichnung oder dem
+Schlüssel eines Felds als Überschrift (z. B. „Pool: Durchmesser“) wird
+vorausgewählt.
+
 ### Was beim Import passiert {#what-happens-on-import}
 
 - Gartennummern werden großgeschrieben, genau wie im Formular.
 - Eine Zeile, deren Gartennummer **schon existiert, wird übersprungen** --
-  bestehende Parzellen ändert ein Import nie.
+  die eigenen Felder der Parzelle ändert ein Import nie. Ihre
+  [eigenen Felder](../administration/custom-fields.md) werden aber aus
+  der Datei gefüllt, praktisch für eine Erhebung (z. B. alle Pools).
+  Nur ausgefüllte Zellen ändern einen Wert; ein ausgefülltes Feld einer
+  Gruppe hakt die Gruppe an, und „Nein“ in der Spalte einer Gruppe
+  leert ihre Felder.
 - Eine Zeile ohne Gartennummer wird ignoriert.
 - Fläche, Breiten- und Längengrad dürfen Dezimalpunkt oder -komma haben.
   Ein Wert, der keine Zahl ist, bleibt leer.
@@ -186,7 +200,9 @@ Die Seite **CSV-Spalten zuordnen** zeigt jede Spalte deiner Datei mit
 
 Die Parzellenliste zeigt danach eine Zusammenfassung wie „40 importiert,
 2 übersprungen“ und dazu, wie viele Zeilen ohne Gartennummer ignoriert
-wurden.
+wurden, wie viele bestehende Parzellen Werte in eigenen Feldern bekommen
+haben und welche Zeilen einen unpassenden Wert hatten (z. B. „Zeile 4:
+„Durchmesser“ muss eine Zahl sein.“).
 
 ## Parzellenseite {#parcel-page}
 
@@ -220,6 +236,14 @@ geändert hat.
 Unter den Details listet eine Karte **Vorgänge** die
 [Vorgänge](processes.md) zu dieser Parzelle, wenn das Modul eingeschaltet
 ist und du Vorgänge sehen darfst. **Vorgang starten** beginnt einen neuen.
+
+### Weitere Angaben {#further-details}
+
+Steht zwischen den Parzellendetails und den Vorgängen, sobald es
+[eigene Felder](../administration/custom-fields.md) gibt: die eigenen
+Felder, die bei dieser Parzelle einen Wert haben. Eine Gruppe (z. B.
+**Pool**) erscheint nur, wenn sie angehakt ist, mit ihren Feldern
+darunter. Die Werte bearbeitest du im Formular.
 
 ### Aktuelle Pächter {#current-tenants}
 
@@ -371,6 +395,15 @@ als das Formular für eine neue Parzelle.
 |---|---|
 | **Parzelle anlegen** / **Änderungen speichern** | Speichert und öffnet die Parzellenseite. |
 | **Abbrechen** | Verlässt das Formular ohne Speichern. |
+
+### Weitere Angaben {#further-details_1}
+
+Erscheint erst, wenn es [eigene Felder](../administration/custom-fields.md)
+gibt. Jedes Feld steht mit Bezeichnung, Einheit und Hilfetext da; mit *
+markierte Felder sind Pflicht. Hakst du eine Gruppe an (z. B. **Pool**),
+erscheinen ihre Felder; nimmst du den Haken weg, werden sie beim
+Speichern geleert. Passt ein Wert nicht, wird das Speichern mit einer
+Meldung abgelehnt, die das Feld nennt, und nichts gespeichert.
 
 ### Gefahrenzone {#danger-zone}
 

@@ -29,6 +29,7 @@ Vous le trouvez en bas de la barre latérale, sous **Administration**.
 | **Jetons API** | [Jetons API](api-tokens.md) | Voir et révoquer les jetons de tout le monde ; créer des jetons pour des comptes d'intégration. |
 | **Paramètres** | [Paramètres de l'association](settings.md) | Nom et adresse de l'association, logo, langue, région et devise, serveur e-mail, données financières, ordre de la navigation et plus. |
 | | [Activer et désactiver les modules](modules.md) | La carte **Domaines fonctionnels** de la page des paramètres. |
+| **Champs personnalisés** | [Champs personnalisés](custom-fields.md) | Vos propres champs pour les membres et les parcelles, par ex. la profession d'un membre ou la piscine d'une parcelle. |
 | **Intégrations** | [Intégrations](integrations.md) | Formulaires du site web, brouillons pour le site, stockage cloud, helpdesk, Nextcloud Deck, liens de flux de calendrier. |
 | **Journal des e-mails** | [Journal des e-mails](email-log.md) | Vérifier si un e-mail est bien parti. |
 | **Données d'exemple** | [Données d'exemple](sample-data.md) | Remplir une nouvelle installation avec des données de démonstration pour essayer, puis les supprimer. |
