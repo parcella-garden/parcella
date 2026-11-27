@@ -26,7 +26,7 @@ def _mail(monkeypatch, ok: bool, production: bool = True):
         sent.append(to)
         return ok
 
-    monkeypatch.setattr("app.routers.admin.send_email", fake_send_email)
+    monkeypatch.setattr("app.routers.admin.users.send_email", fake_send_email)
     if production:
         monkeypatch.setattr(Settings, "is_development", property(lambda self: False))
     return sent

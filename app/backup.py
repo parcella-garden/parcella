@@ -1,7 +1,7 @@
 """
 Shared core for database backup/restore (issue #117, ADR 0053/0054),
 reused by both the manual local download/upload flow
-(app/routers/admin.py) and the scheduled cloud-backup flow
+(app/routers/admin/) and the scheduled cloud-backup flow
 (app/cloud_backup.py, issue #141/ADR 0055) -- one pg_dump/psql
 implementation, two entry points for getting the bytes in and out.
 

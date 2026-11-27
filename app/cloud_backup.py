@@ -5,7 +5,7 @@ zip shape the manual local download produces) to the club's connected
 Nextcloud folder on a configurable schedule, prunes old backups beyond
 a retention count, and records the outcome in ClubSettings -- read by
 both the background scheduler (app/main.py) and the manual "back up to
-cloud now" button (app/routers/admin.py), so both share one source of
+cloud now" button (app/routers/admin/), so both share one source of
 truth for "did the last run succeed."
 
 Deliberately no Linux cron: the schedule is driven by an in-process
