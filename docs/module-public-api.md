@@ -191,7 +191,7 @@ more than one; acceptable for now, revisit if that changes.
 session that had already happened that same morning still accepted
 public signups that afternoon -- nothing checked whether a session's
 date had passed at all. Fixed with `WorkSession.public_signup_open`
-(`app/models.py`): a baseline "date hasn't passed" rule that always
+(`app/models/`): a baseline "date hasn't passed" rule that always
 applies, plus an optional per-session `signup_deadline_days` (set on
 the session itself, `app/templates/work_hours/session_form.html`) that
 closes registration earlier, e.g. `1` closes the day before the event.

@@ -5,7 +5,7 @@ Shared member business logic, called by both app/routers/members.py
 CRUD only -- there's no business-rule branching here the way tickets'
 status transitions or purchase_requests' four-eyes rule have. The one
 real bug this closes: `active_member_filter()` (app/database.py, SQL)
-and `Member.is_active` (app/models.py, Python) are two independent
+and `Member.is_active` (app/models/, Python) are two independent
 reimplementations of "what counts as an active member" that have
 already drifted once in production (issue #167, see Member.is_active's
 own docstring) -- api_members.py used to post-filter in Python after

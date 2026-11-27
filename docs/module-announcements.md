@@ -192,7 +192,7 @@ To make an in-progress send visible without adding new columns, a
 `SENDING` status was added to `AnnouncementDeliveryStatus` (migration
 `0030`). While sending, `error_message` is repurposed to hold a running
 progress note ("140 of 800 sent so far") rather than an error --
-see the field's docstring in `app/models.py`. The edit page shows this
+see the field's docstring in `app/models/`. The edit page shows this
 with a spinner and disables the "Send now" button while a send is
 `SENDING`; the router also rejects a second `POST .../send/email` with
 409 if one is already in progress, as a server-side backstop against

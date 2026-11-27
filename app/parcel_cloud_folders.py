@@ -1,5 +1,5 @@
 """
-Lifecycle rules for ParcelCloudFolder (see app/models.py for the table
+Lifecycle rules for ParcelCloudFolder (see app/models/ for the table
 and the reasoning behind scoping it to the parcel rather than a single
 MemberParcel row).
 

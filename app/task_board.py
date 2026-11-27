@@ -1,5 +1,5 @@
 """
-Card- and list-ordering logic for the task board module (see app/models.py
+Card- and list-ordering logic for the task board module (see app/models/
 for the Task/TaskList models and the reasoning behind the position field).
 
 Shared between the web router (app/routers/tasks.py) and the REST API

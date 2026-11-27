@@ -24,7 +24,7 @@ template with the header image and the club's branding.
 
 Sending is per-recipient, but AnnouncementDelivery tracks channel-level
 status only (not one row per recipient) -- see the model's docstring
-in app/models.py for why. A partial failure (some recipients bounced/
+in app/models/ for why. A partial failure (some recipients bounced/
 failed) still counts as SENT, with the failure count noted in
 error_message, since the announcement did go out; a total failure
 (zero successful sends, or zero recipients found) is recorded as

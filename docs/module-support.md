@@ -59,7 +59,7 @@ helpdesk_conversation_links  -- cross-reference only, not a message mirror
 helpdesk_customer_ids        -- member <-> customer id, per helpdesk
 ```
 
-**`HelpdeskConversationLink`** (`app/models.py`): `provider` (registry
+**`HelpdeskConversationLink`** (`app/models/`): `provider` (registry
 type, e.g. `freescout`) + `external_id` (string; unique together),
 `mailbox_id` (mailbox/group/queue as the helpdesk names it), `subject`,
 `customer_email`, `customer_name`, `status` (one of the five above),

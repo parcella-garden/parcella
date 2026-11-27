@@ -601,7 +601,7 @@ async def _seed_tasks(db: AsyncSession) -> None:
 async def _seed_finances(db: AsyncSession) -> None:
     """A handful of clearly-illustrative bookkeeping categories (issue
     #67) -- NOT a transcription of DATEV's copyrighted SKR42 chart
-    (see FinanceCategory's docstring in app/models.py), just enough of
+    (see FinanceCategory's docstring in app/models/), just enough of
     a starting point across the three groups the issue itself named
     (income/expenses/fixed assets) that the feature isn't empty on
     first use. A club replaces or extends these with its own real

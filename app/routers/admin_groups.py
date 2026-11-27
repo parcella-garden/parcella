@@ -1,6 +1,6 @@
 """
 Admin UI for managing groups and their per-module permissions (see
-app/permissions.py and app/models.py's Group/GroupMembership/
+app/permissions.py and app/models/'s Group/GroupMembership/
 GroupModulePermission). ADMIN/BOARD accounts don't need a group -- they
 already bypass this system entirely -- so membership assignment here
 only makes practical sense for TREASURER/READONLY users. This router is

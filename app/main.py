@@ -72,7 +72,7 @@ logger = logging.getLogger(__name__)
 async def _helpdesk_polling_loop():
     """
     Polls the active helpdesk for new/updated conversations every 5
-    minutes, upserting app/models.py's HelpdeskConversationLink rows (see
+    minutes, upserting app/models/'s HelpdeskConversationLink rows (see
     app/helpdesk/sync.py). Runs permanently in the background; errors are
     caught so a single failed poll doesn't end the loop. A no-op whenever
     no helpdesk is set up, or the active one can't list conversations
@@ -140,7 +140,7 @@ async def _cloud_backup_polling_loop():
 async def _deck_sync_polling_loop():
     """
     Polls the configured Nextcloud Deck board for new/updated cards
-    every 15 minutes, upserting app/models.py's ExternalTaskLink + Task
+    every 15 minutes, upserting app/models/'s ExternalTaskLink + Task
     rows (see app/deck_sync.py). A no-op whenever Deck sync isn't both
     enabled (Admin -> Settings) and configured (Admin -> Integrations)
     -- unlike the FreeScout loop above, this one also checks the module

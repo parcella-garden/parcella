@@ -1,7 +1,7 @@
 """
 Pydantic schemas for the REST API.
 
-The separation from DB models (app/models.py) is deliberate: it lets
+The separation from DB models (app/models/) is deliberate: it lets
 us keep API contracts stable even as internal models change, and have
 different fields for creation vs. response.
 """

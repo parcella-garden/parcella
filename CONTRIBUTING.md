@@ -77,7 +77,7 @@ http://localhost:8000/api/docs.
   fit the originating association but allotment garden associations in
   general (e.g. configurable area types instead of hard-coded A/B/C
   logic, in case other associations need different categories).
-- **Migrations**: every model change in `app/models.py` needs an
+- **Migrations**: every model change in `app/models/` needs an
   accompanying Alembic migration:
   ```bash
   docker compose -f docker-compose.dev.yml run --rm web alembic revision --autogenerate -m "Short description"
