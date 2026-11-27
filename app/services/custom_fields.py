@@ -352,7 +352,11 @@ def filter_condition(target: CustomFieldTarget, owner_id_column, field_id: str, 
 
 
 def clean_filter(field_id: str, value: str):
-    return (field_id or "").strip()[:36], (value or "").strip()[:FILTER_VALUE_MAX]
+    """A field without a value is no filter at all -- and must not count as
+    one: an announcement started from such a list would otherwise be a
+    "targeted" message to everybody (the issue #242 trap)."""
+    field_id, value = (field_id or "").strip()[:36], (value or "").strip()[:FILTER_VALUE_MAX]
+    return (field_id, value) if field_id and value else ("", "")
 
 
 async def filter_context(db: AsyncSession, target: CustomFieldTarget, field_id: str) -> dict:

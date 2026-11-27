@@ -101,8 +101,10 @@ async def members_list(
             # rest of the filter, so export / "write to" see the same list.
             "filter_without_ids": filters.without_ids(),
             "picked_ids": set(filters.ids),
-            "cf_field": filters.cf_field, "cf_value": filters.cf_value,
-            **await cf.filter_context(db, CustomFieldTarget.MEMBER, filters.cf_field),
+            # The picked field comes from the request itself: without a value
+            # yet it isn't part of the filter, but the value control must show.
+            "cf_field": request.query_params.get("cf_field", "")[:36], "cf_value": filters.cf_value,
+            **await cf.filter_context(db, CustomFieldTarget.MEMBER, request.query_params.get("cf_field", "")[:36]),
         },
     )
 

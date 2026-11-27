@@ -181,6 +181,9 @@ async def test_list_filter_by_custom_field(client, admin_user):
     page = (await client.get("/members/", params={"cf_field": occupation.id, "cf_value": "garden"})).text
     assert "Gärtner, Anna" in page and "Bäcker, Bert" not in page
     assert 'name="cf_field" value="' + occupation.id in page  # carried into the pick form for export / write to
+    # Picking only the field shows its value control, without filtering yet.
+    page = (await client.get("/members/", params={"cf_field": occupation.id})).text
+    assert 'placeholder="contains …"' in page and "Bäcker, Bert" in page and "Gärtner, Anna" in page
     page = (await client.get("/members/", params={"cf_field": occupation.id, "cf_value": "__no__"})).text
     assert "Gärtner, Anna" not in page and "Bäcker, Bert" in page
     export = await client.get("/members/export/csv", params={"cf_field": occupation.id, "cf_value": "garden"})
@@ -188,6 +191,8 @@ async def test_list_filter_by_custom_field(client, admin_user):
     # A stored announcement filter keeps it (MemberListFilter is JSON in the DB).
     stored = MemberListFilter.from_dict(MemberListFilter.from_query(cf_field=occupation.id, cf_value="__yes__").to_dict())
     assert stored.cf_field == occupation.id and stored.cf_value == "__yes__"
+    # A field picked without a value is no filter -- so not a "targeted" message to everybody.
+    assert MemberListFilter.from_query(cf_field=occupation.id, cf_value="").is_empty()
 
     page = (await client.get("/parcels/", params={"cf_field": pool.id, "cf_value": "__yes__"})).text
     assert "CF-P1" in page and "CF-P2" not in page
