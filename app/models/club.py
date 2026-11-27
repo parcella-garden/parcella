@@ -40,7 +40,7 @@ class ClubBoardMember(Base):
     Board members listed on admin -> settings -> club settings (issue
     #111) -- a plain "who's currently on the board" display list, picked
     from Member via a searchable multi-select. Deliberately separate from
-    ClubRole/MemberClubRole (app/routers/work_hours.py), which tracks
+    ClubRole/MemberClubRole (app/routers/work_hours/club_roles.py), which tracks
     BOARD/EXTENDED_BOARD membership for annual work-hours exemption over
     dated validity ranges -- a different concern with different lifetime
     semantics, not something this reuses.

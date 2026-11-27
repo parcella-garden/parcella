@@ -25,7 +25,7 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 # Item catalog: reusable line-item templates a board member curates
 # directly, replacing the old "copy items from another run" mechanism
-# (issue #66) -- see InvoiceItemTemplate's docstring in app/models.py.
+# (issue #66) -- see InvoiceItemTemplate's docstring in app/models/finances.py.
 # ---------------------------------------------------------------------------
 
 @router.get("/item-templates", response_class=HTMLResponse)
