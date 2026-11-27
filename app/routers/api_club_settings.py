@@ -94,7 +94,7 @@ async def setting_get(
 )
 async def setting_set(
     key: str,
-    daten: ClubSettingUpdate,
+    payload: ClubSettingUpdate,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_admin_api),
 ):
@@ -109,9 +109,9 @@ async def setting_set(
     entry = result.scalar_one_or_none()
 
     if entry:
-        entry.value = daten.value
+        entry.value = payload.value
     else:
-        entry = ClubSetting(key=key, value=daten.value)
+        entry = ClubSetting(key=key, value=payload.value)
         db.add(entry)
 
     await db.commit()

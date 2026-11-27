@@ -318,7 +318,7 @@ class BoardMemberOut(BaseModel):
 # ---------------------------------------------------------------------------
 
 class PaginatedResponse(BaseModel):
-    gesamt: int
+    total: int
     limit: int
     offset: int
 

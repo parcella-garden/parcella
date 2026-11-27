@@ -104,8 +104,8 @@ async def test_consumption_calculation(client, admin_user):
     )
 
     evaluation = (await client.get("/api/v1/water/evaluation/2026", headers=headers)).json()
-    zeile = next(z for z in evaluation if z["metering_point_id"] == metering_point["id"])
-    assert float(zeile["consumption"]) == 50.0  # 150 - initial reading 100
+    eval_row = next(z for z in evaluation if z["metering_point_id"] == metering_point["id"])
+    assert float(eval_row["consumption"]) == 50.0  # 150 - initial reading 100
 
 
 async def test_electricity_and_water_separate(client, admin_user):
@@ -124,13 +124,13 @@ async def test_electricity_and_water_separate(client, admin_user):
         headers=headers,
     )
 
-    wasser_liste = (await client.get("/api/v1/water/metering-points", headers=headers)).json()
-    strom_liste = (await client.get("/api/v1/electricity/metering-points", headers=headers)).json()
+    water_list = (await client.get("/api/v1/water/metering-points", headers=headers)).json()
+    electricity_list = (await client.get("/api/v1/electricity/metering-points", headers=headers)).json()
 
-    assert len(wasser_liste) == 1
-    assert len(strom_liste) == 1
-    assert wasser_liste[0]["label"] == "Nur Wasser"
-    assert strom_liste[0]["label"] == "Nur Strom"
+    assert len(water_list) == 1
+    assert len(electricity_list) == 1
+    assert water_list[0]["label"] == "Nur Wasser"
+    assert electricity_list[0]["label"] == "Nur Strom"
 
 
 # ---------------------------------------------------------------------------

@@ -87,19 +87,19 @@ async def purchase_request_get(
                 "(deep-link confirmation without login).",
 )
 async def purchase_request_create(
-    daten: PurchaseRequestCreate, request: Request,
+    payload: PurchaseRequestCreate, request: Request,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission("purchase_requests", "write")),
 ):
-    if daten.external_contact_id and await get_contact(db, daten.external_contact_id) is None:
+    if payload.external_contact_id and await get_contact(db, payload.external_contact_id) is None:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="External contact not found")
     pr = await create_purchase_request(
         db,
-        title=daten.title, justification=daten.justification, link=daten.link,
-        estimated_cost_eur=daten.estimated_cost_eur, created_by_id=user.id,
-        requester_name=daten.requester_name,
-        requester_email=(str(daten.requester_email) if daten.requester_email else None),
-        external_contact_id=daten.external_contact_id or None,
+        title=payload.title, justification=payload.justification, link=payload.link,
+        estimated_cost_eur=payload.estimated_cost_eur, created_by_id=user.id,
+        requester_name=payload.requester_name,
+        requester_email=(str(payload.requester_email) if payload.requester_email else None),
+        external_contact_id=payload.external_contact_id or None,
     )
     await db.commit()
     await db.refresh(pr)
@@ -154,7 +154,7 @@ async def purchase_request_approve(
 )
 async def purchase_request_reject(
     request_id: str,
-    daten: PurchaseRequestRejectRequest,
+    payload: PurchaseRequestRejectRequest,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_full_access),
 ):
@@ -165,7 +165,7 @@ async def purchase_request_reject(
     if pr.status != PurchaseRequestStatus.OPEN:
         raise HTTPException(status_code=409, detail=f"Purchase request is already {pr.status.value}")
 
-    await reject_purchase_request(db, pr, acting_user_id=user.id, reason=daten.rejection_reason)
+    await reject_purchase_request(db, pr, acting_user_id=user.id, reason=payload.rejection_reason)
     await db.commit()
     await db.refresh(pr)
     return pr

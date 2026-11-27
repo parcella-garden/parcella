@@ -48,7 +48,7 @@ from app.auth import hash_password
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
-async def _tabellen_erstellen():
+async def _create_tables():
     """Creates all tables fresh once per test run (from the current
     models, not via Alembic -- the current model state is enough for tests)."""
     async with engine.begin() as conn:
@@ -101,7 +101,7 @@ async def _finish_background_note_syncs():
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def _frische_verbindung():
+async def _fresh_connection():
     """
     Discards the connection pool BEFORE each individual test.
 
@@ -122,7 +122,7 @@ async def _frische_verbindung():
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def _tabellen_leeren(_frische_verbindung):
+async def _empty_tables(_fresh_connection):
     """
     Empties all tables before EVERY individual test. Simpler and more
     robust than nested transactions/savepoints -- works reliably even
@@ -130,8 +130,8 @@ async def _tabellen_leeren(_frische_verbindung):
     otherwise causes problems with nested test transactions).
     """
     async with AsyncSessionLocal() as session:
-        for tabelle in reversed(Base.metadata.sorted_tables):
-            await session.execute(tabelle.delete())
+        for db_table in reversed(Base.metadata.sorted_tables):
+            await session.execute(db_table.delete())
         await session.commit()
     yield
 

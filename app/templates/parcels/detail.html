@@ -72,10 +72,10 @@
                         {% endif %}
                     </dd>
 
-                    {% set kuendigung_eintrag = aenderungen | selectattr('field_name', 'eq', 'status') | selectattr('new_value', 'eq', 'TERMINATED') | first %}
-                    {% if kuendigung_eintrag %}
+                    {% set termination_entry = changes | selectattr('field_name', 'eq', 'status') | selectattr('new_value', 'eq', 'TERMINATED') | first %}
+                    {% if termination_entry %}
                     <dt class="col-sm-5 text-muted">{{ t('parcels.detail.label_terminated_on') }}</dt>
-                    <dd class="col-sm-7">{{ kuendigung_eintrag.changed_at.strftime('%d.%m.%Y') }}</dd>
+                    <dd class="col-sm-7">{{ termination_entry.changed_at.strftime('%d.%m.%Y') }}</dd>
                     {% endif %}
 
                     {% if parcel.termination_note %}
@@ -519,7 +519,7 @@
     {% endif %}
 
     <!-- Änderungshistorie der Parzellendaten -->
-    {% if aenderungen %}
+    {% if changes %}
     <div class="col-12">
         <div class="card">
             <div class="card-header"><i class="bi bi-journal-text me-2"></i>{{ t('parcels.detail.change_history_header') }}</div>
@@ -536,7 +536,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for a in aenderungen %}
+                            {% for a in changes %}
                             <tr>
                                 <td class="text-muted" style="font-size: 0.82rem;">{{ a.changed_at.strftime('%d.%m.%Y %H:%M') }}</td>
                                 <td><code style="font-size: 0.8rem;">{{ a.field_name }}</code></td>
