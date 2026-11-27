@@ -1,4 +1,4 @@
-# 0146: Models are a package by domain, re-exported from `app.models`
+# 0146: Models and the big routers are packages by domain
 
 **Status:** accepted (issue #416, slice 1, kermie, 2026-11-27)
 
@@ -31,6 +31,26 @@ change to it and keeping parallel PRs from colliding all got harder.
   comparing the AST of each class with the old file), table and enum
   names come from `__tablename__` and the class names and didn't move,
   and `alembic check` reports the same result before and after.
+
+## The same shape for the big routers
+
+The largest routers (`finances`, `admin`, `work_hours`; separate PRs
+under #416) follow the same pattern:
+
+- `app/routers/<module>/__init__.py` owns the one `APIRouter` with the
+  prefix and the module guard (`require_module(...)`) and includes one
+  sub-router per area (`runs.py`, `accounts.py`, `users.py`, …). The
+  sub-routers have no prefix and no guard of their own, so a route can't
+  end up outside the guard. `app/main.py` keeps including `<module>.router`.
+- Helpers several sub-routers need that touch HTTP (404s, form parsing,
+  rendering) go into `_common.py` next to them.
+- Database/domain helpers without any HTTP (no `Request`, templates or
+  `HTTPException`) move into `app/services/<module>.py` under public
+  names, where a route or the REST API can call them.
+- Overlapping paths (`/runs/new` vs `/runs/{run_id}`) keep their
+  relative order; the split was checked against the old route table.
+- Tests that monkeypatch a name patch it where it now lives
+  (`app.routers.admin.users.send_email`).
 
 ## Consequences
 
