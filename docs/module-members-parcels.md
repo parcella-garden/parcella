@@ -244,6 +244,19 @@ where the message's "show list" link leads. Ids are cleaned on the way in
 (blank/overlong dropped, duplicates removed) and capped at
 `MAX_PICKED_MEMBERS` (2000, a 400 beyond).
 
+**Paging and "all matching" (issue #425, [ADR 0145](./ADR/0145-member-and-parcel-lists-paged-select-all-means-the-filter.md)).**
+`/members/` and `/parcels/` show 100 rows a page (`app/paging.py`,
+`?page=N`, a page past the end shows the last one; macro
+`_pagination.html`). The page number is not part of `MemberListFilter`.
+"Select all" ticks the current page; when the filter has more rows, "Select
+all N matching the filter" disables the row checkboxes so the form sends
+only the filter: for members that is the existing "no ids = the filtered
+list" path, for parcels the CSV export now honours `search`/`status_filter`
+and a notice gets `all_matching=1`, resolved to ids in
+`_picked_parcel_ids` (`app/routers/announcements.py`). The parcel filter
+query lives in `app/services/parcels.py` (`filtered_parcels_query`) for
+that reason. Footers count and sum over the whole filter, not the page.
+
 **Writing to one member (issue #344).** The member detail page has a
 "Write to this member" button (announcements module on, board/admin). It
 is the same hand-picked message with a single id; for a former member

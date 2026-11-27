@@ -10,6 +10,13 @@
       "hint": "Nazwa tego tagu w każdym języku. Puste pola pokazują „{name}”.",
       "save": "Zapisz tłumaczenia",
       "none": "Brak tłumaczeń."
+    },
+    "pagination": {
+      "label": "Strony",
+      "showing": "{first}–{last} z {total}",
+      "previous": "Poprzednia",
+      "next": "Następna",
+      "page_of": "Strona {page} z {pages}"
     }
   },
   "nav": {
@@ -684,7 +691,9 @@
       "export_selected": "Eksportuj zaznaczonych",
       "write_to_selected": "Napisz do zaznaczonych",
       "picked_notice": "Wyświetlani są tylko zaznaczeni członkowie ({count}).",
-      "picked_show_all": "Pokaż całą listę"
+      "picked_show_all": "Pokaż całą listę",
+      "select_all_matching": "Zaznacz wszystkie {count} pasujące do filtra",
+      "all_selected": "Zaznaczono wszystkie: {count}"
     },
     "form": {
       "title_edit": "Edytuj {name}",
@@ -847,7 +856,9 @@
       "select_none": "Odznacz wszystkie",
       "selected_count": "Zaznaczono: {count}",
       "export_selected": "Eksportuj zaznaczone",
-      "write_to_selected": "Napisz do dzierżawców"
+      "write_to_selected": "Napisz do dzierżawców",
+      "select_all_matching": "Zaznacz wszystkie {count} pasujące do filtra",
+      "all_selected": "Zaznaczono wszystkie: {count}"
     },
     "form": {
       "title_edit": "Edytuj {plot_number}",

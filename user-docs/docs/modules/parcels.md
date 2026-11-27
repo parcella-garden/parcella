@@ -42,6 +42,11 @@ history, so you don't need a separate termination date.
 Open **Parcels** in the main menu. The list shows every parcel, sorted
 by plot number -- including deleted ones, unless you filter by status.
 
+A long list is split into pages of 100 parcels, with **Previous** and
+**Next** below the table. The search and status filter stay set while
+you page through, and **Back** on a parcel page returns to the
+page that parcel is on.
+
 ### Buttons at the top
 
 | Button | What it does |
@@ -73,8 +78,8 @@ page keep the filter you came from.
 | **Tenant** | The current tenants. Click a name to open the member. Former and upcoming tenants aren't shown here. |
 | Eye button | Opens the parcel page. |
 
-The footer shows the number of parcels in the list and, if areas are
-recorded, their total area -- handy to check a filtered selection, e.g.
+The footer shows the number of parcels in the list (on all pages) and,
+if areas are recorded, their total area -- handy to check a filtered selection, e.g.
 the total area of all active parcels.
 
 ### Picking parcels and writing to their leaseholders {#picking-parcels}
@@ -85,7 +90,8 @@ lease them.
 
 | Button | What it does |
 |---|---|
-| **Select all** | Ticks every parcel in the current list. |
+| **Select all** | Ticks every parcel on the current page. |
+| **Select all *N* matching the filter** | Only shown when the list has more than one page, after you click **Select all**. Selects every parcel the search and status filter find, on all pages. The counter then says "All *N* selected". |
 | **Select none** | Clears all ticks. |
 | ***N* selected** | Counts the ticked parcels. |
 | **Export selected** | Downloads the CSV file (see below) with only the ticked parcels. Disabled until you tick one. |
@@ -114,7 +120,8 @@ use the [member list](members.md) instead.
 **CSV Export** downloads a file called `parcels.csv`, separated by
 semicolons, with *every* parcel -- search and status filter don't apply.
 **Export selected** (above) writes the same file with only the ticked
-parcels.
+parcels, or with every parcel matching the filter after **Select all *N*
+matching the filter**.
 The column headings are in German, so the file can be imported again:
 
 Gartennummer (plot number), Fläche (qm) (area), Breitengrad (latitude),
@@ -192,7 +199,7 @@ details, who holds it now, who held it before and what has changed.
 |---|---|
 | **Edit** | Opens the [edit form](#new-parcel-and-edit-parcel). Needs write permission. |
 | **Previous** / **Next** | Jumps to the previous or next parcel in the list you came from. You can also press ++ctrl+left++ and ++ctrl+right++ (not while typing in a field). |
-| **Back** | Returns to the parcel list, with your filter. |
+| **Back** | Returns to the parcel list, with your filter, on the page this parcel is on. |
 
 ### Parcel details
 

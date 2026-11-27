@@ -11,7 +11,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, Request, Form, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Request, Form, Depends, UploadFile, File, HTTPException, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -27,6 +27,7 @@ from app.csv_utils import (
     parse_mapped_csv_rows,
 )
 from app.member_filters import MemberListFilter
+from app.paging import page_of, paginate, with_page
 from app.models import Member, MemberPhone, MemberEmail, MemberParcel, MemberTag, Parcel
 from app.models import ProcessSubjectKind
 from app.routers.processes import subject_processes
@@ -64,6 +65,7 @@ async def _get_member_with_details(db: AsyncSession, member_id: str) -> Optional
 async def members_list(
     request: Request,
     filters: MemberListFilter = Depends(MemberListFilter.from_query),
+    page: int = Query(1, ge=1),
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "read")
@@ -74,8 +76,9 @@ async def members_list(
         selectinload(Member.tags),
     )
 
-    result = await db.execute(query)
-    members = result.scalars().all()
+    # Issue #425: page is not part of MemberListFilter -- that one is
+    # stored with announcements, a page number means nothing there.
+    members_page = await paginate(db, query, page)
     all_tags = await list_tags(db)
 
     return templates.TemplateResponse(
@@ -83,7 +86,8 @@ async def members_list(
         {
             "request": request,
             "user": user,
-            "members": members,
+            "members": members_page.items,
+            "page": members_page,
             "search": filters.search,
             "include_inactive": filters.include_inactive,
             "active_only": filters.active_only,
@@ -357,8 +361,10 @@ async def member_detail(
     ).all()
     prev_member_id = None
     next_member_id = None
+    list_page = 1
     if member_id in ordered_ids:
         idx = ordered_ids.index(member_id)
+        list_page = page_of(idx)
         if idx > 0:
             prev_member_id = ordered_ids[idx - 1]
         if idx < len(ordered_ids) - 1:
@@ -377,6 +383,8 @@ async def member_detail(
             "prev_member_id": prev_member_id,
             "next_member_id": next_member_id,
             "nav_query_suffix": f"?{list_query_string}" if list_query_string else "",
+            # "Back to list" lands on the page this member is on (issue #425).
+            "back_query_suffix": with_page(list_query_string, list_page),
             "subject_processes": await subject_processes(request, db, ProcessSubjectKind.MEMBER, member.id),
             # Issue #344: "Write to this member" starts the same targeted
             # message as ticking one row on /members/ (issue #337). A

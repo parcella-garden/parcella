@@ -32,3 +32,8 @@ list instead.
   fine for the club sizes in view, and the cap keeps it bounded.
 - Ticks live in the page only: changing the filter reloads the list
   and clears them.
+
+**Update (issue #425, [ADR 0145](./0145-member-and-parcel-lists-paged-select-all-means-the-filter.md)):**
+the list is paged now, so ticks live on one page (≤ 100 ids), and "all
+matching" sends the filter without ids. "Fine for the club sizes in view"
+did not hold: 2,000 ids are refused by the server before the cap is reached.

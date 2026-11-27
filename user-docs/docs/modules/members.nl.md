@@ -1,5 +1,8 @@
 # Leden {#members}
 
+!!! warning "Nog niet bijgewerkt"
+    Deze pagina beschrijft een oudere versie. De Engelse versie is actueel (taal wisselt u bovenaan).
+
 !!! note "Machinevertaling"
     Deze pagina is machinaal vertaald uit het Engels en nog niet nagekeken. Als iets onduidelijk is, geldt de Engelse versie (taal wisselt u bovenaan).
 

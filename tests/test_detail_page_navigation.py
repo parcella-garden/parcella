@@ -7,7 +7,7 @@ Prev/Next walk the *same filtered, ordered* list the board member was
 actually looking at (search / include_inactive /
 active_only for members; search / status_filter for parcels) -- not
 always the full unfiltered list -- via MemberListFilter.apply() (app/member_filters.py) /
-_filtered_parcels_query(), the same helpers the list pages and CSV
+filtered_parcels_query(), the same helpers the list pages and CSV
 exports already share. The filter is carried in the URL's query string
 end to end: list row links include it, and the Previous/Next buttons on
 the detail page pass it along again.

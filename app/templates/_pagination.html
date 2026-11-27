@@ -1,0 +1,26 @@
+{#- Issue #425: pager under the member and parcel lists. base_path is the
+    list's URL, list_query its filter as a query string (no '?'), so
+    the filter survives paging. Nothing is shown for a single page. -#}
+{% macro pagination(page, base_path, list_query) %}
+{% if page.pages > 1 %}
+<nav class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3"
+     aria-label="{{ t('common.pagination.label') }}">
+    <span class="text-muted small">{{ t('common.pagination.showing', first=page.first, last=page.last, total=page.total) }}</span>
+    <ul class="pagination pagination-sm mb-0">
+        <li class="page-item{% if page.page == 1 %} disabled{% endif %}">
+            <a class="page-link" href="{{ base_path }}{{ with_page(list_query, page.page - 1) }}"
+               {% if page.page == 1 %}tabindex="-1" aria-disabled="true"{% endif %}>
+                <i class="bi bi-chevron-left"></i> {{ t('common.pagination.previous') }}</a>
+        </li>
+        <li class="page-item active" aria-current="page">
+            <span class="page-link">{{ t('common.pagination.page_of', page=page.page, pages=page.pages) }}</span>
+        </li>
+        <li class="page-item{% if page.page == page.pages %} disabled{% endif %}">
+            <a class="page-link" href="{{ base_path }}{{ with_page(list_query, page.page + 1) }}"
+               {% if page.page == page.pages %}tabindex="-1" aria-disabled="true"{% endif %}>
+                {{ t('common.pagination.next') }} <i class="bi bi-chevron-right"></i></a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+{% endmacro %}
