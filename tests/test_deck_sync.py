@@ -296,7 +296,7 @@ async def test_deck_test_connection_reports_success(client, admin_user, monkeypa
         def __init__(self, base_url, username, app_password, client=None):
             super().__init__(base_url, username, app_password, client=mock_client)
 
-    monkeypatch.setattr("app.routers.admin.DeckTaskProvider", MockedDeckTaskProvider)
+    monkeypatch.setattr("app.routers.admin.integrations.DeckTaskProvider", MockedDeckTaskProvider)
 
     response = await client.post(
         "/admin/integrations/deck/test",
@@ -313,7 +313,7 @@ async def test_deck_sync_now_reports_count(client, admin_user, monkeypatch):
     async def fake_sync_deck_tasks(db):
         return 3
 
-    monkeypatch.setattr("app.routers.admin.sync_deck_tasks", fake_sync_deck_tasks)
+    monkeypatch.setattr("app.routers.admin.integrations.sync_deck_tasks", fake_sync_deck_tasks)
 
     response = await client.post("/admin/integrations/deck/sync-now")
     assert response.status_code == 303

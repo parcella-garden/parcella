@@ -54,7 +54,7 @@ Architecture Decisions for details):
    unless the module opens a new public/unauthenticated attack surface
    (e.g. a public write endpoint), in which case default `False` and
    require an explicit opt-in (see the public signup API for why)
-5. Entry in `app/routers/admin.py` (`MODULE_FIELDS`) for the enable/disable UI
+5. Entry in `app/routers/admin/settings.py` (`MODULE_FIELDS`) for the enable/disable UI
 6. Navigation block in `app/templates/base.html` as a collapsible `nav-group`
 7. If the module has something worth a headline number (open items, a
    count needing attention), a dashboard stat card in `app/main.py` +

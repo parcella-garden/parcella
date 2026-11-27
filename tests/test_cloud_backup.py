@@ -377,7 +377,7 @@ async def test_restore_from_cloud_round_trip(client, admin_user, monkeypatch):
     async def fake_get_nextcloud_provider(db, client=None):
         return provider
 
-    monkeypatch.setattr("app.routers.admin.get_cloud_storage_provider", fake_get_nextcloud_provider)
+    monkeypatch.setattr("app.routers.admin.system.get_cloud_storage_provider", fake_get_nextcloud_provider)
 
     resp = await client.post(
         "/admin/backup/restore-from-cloud",

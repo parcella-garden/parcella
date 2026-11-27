@@ -245,7 +245,7 @@ async def test_cloud_storage_test_button_reports_failure(client, admin_user, mon
             client=httpx.AsyncClient(transport=httpx.MockTransport(lambda r: httpx.Response(401))),
         )
 
-    monkeypatch.setattr("app.routers.admin.CLOUD_STORAGE.build", fake_build)
+    monkeypatch.setattr("app.routers.admin.integrations.CLOUD_STORAGE.build", fake_build)
     response = await client.post("/admin/integrations/cloud-storage/test", data={
         "cloud_storage_provider": "webdav",
         "cloud_storage_webdav_root_url": "https://dav.example.com/dav",

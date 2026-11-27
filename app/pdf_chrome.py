@@ -79,7 +79,7 @@ async def load_org_footer_context(db: AsyncSession, club_name: str) -> OrgFooter
 
     # Board members (issue #121): same active-member scoping and
     # last_name/first_name ordering as their admin -> settings picker
-    # (app/routers/admin.py), so a member removed/deactivated after
+    # (app/routers/admin/), so a member removed/deactivated after
     # being listed doesn't keep showing up on printed documents.
     board_result = await db.execute(
         select(Member)

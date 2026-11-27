@@ -85,7 +85,7 @@ async def is_last_admin(db: AsyncSession, user_id: str) -> bool:
     """True if no other active account -- via ADMIN role, or membership
     in a grants_system_admin group (ADR 0041) -- exists besides
     `user_id` that can reach require_system_admin (the admin panel).
-    Used by app/routers/admin.py (deactivating/editing/deleting a user)
+    Used by app/routers/admin/ (deactivating/editing/deleting a user)
     and app/routers/admin_groups.py (removing the last member of a
     grants_system_admin group) -- with at least one such account left,
     they can always fix any other access problem via the panel

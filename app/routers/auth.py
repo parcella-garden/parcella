@@ -165,7 +165,7 @@ async def change_password(
 # Self-service avatar upload (issue #150) -- any logged-in user, not just
 # admins; same require_user gate as change-password above. Shares the
 # storage/validation core in app/avatars.py with the admin-side upload on
-# /admin/users/{id}/edit (app/routers/admin.py).
+# /admin/users/{id}/edit (app/routers/admin/).
 # ---------------------------------------------------------------------------
 
 @router.post("/avatar")
@@ -306,7 +306,7 @@ async def invitation_accept(
 # ---------------------------------------------------------------------------
 # Personal API tokens (issue #306, ADR 0126) -- any logged-in user manages
 # their own; system admins see and revoke everyone's on /admin/api-tokens
-# (app/routers/admin.py). Both render auth/api_tokens.html. Creation and
+# (app/routers/admin/). Both render auth/api_tokens.html. Creation and
 # revocation are web-only (cookie session + CSRF): a token can't mint
 # further tokens, so a leaked one can't make itself permanent.
 # ---------------------------------------------------------------------------
