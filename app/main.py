@@ -52,7 +52,7 @@ from app.parcel_cloud_folders import apply_scheduled_folder_switches
 from app.routers import auth, members, parcels, admin as admin_router, admin_groups as admin_groups_router, work_hours, insurance, support as support_router, purchase_requests, calendar as calendar_router, announcements as announcements_router, inventory as inventory_router, tasks as tasks_router, finances as finances_router
 from app.routers.metering import create_metering_router
 from app.models import MeteringMedium
-from app.routers import api_auth, api_members, api_parcels, api_club_settings, api_stats
+from app.routers import api_auth, api_members, api_parcels, api_club_settings, api_stats, api_custom_fields
 from app.routers import api_email_log
 from app.routers import api_work_hours, api_insurance, api_helpdesk, api_purchase_requests, api_inventory, api_tasks
 from app.routers import applicants as applicants_router, api_applicants
@@ -485,6 +485,7 @@ app.include_router(electricity_router)
 app.include_router(api_auth.router)
 app.include_router(api_members.router)
 app.include_router(api_parcels.router)
+app.include_router(api_custom_fields.router)
 app.include_router(api_club_settings.router)
 app.include_router(api_email_log.router)
 app.include_router(api_stats.router)

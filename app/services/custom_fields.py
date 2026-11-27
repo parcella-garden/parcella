@@ -481,3 +481,88 @@ async def _write(db: AsyncSession, target: CustomFieldTarget, owner_id: str, fie
         row.value_date = value
     else:
         row.value_text = value
+
+
+# ---------------------------------------------------------------------------
+# REST API (issue #443 slice 4): values by field key
+# ---------------------------------------------------------------------------
+
+def api_value(field: CustomField, value: Optional[CustomFieldValue]):
+    """JSON value: bool for yes/no and groups, numbers as strings (no
+    float rounding, like the API's other amounts), ISO dates, text."""
+    raw = raw_value(field, value)
+    if field.kind in (CustomFieldKind.CHECKBOX, CustomFieldKind.GROUP):
+        return bool(raw)
+    if isinstance(raw, Decimal):
+        return format(raw.normalize(), "f")
+    if isinstance(raw, date):
+        return raw.isoformat()
+    return raw
+
+
+async def api_values(db: AsyncSession, target: CustomFieldTarget, owner_id: str) -> dict:
+    """{key: value} for every active field; None = empty."""
+    fields = await list_fields(db, target)
+    values = await load_values(db, target, owner_id)
+    return {f.key: api_value(f, values.get(f.id)) for f in fields}
+
+
+def _api_text(field: CustomField, value) -> str:
+    if value is None:
+        return ""
+    if field.kind in (CustomFieldKind.CHECKBOX, CustomFieldKind.GROUP):
+        if not isinstance(value, bool):
+            raise ServiceError("custom_fields.errors.expects_bool", label=field.label)
+        return "1" if value else ""
+    if isinstance(value, bool) or not isinstance(value, (str, int, float)):
+        raise ServiceError("custom_fields.errors.invalid_value", label=field.label)
+    return str(value)
+
+
+def _api_parse(field: CustomField, value):
+    # A JSON number is taken as it is: "1.234" through parse_decimal would
+    # read as 1234 in German notation.
+    if field.kind == CustomFieldKind.NUMBER and isinstance(value, (int, float)) and not isinstance(value, bool):
+        return parse_input(field, format(Decimal(str(value)), "f").replace(".", ","))
+    return parse_input(field, _api_text(field, value))
+
+
+async def api_update(db: AsyncSession, target: CustomFieldTarget, owner_id: str, changes: dict) -> None:
+    """Sets the given keys only; None / false clears a value. A filled-in
+    sub-field ticks its group, a group set to false clears its sub-fields,
+    and a required field can't be cleared while its group is on. Unknown
+    keys are refused. Everything is validated before anything is written."""
+    fields = await list_fields(db, target)
+    by_key = {f.key: f for f in fields}
+    by_id = {f.id: f for f in fields}
+    unknown = sorted(set(changes) - set(by_key))
+    if unknown:
+        raise ServiceError("custom_fields.errors.unknown_keys", keys=", ".join(unknown[:10]))
+    parsed = {by_key[k].id: _api_parse(by_key[k], v) for k, v in changes.items()}
+    for field_id, value in list(parsed.items()):
+        parent_id = by_id[field_id].parent_id
+        if parent_id and not _is_empty(value) and parent_id in by_id and parsed.get(parent_id) is not False:
+            parsed.setdefault(parent_id, True)
+    existing = await load_values(db, target, owner_id)
+
+    def is_on(field: CustomField) -> bool:
+        if field.parent_id is None:
+            return True
+        if field.parent_id in parsed:
+            return bool(parsed[field.parent_id])
+        return field.parent_id in existing
+
+    for field_id, value in parsed.items():
+        field = by_id[field_id]
+        if field.required and _is_empty(value) and is_on(field):
+            raise ServiceError("custom_fields.errors.required", label=field.label)
+    for field_id, value in parsed.items():
+        field = by_id[field_id]
+        if field.kind == CustomFieldKind.GROUP and not value:
+            for child in (f for f in fields if f.parent_id == field_id):
+                if child.id in existing and child.id not in parsed:
+                    await db.delete(existing.pop(child.id))
+        if field.parent_id and not is_on(field):
+            value = None  # a sub-field of a group that is (being set) off
+        await _write(db, target, owner_id, field, existing, value)
+    await db.flush()

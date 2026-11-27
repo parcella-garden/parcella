@@ -4078,7 +4078,10 @@
       "invalid_date": "“{label}” must be a date.",
       "invalid_choice": "“{label}”: please pick one of the choices.",
       "text_too_long": "“{label}” may have at most {max} characters.",
-      "required": "“{label}” is required."
+      "required": "“{label}” is required.",
+      "expects_bool": "“{label}” expects true or false.",
+      "invalid_value": "“{label}”: this value doesn't fit the field.",
+      "unknown_keys": "Unknown custom field key(s): {keys}"
     },
     "filter": {
       "label": "Custom field",

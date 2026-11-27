@@ -257,3 +257,41 @@ async def test_csv_export_and_import(client, admin_user):
         "map_0": "plot_number", "map_1": f"cf:{pool.id}",
     })
     assert await _values(parcel_id=existing_id) == {}
+
+
+async def test_rest_api(client, admin_user):
+    from tests.conftest import auth_header, login
+    await web_login(client, "admin@example.com")
+    occupation = await _add(client, "MEMBER", "Occupation", "TEXT")
+    pool = await _add(client, "PARCEL", "Pool", "GROUP")
+    await _add(client, "PARCEL", "Diameter", "NUMBER", parent_id=pool.id, unit="cm", required="true")
+    await _add(client, "PARCEL", "Built", "DATE")
+    headers = auth_header(await login(client, "admin@example.com"))
+    async with AsyncSessionLocal() as db:
+        member, parcel = Member(first_name="Api", last_name="Tester"), Parcel(plot_number="CF-API")
+        db.add_all([member, parcel])
+        await db.commit()
+        member_id, parcel_id = member.id, parcel.id
+
+    defs = (await client.get("/api/v1/custom-fields", params={"target": "PARCEL"}, headers=headers)).json()
+    assert [d["key"] for d in defs] == ["pool", "diameter", "built"]
+    assert defs[1]["group"] == "pool" and defs[1]["unit"] == "cm" and defs[1]["required"] is True
+
+    r = await client.put(f"/api/v1/members/{member_id}/custom-fields", json={"occupation": "Carpenter"}, headers=headers)
+    assert r.status_code == 200 and r.json() == {"occupation": "Carpenter"}
+    assert (await _values(member_id=member_id))[occupation.id].value_text == "Carpenter"
+
+    # A sub-field ticks its group; a JSON number is taken exactly.
+    r = await client.put(f"/api/v1/parcels/{parcel_id}/custom-fields", json={"diameter": 1.25, "built": "2019-05-01"}, headers=headers)
+    assert r.status_code == 200 and r.json() == {"pool": True, "diameter": "1.25", "built": "2019-05-01"}
+    # The required sub-field can't be cleared while the group is on ...
+    r = await client.put(f"/api/v1/parcels/{parcel_id}/custom-fields", json={"diameter": None}, headers=headers)
+    assert r.status_code == 422 and "Diameter" in r.json()["detail"]
+    # ... but switching the group off clears it.
+    r = await client.put(f"/api/v1/parcels/{parcel_id}/custom-fields", json={"pool": False}, headers=headers)
+    assert r.json() == {"pool": False, "diameter": None, "built": "2019-05-01"}
+
+    for bad in ({"nope": 1}, {"pool": "yes"}, {"built": "soon"}):
+        assert (await client.put(f"/api/v1/parcels/{parcel_id}/custom-fields", json=bad, headers=headers)).status_code == 422
+    assert (await client.get("/api/v1/parcels/00000000-0000-0000-0000-000000000000/custom-fields", headers=headers)).status_code == 404
+    assert (await client.get(f"/api/v1/parcels/{parcel_id}/custom-fields")).status_code == 401

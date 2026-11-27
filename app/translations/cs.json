@@ -4078,7 +4078,10 @@
       "invalid_date": "„{label}“ musí být datum.",
       "invalid_choice": "„{label}“: vyberte jednu z možností.",
       "text_too_long": "„{label}“ může mít nejvýše {max} znaků.",
-      "required": "„{label}“ je povinné."
+      "required": "„{label}“ je povinné.",
+      "expects_bool": "„{label}“ očekává true nebo false.",
+      "invalid_value": "„{label}“: tato hodnota k poli nepasuje.",
+      "unknown_keys": "Neznámé klíče vlastních polí: {keys}"
     },
     "filter": {
       "label": "Vlastní pole",

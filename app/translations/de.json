@@ -4078,7 +4078,10 @@
       "invalid_date": "„{label}“ muss ein Datum sein.",
       "invalid_choice": "„{label}“: Bitte wähle einen der Werte.",
       "text_too_long": "„{label}“ darf höchstens {max} Zeichen haben.",
-      "required": "„{label}“ ist ein Pflichtfeld."
+      "required": "„{label}“ ist ein Pflichtfeld.",
+      "expects_bool": "„{label}“ erwartet true oder false.",
+      "invalid_value": "„{label}“: Dieser Wert passt nicht zum Feld.",
+      "unknown_keys": "Unbekannte Schlüssel eigener Felder: {keys}"
     },
     "filter": {
       "label": "Eigenes Feld",

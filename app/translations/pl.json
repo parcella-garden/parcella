@@ -4078,7 +4078,10 @@
       "invalid_date": "„{label}” musi być datą.",
       "invalid_choice": "„{label}”: wybierz jedną z opcji.",
       "text_too_long": "„{label}” może mieć najwyżej {max} znaków.",
-      "required": "„{label}” jest wymagane."
+      "required": "„{label}” jest wymagane.",
+      "expects_bool": "„{label}” oczekuje true lub false.",
+      "invalid_value": "„{label}”: ta wartość nie pasuje do pola.",
+      "unknown_keys": "Nieznane klucze własnych pól: {keys}"
     },
     "filter": {
       "label": "Własne pole",

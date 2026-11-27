@@ -4078,7 +4078,10 @@
       "invalid_date": "« {label} » doit être une date.",
       "invalid_choice": "« {label} » : veuillez choisir l'une des valeurs.",
       "text_too_long": "« {label} » peut avoir au plus {max} caractères.",
-      "required": "« {label} » est obligatoire."
+      "required": "« {label} » est obligatoire.",
+      "expects_bool": "« {label} » attend true ou false.",
+      "invalid_value": "« {label} » : cette valeur ne convient pas au champ.",
+      "unknown_keys": "Clé(s) de champ personnalisé inconnue(s) : {keys}"
     },
     "filter": {
       "label": "Champ personnalisé",

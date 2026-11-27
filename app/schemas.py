@@ -140,6 +140,21 @@ class MemberOut(MemberBase):
     email_addresses: List[EmailAddressOut] = []
 
 
+class CustomFieldOut(BaseModel):
+    """A custom field definition (issue #443, ADR 0147). Values are
+    addressed by `key`, which stays when the label changes; a sub-field
+    names its group in `group`."""
+    model_config = ConfigDict(from_attributes=True)
+    key: str
+    label: str
+    kind: str
+    group: Optional[str] = None
+    unit: Optional[str] = None
+    options: Optional[List[str]] = None
+    required: bool
+    help_text: Optional[str] = None
+
+
 class MemberTagOut(BaseModel):
     """A free-form member label (issue #241, ADR 0093)."""
     model_config = ConfigDict(from_attributes=True)

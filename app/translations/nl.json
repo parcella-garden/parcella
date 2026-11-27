@@ -4078,7 +4078,10 @@
       "invalid_date": "'{label}' moet een datum zijn.",
       "invalid_choice": "'{label}': kies een van de waarden.",
       "text_too_long": "'{label}' mag hoogstens {max} tekens hebben.",
-      "required": "'{label}' is verplicht."
+      "required": "'{label}' is verplicht.",
+      "expects_bool": "'{label}' verwacht true of false.",
+      "invalid_value": "'{label}': deze waarde past niet bij het veld.",
+      "unknown_keys": "Onbekende sleutel(s) van eigen velden: {keys}"
     },
     "filter": {
       "label": "Eigen veld",
