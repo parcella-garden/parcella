@@ -89,8 +89,8 @@ archived group can only be restored after the group.
 ## Where custom fields show up
 
 - **Edit form** of a member or parcel: the card **Further details**.
-  See [Members](../modules/members.md#further-details_1) and
-  [Parcels](../modules/parcels.md#further-details_1).
+  See [Members](../modules/members.md) and
+  [Parcels](../modules/parcels.md).
 - **Detail page**: the card **Further details**, with the fields that
   have a value. A group only appears when it's ticked.
 - **List filter**: the dropdown **– custom field –** on the member and
