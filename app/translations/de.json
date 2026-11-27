@@ -75,7 +75,8 @@
     "notes": "Notizen",
     "api_tokens": "API-Tokens",
     "calendar_custom": "Eigene Kalender",
-    "processes": "Vorgänge"
+    "processes": "Vorgänge",
+    "custom_fields": "Eigene Felder"
   },
   "errors": {
     "user_not_found": "Benutzer nicht gefunden",
@@ -4009,6 +4010,75 @@
         "added_to_mailing_list": "In den Verteiler aufgenommen",
         "notes": "Notizen"
       }
+    }
+  },
+  "custom_fields": {
+    "yes": "Ja",
+    "target_member": "Mitglieder",
+    "target_parcel": "Parzellen",
+    "kind_text": "Text",
+    "kind_long_text": "Langer Text",
+    "kind_number": "Zahl",
+    "kind_date": "Datum",
+    "kind_checkbox": "Ja/Nein",
+    "kind_choice": "Auswahl",
+    "kind_group": "Gruppe (Ja/Nein mit Unterfeldern)",
+    "form": {
+      "card_header": "Weitere Angaben"
+    },
+    "admin": {
+      "title": "Eigene Felder",
+      "intro": "Eigene Felder für Mitglieder und Parzellen, z. B. der Beruf eines Mitglieds oder die Gartenlaube einer Parzelle mit Fläche und Baujahr. Sie erscheinen im Bearbeitungsformular und auf der Detailseite. Einrichten können sie nur Systemadministratoren; Werte eintragen kann jeder, der Mitglieder und Parzellen bearbeiten darf.",
+      "list_header": "Felder",
+      "col_label": "Bezeichnung",
+      "col_kind": "Typ",
+      "col_key": "Schlüssel",
+      "required": "Pflichtfeld",
+      "archived": "Archiviert",
+      "move_up": "Nach oben",
+      "move_down": "Nach unten",
+      "edit": "Bearbeiten",
+      "restore": "Wiederherstellen",
+      "archive": "Archivieren",
+      "archive_confirm": "Dieses Feld archivieren? Es verschwindet aus Formularen und Detailseiten; die bisher eingetragenen Werte bleiben erhalten und sind nach dem Wiederherstellen wieder da.",
+      "empty": "Noch keine eigenen Felder.",
+      "new_header": "Neues Feld oder neue Gruppe",
+      "label": "Bezeichnung",
+      "kind": "Typ",
+      "parent": "In Gruppe",
+      "parent_none": "– keine (eigenständiges Feld) –",
+      "parent_hint": "Ein Feld in einer Gruppe erscheint erst, wenn die Gruppe angehakt ist, z. B. „Durchmesser“ in „Pool“.",
+      "add": "Hinzufügen",
+      "unit": "Einheit",
+      "unit_placeholder": "z. B. m², cm",
+      "options": "Auswahlwerte",
+      "options_hint": "Ein Wert pro Zeile.",
+      "help_text": "Hilfetext",
+      "required_hint": "In einer Gruppe nur Pflicht, solange die Gruppe angehakt ist.",
+      "edit_title": "Feld bearbeiten: {label}",
+      "back": "Zurück",
+      "kind_locked": "Der Typ lässt sich nicht mehr ändern: Es sind schon Werte eingetragen, oder es ist eine Gruppe.",
+      "key_hint": "der feste Name des Felds für Exporte und die API; er bleibt, wenn du das Feld umbenennst.",
+      "cancel": "Abbrechen",
+      "save": "Speichern"
+    },
+    "errors": {
+      "unknown_target": "Unbekannter Bereich.",
+      "label_required": "Bitte gib eine Bezeichnung ein.",
+      "label_too_long": "Die Bezeichnung darf höchstens {max} Zeichen haben.",
+      "options_required": "Ein Auswahlfeld braucht mindestens einen Wert.",
+      "options_too_long": "Höchstens {count} Werte mit je bis zu {max} Zeichen.",
+      "unit_too_long": "Die Einheit darf höchstens {max} Zeichen haben.",
+      "unknown_kind": "Unbekannter Feldtyp.",
+      "parent_not_a_group": "Die gewählte Gruppe gibt es nicht (mehr).",
+      "no_group_in_group": "Eine Gruppe kann nicht in einer anderen Gruppe liegen.",
+      "kind_locked": "Der Typ lässt sich nicht mehr ändern: Es sind schon Werte eingetragen, oder es ist eine Gruppe.",
+      "parent_archived": "Stell zuerst die Gruppe wieder her.",
+      "invalid_number": "„{label}“ muss eine Zahl sein.",
+      "invalid_date": "„{label}“ muss ein Datum sein.",
+      "invalid_choice": "„{label}“: Bitte wähle einen der Werte.",
+      "text_too_long": "„{label}“ darf höchstens {max} Zeichen haben.",
+      "required": "„{label}“ ist ein Pflichtfeld."
     }
   }
 }

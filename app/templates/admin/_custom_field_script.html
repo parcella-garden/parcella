@@ -1,0 +1,28 @@
+<script>
+// Shows only the inputs that fit the chosen field type; a field inside a
+// group can't be a group itself.
+document.addEventListener('DOMContentLoaded', function () {
+    var kind = document.getElementById('cf-kind');
+    var parent = document.getElementById('cf-parent');
+    if (!kind) return;
+    function update() {
+        var k = kind.value;
+        document.querySelectorAll('[data-cf-only]').forEach(function (el) {
+            el.hidden = el.dataset.cfOnly.split(' ').indexOf(k) === -1;
+        });
+        document.querySelectorAll('[data-cf-not]').forEach(function (el) {
+            el.hidden = el.dataset.cfNot.split(' ').indexOf(k) !== -1;
+        });
+        if (parent) {
+            var groupOption = kind.querySelector('option[value="GROUP"]');
+            if (groupOption) {
+                groupOption.disabled = parent.value !== '';
+                if (parent.value !== '' && k === 'GROUP') { kind.value = 'TEXT'; update(); }
+            }
+        }
+    }
+    kind.addEventListener('change', update);
+    if (parent) parent.addEventListener('change', update);
+    update();
+});
+</script>

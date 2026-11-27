@@ -39,6 +39,8 @@ from app.parcel_cloud_folders import (
 from app.models import ProcessSubjectKind
 from app.routers.processes import subject_processes
 from app.services.errors import ServiceError
+from app.services import custom_fields as cf
+from app.models import CustomFieldTarget
 from app.paging import page_of, paginate, with_page
 from app.services.parcels import (
     filtered_parcels_query,
@@ -115,7 +117,7 @@ async def parcel_new_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "members_parcels", "write")
     return templates.TemplateResponse(
         request, "parcels/form.html",
-        {"request": request, "user": user, "parcel": None},
+        {"request": request, "user": user, "parcel": None, **await cf.form_context(db, CustomFieldTarget.PARCEL, None)},
     )
 
 
@@ -152,14 +154,18 @@ async def parcel_create(
         except ValueError:
             pass
 
+    # Loaded before anything is written: the error path renders the
+    # form straight from this session.
+    custom_ctx = await cf.form_context(db, CustomFieldTarget.PARCEL, None)
     try:
         parcel = await create_parcel(
             db, plot_number=plot_number, area_sqm=area, latitude=lat, longitude=lng, notes=notes,
         )
+        await cf.save_form_values(db, CustomFieldTarget.PARCEL, parcel.id, await request.form())
     except ServiceError as e:
         return templates.TemplateResponse(
             request, "parcels/form.html",
-            {"request": request, "user": user, "parcel": None, "error": t_for(request, e.key, **e.params)},
+            {"request": request, "user": user, "parcel": None, "error": t_for(request, e.key, **e.params), **custom_ctx},
             status_code=e.http_status,
         )
 
@@ -285,6 +291,7 @@ async def parcel_detail(
             "all_members": all_members,
             "all_members_json": all_members_json,
             "changes": changes,
+            "custom_field_rows": await cf.view_rows(db, CustomFieldTarget.PARCEL, parcel.id),
             "ParcelStatus": ParcelStatus,
             "cloud_storage_enabled": cloud_storage_enabled,
             "cloud_folder": cloud_folder,
@@ -321,7 +328,7 @@ async def parcel_edit_page(
 
     return templates.TemplateResponse(
         request, "parcels/form.html",
-        {"request": request, "user": user, "parcel": parcel},
+        {"request": request, "user": user, "parcel": parcel, **await cf.form_context(db, CustomFieldTarget.PARCEL, parcel.id)},
     )
 
 
@@ -367,16 +374,20 @@ async def parcel_update(
 
     new_status = ParcelStatus(status) if status in [s.value for s in ParcelStatus] else parcel.status
 
+    # Loaded before anything is written: the error path renders the
+    # form straight from this session.
+    custom_ctx = await cf.form_context(db, CustomFieldTarget.PARCEL, parcel_id)
     try:
         await update_parcel(
             db, parcel, acting_user=user,
             plot_number=plot_number, area_sqm=area, latitude=lat, longitude=lng, status=new_status,
             termination_note=termination_note, notes=notes,
         )
+        await cf.save_form_values(db, CustomFieldTarget.PARCEL, parcel_id, await request.form())
     except ServiceError as e:
         return templates.TemplateResponse(
             request, "parcels/form.html",
-            {"request": request, "user": user, "parcel": parcel, "error": t_for(request, e.key, **e.params)},
+            {"request": request, "user": user, "parcel": parcel, "error": t_for(request, e.key, **e.params), **custom_ctx},
             status_code=e.http_status,
         )
 

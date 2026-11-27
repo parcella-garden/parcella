@@ -75,7 +75,8 @@
     "notes": "Poznámky",
     "api_tokens": "API tokeny",
     "calendar_custom": "Vlastné kalendáre",
-    "processes": "Procesy"
+    "processes": "Procesy",
+    "custom_fields": "Vlastné polia"
   },
   "errors": {
     "user_not_found": "Používateľ nebol nájdený",
@@ -4009,6 +4010,75 @@
         "added_to_mailing_list": "Pridaný do rozosielacieho zoznamu",
         "notes": "Poznámky"
       }
+    }
+  },
+  "custom_fields": {
+    "yes": "Áno",
+    "target_member": "Členovia",
+    "target_parcel": "Parcely",
+    "kind_text": "Text",
+    "kind_long_text": "Dlhý text",
+    "kind_number": "Číslo",
+    "kind_date": "Dátum",
+    "kind_checkbox": "Áno/nie",
+    "kind_choice": "Výber",
+    "kind_group": "Skupina (áno/nie s podpoľami)",
+    "form": {
+      "card_header": "Ďalšie údaje"
+    },
+    "admin": {
+      "title": "Vlastné polia",
+      "intro": "Vlastné polia pre členov a parcely, napr. povolanie člena alebo záhradná chatka na parcele s plochou a rokom stavby. Zobrazujú sa vo formulári úprav a na stránke detailu. Zakladať ich môžu len správcovia systému; hodnoty zadáva každý, kto smie upravovať členov a parcely.",
+      "list_header": "Polia",
+      "col_label": "Názov",
+      "col_kind": "Typ",
+      "col_key": "Kľúč",
+      "required": "Povinné",
+      "archived": "Archivované",
+      "move_up": "Nahor",
+      "move_down": "Nadol",
+      "edit": "Upraviť",
+      "restore": "Obnoviť",
+      "archive": "Archivovať",
+      "archive_confirm": "Archivovať toto pole? Zmizne z formulárov a stránok detailu; doteraz zadané hodnoty zostanú a po obnovení sa vrátia.",
+      "empty": "Zatiaľ žiadne vlastné polia.",
+      "new_header": "Nové pole alebo skupina",
+      "label": "Názov",
+      "kind": "Typ",
+      "parent": "V skupine",
+      "parent_none": "– žiadna (samostatné pole) –",
+      "parent_hint": "Pole v skupine sa zobrazí, až keď je skupina zaškrtnutá, napr. „Priemer“ v „Bazén“.",
+      "add": "Pridať",
+      "unit": "Jednotka",
+      "unit_placeholder": "napr. m², cm",
+      "options": "Možnosti",
+      "options_hint": "Jedna možnosť na riadok.",
+      "help_text": "Pomocný text",
+      "required_hint": "V skupine povinné len vtedy, keď je skupina zaškrtnutá.",
+      "edit_title": "Upraviť pole: {label}",
+      "back": "Späť",
+      "kind_locked": "Typ sa už nedá zmeniť: hodnoty už boli zadané, alebo ide o skupinu.",
+      "key_hint": "pevný názov poľa pre exporty a API; zostane aj po premenovaní poľa.",
+      "cancel": "Zrušiť",
+      "save": "Uložiť"
+    },
+    "errors": {
+      "unknown_target": "Neznáma oblasť.",
+      "label_required": "Zadajte názov.",
+      "label_too_long": "Názov môže mať najviac {max} znakov.",
+      "options_required": "Pole výberu potrebuje aspoň jednu možnosť.",
+      "options_too_long": "Najviac {count} možností po najviac {max} znakov.",
+      "unit_too_long": "Jednotka môže mať najviac {max} znakov.",
+      "unknown_kind": "Neznámy typ poľa.",
+      "parent_not_a_group": "Zvolená skupina (už) neexistuje.",
+      "no_group_in_group": "Skupina nemôže byť v inej skupine.",
+      "kind_locked": "Typ sa už nedá zmeniť: hodnoty už boli zadané, alebo ide o skupinu.",
+      "parent_archived": "Najprv obnovte skupinu.",
+      "invalid_number": "„{label}“ musí byť číslo.",
+      "invalid_date": "„{label}“ musí byť dátum.",
+      "invalid_choice": "„{label}“: vyberte jednu z možností.",
+      "text_too_long": "„{label}“ môže mať najviac {max} znakov.",
+      "required": "„{label}“ je povinné."
     }
   }
 }

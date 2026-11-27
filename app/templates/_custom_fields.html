@@ -1,0 +1,94 @@
+{#- Custom fields (issue #443, ADR 0147) on the member and parcel pages.
+    form_card: the edit form's card; inputs are named cf_<field id>, the
+    hidden marker tells the route to save them. view_card: the detail
+    page's "Further details". -#}
+
+{% macro form_card(fields, values) %}
+{% if fields %}
+<div class="card mt-3" id="custom-fields">
+    <div class="card-header"><i class="bi bi-ui-checks me-2"></i>{{ t('custom_fields.form.card_header') }}</div>
+    <div class="card-body">
+        <input type="hidden" name="custom_fields_present" value="1">
+        <div class="row g-3">
+        {% for f in fields %}
+            {% set name = 'cf_' ~ f.id %}
+            {% set value = values.get(f.id, '') %}
+            <div class="{% if f.parent_id %}col-sm-6 ps-sm-4{% else %}col-12{% endif %}"
+                 {% if f.parent_id %}data-cf-group="{{ f.parent_id }}"{% endif %}>
+            {% if f.kind.name in ('CHECKBOX', 'GROUP') %}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="{{ name }}" value="1" id="{{ name }}"
+                           {% if value == 'True' %}checked{% endif %}
+                           {% if f.kind.name == 'GROUP' %}data-cf-toggle="{{ f.id }}"{% endif %}>
+                    <label class="form-check-label {% if f.kind.name == 'GROUP' %}fw-semibold{% endif %}" for="{{ name }}">{{ f.label }}</label>
+                </div>
+            {% else %}
+                <label class="form-label fw-semibold" for="{{ name }}">{{ f.label }}{% if f.unit %} ({{ f.unit }}){% endif %}
+                    {% if f.required %}<span class="text-danger">*</span>{% endif %}</label>
+                {% if f.kind.name == 'LONG_TEXT' %}
+                <textarea name="{{ name }}" id="{{ name }}" class="form-control" rows="3"
+                          {% if f.required %}required data-cf-required{% endif %}>{{ value }}</textarea>
+                {% elif f.kind.name == 'CHOICE' %}
+                <select name="{{ name }}" id="{{ name }}" class="form-select" {% if f.required %}required data-cf-required{% endif %}>
+                    <option value="">–</option>
+                    {% for option in f.options or [] %}
+                    <option value="{{ option }}" {% if option == value %}selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select>
+                {% else %}
+                <input type="{% if f.kind.name == 'DATE' %}date{% elif f.kind.name == 'NUMBER' %}text{% else %}text{% endif %}"
+                       {% if f.kind.name == 'NUMBER' %}inputmode="decimal"{% endif %}
+                       name="{{ name }}" id="{{ name }}" class="form-control" value="{{ value }}"
+                       {% if f.required %}required data-cf-required{% endif %}>
+                {% endif %}
+            {% endif %}
+            {% if f.help_text %}<div class="form-text">{{ f.help_text }}</div>{% endif %}
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+<script>
+// A group's sub-fields only show (and are only required) while it is ticked.
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-cf-toggle]').forEach(function (toggle) {
+        function update() {
+            document.querySelectorAll('[data-cf-group="' + toggle.dataset.cfToggle + '"]').forEach(function (el) {
+                el.hidden = !toggle.checked;
+                el.querySelectorAll('[data-cf-required]').forEach(function (input) { input.required = toggle.checked; });
+            });
+        }
+        toggle.addEventListener('change', update);
+        update();
+    });
+});
+</script>
+{% endif %}
+{% endmacro %}
+
+{% macro show_value(f, v) %}
+{%- if f.kind.name in ('CHECKBOX', 'GROUP') -%}{{ t('custom_fields.yes') }}
+{%- elif f.kind.name == 'DATE' -%}{{ v.strftime('%d.%m.%Y') }}
+{%- elif f.kind.name == 'NUMBER' -%}{{ v }}{% if f.unit %} {{ f.unit }}{% endif %}
+{%- else -%}{{ v }}{%- endif -%}
+{% endmacro %}
+
+{% macro view_card(rows) %}
+{% if rows %}
+<div class="card mt-3">
+    <div class="card-header"><i class="bi bi-ui-checks me-2"></i>{{ t('custom_fields.form.card_header') }}</div>
+    <div class="card-body">
+        <dl class="row mb-0">
+        {% for f, v, subs in rows %}
+            <dt class="col-sm-5">{{ f.label }}</dt>
+            <dd class="col-sm-7" style="white-space: pre-line;">{{ show_value(f, v) }}</dd>
+            {% for c, cv in subs %}
+            <dt class="col-sm-5 fw-normal ps-4">{{ c.label }}</dt>
+            <dd class="col-sm-7" style="white-space: pre-line;">{{ show_value(c, cv) }}</dd>
+            {% endfor %}
+        {% endfor %}
+        </dl>
+    </div>
+</div>
+{% endif %}
+{% endmacro %}

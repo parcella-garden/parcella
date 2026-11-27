@@ -75,7 +75,8 @@
     "notes": "Notes",
     "api_tokens": "API tokens",
     "calendar_custom": "My calendars",
-    "processes": "Processes"
+    "processes": "Processes",
+    "custom_fields": "Custom fields"
   },
   "errors": {
     "user_not_found": "User not found",
@@ -4009,6 +4010,75 @@
         "added_to_mailing_list": "Added to the mailing list",
         "notes": "Notes"
       }
+    }
+  },
+  "custom_fields": {
+    "yes": "Yes",
+    "target_member": "Members",
+    "target_parcel": "Parcels",
+    "kind_text": "Text",
+    "kind_long_text": "Long text",
+    "kind_number": "Number",
+    "kind_date": "Date",
+    "kind_checkbox": "Yes/no",
+    "kind_choice": "Choice",
+    "kind_group": "Group (yes/no with sub-fields)",
+    "form": {
+      "card_header": "Further details"
+    },
+    "admin": {
+      "title": "Custom fields",
+      "intro": "Fields of your own for members and parcels, e.g. a member's occupation or a parcel's summer house with its area and build date. They appear on the edit form and the detail page. Only system administrators can set them up; entering values is open to everyone who may edit members and parcels.",
+      "list_header": "Fields",
+      "col_label": "Label",
+      "col_kind": "Type",
+      "col_key": "Key",
+      "required": "Required",
+      "archived": "Archived",
+      "move_up": "Move up",
+      "move_down": "Move down",
+      "edit": "Edit",
+      "restore": "Restore",
+      "archive": "Archive",
+      "archive_confirm": "Archive this field? It disappears from forms and detail pages; the values entered so far are kept and come back if you restore it.",
+      "empty": "No custom fields yet.",
+      "new_header": "New field or group",
+      "label": "Label",
+      "kind": "Type",
+      "parent": "In group",
+      "parent_none": "– none (a field of its own) –",
+      "parent_hint": "A field in a group only appears once the group is ticked, e.g. “Diameter” in “Pool”.",
+      "add": "Add",
+      "unit": "Unit",
+      "unit_placeholder": "e.g. m², cm",
+      "options": "Choices",
+      "options_hint": "One choice per line.",
+      "help_text": "Help text",
+      "required_hint": "In a group, only required while the group is ticked.",
+      "edit_title": "Edit field: {label}",
+      "back": "Back",
+      "kind_locked": "The type can't be changed any more: values have been entered, or it's a group.",
+      "key_hint": "the field's fixed name for exports and the API; it stays when you rename the field.",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "errors": {
+      "unknown_target": "Unknown area.",
+      "label_required": "Please enter a label.",
+      "label_too_long": "The label may have at most {max} characters.",
+      "options_required": "A choice field needs at least one choice.",
+      "options_too_long": "At most {count} choices of up to {max} characters each.",
+      "unit_too_long": "The unit may have at most {max} characters.",
+      "unknown_kind": "Unknown field type.",
+      "parent_not_a_group": "The chosen group doesn't exist (any more).",
+      "no_group_in_group": "A group can't be inside another group.",
+      "kind_locked": "The type can't be changed any more: values have been entered, or it's a group.",
+      "parent_archived": "Restore the group first.",
+      "invalid_number": "“{label}” must be a number.",
+      "invalid_date": "“{label}” must be a date.",
+      "invalid_choice": "“{label}”: please pick one of the choices.",
+      "text_too_long": "“{label}” may have at most {max} characters.",
+      "required": "“{label}” is required."
     }
   }
 }

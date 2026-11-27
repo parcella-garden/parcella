@@ -32,6 +32,8 @@ from app.models import Member, MemberPhone, MemberEmail, MemberParcel, MemberTag
 from app.models import ProcessSubjectKind
 from app.routers.processes import subject_processes
 from app.services.errors import ServiceError
+from app.services import custom_fields as cf
+from app.models import CustomFieldTarget
 from app.permissions import require_permission
 from app.i18n import AVAILABLE_LANGUAGES, t_for, load_current_language
 from app.branding import load_branding
@@ -177,12 +179,24 @@ async def _sync_form_tags(request: Request, db: AsyncSession, member_id: str) ->
     return True
 
 
+async def _save_custom_fields(request: Request, db: AsyncSession, member_id: str) -> Optional[str]:
+    """The form's custom-field card (issue #443). Returns the error message
+    if a value doesn't fit; nothing of this save is kept then."""
+    try:
+        await cf.save_form_values(db, CustomFieldTarget.MEMBER, member_id, await request.form())
+    except ServiceError as e:
+        await db.rollback()
+        return t_for(request, e.key, **e.params)
+    return None
+
+
 @router.get("/new", response_class=HTMLResponse)
-async def member_new_page(request: Request, db: AsyncSession = Depends(get_db)):
+async def member_new_page(request: Request, error: str = "", db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "members_parcels", "write")
     return templates.TemplateResponse(
         request, "members/form.html",
-        {"request": request, "user": user, "member": None, "all_tags": await list_tags(db)},
+        {"request": request, "user": user, "member": None, "all_tags": await list_tags(db), "fehler": error[:300],
+         **await cf.form_context(db, CustomFieldTarget.MEMBER, None)},
     )
 
 
@@ -227,6 +241,9 @@ async def member_create(
         await add_email(db, member.id, address=email.strip(), is_primary=True)
     if phone.strip():
         await add_phone(db, member.id, number=phone.strip(), is_primary=True)
+    error = await _save_custom_fields(request, db, member.id)
+    if error:
+        return RedirectResponse(f"/members/new?error={urllib.parse.quote(error)}", status_code=303)
     if not await _sync_form_tags(request, db, member.id):
         return RedirectResponse(f"/members/{member.id}/edit", status_code=303)
     await db.commit()
@@ -386,6 +403,7 @@ async def member_detail(
             # "Back to list" lands on the page this member is on (issue #425).
             "back_query_suffix": with_page(list_query_string, list_page),
             "subject_processes": await subject_processes(request, db, ProcessSubjectKind.MEMBER, member.id),
+            "custom_field_rows": await cf.view_rows(db, CustomFieldTarget.MEMBER, member.id),
             # Issue #344: "Write to this member" starts the same targeted
             # message as ticking one row on /members/ (issue #337). A
             # former member is only found by the inactive filter.
@@ -400,6 +418,7 @@ async def member_detail(
 async def member_edit_page(
     member_id: str,
     request: Request,
+    error: str = "",
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "write")
@@ -410,7 +429,8 @@ async def member_edit_page(
 
     return templates.TemplateResponse(
         request, "members/form.html",
-        {"request": request, "user": user, "member": member, "all_tags": await list_tags(db)},
+        {"request": request, "user": user, "member": member, "all_tags": await list_tags(db), "fehler": error[:300],
+         **await cf.form_context(db, CustomFieldTarget.MEMBER, member.id)},
     )
 
 
@@ -454,6 +474,9 @@ async def member_update(
         email_notifications=email_notifications,
         birthday_present_declined=birthday_present_declined, notes=notes,
     )
+    error = await _save_custom_fields(request, db, member_id)
+    if error:
+        return RedirectResponse(f"/members/{member_id}/edit?error={urllib.parse.quote(error)}", status_code=303)
     if not await _sync_form_tags(request, db, member_id):
         return RedirectResponse(f"/members/{member_id}/edit", status_code=303)
     await db.commit()

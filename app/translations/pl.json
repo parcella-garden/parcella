@@ -75,7 +75,8 @@
     "notes": "Notatki",
     "api_tokens": "Tokeny API",
     "calendar_custom": "Własne kalendarze",
-    "processes": "Procesy"
+    "processes": "Procesy",
+    "custom_fields": "Własne pola"
   },
   "errors": {
     "user_not_found": "Nie znaleziono użytkownika",
@@ -4009,6 +4010,75 @@
         "added_to_mailing_list": "Dodano do listy mailingowej",
         "notes": "Notatki"
       }
+    }
+  },
+  "custom_fields": {
+    "yes": "Tak",
+    "target_member": "Członkowie",
+    "target_parcel": "Działki",
+    "kind_text": "Tekst",
+    "kind_long_text": "Długi tekst",
+    "kind_number": "Liczba",
+    "kind_date": "Data",
+    "kind_checkbox": "Tak/nie",
+    "kind_choice": "Wybór",
+    "kind_group": "Grupa (tak/nie z polami podrzędnymi)",
+    "form": {
+      "card_header": "Dalsze informacje"
+    },
+    "admin": {
+      "title": "Własne pola",
+      "intro": "Własne pola dla członków i działek, np. zawód członka albo altana na działce z powierzchnią i rokiem budowy. Pojawiają się w formularzu edycji i na stronie szczegółów. Zakładać je mogą tylko administratorzy systemu; wartości wpisuje każdy, kto może edytować członków i działki.",
+      "list_header": "Pola",
+      "col_label": "Nazwa",
+      "col_kind": "Typ",
+      "col_key": "Klucz",
+      "required": "Wymagane",
+      "archived": "Zarchiwizowane",
+      "move_up": "W górę",
+      "move_down": "W dół",
+      "edit": "Edytuj",
+      "restore": "Przywróć",
+      "archive": "Archiwizuj",
+      "archive_confirm": "Zarchiwizować to pole? Zniknie z formularzy i stron szczegółów; wpisane dotąd wartości zostaną zachowane i wrócą po przywróceniu.",
+      "empty": "Brak własnych pól.",
+      "new_header": "Nowe pole lub grupa",
+      "label": "Nazwa",
+      "kind": "Typ",
+      "parent": "W grupie",
+      "parent_none": "– brak (samodzielne pole) –",
+      "parent_hint": "Pole w grupie pojawia się dopiero po zaznaczeniu grupy, np. „Średnica” w „Basen”.",
+      "add": "Dodaj",
+      "unit": "Jednostka",
+      "unit_placeholder": "np. m², cm",
+      "options": "Opcje",
+      "options_hint": "Jedna opcja w wierszu.",
+      "help_text": "Tekst pomocy",
+      "required_hint": "W grupie wymagane tylko wtedy, gdy grupa jest zaznaczona.",
+      "edit_title": "Edytuj pole: {label}",
+      "back": "Wstecz",
+      "kind_locked": "Typu nie można już zmienić: wpisano już wartości albo jest to grupa.",
+      "key_hint": "stała nazwa pola dla eksportów i API; zostaje po zmianie nazwy pola.",
+      "cancel": "Anuluj",
+      "save": "Zapisz"
+    },
+    "errors": {
+      "unknown_target": "Nieznany obszar.",
+      "label_required": "Podaj nazwę.",
+      "label_too_long": "Nazwa może mieć najwyżej {max} znaków.",
+      "options_required": "Pole wyboru potrzebuje co najmniej jednej opcji.",
+      "options_too_long": "Najwyżej {count} opcji po maks. {max} znaków.",
+      "unit_too_long": "Jednostka może mieć najwyżej {max} znaków.",
+      "unknown_kind": "Nieznany typ pola.",
+      "parent_not_a_group": "Wybrana grupa nie istnieje (już).",
+      "no_group_in_group": "Grupa nie może być w innej grupie.",
+      "kind_locked": "Typu nie można już zmienić: wpisano już wartości albo jest to grupa.",
+      "parent_archived": "Najpierw przywróć grupę.",
+      "invalid_number": "„{label}” musi być liczbą.",
+      "invalid_date": "„{label}” musi być datą.",
+      "invalid_choice": "„{label}”: wybierz jedną z opcji.",
+      "text_too_long": "„{label}” może mieć najwyżej {max} znaków.",
+      "required": "„{label}” jest wymagane."
     }
   }
 }
