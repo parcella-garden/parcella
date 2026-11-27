@@ -3,7 +3,7 @@ Issue #77: only invoice-address members who also opted into email
 notifications should be emailed; the print bundle must contain only
 those with is_invoice_address=True and email_notifications=False --
 regardless of whether /deliver has run yet (see app/invoice_delivery.py
-and the print-bundle filter in app/routers/finances.py).
+and the print-bundle filter in app/routers/finances/runs.py).
 """
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
