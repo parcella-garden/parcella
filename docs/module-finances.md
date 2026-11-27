@@ -35,7 +35,7 @@ invoice_runs               -- one "annual invoices" batch (e.g. "2026")
 `InvoiceItemTemplate` and `InvoiceItemDefinition` are structurally
 identical (template is just "not yet attached to a run"); applying a
 catalog template to a run (`items_add_from_catalog` in
-`app/routers/finances.py`) copies every field, including scope rows,
+`app/routers/finances/runs.py`) copies every field, including scope rows,
 onto a new `InvoiceItemDefinition` -- there is no `template_id` FK
 recorded on the resulting definition, so nothing links it back to the
 template it came from.
@@ -322,7 +322,7 @@ reasoning, including why matching is exact-name rather than fuzzy.
 
 **Re-imports don't double bookings (issue #356).** A row counts as
 already imported when the account has a booking with the same date,
-signed amount and text (`_booking_key()` in `app/routers/finances.py`:
+signed amount and text (`booking_key()` in `app/services/finances.py`:
 `AccountTransaction.description`, `InvoicePayment.note` as +,
 `IncomingInvoicePayment.note` as -, text cut to the notes' 255
 characters). It's a multiset (`collections.Counter`), because two
@@ -345,7 +345,7 @@ this same list -- the user found it added noise without adding value;
 whether a row is deletable from this list at all) but is no longer
 shown or filterable.
 
-**Bug fixed in issue #189:** `_account_bookings_base`'s `UNION ALL`
+**Bug fixed in issue #189:** `account_bookings_base`'s `UNION ALL`
 never included `IncomingInvoicePayment` at all -- since issue #181
 gave it an `account_id` and issue #188 started actively creating
 tagged rows via invoice matching, any expense payment tagged to an
@@ -461,8 +461,8 @@ combined into one chronological, filterable list (date range,
 category, free-text search across sender/recipient/description,
 amount range, income/expense direction). Built in `app/bookings.py`,
 entirely in Python rather than a SQL `UNION ALL` (contrast with the
-per-account bookings list, issue #174's `_account_bookings_base` in
-`app/routers/finances.py`) because a single payment can touch several
+per-account bookings list, issue #174's `account_bookings_base` in
+`app/services/finances.py`) because a single payment can touch several
 categories via its invoice's line items -- a one-to-many relationship
 that doesn't collapse into one row cleanly. Fine at real-world club
 scale; would need a proper paginated SQL query if that ever stops
@@ -516,3 +516,17 @@ the club actually runs invoices.
 never writes to the DB specifically so it can be called for a preview
 as many times as needed with zero risk; `finalize_run` is the only
 place invoice numbers get assigned, and it runs exactly once per run.
+
+## Code layout (issue #416)
+
+The routes live in the package `app/routers/finances/`, one sub-router
+per area (`dashboard`, `runs`, `reminders`, `incoming`, `bookkeeping`,
+`invoices`, `accounts`, `item_templates`); `__init__.py` holds the
+`/finances` router with the module guard and includes them. Helpers
+that several sub-routers need and that touch HTTP (404s, form parsing)
+are in `_common.py`. Database helpers without any HTTP (booking queries,
+the bank-statement import's duplicate detection and matching, PDF
+context, item catalog) are in `app/services/finances.py`. The bigger
+pieces of finance logic were already modules of their own
+(`app/invoice_generation.py`, `app/invoice_delivery.py`, `app/bookings.py`,
+`app/invoice_matching.py`, `app/accounting_statement.py`, `app/budget_plan.py`).

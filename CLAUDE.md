@@ -238,7 +238,7 @@ silently continuing.
   `get_filename()` value went into the attachment download header.
   Build the header with `content_disposition()` from
   `app/security_headers.py` (an ASCII fallback plus a percent-encoded
-  `filename*`; see `app/routers/finances.py` for its callers), or use a
+  `filename*`; see `app/routers/finances/` for its callers), or use a
   name the code generates itself (a uuid, a fixed name, or an ASCII
   slug like `_download_name()` in `app/routers/announcements.py`).
   The rule isn't limited to HTML or to response headers: any

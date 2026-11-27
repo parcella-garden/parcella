@@ -3,7 +3,7 @@ A unified, filterable list of every invoice payment across the club
 (issue #180) -- money actually received against an outgoing Invoice,
 and money actually paid against an IncomingInvoice, combined into one
 chronological list. Complements the per-account "bookings" view
-(issue #174, app/routers/finances.py's _account_bookings_base) which
+(issue #174, app/services/finances.py's account_bookings_base) which
 is scoped to one FinanceAccount and includes AccountTransaction rows;
 this one is club-wide and scoped to invoice payments only.
 
@@ -14,7 +14,7 @@ sender/recipient/category/description shape any better than it fit
 the statement's category breakdown.
 
 Built entirely in Python rather than a SQL UNION ALL (contrast with
-_account_bookings_base) because each payment can touch several
+account_bookings_base in app/services/finances.py) because each payment can touch several
 categories via its invoice's line items -- a one-to-many relationship
 that doesn't collapse cleanly into one UNION'd row. Fine at the scale
 a garden club actually operates at; revisit with a real pagination/

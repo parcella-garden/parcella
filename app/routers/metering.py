@@ -91,7 +91,7 @@ def _monotonicity_warning_text(request: Request, meter: Meter, reading) -> Optio
 def _parse_date_flexible(value: str) -> Optional[date]:
     """Accepts ISO (2026-09-18) and the German-locale dotted format
     (18.09.2026) a self-hoster's own spreadsheet is more likely to use
-    (see app/routers/finances.py's _parse_date_flexible for the same
+    (see app/services/finances.py's parse_date_flexible for the same
     shape, used there for bank-statement CSV import)."""
     value = value.strip()
     if not value:
