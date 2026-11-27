@@ -29,6 +29,12 @@ Open **Members** in the main menu. The list shows the active members,
 sorted by last name and then first name. The footer shows how many
 members are in the list right now.
 
+A long list is split into pages of 100 members. Below the table,
+**Previous** and **Next** move between pages, "Page 2 of 17" says where
+you are, and "Showing 101–200 of 1612" which members you see. The search
+and filters stay set while you page through. Coming back from a member
+page with **Back** takes you to the page that member is on.
+
 ### Buttons at the top
 
 | Button | What it does |
@@ -89,20 +95,24 @@ tick 12 of them.
 
 | Button | What it does |
 |---|---|
-| **Select all** | Ticks every member in the current list. |
+| **Select all** | Ticks every member on the current page. |
+| **Select all *N* matching the filter** | Only shown when the list has more than one page, after you click **Select all**. Selects every member the filter finds, on all pages. The counter then says "All *N* selected". |
 | **Select none** | Clears all ticks. |
 | ***N* selected** | Counts the ticked members. |
 | **Export selected** | Downloads a CSV file with only the ticked members. Disabled until you tick someone. |
 | **Write to selected** | Starts a new announcement to only the ticked members. Only shown while the **Announcements** module is on, and only to board members and administrators. |
 
-!!! warning "Ticks are lost when you change the filter"
+!!! warning "Ticks are lost when you change the filter or the page"
     Changing the search, a checkbox or the tag dropdown reloads the
-    page, and your ticks are gone. Set the filter first, then tick.
+    page, and your ticks are gone. So does moving to another page. Set
+    the filter first, then tick. For a large group, narrow the filter
+    (or give the members a tag and filter by it) and use **Select all
+    *N* matching the filter** instead of ticking row by row.
 
 When you follow the member list link from an announcement that was sent
 to picked members, the list shows only those members with the notice
 "Showing only the *N* selected members." Click **Show the whole list**
-to return to the normal list. You can pick up to 2,000 members at once.
+to return to the normal list.
 
 ### CSV export
 
@@ -233,7 +243,7 @@ numbers, email addresses, tags and parcels directly.
 |---|---|
 | **Edit** | Opens the [edit form](#new-member-and-edit-member). Needs write permission. |
 | **Previous** / **Next** | Jumps to the previous or next member *in the list you came from*, with the same filter. You can also press ++ctrl+left++ and ++ctrl+right++ (not while typing in a field). On a Mac, these keys may be taken by the system for switching desktops. |
-| **Back** | Returns to the member list, with your filter. |
+| **Back** | Returns to the member list, with your filter, on the page this member is on. |
 
 ### Master data
 

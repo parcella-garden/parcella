@@ -10,6 +10,13 @@
       "hint": "Name dieses Tags je Sprache. Leere Felder zeigen „{name}“.",
       "save": "Übersetzungen speichern",
       "none": "Keine Übersetzungen."
+    },
+    "pagination": {
+      "label": "Seiten",
+      "showing": "{first}–{last} von {total}",
+      "previous": "Vorherige",
+      "next": "Nächste",
+      "page_of": "Seite {page} von {pages}"
     }
   },
   "nav": {
@@ -684,7 +691,9 @@
       "export_selected": "Auswahl exportieren",
       "write_to_selected": "An Auswahl schreiben",
       "picked_notice": "Es werden nur die {count} ausgewählten Mitglieder angezeigt.",
-      "picked_show_all": "Ganze Liste anzeigen"
+      "picked_show_all": "Ganze Liste anzeigen",
+      "select_all_matching": "Alle {count} Treffer des Filters auswählen",
+      "all_selected": "Alle {count} ausgewählt"
     },
     "form": {
       "title_edit": "{name} bearbeiten",
@@ -847,7 +856,9 @@
       "select_none": "Keine auswählen",
       "selected_count": "{count} ausgewählt",
       "export_selected": "Auswahl exportieren",
-      "write_to_selected": "An die Pächter schreiben"
+      "write_to_selected": "An die Pächter schreiben",
+      "select_all_matching": "Alle {count} Treffer des Filters auswählen",
+      "all_selected": "Alle {count} ausgewählt"
     },
     "form": {
       "title_edit": "{plot_number} bearbeiten",

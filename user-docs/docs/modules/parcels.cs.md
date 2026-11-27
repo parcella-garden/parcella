@@ -1,5 +1,8 @@
 # Parcely {#parcels}
 
+!!! warning "Zatím neaktualizováno"
+    Tato stránka popisuje starší stav. Aktuální je anglická verze (jazyk přepnete nahoře).
+
 !!! note "Strojový překlad"
     Tato stránka byla strojově přeložena z angličtiny a dosud nebyla zkontrolována. Pokud je něco nejasné, platí anglická verze (jazyk přepnete nahoře).
 

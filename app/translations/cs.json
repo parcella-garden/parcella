@@ -10,6 +10,13 @@
       "hint": "Název tohoto štítku v jednotlivých jazycích. Prázdná pole zobrazí „{name}“.",
       "save": "Uložit překlady",
       "none": "Žádné překlady."
+    },
+    "pagination": {
+      "label": "Stránky",
+      "showing": "{first}–{last} z {total}",
+      "previous": "Předchozí",
+      "next": "Další",
+      "page_of": "Stránka {page} z {pages}"
     }
   },
   "nav": {
@@ -684,7 +691,9 @@
       "export_selected": "Exportovat vybrané",
       "write_to_selected": "Napsat vybraným",
       "picked_notice": "Zobrazeni jsou jen vybraní členové ({count}).",
-      "picked_show_all": "Zobrazit celý seznam"
+      "picked_show_all": "Zobrazit celý seznam",
+      "select_all_matching": "Vybrat všech {count} odpovídajících filtru",
+      "all_selected": "Vybráno všech {count}"
     },
     "form": {
       "title_edit": "Upravit {name}",
@@ -847,7 +856,9 @@
       "select_none": "Zrušit výběr",
       "selected_count": "Vybráno: {count}",
       "export_selected": "Exportovat výběr",
-      "write_to_selected": "Napsat nájemcům"
+      "write_to_selected": "Napsat nájemcům",
+      "select_all_matching": "Vybrat všech {count} odpovídajících filtru",
+      "all_selected": "Vybráno všech {count}"
     },
     "form": {
       "title_edit": "Upravit {plot_number}",

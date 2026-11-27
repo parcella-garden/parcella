@@ -45,6 +45,24 @@ from app.change_tracker import ChangeTracker
 from app.models import MemberParcel, Parcel, ParcelStatus, User
 from app.services.errors import ServiceError
 
+
+def filtered_parcels_query(search: str, status_filter: str):
+    """WHERE/ORDER BY for the parcel list, shared with the detail page's
+    Previous/Next lookup (issue #202) so the two can't drift apart --
+    same reasoning as MemberListFilter.apply() in app/member_filters.py.
+    Also resolves "all matching" for the CSV export and parcel notices
+    (issue #425)."""
+    query = select(Parcel).order_by(Parcel.plot_number)
+
+    if search:
+        query = query.where(Parcel.plot_number.ilike(f"%{search}%"))
+
+    if status_filter and status_filter in [s.value for s in ParcelStatus]:
+        query = query.where(Parcel.status == status_filter)
+
+    return query
+
+
 _TRACKED_FIELDS = ["plot_number", "area_sqm", "latitude", "longitude", "status", "termination_note", "notes"]
 
 

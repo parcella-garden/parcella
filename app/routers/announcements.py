@@ -51,6 +51,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
+from app.services.parcels import filtered_parcels_query
 from app.models import (
     Announcement, AnnouncementDelivery, AnnouncementChannel, AnnouncementDeliveryStatus, Applicant, MemberTag,
     Parcel, User,
@@ -371,7 +372,13 @@ async def _picked_parcel_ids(request: Request, db: AsyncSession, params) -> Opti
     if params.get("audience_kind") != "parcels":
         return None
     await require_permission(request, db, "members_parcels", "read")
-    requested = list(dict.fromkeys(i for i in params.getlist("parcel_ids") if i and len(i) <= 36))
+    if params.get("all_matching") == "1":
+        # Issue #425: the list is paged; "all N matching" sends its filter.
+        # Resolved to ids here, so the notice stores a plain list as before.
+        query = filtered_parcels_query(params.get("search", ""), params.get("status_filter", ""))
+        requested = list((await db.scalars(query.with_only_columns(Parcel.id))).all())
+    else:
+        requested = list(dict.fromkeys(i for i in params.getlist("parcel_ids") if i and len(i) <= 36))
     if len(requested) > MAX_PICKED_APPLICANTS:
         raise HTTPException(status_code=400, detail="Too many parcels selected")
     existing = set((await db.scalars(select(Parcel.id).where(Parcel.id.in_(requested)))).all()) if requested else set()

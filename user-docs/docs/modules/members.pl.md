@@ -1,5 +1,8 @@
 # Członkowie {#members}
 
+!!! warning "Jeszcze niezaktualizowane"
+    Ta strona opisuje starszą wersję. Aktualna jest wersja angielska (język zmienisz u góry).
+
 !!! note "Tłumaczenie maszynowe"
     Ta strona została przetłumaczona maszynowo z języka angielskiego i nie została jeszcze sprawdzona. Jeśli coś jest niejasne, obowiązuje wersja angielska (język zmienisz u góry).
 

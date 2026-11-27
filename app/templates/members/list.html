@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_pagination.html" import pagination %}
 {% block title %}{{ t('members.list.title') }}{% endblock %}
 {% block page_title %}{{ t('members.list.title') }}{% endblock %}
 
@@ -131,6 +132,13 @@
     <button type="button" class="btn btn-sm btn-outline-secondary" id="pick-all">{{ t('members.list.select_all') }}</button>
     <button type="button" class="btn btn-sm btn-outline-secondary" id="pick-none">{{ t('members.list.select_none') }}</button>
     <span class="text-muted small" id="pick-count" data-template="{{ t('members.list.selected_count', count='__N__') }}">{{ t('members.list.selected_count', count=picked_ids|length) }}</span>
+    {#- Issue #425: the list is paged, so "Select all" ticks this page;
+        this button widens it to the whole filter. Not offered for the
+        "only the selected" view: its filter without ids is a bigger set. -#}
+    {% if page.pages > 1 and not picked_ids %}
+    <button type="button" class="btn btn-sm btn-link p-0 d-none" id="pick-all-matching"
+            data-all-text="{{ t('members.list.all_selected', count=page.total) }}">{{ t('members.list.select_all_matching', count=page.total) }}</button>
+    {% endif %}
     <span class="ms-auto d-flex gap-2 flex-wrap">
         <button type="submit" class="btn btn-sm btn-outline-secondary pick-action" disabled>
             <i class="bi bi-download me-1"></i>{{ t('members.list.export_selected') }}
@@ -234,10 +242,11 @@
     </div>
     {% if members %}
     <div class="card-footer text-muted" style="font-size: 0.82rem;">
-        {{ members | length }} {{ t('members.list.count_suffix_singular') if members | length == 1 else t('members.list.count_suffix_plural') }}
+        {{ page.total }} {{ t('members.list.count_suffix_singular') if page.total == 1 else t('members.list.count_suffix_plural') }}
     </div>
     {% endif %}
 </div>
+{{ pagination(page, '/members/', list_query_string) }}
 
 <!-- CSV Import Modal -->
 <div class="modal fade" id="csvImportModal" tabindex="-1" aria-hidden="true">
@@ -280,17 +289,27 @@ document.addEventListener('DOMContentLoaded', function () {
     var boxes = Array.prototype.slice.call(document.querySelectorAll('.pick-member'));
     var count = document.getElementById('pick-count');
     var actions = Array.prototype.slice.call(form.querySelectorAll('.pick-action'));
+    var allMatching = document.getElementById('pick-all-matching');
+    var everything = false;  // issue #425: the whole filter, not just this page
     function update() {
         var n = boxes.filter(function (b) { return b.checked; }).length;
-        count.textContent = count.dataset.template.replace('__N__', n);
+        count.textContent = everything ? allMatching.dataset.allText : count.dataset.template.replace('__N__', n);
         actions.forEach(function (a) { a.disabled = n === 0; });
+        if (allMatching) allMatching.classList.toggle('d-none', everything || n !== boxes.length);
     }
     function setAll(checked) {
-        boxes.forEach(function (b) { b.checked = checked; });
+        everything = false;
+        // Disabled boxes aren't submitted: "all matching" sends the filter alone.
+        boxes.forEach(function (b) { b.checked = checked; b.disabled = false; });
         update();
     }
     document.getElementById('pick-all').addEventListener('click', function () { setAll(true); });
     document.getElementById('pick-none').addEventListener('click', function () { setAll(false); });
+    if (allMatching) allMatching.addEventListener('click', function () {
+        everything = true;
+        boxes.forEach(function (b) { b.checked = true; b.disabled = true; });
+        update();
+    });
     boxes.forEach(function (b) { b.addEventListener('change', update); });
     update();
 });

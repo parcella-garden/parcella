@@ -11,7 +11,7 @@ from urllib.parse import quote as urlquote, urlencode
 from fastapi import APIRouter, Request, Form, Depends, UploadFile, File, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_
+from sqlalchemy import func, select, or_
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db, active_member_filter
@@ -39,7 +39,9 @@ from app.parcel_cloud_folders import (
 from app.models import ProcessSubjectKind
 from app.routers.processes import subject_processes
 from app.services.errors import ServiceError
+from app.paging import page_of, paginate, with_page
 from app.services.parcels import (
+    filtered_parcels_query,
     create_parcel, update_parcel, assign_member, update_assignment,
     end_assignment, delete_assignment_history,
 )
@@ -57,21 +59,6 @@ async def _get_parcel_with_details(db: AsyncSession, parcel_id: str) -> Optional
         .where(Parcel.id == parcel_id)
     )
     return result.scalar_one_or_none()
-
-
-def _filtered_parcels_query(search: str, status_filter: str):
-    """WHERE/ORDER BY for the parcel list, shared with the detail page's
-    Previous/Next lookup (issue #202) so the two can't drift apart --
-    same reasoning as MemberListFilter.apply() in app/member_filters.py."""
-    query = select(Parcel).order_by(Parcel.plot_number)
-
-    if search:
-        query = query.where(Parcel.plot_number.ilike(f"%{search}%"))
-
-    if status_filter and status_filter in [s.value for s in ParcelStatus]:
-        query = query.where(Parcel.status == status_filter)
-
-    return query
 
 
 def _parcels_list_query_string(search: str, status_filter: str) -> str:
@@ -93,16 +80,19 @@ async def parcels_list(
     request: Request,
     search: str = "",
     status_filter: str = "",
+    page: int = Query(1, ge=1),
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "read")
 
-    query = _filtered_parcels_query(search, status_filter).options(
+    query = filtered_parcels_query(search, status_filter).options(
         selectinload(Parcel.member_assignments).selectinload(MemberParcel.member)
     )
-
-    result = await db.execute(query)
-    parcels = result.scalars().all()
+    parcels_page = await paginate(db, query, page)
+    parcels = parcels_page.items
+    # The footer's area covers the whole filter, not just this page.
+    filtered = filtered_parcels_query(search, status_filter).subquery()
+    total_area = await db.scalar(select(func.coalesce(func.sum(filtered.c.area_sqm), 0)))
 
     return templates.TemplateResponse(
         request, "parcels/list.html",
@@ -110,6 +100,8 @@ async def parcels_list(
             "request": request,
             "user": user,
             "parcels": parcels,
+            "page": parcels_page,
+            "total_area": total_area,
             "search": search,
             "status_filter": status_filter,
             "ParcelStatus": ParcelStatus,
@@ -195,12 +187,14 @@ async def parcel_detail(
     # Previous/Next buttons (issue #202): see the identical comment in
     # app/routers/members.py's member_detail for the reasoning.
     ordered_ids = (
-        await db.scalars(_filtered_parcels_query(search, status_filter).with_only_columns(Parcel.id))
+        await db.scalars(filtered_parcels_query(search, status_filter).with_only_columns(Parcel.id))
     ).all()
     prev_parcel_id = None
     next_parcel_id = None
+    list_page = 1
     if parcel_id in ordered_ids:
         idx = ordered_ids.index(parcel_id)
+        list_page = page_of(idx)
         if idx > 0:
             prev_parcel_id = ordered_ids[idx - 1]
         if idx < len(ordered_ids) - 1:
@@ -308,6 +302,7 @@ async def parcel_detail(
             "prev_parcel_id": prev_parcel_id,
             "next_parcel_id": next_parcel_id,
             "nav_query_suffix": f"?{list_query_string}" if list_query_string else "",
+            "back_query_suffix": with_page(list_query_string, list_page),
         },
     )
 
@@ -691,17 +686,19 @@ async def parcel_cloud_file_download(
 
 @router.get("/export/csv")
 async def parcels_export_csv(
-    request: Request, parcel_ids: List[str] = Query(default=[]), db: AsyncSession = Depends(get_db),
+    request: Request,
+    parcel_ids: List[str] = Query(default=[]),
+    search: str = "",
+    status_filter: str = "",
+    db: AsyncSession = Depends(get_db),
 ):
-    """Every parcel, or only the ones ticked on the list (issue #397)."""
+    """The parcels of the list's filter (every parcel without one), or
+    only the ones ticked on it (issue #397). The list is paged, so "all
+    matching" is the filter with nothing ticked (issue #425)."""
     await require_permission(request, db, "members_parcels", "read")
 
-    query = (
-        select(Parcel)
-        .options(
-            selectinload(Parcel.member_assignments).selectinload(MemberParcel.member)
-        )
-        .order_by(Parcel.plot_number)
+    query = filtered_parcels_query(search, status_filter).options(
+        selectinload(Parcel.member_assignments).selectinload(MemberParcel.member)
     )
     picked = clean_member_ids(parcel_ids)
     if picked:

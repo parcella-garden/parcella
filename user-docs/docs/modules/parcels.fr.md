@@ -1,5 +1,8 @@
 # Parcelles {#parcels}
 
+!!! warning "Pas encore mis à jour"
+    Cette page décrit une version antérieure. La version anglaise est à jour (changez de langue en haut).
+
 !!! note "Traduction automatique"
     Cette page a été traduite automatiquement de l'anglais et n'a pas encore été relue. En cas de doute, la version anglaise fait foi (changez de langue en haut de la page).
 

@@ -1,5 +1,8 @@
 # Členovia {#members}
 
+!!! warning "Zatiaľ neaktualizované"
+    Táto stránka opisuje starší stav. Aktuálna je anglická verzia (jazyk prepnete hore).
+
 !!! note "Strojový preklad"
     Táto stránka bola strojovo preložená z angličtiny a zatiaľ nebola skontrolovaná. Ak je niečo nejasné, platí anglická verzia (jazyk prepnete hore).
 

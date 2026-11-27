@@ -10,6 +10,13 @@
       "hint": "Naam van deze tag per taal. Lege velden tonen \"{name}\".",
       "save": "Vertalingen opslaan",
       "none": "Geen vertalingen."
+    },
+    "pagination": {
+      "label": "Pagina's",
+      "showing": "{first}–{last} van {total}",
+      "previous": "Vorige",
+      "next": "Volgende",
+      "page_of": "Pagina {page} van {pages}"
     }
   },
   "nav": {
@@ -684,7 +691,9 @@
       "export_selected": "Selectie exporteren",
       "write_to_selected": "Selectie aanschrijven",
       "picked_notice": "Alleen de {count} geselecteerde leden worden getoond.",
-      "picked_show_all": "Hele lijst tonen"
+      "picked_show_all": "Hele lijst tonen",
+      "select_all_matching": "Alle {count} resultaten van het filter selecteren",
+      "all_selected": "Alle {count} geselecteerd"
     },
     "form": {
       "title_edit": "{name} bewerken",
@@ -847,7 +856,9 @@
       "select_none": "Niets selecteren",
       "selected_count": "{count} geselecteerd",
       "export_selected": "Selectie exporteren",
-      "write_to_selected": "Schrijf naar de pachters"
+      "write_to_selected": "Schrijf naar de pachters",
+      "select_all_matching": "Alle {count} resultaten van het filter selecteren",
+      "all_selected": "Alle {count} geselecteerd"
     },
     "form": {
       "title_edit": "{plot_number} bewerken",

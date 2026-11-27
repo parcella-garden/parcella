@@ -45,6 +45,11 @@ Parzelle festgehalten; ein eigenes Kündigungsdatum brauchst du also nicht.
 Öffne **Parzellen** im Hauptmenü. Die Liste zeigt jede Parzelle, sortiert
 nach Gartennummer -- auch gelöschte, solange du nicht nach Status filterst.
 
+Eine lange Liste wird in Seiten zu je 100 Parzellen aufgeteilt, mit
+**Vorherige** und **Nächste** unter der Tabelle. Suche und Statusfilter
+bleiben beim Blättern erhalten, und **Zurück** auf einer Parzellenseite
+führt auf die Seite, auf der die Parzelle steht.
+
 ### Schaltflächen oben {#buttons-at-the-top}
 
 | Schaltfläche | Was sie bewirkt |
@@ -76,7 +81,7 @@ Wie in der Mitgliederliste behalten **Vorherige**, **Nächste** und
 | **Pächter** | Die aktuellen Pächter. Ein Klick auf einen Namen öffnet das Mitglied. Frühere und künftige Pächter stehen hier nicht. |
 | Augen-Schaltfläche | Öffnet die Parzellenseite. |
 
-Die Fußzeile zeigt die Zahl der Parzellen in der Liste und, wenn Flächen
+Die Fußzeile zeigt die Zahl der Parzellen in der Liste (auf allen Seiten) und, wenn Flächen
 erfasst sind, ihre Gesamtfläche -- praktisch, um eine gefilterte Auswahl zu
 prüfen, z. B. die Gesamtfläche aller aktiven Parzellen.
 
@@ -88,7 +93,8 @@ Mitteilung schicken.
 
 | Schaltfläche | Was sie tut |
 |---|---|
-| **Alle auswählen** | Hakt jede Parzelle der aktuellen Liste an. |
+| **Alle auswählen** | Hakt jede Parzelle der aktuellen Seite an. |
+| **Alle *N* Treffer des Filters auswählen** | Erscheint nur, wenn die Liste mehr als eine Seite hat, nachdem du **Alle auswählen** geklickt hast. Wählt jede Parzelle aus, die Suche und Statusfilter finden, auf allen Seiten. Der Zähler zeigt dann „Alle *N* ausgewählt“. |
 | **Keine auswählen** | Entfernt alle Haken. |
 | ***N* ausgewählt** | Zählt die angehakten Parzellen. |
 | **Auswahl exportieren** | Lädt die CSV-Datei (siehe unten) nur mit den angehakten Parzellen herunter. Gesperrt, bis du eine anhakst. |
@@ -116,7 +122,9 @@ Mitgliederversammlung) nimm stattdessen die [Mitgliederliste](members.md).
 
 **CSV Export** lädt eine Datei namens `parcels.csv` herunter, getrennt
 durch Semikolons, mit *jeder* Parzelle -- Suche und Statusfilter gelten
-nicht. Die Spaltenüberschriften sind deutsch, damit sich die Datei wieder
+nicht. **Auswahl exportieren** (oben) schreibt dieselbe Datei nur mit den
+angehakten Parzellen, oder mit allen Treffern des Filters nach **Alle *N*
+Treffer des Filters auswählen**. Die Spaltenüberschriften sind deutsch, damit sich die Datei wieder
 importieren lässt:
 
 Gartennummer, Fläche (qm), Breitengrad, Längengrad, Status,
@@ -194,7 +202,7 @@ geändert hat.
 |---|---|
 | **Bearbeiten** | Öffnet das [Bearbeitungsformular](#new-parcel-and-edit-parcel). Braucht Schreibrecht. |
 | **Vorherige** / **Nächste** | Springt zur vorherigen oder nächsten Parzelle der Liste, aus der du kamst. Auch ++ctrl+left++ und ++ctrl+right++ funktionieren (nicht beim Tippen in einem Feld). |
-| **Zurück** | Führt zur Parzellenliste zurück, mit deinem Filter. |
+| **Zurück** | Führt zur Parzellenliste zurück, mit deinem Filter, auf die Seite dieser Parzelle. |
 
 ### Parzellendetails {#parcel-details}
 

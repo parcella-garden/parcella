@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_pagination.html" import pagination %}
 {% block title %}{{ t('parcels.list.title') }}{% endblock %}
 {% block page_title %}{{ t('parcels.list.title') }}{% endblock %}
 
@@ -62,12 +63,21 @@
 {% set can_write_to = request.state.module_flags.announcements and is_full_access(request) %}
 <form id="parcel-pick" method="get" action="/parcels/export/csv"
       class="d-flex gap-2 align-items-center flex-wrap mb-2">
+    {#- The list's filter travels along: the export and "all matching"
+        (issue #425) use it; ticked parcels are always inside it. -#}
+    {% if search %}<input type="hidden" name="search" value="{{ search }}">{% endif %}
+    {% if status_filter %}<input type="hidden" name="status_filter" value="{{ status_filter }}">{% endif %}
     {% if can_write_to %}
     <input type="hidden" name="audience_kind" value="parcels">
+    <input type="hidden" name="all_matching" value="1" id="pick-all-matching-flag" disabled>
     {% endif %}
     <button type="button" class="btn btn-sm btn-outline-secondary" id="pick-all">{{ t('parcels.list.select_all') }}</button>
     <button type="button" class="btn btn-sm btn-outline-secondary" id="pick-none">{{ t('parcels.list.select_none') }}</button>
     <span class="text-muted small" id="pick-count" data-template="{{ t('parcels.list.selected_count', count='__N__') }}">{{ t('parcels.list.selected_count', count=0) }}</span>
+    {% if page.pages > 1 %}
+    <button type="button" class="btn btn-sm btn-link p-0 d-none" id="pick-all-matching"
+            data-all-text="{{ t('parcels.list.all_selected', count=page.total) }}">{{ t('parcels.list.select_all_matching', count=page.total) }}</button>
+    {% endif %}
     <span class="ms-auto d-flex gap-2 flex-wrap">
         <button type="submit" class="btn btn-sm btn-outline-secondary pick-action" disabled>
             <i class="bi bi-download me-1"></i>{{ t('parcels.list.export_selected') }}
@@ -156,12 +166,12 @@
     </div>
     {% if parcels %}
     <div class="card-footer text-muted" style="font-size: 0.82rem;">
-        {{ parcels | length }} {{ t('parcels.list.count_suffix_singular') if parcels | length == 1 else t('parcels.list.count_suffix_plural') }}
-        {% set total_area = parcels | selectattr('area_sqm') | sum(attribute='area_sqm') %}
+        {{ page.total }} {{ t('parcels.list.count_suffix_singular') if page.total == 1 else t('parcels.list.count_suffix_plural') }}
         {% if total_area > 0 %}{{ t('parcels.list.total_area_suffix', area='%g' % total_area) }}{% endif %}
     </div>
     {% endif %}
 </div>
+{{ pagination(page, '/parcels/', list_query_string) }}
 
 <!-- CSV Import Modal -->
 <div class="modal fade" id="csvImportModal" tabindex="-1" aria-hidden="true">
@@ -195,17 +205,29 @@ document.addEventListener('DOMContentLoaded', function () {
     var boxes = Array.prototype.slice.call(document.querySelectorAll('.pick-parcel'));
     var count = document.getElementById('pick-count');
     var actions = Array.prototype.slice.call(form.querySelectorAll('.pick-action'));
+    var allMatching = document.getElementById('pick-all-matching');
+    var allMatchingFlag = document.getElementById('pick-all-matching-flag');
+    var everything = false;  // issue #425: the whole filter, not just this page
     function update() {
         var n = boxes.filter(function (b) { return b.checked; }).length;
-        count.textContent = count.dataset.template.replace('__N__', n);
+        count.textContent = everything ? allMatching.dataset.allText : count.dataset.template.replace('__N__', n);
         actions.forEach(function (a) { a.disabled = n === 0; });
+        if (allMatching) allMatching.classList.toggle('d-none', everything || n !== boxes.length);
+        if (allMatchingFlag) allMatchingFlag.disabled = !everything;
     }
     function setAll(checked) {
-        boxes.forEach(function (b) { b.checked = checked; });
+        everything = false;
+        // Disabled boxes aren't submitted: "all matching" sends the filter alone.
+        boxes.forEach(function (b) { b.checked = checked; b.disabled = false; });
         update();
     }
     document.getElementById('pick-all').addEventListener('click', function () { setAll(true); });
     document.getElementById('pick-none').addEventListener('click', function () { setAll(false); });
+    if (allMatching) allMatching.addEventListener('click', function () {
+        everything = true;
+        boxes.forEach(function (b) { b.checked = true; b.disabled = true; });
+        update();
+    });
     boxes.forEach(function (b) { b.addEventListener('change', update); });
     update();
 });

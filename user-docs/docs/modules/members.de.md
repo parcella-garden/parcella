@@ -31,6 +31,12 @@ und die Anwesenheitsliste für Versammlungen lesen alle von hier.
 Mitglieder, sortiert nach Nachname und dann Vorname. Die Fußzeile zeigt, wie
 viele Mitglieder gerade in der Liste sind.
 
+Eine lange Liste wird in Seiten zu je 100 Mitgliedern aufgeteilt. Unter der
+Tabelle blätterst du mit **Vorherige** und **Nächste**, „Seite 2 von 17“
+zeigt, wo du bist, und „101–200 von 1612“, welche Mitglieder du siehst.
+Suche und Filter bleiben beim Blättern erhalten. **Zurück** auf einer
+Mitgliedsseite führt auf die Seite, auf der das Mitglied steht.
+
 ### Schaltflächen oben {#buttons-at-the-top}
 
 | Schaltfläche | Was sie bewirkt |
@@ -93,21 +99,25 @@ erlauben, und dann 12 davon anhaken.
 
 | Schaltfläche | Was sie bewirkt |
 |---|---|
-| **Alle auswählen** | Hakt jedes Mitglied der aktuellen Liste an. |
+| **Alle auswählen** | Hakt jedes Mitglied der aktuellen Seite an. |
+| **Alle *N* Treffer des Filters auswählen** | Erscheint nur, wenn die Liste mehr als eine Seite hat, nachdem du **Alle auswählen** geklickt hast. Wählt jedes Mitglied aus, das der Filter findet, auf allen Seiten. Der Zähler zeigt dann „Alle *N* ausgewählt“. |
 | **Keine auswählen** | Entfernt alle Häkchen. |
 | ***N* ausgewählt** | Zählt die angehakten Mitglieder. |
 | **Auswahl exportieren** | Lädt eine CSV-Datei nur mit den angehakten Mitgliedern herunter. Deaktiviert, bis du jemanden anhakst. |
 | **An Auswahl schreiben** | Beginnt eine neue Mitteilung nur an die angehakten Mitglieder. Erscheint nur, solange das Modul **Mitteilungen** eingeschaltet ist, und nur für Vorstandsmitglieder und Administratoren. |
 
-!!! warning "Häkchen gehen beim Ändern des Filters verloren"
+!!! warning "Häkchen gehen beim Ändern des Filters oder der Seite verloren"
     Wenn du die Suche, ein Kästchen oder die Tag-Auswahl änderst, lädt die
-    Seite neu, und deine Häkchen sind weg. Erst filtern, dann anhaken.
+    Seite neu, und deine Häkchen sind weg. Ebenso beim Blättern. Erst
+    filtern, dann anhaken. Für eine große Gruppe grenzt du den Filter ein
+    (oder gibst den Mitgliedern einen Tag und filterst danach) und nimmst
+    **Alle *N* Treffer des Filters auswählen**, statt Zeile für Zeile
+    anzuhaken.
 
 Folgst du dem Link zur Mitgliederliste aus einer Mitteilung, die an
 ausgewählte Mitglieder ging, zeigt die Liste nur diese Mitglieder mit dem
 Hinweis „Es werden nur die *N* ausgewählten Mitglieder angezeigt.“ **Ganze
-Liste anzeigen** führt zur normalen Liste zurück. Du kannst bis zu 2.000
-Mitglieder auf einmal auswählen.
+Liste anzeigen** führt zur normalen Liste zurück.
 
 ### CSV-Export {#csv-export}
 
@@ -240,7 +250,7 @@ Telefonnummern, E-Mail-Adressen, Tags und Parzellen direkt hinzu.
 |---|---|
 | **Bearbeiten** | Öffnet das [Bearbeitungsformular](#new-member-and-edit-member). Braucht Schreibrecht. |
 | **Vorherige** / **Nächste** | Springt zum vorherigen oder nächsten Mitglied *der Liste, aus der du kamst*, mit demselben Filter. Auch ++ctrl+left++ und ++ctrl+right++ funktionieren (nicht beim Tippen in einem Feld). Auf dem Mac belegt das System diese Tasten womöglich für den Wechsel der Schreibtische. |
-| **Zurück** | Führt zur Mitgliederliste zurück, mit deinem Filter. |
+| **Zurück** | Führt zur Mitgliederliste zurück, mit deinem Filter, auf die Seite dieses Mitglieds. |
 
 ### Stammdaten {#master-data}
 

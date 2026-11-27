@@ -10,6 +10,13 @@
       "hint": "Nom de cette étiquette par langue. Les champs vides affichent « {name} ».",
       "save": "Enregistrer les traductions",
       "none": "Aucune traduction."
+    },
+    "pagination": {
+      "label": "Pages",
+      "showing": "{first}–{last} sur {total}",
+      "previous": "Précédente",
+      "next": "Suivante",
+      "page_of": "Page {page} sur {pages}"
     }
   },
   "nav": {
@@ -684,7 +691,9 @@
       "export_selected": "Exporter la sélection",
       "write_to_selected": "Écrire à la sélection",
       "picked_notice": "Seuls les {count} membres sélectionnés sont affichés.",
-      "picked_show_all": "Afficher toute la liste"
+      "picked_show_all": "Afficher toute la liste",
+      "select_all_matching": "Sélectionner les {count} résultats du filtre",
+      "all_selected": "Les {count} sont sélectionnés"
     },
     "form": {
       "title_edit": "Modifier {name}",
@@ -847,7 +856,9 @@
       "select_none": "Tout désélectionner",
       "selected_count": "{count} sélectionné(s)",
       "export_selected": "Exporter la sélection",
-      "write_to_selected": "Écrire aux locataires"
+      "write_to_selected": "Écrire aux locataires",
+      "select_all_matching": "Sélectionner les {count} résultats du filtre",
+      "all_selected": "Les {count} sont sélectionnées"
     },
     "form": {
       "title_edit": "Modifier {plot_number}",

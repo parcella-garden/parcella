@@ -10,6 +10,13 @@
       "hint": "Name of this tag per language. Empty fields show \"{name}\".",
       "save": "Save translations",
       "none": "No translations."
+    },
+    "pagination": {
+      "label": "Pages",
+      "showing": "Showing {first}–{last} of {total}",
+      "previous": "Previous",
+      "next": "Next",
+      "page_of": "Page {page} of {pages}"
     }
   },
   "nav": {
@@ -684,7 +691,9 @@
       "export_selected": "Export selected",
       "write_to_selected": "Write to selected",
       "picked_notice": "Showing only the {count} selected members.",
-      "picked_show_all": "Show the whole list"
+      "picked_show_all": "Show the whole list",
+      "select_all_matching": "Select all {count} matching the filter",
+      "all_selected": "All {count} selected"
     },
     "form": {
       "title_edit": "Edit {name}",
@@ -847,7 +856,9 @@
       "select_none": "Select none",
       "selected_count": "{count} selected",
       "export_selected": "Export selected",
-      "write_to_selected": "Write to their leaseholders"
+      "write_to_selected": "Write to their leaseholders",
+      "select_all_matching": "Select all {count} matching the filter",
+      "all_selected": "All {count} selected"
     },
     "form": {
       "title_edit": "Edit {plot_number}",

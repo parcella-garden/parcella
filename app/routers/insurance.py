@@ -219,8 +219,8 @@ async def package_delete(
 def _insurance_parcels_query(year: int):
     """WHERE/ORDER BY for the insurance parcels list, shared with the
     detail page's Previous/Next lookup (issue #203) so the two can't
-    drift apart -- same reasoning as _filtered_parcels_query in
-    app/routers/parcels.py.
+    drift apart -- same reasoning as filtered_parcels_query in
+    app/services/parcels.py.
 
     Also includes TERMINATED parcels for `year` (issue #207 -- and its
     2026-08-30 follow-up correction): a lease termination doesn't
