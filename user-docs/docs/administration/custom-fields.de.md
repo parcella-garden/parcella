@@ -36,12 +36,14 @@ Formularen erscheinen. Felder in einer Gruppe stehen eingerückt darunter (↳).
 | **Text** | Eine Zeile Text | Beruf |
 | **Langer Text** | Mehrere Zeilen | Hinweise zur Hecke |
 | **Zahl** | Eine Zahl, auf Wunsch mit Einheit wie m² oder cm | Fläche der Gartenlaube |
-| **Datum** | Ein Datum | Baujahr der Laube |
+| **Datum** | Ein Datum (Tag, Monat, Jahr) | Letzte Begehung |
+| **Jahr** | Nur eine Jahreszahl, vier Ziffern | Baujahr der Laube |
 | **Ja/Nein** | Ein Kästchen | Hat eine Regentonne |
 | **Auswahl** | Eine Liste mit den Werten, die du vorgibst | Poolart: Stahlwand, aufblasbar |
 | **Gruppe (Ja/Nein mit Unterfeldern)** | Ein Kästchen; die Felder darin erscheinen, sobald es angehakt ist | Pool → Durchmesser, Höhe, im Winter abgebaut |
 
-Zahlen werden mit zwei Nachkommastellen gespeichert.
+Zahlen werden mit zwei Nachkommastellen gespeichert. Nimm **Jahr**
+statt **Datum**, wenn nur das Jahr bekannt ist („gebaut 2019“).
 
 ## Ein Feld oder eine Gruppe anlegen {#adding-a-field-or-group}
 

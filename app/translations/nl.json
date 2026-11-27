@@ -4020,11 +4020,13 @@
     "kind_long_text": "Lange tekst",
     "kind_number": "Getal",
     "kind_date": "Datum",
+    "kind_year": "Jaar",
     "kind_checkbox": "Ja/nee",
     "kind_choice": "Keuze",
     "kind_group": "Groep (ja/nee met subvelden)",
     "form": {
-      "card_header": "Verdere gegevens"
+      "card_header": "Verdere gegevens",
+      "year_placeholder": "bijv. 2019"
     },
     "admin": {
       "title": "Eigen velden",
@@ -4084,7 +4086,8 @@
       "required": "'{label}' is verplicht.",
       "expects_bool": "'{label}' verwacht true of false.",
       "invalid_value": "'{label}': deze waarde past niet bij het veld.",
-      "unknown_keys": "Onbekende sleutel(s) van eigen velden: {keys}"
+      "unknown_keys": "Onbekende sleutel(s) van eigen velden: {keys}",
+      "invalid_year": "'{label}' moet een jaartal van vier cijfers zijn, bijv. 2019."
     },
     "filter": {
       "label": "Eigen veld",

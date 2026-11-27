@@ -4020,11 +4020,13 @@
     "kind_long_text": "Long text",
     "kind_number": "Number",
     "kind_date": "Date",
+    "kind_year": "Year",
     "kind_checkbox": "Yes/no",
     "kind_choice": "Choice",
     "kind_group": "Group (yes/no with sub-fields)",
     "form": {
-      "card_header": "Further details"
+      "card_header": "Further details",
+      "year_placeholder": "e.g. 2019"
     },
     "admin": {
       "title": "Custom fields",
@@ -4084,7 +4086,8 @@
       "required": "“{label}” is required.",
       "expects_bool": "“{label}” expects true or false.",
       "invalid_value": "“{label}”: this value doesn't fit the field.",
-      "unknown_keys": "Unknown custom field key(s): {keys}"
+      "unknown_keys": "Unknown custom field key(s): {keys}",
+      "invalid_year": "“{label}” must be a year with four digits, e.g. 2019."
     },
     "filter": {
       "label": "Custom field",

@@ -4020,11 +4020,13 @@
     "kind_long_text": "Texte long",
     "kind_number": "Nombre",
     "kind_date": "Date",
+    "kind_year": "Année",
     "kind_checkbox": "Oui/non",
     "kind_choice": "Choix",
     "kind_group": "Groupe (oui/non avec sous-champs)",
     "form": {
-      "card_header": "Autres informations"
+      "card_header": "Autres informations",
+      "year_placeholder": "par ex. 2019"
     },
     "admin": {
       "title": "Champs personnalisés",
@@ -4084,7 +4086,8 @@
       "required": "« {label} » est obligatoire.",
       "expects_bool": "« {label} » attend true ou false.",
       "invalid_value": "« {label} » : cette valeur ne convient pas au champ.",
-      "unknown_keys": "Clé(s) de champ personnalisé inconnue(s) : {keys}"
+      "unknown_keys": "Clé(s) de champ personnalisé inconnue(s) : {keys}",
+      "invalid_year": "« {label} » doit être une année à quatre chiffres, par ex. 2019."
     },
     "filter": {
       "label": "Champ personnalisé",

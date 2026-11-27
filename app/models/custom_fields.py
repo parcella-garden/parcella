@@ -26,6 +26,7 @@ class CustomFieldKind(str, enum.Enum):
     LONG_TEXT = "LONG_TEXT"
     NUMBER = "NUMBER"
     DATE = "DATE"
+    YEAR = "YEAR"  # just a year ("summer house built in 2019"), stored in value_number
     CHECKBOX = "CHECKBOX"
     CHOICE = "CHOICE"
     # A yes/no whose sub-fields (parent_id = this field) only apply when

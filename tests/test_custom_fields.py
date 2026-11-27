@@ -330,3 +330,35 @@ async def test_delete_removes_field_values_and_sub_fields(client, admin_user, bo
     assert [f.label for f in left] == ["Hedge"]  # the sub-field went with its group, not up to the top level
     values = await _values(parcel_id=parcel_id)
     assert list(values) == [other.id] and values[other.id].value_text == "Beech"
+
+
+async def test_year_field(client, admin_user):
+    from tests.conftest import auth_header, login
+    await web_login(client, "admin@example.com")
+    shed = await _add(client, "PARCEL", "Summer house", "GROUP")
+    built = await _add(client, "PARCEL", "Built in", "YEAR", parent_id=shed.id)
+    async with AsyncSessionLocal() as db:
+        parcel = Parcel(plot_number="CF-Y1")
+        db.add(parcel)
+        await db.commit()
+        parcel_id = parcel.id
+    base = {"plot_number": "CF-Y1", "custom_fields_present": "1", f"cf_{shed.id}": "1"}
+
+    form = (await client.get(f"/parcels/{parcel_id}/edit")).text
+    assert 'inputmode="numeric"' in form and 'placeholder="e.g. 2019"' in form
+    for bad in ("19", "2019-05-01", "²⁰¹⁹", "0999"):
+        r = await client.post(f"/parcels/{parcel_id}/edit", data={**base, f"cf_{built.id}": bad})
+        assert r.status_code == 400 and "must be a year with four digits" in r.text, bad
+    r = await client.post(f"/parcels/{parcel_id}/edit", data={**base, f"cf_{built.id}": " 2019 "})
+    assert r.status_code == 302
+    assert "2019" in (await client.get(f"/parcels/{parcel_id}")).text
+    assert (await client.get(f"/parcels/{parcel_id}/edit")).text.count('value="2019"') == 1
+    export = (await client.get("/parcels/export/csv")).text
+    assert export.split("CF-Y1;")[1].splitlines()[0].endswith(";Ja;2019")
+
+    headers = auth_header(await login(client, "admin@example.com"))
+    url = f"/api/v1/parcels/{parcel_id}/custom-fields"
+    assert (await client.get(url, headers=headers)).json()["built-in"] == 2019
+    assert (await client.put(url, json={"built-in": 2021}, headers=headers)).json()["built-in"] == 2021
+    assert (await client.put(url, json={"built-in": "1998"}, headers=headers)).json()["built-in"] == 1998
+    assert (await client.put(url, json={"built-in": 19.5}, headers=headers)).status_code == 422

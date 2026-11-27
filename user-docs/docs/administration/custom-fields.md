@@ -36,12 +36,14 @@ Fields inside a group are indented under it (↳).
 | **Text** | One line of text | Occupation |
 | **Long text** | Several lines | Notes on the hedge |
 | **Number** | A number, with an optional unit such as m² or cm | Area of the summer house |
-| **Date** | A date | Year the summer house was built |
+| **Date** | A date (day, month, year) | Last inspection |
+| **Year** | Just a year, four digits | Year the summer house was built |
 | **Yes/no** | A checkbox | Has a rain barrel |
 | **Choice** | A dropdown with the choices you give | Type of pool: frame, inflatable |
 | **Group (yes/no with sub-fields)** | A checkbox; the fields inside it appear once it's ticked | Pool → diameter, height, removed in winter |
 
-Numbers are kept with two decimal places.
+Numbers are kept with two decimal places. Use **Year** rather than
+**Date** when only the year is known ("built in 2019").
 
 ## Adding a field or group
 

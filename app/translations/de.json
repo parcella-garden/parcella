@@ -4020,11 +4020,13 @@
     "kind_long_text": "Langer Text",
     "kind_number": "Zahl",
     "kind_date": "Datum",
+    "kind_year": "Jahr",
     "kind_checkbox": "Ja/Nein",
     "kind_choice": "Auswahl",
     "kind_group": "Gruppe (Ja/Nein mit Unterfeldern)",
     "form": {
-      "card_header": "Weitere Angaben"
+      "card_header": "Weitere Angaben",
+      "year_placeholder": "z. B. 2019"
     },
     "admin": {
       "title": "Eigene Felder",
@@ -4084,7 +4086,8 @@
       "required": "„{label}“ ist ein Pflichtfeld.",
       "expects_bool": "„{label}“ erwartet true oder false.",
       "invalid_value": "„{label}“: Dieser Wert passt nicht zum Feld.",
-      "unknown_keys": "Unbekannte Schlüssel eigener Felder: {keys}"
+      "unknown_keys": "Unbekannte Schlüssel eigener Felder: {keys}",
+      "invalid_year": "„{label}“ muss eine Jahreszahl mit vier Ziffern sein, z. B. 2019."
     },
     "filter": {
       "label": "Eigenes Feld",

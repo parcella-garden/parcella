@@ -5,6 +5,7 @@ are written by whoever may edit the member or parcel. No HTTP here: the
 routes turn ServiceError into a message.
 """
 import math
+import re
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Dict, List, Optional
@@ -24,6 +25,7 @@ LONG_TEXT_MAX = 20000
 OPTION_MAX = 100
 OPTIONS_MAX_COUNT = 50
 KEY_MAX = 80
+YEAR_MIN, YEAR_MAX = 1000, 9999
 
 FORM_PREFIX = "cf_"
 FORM_MARKER = "custom_fields_present"
@@ -237,6 +239,8 @@ def raw_value(field: CustomField, value: Optional[CustomFieldValue]):
         return value.value_bool
     if field.kind == CustomFieldKind.NUMBER:
         return value.value_number
+    if field.kind == CustomFieldKind.YEAR:
+        return int(value.value_number) if value.value_number is not None else None
     if field.kind == CustomFieldKind.DATE:
         return value.value_date
     return value.value_text
@@ -267,6 +271,11 @@ def parse_input(field: CustomField, text: Optional[str]):
         if number is None or not math.isfinite(number) or abs(number) >= Decimal("1e12"):
             raise ServiceError("custom_fields.errors.invalid_number", label=field.label)
         return number.quantize(Decimal("0.01"))
+    if field.kind == CustomFieldKind.YEAR:
+        # Exactly four ASCII digits: str.isdigit() also accepts "²", which int() refuses.
+        if not re.fullmatch(r"[0-9]{4}", text) or not YEAR_MIN <= int(text) <= YEAR_MAX:
+            raise ServiceError("custom_fields.errors.invalid_year", label=field.label)
+        return int(text)
     if field.kind == CustomFieldKind.DATE:
         try:
             return date.fromisoformat(text)
@@ -506,7 +515,7 @@ async def _write(db: AsyncSession, target: CustomFieldTarget, owner_id: str, fie
     row.value_text = row.value_number = row.value_date = row.value_bool = None
     if field.kind in (CustomFieldKind.CHECKBOX, CustomFieldKind.GROUP):
         row.value_bool = True
-    elif field.kind == CustomFieldKind.NUMBER:
+    elif field.kind in (CustomFieldKind.NUMBER, CustomFieldKind.YEAR):
         row.value_number = value
     elif field.kind == CustomFieldKind.DATE:
         row.value_date = value
@@ -553,6 +562,8 @@ def _api_text(field: CustomField, value) -> str:
 def _api_parse(field: CustomField, value):
     # A JSON number is taken as it is: "1.234" through parse_decimal would
     # read as 1234 in German notation.
+    if field.kind == CustomFieldKind.YEAR and isinstance(value, int) and not isinstance(value, bool):
+        return parse_input(field, str(value))
     if field.kind == CustomFieldKind.NUMBER and isinstance(value, (int, float)) and not isinstance(value, bool):
         return parse_input(field, format(Decimal(str(value)), "f").replace(".", ","))
     return parse_input(field, _api_text(field, value))

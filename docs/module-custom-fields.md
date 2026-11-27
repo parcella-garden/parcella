@@ -8,7 +8,7 @@ module (no fields defined = nothing shows).
 
 ```
 custom_fields          target MEMBER|PARCEL, parent_id (-> group), key (fixed slug), label,
-                       kind TEXT|LONG_TEXT|NUMBER|DATE|CHECKBOX|CHOICE|GROUP, unit, options (JSON),
+                       kind TEXT|LONG_TEXT|NUMBER|DATE|YEAR|CHECKBOX|CHOICE|GROUP, unit, options (JSON),
                        required, position, archived_at
 custom_field_values    field_id, exactly one of member_id / parcel_id,
                        value_text | value_number | value_date | value_bool
@@ -17,6 +17,9 @@ custom_field_values    field_id, exactly one of member_id / parcel_id,
 - A GROUP is a yes/no with sub-fields (`parent_id`), one level deep.
 - A value row exists only for a ticked yes/no or a filled-in field.
 - `key` is unique per target and never changes (the label can).
+- YEAR (kermie: "when was your summer house built" is a year, not a day)
+  is four digits, 1000-9999, stored in `value_number`, returned by the
+  API as an integer.
 
 ## Code
 

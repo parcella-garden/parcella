@@ -4020,11 +4020,13 @@
     "kind_long_text": "Dlhý text",
     "kind_number": "Číslo",
     "kind_date": "Dátum",
+    "kind_year": "Rok",
     "kind_checkbox": "Áno/nie",
     "kind_choice": "Výber",
     "kind_group": "Skupina (áno/nie s podpoľami)",
     "form": {
-      "card_header": "Ďalšie údaje"
+      "card_header": "Ďalšie údaje",
+      "year_placeholder": "napr. 2019"
     },
     "admin": {
       "title": "Vlastné polia",
@@ -4084,7 +4086,8 @@
       "required": "„{label}“ je povinné.",
       "expects_bool": "„{label}“ očakáva true alebo false.",
       "invalid_value": "„{label}“: táto hodnota k poľu nesedí.",
-      "unknown_keys": "Neznáme kľúče vlastných polí: {keys}"
+      "unknown_keys": "Neznáme kľúče vlastných polí: {keys}",
+      "invalid_year": "„{label}“ musí byť rok so štyrmi číslicami, napr. 2019."
     },
     "filter": {
       "label": "Vlastné pole",

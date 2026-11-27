@@ -19,7 +19,7 @@ branch_labels = None
 depends_on = None
 
 TARGET = sa.Enum("MEMBER", "PARCEL", name="customfieldtarget")
-KIND = sa.Enum("TEXT", "LONG_TEXT", "NUMBER", "DATE", "CHECKBOX", "CHOICE", "GROUP", name="customfieldkind")
+KIND = sa.Enum("TEXT", "LONG_TEXT", "NUMBER", "DATE", "YEAR", "CHECKBOX", "CHOICE", "GROUP", name="customfieldkind")
 
 
 def upgrade() -> None:

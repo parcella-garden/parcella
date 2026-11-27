@@ -36,8 +36,8 @@
                     {% endfor %}
                 </select>
                 {% else %}
-                <input type="{% if f.kind.name == 'DATE' %}date{% elif f.kind.name == 'NUMBER' %}text{% else %}text{% endif %}"
-                       {% if f.kind.name == 'NUMBER' %}inputmode="decimal"{% endif %}
+                <input type="{% if f.kind.name == 'DATE' %}date{% else %}text{% endif %}"
+                       {% if f.kind.name == 'NUMBER' %}inputmode="decimal"{% elif f.kind.name == 'YEAR' %}inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="{{ t('custom_fields.form.year_placeholder') }}"{% endif %}
                        name="{{ name }}" id="{{ name }}" class="form-control" value="{{ value }}"
                        {% if f.required %}required data-cf-required{% endif %}>
                 {% endif %}

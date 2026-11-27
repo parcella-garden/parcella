@@ -19,6 +19,9 @@ doesn't scale and is club-specific (CONTRIBUTING: genericity).
   (MEMBER / PARCEL), `kind`, `label`, `help_text`, `unit` (numbers),
   `options` (choices, JSON), `required`, `position`, `archived_at`, and
   a fixed `key` (slug of the first label) for exports and the API.
+  Kinds: text, long text, number (with unit), date, year (only a year --
+  added after the first smoke test, since "built in" is rarely known to
+  the day), yes/no, choice, group.
   `custom_field_values`: one row per owner and field with typed columns
   (`value_text` / `value_number` / `value_date` / `value_bool`), like
   ProcessField (ADR 0136), and two nullable foreign keys `member_id` /

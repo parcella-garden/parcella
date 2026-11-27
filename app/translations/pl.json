@@ -4020,11 +4020,13 @@
     "kind_long_text": "Długi tekst",
     "kind_number": "Liczba",
     "kind_date": "Data",
+    "kind_year": "Rok",
     "kind_checkbox": "Tak/nie",
     "kind_choice": "Wybór",
     "kind_group": "Grupa (tak/nie z polami podrzędnymi)",
     "form": {
-      "card_header": "Dalsze informacje"
+      "card_header": "Dalsze informacje",
+      "year_placeholder": "np. 2019"
     },
     "admin": {
       "title": "Własne pola",
@@ -4084,7 +4086,8 @@
       "required": "„{label}” jest wymagane.",
       "expects_bool": "„{label}” oczekuje true lub false.",
       "invalid_value": "„{label}”: ta wartość nie pasuje do pola.",
-      "unknown_keys": "Nieznane klucze własnych pól: {keys}"
+      "unknown_keys": "Nieznane klucze własnych pól: {keys}",
+      "invalid_year": "„{label}” musi być rokiem z czterema cyframi, np. 2019."
     },
     "filter": {
       "label": "Własne pole",
