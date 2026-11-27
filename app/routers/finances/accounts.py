@@ -293,7 +293,7 @@ FINANCES_IMPORT_FIELD_ALIASES = {
 )
 async def account_bookings_import_preview(
     account_id: str, request: Request,
-    datei: UploadFile = File(...),
+    file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
 ):
     """Issue #186: "import any CSV of any structure" -- step 1 just
@@ -309,7 +309,7 @@ async def account_bookings_import_preview(
     if not account:
         raise HTTPException(status_code=404)
 
-    content = await datei.read()
+    content = await file.read()
     text = decode_csv_upload(content)
     delimiter = sniff_csv_delimiter(text)
 

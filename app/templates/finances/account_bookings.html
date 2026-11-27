@@ -162,7 +162,7 @@
                 <form method="post" action="/finances/accounts/{{ account.id }}/bookings/import/preview" enctype="multipart/form-data"
                       class="d-flex gap-2 align-items-center flex-wrap">
                     {{ csrf_field() }}
-                    <input type="file" name="datei" accept=".csv" class="form-control form-control-sm" required style="max-width: 300px;">
+                    <input type="file" name="file" accept=".csv" class="form-control form-control-sm" required style="max-width: 300px;">
                     <button type="submit" class="btn btn-sm btn-outline-primary">
                         <i class="bi bi-upload me-1"></i>{{ t('finances.account_bookings.import_button') }}
                     </button>

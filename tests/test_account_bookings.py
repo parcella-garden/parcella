@@ -414,7 +414,7 @@ async def test_bookings_csv_export(client, admin_user):
 
 
 async def _import_preview(client, account_id, csv_content):
-    files = {"datei": ("import.csv", io.BytesIO(csv_content.encode("utf-8")), "text/csv")}
+    files = {"file": ("import.csv", io.BytesIO(csv_content.encode("utf-8")), "text/csv")}
     return await client.post(f"/finances/accounts/{account_id}/bookings/import/preview", files=files)
 
 
