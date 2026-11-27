@@ -184,7 +184,7 @@ def render_announcement_print_pdf(
         if len(doc.pages) == 1:
             # Persisted so it's visible and editable afterward, and so
             # the next generation doesn't repeat this search -- see
-            # Announcement.print_text_override's docstring in models.py.
+            # Announcement.print_text_override's docstring in app/models/.
             announcement.print_text_override = shortened_markdown
             return PrintRenderResult(
                 pdf_bytes=doc.write_pdf(), was_shortened=True, qr_included=bool(public_blog_url),

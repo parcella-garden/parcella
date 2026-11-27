@@ -93,7 +93,7 @@ def _parse_deck_date(value) -> Optional[date]:
     """Deck's documented format for `duedate` is ISO-8601
     ("YYYY-MM-DDTHH:MM:SS+00:00" or with a trailing "Z"). Returns just
     the date -- Task.due_date is a plain Date column, this app has never
-    tracked a due *time* for a task (app/models.py's Task)."""
+    tracked a due *time* for a task (app/models/'s Task)."""
     if not value:
         return None
     try:

@@ -172,7 +172,7 @@ class MemberListFilter:
                 .where(parcel_condition)
             )
             # Matches any of a member's emails/phones (both are one-to-many,
-            # app/models.py), not just the primary one -- same "find this
+            # app/models/), not just the primary one -- same "find this
             # member no matter which record matches" logic as parcel number
             # above. No phone-number normalization (no precedent for that
             # anywhere in this app) -- a plain substring match, same as

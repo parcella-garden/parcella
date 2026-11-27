@@ -55,7 +55,7 @@ read time. One extra query, zero sync bugs, by construction.
 
 **Only STANDARD-type work sessions appear on the community
 calendar.** `WorkSession.type` (`SessionType.STANDARD` vs `SPECIAL`,
-see `app/models.py`) already distinguishes a planned, signup-eligible
+see `app/models/`) already distinguishes a planned, signup-eligible
 session from a spontaneous/unplanned one ("paint the garden bench
 today"). The community calendar's whole point is helping members plan
 ahead, so both the list view

@@ -43,6 +43,6 @@ tables from the `0001_initial` migration on first start.
 docker compose run --rm web alembic revision --autogenerate -m "Short description"
 ```
 
-Alembic then automatically compares `app/models.py` with the current DB
+Alembic then automatically compares `app/models/` with the current DB
 state and proposes the necessary `CREATE`/`ALTER` statements. ALWAYS
 review the generated file in `migrations/versions/` before applying it.

@@ -26,7 +26,7 @@ external_task_links  -- one row per synced Task, ON DELETE CASCADE
                          from tasks.id
 ```
 
-**`ExternalTaskLink`** (`app/models.py`) is the cross-reference: `source`
+**`ExternalTaskLink`** (`app/models/`) is the cross-reference: `source`
 (`"deck"` today -- a column, not a table name, so a second source never
 needs a schema change), `external_board_id`/`external_stack_id`/
 `external_card_id`, `external_updated_at` (Deck's own last-modified

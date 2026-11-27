@@ -43,7 +43,9 @@ decisions and reasoning are still fresh.
 The following pattern has proven itself when building a new module (see
 Architecture Decisions for details):
 
-1. Models in `app/models.py`, enum values **always uppercase** (see the
+1. Models in the module's file under `app/models/` (a new file for a new
+   module), re-exported from `app/models/__init__.py` (ADR 0146); enum
+   values **always uppercase** (see the
    lesson learned from several bugs around this)
 2. Migration in `migrations/versions/`, revision name under 32 characters
 3. Router with `dependencies=[Depends(require_module("<name>"))]` -- both

@@ -212,7 +212,7 @@ async def retire_item_endpoint(
     item_id: str, db: AsyncSession = Depends(get_db), user: User = Depends(require_api_permission("inventory", "write")),
 ):
     """Marks the item as no longer owned/in service without deleting
-    it -- see InventoryItem.retired_at's docstring in app/models.py for
+    it -- see InventoryItem.retired_at's docstring in app/models/ for
     why this exists as a separate action from DELETE."""
     result = await db.execute(
         select(InventoryItem).options(selectinload(InventoryItem.loans)).where(InventoryItem.id == item_id)

@@ -76,7 +76,7 @@ within a list.
 
 **Tags (issue #259, [ADR 0116](./ADR/0116-task-board-predefined-coloured-tags.md))**
 are predefined: a `TaskTag` row (`name`, unique ignoring case; `color`,
-one of `TASK_TAG_COLORS` in `app/models.py`) linked to cards through
+one of `TASK_TAG_COLORS` in `app/models/`) linked to cards through
 `task_tag_links` (both FKs `ON DELETE CASCADE`, `passive_deletes` on both
 relationship sides so deleting a card or tag never loads the other
 side). `Task.tags` is that relationship, ordered by name -- not
@@ -470,7 +470,7 @@ tag from cards), the `tags` history row, and admin/board-only access to
 both tag management surfaces.
 
 **Test-DB sharp edge:** the test suite builds its schema from
-`app/models.py` via `Base.metadata.create_all` (see `tests/conftest.py`),
+`app/models/` via `Base.metadata.create_all` (see `tests/conftest.py`),
 not by running Alembic migrations -- so migration `0054`'s seeded
 "To Do"/"In Progress"/"Done" rows never exist in tests. Any test that
 creates a `Task` needs to seed its own `TaskList` rows first (see

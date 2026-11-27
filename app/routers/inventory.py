@@ -3,7 +3,7 @@ Inventory module web router.
 
 An asset register for what the club owns (and what members store on
 club property, tracked with the same financial fields -- see
-InventoryItem's docstring in app/models.py), grouped into
+InventoryItem's docstring in app/models/), grouped into
 freely-configurable categories, plus a lending system for borrowable
 items. See docs/module-inventory.md for the full design.
 

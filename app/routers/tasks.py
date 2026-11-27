@@ -1,6 +1,6 @@
 """
 Task board router (web UI): a general-purpose kanban board for club
-business that isn't tied to a work session (see app/models.py for the
+business that isn't tied to a work session (see app/models/ for the
 distinction from WorkTask). Admin/board only for both viewing and
 editing, per explicit product decision. Columns are user-configurable
 `TaskList` rows (issue #100, see ADR 0043) -- both cards and lists are
@@ -35,7 +35,7 @@ from app.task_board import (
 from app.task_report import build_report_markdown
 
 EXPORT_DEFAULT_WINDOW_DAYS = 30
-# Scalar fields tracked in the change-history table (app/models.py's
+# Scalar fields tracked in the change-history table (app/models/'s
 # ChangeHistory, see docs/ADR/0085) -- list_id is tracked separately,
 # directly inside app/task_board.py's move_task(), since that's the
 # single funnel every list change (web + API, drag-and-drop + form)

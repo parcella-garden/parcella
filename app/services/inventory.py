@@ -123,7 +123,7 @@ async def update_item(
 
 async def retire_item(db: AsyncSession, item: InventoryItem) -> None:
     """Marks the item as no longer owned/in service without deleting it
-    -- see InventoryItem.retired_at's docstring in app/models.py for why
+    -- see InventoryItem.retired_at's docstring in app/models/ for why
     this exists as a separate action from delete."""
     item.retired_at = datetime.now(timezone.utc)
     await db.flush()

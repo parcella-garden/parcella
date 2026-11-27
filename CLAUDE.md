@@ -135,7 +135,7 @@ silently continuing.
   The REST API (`app/api_auth.py`) is a wholly separate JWT-based role
   system -- don't assume the two are in sync.
 - **`ClubSetting`** is a flexible key/value table for club master data
-  (`app/models.py`) -- reach for a new key here before adding a new
+  (`app/models/`) -- reach for a new key here before adding a new
   dedicated column/table for a single scalar setting.
 - **Router factory pattern**: structurally identical modules (e.g. water
   vs. electricity metering) share one router factory rather than two
@@ -172,7 +172,7 @@ silently continuing.
 
 - **Enum values: always uppercase, and SQLAlchemy's `Enum` column stores
   the member *name*, not `.value`, by default (no `values_callable`
-  override is set anywhere in `app/models.py`).** Every `enum.Enum` there
+  override is set anywhere in `app/models/`).** Every `enum.Enum` there
   uses uppercase Python member names (`FIXED_PER_PARCEL =
   "fixed_per_parcel"`). When you add a new value to an *existing*
   Postgres enum type via a raw `ALTER TYPE ... ADD VALUE` migration, the
@@ -329,7 +329,7 @@ UI change -- read [user-docs/STYLE.md](./user-docs/STYLE.md) first.
   hardcoded "Area A/B/C" club settings -- predate this guideline and
   haven't been generalized; know this is a named exception, not a
   pattern to copy for new features.)
-- Every `app/models.py` change needs an Alembic migration, reviewed by
+- Every `app/models/` change needs an Alembic migration, reviewed by
   hand (autogenerate misses renames, treating them as drop+create).
 - New/changed models get matching Pydantic schemas in `app/schemas.py`
   for REST API availability (API-first, ADR 0012).

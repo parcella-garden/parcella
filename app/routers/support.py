@@ -1,6 +1,6 @@
 """
 Support router (web UI): a staff-facing view of HelpdeskConversationLink
-rows (app/models.py), the local cross-reference to conversations in the
+rows (app/models/), the local cross-reference to conversations in the
 club's helpdesk, synced by app/helpdesk/sync.py. Gated by the
 freescout_bridge module flag (the key predates ADR 0107 and stays, since
 permissions and nav order hang off it) AND Group-based permission
