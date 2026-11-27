@@ -4088,6 +4088,9 @@
       "no": "no",
       "filled": "filled in",
       "empty": "empty"
-    }
+    },
+    "csv_row_error": "Row {row}: {message}",
+    "csv_existing_updated": " {count} existing parcel(s) got custom field values.",
+    "csv_errors_suffix": " {count} row(s) with custom field errors"
   }
 }

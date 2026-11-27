@@ -31,7 +31,7 @@
                                             <option value="ignore" {% if col_index not in default_mapping %}selected{% endif %}>{{ t('parcels.list.map_ignore') }}</option>
                                             {% for field in target_fields %}
                                             <option value="{{ field }}" {% if default_mapping.get(col_index) == field %}selected{% endif %}>
-                                                {{ t('parcels.list.map_field_' ~ field) }}
+                                                {{ custom_labels.get(field) if custom_labels and field in custom_labels else t('parcels.list.map_field_' ~ field) }}
                                             </option>
                                             {% endfor %}
                                         </select>

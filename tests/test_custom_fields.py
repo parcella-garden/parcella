@@ -199,3 +199,61 @@ async def test_list_filter_by_custom_field(client, admin_user):
         "audience_kind": "parcels", "all_matching": "1", "cf_field": pool.id, "cf_value": "__yes__",
     })
     assert "Notice to the leaseholders of 1 parcel(s)" in notice.text
+
+
+def _b64(text: str) -> str:
+    import base64
+    return base64.b64encode(text.encode("utf-8")).decode("ascii")
+
+
+async def test_csv_export_and_import(client, admin_user):
+    from urllib.parse import unquote
+    await web_login(client, "admin@example.com")
+    occupation = await _add(client, "MEMBER", "Occupation", "TEXT")
+    pool = await _add(client, "PARCEL", "Pool", "GROUP")
+    diameter = await _add(client, "PARCEL", "Diameter", "NUMBER", parent_id=pool.id, unit="cm")
+    async with AsyncSessionLocal() as db:
+        existing = Parcel(plot_number="CF-E1")
+        db.add(existing)
+        await db.commit()
+        existing_id = existing.id
+
+    # Members: a mapped custom-field column is imported on create.
+    r = await client.post("/members/import/finalize", data={
+        "csv_content_b64": _b64("Vorname;Nachname;Occupation\nIda;Import;Beekeeper\n"), "delimiter": ";",
+        "map_0": "first_name", "map_1": "last_name", "map_2": f"cf:{occupation.id}",
+    }, follow_redirects=False)
+    assert r.status_code == 302
+    async with AsyncSessionLocal() as db:
+        ida = (await db.scalars(select(Member).where(Member.last_name == "Import"))).one()
+    assert (await _values(member_id=ida.id))[occupation.id].value_text == "Beekeeper"
+    export = (await client.get("/members/export/csv")).text
+    assert export.splitlines()[0].endswith(";Occupation") and "Beekeeper" in export
+
+    # The preview offers the custom fields as targets and guesses them from the header.
+    preview = await client.post("/parcels/import/preview", files={
+        "file": ("p.csv", "Gartennummer;Pool: Diameter\nCF-E1;250\n".encode(), "text/csv"),
+    })
+    assert f'value="cf:{diameter.id}" selected' in " ".join(preview.text.split())
+
+    # Parcels: an existing parcel keeps its own fields but gets the custom
+    # values; a filled sub-field ticks its group; a bad number is reported.
+    r = await client.post("/parcels/import/finalize", data={
+        "csv_content_b64": _b64("Gartennummer;Diameter\nCF-E1;250\nCF-N1;3,5\nCF-N2;wide\n"), "delimiter": ";",
+        "map_0": "plot_number", "map_1": f"cf:{diameter.id}",
+    }, follow_redirects=False)
+    message = unquote(r.headers["location"])
+    assert "1 existing parcel(s) got custom field values" in message and "Row 4: “Diameter” must be a number." in message
+    values = await _values(parcel_id=existing_id)
+    assert values[pool.id].value_bool is True and values[diameter.id].value_number == Decimal("250.00")
+    export = (await client.get("/parcels/export/csv")).text
+    header = export.splitlines()[0]
+    assert header.endswith(";Pool;Pool: Diameter")
+    assert "CF-E1;" in export and export.split("CF-E1;")[1].splitlines()[0].endswith(";Ja;250")
+
+    # A group set to "Nein" clears its sub-fields.
+    await client.post("/parcels/import/finalize", data={
+        "csv_content_b64": _b64("Gartennummer;Pool\nCF-E1;Nein\n"), "delimiter": ";",
+        "map_0": "plot_number", "map_1": f"cf:{pool.id}",
+    })
+    assert await _values(parcel_id=existing_id) == {}

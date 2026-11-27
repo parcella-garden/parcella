@@ -4088,6 +4088,9 @@
       "no": "nie",
       "filled": "wypełnione",
       "empty": "puste"
-    }
+    },
+    "csv_row_error": "Wiersz {row}: {message}",
+    "csv_existing_updated": " {count} istniejących działek otrzymało wartości własnych pól.",
+    "csv_errors_suffix": " {count} wierszy z błędami we własnych polach"
   }
 }

@@ -726,6 +726,9 @@ async def parcels_export_csv(
         query = query.where(Parcel.id.in_(picked))
     result = await db.execute(query)
     parcels = result.scalars().all()
+    # Issue #443: one column per custom field, after the fixed ones.
+    custom_columns = await cf.csv_columns(db, CustomFieldTarget.PARCEL)
+    custom_values = await cf.csv_values(db, CustomFieldTarget.PARCEL, [p.id for p in parcels])
 
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")
@@ -733,7 +736,7 @@ async def parcels_export_csv(
         "Gartennummer", "Fläche (qm)", "Breitengrad", "Längengrad", "Status",
         "Kündigungsnotiz",
         "Mitglieder (Rechnungsadresse zuerst)", "Notizen"
-    ])
+    ] + [csv_safe(header) for _, header in custom_columns])
 
     for p in parcels:
         members_str = "; ".join(
@@ -749,7 +752,7 @@ async def parcels_export_csv(
             csv_safe(p.termination_note or ""),
             csv_safe(members_str),
             csv_safe(p.notes or ""),
-        ])
+        ] + [csv_safe(cf.csv_cell(f, custom_values.get(p.id, {}).get(f.id))) for f, _ in custom_columns])
 
     output.seek(0)
     return StreamingResponse(
@@ -799,12 +802,13 @@ async def parcels_import_preview(
         return RedirectResponse(f"/parcels/?error={urlquote(message)}", status_code=303)
     headers = [h.strip() for h in rows[0]]
     preview_rows = rows[1:1 + CSV_IMPORT_PREVIEW_ROWS]
-    default_mapping = guess_column_mapping(headers, PARCELS_IMPORT_FIELD_ALIASES)
+    custom_targets, custom_labels, custom_aliases = await cf.import_targets(db, CustomFieldTarget.PARCEL)
+    default_mapping = guess_column_mapping(headers, {**PARCELS_IMPORT_FIELD_ALIASES, **custom_aliases})
 
     return templates.TemplateResponse(request, "parcels/import_preview.html", {
         "request": request,
-        "headers": headers, "preview_rows": preview_rows,
-        "default_mapping": default_mapping, "target_fields": PARCELS_IMPORT_TARGET_FIELDS,
+        "headers": headers, "preview_rows": preview_rows, "custom_labels": custom_labels,
+        "default_mapping": default_mapping, "target_fields": PARCELS_IMPORT_TARGET_FIELDS + custom_targets,
         "csv_content_b64": base64.b64encode(content).decode("ascii"), "delimiter": delimiter,
     })
 
@@ -823,7 +827,8 @@ async def parcels_import_finalize(
     await require_permission(request, db, "members_parcels", "write")
 
     form = await request.form()
-    column_mapping = parse_column_mapping(form, PARCELS_IMPORT_TARGET_FIELDS)
+    custom_targets, _, _ = await cf.import_targets(db, CustomFieldTarget.PARCEL)
+    column_mapping = parse_column_mapping(form, PARCELS_IMPORT_TARGET_FIELDS + custom_targets)
     if "plot_number" not in column_mapping.values():
         message = t_for(request, "parcels.list.csv_mapping_required_error")
         return RedirectResponse(f"/parcels/?error={urlquote(message)}", status_code=303)
@@ -832,18 +837,33 @@ async def parcels_import_finalize(
     created = 0
     skipped = 0
     missing_plot_number = 0
+    custom_updated = 0
+    custom_errors = []
 
-    for values in rows:
+    async def import_custom(parcel_id: str, row_number: int) -> bool:
+        """Issue #443: the row's custom-field columns, only the filled-in ones."""
+        try:
+            return await cf.import_values(db, CustomFieldTarget.PARCEL, parcel_id, cf.import_cells(values))
+        except ServiceError as e:
+            custom_errors.append(t_for(request, "custom_fields.csv_row_error", row=row_number,
+                                       message=t_for(request, e.key, **e.params)))
+            return False
+
+    for row_number, values in enumerate(rows, start=2):
         plot_number = (values.get("plot_number") or "").strip().upper()
         if not plot_number:
             missing_plot_number += 1
             continue
 
-        existing = await db.execute(
+        existing = (await db.execute(
             select(Parcel).where(Parcel.plot_number == plot_number)
-        )
-        if existing.scalar_one_or_none():
+        )).scalar_one_or_none()
+        if existing:
+            # The parcel's own fields stay as they are; its custom fields
+            # can still be filled in from the file (e.g. a pool survey).
             skipped += 1
+            if await import_custom(existing.id, row_number):
+                custom_updated += 1
             continue
 
         area = None
@@ -884,6 +904,8 @@ async def parcels_import_finalize(
             notes=(values.get("notes") or "").strip() or None,
         )
         db.add(parcel)
+        await db.flush()
+        await import_custom(parcel.id, row_number)
         created += 1
 
     await db.commit()
@@ -891,6 +913,10 @@ async def parcels_import_finalize(
     message = t_for(request, "parcels.list.csv_import_summary", created=created, skipped=skipped)
     if missing_plot_number:
         message += t_for(request, "parcels.list.csv_import_missing_plot_number", count=missing_plot_number)
+    if custom_updated:
+        message += t_for(request, "custom_fields.csv_existing_updated", count=custom_updated)
+    if custom_errors:
+        message += t_for(request, "custom_fields.csv_errors_suffix", count=len(custom_errors)) + " – " + " | ".join(custom_errors[:3])
 
     import urllib.parse
     return RedirectResponse(

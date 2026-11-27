@@ -272,29 +272,7 @@ async def save_values(db: AsyncSession, target: CustomFieldTarget, owner_id: str
             raise ServiceError("custom_fields.errors.required", label=f.label)
     existing = await load_values(db, target, owner_id)
     for field_id, value in parsed.items():
-        field = by_id[field_id]
-        row = existing.get(field_id)
-        empty = value is None or (value is False and field.kind == CustomFieldKind.CHECKBOX)
-        if empty and field.kind != CustomFieldKind.GROUP:
-            if row is not None:
-                await db.delete(row)
-            continue
-        if field.kind == CustomFieldKind.GROUP and not value:
-            if row is not None:
-                await db.delete(row)
-            continue
-        if row is None:
-            row = CustomFieldValue(field_id=field_id, **{owner_column(target).key: owner_id})
-            db.add(row)
-        row.value_text = row.value_number = row.value_date = row.value_bool = None
-        if field.kind in (CustomFieldKind.CHECKBOX, CustomFieldKind.GROUP):
-            row.value_bool = True
-        elif field.kind == CustomFieldKind.NUMBER:
-            row.value_number = value
-        elif field.kind == CustomFieldKind.DATE:
-            row.value_date = value
-        else:
-            row.value_text = value
+        await _write(db, target, owner_id, by_id[field_id], existing, value)
     await db.flush()
 
 
@@ -382,3 +360,124 @@ async def filter_context(db: AsyncSession, target: CustomFieldTarget, field_id: 
     picked one (its type decides the value control)."""
     fields = await list_fields(db, target)
     return {"cf_fields": fields, "cf_picked": next((f for f in fields if f.id == field_id), None)}
+
+
+# ---------------------------------------------------------------------------
+# CSV export and import (issue #443 slice 3)
+# ---------------------------------------------------------------------------
+
+CSV_TARGET_PREFIX = "cf:"
+_CSV_YES, _CSV_NO = "Ja", "Nein"  # like the existing exports' yes/no columns
+
+
+def _csv_header(field: CustomField, by_id: Dict[str, CustomField]) -> str:
+    parent = by_id.get(field.parent_id) if field.parent_id else None
+    return f"{parent.label}: {field.label}" if parent else field.label
+
+
+async def csv_columns(db: AsyncSession, target: CustomFieldTarget) -> List[tuple]:
+    """[(field, column header)] for the export, in display order."""
+    fields = await list_fields(db, target)
+    by_id = {f.id: f for f in fields}
+    return [(f, _csv_header(f, by_id)) for f in fields]
+
+
+async def csv_values(db: AsyncSession, target: CustomFieldTarget, owner_ids: List[str]) -> Dict[str, Dict[str, CustomFieldValue]]:
+    """{owner id: {field id: value}} for many members/parcels in one query."""
+    if not owner_ids:
+        return {}
+    owner = owner_column(target)
+    out: Dict[str, Dict[str, CustomFieldValue]] = {}
+    for row in (await db.scalars(select(CustomFieldValue).where(owner.in_(owner_ids)))).all():
+        out.setdefault(getattr(row, owner.key), {})[row.field_id] = row
+    return out
+
+
+def csv_cell(field: CustomField, value: Optional[CustomFieldValue]) -> str:
+    raw = raw_value(field, value)
+    if field.kind in (CustomFieldKind.CHECKBOX, CustomFieldKind.GROUP):
+        return _CSV_YES if raw else _CSV_NO
+    if raw is None:
+        return ""
+    if isinstance(raw, Decimal):
+        return format(raw.normalize(), "f")
+    if isinstance(raw, date):
+        return raw.isoformat()
+    return str(raw)
+
+
+async def import_targets(db: AsyncSession, target: CustomFieldTarget):
+    """The custom fields as column-mapping targets: (target names, their
+    labels for the mapping form, aliases for guessing the mapping)."""
+    columns = await csv_columns(db, target)
+    names = [CSV_TARGET_PREFIX + f.id for f, _ in columns]
+    labels = {CSV_TARGET_PREFIX + f.id: header for f, header in columns}
+    aliases = {CSV_TARGET_PREFIX + f.id: {header.lower(), f.label.lower(), f.key} for f, header in columns}
+    return names, labels, aliases
+
+
+def import_cells(values: dict) -> Dict[str, str]:
+    """The custom-field cells of one mapped CSV row, {field id: text}."""
+    return {k[len(CSV_TARGET_PREFIX):]: v for k, v in values.items() if k.startswith(CSV_TARGET_PREFIX)}
+
+
+def _parse_csv_bool(text: str) -> bool:
+    return text.strip().lower() in ("ja", "yes", "true", "1", "x", "oui", "tak", "ano", "áno")
+
+
+async def import_values(db: AsyncSession, target: CustomFieldTarget, owner_id: str, cells: Dict[str, str]) -> bool:
+    """Applies one row's custom-field cells. Like the rest of the import,
+    only what the file says (issue #352): empty cells change nothing.
+    A filled-in sub-field ticks its group; a group set to "no" clears
+    its sub-fields. Raises ServiceError (nothing of the row written) when
+    a cell doesn't fit. Returns whether anything was given."""
+    fields = {f.id: f for f in await list_fields(db, target)}
+    parsed = {}
+    for field_id, text in cells.items():
+        field = fields.get(field_id)
+        if field is None or not (text or "").strip():
+            continue
+        if field.kind in (CustomFieldKind.CHECKBOX, CustomFieldKind.GROUP):
+            parsed[field_id] = _parse_csv_bool(text)
+        else:
+            parsed[field_id] = parse_input(field, text)
+    if not parsed:
+        return False
+    for field_id, value in list(parsed.items()):
+        field = fields[field_id]
+        if field.parent_id and not _is_empty(value) and field.parent_id in fields:
+            parsed[field.parent_id] = parsed.get(field.parent_id) or True
+    existing = await load_values(db, target, owner_id)
+    for field_id, value in parsed.items():
+        field = fields[field_id]
+        if field.kind == CustomFieldKind.GROUP and value is False:
+            for child in (f for f in fields.values() if f.parent_id == field_id):
+                if child.id in existing:
+                    await db.delete(existing.pop(child.id))
+        await _write(db, target, owner_id, field, existing, value)
+    await db.flush()
+    return True
+
+
+async def _write(db: AsyncSession, target: CustomFieldTarget, owner_id: str, field: CustomField,
+                 existing: Dict[str, CustomFieldValue], value) -> None:
+    """Stores one parsed value. A row only exists for a ticked yes/no or a
+    filled-in field, so "no" and empty remove it."""
+    row = existing.get(field.id)
+    if _is_empty(value):
+        if row is not None:
+            await db.delete(existing.pop(field.id))
+        return
+    if row is None:
+        row = CustomFieldValue(field_id=field.id, **{owner_column(target).key: owner_id})
+        db.add(row)
+        existing[field.id] = row
+    row.value_text = row.value_number = row.value_date = row.value_bool = None
+    if field.kind in (CustomFieldKind.CHECKBOX, CustomFieldKind.GROUP):
+        row.value_bool = True
+    elif field.kind == CustomFieldKind.NUMBER:
+        row.value_number = value
+    elif field.kind == CustomFieldKind.DATE:
+        row.value_date = value
+    else:
+        row.value_text = value

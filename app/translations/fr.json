@@ -4088,6 +4088,9 @@
       "no": "non",
       "filled": "renseigné",
       "empty": "vide"
-    }
+    },
+    "csv_row_error": "Ligne {row} : {message}",
+    "csv_existing_updated": " {count} parcelle(s) existante(s) ont reçu des valeurs de champs personnalisés.",
+    "csv_errors_suffix": " {count} ligne(s) avec des erreurs dans les champs personnalisés"
   }
 }

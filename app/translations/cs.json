@@ -4088,6 +4088,9 @@
       "no": "ne",
       "filled": "vyplněno",
       "empty": "prázdné"
-    }
+    },
+    "csv_row_error": "Řádek {row}: {message}",
+    "csv_existing_updated": " {count} existujících parcel dostalo hodnoty vlastních polí.",
+    "csv_errors_suffix": " {count} řádků s chybami ve vlastních polích"
   }
 }

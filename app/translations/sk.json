@@ -4088,6 +4088,9 @@
       "no": "nie",
       "filled": "vyplnené",
       "empty": "prázdne"
-    }
+    },
+    "csv_row_error": "Riadok {row}: {message}",
+    "csv_existing_updated": " {count} existujúcich parciel dostalo hodnoty vlastných polí.",
+    "csv_errors_suffix": " {count} riadkov s chybami vo vlastných poliach"
   }
 }

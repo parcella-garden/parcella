@@ -4088,6 +4088,9 @@
       "no": "nee",
       "filled": "ingevuld",
       "empty": "leeg"
-    }
+    },
+    "csv_row_error": "Regel {row}: {message}",
+    "csv_existing_updated": " {count} bestaande perceel/percelen kregen waarden in eigen velden.",
+    "csv_errors_suffix": " {count} regel(s) met fouten in eigen velden"
   }
 }

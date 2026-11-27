@@ -4088,6 +4088,9 @@
       "no": "nein",
       "filled": "ausgefüllt",
       "empty": "leer"
-    }
+    },
+    "csv_row_error": "Zeile {row}: {message}",
+    "csv_existing_updated": " {count} bestehende Parzelle(n) haben Werte in eigenen Feldern bekommen.",
+    "csv_errors_suffix": " {count} Zeile(n) mit Fehlern in eigenen Feldern"
   }
 }

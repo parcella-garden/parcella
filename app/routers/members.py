@@ -595,6 +595,9 @@ async def members_export_csv(
     )
     result = await db.execute(query)
     members = result.scalars().all()
+    # Issue #443: one column per custom field, after the fixed ones.
+    custom_columns = await cf.csv_columns(db, CustomFieldTarget.MEMBER)
+    custom_values = await cf.csv_values(db, CustomFieldTarget.MEMBER, [m.id for m in members])
 
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")
@@ -603,7 +606,7 @@ async def members_export_csv(
         "Geburtsdatum", "IBAN", "Member seit", "Member bis",
         "E-Mail-Benachrichtigungen", "E-Mail-Adressen", "Telefonnummern",
         "Parzellen", "Notizen", "Tags"
-    ])
+    ] + [csv_safe(header) for _, header in custom_columns])
 
     for m in members:
         emails = "; ".join(e.address for e in m.email_addresses)
@@ -620,7 +623,7 @@ async def members_export_csv(
             csv_safe(emails), csv_safe(phones), parcels,
             csv_safe(m.notes or ""),
             csv_safe("; ".join(tag.name for tag in m.tags)),
-        ])
+        ] + [csv_safe(cf.csv_cell(f, custom_values.get(m.id, {}).get(f.id))) for f, _ in custom_columns])
 
     output.seek(0)
     return StreamingResponse(
@@ -755,12 +758,13 @@ async def members_import_preview(
         return RedirectResponse(f"/members/?error={urllib.parse.quote(message)}", status_code=303)
     headers = [h.strip() for h in rows[0]]
     preview_rows = rows[1:1 + CSV_IMPORT_PREVIEW_ROWS]
-    default_mapping = guess_column_mapping(headers, MEMBERS_IMPORT_FIELD_ALIASES)
+    custom_targets, custom_labels, custom_aliases = await cf.import_targets(db, CustomFieldTarget.MEMBER)
+    default_mapping = guess_column_mapping(headers, {**MEMBERS_IMPORT_FIELD_ALIASES, **custom_aliases})
 
     return templates.TemplateResponse(request, "members/import_preview.html", {
         "request": request,
-        "headers": headers, "preview_rows": preview_rows,
-        "default_mapping": default_mapping, "target_fields": MEMBERS_IMPORT_TARGET_FIELDS,
+        "headers": headers, "preview_rows": preview_rows, "custom_labels": custom_labels,
+        "default_mapping": default_mapping, "target_fields": MEMBERS_IMPORT_TARGET_FIELDS + custom_targets,
         "csv_content_b64": base64.b64encode(content).decode("ascii"), "delimiter": delimiter,
     })
 
@@ -779,7 +783,8 @@ async def members_import_finalize(
     await require_permission(request, db, "members_parcels", "write")
 
     form = await request.form()
-    column_mapping = parse_column_mapping(form, MEMBERS_IMPORT_TARGET_FIELDS)
+    custom_targets, _, _ = await cf.import_targets(db, CustomFieldTarget.MEMBER)
+    column_mapping = parse_column_mapping(form, MEMBERS_IMPORT_TARGET_FIELDS + custom_targets)
     if "first_name" not in column_mapping.values() or "last_name" not in column_mapping.values():
         message = t_for(request, "members.list.csv_mapping_required_error")
         import urllib.parse
@@ -837,6 +842,12 @@ async def members_import_finalize(
             db.add(member)
             await db.flush()  # generate ID for sub-entries
             created += 1
+
+        # Issue #443: custom-field columns, only the filled-in ones.
+        try:
+            await cf.import_values(db, CustomFieldTarget.MEMBER, member.id, cf.import_cells(values))
+        except ServiceError as e:
+            errors.append(t_for(request, "custom_fields.csv_row_error", row=row_number, message=t_for(request, e.key, **e.params)))
 
         # Email addresses (semicolon-separated in one cell)
         emails_str = (values.get("email_addresses") or "").strip()
