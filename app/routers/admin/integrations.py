@@ -46,13 +46,13 @@ from app.services.processes import CLOUD_FOLDER_SETTING as PROCESSES_FOLDER_SETT
 from app.templating import templates
 from app.services.admin import upsert_club_setting
 
+# Issue #191: the incoming-invoices folder is configured here but read by
+# the finances routes at upload/download time -- one constant for both.
+from app.services.finances import INCOMING_INVOICES_FOLDER_SETTING
+
 router = APIRouter()
 
 
-# Must match app/routers/finances.py's INCOMING_INVOICES_FOLDER_SETTING
-# (issue #191: folder configuration moved here, but the setting is
-# still read from app/routers/finances.py at upload/download time).
-INCOMING_INVOICES_FOLDER_SETTING = "incoming_invoices_cloud_folder"
 
 
 # ---------------------------------------------------------------------------
@@ -300,8 +300,8 @@ async def integrations_incoming_invoices_folder_save(
     setting (parcel documents' per-parcel paths stay on each parcel's
     own page, but this shared one) lives on the admin integrations
     page. The value itself is unchanged (ClubSetting
-    INCOMING_INVOICES_FOLDER_SETTING) and still read from
-    app/routers/finances.py at upload/download time."""
+    INCOMING_INVOICES_FOLDER_SETTING) and still read by
+    app/routers/finances/incoming.py at upload/download time."""
     await require_system_admin(request, db)
 
     try:

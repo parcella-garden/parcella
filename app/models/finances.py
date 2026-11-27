@@ -33,7 +33,7 @@ class FinanceCategory(Base):
     to reproduce one -- SKR42 itself is DATEV's copyrighted structure,
     so this app doesn't ship any of its actual codes; a club imports
     its own real chart via CSV instead (see the import route in
-    app/routers/finances.py) or types categories in by hand.
+    app/routers/finances/bookkeeping.py) or types categories in by hand.
     """
     __tablename__ = "finance_categories"
 
@@ -189,7 +189,7 @@ class InvoiceItemTemplate(Base):
     including specific per-parcel scoping (parcel_scopes, used when
     applies_to_all_parcels=False) -- copied verbatim onto the new
     InvoiceItemDefinition when applied to a run (see
-    app/routers/finances.py's items_add_from_catalog) and freely
+    app/routers/finances/runs.py's items_add_from_catalog) and freely
     editable on the template itself at any time, same as on a run's
     own item.
     """

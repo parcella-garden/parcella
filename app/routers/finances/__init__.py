@@ -12,7 +12,7 @@ for anyone not reachable by email -- see app/invoice_delivery.py) and
 payment tracking across every finalized run. Categories (#67): optional
 bookkeeping codes an item definition can be tagged with, manageable by
 hand or via CSV import -- see FinanceCategory's docstring in
-app/models.py for why this app doesn't ship real SKR42 codes itself.
+app/models/finances.py for why this app doesn't ship real SKR42 codes itself.
 Accounts (#156): a club's real bank/cash accounts, a reporting tag on
 InvoicePayment with the same "no effect on invoice generation" role as
 categories -- see FinanceAccount's docstring.
