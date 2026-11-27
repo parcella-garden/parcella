@@ -1,4 +1,5 @@
 """Users and invitations: list, invite, edit, reset password, avatar, deactivate, delete."""
+import urllib.parse
 from fastapi import APIRouter
 from datetime import datetime, timedelta, timezone
 from typing import Optional
