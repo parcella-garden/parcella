@@ -1,12 +1,15 @@
 name: CI
 
-# Runs the full test suite on every pull request and every push to main
-# (ADR 0119). release.yml calls this same workflow before it publishes an
-# image, so a release and a PR are tested the exact same way.
+# Runs the full test suite on every pull request (ADR 0119). release.yml
+# calls this same workflow before it publishes an image, so a release and a
+# PR are tested the exact same way. No second run after the merge to main:
+# the PR run already tested that code, and every release runs it again.
+# A PR that only touches docs (docs/, user-docs/, *.md) skips the suite:
+# the job still runs and goes green, because branch protection requires the
+# `test` check (a workflow skipped by `paths-ignore` would leave it pending
+# forever). Releases always run the full suite.
 on:
   pull_request:
-  push:
-    branches: [main]
   workflow_call:
 
 permissions:
@@ -24,7 +27,27 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Docs-only change?
+        id: changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          # Releases (workflow_call) and an API error run the full suite.
+          files=""
+          if [ "$EVENT" = pull_request ]; then
+            files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename') || files=""
+          fi
+          if [ -n "$files" ] && ! printf '%s\n' "$files" | grep -qvE '^(docs/|user-docs/)|\.md$'; then
+            echo "Only docs changed, skipping the test suite:"; printf '  %s\n' $files
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set UID/GID for the web container
+        if: steps.changes.outputs.code == 'true'
         run: |
           echo "UID=$(id -u)" >> .env
           echo "GID=$(id -g)" >> .env
@@ -37,4 +60,5 @@ jobs:
           fi
 
       - name: Run test suite
+        if: steps.changes.outputs.code == 'true'
         run: ./run_tests.sh

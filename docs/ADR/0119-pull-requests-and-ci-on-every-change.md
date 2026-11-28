@@ -14,7 +14,8 @@ landed. The maintainer wanted to review changes as pull requests again.
   `issue-<N>-<slug>` for ticket work, a short slug otherwise. The PR body
   says `Fixes #N`, so the issue closes on merge.
 - **`.github/workflows/ci.yml` runs the full suite** (`./run_tests.sh`,
-  real Postgres) on every pull request and every push to `main`. It's a
+  real Postgres) on every pull request. (Until 2026-11-28 also on every
+  push to `main`; dropped to halve CI runs, see docs/testing.md.) It's a
   reusable workflow: `release.yml` calls it as its `test` job, so a PR
   and a release are tested the same way, with no duplicated steps.
 - **`main` is protected**: a PR and a green `test` check are required,
