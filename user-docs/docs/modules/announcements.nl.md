@@ -131,7 +131,7 @@ e-mail wordt maar één keer verstuurd.
 #### Ledenmail {#member-email}
 
 **Nu verzenden** stuurt de mededeling naar alle huidige leden met
-e-mailmeldingen ingeschakeld (de instelling „e-mailinfo“ bij het lid).
+e-mailmeldingen ingeschakeld (de instelling „e-mailtoestemming“ bij het lid).
 Leden met een lopend lidmaatschap krijgen haar, of ze nu een perceel
 huren of niet. Leden zonder e-mailadres worden overgeslagen.
 
@@ -259,7 +259,7 @@ De kaart toont:
 
 | Onderdeel | Wat het toont |
 |---|---|
-| **Selectie:** | Het filter waarop het bericht is gebaseerd, als badges: tag, zoektekst, **Toon alleen inactieven**, **Alleen bevestigd actief**, **Alleen e-mailinfo = ja**, „{aantal} met de hand gekozen“. |
+| **Selectie:** | Het filter waarop het bericht is gebaseerd, als badges: tag, zoektekst, **Toon alleen inactieven**, **Alleen bevestigd actief**, **Alleen met e-mailtoestemming = ja**, „{aantal} met de hand gekozen“. |
 | **Deze leden tonen** | Opent de ledenlijst met dit filter. |
 | „{aantal} per e-mail“ | Leden die informatie per e-mail toestaan (**Mag informatie per e-mail ontvangen**) en een adres hebben. |
 | „{aantal} per brief“ | Brieven voor de overige leden met een postadres -- één per adres, dus leden die samenwonen delen er een. Hun namen volgen. |
@@ -327,7 +327,7 @@ Probeer het later nog eens.**
 
 - [Integraties](../administration/integrations.md) -- de website en de
   cloudmap voor afgedrukte mededelingen koppelen.
-- [Leden](members.md) -- de instelling „e-mailinfo“, tags, en een bericht
+- [Leden](members.md) -- de instelling „e-mailtoestemming“, tags, en een bericht
   aan gefilterde leden starten.
 - [Aanmelders](applicants.md) -- geselecteerde aanmelders schrijven.
 - [E-maillogboek](../administration/email-log.md)

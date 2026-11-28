@@ -129,7 +129,7 @@ E-Mail wird nur einmal versendet.
 #### Mitglieder-E-Mail {#member-email}
 
 **Jetzt senden** schickt die Mitteilung an alle aktuellen Mitglieder, die
-E-Mail-Benachrichtigungen eingeschaltet haben (die Einstellung „E-Mail-Info“
+E-Mail-Benachrichtigungen eingeschaltet haben (die Einstellung „E-Mail-Einwilligung“
 beim Mitglied). Mitglieder, deren Mitgliedschaft noch läuft, bekommen sie,
 ob sie einen Garten haben oder nicht. Mitglieder ohne E-Mail-Adresse werden
 übersprungen.
@@ -256,7 +256,7 @@ Die Karte zeigt:
 
 | Element | Was es zeigt |
 |---|---|
-| **Auswahl:** | Der Filter, auf dem die Nachricht beruht, als Badges: Tag, Suchtext, **Nur Inaktive anzeigen**, **Nur bestätigt aktive**, **Nur mit E-Mail-Info = ja**, „… von Hand ausgewählt“. |
+| **Auswahl:** | Der Filter, auf dem die Nachricht beruht, als Badges: Tag, Suchtext, **Nur Inaktive anzeigen**, **Nur bestätigt aktive**, **Nur mit E-Mail-Einwilligung = ja**, „… von Hand ausgewählt“. |
 | **Diese Mitglieder anzeigen** | Öffnet die Mitgliederliste mit diesem Filter. |
 | „… per E-Mail“ | Mitglieder, die Informationen per E-Mail erlauben (**Darf per E-Mail Informationen erhalten**) und eine Adresse haben. |
 | „… per Brief“ | Briefe für die anderen Mitglieder mit Postanschrift -- einer je Adresse, wer zusammenwohnt, teilt sich einen. Danach ihre Namen. |
@@ -321,7 +321,7 @@ Satz **Diese Mitteilung ist noch nicht auf der Website. Bitte versuch es später
 
 - [Integrationen](../administration/integrations.md) -- Website und
   Cloud-Ordner für gedruckte Aushänge verbinden.
-- [Mitglieder](members.md) -- die Einstellung „E-Mail-Info“, Tags und eine
+- [Mitglieder](members.md) -- die Einstellung „E-Mail-Einwilligung“, Tags und eine
   Nachricht an gefilterte Mitglieder beginnen.
 - [Bewerber](applicants.md) -- ausgewählten Bewerbern schreiben.
 - [E-Mail-Protokoll](../administration/email-log.md)

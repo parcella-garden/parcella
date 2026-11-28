@@ -53,7 +53,7 @@ leden de lijst nu bevat.
 | Zoekveld | Vindt leden op voor- of achternaam, straat, postcode, plaats, IBAN, notities, e-mailadres, telefoonnummer en perceelnummer. Een perceelnummer vindt alleen de *huidige* huurders van het perceel -- tenzij **Toon alleen inactieven** is aangevinkt, dan ook eerdere huurders. Omdat ook notities worden doorzocht, vindt een ticketnummer dat u bij een lid hebt genoteerd dat lid. |
 | **Toon alleen inactieven** | Toont *alleen* leden die niet actief zijn: hun datum **Lid tot** is verstreken, of hun datum **Lid sinds** ligt nog in de toekomst. Gebruik dit om oud-leden of overleden leden op te zoeken. |
 | **Alleen bevestigd actief** | Toont alleen actieve leden die een datum **Lid sinds** hebben. Leden zonder begindatum (getoond als *in afwachting*) vallen weg. |
-| **Alleen e-mailinfo = ja** | Toont alleen leden die **Mag informatie per e-mail ontvangen** hebben aangevinkt. |
+| **Alleen met e-mailtoestemming = ja** | Toont alleen leden die **Mag informatie per e-mail ontvangen** hebben aangevinkt. |
 | Tagkeuzelijst (**Alle tags**) | Toont alleen leden met de gekozen tag. De keuzelijst verschijnt zodra er minstens één tag bestaat. U kunt op één tag tegelijk filteren. |
 | **Zoeken** | Past de zoektekst toe. De vinkjes en de tagkeuzelijst werken zodra u ze wijzigt. |
 | **Resetten** | Wist alle filters. Alleen zichtbaar zolang er een filter actief is. |
@@ -248,7 +248,7 @@ e-mailadressen, tags en percelen toevoegen.
 ### Hoofdgegevens {#master-data}
 
 Toont **Naam**, **Geboortedatum**, **Adres**, **IBAN**, **Lid sinds**,
-**Lid tot**, **E-mail info** (of het lid informatie per e-mail mag
+**Lid tot**, **E-mailtoestemming** (of het lid informatie per e-mail mag
 ontvangen) en **Wil geen verjaardagscadeaus**. Om iets daarvan te
 wijzigen, klikt u op **Bewerken**.
 

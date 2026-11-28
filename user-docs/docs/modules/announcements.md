@@ -125,7 +125,7 @@ only sent once.
 #### Member email
 
 **Send now** sends the announcement to all current members who have
-e-mail notifications switched on (the "email info" setting on the
+e-mail notifications switched on (the "email consent" setting on the
 member). Members whose membership is still running get it, whether they
 hold a plot or not. Members without an e-mail address are skipped.
 
@@ -245,7 +245,7 @@ The card shows:
 
 | Item | What it shows |
 |---|---|
-| **Selection:** | The filter the message is based on, as badges: tag, search text, **Show inactive only**, **Confirmed active only**, **Email info = yes only**, "{count} picked by hand". |
+| **Selection:** | The filter the message is based on, as badges: tag, search text, **Show inactive only**, **Confirmed active only**, **Email consent = yes only**, "{count} picked by hand". |
 | **Show these members** | Opens the member list with this filter. |
 | "{count} by email" | Members who allow information by e-mail (**May receive information by email**) and have an address. |
 | "{count} by letter" | Letters for the other members with a postal address -- one per address, so members who live together share one. Their names follow. |
@@ -308,7 +308,7 @@ unknown. It shows only your club's logo and name and the sentence
 
 - [Integrations](../administration/integrations.md) -- connecting the
   website and the cloud folder for printed notices.
-- [Members](members.md) -- the "email info" setting, tags, and starting
+- [Members](members.md) -- the "email consent" setting, tags, and starting
   a message to filtered members.
 - [Applicants](applicants.md) -- writing to selected applicants.
 - [E-mail log](../administration/email-log.md)

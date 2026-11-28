@@ -53,7 +53,7 @@ członków jest obecnie na liście.
 | Pole wyszukiwania | Znajduje członków po imieniu lub nazwisku, ulicy, kodzie pocztowym, miejscowości, IBAN, notatkach, adresie e-mail, numerze telefonu i numerze działki. Numer działki znajduje tylko *obecnych* dzierżawców działki -- chyba że zaznaczono **Pokaż tylko nieaktywnych**, wtedy znajduje też byłych dzierżawców. Ponieważ przeszukiwane są też notatki, numer zgłoszenia zapisany przy członku znajduje tego członka. |
 | **Pokaż tylko nieaktywnych** | Pokazuje *tylko* członków, którzy nie są aktywni: ich data **Członek do** minęła albo data **Członek od** jest jeszcze w przyszłości. Użyj tego, aby znaleźć byłych lub zmarłych członków. |
 | **Tylko potwierdzeni aktywni** | Pokazuje tylko aktywnych członków, którzy mają datę **Członek od**. Członkowie bez daty początkowej (pokazywani jako *oczekujący*) są pomijani. |
-| **Tylko z informacją e-mail = tak** | Pokazuje tylko członków, którzy zaznaczyli **Może otrzymywać informacje e-mailem**. |
+| **Tylko ze zgodą na e-mail = tak** | Pokazuje tylko członków, którzy zaznaczyli **Może otrzymywać informacje e-mailem**. |
 | Lista tagów (**Wszystkie tagi**) | Pokazuje tylko członków z wybranym tagiem. Lista pojawia się, gdy istnieje co najmniej jeden tag. Filtrować można po jednym tagu naraz. |
 | **Szukaj** | Stosuje tekst wyszukiwania. Pola wyboru i lista tagów działają, gdy tylko je zmienisz. |
 | **Wyczyść** | Czyści wszystkie filtry. Widoczny tylko, gdy filtr jest aktywny. |
@@ -249,7 +249,7 @@ numery telefonów, adresy e-mail, tagi i działki.
 ### Dane podstawowe {#master-data}
 
 Pokazuje **Imię i nazwisko**, **Data urodzenia**, **Adres**, **IBAN**,
-**Członek od**, **Członek do**, **Informacje e-mail** (czy członek może
+**Członek od**, **Członek do**, **Zgoda na e-mail** (czy członek może
 otrzymywać informacje e-mailem) i **Nie chce prezentów urodzinowych**.
 Aby zmienić którekolwiek z nich, kliknij **Edytuj**.
 

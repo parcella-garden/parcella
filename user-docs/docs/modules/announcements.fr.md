@@ -135,7 +135,7 @@ peuvent être mis à jour ; l'e-mail n'est envoyé qu'une fois.
 #### E-mail aux membres {#member-email}
 
 **Envoyer maintenant** envoie l'annonce à tous les membres actuels qui
-ont activé les notifications par e-mail (le réglage « infos e-mail » du
+ont activé les notifications par e-mail (le réglage « consentement e-mail » du
 membre). Les membres dont l'adhésion est en cours la reçoivent, qu'ils
 aient une parcelle ou non. Les membres sans adresse e-mail sont ignorés.
 
@@ -264,7 +264,7 @@ La carte affiche :
 
 | Élément | Ce qu'il affiche |
 |---|---|
-| **Sélection :** | Le filtre sur lequel se base le message, sous forme de badges : étiquette, texte de recherche, **Afficher uniquement les inactifs**, **Actifs confirmés uniquement**, **Infos e-mail = oui uniquement**, « {count} choisi(s) à la main ». |
+| **Sélection :** | Le filtre sur lequel se base le message, sous forme de badges : étiquette, texte de recherche, **Afficher uniquement les inactifs**, **Actifs confirmés uniquement**, **Consentement e-mail = oui uniquement**, « {count} choisi(s) à la main ». |
 | **Afficher ces membres** | Ouvre la liste des membres avec ce filtre. |
 | « {count} par e-mail » | Les membres qui acceptent les informations par e-mail (**Peut recevoir des informations par e-mail**) et ont une adresse. |
 | « {count} par courrier » | Les courriers pour les autres membres ayant une adresse postale -- un par adresse, si bien que les membres qui vivent ensemble en partagent un. Leurs noms suivent. |
@@ -334,7 +334,7 @@ plus tard.**
 
 - [Intégrations](../administration/integrations.md) -- connecter le site
   web et le dossier cloud pour les avis imprimés.
-- [Membres](members.md) -- le réglage « infos e-mail », les étiquettes,
+- [Membres](members.md) -- le réglage « consentement e-mail », les étiquettes,
   et démarrer un message aux membres filtrés.
 - [Candidats](applicants.md) -- écrire aux candidats sélectionnés.
 - [Journal des e-mails](../administration/email-log.md)

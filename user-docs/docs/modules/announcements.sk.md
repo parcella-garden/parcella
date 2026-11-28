@@ -128,7 +128,7 @@ príspevok na webe a PDF aktualizovať; e-mail sa odosiela len raz.
 #### E-mail členom {#member-email}
 
 **Odoslať teraz** pošle oznam všetkým súčasným členom, ktorí majú
-zapnuté e-mailové upozornenia (nastavenie „e-mailové informácie“ pri
+zapnuté e-mailové upozornenia (nastavenie „súhlas s e-mailom“ pri
 členovi). Dostanú ho členovia, ktorých členstvo ešte trvá, či už majú
 parcelu, alebo nie. Členovia bez e-mailovej adresy sa preskočia.
 
@@ -246,7 +246,7 @@ Karta ukazuje:
 
 | Položka | Čo ukazuje |
 |---|---|
-| **Výber:** | Filter, na ktorom správa stojí, ako odznaky: štítok, hľadaný text, **Zobraziť iba neaktívnych**, **Iba potvrdení aktívni**, **Iba s e-mailovými informáciami = áno**, „Ručne vybraté: {count}“. |
+| **Výber:** | Filter, na ktorom správa stojí, ako odznaky: štítok, hľadaný text, **Zobraziť iba neaktívnych**, **Iba potvrdení aktívni**, **Iba so súhlasom s e-mailom = áno**, „Ručne vybraté: {count}“. |
 | **Zobraziť týchto členov** | Otvorí zoznam členov s týmto filtrom. |
 | „E-mailom: {count}“ | Členovia, ktorí povoľujú informácie e-mailom (**Môže dostávať informácie e-mailom**) a majú adresu. |
 | „Listom: {count}“ | Listy pre ostatných členov s poštovou adresou -- jeden na adresu, takže spolubývajúci členovia majú jeden spoločný. Nasledujú ich mená. |
@@ -310,7 +310,7 @@ oznámenie zatiaľ nie je na webe. Skúste to prosím neskôr.**
 
 - [Integrácie](../administration/integrations.md) -- prepojenie webu a
   cloudový priečinok pre vytlačené oznamy.
-- [Členovia](members.md) -- nastavenie „e-mailové informácie“, štítky a
+- [Členovia](members.md) -- nastavenie „súhlas s e-mailom“, štítky a
   začatie správy vyfiltrovaným členom.
 - [Uchádzači](applicants.md) -- písanie vybraným uchádzačom.
 - [Protokol e-mailov](../administration/email-log.md)

@@ -55,7 +55,7 @@ Mitgliedsseite führt auf die Seite, auf der das Mitglied steht.
 | Suchfeld | Findet Mitglieder nach Vor- oder Nachname, Straße, PLZ, Ort, IBAN, Notizen, E-Mail-Adresse, Telefonnummer und Gartennummer. Eine Gartennummer findet nur die *aktuellen* Pächter der Parzelle -- außer **Nur Inaktive anzeigen** ist angehakt, dann auch frühere Pächter. Weil auch Notizen durchsucht werden, findet eine bei einem Mitglied notierte Ticketnummer dieses Mitglied. |
 | **Nur Inaktive anzeigen** | Zeigt *nur* Mitglieder, die nicht aktiv sind: ihr Datum **Mitglied bis** ist vorbei oder ihr Datum **Mitglied seit** liegt noch in der Zukunft. Damit schlägst du frühere oder verstorbene Mitglieder nach. |
 | **Nur bestätigt aktive** | Zeigt nur aktive Mitglieder mit einem Datum **Mitglied seit**. Mitglieder ohne Beginndatum (angezeigt als *ausstehend*) fallen weg. |
-| **Nur mit E-Mail-Info = ja** | Zeigt nur Mitglieder mit Häkchen bei **Darf per E-Mail Informationen erhalten**. |
+| **Nur mit E-Mail-Einwilligung = ja** | Zeigt nur Mitglieder mit Häkchen bei **Darf per E-Mail Informationen erhalten**. |
 | Tag-Auswahl (**Alle Tags**) | Zeigt nur Mitglieder mit dem gewählten Tag. Die Auswahl erscheint, sobald es mindestens einen Tag gibt. Es lässt sich nach einem Tag auf einmal filtern. |
 | **– eigenes Feld –** | Erscheint erst, wenn es ein [eigenes Feld](../administration/custom-fields.md) gibt. Wähle ein Feld; daneben wählst du dann, wonach du suchst: **ja**/**nein** bei einem Ja/Nein-Feld oder einer Gruppe, **ausgefüllt**/**leer** bei den anderen Typen, einen der Auswahlwerte oder einen Text, den das Feld enthalten soll. Wirkt zusammen mit allen anderen Filtern, also auch für **Alle … Treffer des Filters auswählen**, den Export und **An Auswahl schreiben**. |
 | **Suchen** | Wendet den Suchtext an. Häkchen und Tag-Auswahl wirken, sobald du sie änderst. |
@@ -132,7 +132,7 @@ Member bis, E-Mail-Benachrichtigungen, E-Mail-Adressen, Telefonnummern,
 Parzellen, Notizen, Tags.
 
 - Datumsangaben stehen als Jahr-Monat-Tag (2024-03-01).
-- Die E-Mail-Info steht als „Ja“ oder „Nein“.
+- Die E-Mail-Einwilligung steht als „Ja“ oder „Nein“.
 - Mehrere E-Mail-Adressen, Telefonnummern, Parzellen oder Tags teilen sich
   eine Zelle, getrennt durch Semikolons.
 - Tags werden mit dem eingetippten Namen exportiert, nicht mit einer
@@ -262,7 +262,7 @@ Telefonnummern, E-Mail-Adressen, Tags und Parzellen direkt hinzu.
 ### Stammdaten {#master-data}
 
 Zeigt **Name**, **Geburtsdatum**, **Adresse**, **IBAN**, **Mitglied seit**,
-**Mitglied bis**, **E-Mail-Info** (ob das Mitglied Informationen per E-Mail
+**Mitglied bis**, **E-Mail-Einwilligung** (ob das Mitglied Informationen per E-Mail
 erhalten darf) und **Möchte keine Geburtstagsgeschenke**. Um etwas davon zu
 ändern, klick auf **Bearbeiten**.
 
