@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_custom_fields.html" import view_card %}
+{% from "_custom_fields.html" import view_card with context %}
 {% block title %}{{ member.full_name }}{% endblock %}
 {% block page_title %}{{ member.full_name }}{% endblock %}
 

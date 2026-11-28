@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_custom_fields.html" import view_card %}
+{% from "_custom_fields.html" import view_card with context %}
 {% block title %}{{ t('parcels.detail.page_title', plot_number=parcel.plot_number) }}{% endblock %}
 {% block page_title %}{{ t('parcels.detail.page_title', plot_number=parcel.plot_number) }}{% endblock %}
 
