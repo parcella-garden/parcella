@@ -57,7 +57,7 @@ membres figurent actuellement dans la liste.
 | Champ de recherche | Trouve les membres par prénom ou nom, rue, code postal, ville, IBAN, notes, adresse e-mail, numéro de téléphone et numéro de parcelle. Un numéro de parcelle ne trouve que les locataires *actuels* de la parcelle -- sauf si **Afficher uniquement les inactifs** est coché : il trouve alors aussi les anciens locataires. Comme les notes sont aussi cherchées, un numéro de ticket noté sur un membre retrouve ce membre. |
 | **Afficher uniquement les inactifs** | N'affiche *que* les membres qui ne sont pas actifs : leur date **Membre jusqu'au** est passée, ou leur date **Membre depuis** est encore dans le futur. Utilisez-le pour retrouver des membres anciens ou décédés. |
 | **Actifs confirmés uniquement** | N'affiche que les membres actifs qui ont une date **Membre depuis**. Les membres sans date de début (affichés comme *en attente*) sont laissés de côté. |
-| **Infos e-mail = oui uniquement** | N'affiche que les membres qui ont coché **Peut recevoir des informations par e-mail**. |
+| **Consentement e-mail = oui uniquement** | N'affiche que les membres qui ont coché **Peut recevoir des informations par e-mail**. |
 | Liste déroulante des étiquettes (**Toutes les étiquettes**) | N'affiche que les membres ayant l'étiquette choisie. La liste apparaît dès qu'au moins une étiquette existe. Vous pouvez filtrer sur une seule étiquette à la fois. |
 | **Rechercher** | Applique le texte de recherche. Les cases à cocher et la liste des étiquettes s'appliquent dès que vous les changez. |
 | **Réinitialiser** | Efface tous les filtres. Affiché seulement tant qu'un filtre est actif. |
@@ -265,7 +265,7 @@ d'ajouter directement des numéros de téléphone, des adresses e-mail, des
 ### Données principales {#master-data}
 
 Affiche **Nom**, **Date de naissance**, **Adresse**, **IBAN**, **Membre
-depuis**, **Membre jusqu'au**, **Info e-mail** (si le membre peut
+depuis**, **Membre jusqu'au**, **Consentement e-mail** (si le membre peut
 recevoir des informations par e-mail) et **Ne souhaite pas de cadeau
 d'anniversaire**. Pour modifier l'un d'eux, cliquez sur **Modifier**.
 

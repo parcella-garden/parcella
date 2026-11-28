@@ -53,7 +53,7 @@ page with **Back** takes you to the page that member is on.
 | Search box | Finds members by first or last name, street, postal code, city, IBAN, notes, email address, phone number and parcel number. A parcel number only finds the parcel's *current* tenants -- unless **Show inactive only** is ticked, then it also finds former tenants. Because notes are searched too, a ticket number you noted on a member finds that member. |
 | **Show inactive only** | Shows *only* members who are not active: their **Member until** date has passed, or their **Member since** date is still in the future. Use it to look up former or deceased members. |
 | **Confirmed active only** | Shows only active members who have a **Member since** date. Members without a start date (shown as *pending*) are left out. |
-| **Email info = yes only** | Shows only members who ticked **May receive information by email**. |
+| **Email consent = yes only** | Shows only members who ticked **May receive information by email**. |
 | Tag dropdown (**All tags**) | Shows only members with the chosen tag. The dropdown appears once at least one tag exists. You can filter by one tag at a time. |
 | **– custom field –** | Only shown once a [custom field](../administration/custom-fields.md) exists. Pick a field; next to it you then choose what to look for: **yes**/**no** for a yes/no field or group, **filled in**/**empty** for the other types, one of the choices, or a text the field should contain. Combines with all other filters, so **Select all … matching the filter**, the export and **Write to selected** use it too. |
 | **Search** | Applies the search text. The checkboxes and the tag dropdown apply as soon as you change them. |
@@ -255,7 +255,7 @@ numbers, email addresses, tags and parcels directly.
 ### Master data
 
 Shows **Name**, **Date of birth**, **Address**, **IBAN**, **Member
-since**, **Member until**, **Email info** (whether the member may
+since**, **Member until**, **Email consent** (whether the member may
 receive information by email) and **Declines birthday presents**. To
 change any of these, click **Edit**.
 

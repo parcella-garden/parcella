@@ -129,7 +129,7 @@ wysyłany tylko raz.
 #### E-mail do członków {#member-email}
 
 **Wyślij teraz** wysyła ogłoszenie do wszystkich obecnych członków z
-włączonymi powiadomieniami e-mail (ustawienie „informacje e-mail” przy
+włączonymi powiadomieniami e-mail (ustawienie „zgoda na e-mail” przy
 członku). Dostają je członkowie, których członkostwo trwa, niezależnie
 od tego, czy mają działkę. Członkowie bez adresu e-mail są pomijani.
 
@@ -255,7 +255,7 @@ Karta pokazuje:
 
 | Element | Co pokazuje |
 |---|---|
-| **Wybór:** | Filtr, na którym opiera się wiadomość, jako oznaczenia: tag, tekst wyszukiwania, **Pokaż tylko nieaktywnych**, **Tylko potwierdzeni aktywni**, **Tylko z informacją e-mail = tak**, „Ręcznie wybrano: {count}”. |
+| **Wybór:** | Filtr, na którym opiera się wiadomość, jako oznaczenia: tag, tekst wyszukiwania, **Pokaż tylko nieaktywnych**, **Tylko potwierdzeni aktywni**, **Tylko ze zgodą na e-mail = tak**, „Ręcznie wybrano: {count}”. |
 | **Pokaż tych członków** | Otwiera listę członków z tym filtrem. |
 | „E-mailem: {count}” | Członkowie, którzy zgadzają się na informacje e-mailem (**Może otrzymywać informacje e-mailem**) i mają adres. |
 | „Listownie: {count}” | Listy dla pozostałych członków z adresem pocztowym -- jeden na adres, więc członkowie mieszkający razem dzielą jeden. Po tym ich nazwiska. |
@@ -323,7 +323,7 @@ ponownie później.**
 
 - [Integracje](../administration/integrations.md) -- podłączenie strony
   internetowej i folderu w chmurze na drukowane ogłoszenia.
-- [Członkowie](members.md) -- ustawienie „informacje e-mail”, tagi i
+- [Członkowie](members.md) -- ustawienie „zgoda na e-mail”, tagi i
   rozpoczęcie wiadomości do przefiltrowanych członków.
 - [Kandydaci](applicants.md) -- pisanie do wybranych kandydatów.
 - [Dziennik e-maili](../administration/email-log.md)

@@ -52,7 +52,7 @@ práve v zozname.
 | Pole vyhľadávania | Nájde členov podľa mena alebo priezviska, ulice, PSČ, mesta, IBAN, poznámok, e-mailovej adresy, telefónneho čísla a čísla parcely. Číslo parcely nájde len *súčasných* nájomcov parcely -- pokiaľ nie je zaškrtnuté **Zobraziť iba neaktívnych**, vtedy nájde aj bývalých nájomcov. Keďže sa prehľadávajú aj poznámky, číslo tiketu, ktoré ste si pri členovi poznačili, tohto člena nájde. |
 | **Zobraziť iba neaktívnych** | Ukáže *len* členov, ktorí nie sú aktívni: ich dátum **Členom do** uplynul alebo ich dátum **Členom od** je ešte v budúcnosti. Použite to na vyhľadanie bývalých alebo zosnulých členov. |
 | **Iba potvrdení aktívni** | Ukáže len aktívnych členov, ktorí majú dátum **Členom od**. Členovia bez dátumu začiatku (zobrazení ako *čakajúci*) sú vynechaní. |
-| **Iba s e-mailovými informáciami = áno** | Ukáže len členov, ktorí zaškrtli **Môže dostávať informácie e-mailom**. |
+| **Iba so súhlasom s e-mailom = áno** | Ukáže len členov, ktorí zaškrtli **Môže dostávať informácie e-mailom**. |
 | Rozbaľovací zoznam štítkov (**Všetky štítky**) | Ukáže len členov s vybraným štítkom. Zoznam sa objaví, keď existuje aspoň jeden štítok. Filtrovať môžete naraz podľa jedného štítku. |
 | **Hľadať** | Použije hľadaný text. Zaškrtávacie políčka a zoznam štítkov sa uplatnia hneď po zmene. |
 | **Resetovať** | Zruší všetky filtre. Zobrazí sa len, kým je filter aktívny. |
@@ -246,7 +246,7 @@ všetko, čo Parcella o členovi vie, a umožňuje priamo pridávať telefónne
 ### Hlavné údaje {#master-data}
 
 Ukazuje **Meno**, **Dátum narodenia**, **Adresa**, **IBAN**, **Členom
-od**, **Členom do**, **E-mail info** (či člen smie dostávať informácie
+od**, **Členom do**, **Súhlas s e-mailom** (či člen smie dostávať informácie
 e-mailom) a **Neželá si narodeninové darčeky**. Ak chcete niečo z toho
 zmeniť, kliknite na **Upraviť**.
 
