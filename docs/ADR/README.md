@@ -150,3 +150,4 @@ in chronological order.
 144. [One request-context middleware, club settings cached per process](./0144-one-request-context-middleware-cached-settings.md)
 145. [Member and parcel lists are paged; "all matching" means the filter](./0145-member-and-parcel-lists-paged-select-all-means-the-filter.md)
 146. [Models and the big routers are packages by domain](./0146-models-package-by-domain.md)
+147. [Custom fields on members and parcels](./0147-custom-fields.md)

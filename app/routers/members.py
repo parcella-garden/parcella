@@ -32,6 +32,8 @@ from app.models import Member, MemberPhone, MemberEmail, MemberParcel, MemberTag
 from app.models import ProcessSubjectKind
 from app.routers.processes import subject_processes
 from app.services.errors import ServiceError
+from app.services import custom_fields as cf
+from app.models import CustomFieldTarget
 from app.permissions import require_permission
 from app.i18n import AVAILABLE_LANGUAGES, t_for, load_current_language
 from app.branding import load_branding
@@ -99,6 +101,10 @@ async def members_list(
             # rest of the filter, so export / "write to" see the same list.
             "filter_without_ids": filters.without_ids(),
             "picked_ids": set(filters.ids),
+            # The picked field comes from the request itself: without a value
+            # yet it isn't part of the filter, but the value control must show.
+            "cf_field": request.query_params.get("cf_field", "")[:36], "cf_value": filters.cf_value,
+            **await cf.filter_context(db, CustomFieldTarget.MEMBER, request.query_params.get("cf_field", "")[:36]),
         },
     )
 
@@ -177,12 +183,24 @@ async def _sync_form_tags(request: Request, db: AsyncSession, member_id: str) ->
     return True
 
 
+async def _save_custom_fields(request: Request, db: AsyncSession, member_id: str, user_id: str) -> Optional[str]:
+    """The form's custom-field card (issue #443). Returns the error message
+    if a value doesn't fit; nothing of this save is kept then."""
+    try:
+        await cf.save_form_values(db, CustomFieldTarget.MEMBER, member_id, await request.form(), user_id)
+    except ServiceError as e:
+        await db.rollback()
+        return t_for(request, e.key, **e.params)
+    return None
+
+
 @router.get("/new", response_class=HTMLResponse)
-async def member_new_page(request: Request, db: AsyncSession = Depends(get_db)):
+async def member_new_page(request: Request, error: str = "", db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "members_parcels", "write")
     return templates.TemplateResponse(
         request, "members/form.html",
-        {"request": request, "user": user, "member": None, "all_tags": await list_tags(db)},
+        {"request": request, "user": user, "member": None, "all_tags": await list_tags(db), "fehler": error[:300],
+         **await cf.form_context(db, CustomFieldTarget.MEMBER, None)},
     )
 
 
@@ -205,7 +223,7 @@ async def member_create(
     notes: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
-    await require_permission(request, db, "members_parcels", "write")
+    user = await require_permission(request, db, "members_parcels", "write")
 
     def parse_date(s: str) -> Optional[date]:
         if s:
@@ -227,6 +245,9 @@ async def member_create(
         await add_email(db, member.id, address=email.strip(), is_primary=True)
     if phone.strip():
         await add_phone(db, member.id, number=phone.strip(), is_primary=True)
+    error = await _save_custom_fields(request, db, member.id, user.id)
+    if error:
+        return RedirectResponse(f"/members/new?error={urllib.parse.quote(error)}", status_code=303)
     if not await _sync_form_tags(request, db, member.id):
         return RedirectResponse(f"/members/{member.id}/edit", status_code=303)
     await db.commit()
@@ -386,6 +407,7 @@ async def member_detail(
             # "Back to list" lands on the page this member is on (issue #425).
             "back_query_suffix": with_page(list_query_string, list_page),
             "subject_processes": await subject_processes(request, db, ProcessSubjectKind.MEMBER, member.id),
+            "custom_field_rows": await cf.view_rows(db, CustomFieldTarget.MEMBER, member.id),
             # Issue #344: "Write to this member" starts the same targeted
             # message as ticking one row on /members/ (issue #337). A
             # former member is only found by the inactive filter.
@@ -400,6 +422,7 @@ async def member_detail(
 async def member_edit_page(
     member_id: str,
     request: Request,
+    error: str = "",
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "write")
@@ -410,7 +433,8 @@ async def member_edit_page(
 
     return templates.TemplateResponse(
         request, "members/form.html",
-        {"request": request, "user": user, "member": member, "all_tags": await list_tags(db)},
+        {"request": request, "user": user, "member": member, "all_tags": await list_tags(db), "fehler": error[:300],
+         **await cf.form_context(db, CustomFieldTarget.MEMBER, member.id)},
     )
 
 
@@ -432,7 +456,7 @@ async def member_update(
     notes: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
-    await require_permission(request, db, "members_parcels", "write")
+    user = await require_permission(request, db, "members_parcels", "write")
     member = await _get_member_with_details(db, member_id)
 
     if not member:
@@ -454,6 +478,9 @@ async def member_update(
         email_notifications=email_notifications,
         birthday_present_declined=birthday_present_declined, notes=notes,
     )
+    error = await _save_custom_fields(request, db, member_id, user.id)
+    if error:
+        return RedirectResponse(f"/members/{member_id}/edit?error={urllib.parse.quote(error)}", status_code=303)
     if not await _sync_form_tags(request, db, member_id):
         return RedirectResponse(f"/members/{member_id}/edit", status_code=303)
     await db.commit()
@@ -570,6 +597,9 @@ async def members_export_csv(
     )
     result = await db.execute(query)
     members = result.scalars().all()
+    # Issue #443: one column per custom field, after the fixed ones.
+    custom_columns = await cf.csv_columns(db, CustomFieldTarget.MEMBER)
+    custom_values = await cf.csv_values(db, CustomFieldTarget.MEMBER, [m.id for m in members])
 
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")
@@ -578,7 +608,7 @@ async def members_export_csv(
         "Geburtsdatum", "IBAN", "Member seit", "Member bis",
         "E-Mail-Benachrichtigungen", "E-Mail-Adressen", "Telefonnummern",
         "Parzellen", "Notizen", "Tags"
-    ])
+    ] + [csv_safe(header) for _, header in custom_columns])
 
     for m in members:
         emails = "; ".join(e.address for e in m.email_addresses)
@@ -595,7 +625,7 @@ async def members_export_csv(
             csv_safe(emails), csv_safe(phones), parcels,
             csv_safe(m.notes or ""),
             csv_safe("; ".join(tag.name for tag in m.tags)),
-        ])
+        ] + [csv_safe(cf.csv_cell(f, custom_values.get(m.id, {}).get(f.id))) for f, _ in custom_columns])
 
     output.seek(0)
     return StreamingResponse(
@@ -730,12 +760,13 @@ async def members_import_preview(
         return RedirectResponse(f"/members/?error={urllib.parse.quote(message)}", status_code=303)
     headers = [h.strip() for h in rows[0]]
     preview_rows = rows[1:1 + CSV_IMPORT_PREVIEW_ROWS]
-    default_mapping = guess_column_mapping(headers, MEMBERS_IMPORT_FIELD_ALIASES)
+    custom_targets, custom_labels, custom_aliases = await cf.import_targets(db, CustomFieldTarget.MEMBER)
+    default_mapping = guess_column_mapping(headers, {**MEMBERS_IMPORT_FIELD_ALIASES, **custom_aliases})
 
     return templates.TemplateResponse(request, "members/import_preview.html", {
         "request": request,
-        "headers": headers, "preview_rows": preview_rows,
-        "default_mapping": default_mapping, "target_fields": MEMBERS_IMPORT_TARGET_FIELDS,
+        "headers": headers, "preview_rows": preview_rows, "custom_labels": custom_labels,
+        "default_mapping": default_mapping, "target_fields": MEMBERS_IMPORT_TARGET_FIELDS + custom_targets,
         "csv_content_b64": base64.b64encode(content).decode("ascii"), "delimiter": delimiter,
     })
 
@@ -751,10 +782,11 @@ async def members_import_finalize(
     update-or-create, email/phone seeding only on create -- are
     unchanged, just fed from the mapped dict instead of a literal
     DictReader header lookup."""
-    await require_permission(request, db, "members_parcels", "write")
+    user = await require_permission(request, db, "members_parcels", "write")
 
     form = await request.form()
-    column_mapping = parse_column_mapping(form, MEMBERS_IMPORT_TARGET_FIELDS)
+    custom_targets, _, _ = await cf.import_targets(db, CustomFieldTarget.MEMBER)
+    column_mapping = parse_column_mapping(form, MEMBERS_IMPORT_TARGET_FIELDS + custom_targets)
     if "first_name" not in column_mapping.values() or "last_name" not in column_mapping.values():
         message = t_for(request, "members.list.csv_mapping_required_error")
         import urllib.parse
@@ -812,6 +844,12 @@ async def members_import_finalize(
             db.add(member)
             await db.flush()  # generate ID for sub-entries
             created += 1
+
+        # Issue #443: custom-field columns, only the filled-in ones.
+        try:
+            await cf.import_values(db, CustomFieldTarget.MEMBER, member.id, cf.import_cells(values), user.id)
+        except ServiceError as e:
+            errors.append(t_for(request, "custom_fields.csv_row_error", row=row_number, message=t_for(request, e.key, **e.params)))
 
         # Email addresses (semicolon-separated in one cell)
         emails_str = (values.get("email_addresses") or "").strip()

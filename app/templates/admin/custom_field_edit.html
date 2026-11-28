@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ t('custom_fields.admin.edit_title', label=field.label) }}{% endblock %}
+{% block page_title %}{{ t('custom_fields.admin.edit_title', label=field.label) }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="/admin/custom-fields?target={{ field.target.value }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>{{ t('custom_fields.admin.back') }}
+</a>
+{% endblock %}
+
+{% block content %}
+{% if error %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-circle-fill"></i> {{ error }}
+</div>
+{% endif %}
+
+<div class="card" style="max-width: 640px;">
+    <div class="card-body">
+        <form method="post" action="/admin/custom-fields/{{ field.id }}/edit">
+            {{ csrf_field() }}
+            <div class="row g-3">
+                <div class="col-sm-7">
+                    <label class="form-label fw-semibold" for="cf-label">{{ t('custom_fields.admin.label') }} <span class="text-danger">*</span></label>
+                    <input type="text" name="label" id="cf-label" class="form-control" maxlength="200" required value="{{ field.label }}">
+                </div>
+                <div class="col-sm-5">
+                    <label class="form-label fw-semibold" for="cf-kind">{{ t('custom_fields.admin.kind') }}</label>
+                    {% if kind_locked %}
+                    <select id="cf-kind" class="form-select" disabled>
+                        <option value="{{ field.kind.value }}" selected>{{ t('custom_fields.kind_' ~ field.kind.name|lower) }}</option>
+                    </select>
+                    <div class="form-text">{{ t('custom_fields.admin.kind_locked') }}</div>
+                    {% else %}
+                    <select name="kind" id="cf-kind" class="form-select">
+                        {% for k in sub_kinds %}
+                        <option value="{{ k.value }}" {% if k == field.kind %}selected{% endif %}>{{ t('custom_fields.kind_' ~ k.name|lower) }}</option>
+                        {% endfor %}
+                    </select>
+                    {% endif %}
+                </div>
+                <div class="col-12">
+                    <span class="form-text">{{ t('custom_fields.admin.col_key') }}: <code>{{ field.key }}</code> · {{ t('custom_fields.admin.key_hint') }}</span>
+                </div>
+                {% include "admin/_custom_field_details.html" %}
+                <div class="col-12 d-flex gap-2 justify-content-end">
+                    <a href="/admin/custom-fields?target={{ field.target.value }}" class="btn btn-outline-secondary">{{ t('custom_fields.admin.cancel') }}</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>{{ t('custom_fields.admin.save') }}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include "admin/_custom_field_script.html" %}
+{% endblock %}

@@ -61,8 +61,9 @@ page that parcel is on.
 |---|---|
 | **Search plot number…** | Finds parcels whose plot number contains the text. To find a parcel by its tenant's name, search the [member list](members.md#search-and-filters) instead. |
 | **All statuses** | Shows only parcels with the chosen status. Applies as soon as you change it. |
+| **– custom field –** | Only shown once a [custom field](../administration/custom-fields.md) exists. Pick a field, then what to look for: **yes**/**no** for a yes/no field or group (e.g. all parcels with a pool), **filled in**/**empty** for the other types, one of the choices, or a text the field should contain. Works together with the other filters, so **Select all … matching the filter**, the export and **Write to their leaseholders** use it too. |
 | **Search** | Applies the search text. |
-| **Reset** | Clears search and status filter. Only shown while one is active. |
+| **Reset** | Clears search, status and custom-field filter. Only shown while one is active. |
 
 Like on the member list, **Previous**, **Next** and **Back** on a parcel
 page keep the filter you came from.
@@ -134,6 +135,9 @@ Mitglieder (members), Notizen (notes).
   semicolons, those marked as invoice address first and with a `*`
   after their name.
   <!-- TODO(verify): the members column includes former tenants as well, not only current ones. -->
+- After these come one column per [custom field](../administration/custom-fields.md),
+  headed with its label (a field in a group as "Group: Field"); yes/no
+  as "Ja" or "Nein".
 
 ## Importing parcels from a CSV file
 
@@ -172,11 +176,19 @@ heading and the first five data rows.
 | **Import** | Imports the rows and returns to the parcel list. **Plot number** must be mapped to a column, otherwise you get "Please map the plot number column before importing." |
 | **Back** | Returns to the parcel list without importing. |
 
+Your [custom fields](../administration/custom-fields.md) are offered in
+the dropdowns too; a column headed with a field's label or key (e.g.
+"Pool: Diameter") is pre-selected.
+
 ### What happens on import
 
 - Plot numbers are capitalised, just like in the form.
-- A row whose plot number **already exists is skipped** -- existing
-  parcels are never changed by an import.
+- A row whose plot number **already exists is skipped** -- the
+  parcel's own fields are never changed by an import. Its
+  [custom fields](../administration/custom-fields.md) *are* filled in
+  from the file, which is handy for a survey (e.g. every parcel's pool).
+  Only filled-in cells change a value; a filled-in field of a group
+  ticks the group, and "Nein" in a group's column clears its fields.
 - A row without a plot number is ignored.
 - Area, latitude and longitude may use a decimal point or comma. A
   value that isn't a number is left empty.
@@ -184,7 +196,10 @@ heading and the first five data rows.
   don't matter). Anything else, or an empty cell, becomes **active**.
 
 The parcel list then shows a summary such as "40 imported, 2 skipped",
-plus how many rows were ignored for lack of a plot number.
+plus how many rows were ignored for lack of a plot number, how many
+existing parcels got custom-field values, and which rows had a value
+that didn't fit a custom field (e.g. "Row 4: “Diameter” must be a
+number.").
 
 ## Parcel page
 
@@ -217,6 +232,14 @@ details, who holds it now, who held it before and what has changed.
 Below the details, a **Processes** card lists the
 [processes](processes.md) about this parcel, if that module is on and
 you may see processes. **Start a process** starts a new one.
+
+### Further details
+
+Shown between the parcel details and the processes, once
+[custom fields](../administration/custom-fields.md) exist: the custom
+fields that have a value for this parcel. A group (e.g. **Pool**)
+appears only when it's ticked, with the fields inside it below. Edit
+the values in the parcel form.
 
 ### Current tenants
 
@@ -331,13 +354,15 @@ day.
 
 Only shown once something has been changed. Every change to the plot
 number, area, coordinates, status, termination note or notes is
-recorded:
+recorded, and so is every change to a
+[custom field](../administration/custom-fields.md) -- from the form,
+the CSV import or the API:
 
 | Column | What it shows |
 |---|---|
 | **Timestamp** | Date and time of the change. |
-| **Field** | The technical name of the changed field, e.g. *status* or *area_sqm*. |
-| **Old value** / **New value** | The value before and after. |
+| **Field** | The technical name of the changed field, e.g. *status* or *area_sqm*. A custom field shows its label (and unit), e.g. **Diameter (cm)**. |
+| **Old value** / **New value** | The value before and after; a ticked yes/no or group shows as **Yes**, an empty one as "–". |
 | **Changed by** | The user who made the change, or **Unknown**. |
 
 Changes to tenancies don't appear here -- they show in the tenant
@@ -367,6 +392,15 @@ The edit form has a few more fields than the new-parcel form.
 | **Cancel** | Leaves without saving. |
 
 <!-- TODO(verify): an area or coordinate that isn't a number is silently left empty instead of showing an error. -->
+
+### Further details
+
+Only shown once [custom fields](../administration/custom-fields.md)
+exist. Each field appears with its label, unit and help text; fields
+marked * are required. Ticking a group (e.g. **Pool**) shows the fields
+inside it; unticking it clears them when you save. If a value doesn't
+fit, saving is refused with a message naming the field, and nothing is
+saved.
 
 ### Danger zone
 

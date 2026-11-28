@@ -55,6 +55,7 @@ page with **Back** takes you to the page that member is on.
 | **Confirmed active only** | Shows only active members who have a **Member since** date. Members without a start date (shown as *pending*) are left out. |
 | **Email info = yes only** | Shows only members who ticked **May receive information by email**. |
 | Tag dropdown (**All tags**) | Shows only members with the chosen tag. The dropdown appears once at least one tag exists. You can filter by one tag at a time. |
+| **– custom field –** | Only shown once a [custom field](../administration/custom-fields.md) exists. Pick a field; next to it you then choose what to look for: **yes**/**no** for a yes/no field or group, **filled in**/**empty** for the other types, one of the choices, or a text the field should contain. Combines with all other filters, so **Select all … matching the filter**, the export and **Write to selected** use it too. |
 | **Search** | Applies the search text. The checkboxes and the tag dropdown apply as soon as you change them. |
 | **Reset** | Clears every filter. Only shown while a filter is active. |
 
@@ -131,6 +132,10 @@ Parzellen, Notizen, Tags.
 - Tags are exported with the name you typed, not a translation.
 - Whether a member declines birthday presents isn't exported.
 
+After these come one column per [custom field](../administration/custom-fields.md),
+headed with its label (a field in a group as "Group: Field"); yes/no
+as "Ja" or "Nein".
+
 !!! tip
     The export always matches what's on screen. To export every active
     member, click **Reset** first. To export former members, tick
@@ -185,6 +190,8 @@ in it. Above each column is a dropdown.
 | Dropdown per column | Choose the Parcella field this column belongs to: **First name**, **Last name**, **Street**, **Postal code**, **City**, **Date of birth**, **IBAN**, **Member since**, **Member until**, **Email notifications**, **Email addresses**, **Phone numbers**, **Notes** -- or **— Ignore —** to skip the column. Parcella pre-selects a field when it recognises the heading (in English or German, e.g. "Nachname" or "Last name"). |
 | **Import** | Imports the rows and returns you to the member list. **First name** and **Last name** must each be mapped to a column, otherwise you get "Please map both the first name and last name columns before importing." |
 | **Back** | Returns to the member list without importing anything. |
+
+Your [custom fields](../administration/custom-fields.md) are offered in the dropdowns too; a column headed with a field's label or key is pre-selected. Only filled-in cells change a value; a filled-in field of a group ticks the group, and "Nein" in a group's column clears its fields.
 
 ### What happens on import
 
@@ -264,6 +271,13 @@ Lists the member's tags. Click a tag to see every member with that tag.
 
 Removing a tag from a member doesn't leave a history entry: tags are
 labels for finding people, not club records.
+
+### Further details
+
+Only shown once [custom fields](../administration/custom-fields.md)
+exist: the custom fields that have a value for this member. A group
+appears only when it's ticked, with the fields inside it below. Edit
+the values in the member form.
 
 ### Phone numbers and Email addresses
 
@@ -382,6 +396,15 @@ parcel's invoice address, invoices for that parcel go here.
 |---|---|
 | Tag checkboxes | One checkbox per existing tag. Tick or untick to add or remove it. Only shown once tags exist. |
 | **New tags, comma-separated** | Type new tags, separated by commas, e.g. "water responsible, hedge team". A name that already exists is reused. |
+
+### Further details
+
+Only shown once [custom fields](../administration/custom-fields.md)
+exist. Each field appears with its label, unit and help text; fields
+marked * are required. Ticking a group shows the fields inside it;
+unticking it clears them when you save. If a value doesn't fit (e.g.
+text in a number field), saving is refused with a message naming the
+field, and nothing is saved.
 
 ### Saving
 

@@ -44,9 +44,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.change_tracker import ChangeTracker
 from app.models import MemberParcel, Parcel, ParcelStatus, User
 from app.services.errors import ServiceError
+from app.models import CustomFieldTarget
+from app.services.custom_fields import clean_filter, filter_condition
 
 
-def filtered_parcels_query(search: str, status_filter: str):
+def filtered_parcels_query(search: str, status_filter: str, cf_field: str = "", cf_value: str = ""):
     """WHERE/ORDER BY for the parcel list, shared with the detail page's
     Previous/Next lookup (issue #202) so the two can't drift apart --
     same reasoning as MemberListFilter.apply() in app/member_filters.py.
@@ -60,7 +62,13 @@ def filtered_parcels_query(search: str, status_filter: str):
     if status_filter and status_filter in [s.value for s in ParcelStatus]:
         query = query.where(Parcel.status == status_filter)
 
+    # Issue #443: one custom field and its wanted value.
+    custom = filter_condition(CustomFieldTarget.PARCEL, Parcel.id, *clean_filter(cf_field, cf_value))
+    if custom is not None:
+        query = query.where(custom)
+
     return query
+
 
 
 _TRACKED_FIELDS = ["plot_number", "area_sqm", "latitude", "longitude", "status", "termination_note", "notes"]

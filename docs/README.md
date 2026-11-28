@@ -21,6 +21,7 @@ decisions and reasoning are still fresh.
 - [Reporting](./module-reporting.md) -- club figures over time as charts (members, plots, applicants, work hours, electricity)
 - [Notes](./module-notes.md) -- Markdown notes (meetings and more) with a club-wide taxonomy; the .md file in the cloud is the master
 - [Processes](./module-processes.md) -- club-defined process templates (stages with their own fields), run for a plot, a member or an applicant
+- [Custom fields](./module-custom-fields.md) -- club-defined fields (and yes/no groups with sub-fields) on members and parcels, set up by a system admin
 
 ## Cross-cutting topics
 

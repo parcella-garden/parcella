@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}{{ t('custom_fields.admin.title') }}{% endblock %}
+{% block page_title %}{{ t('custom_fields.admin.title') }}{% endblock %}
+
+{% block content %}
+<p class="text-muted" style="font-size: 0.9rem;">
+    <i class="bi bi-info-circle me-1"></i>{{ t('custom_fields.admin.intro') }}
+</p>
+
+<ul class="nav nav-pills mb-3">
+    {% for tg in targets %}
+    <li class="nav-item">
+        <a class="nav-link {% if tg == target %}active{% endif %}" href="/admin/custom-fields?target={{ tg.value }}"
+           {% if tg == target %}aria-current="page"{% endif %}>{{ t('custom_fields.target_' ~ tg.name|lower) }}</a>
+    </li>
+    {% endfor %}
+</ul>
+
+{% if error %}
+<div class="alert alert-danger d-flex gap-2 align-items-center mb-3">
+    <i class="bi bi-exclamation-circle-fill"></i> {{ error }}
+</div>
+{% endif %}
+
+<div class="card mb-3">
+    <div class="card-header"><i class="bi bi-ui-checks me-2"></i>{{ t('custom_fields.admin.list_header') }}</div>
+    <div class="card-body p-0">
+        {% if fields %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>{{ t('custom_fields.admin.col_label') }}</th>
+                        <th>{{ t('custom_fields.admin.col_kind') }}</th>
+                        <th>{{ t('custom_fields.admin.col_key') }}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in fields %}
+                    <tr class="{% if f.archived_at %}text-muted{% endif %}">
+                        <td>
+                            {% if f.parent_id %}<span class="text-muted me-1" aria-hidden="true">↳</span>{% endif %}
+                            <span class="{% if not f.parent_id %}fw-semibold{% endif %}">{{ f.label }}</span>
+                            {% if f.required %}<span class="text-danger" title="{{ t('custom_fields.admin.required') }}">*</span>{% endif %}
+                            {% if f.archived_at %}<span class="badge bg-secondary ms-1">{{ t('custom_fields.admin.archived') }}</span>{% endif %}
+                            {% if f.help_text %}<div class="text-muted small">{{ f.help_text }}</div>{% endif %}
+                        </td>
+                        <td>
+                            {{ t('custom_fields.kind_' ~ f.kind.name|lower) }}
+                            {% if f.unit %}<span class="text-muted">({{ f.unit }})</span>{% endif %}
+                            {% if f.options %}<div class="text-muted small">{{ f.options | join(', ') }}</div>{% endif %}
+                        </td>
+                        <td><code class="small">{{ f.key }}</code></td>
+                        <td class="text-end text-nowrap">
+                            {% for direction, icon in [('up', 'bi-arrow-up'), ('down', 'bi-arrow-down')] %}
+                            <form method="post" action="/admin/custom-fields/{{ f.id }}/move" class="d-inline">
+                                {{ csrf_field() }}
+                                <input type="hidden" name="direction" value="{{ direction }}">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                        aria-label="{{ t('custom_fields.admin.move_' ~ direction) }}: {{ f.label }}"
+                                        title="{{ t('custom_fields.admin.move_' ~ direction) }}"><i class="bi {{ icon }}"></i></button>
+                            </form>
+                            {% endfor %}
+                            <a href="/admin/custom-fields/{{ f.id }}/edit" class="btn btn-sm btn-outline-secondary"
+                               aria-label="{{ t('custom_fields.admin.edit') }}: {{ f.label }}"><i class="bi bi-pencil"></i></a>
+                            {% if f.archived_at %}
+                            <form method="post" action="/admin/custom-fields/{{ f.id }}/restore" class="d-inline">
+                                {{ csrf_field() }}
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">{{ t('custom_fields.admin.restore') }}</button>
+                            </form>
+                            {% else %}
+                            <form method="post" action="/admin/custom-fields/{{ f.id }}/archive" class="d-inline"
+                                  onsubmit="return confirm(this.dataset.confirm);" data-confirm="{{ t('custom_fields.admin.archive_confirm') }}">
+                                {{ csrf_field() }}
+                                <button type="submit" class="btn btn-sm btn-outline-danger">{{ t('custom_fields.admin.archive') }}</button>
+                            </form>
+                            {% endif %}
+                            {% set count = value_counts.get(f.id, 0) %}
+                            <form method="post" action="/admin/custom-fields/{{ f.id }}/delete" class="d-inline"
+                                  onsubmit="return confirm(this.dataset.confirm);"
+                                  data-confirm="{{ t('custom_fields.admin.delete_confirm_group' if f.kind.name == 'GROUP' else 'custom_fields.admin.delete_confirm', label=f.label, count=count) }}">
+                                {{ csrf_field() }}
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                        aria-label="{{ t('custom_fields.admin.delete') }}: {{ f.label }}"
+                                        title="{{ t('custom_fields.admin.delete') }}"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted m-3">{{ t('custom_fields.admin.empty') }}</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card" style="max-width: 640px;">
+    <div class="card-header"><i class="bi bi-plus-lg me-2"></i>{{ t('custom_fields.admin.new_header') }}</div>
+    <div class="card-body">
+        <form method="post" action="/admin/custom-fields" id="cf-new">
+            {{ csrf_field() }}
+            <input type="hidden" name="target" value="{{ target.value }}">
+            <div class="row g-3">
+                <div class="col-sm-7">
+                    <label class="form-label fw-semibold" for="cf-label">{{ t('custom_fields.admin.label') }} <span class="text-danger">*</span></label>
+                    <input type="text" name="label" id="cf-label" class="form-control" maxlength="200" required>
+                </div>
+                <div class="col-sm-5">
+                    <label class="form-label fw-semibold" for="cf-kind">{{ t('custom_fields.admin.kind') }}</label>
+                    <select name="kind" id="cf-kind" class="form-select">
+                        {% for k in kinds %}
+                        <option value="{{ k.value }}">{{ t('custom_fields.kind_' ~ k.name|lower) }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if groups %}
+                <div class="col-12">
+                    <label class="form-label fw-semibold" for="cf-parent">{{ t('custom_fields.admin.parent') }}</label>
+                    <select name="parent_id" id="cf-parent" class="form-select">
+                        <option value="">{{ t('custom_fields.admin.parent_none') }}</option>
+                        {% for g in groups %}<option value="{{ g.id }}">{{ g.label }}</option>{% endfor %}
+                    </select>
+                    <div class="form-text">{{ t('custom_fields.admin.parent_hint') }}</div>
+                </div>
+                {% endif %}
+                {% include "admin/_custom_field_details.html" %}
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>{{ t('custom_fields.admin.add') }}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include "admin/_custom_field_script.html" %}
+{% endblock %}

@@ -175,3 +175,9 @@ from app.models.processes import (  # noqa: F401
     ProcessFile,
     ProcessEvent,
 )
+from app.models.custom_fields import (  # noqa: F401
+    CustomFieldTarget,
+    CustomFieldKind,
+    CustomField,
+    CustomFieldValue,
+)

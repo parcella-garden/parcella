@@ -1,0 +1,24 @@
+{#- Unit / choices / help text / required of a custom field (new and edit
+    form). `field` is the field being edited, or undefined for a new one. -#}
+<div class="col-sm-5" data-cf-only="NUMBER">
+    <label class="form-label fw-semibold" for="cf-unit">{{ t('custom_fields.admin.unit') }}</label>
+    <input type="text" name="unit" id="cf-unit" class="form-control" maxlength="20"
+           value="{{ field.unit or '' if field else '' }}" placeholder="{{ t('custom_fields.admin.unit_placeholder') }}">
+</div>
+<div class="col-12" data-cf-only="CHOICE">
+    <label class="form-label fw-semibold" for="cf-options">{{ t('custom_fields.admin.options') }}</label>
+    <textarea name="options" id="cf-options" class="form-control" rows="4">{{ (field.options or []) | join('\n') if field else '' }}</textarea>
+    <div class="form-text">{{ t('custom_fields.admin.options_hint') }}</div>
+</div>
+<div class="col-12">
+    <label class="form-label fw-semibold" for="cf-help">{{ t('custom_fields.admin.help_text') }}</label>
+    <input type="text" name="help_text" id="cf-help" class="form-control" value="{{ field.help_text or '' if field else '' }}">
+</div>
+<div class="col-12" data-cf-not="GROUP CHECKBOX">
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="required" value="true" id="cf-required"
+               {% if field and field.required %}checked{% endif %}>
+        <label class="form-check-label" for="cf-required">{{ t('custom_fields.admin.required') }}</label>
+    </div>
+    <div class="form-text">{{ t('custom_fields.admin.required_hint') }}</div>
+</div>

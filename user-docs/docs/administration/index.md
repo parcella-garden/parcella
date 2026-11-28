@@ -24,6 +24,7 @@ You find it at the bottom of the sidebar under **Administration**.
 | **API tokens** | [API tokens](api-tokens.md) | See and revoke everybody's tokens; create tokens for integration accounts. |
 | **Settings** | [Club settings](settings.md) | Club name and address, logo, language, region and currency, e-mail server, finance details, navigation order and more. |
 | | [Turning modules on and off](modules.md) | The **Feature areas** card on the settings page. |
+| **Custom fields** | [Custom fields](custom-fields.md) | Fields of your own for members and parcels, e.g. a member's occupation or a parcel's pool. |
 | **Integrations** | [Integrations](integrations.md) | Website forms, website drafts, cloud storage, helpdesk, Nextcloud Deck, calendar feed links. |
 | **Email log** | [E-mail log](email-log.md) | Check whether an e-mail went out. |
 | **Sample data** | [Sample data](sample-data.md) | Fill a fresh installation with demo data to try things out, and remove it again. |

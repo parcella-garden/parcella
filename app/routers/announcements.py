@@ -253,6 +253,8 @@ def _filter_from_query_string(query_string: str) -> MemberListFilter:
         email_info_only=params.get("email_info_only") == "true",
         tag=params.get("tag", ""),
         ids=parsed.get("ids", []),
+        cf_field=params.get("cf_field", ""),
+        cf_value=params.get("cf_value", ""),
     )
 
 
@@ -375,7 +377,10 @@ async def _picked_parcel_ids(request: Request, db: AsyncSession, params) -> Opti
     if params.get("all_matching") == "1":
         # Issue #425: the list is paged; "all N matching" sends its filter.
         # Resolved to ids here, so the notice stores a plain list as before.
-        query = filtered_parcels_query(params.get("search", ""), params.get("status_filter", ""))
+        query = filtered_parcels_query(
+            params.get("search", ""), params.get("status_filter", ""),
+            params.get("cf_field", ""), params.get("cf_value", ""),
+        )
         requested = list((await db.scalars(query.with_only_columns(Parcel.id))).all())
     else:
         requested = list(dict.fromkeys(i for i in params.getlist("parcel_ids") if i and len(i) <= 36))

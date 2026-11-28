@@ -39,6 +39,8 @@ from app.parcel_cloud_folders import (
 from app.models import ProcessSubjectKind
 from app.routers.processes import subject_processes
 from app.services.errors import ServiceError
+from app.services import custom_fields as cf
+from app.models import CustomFieldTarget
 from app.paging import page_of, paginate, with_page
 from app.services.parcels import (
     filtered_parcels_query,
@@ -61,7 +63,7 @@ async def _get_parcel_with_details(db: AsyncSession, parcel_id: str) -> Optional
     return result.scalar_one_or_none()
 
 
-def _parcels_list_query_string(search: str, status_filter: str) -> str:
+def _parcels_list_query_string(search: str, status_filter: str, cf_field: str = "", cf_value: str = "") -> str:
     """The current /parcels/ list filter as a query string (no leading
     '?', empty if nothing is set). Issue #202: carried from each list
     row onto its detail page, and back out again via the detail page's
@@ -72,6 +74,8 @@ def _parcels_list_query_string(search: str, status_filter: str) -> str:
         params["search"] = search
     if status_filter:
         params["status_filter"] = status_filter
+    if cf_field and cf_value:
+        params["cf_field"], params["cf_value"] = cf_field, cf_value
     return urlencode(params)
 
 
@@ -80,18 +84,20 @@ async def parcels_list(
     request: Request,
     search: str = "",
     status_filter: str = "",
+    cf_field: str = "",
+    cf_value: str = "",
     page: int = Query(1, ge=1),
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "read")
 
-    query = filtered_parcels_query(search, status_filter).options(
+    query = filtered_parcels_query(search, status_filter, cf_field, cf_value).options(
         selectinload(Parcel.member_assignments).selectinload(MemberParcel.member)
     )
     parcels_page = await paginate(db, query, page)
     parcels = parcels_page.items
     # The footer's area covers the whole filter, not just this page.
-    filtered = filtered_parcels_query(search, status_filter).subquery()
+    filtered = filtered_parcels_query(search, status_filter, cf_field, cf_value).subquery()
     total_area = await db.scalar(select(func.coalesce(func.sum(filtered.c.area_sqm), 0)))
 
     return templates.TemplateResponse(
@@ -105,7 +111,9 @@ async def parcels_list(
             "search": search,
             "status_filter": status_filter,
             "ParcelStatus": ParcelStatus,
-            "list_query_string": _parcels_list_query_string(search, status_filter),
+            "list_query_string": _parcels_list_query_string(search, status_filter, cf_field, cf_value),
+            "cf_field": cf_field, "cf_value": cf_value,
+            **await cf.filter_context(db, CustomFieldTarget.PARCEL, cf_field),
         },
     )
 
@@ -115,7 +123,7 @@ async def parcel_new_page(request: Request, db: AsyncSession = Depends(get_db)):
     user = await require_permission(request, db, "members_parcels", "write")
     return templates.TemplateResponse(
         request, "parcels/form.html",
-        {"request": request, "user": user, "parcel": None},
+        {"request": request, "user": user, "parcel": None, **await cf.form_context(db, CustomFieldTarget.PARCEL, None)},
     )
 
 
@@ -152,14 +160,18 @@ async def parcel_create(
         except ValueError:
             pass
 
+    # Loaded before anything is written: the error path renders the
+    # form straight from this session.
+    custom_ctx = await cf.form_context(db, CustomFieldTarget.PARCEL, None)
     try:
         parcel = await create_parcel(
             db, plot_number=plot_number, area_sqm=area, latitude=lat, longitude=lng, notes=notes,
         )
+        await cf.save_form_values(db, CustomFieldTarget.PARCEL, parcel.id, await request.form(), user.id)
     except ServiceError as e:
         return templates.TemplateResponse(
             request, "parcels/form.html",
-            {"request": request, "user": user, "parcel": None, "error": t_for(request, e.key, **e.params)},
+            {"request": request, "user": user, "parcel": None, "error": t_for(request, e.key, **e.params), **custom_ctx},
             status_code=e.http_status,
         )
 
@@ -176,6 +188,8 @@ async def parcel_detail(
     pick_path: str = "",
     search: str = "",
     status_filter: str = "",
+    cf_field: str = "",
+    cf_value: str = "",
     db: AsyncSession = Depends(get_db),
 ):
     user = await require_permission(request, db, "members_parcels", "read")
@@ -187,7 +201,7 @@ async def parcel_detail(
     # Previous/Next buttons (issue #202): see the identical comment in
     # app/routers/members.py's member_detail for the reasoning.
     ordered_ids = (
-        await db.scalars(filtered_parcels_query(search, status_filter).with_only_columns(Parcel.id))
+        await db.scalars(filtered_parcels_query(search, status_filter, cf_field, cf_value).with_only_columns(Parcel.id))
     ).all()
     prev_parcel_id = None
     next_parcel_id = None
@@ -199,7 +213,7 @@ async def parcel_detail(
             prev_parcel_id = ordered_ids[idx - 1]
         if idx < len(ordered_ids) - 1:
             next_parcel_id = ordered_ids[idx + 1]
-    list_query_string = _parcels_list_query_string(search, status_filter)
+    list_query_string = _parcels_list_query_string(search, status_filter, cf_field, cf_value)
 
     # All members, for assignment
     members_result = await db.execute(
@@ -285,6 +299,8 @@ async def parcel_detail(
             "all_members": all_members,
             "all_members_json": all_members_json,
             "changes": changes,
+            "custom_field_rows": await cf.view_rows(db, CustomFieldTarget.PARCEL, parcel.id),
+            "custom_field_names": await cf.history_fields(db, CustomFieldTarget.PARCEL),
             "ParcelStatus": ParcelStatus,
             "cloud_storage_enabled": cloud_storage_enabled,
             "cloud_folder": cloud_folder,
@@ -321,7 +337,7 @@ async def parcel_edit_page(
 
     return templates.TemplateResponse(
         request, "parcels/form.html",
-        {"request": request, "user": user, "parcel": parcel},
+        {"request": request, "user": user, "parcel": parcel, **await cf.form_context(db, CustomFieldTarget.PARCEL, parcel.id)},
     )
 
 
@@ -367,16 +383,20 @@ async def parcel_update(
 
     new_status = ParcelStatus(status) if status in [s.value for s in ParcelStatus] else parcel.status
 
+    # Loaded before anything is written: the error path renders the
+    # form straight from this session.
+    custom_ctx = await cf.form_context(db, CustomFieldTarget.PARCEL, parcel_id)
     try:
         await update_parcel(
             db, parcel, acting_user=user,
             plot_number=plot_number, area_sqm=area, latitude=lat, longitude=lng, status=new_status,
             termination_note=termination_note, notes=notes,
         )
+        await cf.save_form_values(db, CustomFieldTarget.PARCEL, parcel_id, await request.form(), user.id)
     except ServiceError as e:
         return templates.TemplateResponse(
             request, "parcels/form.html",
-            {"request": request, "user": user, "parcel": parcel, "error": t_for(request, e.key, **e.params)},
+            {"request": request, "user": user, "parcel": parcel, "error": t_for(request, e.key, **e.params), **custom_ctx},
             status_code=e.http_status,
         )
 
@@ -690,6 +710,8 @@ async def parcels_export_csv(
     parcel_ids: List[str] = Query(default=[]),
     search: str = "",
     status_filter: str = "",
+    cf_field: str = "",
+    cf_value: str = "",
     db: AsyncSession = Depends(get_db),
 ):
     """The parcels of the list's filter (every parcel without one), or
@@ -697,7 +719,7 @@ async def parcels_export_csv(
     matching" is the filter with nothing ticked (issue #425)."""
     await require_permission(request, db, "members_parcels", "read")
 
-    query = filtered_parcels_query(search, status_filter).options(
+    query = filtered_parcels_query(search, status_filter, cf_field, cf_value).options(
         selectinload(Parcel.member_assignments).selectinload(MemberParcel.member)
     )
     picked = clean_member_ids(parcel_ids)
@@ -705,6 +727,9 @@ async def parcels_export_csv(
         query = query.where(Parcel.id.in_(picked))
     result = await db.execute(query)
     parcels = result.scalars().all()
+    # Issue #443: one column per custom field, after the fixed ones.
+    custom_columns = await cf.csv_columns(db, CustomFieldTarget.PARCEL)
+    custom_values = await cf.csv_values(db, CustomFieldTarget.PARCEL, [p.id for p in parcels])
 
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")
@@ -712,7 +737,7 @@ async def parcels_export_csv(
         "Gartennummer", "Fläche (qm)", "Breitengrad", "Längengrad", "Status",
         "Kündigungsnotiz",
         "Mitglieder (Rechnungsadresse zuerst)", "Notizen"
-    ])
+    ] + [csv_safe(header) for _, header in custom_columns])
 
     for p in parcels:
         members_str = "; ".join(
@@ -728,7 +753,7 @@ async def parcels_export_csv(
             csv_safe(p.termination_note or ""),
             csv_safe(members_str),
             csv_safe(p.notes or ""),
-        ])
+        ] + [csv_safe(cf.csv_cell(f, custom_values.get(p.id, {}).get(f.id))) for f, _ in custom_columns])
 
     output.seek(0)
     return StreamingResponse(
@@ -778,12 +803,13 @@ async def parcels_import_preview(
         return RedirectResponse(f"/parcels/?error={urlquote(message)}", status_code=303)
     headers = [h.strip() for h in rows[0]]
     preview_rows = rows[1:1 + CSV_IMPORT_PREVIEW_ROWS]
-    default_mapping = guess_column_mapping(headers, PARCELS_IMPORT_FIELD_ALIASES)
+    custom_targets, custom_labels, custom_aliases = await cf.import_targets(db, CustomFieldTarget.PARCEL)
+    default_mapping = guess_column_mapping(headers, {**PARCELS_IMPORT_FIELD_ALIASES, **custom_aliases})
 
     return templates.TemplateResponse(request, "parcels/import_preview.html", {
         "request": request,
-        "headers": headers, "preview_rows": preview_rows,
-        "default_mapping": default_mapping, "target_fields": PARCELS_IMPORT_TARGET_FIELDS,
+        "headers": headers, "preview_rows": preview_rows, "custom_labels": custom_labels,
+        "default_mapping": default_mapping, "target_fields": PARCELS_IMPORT_TARGET_FIELDS + custom_targets,
         "csv_content_b64": base64.b64encode(content).decode("ascii"), "delimiter": delimiter,
     })
 
@@ -799,10 +825,11 @@ async def parcels_import_finalize(
     sole dedup key, comma-decimal float parsing, status coercion -- are
     unchanged, just fed from the mapped dict instead of a literal
     DictReader header lookup."""
-    await require_permission(request, db, "members_parcels", "write")
+    user = await require_permission(request, db, "members_parcels", "write")
 
     form = await request.form()
-    column_mapping = parse_column_mapping(form, PARCELS_IMPORT_TARGET_FIELDS)
+    custom_targets, _, _ = await cf.import_targets(db, CustomFieldTarget.PARCEL)
+    column_mapping = parse_column_mapping(form, PARCELS_IMPORT_TARGET_FIELDS + custom_targets)
     if "plot_number" not in column_mapping.values():
         message = t_for(request, "parcels.list.csv_mapping_required_error")
         return RedirectResponse(f"/parcels/?error={urlquote(message)}", status_code=303)
@@ -811,18 +838,33 @@ async def parcels_import_finalize(
     created = 0
     skipped = 0
     missing_plot_number = 0
+    custom_updated = 0
+    custom_errors = []
 
-    for values in rows:
+    async def import_custom(parcel_id: str, row_number: int) -> bool:
+        """Issue #443: the row's custom-field columns, only the filled-in ones."""
+        try:
+            return await cf.import_values(db, CustomFieldTarget.PARCEL, parcel_id, cf.import_cells(values), user.id)
+        except ServiceError as e:
+            custom_errors.append(t_for(request, "custom_fields.csv_row_error", row=row_number,
+                                       message=t_for(request, e.key, **e.params)))
+            return False
+
+    for row_number, values in enumerate(rows, start=2):
         plot_number = (values.get("plot_number") or "").strip().upper()
         if not plot_number:
             missing_plot_number += 1
             continue
 
-        existing = await db.execute(
+        existing = (await db.execute(
             select(Parcel).where(Parcel.plot_number == plot_number)
-        )
-        if existing.scalar_one_or_none():
+        )).scalar_one_or_none()
+        if existing:
+            # The parcel's own fields stay as they are; its custom fields
+            # can still be filled in from the file (e.g. a pool survey).
             skipped += 1
+            if await import_custom(existing.id, row_number):
+                custom_updated += 1
             continue
 
         area = None
@@ -863,6 +905,8 @@ async def parcels_import_finalize(
             notes=(values.get("notes") or "").strip() or None,
         )
         db.add(parcel)
+        await db.flush()
+        await import_custom(parcel.id, row_number)
         created += 1
 
     await db.commit()
@@ -870,6 +914,10 @@ async def parcels_import_finalize(
     message = t_for(request, "parcels.list.csv_import_summary", created=created, skipped=skipped)
     if missing_plot_number:
         message += t_for(request, "parcels.list.csv_import_missing_plot_number", count=missing_plot_number)
+    if custom_updated:
+        message += t_for(request, "custom_fields.csv_existing_updated", count=custom_updated)
+    if custom_errors:
+        message += t_for(request, "custom_fields.csv_errors_suffix", count=len(custom_errors)) + " – " + " | ".join(custom_errors[:3])
 
     import urllib.parse
     return RedirectResponse(

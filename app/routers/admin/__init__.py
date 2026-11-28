@@ -5,9 +5,9 @@ this router's prefix and module guard.
 """
 from fastapi import APIRouter
 
-from app.routers.admin import users, integrations, system, settings, api_tokens
+from app.routers.admin import users, integrations, system, settings, api_tokens, custom_fields
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
-for _sub in (users, integrations, system, settings, api_tokens,):
+for _sub in (users, integrations, system, settings, api_tokens, custom_fields,):
     router.include_router(_sub.router)

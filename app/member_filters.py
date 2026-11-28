@@ -26,6 +26,8 @@ from sqlalchemy import Select, and_, or_, select
 
 from app.database import active_member_filter, current_tenant_filter
 from app.models import Member, MemberEmail, MemberParcel, MemberPhone, Parcel, member_tag_links
+from app.models import CustomFieldTarget
+from app.services.custom_fields import clean_filter, filter_condition
 
 
 def has_tag_condition(tag_id: str):
@@ -58,6 +60,10 @@ class MemberListFilter:
     email_info_only: bool = False
     tag: str = ""  # MemberTag.id, "" = any
     ids: tuple = ()  # Member.id values ticked by hand (issue #337), () = no selection
+    # Issue #443: one custom field and its wanted value (see
+    # app/services/custom_fields.py's filter_condition), "" = no filter.
+    cf_field: str = ""
+    cf_value: str = ""
 
     def __post_init__(self):
         object.__setattr__(self, "ids", clean_member_ids(self.ids))
@@ -71,12 +77,15 @@ class MemberListFilter:
         email_info_only: bool = False,
         tag: str = "",
         ids: List[str] = Query(default=[]),
+        cf_field: str = "",
+        cf_value: str = "",
     ) -> "MemberListFilter":
         """FastAPI dependency: `filters: MemberListFilter = Depends(MemberListFilter.from_query)`."""
         # Called directly from Python too, where the Query() default is
         # still the marker object rather than a list.
         ids = tuple(ids) if isinstance(ids, (list, tuple)) else ()
-        return cls(search.strip(), include_inactive, active_only, email_info_only, tag.strip(), ids)
+        cf_field, cf_value = clean_filter(cf_field, cf_value)
+        return cls(search.strip(), include_inactive, active_only, email_info_only, tag.strip(), ids, cf_field, cf_value)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -93,7 +102,10 @@ class MemberListFilter:
 
     def without_ids(self) -> "MemberListFilter":
         """The same filter with the hand-picked selection dropped."""
-        return MemberListFilter(self.search, self.include_inactive, self.active_only, self.email_info_only, self.tag)
+        return MemberListFilter(
+            self.search, self.include_inactive, self.active_only, self.email_info_only, self.tag,
+            cf_field=self.cf_field, cf_value=self.cf_value,
+        )
 
     def query_string(self) -> str:
         """The filter as a query string (no leading '?', empty if
@@ -196,6 +208,10 @@ class MemberListFilter:
 
         if self.email_info_only:
             query = query.where(Member.email_notifications.is_(True))
+
+        custom = filter_condition(CustomFieldTarget.MEMBER, Member.id, self.cf_field, self.cf_value)
+        if custom is not None:
+            query = query.where(custom)
 
 
         if self.tag:

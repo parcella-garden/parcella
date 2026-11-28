@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_custom_fields.html" import view_card %}
 {% block title %}{{ member.full_name }}{% endblock %}
 {% block page_title %}{{ member.full_name }}{% endblock %}
 
@@ -88,6 +89,7 @@
                 </dl>
             </div>
         </div>
+        {{ view_card(custom_field_rows) }}
     </div>
 
     <!-- Kontakt -->

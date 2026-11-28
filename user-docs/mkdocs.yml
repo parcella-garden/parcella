@@ -127,6 +127,7 @@ plugins:
             Organising a work session: Einen Arbeitseinsatz organisieren
             Administration: Administration
             Club settings: Vereinseinstellungen
+            Custom fields: Eigene Felder
             Turning modules on and off: Module ein- und ausschalten
             Users and invitations: Benutzer und Einladungen
             Groups: Gruppen
@@ -183,6 +184,7 @@ plugins:
             Organising a work session: Organizacja terminu prac
             Administration: Administracja
             Club settings: Ustawienia stowarzyszenia
+            Custom fields: Własne pola
             Turning modules on and off: Włączanie i wyłączanie modułów
             Users and invitations: Użytkownicy i zaproszenia
             Groups: Grupy
@@ -239,6 +241,7 @@ plugins:
             Organising a work session: Organizace pracovní směny
             Administration: Administrace
             Club settings: Nastavení spolku
+            Custom fields: Vlastní pole
             Turning modules on and off: Zapínání a vypínání modulů
             Users and invitations: Uživatelé a pozvánky
             Groups: Skupiny
@@ -295,6 +298,7 @@ plugins:
             Organising a work session: Organizácia pracovnej zmeny
             Administration: Administrácia
             Club settings: Nastavenia spolku
+            Custom fields: Vlastné polia
             Turning modules on and off: Zapínanie a vypínanie modulov
             Users and invitations: Používatelia a pozvánky
             Groups: Skupiny
@@ -351,6 +355,7 @@ plugins:
             Organising a work session: Organiser une session de travail
             Administration: Administration
             Club settings: Paramètres de l'association
+            Custom fields: Champs personnalisés
             Turning modules on and off: Activer et désactiver les modules
             Users and invitations: Utilisateurs et invitations
             Groups: Groupes
@@ -407,6 +412,7 @@ plugins:
             Organising a work session: Een werksessie organiseren
             Administration: Administratie
             Club settings: Verenigingsinstellingen
+            Custom fields: Eigen velden
             Turning modules on and off: Modules in- en uitschakelen
             Users and invitations: Gebruikers en uitnodigingen
             Groups: Groepen
@@ -472,6 +478,7 @@ nav:
   - Administration:
       - administration/index.md
       - Club settings: administration/settings.md
+      - Custom fields: administration/custom-fields.md
       - Turning modules on and off: administration/modules.md
       - Users and invitations: administration/users.md
       - Groups: administration/groups.md
