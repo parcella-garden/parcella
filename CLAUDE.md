@@ -109,6 +109,14 @@ with `gh release create vX.Y.Z` and real release notes; the admin
 GitHub's `/releases/latest`, not just tags, so a pushed tag alone won't
 surface there.
 
+**Last step of every release (patch, minor, major): refresh the roadmap.**
+Publishing the release starts `.github/workflows/release-milestones.yml`
+(closes the shipped milestone, moves open issues on). Wait until that run
+is green (`gh run watch`), then run `../website/.deploy.sh` (the website
+repo, kermie's SSH key; it rebuilds parcella.org/roadmap/ from the
+milestones). Order matters: deploying before the milestones run finishes
+publishes the old roadmap. See docs/release-policy.md section 6.
+
 **The version bump must actually follow semantic versioning** --
 before picking the next number, look at what's actually shipping since
 the last tag: MAJOR for a breaking change, MINOR for new

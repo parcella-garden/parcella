@@ -26,7 +26,8 @@ release and a roadmap on parcella.org, generated, not maintained by hand.
   say 7.2.0.
 - **Issues only, not PRs:** the roadmap is about what users get, and an issue
   and its PR would otherwise count twice.
-- **The roadmap on parcella.org is static, generated on deploy** (website
+- **The roadmap on parcella.org is static, generated on deploy, and the
+  deploy is the last step of every release** (website
   repo, `tools/roadmap.py` run by `.deploy.sh`). Rejected: fetching the
   GitHub API from the visitor's browser. That would always be current, but
   it would send every visitor's IP address to GitHub, needing a new paragraph
@@ -39,4 +40,6 @@ release and a roadmap on parcella.org, generated, not maintained by hand.
 
 - An issue manually moved to another milestone is moved back on the next
   run. To change where an issue lands, change its label.
-- The roadmap is only as fresh as the last website deploy.
+- The roadmap is only as fresh as the last website deploy. The release
+  routine (CLAUDE.md "Releases") ends with that deploy, so a cron job or a
+  CI deploy key isn't needed.
