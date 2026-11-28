@@ -42,11 +42,20 @@ with the running instance.
 
 ## Automatically on every push
 
-`.github/workflows/tests.yml` runs the same test suite on every push and
-pull request on GitHub (its own isolated PostgreSQL instance as a GitHub
-Actions service, no Docker Compose needed on the CI side). A failed test
+`.github/workflows/ci.yml` runs `./run_tests.sh` (the same disposable
+`db_test` container as locally) on every pull request and every push to
+`main`; `release.yml` calls it before publishing an image. A failed test
 is visible directly in the pull request, before anything is merged into
-`main`.
+`main` (the `test` check is required, ADR 0119).
+
+**Docs-only changes skip the suite.** If every changed file is under
+`docs/` or `user-docs/` or ends in `.md`, the `test` job still runs and goes
+green within seconds, but doesn't start the suite: none of those files are
+mounted into the test container, so they can't change a test result. It's
+a skip inside the job, not `paths-ignore` on the workflow, because a
+workflow that never starts would leave the required check pending and
+block the merge. Anything unclear (API error, more than 300 files in a
+push, a release) runs the full suite.
 
 ## How the test database works
 
