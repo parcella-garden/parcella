@@ -1,0 +1,44 @@
+name: Release milestones
+
+# One milestone per upcoming release, derived from the `release: *` labels
+# (docs/release-policy.md section 6, ADR 0148). Every run recomputes all
+# unreleased labelled issues, so a missed event is fixed by the next one.
+# parcella.org/roadmap/ is generated from these milestones.
+
+on:
+  issues:
+    types: [labeled, unlabeled, closed, reopened]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: release-milestones
+  cancel-in-progress: false
+
+jobs:
+  milestones:
+    if: >-
+      github.repository == 'parcella-garden/parcella' &&
+      (github.event_name != 'issues' || github.event.issue.pull_request == null) &&
+      (!contains(fromJSON('["labeled","unlabeled"]'), github.event.action) ||
+       startsWith(github.event.label.name, 'release: ')) &&
+      (github.event_name != 'release' || !github.event.release.prerelease)
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+      TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 .github/scripts/release_milestones.py selftest
+      - name: Update the milestones
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = release ]; then
+            python3 .github/scripts/release_milestones.py release "$TAG"
+          else
+            python3 .github/scripts/release_milestones.py sync
+          fi
