@@ -58,7 +58,9 @@ custom_field_values    field_id, exactly one of member_id / parcel_id,
 ## Known gaps
 
 - Groups aren't repeatable (one pool per parcel).
-- No change history for custom-field values yet (the parcel history
-  only covers its own columns).
+- Every value change is written to `ChangeHistory` in `_write` (field
+  name `cf:<key>`, entity `Parcel`/`Member`, the acting user) -- form,
+  CSV import and API alike. The parcel page shows it with the field's
+  label; **the member page has no history view yet**.
 - Labels have no translations.
 - Only members and parcels.

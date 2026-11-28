@@ -360,13 +360,15 @@ wann der aktuelle Ordner stillgelegt wird und welcher Ordner an diesem Tag
 ### Änderungshistorie {#change-history}
 
 Erscheint erst, wenn etwas geändert wurde. Jede Änderung an Gartennummer,
-Fläche, Koordinaten, Status, Kündigungsnotiz oder Notizen wird festgehalten:
+Fläche, Koordinaten, Status, Kündigungsnotiz oder Notizen wird festgehalten,
+ebenso jede Änderung an einem [eigenen Feld](../administration/custom-fields.md)
+-- aus dem Formular, dem CSV-Import oder der API:
 
 | Spalte | Was sie zeigt |
 |---|---|
 | **Zeitpunkt** | Datum und Uhrzeit der Änderung. |
-| **Feld** | Der technische Name des geänderten Felds, z. B. *status* oder *area_sqm*. |
-| **Alter Wert** / **Neuer Wert** | Der Wert vorher und nachher. |
+| **Feld** | Der technische Name des geänderten Felds, z. B. *status* oder *area_sqm*. Ein eigenes Feld steht mit seiner Bezeichnung (und Einheit) da, z. B. **Durchmesser (cm)**. |
+| **Alter Wert** / **Neuer Wert** | Der Wert vorher und nachher; ein angehaktes Ja/Nein-Feld oder eine Gruppe steht als **Ja**, ein leeres als „–“. |
 | **Geändert von** | Der Benutzer, der die Änderung gemacht hat, oder **Unbekannt**. |
 
 Änderungen an Pachten erscheinen hier nicht -- die stehen in den

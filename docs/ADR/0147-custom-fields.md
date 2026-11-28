@@ -54,6 +54,11 @@ doesn't scale and is club-specific (CONTRIBUTING: genericity).
   a filter on the member and parcel lists (part of `MemberListFilter`,
   so stored announcement audiences and "Write to" work with it too),
   CSV export/import columns, and the REST API by key.
+- **Change history:** every value change goes into the existing
+  `ChangeHistory` (the generic audit log the parcel page shows) as
+  `cf:<key>`, with the acting user, from the form, the import and the
+  API alike -- one hook in the service's single write path. Keyed by the
+  fixed key, so renaming a field keeps its history together.
 - **Personal data:** member fields are personal data. They are not
   offered to AI interfaces (the MCP server has no access to them), in
   line with the no-personal-data-to-AI rule.

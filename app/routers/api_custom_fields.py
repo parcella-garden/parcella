@@ -62,10 +62,10 @@ async def _get(db, target, model, owner_id):
     return await cf.api_values(db, target, owner_id)
 
 
-async def _put(request, db, target, model, owner_id, changes):
+async def _put(request, db, target, model, owner_id, changes, user_id):
     await _owner_or_404(db, model, owner_id)
     try:
-        await cf.api_update(db, target, owner_id, changes)
+        await cf.api_update(db, target, owner_id, changes, user_id)
     except ServiceError as e:
         await db.rollback()
         raise _error(request, e)
@@ -94,7 +94,7 @@ async def member_custom_fields_update(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission("members_parcels", "write")),
 ):
-    return await _put(request, db, CustomFieldTarget.MEMBER, Member, member_id, changes)
+    return await _put(request, db, CustomFieldTarget.MEMBER, Member, member_id, changes, user.id)
 
 
 @router.get("/parcels/{parcel_id}/custom-fields", response_model=Dict[str, Any], summary="A parcel's custom field values")
@@ -112,4 +112,4 @@ async def parcel_custom_fields_update(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_api_permission("members_parcels", "write")),
 ):
-    return await _put(request, db, CustomFieldTarget.PARCEL, Parcel, parcel_id, changes)
+    return await _put(request, db, CustomFieldTarget.PARCEL, Parcel, parcel_id, changes, user.id)

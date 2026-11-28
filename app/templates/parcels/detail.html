@@ -539,11 +539,15 @@
                         </thead>
                         <tbody>
                             {% for a in changes %}
+                            {#- Issue #443: custom fields are logged as "cf:<key>" -- shown with
+                                their label, a ticked yes/no as "Yes". A deleted field keeps its key. -#}
+                            {% set cfield = custom_field_names.get(a.field_name) if custom_field_names else none %}
+                            {% set yes_no = cfield and cfield.kind.name in ('CHECKBOX', 'GROUP') %}
                             <tr>
                                 <td class="text-muted" style="font-size: 0.82rem;">{{ a.changed_at.strftime('%d.%m.%Y %H:%M') }}</td>
-                                <td><code style="font-size: 0.8rem;">{{ a.field_name }}</code></td>
-                                <td class="text-muted">{{ a.old_value or '–' }}</td>
-                                <td class="fw-semibold">{{ a.new_value or '–' }}</td>
+                                <td>{% if cfield %}{{ cfield.label }}{% if cfield.unit %} ({{ cfield.unit }}){% endif %}{% else %}<code style="font-size: 0.8rem;">{{ a.field_name }}</code>{% endif %}</td>
+                                <td class="text-muted">{{ (t('custom_fields.yes') if yes_no and a.old_value else a.old_value) or '–' }}</td>
+                                <td class="fw-semibold">{{ (t('custom_fields.yes') if yes_no and a.new_value else a.new_value) or '–' }}</td>
                                 <td class="text-muted" style="font-size: 0.82rem;">
                                     {{ a.changed_by.name if a.changed_by else t('parcels.detail.unknown_author') }}
                                 </td>

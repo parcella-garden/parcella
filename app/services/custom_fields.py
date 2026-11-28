@@ -14,7 +14,7 @@ from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.l10n import parse_decimal
-from app.models import CustomField, CustomFieldKind, CustomFieldTarget, CustomFieldValue
+from app.models import ChangeHistory, CustomField, CustomFieldKind, CustomFieldTarget, CustomFieldValue
 from app.services.errors import ServiceError
 from app.website_connectors.markdown_folder import slugify
 
@@ -291,7 +291,8 @@ def parse_input(field: CustomField, text: Optional[str]):
     return text
 
 
-async def save_values(db: AsyncSession, target: CustomFieldTarget, owner_id: str, submitted: Dict[str, Optional[str]]) -> None:
+async def save_values(db: AsyncSession, target: CustomFieldTarget, owner_id: str, submitted: Dict[str, Optional[str]],
+                      user_id: Optional[str] = None) -> None:
     """Writes the values of all active fields from `submitted`
     ({field_id: text}; a missing checkbox means "no"). Everything is
     validated before anything is written. An unticked group clears its
@@ -308,17 +309,18 @@ async def save_values(db: AsyncSession, target: CustomFieldTarget, owner_id: str
             raise ServiceError("custom_fields.errors.required", label=f.label)
     existing = await load_values(db, target, owner_id)
     for field_id, value in parsed.items():
-        await _write(db, target, owner_id, by_id[field_id], existing, value)
+        await _write(db, target, owner_id, by_id[field_id], existing, value, user_id)
     await db.flush()
 
 
-async def save_form_values(db: AsyncSession, target: CustomFieldTarget, owner_id: str, form) -> None:
+async def save_form_values(db: AsyncSession, target: CustomFieldTarget, owner_id: str, form,
+                           user_id: Optional[str] = None) -> None:
     """The custom-field part of a member/parcel edit form. A post without
     the marker (an older form, a script) leaves the values alone."""
     if form.get(FORM_MARKER) != "1":
         return
     submitted = {k[len(FORM_PREFIX):]: v for k, v in form.items() if k.startswith(FORM_PREFIX)}
-    await save_values(db, target, owner_id, submitted)
+    await save_values(db, target, owner_id, submitted, user_id)
 
 
 def _is_empty(value) -> bool:
@@ -465,7 +467,8 @@ def _parse_csv_bool(text: str) -> bool:
     return text.strip().lower() in ("ja", "yes", "true", "1", "x", "oui", "tak", "ano", "áno")
 
 
-async def import_values(db: AsyncSession, target: CustomFieldTarget, owner_id: str, cells: Dict[str, str]) -> bool:
+async def import_values(db: AsyncSession, target: CustomFieldTarget, owner_id: str, cells: Dict[str, str],
+                        user_id: Optional[str] = None) -> bool:
     """Applies one row's custom-field cells. Like the rest of the import,
     only what the file says (issue #352): empty cells change nothing.
     A filled-in sub-field ticks its group; a group set to "no" clears
@@ -492,18 +495,42 @@ async def import_values(db: AsyncSession, target: CustomFieldTarget, owner_id: s
         field = fields[field_id]
         if field.kind == CustomFieldKind.GROUP and value is False:
             for child in (f for f in fields.values() if f.parent_id == field_id):
-                if child.id in existing:
-                    await db.delete(existing.pop(child.id))
-        await _write(db, target, owner_id, field, existing, value)
+                await _write(db, target, owner_id, child, existing, None, user_id)
+        await _write(db, target, owner_id, field, existing, value, user_id)
     await db.flush()
     return True
 
 
+HISTORY_PREFIX = "cf:"  # ChangeHistory.field_name of a custom field: "cf:<key>"
+HISTORY_ENTITY = {CustomFieldTarget.MEMBER: "Member", CustomFieldTarget.PARCEL: "Parcel"}
+
+
+def history_text(field: CustomField, value) -> Optional[str]:
+    """A value as the change history stores it: "true" for a ticked
+    yes/no, plain numbers, ISO dates; None for empty."""
+    if _is_empty(value):
+        return None
+    if field.kind in (CustomFieldKind.CHECKBOX, CustomFieldKind.GROUP):
+        return "true"
+    if isinstance(value, Decimal):
+        return format(value.normalize(), "f")
+    if isinstance(value, date):
+        return value.isoformat()
+    return str(value)
+
+
 async def _write(db: AsyncSession, target: CustomFieldTarget, owner_id: str, field: CustomField,
-                 existing: Dict[str, CustomFieldValue], value) -> None:
+                 existing: Dict[str, CustomFieldValue], value, user_id: Optional[str] = None) -> None:
     """Stores one parsed value. A row only exists for a ticked yes/no or a
-    filled-in field, so "no" and empty remove it."""
+    filled-in field, so "no" and empty remove it. Every real change goes
+    into the change history (issue #443), like a parcel's own fields."""
     row = existing.get(field.id)
+    old, new = history_text(field, raw_value(field, row)), history_text(field, value)
+    if old != new:
+        db.add(ChangeHistory(
+            entity_type=HISTORY_ENTITY[target], entity_id=owner_id, field_name=HISTORY_PREFIX + field.key,
+            old_value=old, new_value=new, changed_by_id=user_id,
+        ))
     if _is_empty(value):
         if row is not None:
             await db.delete(existing.pop(field.id))
@@ -569,7 +596,8 @@ def _api_parse(field: CustomField, value):
     return parse_input(field, _api_text(field, value))
 
 
-async def api_update(db: AsyncSession, target: CustomFieldTarget, owner_id: str, changes: dict) -> None:
+async def api_update(db: AsyncSession, target: CustomFieldTarget, owner_id: str, changes: dict,
+                     user_id: Optional[str] = None) -> None:
     """Sets the given keys only; None / false clears a value. A filled-in
     sub-field ticks its group, a group set to false clears its sub-fields,
     and a required field can't be cleared while its group is on. Unknown
@@ -602,9 +630,15 @@ async def api_update(db: AsyncSession, target: CustomFieldTarget, owner_id: str,
         field = by_id[field_id]
         if field.kind == CustomFieldKind.GROUP and not value:
             for child in (f for f in fields if f.parent_id == field_id):
-                if child.id in existing and child.id not in parsed:
-                    await db.delete(existing.pop(child.id))
+                if child.id not in parsed:
+                    await _write(db, target, owner_id, child, existing, None, user_id)
         if field.parent_id and not is_on(field):
             value = None  # a sub-field of a group that is (being set) off
-        await _write(db, target, owner_id, field, existing, value)
+        await _write(db, target, owner_id, field, existing, value, user_id)
     await db.flush()
+
+
+async def history_fields(db: AsyncSession, target: CustomFieldTarget) -> Dict[str, CustomField]:
+    """{"cf:<key>": field} for showing change-history entries with the
+    field's label -- archived fields too, their history stays readable."""
+    return {HISTORY_PREFIX + f.key: f for f in await list_fields(db, target, include_archived=True)}

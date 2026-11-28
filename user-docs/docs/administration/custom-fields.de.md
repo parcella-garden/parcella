@@ -115,6 +115,12 @@ archiviere es lieber.
 Nimmst du im Formular den Haken einer Gruppe weg, werden die Felder
 darin geleert: kein Pool, keine Poolmaße.
 
+Jede Änderung an einem eigenen Feld einer Parzelle steht in der
+[Änderungshistorie](../modules/parcels.md#change-history) der Parzelle,
+mit der Person, die sie gemacht hat. Änderungen an eigenen Feldern von Mitgliedern
+werden auch festgehalten, die Mitgliederseite zeigt aber noch keine
+Historie.
+
 ## Siehe auch {#related}
 
 - [Mitglieder](../modules/members.md)

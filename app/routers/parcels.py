@@ -167,7 +167,7 @@ async def parcel_create(
         parcel = await create_parcel(
             db, plot_number=plot_number, area_sqm=area, latitude=lat, longitude=lng, notes=notes,
         )
-        await cf.save_form_values(db, CustomFieldTarget.PARCEL, parcel.id, await request.form())
+        await cf.save_form_values(db, CustomFieldTarget.PARCEL, parcel.id, await request.form(), user.id)
     except ServiceError as e:
         return templates.TemplateResponse(
             request, "parcels/form.html",
@@ -300,6 +300,7 @@ async def parcel_detail(
             "all_members_json": all_members_json,
             "changes": changes,
             "custom_field_rows": await cf.view_rows(db, CustomFieldTarget.PARCEL, parcel.id),
+            "custom_field_names": await cf.history_fields(db, CustomFieldTarget.PARCEL),
             "ParcelStatus": ParcelStatus,
             "cloud_storage_enabled": cloud_storage_enabled,
             "cloud_folder": cloud_folder,
@@ -391,7 +392,7 @@ async def parcel_update(
             plot_number=plot_number, area_sqm=area, latitude=lat, longitude=lng, status=new_status,
             termination_note=termination_note, notes=notes,
         )
-        await cf.save_form_values(db, CustomFieldTarget.PARCEL, parcel_id, await request.form())
+        await cf.save_form_values(db, CustomFieldTarget.PARCEL, parcel_id, await request.form(), user.id)
     except ServiceError as e:
         return templates.TemplateResponse(
             request, "parcels/form.html",
@@ -824,7 +825,7 @@ async def parcels_import_finalize(
     sole dedup key, comma-decimal float parsing, status coercion -- are
     unchanged, just fed from the mapped dict instead of a literal
     DictReader header lookup."""
-    await require_permission(request, db, "members_parcels", "write")
+    user = await require_permission(request, db, "members_parcels", "write")
 
     form = await request.form()
     custom_targets, _, _ = await cf.import_targets(db, CustomFieldTarget.PARCEL)
@@ -843,7 +844,7 @@ async def parcels_import_finalize(
     async def import_custom(parcel_id: str, row_number: int) -> bool:
         """Issue #443: the row's custom-field columns, only the filled-in ones."""
         try:
-            return await cf.import_values(db, CustomFieldTarget.PARCEL, parcel_id, cf.import_cells(values))
+            return await cf.import_values(db, CustomFieldTarget.PARCEL, parcel_id, cf.import_cells(values), user.id)
         except ServiceError as e:
             custom_errors.append(t_for(request, "custom_fields.csv_row_error", row=row_number,
                                        message=t_for(request, e.key, **e.params)))

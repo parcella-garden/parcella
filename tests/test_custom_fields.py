@@ -124,9 +124,11 @@ async def test_archive_keeps_values_and_kind_locks(client, admin_user):
     assert f"cf_{shed.id}" not in form and f"cf_{area.id}" not in form
     await client.post(f"/parcels/{parcel_id}/edit", data={"plot_number": "CF-2", "custom_fields_present": "1"})
     assert len(await _values(parcel_id=parcel_id)) == 2
-    assert "Floor area" not in (await client.get(f"/parcels/{parcel_id}")).text
+    # Gone from "Further details"; its change history stays readable.
+    assert '<dt class="col-sm-5 fw-normal ps-4">Floor area</dt>' not in (await client.get(f"/parcels/{parcel_id}")).text
     await client.post(f"/admin/custom-fields/{shed.id}/restore")
-    assert "12 m²" in (await client.get(f"/parcels/{parcel_id}")).text
+    restored = (await client.get(f"/parcels/{parcel_id}")).text
+    assert '<dt class="col-sm-5 fw-normal ps-4">Floor area</dt>' in restored and "12 m²" in restored
 
 
 async def test_admin_rules(client, admin_user):
@@ -362,3 +364,53 @@ async def test_year_field(client, admin_user):
     assert (await client.put(url, json={"built-in": 2021}, headers=headers)).json()["built-in"] == 2021
     assert (await client.put(url, json={"built-in": "1998"}, headers=headers)).json()["built-in"] == 1998
     assert (await client.put(url, json={"built-in": 19.5}, headers=headers)).status_code == 422
+
+
+async def test_changes_go_into_the_change_history(client, admin_user):
+    from app.models import ChangeHistory
+    from tests.conftest import auth_header, login
+    await web_login(client, "admin@example.com")
+    pool = await _add(client, "PARCEL", "Pool", "GROUP")
+    diameter = await _add(client, "PARCEL", "Diameter", "NUMBER", parent_id=pool.id, unit="cm")
+    occupation = await _add(client, "MEMBER", "Occupation", "TEXT")
+    async with AsyncSessionLocal() as db:
+        parcel, member = Parcel(plot_number="CF-H1"), Member(first_name="Hans", last_name="History")
+        db.add_all([parcel, member])
+        await db.commit()
+        parcel_id, member_id = parcel.id, member.id
+    base = {"plot_number": "CF-H1", "custom_fields_present": "1"}
+
+    async def history(entity_type, owner_id):
+        async with AsyncSessionLocal() as db:
+            rows = (await db.scalars(select(ChangeHistory).where(
+                ChangeHistory.entity_type == entity_type, ChangeHistory.entity_id == owner_id,
+                ChangeHistory.field_name.startswith("cf:"),
+            ).order_by(ChangeHistory.changed_at, ChangeHistory.field_name))).all()
+            return [(r.field_name, r.old_value, r.new_value, r.changed_by_id) for r in rows]
+
+    await client.post(f"/parcels/{parcel_id}/edit", data={**base, f"cf_{pool.id}": "1", f"cf_{diameter.id}": "300"})
+    # Saving again unchanged logs nothing.
+    await client.post(f"/parcels/{parcel_id}/edit", data={**base, f"cf_{pool.id}": "1", f"cf_{diameter.id}": "300"})
+    assert sorted(await history("Parcel", parcel_id)) == [
+        ("cf:diameter", None, "300", admin_user.id), ("cf:pool", None, "true", admin_user.id),
+    ]
+    await client.post(f"/parcels/{parcel_id}/edit", data={**base, f"cf_{pool.id}": "1", f"cf_{diameter.id}": "350"})
+    await client.post(f"/parcels/{parcel_id}/edit", data=base)  # untick the group: both cleared
+    entries = await history("Parcel", parcel_id)
+    assert ("cf:diameter", "300", "350", admin_user.id) in entries
+    assert ("cf:diameter", "350", None, admin_user.id) in entries and ("cf:pool", "true", None, admin_user.id) in entries
+
+    page = " ".join((await client.get(f"/parcels/{parcel_id}")).text.split())
+    assert "Diameter (cm)" in page and "cf:diameter" not in page
+    assert "Yes" in page  # the group's old value
+
+    # The CSV import and the API log too, with who did it.
+    await client.post("/parcels/import/finalize", data={
+        "csv_content_b64": _b64("Gartennummer;Diameter\nCF-H1;280\n"), "delimiter": ";",
+        "map_0": "plot_number", "map_1": f"cf:{diameter.id}",
+    })
+    headers = auth_header(await login(client, "admin@example.com"))
+    await client.put(f"/api/v1/members/{member_id}/custom-fields", json={"occupation": "Baker"}, headers=headers)
+    entries = await history("Parcel", parcel_id)
+    assert ("cf:diameter", None, "280", admin_user.id) in entries and ("cf:pool", None, "true", admin_user.id) in entries
+    assert await history("Member", member_id) == [("cf:occupation", None, "Baker", admin_user.id)]

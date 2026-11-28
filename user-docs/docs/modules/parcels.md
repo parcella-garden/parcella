@@ -354,13 +354,15 @@ day.
 
 Only shown once something has been changed. Every change to the plot
 number, area, coordinates, status, termination note or notes is
-recorded:
+recorded, and so is every change to a
+[custom field](../administration/custom-fields.md) -- from the form,
+the CSV import or the API:
 
 | Column | What it shows |
 |---|---|
 | **Timestamp** | Date and time of the change. |
-| **Field** | The technical name of the changed field, e.g. *status* or *area_sqm*. |
-| **Old value** / **New value** | The value before and after. |
+| **Field** | The technical name of the changed field, e.g. *status* or *area_sqm*. A custom field shows its label (and unit), e.g. **Diameter (cm)**. |
+| **Old value** / **New value** | The value before and after; a ticked yes/no or group shows as **Yes**, an empty one as "–". |
 | **Changed by** | The user who made the change, or **Unknown**. |
 
 Changes to tenancies don't appear here -- they show in the tenant

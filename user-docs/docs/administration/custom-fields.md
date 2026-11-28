@@ -113,6 +113,11 @@ archive it instead.
 Unticking a group on the form clears the fields inside it: no pool, no
 pool measurements.
 
+Every change to a parcel's custom field is recorded in the parcel's
+[change history](../modules/parcels.md), with who made it. Changes to
+members' custom fields are recorded too, but the member page has no
+history view yet.
+
 ## Related
 
 - [Members](../modules/members.md)

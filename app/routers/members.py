@@ -183,11 +183,11 @@ async def _sync_form_tags(request: Request, db: AsyncSession, member_id: str) ->
     return True
 
 
-async def _save_custom_fields(request: Request, db: AsyncSession, member_id: str) -> Optional[str]:
+async def _save_custom_fields(request: Request, db: AsyncSession, member_id: str, user_id: str) -> Optional[str]:
     """The form's custom-field card (issue #443). Returns the error message
     if a value doesn't fit; nothing of this save is kept then."""
     try:
-        await cf.save_form_values(db, CustomFieldTarget.MEMBER, member_id, await request.form())
+        await cf.save_form_values(db, CustomFieldTarget.MEMBER, member_id, await request.form(), user_id)
     except ServiceError as e:
         await db.rollback()
         return t_for(request, e.key, **e.params)
@@ -223,7 +223,7 @@ async def member_create(
     notes: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
-    await require_permission(request, db, "members_parcels", "write")
+    user = await require_permission(request, db, "members_parcels", "write")
 
     def parse_date(s: str) -> Optional[date]:
         if s:
@@ -245,7 +245,7 @@ async def member_create(
         await add_email(db, member.id, address=email.strip(), is_primary=True)
     if phone.strip():
         await add_phone(db, member.id, number=phone.strip(), is_primary=True)
-    error = await _save_custom_fields(request, db, member.id)
+    error = await _save_custom_fields(request, db, member.id, user.id)
     if error:
         return RedirectResponse(f"/members/new?error={urllib.parse.quote(error)}", status_code=303)
     if not await _sync_form_tags(request, db, member.id):
@@ -456,7 +456,7 @@ async def member_update(
     notes: str = Form(""),
     db: AsyncSession = Depends(get_db),
 ):
-    await require_permission(request, db, "members_parcels", "write")
+    user = await require_permission(request, db, "members_parcels", "write")
     member = await _get_member_with_details(db, member_id)
 
     if not member:
@@ -478,7 +478,7 @@ async def member_update(
         email_notifications=email_notifications,
         birthday_present_declined=birthday_present_declined, notes=notes,
     )
-    error = await _save_custom_fields(request, db, member_id)
+    error = await _save_custom_fields(request, db, member_id, user.id)
     if error:
         return RedirectResponse(f"/members/{member_id}/edit?error={urllib.parse.quote(error)}", status_code=303)
     if not await _sync_form_tags(request, db, member_id):
@@ -782,7 +782,7 @@ async def members_import_finalize(
     update-or-create, email/phone seeding only on create -- are
     unchanged, just fed from the mapped dict instead of a literal
     DictReader header lookup."""
-    await require_permission(request, db, "members_parcels", "write")
+    user = await require_permission(request, db, "members_parcels", "write")
 
     form = await request.form()
     custom_targets, _, _ = await cf.import_targets(db, CustomFieldTarget.MEMBER)
@@ -847,7 +847,7 @@ async def members_import_finalize(
 
         # Issue #443: custom-field columns, only the filled-in ones.
         try:
-            await cf.import_values(db, CustomFieldTarget.MEMBER, member.id, cf.import_cells(values))
+            await cf.import_values(db, CustomFieldTarget.MEMBER, member.id, cf.import_cells(values), user.id)
         except ServiceError as e:
             errors.append(t_for(request, "custom_fields.csv_row_error", row=row_number, message=t_for(request, e.key, **e.params)))
 
