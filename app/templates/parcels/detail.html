@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_custom_fields.html" import view_card %}
+{% from "_custom_fields.html" import view_card with context %}
 {% block title %}{{ t('parcels.detail.page_title', plot_number=parcel.plot_number) }}{% endblock %}
 {% block page_title %}{{ t('parcels.detail.page_title', plot_number=parcel.plot_number) }}{% endblock %}
 
@@ -34,8 +34,10 @@
 <div class="row g-3">
 
     <!-- Stammdaten -->
-    <div class="col-lg-5">
-        <div class="card h-100">
+    {#- A flex column, not h-100 on the card: a card with height:100% pushed
+        the cards below it (custom fields, processes) out of the column. -#}
+    <div class="col-lg-5 d-flex flex-column">
+        <div class="card flex-grow-1">
             <div class="card-header"><i class="bi bi-grid-3x3 me-2"></i>{{ t('parcels.detail.details_header') }}</div>
             <div class="card-body">
                 <dl class="row mb-0">

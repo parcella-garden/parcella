@@ -108,3 +108,17 @@ async def test_parcel_list_is_paged_and_all_matching_uses_the_filter(client, adm
 
     # Without all_matching, an empty selection is still refused.
     assert (await client.get("/announcements/new", params={"audience_kind": "parcels"})).status_code == 400
+    assert (await client.get("/announcements/new", params={"audience_kind": "parcels"})).status_code == 400
+
+
+async def test_pager_follows_the_club_language(client, admin_user):
+    """The macro is imported `with context`: without it t() can't see the
+    request and the pager came out in English on a German page."""
+    from app.models import ClubSetting
+    await web_login(client, "admin@example.com")
+    await _members(105)
+    async with AsyncSessionLocal() as db:
+        db.add(ClubSetting(key="language", value="de", description="test"))
+        await db.commit()
+    page = (await client.get("/members/")).text
+    assert "Seite 1 von 2" in page and "Page 1 of 2" not in page

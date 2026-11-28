@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_custom_fields.html" import form_card %}
+{% from "_custom_fields.html" import form_card with context %}
 {% block title %}{% if member %}{{ t('members.form.title_edit', name=member.full_name) }}{% else %}{{ t('members.form.title_new') }}{% endif %}{% endblock %}
 {% block page_title %}{% if member %}{{ t('members.form.heading_edit') }}{% else %}{{ t('members.form.heading_new') }}{% endif %}{% endblock %}
 

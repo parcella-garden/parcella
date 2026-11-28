@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_custom_fields.html" import form_card %}
+{% from "_custom_fields.html" import form_card with context %}
 {% block title %}{% if parcel %}{{ t('parcels.form.title_edit', plot_number=parcel.plot_number) }}{% else %}{{ t('parcels.form.title_new') }}{% endif %}{% endblock %}
 {% block page_title %}{% if parcel %}{{ t('parcels.form.heading_edit') }}{% else %}{{ t('parcels.form.heading_new') }}{% endif %}{% endblock %}
 

@@ -414,3 +414,22 @@ async def test_changes_go_into_the_change_history(client, admin_user):
     entries = await history("Parcel", parcel_id)
     assert ("cf:diameter", None, "280", admin_user.id) in entries and ("cf:pool", None, "true", admin_user.id) in entries
     assert await history("Member", member_id) == [("cf:occupation", None, "Baker", admin_user.id)]
+
+
+async def test_cards_follow_the_club_language(client, admin_user):
+    """The macros are imported `with context`: without it t() can't see the
+    request and every custom-field text came out in English on a German page."""
+    from app.models import ClubSetting
+    await web_login(client, "admin@example.com")
+    shed = await _add(client, "PARCEL", "Gartenlaube", "GROUP")
+    async with AsyncSessionLocal() as db:
+        db.add(ClubSetting(key="language", value="de", description="test"))
+        parcel = Parcel(plot_number="CF-DE")
+        db.add(parcel)
+        await db.commit()
+        parcel_id = parcel.id
+    await client.post(f"/parcels/{parcel_id}/edit", data={"plot_number": "CF-DE", "custom_fields_present": "1", f"cf_{shed.id}": "1"})
+    detail = (await client.get(f"/parcels/{parcel_id}")).text
+    assert "Weitere Angaben" in detail and "Further details" not in detail and ">Ja</dd>" in detail
+    assert "Weitere Angaben" in (await client.get(f"/parcels/{parcel_id}/edit")).text
+    assert "– eigenes Feld –" in (await client.get("/parcels/")).text

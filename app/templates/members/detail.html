@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_custom_fields.html" import view_card %}
+{% from "_custom_fields.html" import view_card with context %}
 {% block title %}{{ member.full_name }}{% endblock %}
 {% block page_title %}{{ member.full_name }}{% endblock %}
 
@@ -39,8 +39,10 @@
 <div class="row g-3">
 
     <!-- Stammdaten -->
-    <div class="col-lg-6">
-        <div class="card h-100">
+    {#- A flex column, not h-100 on the card: a card with height:100% pushed
+        the custom-field card below it out of the column, under the next row. -#}
+    <div class="col-lg-6 d-flex flex-column">
+        <div class="card flex-grow-1">
             <div class="card-header"><i class="bi bi-person me-2"></i>{{ t('members.detail.master_data_header') }}</div>
             <div class="card-body">
                 <dl class="row mb-0">

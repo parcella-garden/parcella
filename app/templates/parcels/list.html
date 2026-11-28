@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% from "_pagination.html" import pagination %}
-{% from "_custom_fields.html" import custom_field_filter %}
+{% from "_pagination.html" import pagination with context %}
+{% from "_custom_fields.html" import custom_field_filter with context %}
 {% block title %}{{ t('parcels.list.title') }}{% endblock %}
 {% block page_title %}{{ t('parcels.list.title') }}{% endblock %}
 
